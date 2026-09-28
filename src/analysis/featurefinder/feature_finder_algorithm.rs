@@ -88,7 +88,8 @@ impl Summary {
         }
         let position = self.mz_stdev.partition_point(|(key, _)| *key < stdev);
         match self.mz_stdev.get_mut(position) {
-            Some((key, count)) if !(stdev < *key) => *count = count.saturating_add(1),
+            // Not less than stdev (partition point) and stdev not less than it.
+            Some((key, count)) if stdev >= *key => *count = count.saturating_add(1),
             _ => self.mz_stdev.insert(position, (stdev, 1)),
         }
         Ok(())

@@ -639,6 +639,9 @@ impl Fitter1D for EmgFitter1D {
     /// Only what building a model refuses (a bounding box beyond
     /// [`super::base_model::MAX_SAMPLES`] samples) and the optimiser's resource
     /// ceilings; the source has neither.
+    // The source's guards are NaN-sensitive (`!(span > 0.0)` is true for NaN);
+    // they are transcribed literally rather than through `partial_cmp`.
+    #[allow(clippy::neg_cmp_op_on_partial_ord)]
     fn fit1d(&self, set: &[Peak1D]) -> Result<(QualityType, Model1D)> {
         let n = set.len();
         if n < 4 {
@@ -811,10 +814,11 @@ pub struct IsotopeFitter1D {
 impl Default for IsotopeFitter1D {
     /// The source defaults.
     fn default() -> Self {
-        let mut core = Fitter1DCore::default();
-        core.interpolation_step = 0.1;
         Self {
-            core,
+            core: Fitter1DCore {
+                interpolation_step: 0.1,
+                ..Fitter1DCore::default()
+            },
             charge: 1.0,
             isotope_stdev: 1.0,
             max_isotope: 100,

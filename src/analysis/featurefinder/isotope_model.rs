@@ -152,7 +152,8 @@ fn stretch(isotopes: &[f64], distance: f64, step: f64, charge: f64) -> Result<Ve
 fn shape_grid(width: f64, step: f64) -> Result<Vec<f64>> {
     let mut coordinates = Vec::new();
     let mut coord = -width;
-    if !(coord <= width) {
+    // A NaN width gives no point, as the source's loop condition.
+    if coord.is_nan() || width.is_nan() || coord > width {
         return Ok(coordinates);
     }
     let estimate = 2.0 * width / step;

@@ -395,9 +395,11 @@ pub fn max_likeli_fit_offset<M: InterpolationModel + ?Sized>(
     if offset_min <= offset_max {
         let steps = (offset_max - offset_min) / offset_step;
         let work = (steps + 2.0) * set.len().max(1) as f64;
-        if !(offset_step > 0.0 && steps.is_finite() && steps < MAX_SAMPLES as f64)
-            || !(work < MAX_OFFSET_WORK as f64)
-        {
+        let bounded = offset_step > 0.0
+            && steps.is_finite()
+            && steps < MAX_SAMPLES as f64
+            && work < MAX_OFFSET_WORK as f64;
+        if !bounded {
             return Err(Error::InvalidValue(format!(
                 "the offset scan from {offset_min} to {offset_max} at step {offset_step} never \
                  ends or exceeds its work ceiling"
