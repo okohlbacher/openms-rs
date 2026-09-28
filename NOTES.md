@@ -57,3 +57,7 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 ## Incarnation 5 (started)
 - Branch now worktree-wf_cd066dab-0a7-10 (fast-forwarded onto wf_ee239125-5be-15 @ 06e47f9).
 - HEAD has src/format/rational_scan2im_converter.rs (570 lines, lead-saved WIP, ungated).
+
+## Incarnation 7 (started)
+- Incarnation 6 left uncommitted: src/format/bruker_tims_imaging_file.rs draft (unwired, ungated), tests/support/tdf_fixture.rs (shared fixture), THIRD_PARTY rows for opentims/HDF5/Thermo. Committed as 93c4d197.
+- Next: finish+wire+gate BrukerTimsImagingFile; docs/BRUKER_TIMS_SUPPORT.md; decide HDF5/Thermo/ImzML (record partial); report + ledger.
