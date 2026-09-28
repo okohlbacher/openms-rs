@@ -6,5 +6,7 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// `ConsensusIDAlgorithm` and its eight variants.
 pub mod consensus_id;
+/// `NeedlemanWunsch` (`ANALYSIS/SEQUENCE`), used by the PEPMatrix consensus.
 pub mod needleman_wunsch;

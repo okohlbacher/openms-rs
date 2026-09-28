@@ -21,7 +21,14 @@ Code goes in src/analysis/id/ (append `pub mod` to src/analysis/id.rs only).
 - Similarity: `*max_element` on empty other-run hits = UB (defect cand.); continue-path uses unprefixed score type (inconsistency).
 - NeedlemanWunsch NOT ported (needed by PEPMatrix).
 
+## Done (committed)
+- src/analysis/id/consensus_id.rs (all 9 ConsensusID headers) + needleman_wunsch.rs (NW matrices verified vs source by script)
+- tests/consensus_id.rs: class tests + TOPP ConsensusID_1/4/5/6 via idXML (tests/data/ConsensusID_*; test-data dir HEAD is bad3c3c,
+  NOT 0cb15f2 and cannot be checked locally -> confirm by running the Release TOPP ConsensusID on ibminode06 as oracle).
+- Gate log: scratchpad/logs/t1.log (cargo test --lib --test consensus_id on dax, slot I1)
+- Release install on ibminode06 has bin/ConsensusID, IDMerger, IDScoreSwitcher, IDDecoyProbability -> TOPP oracles possible.
+
 ## Next step
-1. Param pattern (src/processing/peak_picking.rs:1853-1985); read class tests for Average/Best/Worst/Ranks/PEPIons/PEPMatrix.
-2. Write src/analysis/id/consensus_id.rs (base + 8 variants as an enum/trait), then commit.
+1. Fix compile/test failures from t1.log; commit "[FEATURE,TEST,DOC] ConsensusID".
+2. Oracle ../oracle/I1-consensusid/ on ibminode06: run TOPP ConsensusID 1/4/5/6 twice; label host/build.
 3. Scores.h; IDScoreSwitcherAlgorithm; IDMergerAlgorithm; ConsensusMapMerger; IDDecoyProbability; PeptideProteinResolution.

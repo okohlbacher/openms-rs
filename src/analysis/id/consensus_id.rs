@@ -831,6 +831,8 @@ macro_rules! handler_param_api {
 macro_rules! identity_algorithm {
     ($(#[$doc:meta])* $type:ident, $name:literal, $aggregate:expr) => {
         $(#[$doc])*
+        ///
+        /// Built on the identity grouping: see [`ConsensusIDAlgorithm`].
         #[derive(Clone, Copy, Debug, Default, PartialEq)]
         pub struct $type {
             /// The shared `filter:` parameters.
