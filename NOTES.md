@@ -109,3 +109,6 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
   SWEEP_RESULT placeholder). Sweep2 (dax): all 24 [test] lines PASS; minimum-rust timed out (dax).
   Sweep3 (kim, min-rust+quality+portable) died on ssh. Next: rerun remaining jobs on dax, fill SWEEP_RESULT,
   delete NOTES.md, final commit.
+- [inc7] sweep4 (dax, min-rust+quality+portable) died on ssh too. Relaunching as sweep5 per job
+  (OPENMS_CI_JOBS=quality / portable-feature-graph / minimum-rust separately) on dax. Then fill
+  SWEEP_RESULT in the lane report, delete NOTES.md, final commit.
