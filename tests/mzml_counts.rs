@@ -592,9 +592,13 @@ fn all_path_entrypoints_use_shared_magic_and_compression_policy() {
     assert!(mzml::load_size_with_options(&gzip, &filtered(), &limits).is_err());
     let zip = dir.0.join("zip.mzML");
     std::fs::write(&zip, b"PK\x03\x04junk").unwrap();
+    // ZIP input now takes the source's libzip route (src/format/zip_input.rs).
+    // These are the bytes of tests/data/zip_input/junk_local_header.zip, for
+    // which the Release build's MzMLFile::loadSize throws ParseError (libzip
+    // cannot open the archive; tests/data/zip_input/oracle.tsv).
     assert!(matches!(
         mzml::load_size(zip),
-        Err(openms::Error::Unsupported(_))
+        Err(openms::Error::Parse { .. })
     ));
     assert!(mzml::load_size(dir.0.join("missing")).is_err());
 }

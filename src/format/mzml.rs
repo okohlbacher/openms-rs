@@ -301,6 +301,25 @@ pub struct ReadOptions {
     /// so a file read either way writes back to a file that reads back the same
     /// way.
     pub source_selected_ion_drift_time: bool,
+    /// Drop the spectrum term `MS:1003441` (ion mobility centroid frame), as
+    /// the executed source does.
+    ///
+    /// `MzMLHandler` has a branch that reads the term as `IM_CENTROIDED`
+    /// (`MzMLHandler.cpp:1646-1649`), and its writer emits the term for such a
+    /// spectrum (`:5290-5294`), but the pinned psi-ms CV (data-version
+    /// 4.1.155, byte-identical to `resources/cv/psi-ms.obo`) has no
+    /// `MS:1003441`. `XMLHandler::cvParamToValue` answers an unknown accession
+    /// with `DataValue::EMPTY` and `handleCVParam_` returns before any branch
+    /// (`:1537-1539`), so the Release build never reaches the one that sets
+    /// the type: a spectrum it wrote as centroided reads back as `IM_PROFILE`
+    /// when it has ion-mobility data and as `UNKNOWN` otherwise (executed on
+    /// ibminode06, `../oracle/B8a-mzml-im`).
+    ///
+    /// `false`, the default, reads the term as
+    /// [`IonMobilityPeakType::Centroid`], so what the writer records survives
+    /// a round trip. `true` selects the source behaviour and is part of
+    /// [`ReadOptions::source`].
+    pub source_im_centroid_frame: bool,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
@@ -322,6 +341,7 @@ impl Default for ReadOptions {
             source_time_array_precision: false,
             source_nonfinite_float_arrays: false,
             source_selected_ion_drift_time: false,
+            source_im_centroid_frame: false,
         }
     }
 }
@@ -329,8 +349,9 @@ impl ReadOptions {
     /// The default limits with every source-compatibility switch enabled.
     ///
     /// Sets [`ReadOptions::source_dangling_references`],
-    /// [`ReadOptions::source_time_array_precision`] and
-    /// [`ReadOptions::source_selected_ion_drift_time`] on top of the default
+    /// [`ReadOptions::source_time_array_precision`],
+    /// [`ReadOptions::source_selected_ion_drift_time`] and
+    /// [`ReadOptions::source_im_centroid_frame`] on top of the default
     /// [`ReadOptions::source_invalid_timestamps`], so a document reads as
     /// source `MzMLHandler` reads it wherever this port otherwise refuses a
     /// loss, keeps precision the source drops or keeps a value where the
@@ -343,6 +364,7 @@ impl ReadOptions {
             source_invalid_timestamps: true,
             source_time_array_precision: true,
             source_selected_ion_drift_time: true,
+            source_im_centroid_frame: true,
             ..Self::default()
         }
     }
@@ -1085,6 +1107,8 @@ struct Record {
     nonfinite_float_arrays: bool,
     /// [`ReadOptions::source_selected_ion_drift_time`].
     selected_ion_drift_time: bool,
+    /// [`ReadOptions::source_im_centroid_frame`].
+    drop_im_centroid_frame: bool,
     primary_metadata: [crate::metadata::MetaInfo; 2],
     intensity_first: bool,
     wavelength: Option<(usize, usize)>,
@@ -1363,11 +1387,16 @@ impl Record {
                     .spectrum_type = SpectrumType::Unknown
             }
             ("spectrum", "MS:1003441") => {
-                // MzMLHandler.cpp:1646-1649: ion mobility centroid frame.
-                self.spectrum
+                // MzMLHandler.cpp:1646-1649: ion mobility centroid frame; the
+                // executed source never gets here (see
+                // ReadOptions::source_im_centroid_frame).
+                let spectrum = self
+                    .spectrum
                     .as_mut()
-                    .ok_or_else(|| invalid("ion mobility centroid frame outside spectrum"))?
-                    .im_peak_type = IonMobilityPeakType::Centroid
+                    .ok_or_else(|| invalid("ion mobility centroid frame outside spectrum"))?;
+                if !self.drop_im_centroid_frame {
+                    spectrum.im_peak_type = IonMobilityPeakType::Centroid;
+                }
             }
             ("spectrum", "MS:1001581")
             | ("scan", "MS:1002476" | "MS:1002815" | "MS:1001581" | "MS:1002954") => {
@@ -2535,6 +2564,7 @@ fn read_engine(
                             raw_float_arrays: Vec::new(),
                             nonfinite_float_arrays: options.source_nonfinite_float_arrays,
                             selected_ion_drift_time: options.source_selected_ion_drift_time,
+                            drop_im_centroid_frame: options.source_im_centroid_frame,
                             primary_metadata: Default::default(),
                             wavelength: None,
                             intensity_first: false,

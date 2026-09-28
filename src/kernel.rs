@@ -310,10 +310,12 @@ pub struct MSSpectrum {
     /// `METADATA/SpectrumSettings.h:107-111`); `Unknown` by default.
     ///
     /// The mzML reader sets `Centroid` for the spectrum term `MS:1003441` (ion
-    /// mobility centroid frame) and substitutes `Profile` for
-    /// a spectrum that carries ion-mobility data but no peak type, as
-    /// `MzMLHandler` does (`MzMLHandler.cpp:248-256`, `:1646-1649`); the writer
-    /// emits `MS:1003441` for `Centroid` (`:5290-5294`).
+    /// mobility centroid frame) and substitutes `Profile` for a spectrum that
+    /// carries ion-mobility data but no peak type, as `MzMLHandler` does
+    /// (`MzMLHandler.cpp:248-256`, `:1646-1649`); the writer emits
+    /// `MS:1003441` for `Centroid` (`:5290-5294`). The executed source drops
+    /// that term on read because its CV does not know it; the mzML read option
+    /// `source_im_centroid_frame` reproduces that.
     ///
     /// Unlike the source, whose `SpectrumSettings::operator==` ignores this
     /// field, the derived [`PartialEq`] compares it.

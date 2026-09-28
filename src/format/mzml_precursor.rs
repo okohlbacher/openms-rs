@@ -142,13 +142,18 @@ const DISSOCIATION_METHOD: &str = "MS:1000044";
 
 /// A pinned-CV descendant of `MS:1000044` with no route of its own.
 ///
-/// The typed methods ([`METHODS`], and the two supplemental terms above) and
+/// The typed methods ([`METHODS`]), the terms of [`ACTIVATION_METADATA`] and
 /// `MS:1000044` itself are not; neither is an accession the pinned CV does not
 /// know, which the source drops with "Unknown cvParam" before this branch.
 fn other_dissociation_method(
     id: &str,
 ) -> Result<Option<&'static crate::format::controlled_vocabulary::CVTermDefinition>> {
-    if id == DISSOCIATION_METHOD || METHODS.iter().any(|(_, accession)| *accession == id) {
+    if id == DISSOCIATION_METHOD
+        || METHODS.iter().any(|(_, accession)| *accession == id)
+        || ACTIVATION_METADATA
+            .iter()
+            .any(|(accession, _, _)| *accession == id)
+    {
         return Ok(None);
     }
     let cv = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?;
@@ -165,10 +170,10 @@ fn other_dissociation_method(
 /// dissociation `MS:1003294`, combined dissociation method `MS:1003181`)
 /// becomes precursor metadata under the term's CV name, holding the term's
 /// value text (usually empty) and its unit, as `cvParamToValue` builds it for a
-/// term without a value type (`XMLHandler.cpp:167`, `:283-298`).
+/// term without a value type (`XMLHandler.cpp:167`, `:285-301`).
 ///
 /// The source's chromatogram activation branch has no such route and warns
-/// "Unhandled cvParam" instead (`:2146-2149`); this reader keeps the term on a
+/// "Unhandled cvParam" instead (`:2150-2153`); this reader keeps the term on a
 /// chromatogram precursor too, as it already does for the supplemental terms
 /// (CPP-219), so no activation information is dropped.
 fn read_other_dissociation_method(
