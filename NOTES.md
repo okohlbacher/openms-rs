@@ -43,6 +43,10 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - TDF fixture diaPASEF.d (hupo-mzpeak, no license: do NOT commit) = external check only. Committed test must synthesize a TDF (ruzstd encoder compress_to_vec).
 - ruzstd 0.8.2 manifest: resolver 3 (ok >= 1.84), edition 2018, std feature, no deps w/o hash.
 
+- DONE: src/format/tims_data_handle.rs + bruker_tims_file.rs (feature bruker-tdf = sqlite + ruzstd 0.8.2 [std,hash] -> twox-hash 2.1.4). Cargo.lock regenerated on spock (fetch) and copied back. tests/bruker_tims_file.rs 14/14 (gate6.log).
+- External cross-check (not in repo): diaPASEF.d (sha256 tdf 23809f8a..., tdf_bin 9692d7ee...) decoded by timsrust 0.4.1 vs port: 291531 peaks, 0 mismatches (frame, scan, tof, intensity=trunc(raw*100/AccTime+0.5)); /scratch/kohlbach/f5-tdfcheck on spock; ts.tsv sha 1b764e23..., om.tsv f1c69b50...
+- C++ defect candidates: default Config warns "ms1_centroid_mz_ppm and ms1_centroid_im_pct must both be > 0" on every DIA/DDA load (default 10/0); sortSpectra uses std::sort -> DIA equal-RT window spectra order unspecified; opentims short decompression reuses stale buffer; RationalScan2Im getCalibration fallback hash order.
+
 ## Next step
 1. (done) RationalScan2ImConverter.
 2. Docs: docs/XMASS_FILE_SUPPORT.md, docs/BRUKER_TIMS_SUPPORT.md; provenance jsons.
