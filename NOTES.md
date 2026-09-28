@@ -53,3 +53,5 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
 ## Next step
 1. sweep2 never ran quality/minimum-rust (rsync failed; its test lines are stale remote output). sweep3 (scratchpad F4/sweep3.out) reruns quality+minimum-rust -> replace SWEEP_PLACEHOLDER.
 2. Delete NOTES.md, final commit, final message.
+
+- sweep3 died (ssh drop at start). sweep4 (scratchpad F4/sweep4.out, logs F4/sweep4/) reruns quality+minimum-rust.
