@@ -11,14 +11,14 @@
 //!
 //! - **`acqus`**: the calibration that converts a time-of-flight point into an
 //!   m/z, the instrument description and the acquisition method
-//!   ([`AcqusHandler`]);
+//!   ([`AcqusHandler`](crate::format::acqus_handler::AcqusHandler));
 //! - **`fid`**: the intensities, one 4-byte integer per point
-//!   ([`FidHandler`]).
+//!   ([`FidHandler`](crate::format::fid_handler::FidHandler)).
 //!
 //! The m/z formula follows Titulaer *et al.*, "A database application for
 //! pre-processing, storage and comparison of mass spectra derived from patients
 //! and controls", BMC Bioinformatics 7:403 (2006); see
-//! [`AcqusHandler::position`].
+//! [`AcqusHandler::position`](crate::format::acqus_handler::AcqusHandler::position).
 //!
 //! Writing is not available, in the source or here.
 //!

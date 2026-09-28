@@ -19,7 +19,7 @@
 //! centroider in [`crate::format::pasef_hill_centroider`]. On top of them this
 //! module ports:
 //!
-//! - [`Config`], every field of the source struct with its default;
+//! - [`Config`](crate::format::bruker_tims_file::Config), every field of the source struct with its default;
 //! - the calibration strategy of the source's `openTimsDataHandle`;
 //! - the frame-range / RT-range resolution (`resolveEffectiveConfig`);
 //! - `FRAME` export (`loadFrames_`) with MS1 centroiding `Off` or
@@ -27,7 +27,7 @@
 //! - `AUTO` export of DIA-PASEF data without frame aggregation (`loadDIA_`,
 //!   raw path): MS1 frames as in `FRAME` export, MS2 frames split by
 //!   diaPASEF window, with `Off` or `HillBased` MS2 centroiding;
-//! - `transform` onto an [`MSDataConsumer`].
+//! - `transform` onto an [`MSDataConsumer`](crate::interfaces::MSDataConsumer).
 //!
 //! # What is not ported (each refused with [`Error::Unsupported`])
 //!

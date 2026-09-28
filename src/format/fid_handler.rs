@@ -11,7 +11,7 @@
 //! [`crate::format::xmass_file`] is its one consumer here too.
 //!
 //! The source class *is* an `std::ifstream` (public inheritance), so its whole
-//! stream interface is reachable; the port wraps any [`Read`] instead and
+//! stream interface is reachable; the port wraps any [`Read`](std::io::Read) instead and
 //! exposes the two members the header declares plus a native end-of-data
 //! query. See `docs/XMASS_FILE_SUPPORT.md`.
 //!
@@ -22,9 +22,9 @@
 //! file it therefore returns 0, and when 1 to 3 bytes remain it returns the
 //! value those bytes form in the low-order positions (on a little-endian
 //! host, which the Linux x86_64 Release build is). Either way the point index
-//! still advances. [`FidHandler::intensity`] refuses such a read with
+//! still advances. [`FidHandler::intensity`](crate::format::fid_handler::FidHandler::intensity) refuses such a read with
 //! [`Error::Parse`], because a zero the file never held is not data;
-//! [`FidHandler::intensity_source`] reproduces the source value.
+//! [`FidHandler::intensity_source`](crate::format::fid_handler::FidHandler::intensity_source) reproduces the source value.
 
 use crate::{Error, Result};
 use std::io::{BufReader, ErrorKind, Read};

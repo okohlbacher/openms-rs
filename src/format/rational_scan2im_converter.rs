@@ -11,8 +11,8 @@
 //! converts the index to 1/K0 (V·s/cm², "VSSC") with one of three
 //! calibrations, tried in this order by the source's `AUTO` strategy: the
 //! proprietary Bruker SDK, the per-frame rational model of the
-//! `TimsCalibration` table ([`RationalScan2ImConverter`]), and a linear model
-//! from `GlobalMetadata` ([`LinearScan2ImConverter`]). The Bruker SDK is a
+//! `TimsCalibration` table ([`RationalScan2ImConverter`](crate::format::rational_scan2im_converter::RationalScan2ImConverter)), and a linear model
+//! from `GlobalMetadata` ([`LinearScan2ImConverter`](crate::format::rational_scan2im_converter::LinearScan2ImConverter)). The Bruker SDK is a
 //! closed-source shared library and is not ported; see
 //! `docs/BRUKER_TIMS_SUPPORT.md`.
 //!

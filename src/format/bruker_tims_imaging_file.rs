@@ -7,7 +7,7 @@
 //! `bruker-tdf` and `mzml` features (the latter for the imaging experiment).
 //!
 //! Pixel coordinates come from the `MaldiFrameInfo` table of `analysis.tdf`
-//! and are bound to the per-frame spectra that [`BrukerTimsFile`] produces in
+//! and are bound to the per-frame spectra that [`BrukerTimsFile`](crate::format::bruker_tims_file::BrukerTimsFile) produces in
 //! `Frame` export mode. No proprietary MALDI SDK is involved: the positions
 //! live entirely in the SQLite metadata.
 //!

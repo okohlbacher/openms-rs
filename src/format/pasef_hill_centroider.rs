@@ -8,15 +8,15 @@
 //!
 //! The algorithm is modelled on Biosaur2's `linkScanToHills_` and
 //! `splitHills_`, with the IM scans of one frame playing the role that
-//! consecutive RT spectra play in Biosaur2. [`centroid_frame`]
+//! consecutive RT spectra play in Biosaur2. [`centroid_frame`](crate::format::pasef_hill_centroider::centroid_frame)
 //!
 //! 1. groups the peaks by IM scan (by scan index when given, otherwise by equal
 //!    IM value),
 //! 2. links peaks of consecutive IM scans by m/z proximity, assigning
 //!    current-scan peaks greedily in descending intensity order,
 //! 3. splits hills at intensity valleys,
-//! 4. drops hills shorter than [`Params::min_hill_length`], and
-//! 5. collapses each surviving hill to one [`Centroid`].
+//! 4. drops hills shorter than [`Params::min_hill_length`](crate::format::pasef_hill_centroider::Params::min_hill_length), and
+//! 5. collapses each surviving hill to one [`Centroid`](crate::format::pasef_hill_centroider::Centroid).
 //!
 //! The source is used by the Bruker TDF reader (`BrukerTimsFile`) for its
 //! `HillBased` centroiding modes; it has no dependency on the reader and is
