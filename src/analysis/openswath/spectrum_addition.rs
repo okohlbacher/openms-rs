@@ -76,9 +76,9 @@ fn raster_arrays(raw_mz: &[f64], raw_int: &[f64], grid_mz: &[f64], grid_int: &mu
         while j < n && grid_mz[j] < raw_mz[r] {
             j += 1;
         }
-        if j != 0 {
-            j -= 1;
-        }
+        // Step back one grid point unless at the start (source `--it` guarded
+        // by `it != start`).
+        j = j.saturating_sub(1);
         if j + 1 == n {
             break;
         }
@@ -114,9 +114,9 @@ fn raster_peaks(raw: &[Peak1D], grid: &mut [Peak1D]) {
         while j < n && grid[j].mz < raw[r].mz {
             j += 1;
         }
-        if j != 0 {
-            j -= 1;
-        }
+        // Step back one grid point unless at the start (source `--it` guarded
+        // by `it != start`).
+        j = j.saturating_sub(1);
         if j + 1 == n {
             break;
         }
