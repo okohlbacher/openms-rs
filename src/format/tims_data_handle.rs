@@ -262,7 +262,7 @@ pub fn linear_scan_converter(db: &Connection) -> Result<LinearScan2ImConverter> 
     }
     let scan_max: u32 = db
         .query_row("SELECT MAX(NumScans) FROM Frames", [], |row| {
-            Ok(row.get_ref(0).map(sql_text_u32)?)
+            row.get_ref(0).map(sql_text_u32)
         })
         .map_err(sql_error)?;
     if im_min <= 0.0 || im_max <= im_min || scan_max == 0 {
