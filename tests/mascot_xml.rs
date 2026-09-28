@@ -96,12 +96,12 @@ fn initialize_lookup_reads_the_spectra_and_registers_the_default_formats() {
     assert!(lookup.is_empty());
     assert!(warnings.is_empty());
     assert_eq!(lookup.reference_formats(), [TitleReferenceFormat::MzThenRt]);
-    // A caller-supplied regular expression cannot be compiled here.
-    assert!(matches!(
-        MascotXmlFile::initialize_lookup(&experiment, Some("scan=(?<SCAN>\\d+)")),
-        Err(Error::Unsupported(_))
-    ));
-    // An empty or whitespace-only override is the source default.
+    // A caller-supplied regular expression replaces the default formats
+    // (differential evidence: tests/mascot_xml_regex.rs).
+    let (custom, _) =
+        MascotXmlFile::initialize_lookup(&experiment, Some("scan=(?<SCAN>\\d+)")).unwrap();
+    assert_eq!(custom.reference_formats(), [TitleReferenceFormat::Regex(0)]);
+    // An empty override is the source default.
     assert!(MascotXmlFile::initialize_lookup(&experiment, Some("")).is_ok());
 }
 

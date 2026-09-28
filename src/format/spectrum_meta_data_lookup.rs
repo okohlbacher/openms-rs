@@ -457,79 +457,100 @@ impl SpectrumMetaDataLookup {
         meta: &mut SpectrumMetaData,
         flags: MetaDataFlags,
     ) -> Result<()> {
-        let haystack = spectrum_ref.as_bytes();
-        for regex in &self.reference_formats {
-            let Some(captures) = regex.search(haystack)? else {
-                continue;
-            };
-            let mut flags = flags;
-            let group = |name: &str| -> Option<&str> {
-                captures
-                    .name(name)
-                    .and_then(|range| spectrum_ref.get(range))
-                    .filter(|text| !text.is_empty())
-            };
-            if flags.contains(MetaDataFlags::RT) {
-                if let Some(value) = group("RT") {
-                    meta.rt = finite(to_double(value)?);
-                    flags.remove(MetaDataFlags::RT);
-                }
+        for format in 0..self.reference_formats.len() {
+            if self.meta_data_with_format(format, spectrum_ref, meta, flags)? {
+                return Ok(());
             }
-            if flags.contains(MetaDataFlags::PRECURSOR_RT) {
-                if let Some(value) = group("PRECRT") {
-                    meta.precursor_rt = finite(to_double(value)?);
-                    flags.remove(MetaDataFlags::PRECURSOR_RT);
-                }
-            }
-            if flags.contains(MetaDataFlags::PRECURSOR_MZ) {
-                if let Some(value) = group("MZ") {
-                    meta.precursor_mz = finite(to_double(value)?);
-                    flags.remove(MetaDataFlags::PRECURSOR_MZ);
-                }
-            }
-            if flags.contains(MetaDataFlags::PRECURSOR_CHARGE) {
-                if let Some(value) = group("CHARGE") {
-                    let charge = to_double(value)?.trunc();
-                    if !(f64::from(i32::MIN)..=f64::from(i32::MAX)).contains(&charge) {
-                        return Err(Error::InvalidValue(format!(
-                            "charge '{value}' is not a 32-bit integer"
-                        )));
-                    }
-                    meta.precursor_charge = charge as i32;
-                    flags.remove(MetaDataFlags::PRECURSOR_CHARGE);
-                }
-            }
-            if flags.contains(MetaDataFlags::MS_LEVEL) {
-                if let Some(value) = group("LEVEL") {
-                    meta.ms_level = u32::try_from(to_int32(value)?).map_err(|_| {
-                        Error::InvalidValue(format!("MS level '{value}' is negative"))
-                    })?;
-                    flags.remove(MetaDataFlags::MS_LEVEL);
-                }
-            }
-            if flags.contains(MetaDataFlags::SCAN_NUMBER) {
-                if let Some(value) = group("SCAN") {
-                    meta.scan_number = Some(to_int32(value)?);
-                    flags.remove(MetaDataFlags::SCAN_NUMBER);
-                }
-            }
-            if flags.contains(MetaDataFlags::NATIVE_ID) {
-                // The source assigns the group even when it is empty and only
-                // then tests for emptiness.
-                if let Some(range) = captures.name("ID") {
-                    meta.native_id = spectrum_ref.get(range).unwrap_or_default().to_owned();
-                    if !meta.native_id.is_empty() {
-                        flags.remove(MetaDataFlags::NATIVE_ID);
-                    }
-                }
-            }
-            if !flags.is_empty() {
-                let index = self.find_by_match(spectrum_ref, regex, &captures)?;
-                *meta = self.metadata[index].clone();
-            }
-            return Ok(());
         }
         Ok(())
+    }
+
+    /// [`Self::meta_data_for_reference`] restricted to the reference format
+    /// registered at position `format`: `Ok(false)` when it does not exist or
+    /// does not match `spectrum_ref` (and `meta` is unchanged), `Ok(true)`
+    /// when it matched and `meta` was filled as the source fills it.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::meta_data_for_reference`].
+    pub(crate) fn meta_data_with_format(
+        &self,
+        format: usize,
+        spectrum_ref: &str,
+        meta: &mut SpectrumMetaData,
+        flags: MetaDataFlags,
+    ) -> Result<bool> {
+        let Some(regex) = self.reference_formats.get(format) else {
+            return Ok(false);
+        };
+        let Some(captures) = regex.search(spectrum_ref.as_bytes())? else {
+            return Ok(false);
+        };
+        let mut flags = flags;
+        let group = |name: &str| -> Option<&str> {
+            captures
+                .name(name)
+                .and_then(|range| spectrum_ref.get(range))
+                .filter(|text| !text.is_empty())
+        };
+        if flags.contains(MetaDataFlags::RT) {
+            if let Some(value) = group("RT") {
+                meta.rt = finite(to_double(value)?);
+                flags.remove(MetaDataFlags::RT);
+            }
+        }
+        if flags.contains(MetaDataFlags::PRECURSOR_RT) {
+            if let Some(value) = group("PRECRT") {
+                meta.precursor_rt = finite(to_double(value)?);
+                flags.remove(MetaDataFlags::PRECURSOR_RT);
+            }
+        }
+        if flags.contains(MetaDataFlags::PRECURSOR_MZ) {
+            if let Some(value) = group("MZ") {
+                meta.precursor_mz = finite(to_double(value)?);
+                flags.remove(MetaDataFlags::PRECURSOR_MZ);
+            }
+        }
+        if flags.contains(MetaDataFlags::PRECURSOR_CHARGE) {
+            if let Some(value) = group("CHARGE") {
+                let charge = to_double(value)?.trunc();
+                if !(f64::from(i32::MIN)..=f64::from(i32::MAX)).contains(&charge) {
+                    return Err(Error::InvalidValue(format!(
+                        "charge '{value}' is not a 32-bit integer"
+                    )));
+                }
+                meta.precursor_charge = charge as i32;
+                flags.remove(MetaDataFlags::PRECURSOR_CHARGE);
+            }
+        }
+        if flags.contains(MetaDataFlags::MS_LEVEL) {
+            if let Some(value) = group("LEVEL") {
+                meta.ms_level = u32::try_from(to_int32(value)?)
+                    .map_err(|_| Error::InvalidValue(format!("MS level '{value}' is negative")))?;
+                flags.remove(MetaDataFlags::MS_LEVEL);
+            }
+        }
+        if flags.contains(MetaDataFlags::SCAN_NUMBER) {
+            if let Some(value) = group("SCAN") {
+                meta.scan_number = Some(to_int32(value)?);
+                flags.remove(MetaDataFlags::SCAN_NUMBER);
+            }
+        }
+        if flags.contains(MetaDataFlags::NATIVE_ID) {
+            // The source assigns the group even when it is empty and only
+            // then tests for emptiness.
+            if let Some(range) = captures.name("ID") {
+                meta.native_id = spectrum_ref.get(range).unwrap_or_default().to_owned();
+                if !meta.native_id.is_empty() {
+                    flags.remove(MetaDataFlags::NATIVE_ID);
+                }
+            }
+        }
+        if !flags.is_empty() {
+            let index = self.find_by_match(spectrum_ref, regex, &captures)?;
+            *meta = self.metadata[index].clone();
+        }
+        Ok(true)
     }
 
     /// The source's `findByRegExpMatch_`: the first non-empty of `INDEX0`,
