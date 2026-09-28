@@ -3,6 +3,10 @@
 // $Maintainer: OpenMS Rust contributors $
 
 use super::DataArray;
+use crate::metadata::meta_info_description::{
+    DescriptionView, MetaInfoDescription, description_lt,
+};
+use crate::metadata::meta_info_registry::MetaInfoRegistry;
 use crate::metadata::{CVTermList, MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
 use std::mem::size_of;
@@ -51,6 +55,80 @@ impl<T> DataArray<T> {
     /// Whether a name-and-values-only transport would lose information.
     pub fn has_description_metadata(&self) -> bool {
         !self.metadata.is_empty() || !self.data_processing.is_empty()
+    }
+
+    /// The array's `MetaInfoDescription` base, borrowed: its name, meta
+    /// values and data processing.
+    pub fn description_view(&self) -> DescriptionView<'_> {
+        DescriptionView {
+            name: &self.name,
+            metadata: &self.metadata,
+            data_processing: &self.data_processing,
+        }
+    }
+
+    /// The array's `MetaInfoDescription` base as an owned value.
+    pub fn description(&self) -> MetaInfoDescription {
+        MetaInfoDescription {
+            name: self.name.clone(),
+            metadata: self.metadata.clone(),
+            data_processing: self.data_processing.clone(),
+        }
+    }
+}
+
+impl<T: PartialOrd> DataArray<T> {
+    /// The source's `FloatDataArray`/`IntegerDataArray`/`StringDataArray`
+    /// `operator<` (`METADATA/DataArrays.h`): when the descriptions differ,
+    /// their order ([`description_lt`]); otherwise `std::vector`'s `<`, which
+    /// is `std::lexicographical_compare` and is reproduced element by
+    /// element, so an unordered pair (a NaN) is neither less nor greater and
+    /// the comparison moves on. See `docs/META_INFO_DESCRIPTION_SUPPORT.md`.
+    ///
+    /// # Errors
+    ///
+    /// As [`MetaInfoDescription::source_lt`].
+    pub fn source_lt(&self, rhs: &Self, registry: &MetaInfoRegistry) -> Result<bool> {
+        let (lhs_description, rhs_description) = (self.description_view(), rhs.description_view());
+        if lhs_description != rhs_description {
+            return description_lt(lhs_description, rhs_description, registry);
+        }
+        for (a, b) in self.data.iter().zip(&rhs.data) {
+            if a < b {
+                return Ok(true);
+            }
+            if b < a {
+                return Ok(false);
+            }
+        }
+        Ok(self.data.len() < rhs.data.len())
+    }
+
+    /// The source's `operator<=`: `*this < rhs || *this == rhs`.
+    ///
+    /// # Errors
+    ///
+    /// As [`source_lt`](Self::source_lt).
+    pub fn source_le(&self, rhs: &Self, registry: &MetaInfoRegistry) -> Result<bool> {
+        Ok(self.source_lt(rhs, registry)? || self == rhs)
+    }
+
+    /// The source's `operator>`: `!(*this <= rhs)`.
+    ///
+    /// # Errors
+    ///
+    /// As [`source_lt`](Self::source_lt).
+    pub fn source_gt(&self, rhs: &Self, registry: &MetaInfoRegistry) -> Result<bool> {
+        Ok(!self.source_le(rhs, registry)?)
+    }
+
+    /// The source's `operator>=`: `!(*this < rhs)`.
+    ///
+    /// # Errors
+    ///
+    /// As [`source_lt`](Self::source_lt).
+    pub fn source_ge(&self, rhs: &Self, registry: &MetaInfoRegistry) -> Result<bool> {
+        Ok(!self.source_lt(rhs, registry)?)
     }
 }
 

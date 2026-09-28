@@ -39,6 +39,7 @@ pub mod meta_info_registry;
 /// registry (`METADATA/MetaInfo.h`, `METADATA/MetaInfoInterface.h`).
 pub mod meta_info_indexed;
 
+pub mod meta_info_description;
 /// Looking up spectra by index, retention time, native ID, scan number or
 /// reference (`METADATA/SpectrumLookup.h`).
 pub mod spectrum_lookup;
