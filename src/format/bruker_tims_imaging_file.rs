@@ -330,36 +330,57 @@ fn column_exists(db: &Connection, table: &str, column: &str) -> Result<bool> {
     Ok(false)
 }
 
-/// The source's `parseFrameId`: the integer after a leading `frame=`, up to
-/// the first space, parsed as `StringUtils::toInt32` does (surrounding
-/// whitespace and one leading `+` allowed); `None` otherwise.
-fn parse_frame_id(native_id: &str) -> Option<i32> {
-    let rest = native_id.strip_prefix("frame=")?;
-    let digits = rest.split(' ').next().unwrap_or("");
-    let digits = digits.trim_matches(|c: char| c.is_ascii_whitespace());
-    let digits = digits.strip_prefix('+').unwrap_or(digits);
-    if digits.starts_with(['+', '-']) && digits.len() > 1 && digits[1..].starts_with(['+', '-']) {
-        return None;
-    }
-    digits.parse().ok()
+/// The whitespace `StringUtils` skips around a number (`skipWS`): space,
+/// tab, line feed and carriage return; not form feed or vertical tab.
+fn is_string_utils_ws(c: char) -> bool {
+    matches!(c, ' ' | '\t' | '\n' | '\r')
 }
 
-/// `StringUtils::toDouble`: surrounding whitespace and one leading `+`
-/// allowed, the whole remainder a decimal, `inf` or `nan` number
-/// (`std::from_chars`); a finite literal that overflows is refused, as
-/// `from_chars` reports it out of range.
+/// The source's `parseFrameId`: the integer after a leading `frame=`, up to
+/// the first space, parsed as `StringUtils::toInt32` does; `None` where the
+/// source returns -1.
+///
+/// `toInt32` skips `skipWS` whitespace, drops one leading `+`, and hands the
+/// rest to the integer `std::from_chars`, which takes an optional `-` but no
+/// `+`, and must consume everything up to trailing whitespace. Rust's integer
+/// `parse` also accepts a `+`, so a second one is refused here explicitly.
+fn parse_frame_id(native_id: &str) -> Option<i32> {
+    let rest = native_id.strip_prefix("frame=")?;
+    let field = rest.split(' ').next().unwrap_or("");
+    let body = field.trim_matches(is_string_utils_ws);
+    let body = body.strip_prefix('+').unwrap_or(body);
+    if body.starts_with('+') {
+        return None;
+    }
+    body.parse().ok()
+}
+
+/// `StringUtils::toDouble`: `skipWS` whitespace around the number, one
+/// leading `+` dropped, then the floating-point `std::from_chars` in general
+/// format over the whole remainder (`inf`, `infinity` and `nan` in any case
+/// included); `None` where the source throws.
+///
+/// `from_chars` reports a finite literal whose value overflows, or underflows
+/// to zero, as out of range, and `toDouble` then throws; Rust's `parse`
+/// rounds both, so both are refused here explicitly. Rust's `parse` also
+/// accepts a `+`, so a second one is refused explicitly.
 fn to_double(text: &str) -> Option<f64> {
-    let trimmed = text.trim_matches(|c: char| c.is_ascii_whitespace());
+    let trimmed = text.trim_matches(is_string_utils_ws);
     let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
     if body.starts_with('+') {
         return None;
     }
     let value: f64 = body.parse().ok()?;
-    let literal_infinity = body
-        .trim_start_matches('-')
-        .to_ascii_lowercase()
-        .starts_with("inf");
-    if value.is_infinite() && !literal_infinity {
+    let unsigned = body.strip_prefix('-').unwrap_or(body).to_ascii_lowercase();
+    let literal_special = unsigned.starts_with("inf") || unsigned.starts_with("nan");
+    if literal_special {
+        return Some(value);
+    }
+    if value.is_infinite() {
+        return None;
+    }
+    let mantissa = unsigned.split('e').next().unwrap_or("");
+    if value == 0.0 && mantissa.bytes().any(|b| (b'1'..=b'9').contains(&b)) {
         return None;
     }
     Some(value)
@@ -373,8 +394,9 @@ fn bounding_box(rows: &[MaldiPixel]) -> Result<(i64, i64, u32, u32)> {
     let y_min = rows.iter().map(|p| i64::from(p.y)).min().unwrap_or(0);
     let y_max = rows.iter().map(|p| i64::from(p.y)).max().unwrap_or(0);
     let extent = |span: i64| {
-        u32::try_from(span + 1)
-            .map_err(|_| Error::InvalidValue(format!("imaging extent {} does not fit u32", span + 1)))
+        u32::try_from(span + 1).map_err(|_| {
+            Error::InvalidValue(format!("imaging extent {} does not fit u32", span + 1))
+        })
     };
     Ok((x_min, y_min, extent(x_max - x_min)?, extent(y_max - y_min)?))
 }
@@ -390,6 +412,12 @@ mod tests {
         assert_eq!(parse_frame_id("frame=+3"), Some(3));
         assert_eq!(parse_frame_id(" frame=3"), None);
         assert_eq!(parse_frame_id("frame=x"), None);
+        assert_eq!(parse_frame_id("frame=++3"), None);
+        assert_eq!(parse_frame_id("frame=+-3"), Some(-3));
+        assert_eq!(parse_frame_id("frame=-4"), Some(-4));
+        assert_eq!(parse_frame_id("frame=3\t"), Some(3));
+        assert_eq!(parse_frame_id("frame=3\x0c"), None);
+        assert_eq!(parse_frame_id("frame=2147483648"), None);
         assert_eq!(parse_frame_id("scan=3"), None);
     }
 
@@ -401,5 +429,9 @@ mod tests {
         assert_eq!(to_double("20um"), None);
         assert_eq!(to_double("1e999"), None);
         assert_eq!(to_double("inf"), Some(f64::INFINITY));
+        assert_eq!(to_double("1e-999"), None);
+        assert_eq!(to_double("0e5"), Some(0.0));
+        assert_eq!(to_double("\x0c5"), None);
+        assert!(to_double("NaN").is_some_and(f64::is_nan));
     }
 }

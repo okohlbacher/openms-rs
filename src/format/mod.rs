@@ -192,6 +192,9 @@ pub mod acqus_handler;
 /// unaggregated DIA-PASEF export.
 #[cfg(feature = "bruker-tdf")]
 pub mod bruker_tims_file;
+/// Bruker timsTOF MALDI imaging `.d` reader (`BrukerTimsImagingFile.h`).
+#[cfg(all(feature = "bruker-tdf", feature = "mzml"))]
+pub mod bruker_tims_imaging_file;
 /// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
 pub mod fid_handler;
 /// IM-axis hill centroiding of one TIMS-PASEF frame (`PASEFHillCentroider.h`).
