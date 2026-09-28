@@ -6,5 +6,6 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+pub mod fragment_index;
 pub mod neighbor_seq;
 pub mod simple_search_engine;

@@ -43,8 +43,22 @@ fn fuzzy_eq(a: f64, b: f64) -> bool {
     lo != 0.0 && lo.signum() == hi.signum() && hi / lo <= 1.01
 }
 
+/// Largest relative deviation seen, with its label, printed per comparison so
+/// the support document can state how far inside the contract the port is.
+static MAX_DEVIATION: std::sync::Mutex<(f64, String)> = std::sync::Mutex::new((0.0, String::new()));
+
 fn assert_fuzzy(what: &str, actual: f64, expected: f64) {
     assert!(fuzzy_eq(actual, expected), "{what}: {actual} vs {expected}");
+    let relative = if expected == 0.0 {
+        actual.abs()
+    } else {
+        ((actual - expected) / expected).abs()
+    };
+    if let Ok(mut max) = MAX_DEVIATION.lock() {
+        if relative > max.0 {
+            *max = (relative, format!("{what}: {actual} vs {expected}"));
+        }
+    }
 }
 
 fn assert_meta(what: &str, actual: &MetaInfo, expected: &MetaInfo) {
@@ -165,6 +179,12 @@ fn compare(ini: &str, expected_file: &str) -> Result<()> {
                 );
             }
         }
+    }
+    if let Ok(max) = MAX_DEVIATION.lock() {
+        eprintln!(
+            "{expected_file}: largest relative deviation so far {:e} ({})",
+            max.0, max.1
+        );
     }
     Ok(())
 }
