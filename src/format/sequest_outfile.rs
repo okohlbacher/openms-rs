@@ -125,7 +125,7 @@ fn at(line: usize) -> impl Fn(Error) -> Error {
     }
 }
 
-fn index<'a>(fields: &'a [String], column: usize, line: usize) -> Result<&'a str> {
+fn index(fields: &[String], column: usize, line: usize) -> Result<&str> {
     fields
         .get(column)
         .map(String::as_str)

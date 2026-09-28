@@ -593,7 +593,7 @@ fn convert_modification_set(
 
     let mut origin_set: BTreeMap<String, f64> = BTreeMap::new();
     let mut xtandem_mods = Vec::new();
-    for definition in mods.iter().copied() {
+    for &definition in mods {
         let name = definition.modification_name();
         if !force_default_mods
             && (name == ACETYL_N_TERM

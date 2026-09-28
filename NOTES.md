@@ -87,7 +87,12 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
 - Member check (scratchpad/F3b/members.py): Rust getters drop `get_`; all 13 headers covered.
   XTandemInfile get/setNoiseSuppression are declared but never defined at the pin (no member either) -> documented, not ported; C++ defect candidate.
 
+- Oracle extended (../oracle/F3b-search-engine, ibminode06 Release, 2 runs agree): inspect_trie/sequences/experiment.
+  C++ trie has NO trailing LF (fixture has one; TEST_FILE_EQUAL trims); getSequences last record keeps LF;
+  getExperiment(fasta) -> ParseError "type is not supported for loading experiments in: <file>" (Rust fixed to match).
+- Clippy fixes: omssa_xml entry API, sequest_outfile lifetimes, xtandem_infile loop.
+- Provenance regenerated (45 source files, 38 fixtures, 17 oracle files).
+
 ## Next step
-1. Read g6 log (scratchpad/F3b/logs/g6.log); fix; commit InspectOutfile.
-2. Run scratchpad/F3b/make_provenance.py; write docs/SEARCH_ENGINE_FILES_SUPPORT.md; commit.
-3. Clippy + MSRV + doc gates, then full CI sweep; lane report + ledger fragment; delete NOTES.md.
+1. Read gate output (tasks/bzwz8y442.output): clippy + 7 lane test files. Fix; commit.
+2. MSRV 1.85 check + doc gate, full CI sweep; lane report + ledger fragment; delete NOTES.md.

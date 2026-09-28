@@ -5,7 +5,11 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/InspectInfile.h>
+#include <OpenMS/FORMAT/InspectOutfile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepNovoInfile.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
@@ -303,6 +307,69 @@ int main(int argc, char** argv)
         std::cout << "\n";
       }
       std::cout << "enzyme_info\n" << s.getEnzymeInfoAsString() << "<<EOF\n";
+    }
+    else if (c == "inspect_trie")
+    {
+      // InspectOutfile_test.cpp generateTrieDB section: both fixtures.
+      InspectOutfile f;
+      for (std::string name : {"Inspect_test", "Inspect_test2"})
+      {
+        std::remove((tmp + "o.trie").c_str());
+        std::remove((tmp + "o.index").c_str());
+        f.generateTrieDB(data + name + ".fasta", tmp + "o.trie", tmp + "o.index");
+        std::cout << "case " << name << " trie\n";
+        dumpFile(tmp + "o.trie");
+        std::cout << "case " << name << " index\n";
+        dumpFile(tmp + "o.index");
+      }
+    }
+    else if (c == "inspect_sequences")
+    {
+      // InspectOutfile_test.cpp getSequences section: records 0 and 1.
+      InspectOutfile f;
+      std::map<Size, Size> wanted;
+      wanted[0] = 0;
+      wanted[1] = 1;
+      for (std::string name : {"Inspect_test.trie", "Inspect_test2.trie"})
+      {
+        std::vector<std::string> found;
+        std::vector<Size> not_found = f.getSequences(data + name, wanted, found);
+        std::cout << "case " << name << " not_found " << not_found.size() << " found " << found.size() << "\n";
+        for (const auto& seq : found)
+        {
+          std::cout << "seq " << seq.size() << "\n";
+          for (unsigned char ch : seq)
+          {
+            if (ch >= 32 && ch < 127) std::cout << ch;
+            else std::cout << "\\x" << std::hex << int(ch) << std::dec;
+          }
+          std::cout << "\n";
+        }
+      }
+    }
+    else if (c == "inspect_experiment")
+    {
+      // InspectOutfile::getExperiment on the class-test spectra and on a FASTA file.
+      InspectOutfile f;
+      for (std::string name : {"Inspect.mzXML", "Inspect.mzData", "Inspect_test.fasta"})
+      {
+        std::cout << "case " << name << " by_content "
+                  << FileTypes::typeToName(FileHandler().getTypeByContent(data + name)) << "\n";
+        PeakMap exp;
+        std::string type;
+        try
+        {
+          f.getExperiment(exp, type, data + name);
+          std::cout << "type " << type << " spectra " << exp.size() << "\n";
+        }
+        catch (const Exception::BaseException& e)
+        {
+          std::string msg = e.getMessage();
+          std::string::size_type at = msg.find(data);
+          if (at != std::string::npos) msg.replace(at, data.size(), "<DATA>/");
+          std::cout << "exception " << e.getName() << " message " << msg << "\n";
+        }
+      }
     }
     else
     {

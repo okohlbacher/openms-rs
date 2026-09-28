@@ -7,7 +7,8 @@
 //! `src/tests/class_tests/openms/data/`). Where the class test's own check
 //! cannot run (its `getSequences` section tests nothing, because its guard
 //! expects one sequence for two records), the expectation is derived
-//! independently from the fixture and says so.
+//! independently from the fixture, or taken from the executed C++ Release
+//! build (`tests/data/search_engine_oracle/inspect_*.out`), and says so.
 #![cfg(feature = "mzml")]
 
 use openms::Error;
@@ -27,6 +28,27 @@ fn temp_dir(tag: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("f3b_inspect_{tag}_{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     dir
+}
+
+/// A retained output of the executed C++ Release build (ibminode06,
+/// `openms4-release-bc9cc12-c19e494-174b576`; `driver.cpp.txt` beside it).
+fn oracle(name: &str) -> String {
+    std::fs::read_to_string(data(&format!("search_engine_oracle/{name}"))).unwrap()
+}
+
+/// The oracle driver's rendering of bytes: printable ASCII as is (with line
+/// feed and tab when `keep_whitespace`, as its `dumpFile` does), anything else
+/// as `\x` and lower-case hex without padding.
+fn oracle_escape(bytes: &[u8], keep_whitespace: bool) -> String {
+    let mut out = String::new();
+    for &b in bytes {
+        if (32..127).contains(&b) || (keep_whitespace && (b == b'\n' || b == b'\t')) {
+            out.push(char::from(b));
+        } else {
+            out.push_str(&format!("\\x{b:x}"));
+        }
+    }
+    out
 }
 
 fn parse_message(error: Error) -> String {
@@ -263,6 +285,7 @@ fn generate_trie_db() {
         ),
         Err(Error::Io(_))
     ));
+    let mut rendered = String::new();
     for (fasta, trie, index) in [
         (
             "Inspect_test.fasta",
@@ -278,15 +301,26 @@ fn generate_trie_db() {
         let (out_trie, out_index) = (dir.join("out.trie"), dir.join("out.index"));
         file.generate_trie_db(data(fasta), &out_trie, &out_index, false, "")
             .unwrap();
-        assert_eq!(
-            std::fs::read(&out_trie).unwrap(),
-            std::fs::read(data(trie)).unwrap()
-        );
-        assert_eq!(
-            std::fs::read(&out_index).unwrap(),
-            std::fs::read(data(index)).unwrap()
-        );
+        let written_trie = std::fs::read(&out_trie).unwrap();
+        let written_index = std::fs::read(&out_index).unwrap();
+        // The class test's TEST_FILE_EQUAL compares trimmed lines, so the
+        // fixture's final line feed, which `generateTrieDB` never writes,
+        // does not count; the index matches byte for byte.
+        let mut expected_trie = std::fs::read(data(trie)).unwrap();
+        assert_eq!(expected_trie.pop(), Some(b'\n'));
+        assert_eq!(written_trie, expected_trie);
+        assert_eq!(written_index, std::fs::read(data(index)).unwrap());
+        let stem = trie.trim_end_matches(".trie");
+        for (part, bytes) in [("trie", &written_trie), ("index", &written_index)] {
+            rendered.push_str(&format!(
+                "case {stem} {part}\nfile_bytes {}\n{}\n<<EOF\n",
+                bytes.len(),
+                oracle_escape(bytes, true)
+            ));
+        }
     }
+    // The executed Release build writes exactly these bytes.
+    assert_eq!(rendered, oracle("inspect_trie.out"));
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
@@ -399,20 +433,46 @@ fn sequences() {
         assert!(not_found.is_empty());
         assert_eq!(found, records);
     }
-    // The class test's expectation: the first sequence of Inspect_test.trie
-    // and the second of Inspect_test2.trie.
+    // The class test's two literals: the first sequence of Inspect_test.trie
+    // and the second of Inspect_test2.trie. The class test never compares the
+    // second (its guard is false), and the pinned Release build returns it
+    // with the fixture's final line feed, because `getSequences` reads the
+    // last record up to the end of the file
+    // (search_engine_oracle/inspect_sequences.out).
     let mut found = Vec::new();
     file.sequences(data("Inspect_test.trie"), &wanted, &mut found)
         .unwrap();
-    assert!(found[0].starts_with("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVG"));
-    assert!(found[0].ends_with("LIMQLLRDNLTLWTSDQQDEEAGEGN"));
+    assert_eq!(
+        found[0],
+        "GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN"
+    );
     let mut found = Vec::new();
     file.sequences(data("Inspect_test2.trie"), &wanted, &mut found)
         .unwrap();
     assert_eq!(
         found[1],
-        "SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP"
+        "SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP\n"
     );
+
+    // The executed Release build, record by record.
+    let mut rendered = String::new();
+    for name in ["Inspect_test.trie", "Inspect_test2.trie"] {
+        let mut found = Vec::new();
+        let not_found = file.sequences(data(name), &wanted, &mut found).unwrap();
+        rendered.push_str(&format!(
+            "case {name} not_found {} found {}\n",
+            not_found.len(),
+            found.len()
+        ));
+        for sequence in &found {
+            rendered.push_str(&format!(
+                "seq {}\n{}\n",
+                sequence.len(),
+                oracle_escape(sequence.as_bytes(), false)
+            ));
+        }
+    }
+    assert_eq!(rendered, oracle("inspect_sequences.out"));
 
     // A record beyond the database is not found, and so is every later one.
     let beyond: BTreeMap<usize, usize> = [(0, 0), (5, 1), (9, 2)].into_iter().collect();
@@ -536,11 +596,32 @@ fn wanted_records() {
 #[test]
 fn experiment() {
     let file = InspectOutfile::new();
-    let (_, kind) = file.experiment(data("Inspect.mzXML")).unwrap();
-    assert_eq!(kind, "mzXML");
-    let (_, kind) = file.experiment(data("Inspect.mzData")).unwrap();
-    assert_eq!(kind, "mzData");
-    let unknown = data("Inspect_test.fasta");
+    // The executed Release build (search_engine_oracle/inspect_experiment.out):
+    // both class-test spectrum files load with 20 spectra, and a FASTA file,
+    // recognised by content, is refused by `FileHandler::loadExperiment`.
+    let (experiment, kind) = file.experiment(data("Inspect.mzXML")).unwrap();
+    assert_eq!((kind.as_str(), experiment.spectra.len()), ("mzXML", 20));
+    let (experiment, kind) = file.experiment(data("Inspect.mzData")).unwrap();
+    assert_eq!((kind.as_str(), experiment.spectra.len()), ("mzData", 20));
+    let fasta = data("Inspect_test.fasta");
+    assert_eq!(
+        parse_message(file.experiment(&fasta).unwrap_err()),
+        format!(
+            "type is not supported for loading experiments in: {}",
+            fasta.display()
+        )
+    );
+    let expected = oracle("inspect_experiment.out");
+    assert!(expected.contains("case Inspect.mzXML by_content mzXML\ntype mzXML spectra 20\n"));
+    assert!(expected.contains("case Inspect.mzData by_content mzData\ntype mzData spectra 20\n"));
+    assert!(expected.contains(
+        "case Inspect_test.fasta by_content fasta\nexception Parse Error message type is not supported for loading experiments in: <DATA>/Inspect_test.fasta\n"
+    ));
+
+    // Content that no type matches (derived: the source's own branch).
+    let dir = temp_dir("experiment");
+    let unknown = dir.join("unknown.txt");
+    std::fs::write(&unknown, "no spectra here\n").unwrap();
     assert_eq!(
         parse_message(file.experiment(&unknown).unwrap_err()),
         format!(
@@ -548,6 +629,7 @@ fn experiment() {
             unknown.display()
         )
     );
+    std::fs::remove_dir_all(&dir).unwrap();
 }
 
 #[test]

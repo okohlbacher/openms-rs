@@ -181,10 +181,10 @@ impl OMSSAXMLFile {
         let mut mods_to_num = self.mods_to_num.clone();
         let mut number = FIRST_USER_MODIFICATION;
         for name in modifications.variable_names() {
-            if !mods_to_num.contains_key(&name) {
-                let modification = database.get_modification(&name, None, None)?.clone();
+            if let std::collections::btree_map::Entry::Vacant(slot) = mods_to_num.entry(name) {
+                let modification = database.get_modification(slot.key(), None, None)?.clone();
                 mods_map.entry(number).or_default().push(modification);
-                mods_to_num.insert(name, number);
+                slot.insert(number);
                 number = number.wrapping_add(1);
             }
         }

@@ -1124,9 +1124,12 @@ impl InspectOutfile {
     /// # Errors
     ///
     /// [`Error::Io`] when the file is missing or unreadable; [`Error::Parse`]
-    /// "`file` in: Could not determine type of the file. Aborting!"; and the
-    /// reader's errors ([`Error::Unsupported`] for a type without a native
-    /// experiment reader).
+    /// "`file` in: Could not determine type of the file. Aborting!";
+    /// [`Error::Parse`] "type is not supported for loading experiments in:
+    /// `file`" for a recognised type the source's `FileHandler::loadExperiment`
+    /// has no case for, such as FASTA (the pinned Release build throws exactly
+    /// this `ParseError`); and the reader's errors ([`Error::Unsupported`] for
+    /// a type the source loads but the crate has no native reader for).
     pub fn experiment(&self, path: impl AsRef<Path>) -> Result<(MSExperiment, String)> {
         let path = path.as_ref();
         let mut preview = Vec::new();
@@ -1141,11 +1144,29 @@ impl InspectOutfile {
             }
             FileType::MzXml => crate::format::mzxml::load(path)?,
             FileType::MzData => crate::format::mzdata::load(path)?,
-            other => FileHandler::load_experiment_with_options(
+            // The cases of the source's `FileHandler::loadExperiment` switch.
+            other @ (FileType::Dta
+            | FileType::Dta2d
+            | FileType::MzMl
+            | FileType::ImzMl
+            | FileType::Mgf
+            | FileType::Ms2
+            | FileType::SqMass
+            | FileType::Xmass
+            | FileType::Msp
+            | FileType::BrukerTdf
+            | FileType::Raw) => FileHandler::load_experiment_with_options(
                 path,
                 &[other],
                 &PeakFileOptions::default(),
             )?,
+            // The switch's `default`.
+            _ => {
+                return Err(parse_error(
+                    "type is not supported for loading experiments",
+                    path.display(),
+                ));
+            }
         };
         Ok((experiment, kind.name().to_owned()))
     }
