@@ -122,6 +122,15 @@ pub mod indexed_mzml_handler;
 /// Streaming mzML consumer that writes records as they arrive (`MSDataWritingConsumer.h`).
 #[cfg(feature = "mzml")]
 pub mod ms_data_writing_consumer;
+#[cfg(feature = "mzml")]
+pub mod indexed_mzml_file_loader;
+pub mod ms_data_aggregating_consumer;
+pub mod ms_data_chaining_consumer;
+#[cfg(feature = "sqmass")]
+pub mod ms_data_sql_consumer;
+pub mod ms_data_storing_consumer;
+pub mod ms_data_transforming_consumer;
+pub mod noop_ms_data_consumer;
 /// mzData 1.05 file adapter and handler (`MzDataFile.h`, `MzDataHandler.h`).
 #[cfg(feature = "mzml")]
 pub mod mzdata;
