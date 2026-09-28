@@ -1,98 +1,33 @@
-# SIMDe portability shim
+# SIMDe portability header
 
-`SYSTEM/SIMDe.h` at SDK `bc9cc12` (sha256 `f3e1180f0bfb78b34a2d88559a6b7f4d0ac1d7759405cac7ae60aba9679c7aab`,
-pinned by [system_process_provenance.json](../tests/data/system_process_provenance.json))
-is 43 lines, has no `.cpp`, no class test and **no Rust counterpart**. Nothing
-in this port implements it or stands in for it. This document records that, and
-why, so the header is accounted for rather than silently unmapped.
+`SYSTEM/SIMDe.h` (core bc9cc12) declares no OpenMS API. Its whole content is:
 
-## Ledger status
+- `#include <simde/x86/ssse3.h>`, which brings in the vendored SIMDe library
+  (`src/openms/extern/simde`). SIMDe maps the SSE/SSSE3 intrinsics to native
+  instructions where the target has them and to portable code elsewhere.
+- Three free operators on `simde__m128i` — `|`, `|=` and `&` — defined only
+  under `_MSC_VER`, because MSVC does not provide them for its vector type.
+- An empty `namespace OpenMS {}`.
 
-**No review entry.** `docs/core-sdk-reviewed-apis.json` records a review only as
-`complete`, `partial` or `native_equivalent`, and each of those has to cite the
-Rust files and the tests that carry it (`tools/core_sdk_coverage.py` asserts
-that every cited path exists and that `tests` is non-empty). This package
-produced no Rust file and no test for this header, because there is nothing here
-to implement, so it claims none of the three.
+The header therefore has no member to port. What it provides is a build-time
+facility for three implementation files, and each of those has a Rust
+counterpart that does not need it:
 
-`docs/core-sdk-coverage.json` is generated. With no review entry, and with this
-package's manifest citing the header, the regenerated row reads
-`status: evidence_requires_review` with a null `review`, no
-`candidate_rust_files`, and `tests/data/system_process_provenance.json` as its
-only `reference_manifests` entry. That is the mechanical meaning of the bucket —
-evidence exists, no accepted API review stands against it — and it is the state
-this document describes. Read the bucket name literally and it promises more
-than is coming: the review has been done, and its result is that no API review
-is possible, because there is no API. This page is that result.
-
-In particular the status is **not** `native_equivalent`. That status says
-Rust's own types and standard library already provide the header's operations;
-see [NATIVE_EQUIVALENTS.md](NATIVE_EQUIVALENTS.md). Nothing in Rust provides
-`simde__m128i` operators or a single include point for a C SIMD level, because
-Rust has neither problem. "The problem does not exist here" is not the same
-claim as "the standard library already solves it", and only the first one is
-true.
-
-## What the header is
-
-It is a C++ *include discipline*, not an API. Its own comment states the two
-jobs:
-
-1. include `<simde/x86/ssse3.h>` from exactly one place, so every translation
-   unit sees the same SIMD level the build system enabled (`-mssse3` and
-   friends, configured in `cmake/compiler_flags.cmake`);
-2. define `operator|`, `operator|=` and `operator&` for `simde__m128i` under
-   `_MSC_VER`, because GCC and clang provide them for their vector types and
-   MSVC does not.
-
-The header closes with an empty `namespace OpenMS {}`. It declares no type, no
-function and no constant of its own, and its own comment forbids including it
-from another header.
-
-## Declarations, and what became of each
-
-Every line of the header that declares or includes anything, and the
-counterpart it has. There are five, and **the counterpart column is empty in
-every row** — this is a not-ported inventory, not an API mapping, and it is
-listed in full so that no declaration is left unaccounted for.
-
-| C++ declaration | Rust counterpart | Why there is none |
+| Source consumer at bc9cc12 | What the SIMD code does | Rust counterpart |
 |---|---|---|
-| `#include <simde/x86/ssse3.h>` | none | A third-party C header. Nothing here includes it, directly or transitively. |
-| `inline simde__m128i operator\|(const simde__m128i&, const simde__m128i&)` | none | MSVC-only, and it papers over a compiler gap Rust does not have. |
-| `inline simde__m128i& operator\|=(simde__m128i&, const simde__m128i&)` | none | As above. |
-| `inline simde__m128i operator&(const simde__m128i, const simde__m128i&)` | none | As above. |
-| `namespace OpenMS {}` | none | Empty in the source; declares nothing. |
+| `FORMAT/Base64.cpp` | 128-bit masks to split and join Base64 sextets when encoding and decoding binary arrays | the `base64` crate (`=0.22.1`, behind the `numpress` feature that `mzml` enables), used by the mzML, mzXML, mzData, imzML and numpress codecs; the decoded bytes are fixed by the format, not by the instruction set |
+| `DATASTRUCTURES/StringUtils.cpp` (lines 450-498) | find the first or last byte that is or is not one of space, tab, newline, carriage return, 16 bytes at a time | byte-wise scans in the text parsers; the answer is the same position for any input |
+| `FORMAT/HANDLERS/StringManager.cpp` (lines 147-207) | Xerces UTF-16 helpers: find the terminating zero, test whether eight UTF-16 units are ASCII, and pack them into bytes | none needed: there is no Xerces UTF-16 layer; `quick-xml` hands the parsers UTF-8 text, which is already the byte string these helpers build |
 
-## Why there is no counterpart
+The build report's SIMD list — `BuildInfo::getActiveSIMDExtensions`, which in
+the source lists the SIMDe probes that were defined — is ported as
+[`system::build_info::active_simd_extensions`](../src/system/build_info.rs),
+reading the Rust target features in the source's order and with its labels;
+see [tests/build_info.rs](../tests/build_info.rs).
 
-Rust's portable SIMD story is different in kind. `std::arch` intrinsics are
-`unsafe` and this crate forbids `unsafe` crate-wide; `std::simd` is nightly-only
-and the crate's MSRV is 1.85. The port therefore contains no hand-written SIMD
-at all, so there is nothing for a portability shim to make portable, and no
-operator gap to fill — Rust has no per-compiler operator availability.
-
-A future Rust SIMD path would not resurrect this header. It would be
-`#[cfg(target_feature = …)]` on ordinary safe code, or a dependency, and either
-way the decision belongs to whoever takes it, not to a shim ported ahead of a
-need.
-
-## Evidence
-
-None is required and none is claimed: there is no behaviour to reproduce. What
-this package did produce, and all that is cited here, is in
-[system_process_provenance.json](../tests/data/system_process_provenance.json):
-the header's pinned sha256, the source anchor recording what the header does and
-that it declares no OpenMS member, and the `native_boundaries` note stating that
-it has no counterpart. The header carries **0** class-test sections — no
-`SIMDe_test.cpp` exists in the SDK — so recording it this way leaves no section
-unmapped.
-
-Related but **not** evidence for this decision:
-`system::build_info::active_simd_extensions` reports which SIMD level is in
-effect, deriving it from Rust target features where the source derives it from
-the SIMDe arch macros. That function, its tests and
-[BUILD_INFO_SUPPORT.md](BUILD_INFO_SUPPORT.md) belong to the `SYSTEM/BuildInfo.h`
-port, which was delivered separately and is unchanged by this package; it
-reports a SIMD level rather than providing SIMD portability, and it is named
-here only so a reader looking for "where did the SIMD level go" finds it.
+Explicit SIMD would be an optimisation and would need a determinism argument
+(results must be bit-identical to the serial scalar path), so none is written.
+If a profile ever shows the whitespace scans or the Base64 path to be hot, the
+candidates are `std::arch` behind a runtime feature check (which needs
+`unsafe`, forbidden in this crate) or a safe portable-SIMD crate such as
+`wide`; either would get a `THIRD_PARTY_CRATE_DECISIONS.md` entry first.
