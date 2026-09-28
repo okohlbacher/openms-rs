@@ -19,7 +19,7 @@ use crate::format::arrow_io_helpers::{
 };
 use crate::format::arrow_schema_registry::FeatureSchema;
 use crate::format::arrow_schema_registry::validation::{Mode, validate};
-use crate::kernel::features::{Feature, FeatureMap};
+use crate::kernel::features::{BaseFeature, Feature, FeatureMap};
 use crate::kernel::geometry::{ConvexHull2D, Point2D};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
@@ -312,16 +312,22 @@ impl FeatureMapArrowIO {
             } else {
                 Some(get_int64_value(Some(parent_id.as_ref()), row, 0)?)
             };
-            let mut feature = Feature::default();
-            // The source's static_cast<UInt64>(int64_t).
-            feature.unique_id = id as u64;
-            feature.rt = get_double_value(Some(rt.as_ref()), row, 0.0)?;
-            feature.mz = get_double_value(Some(mz.as_ref()), row, 0.0)?;
-            feature.intensity = get_float_value(Some(intensity.as_ref()), row, 0.0)?;
-            feature.charge = get_int32_value(Some(charge.as_ref()), row, 0)?;
-            feature.quality = get_float_value(Some(quality.as_ref()), row, 0.0)?;
-            feature.quality_rt = get_float_value(Some(quality_rt.as_ref()), row, 0.0)?;
-            feature.quality_mz = get_float_value(Some(quality_mz.as_ref()), row, 0.0)?;
+            let base = BaseFeature {
+                // The source's static_cast<UInt64>(int64_t).
+                unique_id: id as u64,
+                rt: get_double_value(Some(rt.as_ref()), row, 0.0)?,
+                mz: get_double_value(Some(mz.as_ref()), row, 0.0)?,
+                intensity: get_float_value(Some(intensity.as_ref()), row, 0.0)?,
+                charge: get_int32_value(Some(charge.as_ref()), row, 0)?,
+                quality: get_float_value(Some(quality.as_ref()), row, 0.0)?,
+                ..BaseFeature::default()
+            };
+            let mut feature = Feature {
+                base,
+                quality_rt: get_float_value(Some(quality_rt.as_ref()), row, 0.0)?,
+                quality_mz: get_float_value(Some(quality_mz.as_ref()), row, 0.0)?,
+                ..Feature::default()
+            };
             let w = get_float_value(width.as_deref(), row, 0.0)?;
             if w != 0.0 {
                 // BaseFeature::setWidth: the width and its FWHM metadata bridge.
@@ -343,7 +349,7 @@ impl FeatureMapArrowIO {
             });
         }
         // Deepest first, row order within a depth (the source's stable_sort).
-        entries.sort_by(|a, b| b.depth.cmp(&a.depth));
+        entries.sort_by_key(|entry| std::cmp::Reverse(entry.depth));
         let index: HashMap<i64, usize> = entries
             .iter()
             .enumerate()
