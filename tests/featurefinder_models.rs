@@ -837,7 +837,7 @@ const ISOTOPE_GAUSSIAN: [f64; 173] = [
 ];
 
 /// `setSamples(const EmpiricalFormula&)`, Lorentzian peak shape (FWHM 0.05).
-const ISOTOPE_LORENTZIAN: [f64; 162] = [
+const ISOTOPE_LORENTZIAN: [f64; 160] = [
     0.0249619,
     0.0291547,
     0.0344977,
