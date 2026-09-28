@@ -40,9 +40,17 @@ fn entry<T: Default>(map: &mut BTreeMap<usize, T>, key: usize) -> &mut T {
     map.entry(key).or_default()
 }
 
-/// Sum of `original(element, x)` over `members`, accumulated in `f32` in order.
-fn distance_sum(original: &DistanceMatrix<f32>, element: usize, members: &[usize]) -> Result<f32> {
-    let mut sum = 0.0_f32;
+/// `start` plus `original(element, x)` for each of `members`, added one at a
+/// time in `f32`, as the source's `+=` loops accumulate into a running value.
+/// The association matters: the source continues one running sum across two
+/// clusters and adds distances straight onto a scaled intra-cluster distance.
+fn accumulate(
+    original: &DistanceMatrix<f32>,
+    element: usize,
+    members: &[usize],
+    start: f32,
+) -> Result<f32> {
+    let mut sum = start;
     for &member in members {
         sum += original.get(element, member)?;
     }
@@ -134,8 +142,8 @@ impl ClusterAnalyzer {
                     if left != nearest && right != nearest {
                         let left_members = clusters[&left].clone();
                         let right_members = clusters[&right].clone();
-                        let mut merged = distance_sum(original, element, &left_members)?;
-                        merged += distance_sum(original, element, &right_members)?;
+                        let merged = accumulate(original, element, &left_members, 0.0)?;
+                        let mut merged = accumulate(original, element, &right_members, merged)?;
                         merged /= (left_members.len() + right_members.len()) as f32;
                         if merged < *entry(&mut interdist_i, element) {
                             interdist_i.insert(element, merged);
@@ -146,7 +154,7 @@ impl ClusterAnalyzer {
                         let k = if right != nearest { right } else { left };
                         let k_members = entry(&mut clusters, k).clone();
                         let nearest_size = entry(&mut clusters, nearest).len();
-                        let mut merged = distance_sum(original, element, &k_members)?;
+                        let mut merged = accumulate(original, element, &k_members, 0.0)?;
                         merged += nearest_size as f32 * *entry(&mut interdist_i, element);
                         merged /= (k_members.len() + nearest_size) as f32;
                         if merged <= *entry(&mut interdist_i, element) {
@@ -186,8 +194,8 @@ impl ClusterAnalyzer {
                     let l_less_one = entry(&mut clusters, l).len().wrapping_sub(1);
                     let k_members = entry(&mut clusters, k).clone();
                     if k != *entry(&mut cluster_with_interdist, element) {
-                        let mut intra = *entry(&mut intradist_i, element) * l_less_one as f32;
-                        intra += distance_sum(original, element, &k_members)?;
+                        let intra = *entry(&mut intradist_i, element) * l_less_one as f32;
+                        let mut intra = accumulate(original, element, &k_members, intra)?;
                         intra /= k_members.len().wrapping_add(l_less_one) as f32;
                         intradist_i.insert(element, intra);
                     } else {
