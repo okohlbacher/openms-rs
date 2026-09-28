@@ -414,15 +414,40 @@ fn retained_bundles_import_as_in_the_release_build() {
 }
 
 /// Every table of every retained bundle validates strictly against the
-/// ported registry (the promise of the crate-decision entry).
+/// ported registry (the promise of the crate-decision entry). The PSM table of
+/// a feature or consensus bundle carries the owning feature's id in front of
+/// the [`PSMSchema`] columns: `feature_unique_id`
+/// (`FeatureMapArrowIO.cpp:1224`) or `consensus_feature_unique_id`
+/// (`ConsensusMapArrowIO.cpp:1096`), a nullable `int64`.
 #[test]
 fn retained_bundle_tables_validate_strictly_against_the_registry() {
+    let with_owner = |owner: &str| {
+        let mut fields = vec![arrow_schema::Field::new(
+            owner,
+            arrow_schema::DataType::Int64,
+            true,
+        )];
+        fields.extend(
+            PSMSchema::schema()
+                .fields()
+                .iter()
+                .map(|f| f.as_ref().clone()),
+        );
+        std::sync::Arc::new(arrow_schema::Schema::new(fields))
+    };
     for bundle in BUNDLES {
+        let psms = if bundle.ends_with("featureparquet") {
+            with_owner("feature_unique_id")
+        } else if bundle.ends_with("consensusparquet") {
+            with_owner("consensus_feature_unique_id")
+        } else {
+            PSMSchema::schema()
+        };
         let mut files = vec![
             ("proteins.parquet", ProteinSchema::schema()),
             ("protein_groups.parquet", ProteinGroupSchema::schema()),
             ("search_params.parquet", SearchParamsSchema::schema()),
-            ("psms.parquet", PSMSchema::schema()),
+            ("psms.parquet", psms),
         ];
         if bundle.ends_with("featureparquet") {
             files.push(("features.parquet", FeatureSchema::schema()));
