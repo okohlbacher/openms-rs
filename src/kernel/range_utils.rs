@@ -711,7 +711,7 @@ impl IsInIsolationWindow {
     ///
     /// The sort is the source's `std::sort(vec_mz_.begin(), vec_mz_.end())`
     /// (`RangeUtils.h:634`), run by
-    /// [`source_sort_by`](crate::math::source_sort::source_sort_by) under
+    /// [`source_sort_by`] under
     /// `operator<`: the libstdc++ introsort the Release build executes,
     /// comparison by comparison. Every value is accepted. Infinities sort to the
     /// ends; `-0.0` and `0.0` are equivalent and keep the relative order that

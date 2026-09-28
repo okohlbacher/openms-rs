@@ -370,7 +370,7 @@ impl FeatureOverlapFilter {
     /// * `comparator` — a "less" comparator: when several features overlap,
     ///   the one that sorts first is kept. The features are sorted with the
     ///   source's `std::stable_sort` (`FeatureOverlapFilter.cpp:141`), run by
-    ///   [`source_stable_sort_permutation`](crate::math::source_sort::source_stable_sort_permutation):
+    ///   [`source_stable_sort_permutation`]:
     ///   libstdc++'s merge sort, calling `comparator` once per comparison in
     ///   the source's order. A comparator that is not a strict weak ordering —
     ///   the default one on a NaN quality — gives the order the Release build

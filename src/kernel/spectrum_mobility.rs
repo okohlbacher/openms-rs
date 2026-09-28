@@ -567,7 +567,7 @@ impl MSSpectrum {
     /// (`MSSpectrum.cpp:390`), then `MSSpectrum::sort` (`MSSpectrum.h:363-374`),
     /// a `std::stable_sort` of an index vector under `im[i1] < im[i2]`,
     /// run here by
-    /// [`source_stable_sort_permutation`](crate::math::source_sort::source_stable_sort_permutation),
+    /// [`source_stable_sort_permutation`],
     /// the libstdc++ merge sort comparison by comparison. That makes every
     /// value acceptable: infinities sort to the ends, `-0.0` and `0.0` are
     /// equal and keep their order, and a NaN, which `<` makes incomparable
