@@ -1,6 +1,7 @@
 # Lane F2 notes (MzTab, MzTab-M, mzQC, OMS)
 
-Branch: worktree-wf_ee239125-5be-11 (incarnation 2; merged worktree-wf_bcdd783d-f3f-11 = notes only).
+Branch: worktree-wf_cd066dab-0a7-6 (incarnation 3; merged worktree-wf_ee239125-5be-11 = incarnation 2,
+which finished the MzTab exporters + streaming stores (commits 3bf0851..5bc5bd7) and left OMS JSON export WIP (9e004d0)).
 
 ## C++ sources
 - Extract: `git -C ../OpenMS4-tests/packages/core archive -o X.tar bc9cc12 <paths>`; tar xf; copy to a
@@ -27,8 +28,16 @@ Branch: worktree-wf_ee239125-5be-11 (incarnation 2; merged worktree-wf_bcdd783d-
   indistinguishable-group mods keep only last; getMSRunSpectrumIdentifierType_ only inspects first PID;
   fixed-mod test compares getId() against full ids; PRT/PEP user keys with spaces are looked up underscored.
 
+## State at incarnation 3 start
+- DONE (inc. 2): src/format/mztab_export.rs, mztab_file.rs streaming stores, tests/mztab_export.rs (MzTabExporter_3..8).
+- WIP (inc. 2, saved by lead, never gated): src/format/oms_file.rs = JSON export only (OMSFileLoad::exportToJSON),
+  tests/oms_file.rs (JSONExporter_1/2, feature `sqlite`). OMSFile.h coverage entry is `unmapped`; MzQCFile.h `unmapped`.
+- MzTabM.h partial: "end-to-end exporter reproduction from the OMS input remains absent" -> needs OMS load into
+  IdentificationData? (check MzTabM export input in C++).
+
 ## Next step
-1. Write src/format/mztab_export.rs (in progress).
-2. Streaming store overloads in mztab_file.rs.
-3. tests/mztab_export.rs with retained MzTabExporter_4..8 (+3) under FuzzyDiff contract.
-4. Then MzQCFile, then OMSFile (rusqlite pinned; IdentificationData in src/identification/graph.rs).
+1. Gate the inherited work on spock: tests mztab_export (features?) + oms_file (--features sqlite) + clippy.
+2. Write docs/OMS_FILE_SUPPORT.md (referenced by oms_file.rs, missing), provenance for oms test data; commit.
+3. MzQCFile (store only; QualityControl tool) -> src/format/mzqc_file.rs.
+4. OMS load/store of IdentificationData (src/identification/graph.rs) if feasible; else partial with named gaps.
+5. Report + ledger fragment; delete NOTES.md.
