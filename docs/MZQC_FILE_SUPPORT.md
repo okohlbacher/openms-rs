@@ -98,7 +98,36 @@ missed-cleavage metric annotates the first hits, as in the source.
 - Oracle `oracle/F2-mzqc` (Linux x86_64 Release build
   `openms4-release-bc9cc12-c19e494-174b576`, ibminode06, gcc 14.4.0, run
   twice): see "Oracle" below.
+- Tier 1, `text_is_the_release_builds_output_line_for_line`: the port's
+  document equals the Release build's (`tests/data/mzqc_file/release/
+  QCCalculator_2_release.mzQC`) line for line, the creation date included,
+  except the input's absolute location, which names the directory each ran
+  in.
 - Tier 4: the whitelisted lines hold the given creation date, the absolute
   location, mzQC 1.0.0 and the SDK version; a document without inputs keeps
   the three unconditional metrics and logs the four notes in order; an
   unreadable file has an empty checksum; a failed store leaves the file.
+
+## Oracle
+
+`oracle/F2-mzqc` (beside the repository; `driver.cpp`, `remote_run.sh`,
+`run.sh`, `results/hashes.txt`) builds QCCalculator's mzQC body against the
+Linux x86_64 Release install `openms4-release-bc9cc12-c19e494-174b576` on
+ibminode06 (gcc 14.4.0, `-O3 -DNDEBUG`), and runs it twice in fresh processes
+on the retained inputs, once with the retained mzML and once with the
+strict-reader derivative. Results (`results/differ.txt` empty):
+
+- run 1 and run 2 agree apart from `creationDate`;
+- the retained and the derived mzML give the same document apart from
+  `creationDate`, so the derivative changes nothing the source reads;
+- the RT mean shift of the pinned build is `0.916678249835968`
+  (`0.91667824983596802` at 17 digits), the value the port writes. The
+  retained upstream output, written by an older build (its software version
+  line says 3.5.0), has `0.9166780114173889`; the relative difference,
+  2.6e-7, is inside the upstream FuzzyDiff tolerance. No summation order of
+  the six `float` deviations gives the retained value, so it predates the
+  pinned `FeatureSummary` arithmetic or input.
+
+The oracle also prints the six features in the order `sortByRT` leaves them,
+with their deviations (`results/values.tsv`); summed in that order in `f32`
+they give the pinned build's value, which is the port's.

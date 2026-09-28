@@ -5,7 +5,7 @@
 //! The base of every quality-control metric (source `QC/QCBase.h`).
 //!
 //! A metric declares the input data its computation needs as a [`Status`], a
-//! [`FlagSet`] of [`Requires`] values; a caller collects the inputs it has into
+//! [`FlagSet`](crate::data_structures::FlagSet) of [`Requires`] values; a caller collects the inputs it has into
 //! another `Status` and asks [`QCBase::is_runnable`]. The source's abstract
 //! class is the [`QCBase`] trait; its static members are the associated
 //! functions and constants of this module. See `docs/QC_SUPPORT.md`.

@@ -47,18 +47,67 @@
  "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:3664-3672 (TOPP_JSONExporter_1/2), 168-172 (IDMerger_6 inputs), core bc9cc12 src/tests/class_tests/openms/source/OMSFile_test.cpp",
  "method": "JSON export: the retained outputs under the upstream FuzzyDiff contract. Load/store: the Release build loaded each input and stored it again; the port loads the same input and stores it with OmsLoadOptions::source/OmsStoreOptions::source; the canonical, foreign-key-invariant dumps (schema SQL and all rows but the version row) of both databases must be identical. The loaded maps are compared field by field with the Release build's loaded values.",
  "evidence_tier": "1 (executed Release build, ibminode06) for load, store and export; 3 for the native options",
- "external_artifacts": [
+ "external_reference_note": "The oracle drivers and scripts are C++, Python and shell kept beside the repository in ../oracle/F2-oms, F2-oms-noid and F2-oms-mztabm and never committed here; each results/hashes.txt records its driver, built binary, inputs, libOpenMS.so and outputs.",
+ "external_reference_artifacts": [
   {
-   "path": "oracle/F2-oms",
-   "note": "driver.cpp, remote_run.sh, run.sh, dump_tables.py, make_dumps.sh, results/ (hashes.txt), dumps/ (dumps.sha256)"
+   "path": "../oracle/F2-oms/driver.cpp",
+   "sha256": "55d931cb6ab7406e7daf5b70d89a51b8f1ff58a1f0d83167255175d9eb8b0555",
+   "origin_key": "method"
   },
   {
-   "path": "oracle/F2-oms-noid",
-   "note": "driver.cpp, remote_run.sh, run.sh, results/ (hashes.txt)"
+   "path": "../oracle/F2-oms/remote_run.sh",
+   "sha256": "5d6572c1133cdd6e9cb1148ccc92e01a045a39f2dc30c87ddeecf53b082384e9",
+   "origin_key": "method"
   },
   {
-   "path": "oracle/F2-oms-mztabm",
-   "note": "driver.cpp, remote_run.sh, run.sh, dump_tables.py, results/ (hashes.txt)"
+   "path": "../oracle/F2-oms/run.sh",
+   "sha256": "ebd1eebd99fcef8e7aacc647cbe184e0d7ea58803f3a5f20d725002dd47d0a03",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms/results/hashes.txt",
+   "sha256": "cd7e1b2f84d3f507b76813c4a9aed0d3868d0febcf26fc9b2d83afb7aa67db59",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/driver.cpp",
+   "sha256": "b44523e358d5be81a7303102d70fbdec5a063c9be7793bf1ce64e9b3ac5a8d0d",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/remote_run.sh",
+   "sha256": "94019b23f8ddbc966a5d92ebe2613e81ad98cada76b099089b76f4ff81007b40",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/run.sh",
+   "sha256": "268812601ce818549ad68d95ddaf4519a8c7a09e7f5fb5a31f4c9c80c8b5a621",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/results/hashes.txt",
+   "sha256": "317c83c73e53de35906571de9221e9715d8ffd9bace34abb83c1b7c4c32a0b33",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/driver.cpp",
+   "sha256": "47303458e4eb67990c668f02ada47f37d134e32a60880c5222eb40bf42003b29",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/remote_run.sh",
+   "sha256": "cd8b9c1c89e8c9a1c02d43efbcd4a922f82b5f15cad31b831a553e6d9836b39f",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/run.sh",
+   "sha256": "e41a41b28f30905ef152239d1249a86a4bc53634c32886a08a6346b96ddc8748",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/results/hashes.txt",
+   "sha256": "5e16356243815f72defae5dff5e48f40d2b6155e4e0731e43a6794ee55ecaf50",
+   "origin_key": "method"
   }
  ],
  "fixtures": [

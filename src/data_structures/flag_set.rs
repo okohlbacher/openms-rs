@@ -182,6 +182,8 @@ impl<E> BitAndAssign for FlagSet<E> {
 impl<E: FlagEnum> Add<E> for FlagSet<E> {
     type Output = Self;
     /// Source `operator+(const ENUM&)`, the same as `|`.
+    // The source defines `+` as `|`.
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn add(self, flag: E) -> Self {
         self | flag
     }
@@ -189,18 +191,22 @@ impl<E: FlagEnum> Add<E> for FlagSet<E> {
 impl<E> Add for FlagSet<E> {
     type Output = Self;
     /// Source `operator+(const FlagSet&)`, the same as `|`.
+    #[allow(clippy::suspicious_arithmetic_impl)]
     fn add(self, rhs: Self) -> Self {
         self | rhs
     }
 }
 impl<E: FlagEnum> AddAssign<E> for FlagSet<E> {
     /// Source `operator+=(const ENUM&)`, the same as `|=`.
+    // The source defines `+=` as `|=`.
+    #[allow(clippy::suspicious_op_assign_impl)]
     fn add_assign(&mut self, flag: E) {
         *self |= flag;
     }
 }
 impl<E> AddAssign for FlagSet<E> {
     /// Source `operator+=(const FlagSet&)`, the same as `|=`.
+    #[allow(clippy::suspicious_op_assign_impl)]
     fn add_assign(&mut self, rhs: Self) {
         *self |= rhs;
     }

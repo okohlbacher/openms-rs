@@ -92,7 +92,11 @@ The registry contains these exact names:
 | no cleavage | `NoCleavage` |
 | unspecific cleavage | `UnspecificCleavage` |
 
-Names and declared synonyms are case-sensitive. Examples include `Clostripain`
+Names and declared synonyms are case-sensitive, and each enzyme is also found
+under its name in lower case (`trypsin` for Trypsin, `lys-c` for Lys-C), the
+three keys source `DigestionEnzymeDB::addEnzyme_` registers (core bc9cc12
+`DigestionEnzymeDB.h:181-186`); no other spelling is (`TRYPSIN` is not). idXML
+files and `MissedCleavages_test.cpp` spell Trypsin `trypsin`. Examples include `Clostripain`
 for Arg-C, `Glu-C` for glutamyl endopeptidase, `no_cut` for no cleavage and
 `nonspecific` for unspecific cleavage. Identical cleavage expressions can belong
 to multiple distinct entries, so `enzymes_by_regex` returns all matching names.
