@@ -78,3 +78,4 @@ Lead-file needs: core-sdk-coverage.json regen (adds a3a manifest to 7 headers), 
 Merged worktree-wf_ee239125-5be-5 (fast-forward). Report already at .planning/lane-reports/A3a.md with
 SWEEP_PLACEHOLDER; ledger fragment written. Next: 1. CI sweep (slot A3a-sweep, logs in this session's
 scratchpad/A3a/sweep) 2. replace SWEEP_PLACEHOLDER + branch name in report 3. final commit deleting NOTES.md.
+Sweep attempts 1-2 died in rsync (spock overloaded); manual rsync then sweep3 (scratchpad/A3a/sweep3.out) running 12:03. Remote progress: ssh spock ls /scratch/kohlbach/agents/A3a-sweep/.ci-line.*.log
