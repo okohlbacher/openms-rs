@@ -35,6 +35,20 @@ which finished the MzTab exporters + streaming stores (commits 3bf0851..5bc5bd7)
 - MzTabM.h partial: "end-to-end exporter reproduction from the OMS input remains absent" -> needs OMS load into
   IdentificationData? (check MzTabM export input in C++).
 
+## Inc. 3 findings
+- C++ sources flattened at scratchpad cpp/flat (archive of core bc9cc12; OMSFile*, QC/*); re-extract via archive.
+- MzQCFile::store needs QC/TIC, SpectrumCount, FeatureSummary, IdentificationSummary (no src/qc in crate),
+  ControlledVocabulary loadFromOBO + qc-cv.obo (absent from resources/cv), FileHandler::computeFileHash (SHA-1).
+  No direct TOPP consumer in coverage json -> lowest priority; likely leave untouched with named deps.
+- OMS: Rust IdentificationData exists (src/identification/graph*.rs, sorted Table iteration). FeatureMap has
+  no id_data member (by design, feature_identification.rs) -> store/load feature maps take/return the graph.
+- Retained .oms (test-data 0cb15f2 topp/): JSONExporter_protein/RNA, IDMerger_6_input1/2, MapAlignerIdentification_8_input1/2.
+  Evidence plan: load -> store -> export JSON == retained JSONExporter output (FuzzyDiff); C++ oracle on ibminode06
+  to confirm the C++ load->store->exportToJSON round trip gives the same (../oracle/F2-oms/).
+- C++ defects: store binds compound.name to `smile`; consensus ratios stored under last handle's id and loaded
+  into a copy after push_back (never round-trip); OMSFileLoad ref maps default-construct on missing keys.
+- Old schema versions (<4 DataValue join, <5 FEAT_Feature/overall_quality, <=2 grouping_order/position, 1 no specificity).
+
 ## Next step
 1. Gate the inherited work on spock: tests mztab_export (features?) + oms_file (--features sqlite) + clippy.
 2. Write docs/OMS_FILE_SUPPORT.md (referenced by oms_file.rs, missing), provenance for oms test data; commit.
