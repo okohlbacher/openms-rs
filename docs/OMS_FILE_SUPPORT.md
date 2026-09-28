@@ -151,8 +151,18 @@ for the JSON export. The source has none.
 
 Tier 1, executed on the Linux x86_64 Release build
 (`/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576`, host
-ibminode06, gcc 14.4.0, each run twice with identical results; oracle
-directories `oracle/F2-oms`, `oracle/F2-oms-noid` and `oracle/F2-oms-mztabm` beside the repository):
+ibminode06, gcc 14.4.0, each run twice; oracle directories `oracle/F2-oms`,
+`oracle/F2-oms-noid` and `oracle/F2-oms-mztabm` beside the repository). The
+two runs give identical canonical dumps for every retained input's round
+trips. The databases the Release build writes itself from the
+`OMSFile_test.cpp` fixtures (sections 1-6: `idxml_whole`, `feature`,
+`consensus`) differ between the two runs in one respect only: the name of each
+`ID_InputFile` the idXML import synthesises
+(`UNKNOWN_INPUT_FILE_<engine>_<date>_<random unique id>`) carries a fresh
+random number per run, and the rows that reference it follow. The tests
+therefore take run 1's written databases as their inputs
+(`tests/data/oms_file/release/*.oms`) and compare against run 1's re-stored
+dumps, so no run-dependent value enters an expected result.
 
 - The retained JSONExporter outputs are reproduced by `export_to_json`
   (TOPP_JSONExporter_1/2, FuzzyDiff contract).

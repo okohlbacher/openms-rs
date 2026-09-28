@@ -102,19 +102,19 @@
    "path": "tests/data/oms_file/release/idxml_whole.oms",
    "sha256": "e768505b6fd87c68fc14b46672dc8cf712cbf03ee2182f60a1eb23ee85794bb9",
    "bytes": 217088,
-   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp sections 1-2 (IdXMLFile_whole.idXML, importIDs, Cl- adduct), OMSFile::store"
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp sections 1-2 (IdXMLFile_whole.idXML, importIDs, Cl- adduct), OMSFile::store Run 2 differs from run 1 only in the random unique id the idXML import appends to each synthesised ID_InputFile name (UNKNOWN_INPUT_FILE_<engine>_<date>_<id>) and the rows referencing it; run 1's file is the fixture."
   },
   {
    "path": "tests/data/oms_file/release/feature.oms",
    "sha256": "db39058a3f37533335f45acf429a5f83bd227cc2701e73b6ae9359be0bede21b",
    "bytes": 217088,
-   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp section 3 (FeatureXMLFileOMStest_1.featureXML, importFeatureIDs), OMSFile::store"
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp section 3 (FeatureXMLFileOMStest_1.featureXML, importFeatureIDs), OMSFile::store Run 2 differs from run 1 only in the random unique id the idXML import appends to each synthesised ID_InputFile name (UNKNOWN_INPUT_FILE_<engine>_<date>_<id>) and the rows referencing it; run 1's file is the fixture."
   },
   {
    "path": "tests/data/oms_file/release/consensus.oms",
    "sha256": "decefdb7d0a6c7899b0a41c1a52b47f05aeacd05ddfd0e03ea4623cb8107c47b",
    "bytes": 233472,
-   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp section 5 (ConsensusXMLFile_1.consensusXML, importConsensusIDs), OMSFile::store"
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp section 5 (ConsensusXMLFile_1.consensusXML, importConsensusIDs), OMSFile::store Run 2 differs from run 1 only in the random unique id the idXML import appends to each synthesised ID_InputFile name (UNKNOWN_INPUT_FILE_<engine>_<date>_<id>) and the rows referencing it; run 1's file is the fixture."
   },
   {
    "path": "tests/data/oms_file/release/feature_loaded.tsv",
