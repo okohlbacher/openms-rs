@@ -9,6 +9,8 @@
 
 /// `IncludeExcludeTarget`: an inclusion or exclusion target of a targeted experiment.
 pub mod include_exclude_target;
+/// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
+pub mod metabo_targeted_target_decoy;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
 pub mod mrm_mapping;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
