@@ -101,6 +101,26 @@ fn source_sequence_order_is_length_first() {
     assert!(SourceOrderedSequence(AASequence::default()) < short);
 }
 
+#[test]
+fn source_sequence_order_compares_modifications_in_place() {
+    // Derived from `AASequence::operator<` (AASequence.cpp:336-379 at the
+    // pin), not from an executed build: an N-terminal modification sorts after
+    // none before any residue is compared, and a residue's modification is
+    // compared at that residue, before the later residues ("no modification"
+    // is the null pointer, which sorts first).
+    let mut acetyl = seq("AAA");
+    acetyl.set_n_terminal_modification("Acetyl").unwrap();
+    assert!(SourceOrderedSequence(seq("CCC")) < SourceOrderedSequence(acetyl));
+
+    let mut oxidized = seq("AMC");
+    oxidized.set_modification(1, "Oxidation").unwrap();
+    // Residue 1 decides (unmodified M before oxidized M), although C < D at
+    // residue 2 would decide the other way.
+    assert!(SourceOrderedSequence(seq("AMD")) < SourceOrderedSequence(oxidized.clone()));
+    // The crate's own order compares the residue string first.
+    assert!(oxidized < seq("AMD"));
+}
+
 // ---------------------------------------------------------------- QTCluster
 
 #[test]

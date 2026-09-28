@@ -12,45 +12,79 @@
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
 
-use crate::chemistry::AASequence;
+use crate::chemistry::{AASequence, SequenceModification};
 use crate::kernel::features::BaseFeature;
 
-/// A peptide sequence ordered as the source's `AASequence::operator<` orders
-/// it, as far as that order is reproducible.
+/// A peptide sequence ordered as the source's `AASequence::operator<`
+/// (`AASequence.cpp:328-380` at the pin) orders it, as far as that order is
+/// reproducible.
 ///
-/// The source's `std::set<AASequence>` orders by residue count first (a
-/// shorter sequence is smaller), then puts a sequence without an N-terminal
-/// modification before one with, then compares residue by residue. This
-/// wrapper orders by residue count, then N-terminal modification presence,
-/// then the unmodified one-letter string, then C-terminal modification
-/// presence. Where the source then compares modification *pointers* (whose
-/// order is the registry's allocation order) or modification ids, this falls
-/// back to the crate's [`AASequence`] order, which is deterministic but not
-/// the source's. Two keys are equal exactly when the sequences are equal.
+/// The source compares, and this wrapper compares in the same sequence:
+///
+/// 1. the residue count (a shorter sequence is smaller);
+/// 2. the N-terminal modification: none before any; two different ones by
+///    their id (here [`SequenceModification::name`]);
+/// 3. residue by residue, the one-letter code, then the residue's
+///    modification: none before any;
+/// 4. the C-terminal modification, as the N-terminal one.
+///
+/// Where the source compares two different residue modifications, it compares
+/// their *addresses* in the modification registry, an order no other program
+/// can reproduce; there, and where the source finds two unequal sequences
+/// equivalent (two different terminal modifications with the same id), this
+/// falls back to the crate's [`AASequence`] order, so that two keys are equal
+/// exactly when the sequences are.
 ///
 /// The order is observable: it is the iteration order of
 /// [`GridFeature::annotations`], and `QTCluster` breaks ties between equally
-/// good annotations by it.
+/// good annotations by it. The crate's own [`AASequence`] order is not the
+/// source's (it compares the residue string before the length).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SourceOrderedSequence(pub AASequence);
+
+/// A terminal modification in the source's order: none first, then by id.
+fn terminal_order(a: Option<&SequenceModification>, b: Option<&SequenceModification>) -> Ordering {
+    match (a, b) {
+        (Some(_), None) => Ordering::Greater,
+        (None, Some(_)) => Ordering::Less,
+        (Some(a), Some(b)) if a != b => a.name().cmp(b.name()),
+        _ => Ordering::Equal,
+    }
+}
 
 impl Ord for SourceOrderedSequence {
     fn cmp(&self, other: &Self) -> Ordering {
         let (a, b) = (&self.0, &other.0);
-        a.len()
-            .cmp(&b.len())
-            .then_with(|| {
-                a.n_terminal_modification()
-                    .is_some()
-                    .cmp(&b.n_terminal_modification().is_some())
-            })
-            .then_with(|| a.as_str().cmp(b.as_str()))
-            .then_with(|| {
-                a.c_terminal_modification()
-                    .is_some()
-                    .cmp(&b.c_terminal_modification().is_some())
-            })
-            .then_with(|| a.cmp(b))
+        let length = a.len().cmp(&b.len());
+        if length != Ordering::Equal {
+            return length;
+        }
+        let n_terminal = terminal_order(a.n_terminal_modification(), b.n_terminal_modification());
+        if n_terminal != Ordering::Equal {
+            return n_terminal;
+        }
+        let (letters_a, letters_b) = (a.as_str().as_bytes(), b.as_str().as_bytes());
+        for index in 0..letters_a.len().min(letters_b.len()) {
+            let letter = letters_a[index].cmp(&letters_b[index]);
+            if letter != Ordering::Equal {
+                return letter;
+            }
+            // Both lookups are in range: the index is below both lengths.
+            let modification_a = a.residue_modification(index).ok().flatten();
+            let modification_b = b.residue_modification(index).ok().flatten();
+            match (modification_a, modification_b) {
+                (None, Some(_)) => return Ordering::Less,
+                (Some(_), None) => return Ordering::Greater,
+                // The source compares registry addresses here.
+                (Some(x), Some(y)) if x != y => return a.cmp(b),
+                _ => {}
+            }
+        }
+        let c_terminal = terminal_order(a.c_terminal_modification(), b.c_terminal_modification());
+        if c_terminal != Ordering::Equal {
+            return c_terminal;
+        }
+        a.cmp(b)
     }
 }
 
