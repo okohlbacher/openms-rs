@@ -1,6 +1,6 @@
 # F7b lane notes (restart-safe)
 
-Branch: worktree-wf_cd066dab-0a7-13, base f0990c0. Slot F7b, gate host dax.
+Branch: worktree-wf_cd066dab-0a7-18 (incarnation 2 merged -13), base f0990c0. Slot F7b, gate host dax.
 
 ## Findings (took many calls)
 - Headers/cpp read at core bc9cc12 (git -C ../OpenMS4-tests/packages/core show bc9cc12:<path>; the sandbox refuses loops/vars around git: run one literal git per call).
