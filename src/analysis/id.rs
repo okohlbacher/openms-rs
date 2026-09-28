@@ -6,6 +6,9 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Phosphosite localisation with the AScore (`AScore.h`).
 pub mod ascore;
+/// Comet `variable_modXX` entries and their merging (`CometModification.h`).
 pub mod comet_modification;
+/// The Andromeda-style PScore and windowed peak ranks (`PScore.h`).
 pub mod pscore;

@@ -1,0 +1,88 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/PScore.h",
+   "sha256": "a1e65c964d7a7c3892a09f681217162cbe5c7a544d97061a77d1ed7d8ce48ec5"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/PScore.cpp",
+   "sha256": "3fdfb80f5a203c563c3e45e21f3e05c172a9287f1fd622e9aafbcbc035c7df5e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PScore_test.cpp",
+   "sha256": "847610c8349a72ebfaab75049afd4b2ad8637bbbd8b98ad6fe05f250ffd42bdf"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/AScore.h",
+   "sha256": "582bac87123a2d188f04def704a265821d1ace721d56c40d134b39ec79edc61b"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/AScore.cpp",
+   "sha256": "567f9caa2b34fb47476d7922824b8a7271d3dff1d137d92e9a06ba7300556d84"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/AScore_test.cpp",
+   "sha256": "64f18d3e1c5077cd75fe9fec5faffd37fd0f51abfdb3b0a92b8d647e07cce795"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/MatchedIterator.h",
+   "sha256": "79941c1975151fcb2b98228295fcdbad0c8aca966266fc20b053ee27aeeab0d3"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/PScore_test.dta",
+   "sha256": "8ceb7d33d780330cdafbf7b0c82e333e149d3a130a72162301bb82a2c61b6f9d",
+   "origin": "src/tests/class_tests/openms/data/PScore_test.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input1.dta",
+   "sha256": "dada5f57c52a2909eca7c3ca3031f82216386f75e30c17dc7b1fb764e50e66ad",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input1.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input2.dta",
+   "sha256": "43bbd1298a3c1e126579a687ffb18c3dfbe928a7156c7f8f0a20299ae8e2edb1",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input2.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input3.dta",
+   "sha256": "2bc6779c57a631a595d03a1156f7f548621a9c5fdb77d0e91a679155e280dac2",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input3.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input4.dta",
+   "sha256": "750d3f2bc1674076ddec427ea3418dc28976e2bf8746d0d070bbc3ed36bd16a2",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input4.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/id/pscore.rs",
+  "src/analysis/id/ascore.rs"
+ ],
+ "native_tests": [
+  "tests/pscore_ascore.rs"
+ ],
+ "support_document": "docs/PSCORE_ASCORE_SUPPORT.md",
+ "evidence_tier": "3 (source review: every literal of PScore_test.cpp and AScore_test.cpp transcribed, including the six AScore::compute results over the four DTA inputs and the unambiguous case) plus 4 (native refusals and definition-derived invariants, marked 'native' in the test)",
+ "openmp": "No #pragma omp in PScore.cpp or AScore.cpp; the port is serial, as the source.",
+ "notes": [
+  "PScore.cpp defines massCorrectionTerm, cleavageCorrectionTerm and modificationCorrectionTerm as free functions in namespace OpenMS, not as the PScore:: static members the header declares; the members have no definition and a call fails to link. The Rust associated functions carry the free functions' bodies.",
+  "The vector overload of PScore::computePScore uses p = level / mz_window, the single-spectrum overload p = (level + 1) / mz_window; both are kept.",
+  "AScore::computeCumulativeScore_ delegates to Math::binomial_cdf_complement (Boost incomplete beta upstream); the port uses concept::math_functions::binomial_cdf_complement, whose agreement with the source is recorded at that function."
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

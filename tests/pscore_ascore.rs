@@ -164,13 +164,24 @@ fn best_of_overload_keeps_the_source_level_probability() {
     let ranks = PScore::calculate_intensity_rank_in_mz_window(&mz, &intensities, 100.0).unwrap();
     let pls = PScore::calculate_peak_level_spectra(&spec, &ranks, 1, 1).unwrap();
     let level1 = pls[&1].clone();
-    let score =
-        PScore::compute_pscore_best_of(0.1, true, &pls, &[level1.clone()], DEFAULT_MZ_WINDOW)
-            .unwrap();
+    let score = PScore::compute_pscore_best_of(
+        0.1,
+        true,
+        &pls,
+        std::slice::from_ref(&level1),
+        DEFAULT_MZ_WINDOW,
+    )
+    .unwrap();
     real_similar(score, 20.0 * level1.len() as f64);
     let pls = PScore::calculate_peak_level_spectra(&spec, &ranks, 0, 0).unwrap();
-    let score = PScore::compute_pscore_best_of(0.1, true, &pls, &[spec.clone()], DEFAULT_MZ_WINDOW)
-        .unwrap();
+    let score = PScore::compute_pscore_best_of(
+        0.1,
+        true,
+        &pls,
+        std::slice::from_ref(&spec),
+        DEFAULT_MZ_WINDOW,
+    )
+    .unwrap();
     assert_eq!(score, f64::INFINITY);
     // An empty level spectrum is the source's findNearest precondition.
     let mut empty = pls.clone();
