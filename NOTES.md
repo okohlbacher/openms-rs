@@ -31,5 +31,17 @@
 - StatsHelpers/Scoring use Eigen reductions (packet sums) -> port with sequential sums; document bit-level divergence.
 - Rust layout decided: src/analysis/openswath/{data_structures,spectrum_access,transitions,swath_map,stats_helpers,scoring,data_frame_writer,mock_objects,...}.rs
 
+## Done (incarnation 2), all committed
+- src/analysis/openswath/{data_structures,spectrum_access,spectrum_access_openms,transition_experiment,transitions,
+  transition_helper,itransition,swath_map,mock_objects,stats_helpers,scoring,data_frame_writer,data_access_helper,mrm_feature_access}.rs
+- Design: trait SpectrumAccess (&self, Send+Sync, usize ids, Result), SpectrumPtr=Arc<Spectrum>, arrays owned (>=2 invariant).
+  Access traits: FeatureAccess/MRMFeatureAccess/TransitionGroupAccess/SignalToNoiseAccess (feature() returns Option<&dyn>).
+- Gaps: SpectrumAccessOpenMSCached (needs CachedMzML, unported) ; DataAccessHelper targeted conversions (need TargetedExperiment);
+- C++ defect candidates: InMemory getSpectraByRT derefs end + exclusive upper bound vs doc; InMemory drops chromatograms for SqMass origin;
+  QuadMZ transforms shared cached spectrum in place (double transform); LightTargetedExperiment ref map dangling/null deref;
+  convertTargetedExp unreachable 'both target and decoy' branch; MockMRMFeature operator[] inserts null.
+
 ## Next step
-1. Read C++ headers of step 1 and existing Rust MSSpectrum/MSChromatogram/MSExperiment types; write src/analysis/openswath/data_structures.rs
+1. SpectrumAccessSqMass (feature sqmass, uses format::mzml_sqlite_handler::MzMLSqliteHandler)
+2. OpenSwathHelper, SpectrumAddition
+3. tests/openswath_data_access.rs + tests/openswath_algo.rs; docs/OPENSWATH_{DATAACCESS,ALGO}_SUPPORT.md; provenance json; report+ledger
