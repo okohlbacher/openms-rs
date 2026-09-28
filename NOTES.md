@@ -69,3 +69,12 @@ Never push/rebase. Cargo only via gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64
   1. PepXMLFileMascot (src/format/pepxml_mascot.rs), using the SAX approach main already uses.
   2. XQuestResultXMLFile + handler (needs OPXLHelper::combineTopRanksFromPairs).
   3. Partial gaps (IdXML/MzIdentML/MascotXML/PepXML) if time.
+- [inc4] sax_xml.rs copied verbatim from integ-F (2d6ad26) + cpp_release_records.txt; only edit: line 350
+  kb-xml cfg_attr -> allow(dead_code); mod.rs has #[allow(dead_code)] on the mod.
+- [inc4] PepXMLFileMascot: src/format/pepxml_mascot.rs, tests/pepxml_mascot.rs, docs/PEPXML_MASCOT_SUPPORT.md,
+  tests/data/pepxml_mascot_provenance.json (generator: scratchpad mk_mascot_prov.py). Oracle
+  ../oracle/F3a-pepxml-mascot (ibminode06, run.sh push/pull), results copied to tests/data/pepxml_mascot/expected.
+  Gate: scratchpad/gate/g3.log (test), g3c.log (clippy). rsync to dax sometimes times out -> check log head.
+- XQuest next: needs faithful OPXLHelper addXLTargetDecoyMV/addBetaAccessions/combineTopRanksFromPairs/
+  removeBetaPeptideHits/computeDeltaScores (mzidentml.rs copies DIVERGE on purpose; do not reuse blindly).
+  Writer tier 1: XFDR_test_out{1,2,3,4,5,7}.xquest.xml retained (TOPP_XFDR_* CMakeLists 3478-3510).

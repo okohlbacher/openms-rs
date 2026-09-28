@@ -199,8 +199,10 @@ pub mod pepxml_mascot;
 #[cfg(feature = "idxml")]
 pub mod protxml;
 /// The Xerces-faithful SAX driver of every `XMLHandler` port (copied verbatim
-/// from the wave-4 integration branch, which owns it).
+/// from the wave-4 integration branch, which owns it). Its X! Tandem and
+/// knowledge-base callers live on that branch, hence the `dead_code` allowance.
 #[cfg(feature = "idxml")]
+#[allow(dead_code)]
 pub(crate) mod sax_xml;
 /// Bounded SAX-style events for the attribute-driven identification readers.
 #[cfg(feature = "idxml")]
