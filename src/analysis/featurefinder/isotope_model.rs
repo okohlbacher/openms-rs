@@ -19,6 +19,7 @@
 //! arithmetic ([`ProbabilityPrecision::SourceSingle`]), because every weight
 //! the models use is a `float` intensity there.
 
+use crate::Result;
 use crate::chemistry::EmpiricalFormula;
 use crate::chemistry::isotopes::{
     CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution, ProbabilityPrecision,
@@ -26,7 +27,6 @@ use crate::chemistry::isotopes::{
 use crate::error::Error;
 use crate::math::basic_statistics::BasicStatistics;
 use crate::param::{Param, ParamValue};
-use crate::Result;
 use statrs::distribution::{Cauchy, Continuous};
 
 use super::base_model::{
@@ -40,7 +40,13 @@ fn bad(message: String) -> Error {
 
 /// The averagine atoms per dalton, in the source's `Averagines` enum order
 /// `C, H, N, O, S`: the `float` literals of the source defaults.
-const AVERAGINE_DEFAULTS: [f32; 5] = [0.044_439_89, 0.069_815_72, 0.012_217_73, 0.013_293_99, 0.000_375_25];
+const AVERAGINE_DEFAULTS: [f32; 5] = [
+    0.044_439_89,
+    0.069_815_72,
+    0.012_217_73,
+    0.013_293_99,
+    0.000_375_25,
+];
 /// The element symbols in `Averagines` order.
 const AVERAGINE_KEYS: [&str; 5] = ["C", "H", "N", "O", "S"];
 
@@ -186,7 +192,13 @@ fn gaussian_shape(stdev: f64, step: f64) -> Result<(f64, Vec<f64>)> {
 /// `min(pattern.len() + shape.len() - 1, trunc(2 * width / step * max_isotope + 1))`
 /// entries, looping backwards "because then the small products tend to come
 /// first".
-fn fold(pattern: &[f64], shape: &[f64], width: f64, step: f64, max_isotope: i32) -> Result<Vec<f64>> {
+fn fold(
+    pattern: &[f64],
+    shape: &[f64],
+    width: f64,
+    step: f64,
+    max_isotope: i32,
+) -> Result<Vec<f64>> {
     let full = pattern.len() as f64 + shape.len() as f64 - 1.0;
     let limit = (2.0 * width / step * f64::from(max_isotope) + 1.0).trunc();
     let r_max = full.min(limit);

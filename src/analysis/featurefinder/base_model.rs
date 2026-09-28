@@ -19,11 +19,11 @@
 //! caller can name them all through one include; [`Model1D`] is its
 //! counterpart. It declares nothing else.
 
+use crate::Result;
 use crate::error::Error;
 use crate::kernel::Peak1D;
 use crate::math::ml::linear_interpolation::LinearInterpolation;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
-use crate::Result;
 
 use super::gauss_models::{BiGaussModel, EmgModel, GaussModel};
 use super::isotope_model::{ExtendedIsotopeModel, IsotopeModel};

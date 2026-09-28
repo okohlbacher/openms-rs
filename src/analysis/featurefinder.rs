@@ -8,5 +8,11 @@
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
 pub mod base_model;
+pub mod emg_scoring;
+pub mod feature_finder_algorithm;
+pub mod fitter1d;
+pub mod fitters;
 pub mod gauss_models;
 pub mod isotope_model;
+pub mod peak_width_estimator;
+pub mod seed_list_generator;

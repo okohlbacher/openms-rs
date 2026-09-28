@@ -15,12 +15,12 @@
 //! `min == max` leaves the interpolation empty and keeps its previous scale and
 //! offset, as the source's early return does.
 
+use crate::Result;
 use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::concept::constants::PI;
 use crate::error::Error;
 use crate::math::basic_statistics::BasicStatistics;
 use crate::param::{Param, ParamValue};
-use crate::Result;
 
 use super::base_model::{
     InterpolationCore, InterpolationModel, MAX_SAMPLES, complete_parameters, float_value,
