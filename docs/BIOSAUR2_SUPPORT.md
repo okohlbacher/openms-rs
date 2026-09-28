@@ -56,7 +56,7 @@ Every member of the header, public and private.
 | `setMSData(const&)`, `setMSData(&&)` | `set_ms_data(MSExperiment)` | pass a clone for the copy overload |
 | `getMSData()`, `getMSData() const` | `ms_data_mut`, `ms_data` | |
 | `run(FeatureMap&)` | `run(&mut UniqueIdGenerator) -> FeatureMap` | |
-| `run(FeatureMap&, vector<Hill>&, vector<PeptideFeature>&)` | `run_with_details(&mut UniqueIdGenerator) -> Biosaur2Output` | also returns the log lines |
+| `run(FeatureMap&, vector<Hill>&, vector<PeptideFeature>&)` | `run_with_details(&mut UniqueIdGenerator) -> Biosaur2Output`, `run_with_log` | also returns the log lines; `run_with_log` keeps them when the run fails |
 | `writeTSV` | `output::write_tsv`, `output::tsv_text` | returns the info line |
 | `writeHills` | `output::write_hills`, `output::hills_text` | returns the info line |
 | `updateMembers_` (protected) | `from_param` | the debug parameter line is not reproduced |
@@ -163,6 +163,28 @@ and the load options `FeatureFinderLFQ::peak_file_options`.
   interleave their lines.
 - **The debug parameter line** of `updateMembers_` is not reproduced.
 
+## The featureXML protein run, and the INI en dash
+
+`run` leaves one default protein identification on the map, as the source's
+`getProteinIdentifications().resize(1)`. The source writes its unset date as
+`date="0000-00-00T00:00:00"`. The map XML dialect (`src/format/map_xml.rs`,
+shared by featureXML and consensusXML) refused a run without a date on write
+and the zero date on read, so neither the tool's output nor the retained
+expectation could pass through it. It now writes a run without a date as
+`0000-00-00T00:00:00` and reads that string back as no date
+(`UNSET_RUN_DATE`); every other date is validated as before. The existing
+featureXML, consensusXML, FeatureFinderCentroided and file-info tests pass
+unchanged. The run's identifier is not in a C++-written file (only
+`id="PI_0"`); the native reader synthesises one, so the tool test clears it
+before comparing.
+
+`pasefmini` and `convex_hulls` describe themselves with U+2013 (en dash). The
+source's ParamXML writer emits the raw UTF-8 bytes into a document it declares
+ISO-8859-1, so its own `-write_ini` output decodes to three Latin-1 characters
+there; the native writer emits the character reference `&#x2013;`. The tool
+test compares both documents line by line and decoded, with that one
+difference normalised.
+
 ## Checked boundaries and evidence
 
 Tier 1, executed C++ (`../oracle/FF4-biosaur2/`, ibminode06, Linux x86_64
@@ -229,3 +251,6 @@ report.
    called.
 7. `run` modifies the stored experiment before it can throw, so a failed run
    leaves the MS2 spectra removed and the data centroided.
+8. The descriptions of `pasefmini` and `convex_hulls` contain U+2013, which the
+   ParamXML writer emits as raw UTF-8 in a document declared ISO-8859-1
+   (executed `-write_ini`).

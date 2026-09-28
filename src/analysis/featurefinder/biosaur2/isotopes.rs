@@ -550,6 +550,12 @@ fn charge_bans(charge: i32) -> &'static [i32] {
 /// combinations, checked before the enumeration.
 ///
 /// [`Biosaur2Limits::max_isotope_combinations`]: super::Biosaur2Limits::max_isotope_combinations
+///
+/// # Panics
+///
+/// When a pattern's `mono_index`, a lookup position or a fast-lookup entry
+/// lies outside `hills`. [`detect_isotope_patterns`] builds all of them from
+/// the same `hills`, so its callers cannot reach this.
 #[allow(clippy::too_many_arguments)]
 pub fn generate_isotope_candidates(
     algorithm: &Biosaur2Algorithm,
@@ -738,6 +744,12 @@ pub fn generate_isotope_candidates(
 /// isotopes whose hill apex lies more than `hrttol` seconds from the
 /// monoisotopic apex are dropped, and patterns left without isotopes with them.
 /// The candidates are returned unchanged when `hrttol` is 0 or there are none.
+///
+/// # Panics
+///
+/// When a pattern's `mono_index`, a lookup position or a fast-lookup entry
+/// lies outside `hills`. [`detect_isotope_patterns`] builds all of them from
+/// the same `hills`, so its callers cannot reach this.
 pub fn apply_rt_filtering(
     algorithm: &Biosaur2Algorithm,
     candidates: &[PatternCandidate],
@@ -831,6 +843,12 @@ pub fn refine_isotope_calibration(
 /// then recomputed on the remaining envelope ([`checking_cos_correlation_for_carbon`])
 /// and the pattern truncated to its best length; patterns without isotopes or
 /// without a qualifying truncation are dropped.
+///
+/// # Panics
+///
+/// When a pattern's `mono_index`, a lookup position or a fast-lookup entry
+/// lies outside `hills`. [`detect_isotope_patterns`] builds all of them from
+/// the same `hills`, so its callers cannot reach this.
 pub fn filter_by_calibration(
     candidates: &[PatternCandidate],
     hills: &[Hill],
@@ -963,6 +981,12 @@ pub fn debug_check_isotope_consistency(
 ///
 /// Only an introsort refusal of [`source_sort_by`], which these comparisons
 /// cannot provoke.
+///
+/// # Panics
+///
+/// When a pattern's `mono_index`, a lookup position or a fast-lookup entry
+/// lies outside `hills`. [`detect_isotope_patterns`] builds all of them from
+/// the same `hills`, so its callers cannot reach this.
 pub fn select_non_overlapping_patterns(
     algorithm: &Biosaur2Algorithm,
     filtered_ready: &[PatternCandidate],

@@ -75,6 +75,10 @@ pub fn mean_filter(data: &[f64], window: usize) -> Vec<f64> {
     result
 }
 
+/// Native ceiling on the histogram of [`calibrate_mass`]: 2^24 bins (128 MiB of
+/// counters).
+pub const MAX_CALIBRATION_BINS: usize = 1 << 24;
+
 /// Estimate a systematic shift and a spread from a distribution of mass
 /// errors (ppm), the source `calibrateMass_`.
 ///
@@ -88,7 +92,12 @@ pub fn mean_filter(data: &[f64], window: usize) -> Vec<f64> {
 /// # Errors
 ///
 /// Returns [`Error::InvalidValue`] where the source recurses without end: the
-/// 0.25 ppm retry itself asks for a retry. No finite input reaches that.
+/// 0.25 ppm retry itself asks for a retry. No finite input reaches that. Also,
+/// natively, when the histogram would need more than
+/// [`MAX_CALIBRATION_BINS`] bins (an error range above 800,000 ppm at the
+/// default width; the errors come from linking within `htol` or `itol`) or
+/// cannot be allocated; the source allocates one counter per bin, up to
+/// `i32::MAX` of them.
 pub fn calibrate_mass(mass_errors: &[f64], bin_width: f64) -> Result<(f64, f64)> {
     if mass_errors.is_empty() {
         return Ok((0.0, 10.0));
@@ -110,7 +119,16 @@ pub fn calibrate_mass(mass_errors: &[f64], bin_width: f64) -> Result<(f64, f64)>
         return Ok((0.0, 10.0));
     }
     let bins = n_bins as usize;
-    let mut bin_counts = vec![0u64; bins];
+    if bins > MAX_CALIBRATION_BINS {
+        return Err(Error::InvalidValue(format!(
+            "calibrateMass_ would need {bins} bins, more than the {MAX_CALIBRATION_BINS} allowed"
+        )));
+    }
+    let mut bin_counts: Vec<u64> = Vec::new();
+    bin_counts
+        .try_reserve_exact(bins)
+        .map_err(|_| Error::InvalidValue(format!("cannot allocate {bins} calibration bins")))?;
+    bin_counts.resize(bins, 0);
     for &error in mass_errors {
         let bin = cvttsd2si32((error + mass_left) / bin_width);
         if bin >= 0 && bin < n_bins {
@@ -193,7 +211,7 @@ struct LinkState<'a> {
 /// `detectHills_`.
 ///
 /// Scans through the spectra and groups peaks with similar m/z values across
-/// consecutive scans into hills (see [`link_scan_to_hills`] for the rule);
+/// consecutive scans into hills (see the source's `linkScanToHills_` for the rule);
 /// with `mass_diffs` the signed ppm difference of every link is collected for
 /// the hill calibration. `use_im` enables ion-mobility gating (2-D m/z-IM
 /// hills) for spectra with per-peak ion mobility. The hills are returned
@@ -202,7 +220,7 @@ struct LinkState<'a> {
 ///
 /// # Errors
 ///
-/// As [`link_scan_to_hills`].
+/// As the source's `linkScanToHills_`.
 pub fn detect_hills(
     algorithm: &Biosaur2Algorithm,
     spectra: &[&MSSpectrum],
@@ -530,8 +548,15 @@ pub fn process_hills(hills: &[Hill], min_length: usize) -> Result<Vec<Hill>> {
 /// arrays are inconsistent.` when a hill's drift-time or ion-mobility vector
 /// is shorter than its scan list, and natively when a hill's per-point vectors
 /// are shorter than its `length` (the source's `.at()` throws
-/// `std::out_of_range` or indexes out of bounds).
+/// `std::out_of_range` or indexes out of bounds), or when `min_length` is 0,
+/// which the `minlh` parameter refuses and for which the source reads before
+/// the smoothed trace.
 pub fn split_hills(hills: &[Hill], hvf: f64, min_length: usize) -> Result<Vec<Hill>> {
+    if min_length == 0 {
+        return Err(Error::InvalidValue(
+            "splitHills_ needs a minimum hill length of at least 1".into(),
+        ));
+    }
     let mut split = Vec::new();
     let mut next_hill_idx = 0usize;
     for hill in hills {
@@ -539,7 +564,7 @@ pub fn split_hills(hills: &[Hill], hvf: f64, min_length: usize) -> Result<Vec<Hi
     }
 
     for hill in hills {
-        if hill.length < 2 * min_length {
+        if hill.length < min_length.saturating_mul(2) {
             split.push(hill.clone());
             continue;
         }

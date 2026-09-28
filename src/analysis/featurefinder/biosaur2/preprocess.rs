@@ -9,7 +9,7 @@
 //! Each step reads the working spectra and writes the ones it changes into a
 //! parallel `Option<MSSpectrum>` slot, so that the stored experiment is only
 //! replaced once a run has succeeded (see
-//! [`Biosaur2Algorithm::run_with_details`]). The source modifies the
+//! [`Biosaur2Algorithm::run_with_details`](crate::analysis::featurefinder::biosaur2::Biosaur2Algorithm::run_with_details)). The source modifies the
 //! experiment in place; the resulting spectra are the same.
 
 use super::{Biosaur2Algorithm, Biosaur2Message, info};

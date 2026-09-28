@@ -30,16 +30,16 @@
 //! ion mobility support*, Rapid Communications in Mass Spectrometry, 2022,
 //! <https://doi.org/10.1002/rcm.9045>.
 //!
-//! The port is split by pipeline stage: [`preprocess`] (MS1 selection, profile
-//! centroiding, TOF filtering, PASEF/TIMS centroiding), [`hills`] (hill
-//! linking, filtering and valley splitting), [`isotopes`] (isotope pattern
-//! assembly) and [`output`] (the `FeatureMap` conversion and the two TSV
+//! The port is split by pipeline stage: [`preprocess`](crate::analysis::featurefinder::biosaur2::preprocess) (MS1 selection, profile
+//! centroiding, TOF filtering, PASEF/TIMS centroiding), [`hills`](crate::analysis::featurefinder::biosaur2::hills) (hill
+//! linking, filtering and valley splitting), [`isotopes`](crate::analysis::featurefinder::biosaur2::isotopes) (isotope pattern
+//! assembly) and [`output`](crate::analysis::featurefinder::biosaur2::output) (the `FeatureMap` conversion and the two TSV
 //! writers). `docs/BIOSAUR2_SUPPORT.md` maps every source member to its Rust
 //! counterpart and records the evidence.
 //!
 //! # Fidelity
 //!
-//! Every number [`Biosaur2Algorithm::run_with_details`] computes is compared
+//! Every number [`Biosaur2Algorithm::run_with_details`](crate::analysis::featurefinder::biosaur2::Biosaur2Algorithm::run_with_details) computes is compared
 //! bit for bit with the Linux x86_64 **Release** build
 //! `openms4-release-bc9cc12-c19e494-174b576` (`tests/biosaur2.rs`). The three
 //! `std::sort` calls follow that build's `libstdc++` introsort
@@ -47,7 +47,7 @@
 //! intensities, equal hill m/z and equal pattern ranks are ordered as the C++
 //! orders them; `static_cast<int>` of a `double` follows `cvttsd2si`; the
 //! averagine table is the Release build's Boost.Math binomial table
-//! ([`isotopes`]); and the `omp simd` reduction of `cosineCorrelation1D_` is
+//! ([`isotopes`](crate::analysis::featurefinder::biosaur2::isotopes)); and the `omp simd` reduction of `cosineCorrelation1D_` is
 //! summed in the order the Release build's vectorised loop sums it.
 
 mod averagine_table;
