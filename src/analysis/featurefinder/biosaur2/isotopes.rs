@@ -115,6 +115,7 @@ pub fn averagine_bin(bin: usize) -> Option<(u32, [f64; 10])> {
 /// sum is `(even + 0.0) + odd` (`libOpenMS.so` `0x19134d0`). This sums in that
 /// order, so the value is the Release build's rather than the one a serial loop
 /// gives.
+#[allow(clippy::assign_op_pattern)]
 pub fn cosine_correlation_1d(v1: &[f64], v2: &[f64]) -> f64 {
     let n = v1.len().min(v2.len());
     if n == 0 {
@@ -132,6 +133,9 @@ pub fn cosine_correlation_1d(v1: &[f64], v2: &[f64]) -> f64 {
         }
     }
     if n % 2 == 1 {
+        // `addsd` with the product in the destination register: `product +
+        // lane`, which differs from `lane + product` only in the payload of a
+        // NaN.
         let (a, b) = (v1[n - 1], v2[n - 1]);
         dot[0] = a * b + dot[0];
         n1[0] = a * a + n1[0];
@@ -672,8 +676,8 @@ pub fn generate_isotope_candidates(
                 exp_intensity.push(apex1);
                 let mut local_minimum = 0.0;
                 let mut local_minimum_pos = 0usize;
-                let mut i_local_isotope = 1usize;
-                for iso in &picked {
+                for (offset, iso) in picked.iter().enumerate() {
+                    let i_local_isotope = offset + 1;
                     let apex2 = hill_idx_to_index
                         .get(&iso.hill_idx)
                         .map_or(0.0, |&position| hills[position].intensity_apex);
@@ -690,7 +694,6 @@ pub fn generate_isotope_candidates(
                         }
                     }
                     exp_intensity.push(apex2);
-                    i_local_isotope += 1;
                 }
                 let (cos_corr_iso, best_pos) =
                     checking_cos_correlation_for_carbon(&theoretical, &exp_intensity, 0.6);
@@ -1111,7 +1114,7 @@ pub fn select_non_overlapping_patterns(
 /// As the stages.
 pub fn detect_isotope_patterns(
     algorithm: &Biosaur2Algorithm,
-    hills: &mut Vec<Hill>,
+    hills: &mut [Hill],
     use_im: bool,
     messages: &mut Vec<Biosaur2Message>,
 ) -> Result<Vec<PeptideFeature>> {

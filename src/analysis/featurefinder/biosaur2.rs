@@ -1065,7 +1065,6 @@ impl Biosaur2Algorithm {
         output::finish_feature_map(&mut feature_map, generator);
 
         // Commit: the processed MS1 spectra replace the stored experiment.
-        let mut replaced = replaced;
         for (group, result) in groups.iter().zip(&mut group_results) {
             for (position, spectrum) in result.replaced.drain(..) {
                 replaced[group.members[position]] = Some(spectrum);

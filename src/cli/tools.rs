@@ -9,13 +9,16 @@
 //!
 //! A tool whose executable needs more than `paramxml` exists under the same
 //! features its `[[bin]]` entry requires: `PeakPickerHiRes` under `mzml`, and
-//! `FileInfo` and `FeatureFinderCentroided` under `mzml` and `featurexml`. The
-//! five earlier tools predate that rule and build under `paramxml` alone.
+//! `FileInfo`, `FeatureFinderCentroided` and `FeatureFinderLFQ` under `mzml`
+//! and `featurexml`. The five earlier tools predate that rule and build under
+//! `paramxml` alone.
 
 mod baseline_filter;
 mod dta_extractor;
 #[cfg(all(feature = "mzml", feature = "featurexml"))]
 mod feature_finder_centroided;
+#[cfg(all(feature = "mzml", feature = "featurexml"))]
+mod feature_finder_lfq;
 #[cfg(all(feature = "mzml", feature = "featurexml"))]
 mod file_info;
 mod fuzzy_diff;
@@ -29,6 +32,8 @@ pub use baseline_filter::BaselineFilter;
 pub use dta_extractor::DTAExtractor;
 #[cfg(all(feature = "mzml", feature = "featurexml"))]
 pub use feature_finder_centroided::FeatureFinderCentroided;
+#[cfg(all(feature = "mzml", feature = "featurexml"))]
+pub use feature_finder_lfq::FeatureFinderLFQ;
 #[cfg(all(feature = "mzml", feature = "featurexml"))]
 pub use file_info::FileInfo;
 pub use fuzzy_diff::FuzzyDiff;
