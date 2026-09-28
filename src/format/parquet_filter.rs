@@ -6,7 +6,8 @@
 //!
 //! Ports `FORMAT/ParquetFilter.h` and `ParquetFilter.cpp`: the column type
 //! tag, one condition, the flat condition/connector expression, the
-//! [`ParquetFilter`] builder and its [`ParquetFilterBuilder`] wrapper. See
+//! [`ParquetFilter`](crate::format::parquet_filter::ParquetFilter) builder and its
+//! [`ParquetFilterBuilder`](crate::format::parquet_filter::ParquetFilterBuilder) wrapper. See
 //! `docs/ARROW_PARQUET_SUPPORT.md` for the full API mapping.
 //!
 //! The header describes an expression that a reader pushes down to an Arrow

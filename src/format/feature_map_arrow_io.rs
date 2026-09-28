@@ -6,7 +6,7 @@
 //!
 //! Ports the features-table members of `FORMAT/FeatureMapArrowIO.h`
 //! (`FeatureMapArrowIO.cpp`): `exportFeaturesToArrow` and
-//! `importFeaturesFromArrow`, the [`FeatureSchema`] table that
+//! `importFeaturesFromArrow`, the [`FeatureSchema`](crate::format::arrow_schema_registry::FeatureSchema) table that
 //! `features.parquet` of a `.featureparquet` bundle holds. The PSM table and
 //! the bundle functions (`exportPSMsToArrow`, `importPSMsFromArrow`,
 //! `exportToParquet`, `importFromParquet`) build and read their PSM rows with

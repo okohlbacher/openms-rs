@@ -8,17 +8,20 @@
 //! `ProteinIdentificationArrowIO.cpp`: protein hits, protein groups and
 //! search parameters, each its own table (`proteins.parquet`,
 //! `protein_groups.parquet`, `search_params.parquet`) with the columns of
-//! [`ProteinSchema`], [`ProteinGroupSchema`] and [`SearchParamsSchema`], and
+//! [`ProteinSchema`](crate::format::arrow_schema_registry::ProteinSchema),
+//! [`ProteinGroupSchema`](crate::format::arrow_schema_registry::ProteinGroupSchema) and
+//! [`SearchParamsSchema`](crate::format::arrow_schema_registry::SearchParamsSchema), and
 //! the run-identifier handling the FeatureMap and ConsensusMap Parquet
 //! bundles share. See `docs/ARROW_PARQUET_SUPPORT.md`.
 //!
 //! **Model mapping.** The source's `ProteinIdentification` keeps several
-//! things as metadata that this crate's [`ProteinIdentification`] keeps as
+//! things as metadata that this crate's
+//! [`ProteinIdentification`](crate::identification::ProteinIdentification) keeps as
 //! fields, and the reverse:
 //!
 //! * the primary MS run paths are the source's `spectra_data` (and
 //!   `spectra_data_raw`) metadata; they are
-//!   [`primary_ms_run_paths`](ProteinIdentification::primary_ms_run_paths)
+//!   [`primary_ms_run_paths`](crate::identification::ProteinIdentification::primary_ms_run_paths)
 //!   (and `raw_ms_run_paths`) here. The export writes them into the
 //!   `metavalues` column under those names when non-empty, as the source's
 //!   metadata would be; an empty list the source sets explicitly cannot be
@@ -26,10 +29,10 @@
 //! * the inference engine and its version are `InferenceEngine` and
 //!   `InferenceEngineVersion` in the search parameters' metadata, as in the
 //!   source.
-//! * the run date is the text [`date_time`](ProteinIdentification::date_time)
+//! * the run date is the text [`date_time`](crate::identification::ProteinIdentification::date_time)
 //!   holds, parsed as the source's `DateTime`.
 //! * a digestion enzyme is its name; the import resolves it in
-//!   [`ProteaseDB`] as the source does and stores the canonical name.
+//!   [`ProteaseDB`](crate::chemistry::ProteaseDB) as the source does and stores the canonical name.
 //!
 //! **Warnings.** Where the source logs a warning and continues (an unknown
 //! enzyme, an unknown modification, a hit whose run has no search

@@ -266,7 +266,7 @@ impl ParquetFile {
     ///
     /// # Errors
     ///
-    /// [`Error::MissingInformation`] "Missing required column '<name>'" when
+    /// [`Error::MissingInformation`] `Missing required column '<name>'` when
     /// the table has no such column. The source's second error, a column with
     /// no chunks, cannot occur for a [`RecordBatch`]. When several columns
     /// share the name, the first is returned; the source's

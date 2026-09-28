@@ -17,7 +17,7 @@
 //! expects without checking (`std::static_pointer_cast`), which is undefined
 //! behaviour for any other type; every getter here checks the type and
 //! returns [`Error::InvalidValue`] instead. A row outside the array reads as
-//! null, which is what the header documents for [`get_string_value`] (the
+//! null, which is what the header documents for [`get_string_value`](crate::format::arrow_io_helpers::get_string_value) (the
 //! source's implementation does not check the row at all).
 //!
 //! **Logging.** The source logs its failures through `OPENMS_LOG_ERROR` and

@@ -5,9 +5,9 @@
 //! Arrow schema definitions of the OpenMS Parquet tables, and their validation.
 //!
 //! Ports `FORMAT/ArrowSchemaRegistry.h` and `ArrowSchemaRegistry.cpp`: the
-//! `ArrowSchemaValidation` namespace (as [`validation`]) and the 22 schema
+//! `ArrowSchemaValidation` namespace (as [`validation`](crate::format::arrow_schema_registry::validation)) and the 22 schema
 //! structs, each a set of column-name constants, the Arrow types of its nested
-//! columns and the complete [`schema`](ProteinSchema::schema). See
+//! columns and the complete [`schema`](crate::format::arrow_schema_registry::ProteinSchema::schema). See
 //! `docs/ARROW_PARQUET_SUPPORT.md` for the full API mapping.
 //!
 //! A source `std::shared_ptr<arrow::Schema>` is an
@@ -15,7 +15,7 @@
 //! [`arrow_schema::DataType`]. A field built with `arrow::field(name, type)` is
 //! nullable, as in Arrow C++, and a list built with `arrow::list(type)` has the
 //! nullable element field `item`, which is what arrow-rs's
-//! [`DataType::new_list`] builds too. Every schema here therefore compares
+//! [`DataType::new_list`](arrow_schema::DataType::new_list) builds too. Every schema here therefore compares
 //! equal, field by field, to the one the executed C++ library returns; the
 //! rustdoc of each `schema()` lists its columns exactly as C++
 //! `Schema::ToString` prints them, and `tests/arrow_parquet.rs` checks that

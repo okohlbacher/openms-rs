@@ -93,8 +93,9 @@ pub(crate) fn store_reporting<T>(
     }
 }
 
-/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2.
-#[cfg(feature = "idxml")]
+/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2;
+/// the Parquet writers (`arrow`) publish their encoded files the same way.
+#[cfg(any(feature = "idxml", feature = "arrow"))]
 pub(crate) fn write_plain(
     path: &Path,
     save: impl FnOnce(&mut dyn Write) -> Result<()>,
