@@ -54,3 +54,12 @@ Old scratch dir is gone; new scratch: $S=<scratchpad>/A5a (recreate cpp symlinks
 Next step:
 1. Review 920f8a5 EmpiricalFormula diff; gate check (lib + tests) on dax; fix clippy leftovers noted in incarnation 3.
 2. Continue incarnation 3 plan from Ribonucleotide onward; then docs/ledger/report.
+
+Incarnation 4 progress (committed as WIP):
+- EmpiricalFormula members + tests/empirical_formula_members.rs; from_element/number_of/has_element accept element_db isotope elements (atom_of).
+- Ribonucleotide: Display/Hash already existed (ledger stale); added source_stream_text, source_hash64; tests/ribonucleotide_source_forms.rs.
+- IsotopeDistribution: src/chemistry/isotopes/distribution_members.rs (merge, Ord, Hash, source_hash64, Sorted, set_peak, try_for_each_peak_mut).
+- Coarse generator: src/chemistry/isotopes/generator_members.rs (set_max_peaks, set_mass_mode, isotope_overrides, sulfur fragment estimate).
+- ElementDB: src/chemistry/element_db.rs (maps, get_element, isotope elements, D/T; Element Ord/Hash/stream text/source hash).
+Scripts in scratch A5a: gate.sh <log> <cargo args>; tc.sh <tag> <tests...> (tests then clippy). Pin tree at scratch A5a/cpp (i/s/t symlinks).
+Next: EnzymaticDigestion filterByMissedCleavages + Specificity; DigestionEnzymeDB hasEnzyme(ptr); UnimodXMLDataProvider review; docs/ledger/report.

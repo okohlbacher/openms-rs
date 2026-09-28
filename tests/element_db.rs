@@ -57,8 +57,14 @@ fn isotope_elements_and_aliases() {
 
     // The source adds D and T as symbols of (2)H and (3)H, including 3H with
     // zero natural abundance.
-    assert!(ptr::eq(get_element("D").unwrap(), get_element("(2)H").unwrap()));
-    assert!(ptr::eq(get_element("T").unwrap(), get_element("(3)Hydrogen").unwrap()));
+    assert!(ptr::eq(
+        get_element("D").unwrap(),
+        get_element("(2)H").unwrap()
+    ));
+    assert!(ptr::eq(
+        get_element("T").unwrap(),
+        get_element("(3)Hydrogen").unwrap()
+    ));
     assert!(names().get("D").is_none());
 
     // One isotope element per tabulated isotope.
