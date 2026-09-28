@@ -42,3 +42,5 @@ pub use tool_description::{
 /// `DATASTRUCTURES/ToolInfo.h`).
 pub mod tool_info;
 pub use tool_info::ToolInfo;
+
+pub mod matrix;
