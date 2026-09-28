@@ -6,7 +6,10 @@ Source headers, core pin `bc9cc12`:
 - `src/openms/include/OpenMS/ANALYSIS/ID/AScore.h` (`AScore.cpp`)
 
 Rust: `src/analysis/id/pscore.rs`, `src/analysis/id/ascore.rs`.
-Tests: `tests/pscore_ascore.rs`. Provenance: `tests/data/pscore_ascore_provenance.json`.
+Tests: `tests/pscore_ascore.rs` (class-test literals, native checks) and
+`tests/pscore_ascore_oracle.rs` (Release differential, fixtures
+`tests/data/pscore_ascore_oracle{_cases,}.tsv`). Provenance:
+`tests/data/pscore_ascore_provenance.json`.
 
 The two headers are one group because they depend on each other: `AScore` includes
 `PScore.h`, and `PScore` calls `AScore::computeCumulativeScore_` through a
@@ -170,9 +173,28 @@ per-spectrum ranks, the vector PScore against the closed form `20 N` for a
 self-match at level 1, the correction tables, parameter defaults and round trip,
 the spectrum-difference skip rule, and the aborted-compute paths.
 
-No tier 1 oracle was run for this group: the class-test literals cover every
-public function with a defined result except `calculateRankMap`, the vector
-`computePScore` and the three correction terms, which the upstream test leaves
-empty.
+Tier 1 (executed differential): `tests/pscore_ascore_oracle.rs` replays 730
+cases against the Release libOpenMS (`bc9cc12-c19e494-174b576`, Linux x86_64,
+run on ibminode06; driver in `../oracle/I3b-scores`, two invocations of two runs
+each, byte-identical): windowed ranks at five window widths and peak-level
+spectra at five level ranges (including the empty `min > max` range) for all
+five DTA inputs; both `computePScore` overloads for four peptides with and
+without the first prefix ion, four tolerances in Th and ppm and three level
+ranges (36 of the vector overload's results are `+inf`, from its `p = 0` at
+level 0); and 200 `AScore::compute` runs (ten peptides with zero to three
+phosphorylations, including an oxidised one, on the four AScore inputs at five
+tolerances in Da and ppm: 20 aborted, 20 unambiguous, 160 site-scored, 40 of
+them with two or three sites). Ranks, level m/z values, theoretical spectrum
+sizes, returned sequences and metadata keys match exactly; scores and metadata
+values agree to 1e-9 relative (Boost's incomplete beta against the port's
+log-domain binomial sum). The source `PeptideHit` keeps its rank as the meta
+value `rank`; the port's `PeptideHit` has a `rank` field, which the test compares
+instead.
+
+Tier 2 (executed probe): `../oracle/I3b-scores/probe_correction.cpp` calls the
+three correction terms through `PScore::`; linking against the Release
+libOpenMS fails with three undefined references, confirming defect candidate 1.
+The port's correction tables therefore rest on source review of the free
+functions' bodies (tier 3).
 
 The source is serial (no OpenMP); so is the port.
