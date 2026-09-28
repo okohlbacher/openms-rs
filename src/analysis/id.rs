@@ -6,6 +6,8 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Aho-Corasick matching with ambiguous residues and mismatches (`AhoCorasickAmbiguous.h`).
+pub mod aho_corasick_ambiguous;
 /// Phosphosite localisation with the AScore (`AScore.h`).
 pub mod ascore;
 /// Comet `variable_modXX` entries and their merging (`CometModification.h`).
