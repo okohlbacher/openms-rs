@@ -67,7 +67,7 @@ Basic group calculation applies to `indistinguishable_groups`. `protein_groups` 
 
 Picked competition requires `DecoyAffix::Prefix("decoy_")` or an explicit suffix. Labels determine whether a protein hit is decoy; each decoy accession must match the affix, and removing it must leave a nonempty accession. The best score per target/decoy accession pair contributes to the curve. Exact ties prefer a target. Both winning and losing target hits can remain in output and receive scores from the picked curve, as in the source; decoy retention is controlled separately.
 
-Picked groups preserve a source detail: when a group's accession order encounters a picked decoy before a picked target, that group can contribute both a decoy and a target observation. Encountering the target first contributes only a target. This order-sensitive source behavior is covered by a regression test and is not described as a general statistical group model. Missing protein references, duplicate accessions, and unavailable group-score lookup coverage are errors. Automatic decoy-affix inference and the source helper's permissive prefix/suffix fallback are not implemented.
+Picked groups preserve a source detail: when a group's accession order encounters a picked decoy before a picked target, that group can contribute both a decoy and a target observation. Encountering the target first contributes only a target. This order-sensitive source behavior is covered by a regression test and is not described as a general statistical group model. Missing protein references, duplicate accessions, and unavailable group-score lookup coverage are errors. Automatic decoy-affix inference, with the source helper's permissive prefix/suffix fallback, is `apply_picked_protein_auto` (see "Source-exact apply members").
 
 ## Probability estimates and ROC
 
@@ -99,13 +99,66 @@ that grows with the estimated-vs-empirical difference, while the other two
 overloads compute `(1 - diff) * (1 - diffWeight) + rocN * diffWeight`. The port
 reproduces both.
 
+## Source-exact apply members (`bc9cc12`)
+
+The native `apply_*` methods above check their input and refuse ambiguous
+records. The members below instead compute what the source computes,
+including its known quirks, and are checked bit for bit against the Linux
+x86_64 Release build: `tests/false_discovery_rate_basic_oracle.rs` (350
+records from `../oracle/I2-fdr/driver2.cpp`, including the cases where the
+source crashes or throws, run in forked children) and
+`tests/false_discovery_rate_observation_oracle.rs` (48 runs, 3,872 match
+values from `driver3.cpp`). Provenance is in
+[fdr_apply_provenance.json](../tests/data/fdr_apply_provenance.json).
+
+| C++ | Rust |
+|---|---|
+| `applyBasic(PeptideIdentificationList&, bool, int charge, std::string identifier, bool only_best_per_pep)` | `apply_basic_selected` |
+| `applyBasic(const std::vector<ProteinIdentification>& run_info, PeptideIdentificationList&)` | `apply_basic_runs` |
+| `applyBasic(ConsensusMap&, bool)` | `apply_basic_consensus` |
+| `applyBasicPeptideLevel(PeptideIdentificationList&)` | `apply_basic_peptide_level_source` (the checked `apply_basic_peptide_level` stays) |
+| `applyBasicPeptideLevel(ConsensusMap&, bool)` | `apply_basic_peptide_level_consensus` |
+| `applyPickedProteinFDR(id, "", prefix, groups_too)` | `apply_picked_protein_auto` |
+| `DecoyStringHelper::findDecoyString(const ProteinIdentification&)` | `find_decoy_string`, `DecoyStringResult` |
+| `applyToObservationMatches(IdentificationData&, ScoreTypeRef)` | `apply_to_observation_matches` |
+| `DefaultParamHandler` parameters | `defaults`, `to_param`, `from_param`, `from_param_with_warnings` (the seven source flags; `max_*` limits are native) |
+
+Where the source dereferences `map::end` or reads the first hit of an empty
+record, the port returns an error; the oracle records those cases as
+`crash`/`error` and the tests require an error there. Everything else,
+including the log lines the source writes, matches.
+
+Defect candidates in the source, reproduced by the port:
+
+- `applyBasic(run_info, ids)` without `treat_runs_separately` iterates the
+  charges from the smallest range start to the largest range *start*: it
+  reads `.first` for both ends of the search charge range.
+- `applyBasic(ConsensusMap&)` does not clear the collected scores between runs
+  or charges, so each later curve also counts the earlier ones, and it marks
+  rescored records with the data's direction instead of lower-better.
+- `applyBasicPeptideLevel(ConsensusMap&)` takes the direction of the *last*
+  feature with an identification (its loop never breaks).
+- `applyBasic(ids, higher, charge, identifier, ...)` rescores every hit of
+  every record, whatever its run or charge; `applyBasic(run_info, ids)` calls
+  it per run and charge, so the later calls read the earlier q-values as
+  scores.
+- `applyToObservationMatches` counts the best match per observation through
+  `getBestMatchPerObservation`, which breaks equal scores by
+  `IdentifiedMolecule::operator<`, a comparison of heap addresses. A copy of
+  the same `IdentificationData` can therefore count a different match. A
+  first oracle fixture with such ties gave a different winner in the first of
+  eight copies of the same graph, in two of six graphs (26 and 5 changed
+  values). The port takes the first match in registration order, and the
+  committed fixture keeps scores distinct within an observation (ties across
+  observations stay).
+
 ## Validation, limits, and remaining scope
 
 All source scores and numeric record fields must be finite; posterior probabilities and target fractions have explicit domain checks. Concatenated score pools require compatible score types/directions. Every record mutation is prepared on owned copies and committed only after the complete operation succeeds, including separate-search pairs and group computations. Reported errors cannot leave partially changed scores, metadata, or filtered hit lists.
 
 Defaults permit one million hits and one million identification records per operation, plus one hundred thousand peptide pools or indistinguishable groups. Separate-search hit counts and record counts are checked across both inputs. Zero limits are invalid. Curves and grouping use standard ordered maps and sorting, with storage linear in the supplied records/hits. Limits bound these counts rather than annotation byte sizes or the cost of nested record validation. Allocation failure follows the Rust allocator's normal behavior. The checked code avoids the legacy decoy-assignment nested scan without changing its score-order rule.
 
-General `IdentificationData` observation matches (`applyToObservationMatches`), the consensus-map `applyBasic` and `applyBasicPeptideLevel` overloads, the run-info/search-charge-range wrapper `applyBasic(run_info, ids)`, `best_per_peptide` marker filtering, and decoy-string inference (`DecoyStringHelper::findDecoyString`) remain outside this increment; the evaluation members and all four `rocN` record overloads are ported (previous section). The underlying score curves and record APIs are implemented; unsupported variants are not exposed as placeholder methods. Score naming uses the existing source strings rather than a new ontology mapping.
+Every public member of `FalseDiscoveryRate.h` now has a Rust counterpart (see the two previous sections). `applyEstimated` is the one member with a deliberate difference: the source writes through a reserved but unsized vector, which is undefined behaviour, so `apply_estimated_protein` implements the intended running mean and is not claimed equal to the source's execution. Score naming uses the existing source strings rather than a new ontology mapping.
 
 ## Verification and provenance
 

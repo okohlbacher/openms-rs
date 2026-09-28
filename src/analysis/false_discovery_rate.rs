@@ -2250,3 +2250,224 @@ impl FalseDiscoveryRate {
         Ok(())
     }
 }
+
+impl FalseDiscoveryRate {
+    /// `applyToObservationMatches(IdentificationData&, ScoreTypeRef)`: FDR on
+    /// the level of observation matches (e.g. PSMs) of general
+    /// identification data; returns the key of the new score.
+    ///
+    /// Counts every match with [`FalseDiscoveryRate::use_all_hits`], else the
+    /// best match per observation (`best_matches(score, false)`, the source's
+    /// `getBestMatchPerObservation` default). Compound matches and matches
+    /// without the score are skipped, so an observation whose best match is a
+    /// compound counts nothing. Equal best scores within one observation go
+    /// to the first match in registration order; the source compares molecule
+    /// heap addresses there, so its choice can change with a copy of the data
+    /// (see `docs/FDR_SUPPORT.md`). A peptide (oligo) match is a decoy when
+    /// all parents of its molecule are decoys. The legacy calculation
+    /// ([`FalseDiscoveryRate::calculate_legacy`]) in the score's direction
+    /// gives each counted match its FDR or q-value, registered as the score
+    /// `MS:1002354` "PSM-level q-value" (or `MS:1002355` "PSM-level
+    /// FDRScore"), lower-better, and added to every counted match — decoy
+    /// molecules only with [`FalseDiscoveryRate::add_decoy_peptides`].
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for an unknown score type, a non-finite score,
+    /// or a graph operation the identification data refuses. On error `data`
+    /// may already hold the registered score type but no new score values.
+    pub fn apply_to_observation_matches(
+        &self,
+        data: &mut crate::identification::graph::IdentificationData,
+        score: crate::identification::graph::ScoreTypeId,
+    ) -> Result<crate::identification::graph::ScoreTypeId> {
+        use crate::identification::graph::{IdentifiedMolecule, ObservationMatchId, ScoreType};
+        let higher = data.score_type(score)?.higher_better;
+        let counted: Vec<ObservationMatchId> = if self.use_all_hits {
+            data.observation_matches().map(|(id, _)| id).collect()
+        } else {
+            data.best_matches(score, false)?
+        };
+        let (mut targets, mut decoys) = (Vec::new(), Vec::new());
+        let mut molecule_decoy: BTreeMap<IdentifiedMolecule, bool> = BTreeMap::new();
+        let mut match_score: BTreeMap<ObservationMatchId, f64> = BTreeMap::new();
+        for id in counted {
+            let record = data.observation_match(id)?;
+            let molecule = record.identified_molecule;
+            let decoy_of = |data: &crate::identification::graph::IdentificationData| match molecule
+            {
+                IdentifiedMolecule::Peptide(p) => data.peptide_parents_are_decoys(p).map(Some),
+                IdentifiedMolecule::Oligo(o) => data.oligo_parents_are_decoys(o).map(Some),
+                IdentifiedMolecule::Compound(_) => Ok(None),
+            };
+            if matches!(molecule, IdentifiedMolecule::Compound(_)) {
+                continue;
+            }
+            let Some(value) = record.result.score(score) else {
+                continue;
+            };
+            finite(value)?;
+            match_score.insert(id, value);
+            let is_decoy = match molecule_decoy.get(&molecule) {
+                Some(&known) => known,
+                None => {
+                    let known = decoy_of(data)?.unwrap_or(false);
+                    molecule_decoy.insert(molecule, known);
+                    known
+                }
+            };
+            if is_decoy {
+                decoys.push(value);
+            } else {
+                targets.push(value);
+            }
+        }
+        let curve = self.calculate_legacy(&targets, &decoys, higher)?;
+        let cv_term = match self.output {
+            FdrOutput::QValue => {
+                crate::metadata::CVTerm::new("MS:1002354", "PSM-level q-value", "MS")
+            }
+            FdrOutput::Fdr => {
+                crate::metadata::CVTerm::new("MS:1002355", "PSM-level FDRScore", "MS")
+            }
+        };
+        let fdr_type = data.register_score_type(ScoreType {
+            cv_term,
+            higher_better: false,
+            ..ScoreType::default()
+        })?;
+        let all: Vec<(ObservationMatchId, IdentifiedMolecule)> = data
+            .observation_matches()
+            .map(|(id, record)| (id, record.identified_molecule))
+            .collect();
+        for (id, molecule) in all {
+            if !self.add_decoy_peptides && molecule_decoy.get(&molecule) == Some(&true) {
+                continue;
+            }
+            let Some(&value) = match_score.get(&id) else {
+                continue;
+            };
+            data.add_observation_match_score(id, fdr_type, curve.value(value)?)?;
+        }
+        Ok(fdr_type)
+    }
+}
+
+/// The source `DefaultParamHandler` name of `FalseDiscoveryRate`.
+pub const FALSE_DISCOVERY_RATE_NAME: &str = "FalseDiscoveryRate";
+
+impl FalseDiscoveryRate {
+    /// The source defaults as a [`crate::param::Param`], in declaration order.
+    /// The resource limits (`max_*`) are native and not parameters.
+    ///
+    /// # Errors
+    ///
+    /// Only a parameter-tree resource failure, which the constant tree
+    /// cannot trigger.
+    pub fn defaults() -> Result<crate::param::Param> {
+        Self::default().to_param()
+    }
+
+    /// The current parameters in the layout of [`FalseDiscoveryRate::defaults`].
+    ///
+    /// # Errors
+    ///
+    /// As [`FalseDiscoveryRate::defaults`].
+    pub fn to_param(&self) -> Result<crate::param::Param> {
+        use crate::param::{Param, ParamEntry, ParamNode, ParamValue};
+        let flag = |name: &str, value: bool, description: &str| ParamEntry {
+            name: name.into(),
+            description: description.into(),
+            value: ParamValue::String(if value { "true" } else { "false" }.into()),
+            valid_strings: vec!["true".into(), "false".into()],
+            ..ParamEntry::default()
+        };
+        let entries = vec![
+            flag(
+                "no_qvalues",
+                self.output == FdrOutput::Fdr,
+                "If 'true' strict FDRs will be calculated instead of q-values (the default)",
+            ),
+            flag(
+                "use_all_hits",
+                self.use_all_hits,
+                "If 'true' not only the first hit, but all are used (peptides only)",
+            ),
+            flag(
+                "split_charge_variants",
+                self.split_charge_variants,
+                "If 'true' charge variants are treated separately (for peptides of combined target/decoy searches only).",
+            ),
+            flag(
+                "treat_runs_separately",
+                self.treat_runs_separately,
+                "If 'true' different search runs are treated separately (for peptides of combined target/decoy searches only).",
+            ),
+            flag(
+                "add_decoy_peptides",
+                self.add_decoy_peptides,
+                "If 'true' decoy peptides will be written to output file, too. The q-value is set to the closest target score.",
+            ),
+            flag(
+                "add_decoy_proteins",
+                self.add_decoy_proteins,
+                "If 'true' decoy proteins will be written to output file, too. The q-value is set to the closest target score.",
+            ),
+            flag(
+                "conservative",
+                self.conservative,
+                "If 'true' (D+1)/T instead of (D+1)/(T+D) is used as a formula.",
+            ),
+        ];
+        Param::from_root(ParamNode {
+            name: String::new(),
+            description: String::new(),
+            entries,
+            nodes: Vec::new(),
+        })
+    }
+
+    /// Build a calculator from parameters, as source `setParameters`
+    /// followed by `updateMembers_`. Missing parameters take their defaults,
+    /// unknown ones are ignored (see
+    /// [`FalseDiscoveryRate::from_param_with_warnings`]); the limits keep
+    /// their defaults.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a parameter has the wrong type or is not
+    /// `true`/`false` (the source `Exception::InvalidParameter`).
+    pub fn from_param(parameters: &crate::param::Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`FalseDiscoveryRate::from_param`], also returning the
+    /// unknown-parameter warnings the source logs.
+    ///
+    /// # Errors
+    ///
+    /// As [`FalseDiscoveryRate::from_param`].
+    pub fn from_param_with_warnings(
+        parameters: &crate::param::Param,
+    ) -> Result<(Self, Vec<String>)> {
+        let mut handler = crate::param::DefaultParamHandler::new(FALSE_DISCOVERY_RATE_NAME)?;
+        handler.set_defaults(Self::defaults()?)?;
+        handler.set_parameters_with(parameters, |param| {
+            let on = |key: &str| Ok::<bool, Error>(param.value(key)?.as_str()? == "true");
+            Ok(Self {
+                output: if on("no_qvalues")? {
+                    FdrOutput::Fdr
+                } else {
+                    FdrOutput::QValue
+                },
+                use_all_hits: on("use_all_hits")?,
+                split_charge_variants: on("split_charge_variants")?,
+                treat_runs_separately: on("treat_runs_separately")?,
+                add_decoy_peptides: on("add_decoy_peptides")?,
+                add_decoy_proteins: on("add_decoy_proteins")?,
+                conservative: on("conservative")?,
+                ..Self::default()
+            })
+        })
+    }
+}

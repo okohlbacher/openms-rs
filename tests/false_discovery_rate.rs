@@ -755,3 +755,51 @@ fn source_picked_mixed_group_order_contribution_and_checked_pool_limits() {
         0.
     );
 }
+
+#[test]
+fn parameters_follow_the_source_defaults() {
+    // Expected values from the FalseDiscoveryRate constructor at bc9cc12:
+    // seven true/false strings, all "false" except conservative.
+    use openms::param::{Param, ParamValue};
+    let defaults = FalseDiscoveryRate::defaults().unwrap();
+    for (name, value) in [
+        ("no_qvalues", "false"),
+        ("use_all_hits", "false"),
+        ("split_charge_variants", "false"),
+        ("treat_runs_separately", "false"),
+        ("add_decoy_peptides", "false"),
+        ("add_decoy_proteins", "false"),
+        ("conservative", "true"),
+    ] {
+        assert_eq!(
+            defaults.value(name).unwrap().as_str().unwrap(),
+            value,
+            "{name}"
+        );
+    }
+    assert_eq!(
+        FalseDiscoveryRate::from_param(&defaults).unwrap(),
+        FalseDiscoveryRate::default()
+    );
+    let mut p = Param::new();
+    p.set_value("no_qvalues", ParamValue::String("true".into()), "", &[])
+        .unwrap();
+    p.set_value(
+        "add_decoy_peptides",
+        ParamValue::String("true".into()),
+        "",
+        &[],
+    )
+    .unwrap();
+    p.set_value("unknown", ParamValue::String("x".into()), "", &[])
+        .unwrap();
+    let (fdr, warnings) = FalseDiscoveryRate::from_param_with_warnings(&p).unwrap();
+    assert_eq!(fdr.output, FdrOutput::Fdr);
+    assert!(fdr.add_decoy_peptides);
+    assert!(fdr.conservative);
+    assert_eq!(warnings.len(), 1);
+    let mut bad = Param::new();
+    bad.set_value("use_all_hits", ParamValue::String("yes".into()), "", &[])
+        .unwrap();
+    assert!(FalseDiscoveryRate::from_param(&bad).is_err());
+}

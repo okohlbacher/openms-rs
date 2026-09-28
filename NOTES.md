@@ -58,3 +58,6 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
 - Full gate (clippy, itests, msrv 1.85, no-default, doc) green at commit "Percolator module docs resolve...".
 - Next: write lane report + ledger fragment (checkpoint), then IDBoostGraph/Bayesian assessment (evergreen BP lib = no crate),
   remaining FDR gaps: applyBasic(run_info), cmap applyBasic/applyBasicPeptideLevel, applyToObservationMatches, findDecoyString.
+- DONE: FDR applyBasic overloads, cmap, peptide level source, findDecoyString, applyToObservationMatches (oracle fixture
+  regenerated: distinct scores per observation; C++ best-match tie = heap address), Param integration. FDR.h complete.
+- Next: full gate (gate_all.sh + FDR tests), commit, lane report + ledger, IDBoostGraph/Bayesian = untouched assessment.

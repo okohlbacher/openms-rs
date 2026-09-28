@@ -1,0 +1,85 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+   "sha256": "0a736fe4833cee56aee703110fe5be2da14ac83cb4c73cfb53504a7c8c823c73"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/FalseDiscoveryRate.cpp",
+   "sha256": "79983c8b567daca4c4eeee3e55309ecd9819714bf942a095b1d40a65d5e8e1ed",
+   "role": "applyBasic (selected ids, run info, consensus map), applyBasicPeptideLevel, applyPickedProteinFDR with automatic decoy string, applyToObservationMatches, calculateFDRs_, handleObservationMatch_."
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h",
+   "sha256": "45d0fa7d43cffedf6360a9a69d3d6f0fba55a44ab814442a3c7f389746b67989",
+   "role": "getScores_, setScores_ and the per-charge/per-run score collection the applyBasic overloads use."
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/IDScoreGetterSetter.cpp",
+   "sha256": "0a1cd10dcf7e16ff91b740421b4b2298400899f467332806532ae97bfc281d5a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/FASTAContainer.h",
+   "sha256": "de96e7716fa9c155b9c164b55bec6e0ff478350f8be041d0483e651064024d50",
+   "role": "DecoyHelper::findDecoyString, the prefix/suffix rules FalseDiscoveryRate::findDecoyString mirrors for protein accessions."
+  },
+  {
+   "path": "src/openms/source/METADATA/ID/IdentificationData.cpp",
+   "sha256": "434895912eccdc747a5bb3092d9785f09419b39fb28c118a0012efaaf6377ed0",
+   "role": "getBestMatchPerObservation: best match per observation; ties by molecule address (see FDR_SUPPORT.md)."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/fdr_basic_oracle.tsv",
+   "sha256": "2b66b9858c3ea3aa61eb2cc5c399916c45922cab62bd8bfe457b4e4b4dd2482b",
+   "bytes": 3080539,
+   "role": "Executed C++ Release output of ../oracle/I2-fdr/driver2.cpp (ibminode06, two identical runs): inputs, results at %.17g, crash/error outcomes of fork-guarded cases, and log lines."
+  },
+  {
+   "path": "tests/data/fdr_observation_oracle.tsv",
+   "sha256": "258f9b83342615af7e8d6bd1c39521964a14f26bad4f3297659c9a188fa68231",
+   "bytes": 141082,
+   "role": "Executed C++ Release output of ../oracle/I2-fdr/driver3.cpp (ibminode06, two identical runs): six IdentificationData graphs, eight parameter combinations each."
+  }
+ ],
+ "scope": "The FalseDiscoveryRate.h apply members beyond the class test: applyBasic overloads, applyBasicPeptideLevel (peptide lists, consensus maps), applyPickedProteinFDR with automatic decoy string, applyToObservationMatches.",
+ "rust_implementation": [
+  "src/analysis/false_discovery_rate.rs"
+ ],
+ "native_tests": [
+  "tests/false_discovery_rate_basic_oracle.rs",
+  "tests/false_discovery_rate_observation_oracle.rs"
+ ],
+ "cpp_execution": {
+  "host": "ibminode06",
+  "build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576"
+ },
+ "support_document": "docs/FDR_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I2-fdr/driver2.cpp",
+   "sha256": "f75e70f6a0897ef853be3f505648501359290b0ff7c3ff03ef7148bf0e447050",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-fdr/driver3.cpp",
+   "sha256": "58d222258872150de38787174342eca6f3466b9ec67efbb7814209aafb8d98e3",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-fdr/node.sh",
+   "sha256": "66726d04cb32f1fcfed012b9675d36adaa09d7176c4fe6c4a83e1d7fe04c9c62",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-fdr/run.sh",
+   "sha256": "5cf490806cc8a2a560c7ac3aefb421ac5ccc5c6e4ecb3ca7dced53c73edc9eb2",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The C++ drivers live outside the repository; their output is the committed fixtures.",
+ "target_verification": "350 of 350 applyBasic/picked records and 48 of 48 observation-match runs (3872 match values) bit-identical, crash and error outcomes included."
+}
