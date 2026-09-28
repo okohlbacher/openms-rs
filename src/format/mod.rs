@@ -208,6 +208,8 @@ pub mod search_engine_xml;
 pub mod sequest_outfile;
 /// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
 pub mod spec_array_file;
+/// X! Tandem input (configuration) files (`XTandemInfile.h`).
+pub mod xtandem_infile;
 /// X! Tandem XML result files (`XTandemXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod xtandem_xml_file;
