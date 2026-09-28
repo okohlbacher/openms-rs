@@ -8,8 +8,9 @@
 //! `bc9cc12`) is reproduced with its literals and its fixture
 //! `MSPFile_test.msp`. The source's `AnnotatedMSRun` overloads are exercised
 //! through the `(experiment, identifications)` pair that stands in for it.
-//! The remaining tests are independently derived from the source text
-//! (tier 4). Fixture hashes are recorded in
+//! The writer is also checked byte for byte against the executed Release
+//! build (tier 1, `MSPFile_release_store_*.msp`). The remaining tests are
+//! independently derived from the source text (tier 4). Fixture hashes are recorded in
 //! `tests/data/msp_file_provenance.json`.
 
 use openms::Error;
@@ -318,5 +319,36 @@ fn write_layout_follows_the_source() {
             .store(dir.join("x.mzML"), &exp, &ids)
             .is_err()
     );
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+
+// Tier 1: the OpenMS4 Release build (ibminode06, install
+// openms4-release-bc9cc12-c19e494-174b576, ../oracle/F4-msp, two identical
+// runs) loaded MSPFile_test.msp into an AnnotatedMSRun and stored it with the
+// default parameters, then again after attaching an IonNames array
+// ("ion0".."ion13") to the first spectrum. The port writes the same bytes,
+// the `MW:` digits included.
+#[test]
+fn write_matches_the_release_build_byte_for_byte() {
+    let (ids, mut exp) = MSPFile::new().load(data("MSPFile_test.msp")).unwrap();
+    let mut out = Vec::new();
+    MSPFile::new().write(&exp, &ids, &mut out).unwrap();
+    let expected = std::fs::read_to_string(data("MSPFile_release_store_default.msp")).unwrap();
+    assert_eq!(String::from_utf8(out).unwrap(), expected);
+
+    let names: Vec<String> = (0..exp.spectra[0].peaks.len())
+        .map(|i| format!("ion{i}"))
+        .collect();
+    exp.spectra[0].string_data_arrays.push(DataArray {
+        name: "IonNames".into(),
+        data: names,
+        ..DataArray::default()
+    });
+    let dir = temp_dir("release");
+    let filename = dir.join("out.msp");
+    MSPFile::new().store(&filename, &exp, &ids).unwrap();
+    let written = std::fs::read_to_string(&filename).unwrap();
+    let expected = std::fs::read_to_string(data("MSPFile_release_store_ion_names.msp")).unwrap();
+    assert_eq!(written, expected);
     std::fs::remove_dir_all(&dir).unwrap();
 }

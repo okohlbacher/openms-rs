@@ -26,6 +26,20 @@
       "bytes": 7565,
       "role": "Upstream class-test input, byte-identical.",
       "source_path": "src/tests/class_tests/openms/data/MSPFile_test.msp"
+    },
+    {
+      "path": "tests/data/msp_file/MSPFile_release_store_default.msp",
+      "sha256": "ee413ec16198e0902d1abb1eebcf1167acc06e916632092332012aa5d7de8b23",
+      "bytes": 1805,
+      "role": "Executed Release output: MSPFile::load(MSPFile_test.msp, AnnotatedMSRun) then store with default parameters.",
+      "origin": "results/out_1/store_default.msp of ../oracle/F4-msp, verbatim; out_2 of the second run has the same sha256"
+    },
+    {
+      "path": "tests/data/msp_file/MSPFile_release_store_ion_names.msp",
+      "sha256": "75adaf187c291582c2b302f941756ecf1f78c5c391406350bf60c89c9208faca",
+      "bytes": 1851,
+      "role": "Executed Release output: MSPFile::load(MSPFile_test.msp, AnnotatedMSRun) then store with an IonNames array ion0..ion13 attached to the first spectrum.",
+      "origin": "results/out_1/store_ion_names.msp of ../oracle/F4-msp, verbatim; out_2 of the second run has the same sha256"
     }
   ],
   "native_implementation": [
@@ -36,5 +50,12 @@
     "tests/msp_file.rs"
   ],
   "support_document": "docs/MSP_FILE_SUPPORT.md",
-  "evidence": "Tier 3 source review: every START_SECTION of MSPFile_test.cpp reproduced with its literals (the AnnotatedMSRun overloads through the (experiment, identifications) pair); tier 4 for the writer layout and refusals read off MSPFile.cpp."
+  "evidence": "Tier 1 executed differential: the Release build stored MSPFile_test.msp (default parameters, and with an IonNames array) and the port writes the same bytes, MW: digits included. Tier 3 source review: every START_SECTION of MSPFile_test.cpp reproduced with its literals (the AnnotatedMSRun overloads through the (experiment, identifications) pair); tier 4 for the writer layout and refusals read off MSPFile.cpp.",
+  "oracle": {
+    "host": "ibminode06",
+    "build": "OpenMS4 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (conda gcc 14.4.0, OPENMS_ASSERTIONS off)",
+    "driver_sha256": "62df30157888cc54aec439d65a637f49e7cbf82dd05e6750a5f6e1804d6b23e8",
+    "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+    "runs": 2
+  }
 }

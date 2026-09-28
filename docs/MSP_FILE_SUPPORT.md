@@ -78,5 +78,10 @@ spectral libraries in MSP text. Rust: `src/format/msp.rs`, with
   consumed line after a peak block, both limits, and the writer layout of two
   entries (`M(O)`, `Mods=2/0,A,Acetyl/11,M,Oxidation`, scaling to 10000,
   `IonNames`).
-- No C++ was executed for the writer's `MW:` digits; they follow
-  `ostream_g(…, 6)`, the crate's shared `std::ostream` formatter.
+- Tier 1: the OpenMS4 Release build (ibminode06, install
+  `openms4-release-bc9cc12-c19e494-174b576`, two identical runs of
+  `../oracle/F4-msp`) loaded `MSPFile_test.msp` into an `AnnotatedMSRun` and
+  stored it, with default parameters and again with an `IonNames` array on
+  the first spectrum; the port writes both files byte for byte
+  (`MSPFile_release_store_*.msp`), so the `MW:` digits of
+  `ostream_g(…, 6)` and the intensity scaling match the executed source.
