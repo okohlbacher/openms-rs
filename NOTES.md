@@ -45,3 +45,12 @@ Branch: worktree-wf_ee239125-5be-34. Prereq worktree-wf_ee239125-5be-1 merged (f
   inside file-compression feature. Owned entry reader: central directory via zip crate, then seek data_start,
   take(compressed_size), flate2 DeflateDecoder / bzip2 BzDecoder, CRC via flate2::Crc.
 - Next: write numeric_formatting.rs, string_utils.rs, move text_format core; then path_io ZIP; then mzML gaps.
+
+## Session 2 (branch worktree-wf_cd066dab-0a7-38; merged -34 = my session 1, and -1)
+- Lead saved WIP 39ad0bc: numeric_formatting.rs, string_utils.rs (1910 lines), value_text.rs, zip_input.rs,
+  path_io ZIP route, tests/string_utils.rs + oracle TSV, tests/zip_input.rs + oracle.tsv, Cargo zip dep.
+  Compile state UNKNOWN at session start.
+- Next step:
+  1. Gate-check: cargo check --features <zip feature> and tests string_utils / zip_input on spock.
+  2. Fix compile/test failures; commit StringUtils milestone; commit ZIP milestone.
+  3. MzML IMPeakType + drift time + progress; 4. ledger + report.
