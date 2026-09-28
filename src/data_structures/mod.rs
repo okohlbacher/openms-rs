@@ -43,4 +43,5 @@ pub use tool_description::{
 pub mod tool_info;
 pub use tool_info::ToolInfo;
 
+/// Dense column-major matrix (`DATASTRUCTURES/Matrix.h`).
 pub mod matrix;
