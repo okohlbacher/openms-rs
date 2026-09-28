@@ -73,3 +73,10 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
 
 ## Incarnation 5 (worktree wf_cd066dab-0a7-5, branch worktree-wf_cd066dab-0a7-5) started
 - fast-forwarded onto worktree-wf_ee239125-5be-10 (410faf0). Continue from incarnation 4 Next.
+- Guard: `git -C <core> show bc9cc12:<path> > <scratch file>` works as ONE plain command (no scripts,
+  no variables). Scratchpad now: /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/*.cpp
+- Oracle part 2 finished (DONE, ibminode06, same build): qpxPsmRunFileName precedence + nested list
+  (parquet path l.list.element; timestamp[s] reads back ms; large_string restored).
+- Plan inc.5: arrow_io_helpers.rs with ParquetWriteConfig (from MSExperimentArrowExport.h),
+  KeyValueMetadata (ordered, duplicates), strtod/stoll emulation for readMetaValues, isobaric table
+  transcribed from records.tsv, global UUID generator in a Mutex; then tests/arrow_parquet.rs.
