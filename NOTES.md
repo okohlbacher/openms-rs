@@ -36,3 +36,9 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
 - Engine port: use crate::math::source_sort::source_sort_by for std::sort parity (libstdc++ introsort). NO_TERMINATE=true in
   wrapper -> MyException paths become warnings. reorderFeatureRows = memory layout only, skip.
 - TRON oracle literals: Percolator_test.cpp:1427-1523 (weights 1e-8 rel). Test copies in /private/tmp/claude-501/i2/.
+- Vendored engine read fully (copy at /private/tmp/claude-501/i2/perc). Design: src/analysis/id/percolator.rs (public API)
+  + src/analysis/id/percolator/{engine.rs (Scores, ScoreHolder, PRNG, sampler), posterior.rs (q/p/pi0), pep.rs (InferPEP:
+  PAVA + I-spline TRR), svm.rs (TRON), cross_validation.rs (CV + SanityCheck + Normalizer)}.
+  Eigen kernels (eigen_dot/eigen_squared_norm/eigen_gemv_row) live private in src/math/fitters/levenberg_marquardt.rs;
+  plan: make pub(crate) (report to lead). pep_method=nonparametric (LogisticRegression+BaseSpline+PackedMatrix) = named gap.
+  NO_TERMINATE=true => engine only errors on unknown initial_direction and .at() out-of-range.
