@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Helpers over a [`LightTargetedExperiment`].
+//! Helpers over a [`LightTargetedExperiment`](crate::analysis::openswath::transition_experiment::LightTargetedExperiment).
 //!
 //! Ports `OPENSWATHALGO/DATAACCESS/TransitionHelper.h` with
 //! `TransitionHelper.cpp` (the source struct `TransitionHelper` holds two static

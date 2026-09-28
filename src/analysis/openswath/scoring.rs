@@ -13,11 +13,11 @@
 //!
 //! The source states its preconditions with `OPENSWATH_PRECONDITION`, which is
 //! compiled out of release builds, where a violation reads out of bounds. The
-//! port checks every one and returns [`Error::InvalidValue`].
+//! port checks every one and returns [`Error::InvalidValue`](crate::Error::InvalidValue).
 //!
 //! # Summation order
 //!
-//! As in [`stats_helpers`](super::stats_helpers), the source's Eigen
+//! As in [`stats_helpers`](crate::analysis::openswath::stats_helpers), the source's Eigen
 //! reductions add in blocks and the port adds left to right; results agree to
 //! rounding and are identical on every machine. The upstream class test pins
 //! the source's own Eigen cross-correlation against a left-to-right reference

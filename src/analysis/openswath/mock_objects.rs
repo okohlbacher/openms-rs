@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Test doubles for the [`itransition`](super::itransition) access traits.
+//! Test doubles for the [`itransition`](crate::analysis::openswath::itransition) access traits.
 //!
 //! Ports `OPENSWATHALGO/DATAACCESS/MockObjects.h` with `MockObjects.cpp`. Each
 //! mock returns exactly what its public fields hold. See

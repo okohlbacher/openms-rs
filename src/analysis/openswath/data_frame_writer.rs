@@ -6,7 +6,7 @@
 //!
 //! Ports `OPENSWATHALGO/DATAACCESS/DataFrameWriter.h` with
 //! `DataFrameWriter.cpp`: the interface `IDataFrameWriter` becomes the trait
-//! [`DataFrameWriter`], `DataMatrix` an in-memory table, and `CSVWriter` a
+//! [`DataFrameWriter`](crate::analysis::openswath::data_frame_writer::DataFrameWriter), `DataMatrix` an in-memory table, and `CSVWriter` a
 //! tab-separated file writer. See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_ALGO_SUPPORT.md).
 

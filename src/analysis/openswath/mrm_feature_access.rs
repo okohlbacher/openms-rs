@@ -6,14 +6,14 @@
 //!
 //! Ports `ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h` with
 //! `MRMFeatureAccessOpenMS.cpp`: minimal implementations of the
-//! [`itransition`](super::itransition) interfaces.
+//! [`itransition`](crate::analysis::openswath::itransition) interfaces.
 //!
 //! | Source | Port | Implements |
 //! |---|---|---|
-//! | `FeatureOpenMS` | [`FeatureOpenMS`] | [`FeatureAccess`] |
-//! | `MRMFeatureOpenMS` | [`MRMFeatureOpenMS`] | [`MRMFeatureAccess`] |
-//! | `TransitionGroupOpenMS<SpectrumT, TransitionT>` | [`TransitionGroupOpenMS`] | [`TransitionGroupAccess`] |
-//! | `SignalToNoiseOpenMS<ContainerT>` | [`SignalToNoiseOpenMS`] | [`SignalToNoiseAccess`] |
+//! | `FeatureOpenMS` | [`FeatureOpenMS`](crate::analysis::openswath::mrm_feature_access::FeatureOpenMS) | [`FeatureAccess`](crate::analysis::openswath::itransition::FeatureAccess) |
+//! | `MRMFeatureOpenMS` | [`MRMFeatureOpenMS`](crate::analysis::openswath::mrm_feature_access::MRMFeatureOpenMS) | [`MRMFeatureAccess`](crate::analysis::openswath::itransition::MRMFeatureAccess) |
+//! | `TransitionGroupOpenMS<SpectrumT, TransitionT>` | [`TransitionGroupOpenMS`](crate::analysis::openswath::mrm_feature_access::TransitionGroupOpenMS) | [`TransitionGroupAccess`](crate::analysis::openswath::itransition::TransitionGroupAccess) |
+//! | `SignalToNoiseOpenMS<ContainerT>` | [`SignalToNoiseOpenMS`](crate::analysis::openswath::mrm_feature_access::SignalToNoiseOpenMS) | [`SignalToNoiseAccess`](crate::analysis::openswath::itransition::SignalToNoiseAccess) |
 //!
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!

@@ -18,7 +18,7 @@
 //!
 //! The source walks the m/z (time) array and reads the intensity array at the
 //! same index without checking its length. The port checks, and returns
-//! [`Error::InvalidValue`] before modifying the destination.
+//! [`Error::InvalidValue`](crate::Error::InvalidValue) before modifying the destination.
 
 use super::data_structures::{Chromatogram, Spectrum};
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};

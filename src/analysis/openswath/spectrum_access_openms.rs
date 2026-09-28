@@ -6,15 +6,15 @@
 //!
 //! Ports, from `ANALYSIS/OPENSWATH/DATAACCESS/`:
 //!
-//! - `SpectrumAccessOpenMS.h` → [`SpectrumAccessOpenMS`], a view of a shared
-//!   [`MSExperiment`];
-//! - `SpectrumAccessOpenMSInMemory.h` → [`SpectrumAccessOpenMSInMemory`], a
-//!   fully materialised copy of any other [`SpectrumAccess`];
-//! - `SpectrumAccessTransforming.h` → [`SpectrumAccessTransforming`], a wrapper
+//! - `SpectrumAccessOpenMS.h` → [`SpectrumAccessOpenMS`](crate::analysis::openswath::spectrum_access_openms::SpectrumAccessOpenMS), a view of a shared
+//!   [`MSExperiment`](crate::kernel::MSExperiment);
+//! - `SpectrumAccessOpenMSInMemory.h` → [`SpectrumAccessOpenMSInMemory`](crate::analysis::openswath::spectrum_access_openms::SpectrumAccessOpenMSInMemory), a
+//!   fully materialised copy of any other [`SpectrumAccess`](crate::analysis::openswath::spectrum_access::SpectrumAccess);
+//! - `SpectrumAccessTransforming.h` → [`SpectrumAccessTransforming`](crate::analysis::openswath::spectrum_access_openms::SpectrumAccessTransforming), a wrapper
 //!   that transforms every spectrum it serves;
-//! - `SpectrumAccessQuadMZTransforming.h` → [`QuadMZTransform`] and
-//!   [`SpectrumAccessQuadMZTransforming`], the quadratic m/z correction;
-//! - `SimpleOpenMSSpectraAccessFactory.h` → [`SimpleOpenMSSpectraFactory`].
+//! - `SpectrumAccessQuadMZTransforming.h` → [`QuadMZTransform`](crate::analysis::openswath::spectrum_access_openms::QuadMZTransform) and
+//!   [`SpectrumAccessQuadMZTransforming`](crate::analysis::openswath::spectrum_access_openms::SpectrumAccessQuadMZTransforming), the quadratic m/z correction;
+//! - `SimpleOpenMSSpectraAccessFactory.h` → [`SimpleOpenMSSpectraFactory`](crate::analysis::openswath::spectrum_access_openms::SimpleOpenMSSpectraFactory).
 //!
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md)
 //! for the member mapping and evidence. `SpectrumAccessOpenMSCached.h` is not

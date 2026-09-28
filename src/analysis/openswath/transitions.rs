@@ -6,9 +6,9 @@
 //!
 //! Ports `OPENSWATHALGO/DATAACCESS/Transitions.h` (with its empty
 //! `Transitions.cpp`). Unlike the flat
-//! [`LightTargetedExperiment`](super::transition_experiment::LightTargetedExperiment),
-//! these records nest: a [`TargetedExperiment`] owns proteins, a [`Protein`]
-//! owns peptides, and a [`Peptide`] owns its transitions. See
+//! [`LightTargetedExperiment`](crate::analysis::openswath::transition_experiment::LightTargetedExperiment),
+//! these records nest: a [`TargetedExperiment`](crate::analysis::openswath::transitions::TargetedExperiment) owns proteins, a [`Protein`](crate::analysis::openswath::transitions::Protein)
+//! owns peptides, and a [`Peptide`](crate::analysis::openswath::transitions::Peptide) owns its transitions. See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!
 //! These types are not the heavyweight `ANALYSIS/TARGETED/TargetedExperiment`;

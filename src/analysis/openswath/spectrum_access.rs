@@ -9,7 +9,7 @@
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md)
 //! for the member mapping and evidence.
 //!
-//! [`SpectrumAccess`] is the trait every OpenSWATH algorithm reads spectra and
+//! [`SpectrumAccess`](crate::analysis::openswath::spectrum_access::SpectrumAccess) is the trait every OpenSWATH algorithm reads spectra and
 //! chromatograms through; implementations live in
 //! [`spectrum_access_openms`](crate::analysis::openswath::spectrum_access_openms)
 //! (an in-memory [`MSExperiment`](crate::kernel::MSExperiment), a fully
@@ -22,7 +22,7 @@
 //! implementations seek a shared stream, and the class relies on
 //! `lightClone()` to give each thread its own copy. The port's getters take
 //! `&self`, the trait requires `Send + Sync`, and an implementation that needs
-//! mutable state keeps it behind its own lock. [`SpectrumAccess::light_clone`]
+//! mutable state keeps it behind its own lock. [`SpectrumAccess::light_clone`](crate::analysis::openswath::spectrum_access::SpectrumAccess::light_clone)
 //! is kept: it is still the cheap way to give a thread an independent view
 //! (for a file-backed view, its own connection).
 //!
@@ -31,7 +31,7 @@
 //! The source takes `int` ids and checks `0 <= id < size` only with
 //! `OPENMS_PRECONDITION`, which is compiled out of release builds; an
 //! out-of-range id is then undefined behaviour. The port takes `usize` and
-//! every implementation returns [`Error::InvalidValue`] for an id outside the
+//! every implementation returns [`Error::InvalidValue`](crate::Error::InvalidValue) for an id outside the
 //! view.
 
 use super::data_structures::{

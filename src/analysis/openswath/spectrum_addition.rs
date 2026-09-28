@@ -30,7 +30,7 @@
 //! The grid has `(max - min) / sampling_rate + 1` points (truncated). The source
 //! converts that to `int` unchecked, so a zero or tiny sampling rate is
 //! undefined behaviour; the port refuses a non-finite or non-positive rate and
-//! a grid above [`MAX_RESAMPLED_POINTS`], before allocating.
+//! a grid above [`MAX_RESAMPLED_POINTS`](crate::analysis::openswath::spectrum_addition::MAX_RESAMPLED_POINTS), before allocating.
 
 use super::data_structures::{BinaryDataArray, Spectrum, SpectrumPtr};
 use super::spectrum_access::{SpectrumSequence, filter_by_drift};

@@ -10,13 +10,13 @@
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md)
 //! for the member mapping and evidence.
 //!
-//! - [`BinaryDataArray`] holds a `Vec<f64>` with the data and a description.
-//! - [`ChromatogramMeta`] is the identifying information of a chromatogram.
-//! - [`Chromatogram`] holds binary data arrays; the first is the time (RT)
+//! - [`BinaryDataArray`](crate::analysis::openswath::data_structures::BinaryDataArray) holds a `Vec<f64>` with the data and a description.
+//! - [`ChromatogramMeta`](crate::analysis::openswath::data_structures::ChromatogramMeta) is the identifying information of a chromatogram.
+//! - [`Chromatogram`](crate::analysis::openswath::data_structures::Chromatogram) holds binary data arrays; the first is the time (RT)
 //!   array, the second the intensity array.
-//! - [`SpectrumMeta`] is the identifying information of a spectrum (index,
+//! - [`SpectrumMeta`](crate::analysis::openswath::data_structures::SpectrumMeta) is the identifying information of a spectrum (index,
 //!   identifier, RT, MS level).
-//! - [`Spectrum`] holds binary data arrays; the first is the m/z array, the
+//! - [`Spectrum`](crate::analysis::openswath::data_structures::Spectrum) holds binary data arrays; the first is the m/z array, the
 //!   second the intensity array, and any further arrays are extra per-peak
 //!   data such as ion mobility.
 //!
@@ -25,7 +25,7 @@
 //! The source stores every array behind a `std::shared_ptr` (`BinaryDataArrayPtr`)
 //! and every spectrum and chromatogram behind another (`SpectrumPtr`,
 //! `ChromatogramPtr`). The port shares whole spectra and chromatograms through
-//! [`SpectrumPtr`] and [`ChromatogramPtr`] (`Arc`), but a record owns its arrays
+//! [`SpectrumPtr`](crate::analysis::openswath::data_structures::SpectrumPtr) and [`ChromatogramPtr`](crate::analysis::openswath::data_structures::ChromatogramPtr) (`Arc`), but a record owns its arrays
 //! by value: no source consumer relies on two records aliasing one array, and
 //! owning them removes the aliasing hazard in which mutating one spectrum's array
 //! silently mutates another's.
@@ -35,8 +35,8 @@
 //! The source getters document that the m/z (time) and intensity arrays "may be
 //! null", because `setDataArrays` accepts any vector, including an empty one, and
 //! `setMZArray(nullptr)` is legal. The port holds no null array: both leading
-//! arrays exist from construction, and [`Spectrum::set_data_arrays`] and
-//! [`Chromatogram::set_data_arrays`] refuse a list shorter than two, which is the
+//! arrays exist from construction, and [`Spectrum::set_data_arrays`](crate::analysis::openswath::data_structures::Spectrum::set_data_arrays) and
+//! [`Chromatogram::set_data_arrays`](crate::analysis::openswath::data_structures::Chromatogram::set_data_arrays) refuse a list shorter than two, which is the
 //! only way the source could reach a null leading array other than by storing a
 //! null pointer explicitly.
 

@@ -12,13 +12,13 @@
 //!
 //! The source's typedef members `LightTargetedExperiment::Transition`,
 //! `::Peptide`, `::Compound` and `::Protein` have no Rust counterpart
-//! (inherent associated types are unstable); they name [`LightTransition`],
-//! [`LightCompound`], [`LightCompound`] and [`LightProtein`].
+//! (inherent associated types are unstable); they name [`LightTransition`](crate::analysis::openswath::transition_experiment::LightTransition),
+//! [`LightCompound`](crate::analysis::openswath::transition_experiment::LightCompound), [`LightCompound`](crate::analysis::openswath::transition_experiment::LightCompound) and [`LightProtein`](crate::analysis::openswath::transition_experiment::LightProtein).
 //!
 //! # Identity
 //!
-//! As in the source, equality and hashing of [`LightTransition`],
-//! [`LightCompound`] and [`LightProtein`] look at the identifier only (the
+//! As in the source, equality and hashing of [`LightTransition`](crate::analysis::openswath::transition_experiment::LightTransition),
+//! [`LightCompound`](crate::analysis::openswath::transition_experiment::LightCompound) and [`LightProtein`](crate::analysis::openswath::transition_experiment::LightProtein) look at the identifier only (the
 //! transition name, the compound id, the protein id), so two records with the
 //! same identifier and different payloads compare equal. The hash values
 //! differ from the source's `std::hash` results; they are process-local in

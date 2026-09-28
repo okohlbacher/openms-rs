@@ -13,14 +13,14 @@
 //!
 //! | Source | Port |
 //! |---|---|
-//! | `IFeature` (and `std::shared_ptr<IFeature>`, now a borrow) | [`FeatureAccess`] |
-//! | `IMRMFeature` | [`MRMFeatureAccess`] |
-//! | `ITransitionGroup` | [`TransitionGroupAccess`] |
-//! | `ISignalToNoise`, `ISignalToNoisePtr` | [`SignalToNoiseAccess`], [`SignalToNoisePtr`] |
+//! | `IFeature` (and `std::shared_ptr<IFeature>`, now a borrow) | [`FeatureAccess`](crate::analysis::openswath::itransition::FeatureAccess) |
+//! | `IMRMFeature` | [`MRMFeatureAccess`](crate::analysis::openswath::itransition::MRMFeatureAccess) |
+//! | `ITransitionGroup` | [`TransitionGroupAccess`](crate::analysis::openswath::itransition::TransitionGroupAccess) |
+//! | `ISignalToNoise`, `ISignalToNoisePtr` | [`SignalToNoiseAccess`](crate::analysis::openswath::itransition::SignalToNoiseAccess), [`SignalToNoisePtr`](crate::analysis::openswath::itransition::SignalToNoisePtr) |
 //!
 //! Implementations over OpenMS types live in
-//! [`mrm_feature_access`](super::mrm_feature_access); test doubles in
-//! [`mock_objects`](super::mock_objects). See
+//! [`mrm_feature_access`](crate::analysis::openswath::mrm_feature_access); test doubles in
+//! [`mock_objects`](crate::analysis::openswath::mock_objects). See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!
 //! Out-parameters (`getRT(std::vector<double>&)`) become returned vectors, and
