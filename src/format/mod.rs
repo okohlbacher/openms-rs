@@ -200,3 +200,5 @@ pub mod unimod_xml;
 /// (`UniProtXMLFile.h`, `UniProtXMLHandler.h`).
 #[cfg(feature = "kb-xml")]
 pub mod uniprot_xml;
+/// PEFF (PSI Extended FASTA Format) annotated protein databases (`PEFFFile.h`).
+pub mod peff;
