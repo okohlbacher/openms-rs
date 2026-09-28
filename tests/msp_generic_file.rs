@@ -38,7 +38,7 @@ fn similar(a: f64, b: f64) -> bool {
         return false;
     }
     let ratio = if a.abs() > b.abs() { a / b } else { b / a };
-    ratio <= 1.0 + 1e-5 && ratio >= 1.0 / (1.0 + 1e-5)
+    (1.0 / (1.0 + 1e-5)..=1.0 + 1e-5).contains(&ratio)
 }
 
 // START_SECTION(MSPGenericFile()) / START_SECTION(~MSPGenericFile())

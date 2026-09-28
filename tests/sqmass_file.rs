@@ -59,7 +59,7 @@ fn similar(a: f64, b: f64, abs: f64, rel: f64) -> bool {
         return false;
     }
     let ratio = if a.abs() > b.abs() { a / b } else { b / a };
-    ratio <= rel && ratio >= 1.0 / rel
+    (1.0 / rel..=rel).contains(&ratio)
 }
 
 fn cmp_intensity(a: &MSExperiment, b: &MSExperiment, abs: f64, rel: f64) {
