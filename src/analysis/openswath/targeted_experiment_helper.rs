@@ -246,7 +246,7 @@ impl RetentionTime {
 
 /// Base of [`Peptide`] and [`Compound`]: identifier, retention times, charge
 /// and precursor ion-mobility drift time.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct PeptideCompound {
     /// CV terms of the analyte (the source base class).
     pub cv_terms: CVTermList,
@@ -275,6 +275,16 @@ impl Default for PeptideCompound {
 /// Source `operator==` compares the CV terms, `rts`, `id` and the charge but
 /// **not** the drift time; this port keeps that, so two analytes differing
 /// only in drift time compare (and hash) equal.
+impl PartialEq for PeptideCompound {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.cv_terms == rhs.cv_terms
+            && self.rts == rhs.rts
+            && self.id == rhs.id
+            && self.charge == rhs.charge
+    }
+}
+
+/// See the [`PartialEq`] implementation: drift time takes no part.
 impl Eq for PeptideCompound {}
 
 impl Hash for PeptideCompound {

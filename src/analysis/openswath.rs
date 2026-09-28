@@ -7,7 +7,11 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
+/// `IncludeExcludeTarget`: an inclusion or exclusion target of a targeted experiment.
 pub mod include_exclude_target;
+/// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
+/// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).
 pub mod targeted_experiment;
+/// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
 pub mod targeted_experiment_helper;
