@@ -39,9 +39,16 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
 - Ledger builder: <scratchpad>/A5b/ledger.py (run from worktree root) -> writes main-repo fragment. ADD entries for:
   Software, Precursor, PeptideHit, ProteinHit, ChromatogramSettings, SpectrumSettings (all now complete by audit).
 
+## Third incarnation (branch worktree-wf_cd066dab-0a7-4, merged worktree-wf_ee239125-5be-9 = fbf17f3)
+- Old scratchpad (scopes.py, ledger.py, cpp dumps) is GONE; new scratch:
+  /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/A5b
+- Ledger fragment already exists in main repo (.planning/ledger-fragments/wave4/A5b.json) - edit it directly.
+- Done since: IMDataArrayUtils + IMDataConverter frame reshaping (76b773c); MetaInfo index overloads (42783ef);
+  SpectrumLookup + concept/string_conversion WIP (fbf17f3, UNGATED).
+
 ## Next step
-1. Add ledger entries for the six metadata headers above (complete), rerun ledger.py.
-2. IMDataArrayUtils setIMUnit; MetaInfo/MetaInfoInterface index overloads over MetaInfoRegistry.
-3. SpectrumLookup over spectrum_native_id_parser (2 TOPP consumers).
-4. Imaging types class tests; Matrix/SIMDe/SimpleSVM triage; PEP model; platform crates for SysInfo/StopWatch.
-5. Final: CI sweep (openms-ci-sweep.sh A5b-sweep <logdir>), report, delete NOTES.md.
+1. Gate fbf17f3 on spock: tests spectrum_lookup, spectrum_native_id_parser, usi, clippy; fix; commit milestone.
+2. Update ledger fragment: six metadata headers, IMDataArrayUtils/Converter, MetaInfo/MetaInfoInterface, SpectrumLookup.
+3. Remaining triage: Imaging types, Matrix/SIMDe/SimpleSVM, PEP model, SysInfo/StopWatch/BuildInfo, MSSpectrum,
+   OnDiscImzML, IdentificationData(+Converter), DataArrays, MetaInfoDescription, SpectrumMetaDataLookup.
+4. Final: CI sweep (openms-ci-sweep.sh A5b-sweep <logdir>), report, delete NOTES.md.
