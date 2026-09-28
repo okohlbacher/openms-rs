@@ -75,7 +75,7 @@
 //!   and [`EmpiricalFormula::add_charge_adduct`] return an error instead of
 //!   overflowing.
 
-use super::{Atom, Element, EmpiricalFormula, element, element_table};
+use super::{Atom, Element, EmpiricalFormula, element, element_table, parse_atom};
 use crate::concept::hash_utils::{fnv1a_hash_string, hash_combine, hash_int};
 use crate::{Error, Result};
 use std::cmp::Ordering;
@@ -109,10 +109,11 @@ impl FormulaEntry {
 }
 
 impl EmpiricalFormula {
-    /// `count` atoms of one natural element with the given charge: source
+    /// `count` atoms of one element with the given charge: source
     /// `EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge)`.
     ///
-    /// A zero count leaves the formula without atoms (see the module notes).
+    /// An isotope element of [`super::element_db`] (`(13)C`) gives the labelled
+    /// isotope, as the source's isotope element is its own map key. A zero count leaves the formula without atoms (see the module notes).
     ///
     /// # Examples
     ///
@@ -126,13 +127,7 @@ impl EmpiricalFormula {
     pub fn from_element(count: i32, element: &Element, charge: i32) -> Self {
         let mut atoms = BTreeMap::new();
         if count != 0 {
-            atoms.insert(
-                Atom {
-                    symbol: element.symbol(),
-                    isotope: None,
-                },
-                count,
-            );
+            atoms.insert(atom_of(element), count);
         }
         Self { atoms, charge }
     }
@@ -176,24 +171,20 @@ impl EmpiricalFormula {
         self.charge != 0
     }
 
-    /// Whether the formula has an entry for this natural element: source
-    /// `hasElement(const Element*)`. Labelled isotopes of the element do not
-    /// count, as the source's `(13)C` element is a different pointer.
+    /// Whether the formula has an entry for this element: source
+    /// `hasElement(const Element*)`. A natural element does not match its
+    /// labelled isotopes, as the source's `(13)C` element is a different
+    /// pointer; pass the isotope element of [`super::element_db`] for those.
     pub fn has_element(&self, element: &Element) -> bool {
         self.number_of(element) != 0
     }
 
-    /// The count of this natural element, zero when absent: source
-    /// `getNumberOf(const Element*)`. Labelled isotopes are counted by
-    /// [`Self::count`] with their symbol, such as `(13)C`.
+    /// The count of this element, zero when absent: source
+    /// `getNumberOf(const Element*)`. A natural element does not count its
+    /// labelled isotopes; pass the isotope element of [`super::element_db`]
+    /// (`(13)C`), or use [`Self::count`] with the symbol.
     pub fn number_of(&self, element: &Element) -> i32 {
-        self.atoms
-            .get(&Atom {
-                symbol: element.symbol(),
-                isotope: None,
-            })
-            .copied()
-            .unwrap_or(0)
+        self.atoms.get(&atom_of(element)).copied().unwrap_or(0)
     }
 
     /// Every entry in the order of this type (symbol, natural before labelled,
@@ -384,6 +375,18 @@ impl Ord for EmpiricalFormula {
     }
 }
 
+/// The formula key of a database element: the natural element, or for an
+/// isotope element of [`super::element_db`] (`(13)C`) the labelled isotope.
+fn atom_of(element: &Element) -> Atom {
+    let mut position = 0;
+    // Elements exist only as entries of the compiled table and the isotope
+    // elements derived from it, whose symbols always parse.
+    parse_atom(element.symbol().as_bytes(), &mut position).unwrap_or(Atom {
+        symbol: element.symbol(),
+        isotope: None,
+    })
+}
+
 fn hydrogen() -> &'static Element {
     &element_table()[0]
 }
@@ -415,7 +418,9 @@ fn binomial(n: u32, k: u32) -> Result<f64> {
         let numerator = u128::from(n - i);
         let denominator = u128::from(i + 1);
         // The running product C(n, i + 1) is exactly divisible at every step.
-        exact = exact.and_then(|value| value.checked_mul(numerator)).map(|v| v / denominator);
+        exact = exact
+            .and_then(|value| value.checked_mul(numerator))
+            .map(|v| v / denominator);
         approximate = approximate * f64::from(n - i) / f64::from(i + 1);
     }
     let value = match exact {

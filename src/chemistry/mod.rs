@@ -25,6 +25,7 @@ pub mod aa_index;
 pub mod adduct_info;
 pub mod decoy_generator;
 pub mod digestion;
+pub mod element_db;
 mod elements;
 mod empirical_formula;
 pub use empirical_formula::FormulaEntry;
