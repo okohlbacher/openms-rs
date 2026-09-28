@@ -1139,14 +1139,27 @@ impl<'c> Store<'c> {
         with_metainfo: bool,
         with_idmatches: bool,
     ) -> Result<()> {
+        // The source always declares the foreign key into
+        // ID_IdentifiedMolecule. With foreign keys enforced, SQLite refuses
+        // every insert into a table whose parent table does not exist ("no
+        // such table: main.ID_IdentifiedMolecule"), so the source cannot store
+        // a map whose identification data holds no identified molecule. The
+        // port declares the key only when the table exists, as the source
+        // itself does for `ID_ObservationMatch.adduct_id`.
+        let primary_key = if self.has_table("ID_IdentifiedMolecule") {
+            "FOREIGN KEY (primary_molecule_id) REFERENCES ID_IdentifiedMolecule (id), "
+        } else {
+            ""
+        };
         self.create_table(
             "FEAT_BaseFeature",
-            "id INTEGER PRIMARY KEY NOT NULL, rt REAL, mz REAL, intensity REAL, charge INTEGER, \
-             width REAL, quality REAL, unique_id INTEGER, primary_molecule_id INTEGER, \
-             subordinate_of INTEGER, \
-             FOREIGN KEY (primary_molecule_id) REFERENCES ID_IdentifiedMolecule (id), \
-             FOREIGN KEY (subordinate_of) REFERENCES FEAT_BaseFeature (id), \
-             CHECK (id > subordinate_of)",
+            &format!(
+                "id INTEGER PRIMARY KEY NOT NULL, rt REAL, mz REAL, intensity REAL, \
+                 charge INTEGER, width REAL, quality REAL, unique_id INTEGER, \
+                 primary_molecule_id INTEGER, subordinate_of INTEGER, {primary_key}\
+                 FOREIGN KEY (subordinate_of) REFERENCES FEAT_BaseFeature (id), \
+                 CHECK (id > subordinate_of)"
+            ),
         )?;
         if with_metainfo {
             self.create_table_meta_info("FEAT_BaseFeature", "id")?;

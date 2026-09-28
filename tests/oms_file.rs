@@ -170,7 +170,7 @@ mod canonical {
                     .iter()
                     .zip(row.iter())
                     .filter(|(column, _)| column.as_str() != "id")
-                    .map(|(column, value)| self.cell(table, column, value.as_ref()))
+                    .map(|(column, value)| self.cell(table, column, ValueRef::from(value)))
                     .collect();
                 parts.push(cells.join(","));
             }
@@ -243,7 +243,10 @@ mod canonical {
                     .zip(row.iter())
                     .filter(|(column, _)| !(drop_id && column.as_str() == "id"))
                     .map(|(column, value)| {
-                        format!("{column}={}", dump.cell(&table, column, value.as_ref()))
+                        format!(
+                            "{column}={}",
+                            dump.cell(&table, column, ValueRef::from(value))
+                        )
                     })
                     .collect();
                 rows.push(format!("row\t{table}\t{}", cells.join("\t")));
@@ -733,5 +736,41 @@ fn a_failed_store_leaves_the_existing_file_unchanged() {
     assert_eq!(std::fs::read(&out).unwrap(), b"previous content");
     let entries = std::fs::read_dir(&dir).unwrap().count();
     assert_eq!(entries, 1, "the temporary database was removed");
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+
+#[test]
+fn a_map_without_identifications_is_stored_where_the_source_fails() {
+    // The Release build cannot store a feature or consensus map without
+    // identification data: FEAT_BaseFeature declares a foreign key into the
+    // missing ID_IdentifiedMolecule table (oracle F2-oms-noid, run twice on
+    // ibminode06, noid_outcome.tsv). The port declares that key only when the
+    // table exists.
+    let outcome = std::fs::read_to_string(release("noid_outcome.tsv")).unwrap();
+    assert_eq!(
+        outcome
+            .matches("no such table: main.ID_IdentifiedMolecule")
+            .count(),
+        2
+    );
+    let dir = temp_dir("noid");
+    let adapter = OmsFile::default();
+    let loaded = adapter.load_feature_map(release("feature.oms")).unwrap();
+    let mut map = loaded.map.clone();
+    fn clear(features: &mut [openms::kernel::Feature]) {
+        for feature in features {
+            feature.id_matches.clear();
+            feature.primary_id = None;
+            clear(&mut feature.subordinates);
+        }
+    }
+    clear(&mut map.features);
+    let out = dir.join("noid.oms");
+    adapter.store_feature_map(&out, &map, None).unwrap();
+    let back = adapter.load_feature_map(&out).unwrap();
+    assert!(back.identifications.is_empty());
+    assert_eq!(back.map.features.len(), map.features.len());
+    assert_eq!(back.map.features[0].subordinates.len(), 2);
+    assert_eq!(back.map.loaded_file_type, map.loaded_file_type);
     std::fs::remove_dir_all(&dir).unwrap();
 }
