@@ -15,7 +15,7 @@ optional `arrow` feature (see the `arrow-rs` row of
 | `FORMAT/ArrowIOHelpers.h` (+ `ParquetWriteConfig` of `MSExperimentArrowExport.h`) | `src/format/arrow_io_helpers.rs` | partial: QPX value validation |
 | `FORMAT/ProteinIdentificationArrowIO.h` | `src/format/protein_identification_arrow_io.rs` | complete |
 | `FORMAT/PSMArrowIO.h` | — | not ported: needs `QPXFile` |
-| `FORMAT/FeatureMapArrowIO.h` | — | not ported: needs `QPXFile`, ProForma parsing of peptidoforms |
+| `FORMAT/FeatureMapArrowIO.h` | `src/format/feature_map_arrow_io.rs` | partial: features table; PSM table and bundle need `QPXFile` |
 | `FORMAT/ConsensusMapArrowIO.h` | — | not ported: needs `QPXFile`, ProForma parsing of peptidoforms |
 
 ## Representation
@@ -115,6 +115,15 @@ optional `arrow` feature (see the `arrow-rs` row of
 | `checkUniqueIdentifiers` | `check_unique_identifiers` |
 | `writeArrowTableToParquet_` (anonymous) | `write_table` |
 
+### `FeatureMapArrowIO.h`
+
+| Source | Rust (`FeatureMapArrowIO::`) |
+|---|---|
+| `exportFeaturesToArrow(feature_map)` | `export_features_to_arrow` |
+| `importFeaturesFromArrow(table, feature_map)` | `import_features_from_arrow` (returns the warnings) |
+| `exportPSMsToArrow`, `importPSMsFromArrow` | not ported: `QPXFile::exportToArrow` / `importFromArrow` |
+| `exportToParquet`, `importFromParquet` | not ported: the PSM table above, and the `DataProcessing`/metadata JSON of `features.parquet`'s file-level metadata |
+
 ## Preserved source conventions
 
 * **Parquet writing.** `ParquetFile::writeTable` stores no Arrow schema;
@@ -144,6 +153,14 @@ optional `arrow` feature (see the `arrow-rs` row of
   last-match rule and the `Int32` range. The isobaric channel vocabulary is
   transcribed from the executed `IsobaricQuantitationMethod` registry (TMT 6
   to 35-plex, iTRAQ 4/8-plex).
+* **Features table.** Features are flattened depth first, each followed by
+  its subordinates, with the parent's id and the depth; `width` 0 is null, the
+  bounding box is the union of the hulls' boxes, `FWHM` is left out of
+  `metavalues` and restored from `width` by the import's `setWidth`
+  (measured: a feature exported with `FWHM` 2.5 and width 3.5 reads back with
+  `FWHM` 3.5). The import attaches subordinates deepest first and turns a row
+  whose parent is missing into a top-level feature with the source's warning
+  (measured on a sliced table).
 * **Protein tables.** Every column's null rule is the source's (coverage
   unknown, empty sequence/description/version/database fields, unknown
   enzyme or specificity, pre-1970 dates → null). Ranks and missed cleavages
@@ -185,6 +202,11 @@ optional `arrow` feature (see the `arrow-rs` row of
 * **Protein modifications** that are mass tags (not named
   `ResidueModification`s) are refused on export (`Error::Unsupported`); the
   source's `ProteinHit` cannot hold them.
+* **Features table.** Export refuses subordinates nested deeper than
+  `Feature::MAX_SUBORDINATE_DEPTH` (128); the source recurses without a bound.
+  A hull with no points is left out of the bounding box (the source's union
+  with an empty `DBoundingBox` was not measured), and a hull point that is
+  not finite is refused on import.
 * **Registries.** Modification definitions read from `sp_metavalues` are
   registered into a caller-owned `ModificationsDB` (`*_with_registry`), not a
   process-wide database.
@@ -194,7 +216,8 @@ optional `arrow` feature (see the `arrow-rs` row of
 * `writeTableToParquet` refuses a QPX `psm_file`, `feature_file` or
   `pg_file` table (`Error::Unsupported`): the source validates their values
   with `QPXValueValidation` (`FORMAT/QPXValueValidation.h`), not ported.
-* `PSMArrowIO`, `FeatureMapArrowIO` and `ConsensusMapArrowIO` build and read
+* `PSMArrowIO`, the PSM and bundle half of `FeatureMapArrowIO`, and
+  `ConsensusMapArrowIO` build and read
   their PSM tables through `QPXFile::exportToArrow`/`importFromArrow`
   (`FORMAT/QPXFile.h`), reconstruct peptidoforms with ProForma, and store
   `DataProcessing` as JSON; their feature and consensus-feature tables need
@@ -207,7 +230,7 @@ Tier 1, executed differential against the Linux x86_64 Release install
 `openms4-release-bc9cc12-c19e494-174b576` (g++ 14.4 `-O2 -DNDEBUG`, Arrow C++
 23.0.1) on ibminode06, each driver run twice with identical records. Drivers
 live outside the repository (`../oracle/F1a-arrow`, `F1a-arrow2`,
-`F1a-protein`); their sha256s and the record sha256s are in
+`F1a-protein`, `F1a-features`); their sha256s and the record sha256s are in
 `tests/data/arrow_parquet_provenance.json`.
 
 * `tests/arrow_parquet.rs` (23 tests): every column of the 22 schemas and the
@@ -220,9 +243,16 @@ live outside the repository (`../oracle/F1a-arrow`, `F1a-arrow2`,
 * `tests/protein_identification_arrow_io.rs` (6 tests): the protein tables of
   six retained C++-written bundles (test-data `0cb15f2`) import field by field
   as the executed source imports them; every table of those bundles validates
-  strictly against the registry; the port's exports of a constructed set of
+  strictly against the registry (a feature or consensus bundle's PSM table
+  with its owner-id column in front of `PSMSchema`); the port's exports of a constructed set of
   runs equal the C++-written tables cell by cell; both round trips
   reconstruct the source's runs; identifier synthesis, renaming and the
   uniqueness check.
+* `tests/feature_map_arrow_io.rs` (4 tests): the retained C++-written
+  features table of `FileConverter_9_output.featureparquet` imports feature
+  by feature as the executed source imports it; the port's features table of
+  a constructed map with a three-level hierarchy, hulls, `FWHM` and a
+  `UInt64` id above `i64::MAX` equals the C++-written one; both read back as
+  the source reads them; orphaned subordinates and an empty table.
 * `tests/parquet_filter.rs` (19 tests, default build): every section of the
   upstream class test `ParquetFilter_test.cpp` (tier 3).

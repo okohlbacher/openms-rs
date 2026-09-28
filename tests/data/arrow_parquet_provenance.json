@@ -3,9 +3,9 @@
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "test_data_revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
  "license": "BSD-3-Clause",
- "method": "Executed differential: three oracle drivers link the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06, each run twice in a clean environment with byte-identical records; the Rust tests transcribe the records and read the Parquet files the executed library wrote, plus the retained C++-written TOPP fixture bundles. ParquetFilter is transcribed from its upstream class test.",
+ "method": "Executed differential: four oracle drivers link the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06, each run twice in a clean environment with byte-identical records; the Rust tests transcribe the records and read the Parquet files the executed library wrote, plus the retained C++-written TOPP fixture bundles. ParquetFilter is transcribed from its upstream class test.",
  "evidence_tier": "1 (executed differential; ParquetFilter tier 3, source review of the class test)",
- "reference_tools": "../oracle/F1a-arrow, ../oracle/F1a-arrow2, ../oracle/F1a-protein (driver.cpp, node.sh, run.sh)",
+ "reference_tools": "../oracle/F1a-arrow, ../oracle/F1a-arrow2, ../oracle/F1a-protein, ../oracle/F1a-features (driver.cpp, node.sh, run.sh)",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FORMAT/ArrowIOHelpers.h",
@@ -14,6 +14,10 @@
   {
    "path": "src/openms/include/OpenMS/FORMAT/ArrowSchemaRegistry.h",
    "sha256": "9aeae1949712311eaa4f75e7d438a6cef06775d26ccf3e0ffbb26016e3cfefc2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FeatureMapArrowIO.h",
+   "sha256": "7a8baece2c5628a373229e04ec8bec23956c74f0f33ba86b62c2ad5239ba2b66"
   },
   {
    "path": "src/openms/include/OpenMS/FORMAT/MSExperimentArrowExport.h",
@@ -44,6 +48,10 @@
    "sha256": "7f4fcd02c14bba9b092891040103f5a495796f4e1d4b516ff945d397dc99c134"
   },
   {
+   "path": "src/openms/source/FORMAT/FeatureMapArrowIO.cpp",
+   "sha256": "63d2a49aef69f084dcedb646d014a2e8245ad39595480c8a8b496c9ed25f6ba6"
+  },
+  {
    "path": "src/openms/source/FORMAT/ParquetFile.cpp",
    "sha256": "f0f9932534b79fda152614428e263cc30fe6c8c3e07588f565606e79eda7fd94"
   },
@@ -54,6 +62,18 @@
   {
    "path": "src/openms/source/FORMAT/ProteinIdentificationArrowIO.cpp",
    "sha256": "00bee31d5142c1bfbe3fa33ac1d1ef3b7f85049fb62558ea7837c89fd61269f4"
+  },
+  {
+   "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+   "sha256": "b0166d47181ce74ced4937a112da94788cbc51eb57f88a426a1e62578458151d"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Feature.cpp",
+   "sha256": "5b6ea1b5ecb99d656213c02ebfe4e9a89f5216bd6c7b535ab8d24a0bd7579f72"
+  },
+  {
+   "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
+   "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585"
   },
   {
    "path": "src/tests/class_tests/openms/source/ParquetFilter_test.cpp",
@@ -135,6 +155,11 @@
    "path": "tests/data/arrow_parquet/cpp_release_records_3.tsv",
    "sha256": "b5bc983e77cff80caeaeb3ff9f488ae2def3e7263e776874f8c94cd9eb8c9493",
    "kind": "records of the executed Release build, oracle part 3 (../oracle/F1a-protein)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_records_4.tsv",
+   "sha256": "3a3144be54b81a71b15af428283697375511cd5bfed311733f6567ce05385e32",
+   "kind": "records of the executed Release build, oracle part 4 (../oracle/F1a-features)"
   },
   {
    "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_14_output.consensusparquet/consensus_features.parquet",
@@ -267,6 +292,11 @@
    "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/search_params.parquet"
   },
   {
+   "path": "tests/data/arrow_parquet/fm_features.parquet",
+   "sha256": "f71bda9c29ad3513f8f9f74323f94c4708eb3d14e0d5255270ce8ca0a70472fb",
+   "kind": "Parquet file written by the executed Release build, oracle part 4 (FeatureMapArrowIO features table)"
+  },
+  {
    "path": "tests/data/arrow_parquet/parquetfile_default.parquet",
    "sha256": "2dd35272514a5e25acdce721d7b2085d67e7f0e6d79d9218892dc382f8ac588a",
    "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
@@ -312,11 +342,13 @@
   "src/format/parquet_file.rs",
   "src/format/parquet_filter.rs",
   "src/format/arrow_io_helpers.rs",
-  "src/format/protein_identification_arrow_io.rs"
+  "src/format/protein_identification_arrow_io.rs",
+  "src/format/feature_map_arrow_io.rs"
  ],
  "native_tests": [
   "tests/arrow_parquet.rs",
   "tests/protein_identification_arrow_io.rs",
+  "tests/feature_map_arrow_io.rs",
   "tests/parquet_filter.rs"
  ],
  "support_document": "docs/ARROW_PARQUET_SUPPORT.md",
@@ -425,6 +457,42 @@
   },
   {
    "path": "../oracle/F1a-protein/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-features/driver.cpp",
+   "sha256": "6ee73253e1c2210b5a0d3ba782f796b5526dd42d682edb57b48090d52887d2d3",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-features/node.sh",
+   "sha256": "2760944e6a7a192ee8479bbd291dfe16226e5e78ef8a49f0538a53cebba7f667",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-features/run.sh",
+   "sha256": "43e7ca245ee14def62d667bb9391aefd376743540df21e5253dff0baa2a8e7e1",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-features/results/records.tsv",
+   "sha256": "3a3144be54b81a71b15af428283697375511cd5bfed311733f6567ce05385e32",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-features/results/hashes.txt",
+   "sha256": "e76b811e2a5ad668e69b7012b9b0237f0a6e91d9a36f12b460a507874fab81f4",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-features/results/host.txt",
    "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
    "location": "outside this repository",
    "origin_key": "fixtures"
