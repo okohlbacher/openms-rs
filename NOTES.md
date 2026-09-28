@@ -31,7 +31,8 @@ Scratchpad (per session): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-
 - GNPSExport_1_out_quant.txt: 52 fields on 44 lines spelled non-exactly (old formatter); same doubles.
 - IBSpectra: hits[0] unchecked in C++ (UB on empty hits) -> refused here.
 
+- Support docs for all 10 groups committed (f38de85). c2 chain: core/fxml/mzml green (9+... / 16 / 11), died at cxml (connection).
+
 ## Next step
-1. Gate chain scratchpad/F4/chain.sh c1 (slices, clippy, doc, msrv) -> fix.
-2. Support docs docs/*_SUPPORT.md for all 10 groups (none written yet).
-3. Report F4.md, ledger wave4/F4.json, delete NOTES.md.
+1. Gate chain scratchpad/F4/chain.sh c3 (fourth incarnation relaunched it) -> fix.
+2. Report F4.md, ledger wave4/F4.json, delete NOTES.md.
