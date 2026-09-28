@@ -6,3 +6,8 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+
+pub mod include_exclude_target;
+pub mod reaction_monitoring_transition;
+pub mod targeted_experiment;
+pub mod targeted_experiment_helper;
