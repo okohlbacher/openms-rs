@@ -62,8 +62,20 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
 - CI sweep (scratch A5b/sweep/sweep.log): 32/54 lines PASS, then 'spock not responding' at line 33
   (minimum-rust semantic-validation). Resume the remaining 22 lines.
 
+- Full sweep re-run started 14:07 -> scratch A5b/sweep2/, A5b/sweep2.out (tree = 277f6b0, before IdData work).
+- 066d175: IdentificationData pickScoreType/applyToObservations/allow_missing (src/identification/graph/apply.rs,
+  tests/identification_graph_apply.rs). Oracle ../oracle/A5b-iddata DONE on ibminode06 (run.sh push|pull):
+  pick_all_count_b2 and pick_any_count_a2 -> source returns max-ADDRESS type (defect candidate); collision erases.
+  Gate: scratch A5b/gate7.sh -> g7_*.log, g7.done. If green -> IdentificationData.h complete.
+- SIMDe.h: docs/SIMDE_SUPPORT.md -> ledger native_equivalent (rust build_info.rs, tests/build_info.rs).
+- SimpleSVM.h: untouched (needs a libsvm training port/crate; only fixed-model RBF predict exists in
+  src/analysis/feature_finding_metabo/predictor.rs). IdentificationDataConverter: 7/9 ops missing, untouched.
+- MSSpectrum.h true remainder: comment field, im_format/im_peak_type, sort(pred)/isSorted(pred), selectUnchecked,
+  PosBegin/PosEnd + iterator-range MZBegin/MZEnd overloads, clear(bool), operator<<, operator=(SpectrumSettings).
+
 ## Next step
-1. Resume sweep lines 33-54 (spock). 2. Ledger fragment + report. 3. Delete NOTES.md in final commit.
+1. g7 green -> commit. 2. Ledger fragment entries for IdentificationData, SIMDe, MSSpectrum (partial, true
+   remainder), Gumbel note. 3. Report. 4. Wait sweep2; if it predates 066d175, rerun affected lines. 5. rm NOTES.md.
 
 ## Next step (old)
 1. Finish gate3; commit SpectrumMetaDataLookup milestone.
