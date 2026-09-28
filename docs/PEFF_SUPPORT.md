@@ -130,18 +130,35 @@ Every public member of the header is mapped; nothing is left unported.
 
 ## Checked boundaries and evidence
 
-Tier 3 (source review): `tests/peff.rs` (32 tests) and
-`tests/peff_sequences.rs` (18 tests) transcribe every section of
-`PEFFFile_test.cpp` at `bc9cc12`, over its eleven unchanged `PEFFFile_*.peff`
-fixtures; the proteoform tables (`REF_TABLE`, `K16R_TABLE`, `S14A_TABLE`,
-`CV_TABLE`, 52 rows with an exact ProForma string and an exact
-`AASequence::toString` each) are transcribed row for row, and the per-proteoform
-cap counts 10 / 46 / 130 / 512 are the section's binomial sums. The two PSI-MOD
-assertions use a registry extended with one independently authored OBO term
-(`MOD:00046`, origin S, linked to Unimod 21). Tier 4: the ReadLimits refusals,
-the header warnings of the minimal fixture (derived from
-`PEFFFile.cpp:1493-1527`), and the unresolved-modification warning (derived
-from `PEFFFile.cpp:586`).
+**Tier 1 (executed differential).** `tests/data/peff_sequences_oracle.tsv` is
+the retained stdout of `../oracle/F6-peff-sequences/driver.cpp`, built against
+the Linux x86_64 OpenMS4 **Release** install `bc9cc12-c19e494-174b576`
+(conda-forge g++ 14.4, `-O2`) and run twice on **ibminode06**, byte-identical.
+The `oracle_*` tests of `tests/peff_sequences.rs` compare every (description,
+peptide) pair, in order, of 23 cases: `getVariantSequences` (including the
+desynchronised vectors, which the port deliberately does not reproduce),
+`digestWithVariants` under trypsin, chymotrypsin, two missed cleavages, semi
+specificity, unspecific cleavage and no cleavage, with variants, conflicting
+variants, modifications on substituted residues and name-only modifications,
+and `generatePeptides` with fixed and variable modifications, missed
+cleavages, no reference and the proteoform cap; plus `getModifiedSequence`
+(PSI-MOD alias, and the two warnings of the retained stderr) and
+`getProcessedSequence` (the `signal peptide` name rule, a region ending at the
+sequence end, an absent region).
 
-No executed C++ oracle exists yet for this group; see
+**Tier 3 (source review).** `tests/peff.rs` (32 tests) and the first 18 tests of
+`tests/peff_sequences.rs` transcribe the sections of `PEFFFile_test.cpp` at
+`bc9cc12`, over its eleven byte-identical `PEFFFile_*.peff` fixtures; the
+proteoform tables (`REF_TABLE`, `K16R_TABLE`, `S14A_TABLE`, `CV_TABLE`, 52 rows
+with an exact ProForma string and an exact `AASequence::toString` each) are
+transcribed row for row, and the proteoform-cap counts 10 / 46 / 130 / 512 are
+the section's binomial sums. The PSI-MOD assertions use a registry extended
+with one independently authored OBO term (`MOD:00046`, origin S, linked to
+Unimod 21).
+
+**Tier 4.** The `ReadLimits` refusals, the header warnings of the minimal
+fixture (derived from `PEFFFile.cpp:1493-1527`) and the unresolved-modification
+warning without PSI-MOD (derived from `PEFFFile.cpp:586`).
+
+The reader and writer have no executed oracle; their evidence is tier 3. See
 `tests/data/peff_provenance.json`.

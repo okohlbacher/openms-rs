@@ -1111,3 +1111,383 @@ fn proteoform_cap() {
             .any(|s| s.to_string() == "AS(Phospho)AS(Phospho)AS(Phospho)ASASASASASAS")
     );
 }
+
+// ---------------------------------------------------------------------------
+// Tier 1: retained output of the executed C++ Release build.
+//
+// `tests/data/peff_sequences_oracle.tsv` is the stdout of the driver
+// `../oracle/F6-peff-sequences/driver.cpp`, built against the Linux x86_64
+// OpenMS4 Release install `bc9cc12-c19e494-174b576` with conda-forge g++ 14.4
+// and run twice on ibminode06 (identical runs). Each case below rebuilds the
+// driver's entry and call and compares every (description, peptide) pair in
+// order. See `tests/data/peff_provenance.json`.
+// ---------------------------------------------------------------------------
+
+const ORACLE: &str = include_str!("data/peff_sequences_oracle.tsv");
+
+fn oracle(case: &str) -> Vec<(String, String)> {
+    let rows: Vec<(String, String)> = ORACLE
+        .lines()
+        .filter_map(|line| {
+            let fields: Vec<&str> = line.split('\t').collect();
+            (fields.len() == 4 && fields[0] == case)
+                .then(|| (fields[2].to_owned(), fields[3].to_owned()))
+        })
+        .collect();
+    let sizes = oracle_value("sizes", case);
+    let counts: Vec<usize> = sizes.split('\t').map(|n| n.parse().unwrap()).collect();
+    assert_eq!(counts[1], rows.len(), "{case}");
+    rows
+}
+
+fn oracle_value(kind: &str, case: &str) -> String {
+    let prefix = format!("{kind}\t{case}\t");
+    ORACLE
+        .lines()
+        .find_map(|line| line.strip_prefix(prefix.as_str()))
+        .unwrap_or_else(|| panic!("no oracle {kind} {case}"))
+        .to_owned()
+}
+
+fn records(peptides: &openms::format::peff::PEFFPeptides) -> Vec<(String, String)> {
+    assert_eq!(peptides.descriptions.len(), peptides.sequences.len());
+    peptides
+        .descriptions
+        .iter()
+        .cloned()
+        .zip(peptides.sequences.iter().map(ToString::to_string))
+        .collect()
+}
+
+fn enzyme(name: &str, missed_cleavages: usize) -> ProteaseDigestion {
+    let mut digestor = ProteaseDigestion::default();
+    digestor.set_enzyme(name).unwrap();
+    digestor.missed_cleavages = missed_cleavages;
+    digestor
+}
+
+fn check_digest(
+    case: &str,
+    entry: &PEFFEntry,
+    digestor: &ProteaseDigestion,
+    options: VariantDigestOptions,
+) {
+    let peptides = entry.digest_with_variants(digestor, &options).unwrap();
+    assert_eq!(records(&peptides), oracle(case), "{case}");
+}
+
+fn check_generate(
+    case: &str,
+    entry: &PEFFEntry,
+    digestor: &ProteaseDigestion,
+    options: PeptideGenerationOptions,
+) {
+    let peptides = entry.generate_peptides(digestor, &options).unwrap();
+    assert_eq!(records(&peptides), oracle(case), "{case}");
+}
+
+#[test]
+fn oracle_variant_sequences() {
+    let mut entry = PEFFEntry {
+        sequence: "PEPTIDE".into(),
+        ..PEFFEntry::default()
+    };
+    entry.simple_variants.push(variant(3, 'A', "dbSNP:test"));
+    entry.complex_variants.push(PEFFVariantComplex::new(
+        2,
+        4,
+        "XXX",
+        "ClinVar:123",
+        openms::format::peff::ANNOTATION_ID_NOT_SET,
+    ));
+    assert_eq!(
+        records(&entry.variant_sequences(false)),
+        oracle("variants_simple")
+    );
+    assert_eq!(
+        records(&entry.variant_sequences(true)),
+        oracle("variants_all")
+    );
+}
+
+/// The source pushes each description before parsing its sequence, so two
+/// unparsable variants leave it three descriptions and one sequence, the
+/// first description paired with the third variant's sequence. The port
+/// keeps the pair that belongs together.
+#[test]
+fn oracle_variant_sequences_that_do_not_parse() {
+    let mut entry = PEFFEntry {
+        sequence: "PEPTIDE".into(),
+        ..PEFFEntry::default()
+    };
+    entry.simple_variants.push(variant(3, 'a', "lower"));
+    entry.simple_variants.push(variant(4, '1', "digit"));
+    entry.simple_variants.push(variant(5, 'L', "ok"));
+    assert_eq!(oracle_value("sizes", "variants_unparsable"), "3\t1");
+    assert_eq!(
+        oracle("variants_unparsable"),
+        [("P3a (lower)".to_owned(), "PEPTLDE".to_owned())]
+    );
+    assert_eq!(
+        records(&entry.variant_sequences(false)),
+        [("I5L (ok)".to_owned(), "PEPTLDE".to_owned())]
+    );
+}
+
+fn big_entry() -> PEFFEntry {
+    let mut entry = PEFFEntry {
+        sequence: "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGEEHFKGLVLIAFSQYLQQCPFDEHVKLVNELTEFAK"
+            .into(),
+        ..PEFFEntry::default()
+    };
+    entry.simple_variants.push(variant(5, 'A', "dbSNP:rs1"));
+    entry.simple_variants.push(variant(10, 'M', "dbSNP:rs2"));
+    entry.simple_variants.push(variant(20, 'F', "dbSNP:rs3"));
+    entry.simple_variants.push(variant(30, '*', "dbSNP:rs4"));
+    entry
+}
+
+#[test]
+fn oracle_digest_with_variants() {
+    let entry = big_entry();
+    let trypsin = enzyme("Trypsin", 0);
+    let options = |min, max, reference| digest_options(min, max, reference, true, false);
+    check_digest("dwv_big_trypsin", &entry, &trypsin, options(4, 30, true));
+    check_digest("dwv_big_noref", &entry, &trypsin, options(4, 30, false));
+    check_digest(
+        "dwv_big_chymo",
+        &entry,
+        &enzyme("Chymotrypsin", 0),
+        options(4, 30, true),
+    );
+    check_digest(
+        "dwv_big_mc2",
+        &entry,
+        &enzyme("Trypsin", 2),
+        options(4, 30, true),
+    );
+    let mut semi = enzyme("Trypsin", 0);
+    semi.specificity = openms::chemistry::DigestionSpecificity::Semi;
+    check_digest("dwv_big_semi", &entry, &semi, options(6, 8, true));
+
+    let mut combo = PEFFEntry {
+        sequence: "MKAEPTIDER".into(),
+        ..PEFFEntry::default()
+    };
+    combo.simple_variants.push(variant(4, 'L', "var1"));
+    combo.simple_variants.push(variant(6, 'L', "var2"));
+    combo.simple_variants.push(variant(6, 'V', "var3"));
+    check_digest("dwv_combo", &combo, &trypsin, options(2, 20, true));
+}
+
+#[test]
+fn oracle_digest_with_modifications() {
+    let trypsin = enzyme("Trypsin", 0);
+    let mut entry = PEFFEntry {
+        sequence: "MKAMEPTIDER".into(),
+        ..PEFFEntry::default()
+    };
+    entry.modifications = vec![
+        PEFFModification::new(4, "UNIMOD:35", "Oxidation"),
+        PEFFModification::new(7, "UNIMOD:21", "Phospho"),
+        PEFFModification::new(5, "", "Phospho"),
+    ];
+    check_digest(
+        "dwv_mods_only",
+        &entry,
+        &trypsin,
+        digest_options(2, 20, true, false, true),
+    );
+    entry.simple_variants.push(variant(5, 'S', "var1"));
+    entry.simple_variants.push(variant(4, 'L', "var2"));
+    check_digest(
+        "dwv_mods_vars",
+        &entry,
+        &trypsin,
+        digest_options(2, 20, true, true, true),
+    );
+    check_digest(
+        "dwv_mods_vars_noref",
+        &entry,
+        &trypsin,
+        digest_options(2, 20, false, true, true),
+    );
+}
+
+#[test]
+fn oracle_unspecific_and_no_cleavage() {
+    let mut entry = PEFFEntry {
+        sequence: "PEPTIDEK".into(),
+        ..PEFFEntry::default()
+    };
+    entry.simple_variants.push(variant(2, 'Q', "v"));
+    check_digest(
+        "dwv_unspecific",
+        &entry,
+        &enzyme("unspecific cleavage", 0),
+        digest_options(2, 3, true, true, false),
+    );
+    check_digest(
+        "dwv_nocleavage",
+        &entry,
+        &enzyme("no cleavage", 0),
+        digest_options(1, 0, true, true, false),
+    );
+}
+
+#[test]
+fn oracle_generate_peptides() {
+    let trypsin = enzyme("Trypsin", 0);
+    let mut basic = PEFFEntry {
+        sequence: "MKAMEPTIDER".into(),
+        ..PEFFEntry::default()
+    };
+    basic.simple_variants.push(variant(4, 'L', "dbSNP:test"));
+    basic.modifications = vec![
+        PEFFModification::new(5, "UNIMOD:21", "Phospho"),
+        PEFFModification::new(7, "UNIMOD:21", "Phospho"),
+    ];
+    let peff = |reference| generation_options(&[], &[], 2, 2, 20, reference, true, true);
+    check_generate("gen_basic", &basic, &trypsin, peff(true));
+    check_generate("gen_basic_noref", &basic, &trypsin, peff(false));
+    let capped = PeptideGenerationOptions {
+        max_peff_mods_per_proteoform: 1,
+        ..peff(true)
+    };
+    check_generate("gen_basic_cap1", &basic, &trypsin, capped);
+
+    let mut full = PEFFEntry {
+        sequence: "MKACMEPTIDERMCK".into(),
+        ..PEFFEntry::default()
+    };
+    full.simple_variants.push(variant(5, 'L', "var1"));
+    full.modifications = vec![PEFFModification::new(7, "UNIMOD:21", "Phospho")];
+    let fixed = ["Carbamidomethyl (C)"];
+    let variable = ["Oxidation (M)"];
+    check_generate(
+        "gen_fixed",
+        &full,
+        &trypsin,
+        generation_options(&fixed, &[], 0, 2, 20, true, false, false),
+    );
+    check_generate(
+        "gen_variable",
+        &full,
+        &trypsin,
+        generation_options(&[], &variable, 2, 2, 20, true, false, false),
+    );
+    check_generate(
+        "gen_full",
+        &full,
+        &trypsin,
+        generation_options(&fixed, &variable, 1, 2, 20, true, true, true),
+    );
+    check_generate(
+        "gen_full_mc1_noref",
+        &full,
+        &enzyme("Trypsin", 1),
+        generation_options(&fixed, &variable, 2, 2, 20, false, true, true),
+    );
+
+    let mut no_reference = PEFFEntry {
+        sequence: "MKPEPTIDER".into(),
+        ..PEFFEntry::default()
+    };
+    no_reference.modifications = vec![PEFFModification::new(4, "UNIMOD:21", "Phospho")];
+    check_generate(
+        "gen_noref",
+        &no_reference,
+        &trypsin,
+        generation_options(&[], &[], 2, 2, 20, false, false, true),
+    );
+}
+
+#[test]
+fn oracle_proteoform_cap() {
+    let mut entry = PEFFEntry {
+        sequence: "ASASASASASASASASAS".into(),
+        ..PEFFEntry::default()
+    };
+    for position in [2, 4, 6, 8, 10, 12, 14, 16, 18] {
+        entry
+            .modifications
+            .push(PEFFModification::new(position, "UNIMOD:21", "Phospho"));
+    }
+    let no_cleavage = enzyme("no cleavage", 0);
+    let options = |cap| PeptideGenerationOptions {
+        max_peff_mods_per_proteoform: cap,
+        ..generation_options(&[], &[], 0, 1, 0, true, false, true)
+    };
+    for cap in [1, 2, 3, 0] {
+        let count: usize = oracle_value("count", &format!("gen_cap_{cap}"))
+            .parse()
+            .unwrap();
+        let peptides = entry
+            .generate_peptides(&no_cleavage, &options(cap))
+            .unwrap();
+        assert_eq!(peptides.len(), count, "cap {cap}");
+    }
+    check_generate("gen_cap_2", &entry, &no_cleavage, options(2));
+}
+
+#[test]
+fn oracle_materialisation() {
+    let mut entry = PEFFEntry {
+        sequence: "PEPTIDES".into(),
+        ..PEFFEntry::default()
+    };
+    entry.modifications = vec![
+        PEFFModification::new(8, "MOD:00046", "O-phospho-L-serine"),
+        PEFFModification::new(1, "UNIMOD:99999", "NoSuchMod"),
+        PEFFModification::new(2, "", "Deamidated"),
+    ];
+    // The source's registry holds PSI-MOD; here the extended one does.
+    let (sequence, warnings) = entry
+        .modified_sequence_with_registry(&with_psi_mod_00046())
+        .unwrap();
+    assert_eq!(
+        sequence.to_string(),
+        oracle_value("modified", "materialise")
+    );
+    // The two getModifiedSequence warnings of the same run's retained stderr.
+    assert_eq!(
+        warnings,
+        [
+            "Could not resolve modification: UNIMOD:99999 (NoSuchMod)",
+            "Could not resolve modification:  (Deamidated)",
+        ]
+    );
+
+    let mut regions = PEFFEntry {
+        sequence: "SIGNALPEPTIDERESTOFPROTEIN".into(),
+        ..PEFFEntry::default()
+    };
+    let region = |start, end, accession: &str| {
+        PEFFProcessedRegion::new(
+            start,
+            end,
+            accession,
+            "signal peptide",
+            "",
+            openms::format::peff::ANNOTATION_ID_NOT_SET,
+        )
+    };
+    regions.processed_regions = vec![
+        region(1, 26, "PEFF:0001021"),
+        region(1, 13, "PEFF:0001021"),
+        region(3, 5, "PEFF:0001022"),
+    ];
+    let processed = |accession| regions.processed_sequence(accession).unwrap().to_string();
+    assert_eq!(
+        processed("PEFF:0001021"),
+        oracle_value("processed", "signal")
+    );
+    assert_eq!(
+        processed("PEFF:0001022"),
+        oracle_value("processed", "transit_named_signal")
+    );
+    assert_eq!(
+        format!("[{}]", processed("PEFF:0009999")),
+        oracle_value("processed", "absent")
+    );
+}

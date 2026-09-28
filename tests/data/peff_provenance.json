@@ -81,6 +81,12 @@
    "sha256": "3cae31d048fa38c93093acc7cd9d2a093ece6ff4433d2eabb346313b4460b376",
    "kind": "upstream class-test fixture, byte-identical",
    "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_uniprot.peff"
+  },
+  {
+   "path": "tests/data/peff_sequences_oracle.tsv",
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9",
+   "kind": "retained stdout of the executed C++ Release build (tier 1)",
+   "upstream_path": "../oracle/F6-peff-sequences/results/stdout_1.tsv"
   }
  ],
  "native_implementation": [
@@ -95,7 +101,38 @@
   "tests/peff_sequences.rs"
  ],
  "support_document": "docs/PEFF_SUPPORT.md",
- "method": "Every expected value is a literal of PEFFFile_test.cpp at the pin (tier 3), including the four proteoform tables transcribed row for row; the required-key and unresolved-modification warnings are derived from PEFFFile.cpp:1493-1527 and :586 (tier 4). The one PSI-MOD term the class test resolves (MOD:00046) is authored in the test from its identifier, origin and Unimod link, not copied from PSI-MOD.obo. No Rust output is used as an expected value. No executed C++ oracle yet.",
+ "method": "Tier 1: tests/peff_sequences.rs oracle_* compare every (description, peptide) pair of 23 digestWithVariants/generatePeptides/getVariantSequences cases, the proteoform-cap counts, getModifiedSequence (with its two warnings from the retained stderr) and getProcessedSequence against the retained stdout of the executed C++ Release build. Every expected value is a literal of PEFFFile_test.cpp at the pin (tier 3), including the four proteoform tables transcribed row for row; the required-key and unresolved-modification warnings are derived from PEFFFile.cpp:1493-1527 and :586 (tier 4). The one PSI-MOD term the class test resolves (MOD:00046) is authored in the test from its identifier, origin and Unimod link, not copied from PSI-MOD.obo. No Rust output is used as an expected value.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F6-peff-sequences/driver.cpp",
+   "sha256": "b873d5254688e38965551e2017a103f94853f0816b0859e0fdcd42549a959ded"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/remote_run.sh",
+   "sha256": "0077a8f25a49c6a2cd96b1e30c1c18a6117ef9dd4e3341408baed86fda344ac5"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/run.sh",
+   "sha256": "55fff8e048a05fc79243278a20289710fbfc8e34bba9fdec76d2ae5d8bfd7b9f"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/stdout_1.tsv",
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/stdout_2.tsv",
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/stderr_1.txt",
+   "sha256": "f9f576c0f52c38ab96c3326ea51a9be1cc12ee64138aa51ac1d83062c37adc64"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/build_info.txt",
+   "sha256": "8969d1ba938cafd0de473c60092708c2e45e7e68517ac31c48ce7fd620e9356d",
+   "note": "ibminode06, Ubuntu 24.04.4, AMD EPYC 7763, conda-forge g++ 14.4.0 -O2 -std=c++20, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c); two runs byte-identical"
+  }
+ ],
  "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",

@@ -39,7 +39,7 @@
   "tests/ptm_xml.rs"
  ],
  "support_document": "docs/PTM_XML_SUPPORT.md",
- "method": "Expected values are PTMXMLFile_test.cpp literals at the pin (tier 3); the multi-entry writer layout is derived from PTMXMLHandler.cpp:28-35 (tier 4). Escaping, compression, bounds and malformed-input refusals are native policy checks (tier 4).",
+ "method": "Expected values are PTMXMLFile_test.cpp literals at the pin (tier 3); the multi-entry writer layout is derived from PTMXMLHandler.cpp:29-38 (tier 4). Escaping, compression, bounds and malformed-input refusals are native policy checks (tier 4).",
  "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
