@@ -23,3 +23,11 @@ BayesianProteinInferenceAlgorithm unmapped; IDBoostGraph partial.
 3. Percolator.h (in-process percolator) -> src/analysis/id/percolator.rs
 4. FDR gaps
 5. IDBoostGraph / Bayesian (graph crate: petgraph?)
+
+## Incarnation 2 findings
+- Percolator.h wraps a VENDORED Apache-2.0 percolator subset at $C/src/openms/thirdparty/percolator (~10k lines;
+  core: Scores 809, CrossValidation 663, PosteriorEstimator 610, BaseSpline 576, SetHandler 541, ssl 211, Normalizers).
+  No Rust crate exists (checked: none on crates.io implements percolator L2-SVM-MFN) -> must port, big.
+- PercolatorFeatureSetHelper.cpp: addMASCOTFeatures modifies a COPY of hits (C++ defect: only the sort sticks).
+  Class test expected feature lists come from *.topperc_check.idXML ProteinIdentification SearchParameters meta "extra_features".
+- Plan order: PercolatorTypes -> FeatureSetHelper -> Percolator model I/O + fillPINCompatibleFields -> engine port -> FDR gaps.
