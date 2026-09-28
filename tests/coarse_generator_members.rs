@@ -7,18 +7,25 @@
 //!
 //! Expected values are the literals of `CoarseIsotopeDistribution_test.cpp` at
 //! core `bc9cc12`, sections at lines 84-104 and 355-397 (tier 3: class-test
-//! literals, compared with the class test's `TEST_REAL_SIMILAR` default of
-//! relative 1e-5), checked in both probability precisions.
+//! literals, compared with the class test's `TEST_REAL_SIMILAR` defaults of
+//! absolute 1e-5 or ratio 1 + 1e-5), checked in both probability precisions.
 
 use openms::chemistry::isotopes::{
     AveragineComposition, CoarseIsotopePatternGenerator as Generator, CoarseMassMode,
     IsotopeDistribution, IsotopePeak, ProbabilityPrecision,
 };
 
+/// `TEST_REAL_SIMILAR` with the class-test defaults: absolute difference
+/// within 1e-5, or ratio within 1 + 1e-5.
 fn similar(actual: f64, expected: f64) {
-    let tolerance = expected.abs() * 1e-5;
+    let absdiff = (actual - expected).abs();
+    let ratio = if actual.abs() > expected.abs() {
+        actual / expected
+    } else {
+        expected / actual
+    };
     assert!(
-        (actual - expected).abs() <= tolerance,
+        absdiff <= 1e-5 || (1.0 - ratio).abs() <= 1e-5,
         "{actual} is not similar to {expected}"
     );
 }

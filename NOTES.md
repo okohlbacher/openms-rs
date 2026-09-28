@@ -63,3 +63,10 @@ Incarnation 4 progress (committed as WIP):
 - ElementDB: src/chemistry/element_db.rs (maps, get_element, isotope elements, D/T; Element Ord/Hash/stream text/source hash).
 Scripts in scratch A5a: gate.sh <log> <cargo args>; tc.sh <tag> <tests...> (tests then clippy). Pin tree at scratch A5a/cpp (i/s/t symlinks).
 Next: EnzymaticDigestion filterByMissedCleavages + Specificity; DigestionEnzymeDB hasEnzyme(ptr); UnimodXMLDataProvider review; docs/ledger/report.
+
+Incarnation 4, later: committed 83c6702 (chemistry members, tier-1 oracle ../oracle/A5a-chem all green), 68ab50a (enzyme_by_regex,
+oracle ../oracle/A5a-enzymes, docs, manifests tests/data/{chemistry_value_members,concept_datastructures_debt}_provenance.json).
+Added EmpiricalFormula::conditional_fragment_isotope_dist (+test). Test helpers now use TEST_REAL_SIMILAR defaults (abs 1e-5 OR ratio).
+Ledger fragment WRITTEN: .planning/ledger-fragments/wave4/A5a.json via scratch make_ledger.py (19 complete, 16 partial, 1 e_r_r).
+First CI sweep failed on ssh banner timeout (retry: bash scratch A5a/sweep.sh 2).
+Next: 1. commit; 2. rerun sweep; 3. write report .planning/lane-reports/A5a.md; 4. optional: Unimod XML reader + provider.

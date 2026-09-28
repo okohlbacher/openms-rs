@@ -24,7 +24,7 @@
 //! | `calculateTheoreticalIsotopesNumber` | [`EmpiricalFormula::theoretical_isotopes_number`] |
 //! | `estimateFromWeightAndComp`, `estimateFromMonoWeightAndComp`, `estimateFromWeightAndCompAndS` | [`crate::chemistry::isotopes::AveragineComposition`] |
 //! | `getIsotopeDistribution(const IsotopePatternGenerator&)` | the generators' `run` ([`crate::chemistry::isotopes::CoarseIsotopePatternGenerator::run`], fine isotope generator) |
-//! | `getConditionalFragmentIsotopeDist` | [`crate::chemistry::isotopes::CoarseIsotopePatternGenerator::calc_fragment_isotope_dist`] |
+//! | `getConditionalFragmentIsotopeDist` | [`EmpiricalFormula::conditional_fragment_isotope_dist`] |
 //! | `getNumberOf(const Element*)` | [`EmpiricalFormula::number_of`]; by symbol [`EmpiricalFormula::count`] |
 //! | `getNumberOfAtoms` | [`EmpiricalFormula::atom_count`] |
 //! | `getCharge`, `setCharge` | [`EmpiricalFormula::charge`], [`EmpiricalFormula::set_charge`], [`EmpiricalFormula::with_charge`] |
@@ -75,6 +75,7 @@
 //!   and [`EmpiricalFormula::add_charge_adduct`] return an error instead of
 //!   overflowing.
 
+use super::isotopes::{CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution};
 use super::{Atom, Element, EmpiricalFormula, element, element_table, parse_atom};
 use crate::concept::hash_utils::{fnv1a_hash_string, hash_combine, hash_int};
 use crate::{Error, Result};
@@ -342,6 +343,70 @@ impl EmpiricalFormula {
         result.charge = 0;
         *self = result;
         Ok(self)
+    }
+
+    /// The isotope distribution of this formula as a fragment of `precursor`,
+    /// conditioned on the isolated precursor isotopes: source
+    /// `getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, solver)`.
+    ///
+    /// Following `EmpiricalFormula.cpp:200-219`: this formula and the
+    /// complementary fragment `precursor - self` are run through a fresh coarse
+    /// generator limited to `max(precursor_isotopes) + 1` isotopes (no isotope
+    /// overrides, approximate masses), `solver`'s
+    /// [`CoarseIsotopePatternGenerator::calc_fragment_isotope_dist`] combines
+    /// them with this formula's monoisotopic weight as the mass anchor, and the
+    /// result is renormalized, giving conditional probabilities. Precursor
+    /// isotopes the precursor cannot reach are ignored. The inner generators and
+    /// the renormalization use `solver`'s [`super::isotopes::ProbabilityPrecision`], where the
+    /// source always computes in `float`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when `precursor_isotopes` is empty (the
+    /// source dereferences the maximum of an empty set), when the
+    /// complementary fragment cannot be formed, or any error of the generators.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use openms::chemistry::EmpiricalFormula;
+    /// use openms::chemistry::isotopes::CoarseIsotopePatternGenerator;
+    ///
+    /// let precursor = EmpiricalFormula::parse("C2").unwrap();
+    /// let fragment = EmpiricalFormula::parse("C").unwrap();
+    /// // Isolating M+1 of C2: the one carbon-13 is in either half.
+    /// let iso = fragment
+    ///     .conditional_fragment_isotope_dist(&precursor, &[1], &CoarseIsotopePatternGenerator::default())
+    ///     .unwrap();
+    /// assert!((iso.peaks()[0].probability - 0.5).abs() < 1e-12);
+    /// assert!((iso.peaks()[1].probability - 0.5).abs() < 1e-12);
+    /// ```
+    pub fn conditional_fragment_isotope_dist(
+        &self,
+        precursor: &EmpiricalFormula,
+        precursor_isotopes: &[usize],
+        solver: &CoarseIsotopePatternGenerator,
+    ) -> Result<IsotopeDistribution> {
+        let deepest = precursor_isotopes.iter().copied().max().ok_or_else(|| {
+            Error::InvalidValue("at least one precursor isotope must be selected".into())
+        })?;
+        let depth = deepest
+            .checked_add(1)
+            .ok_or_else(|| Error::InvalidValue("precursor isotope index overflows".into()))?;
+        let complementary = precursor.checked_sub(self)?;
+        let generator =
+            CoarseIsotopePatternGenerator::new(Some(depth), CoarseMassMode::Approximate)?
+                .with_precision(solver.precision());
+        let fragment = generator.run(self)?;
+        let complement = generator.run(&complementary)?;
+        let mut result = solver.calc_fragment_isotope_dist(
+            &fragment,
+            &complement,
+            precursor_isotopes,
+            self.mono_mass(),
+        )?;
+        result.renormalize_with(solver.precision())?;
+        Ok(result)
     }
 
     /// The value source `std::hash<EmpiricalFormula>` computes.

@@ -18,11 +18,17 @@ fn ef(text: &str) -> EmpiricalFormula {
     EmpiricalFormula::parse(text).unwrap()
 }
 
+/// `TEST_REAL_SIMILAR` with the class-test defaults, as `tests/binned_spectrum.rs`
+/// states them: absolute difference within 1e-5, or ratio within 1 + 1e-5.
 fn assert_real_similar(actual: f64, expected: f64) {
-    // The OpenMS class-test default for TEST_REAL_SIMILAR: relative 1e-5.
-    let tolerance = expected.abs() * 1e-5;
+    let absdiff = (actual - expected).abs();
+    let ratio = if actual.abs() > expected.abs() {
+        actual / expected
+    } else {
+        expected / actual
+    };
     assert!(
-        (actual - expected).abs() <= tolerance,
+        absdiff <= 1e-5 || (1.0 - ratio).abs() <= 1e-5,
         "{actual} is not similar to {expected}"
     );
 }
@@ -236,4 +242,60 @@ fn theoretical_isotopes_number_is_the_binomial_product() {
     // Boost raises a domain error for k > n; a negative count is refused.
     assert!(ef("O2").theoretical_isotopes_number().is_err());
     assert!(ef("C-2").theoretical_isotopes_number().is_err());
+}
+
+/// `getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, solver)`.
+#[test]
+fn conditional_fragment_isotope_dist_matches_the_class_test() {
+    use openms::chemistry::isotopes::{CoarseIsotopePatternGenerator as Generator, CoarseMassMode};
+
+    let precursor = ef("C2");
+    let fragment = ef("C");
+    let solver = Generator::default();
+    let check = |isotopes: &[usize], probabilities: &[f64], masses: Option<&[f64]>| {
+        let iso = fragment
+            .conditional_fragment_isotope_dist(&precursor, isotopes, &solver)
+            .unwrap();
+        assert_eq!(iso.len(), probabilities.len(), "{isotopes:?}");
+        for (i, peak) in iso.peaks().iter().enumerate() {
+            assert_real_similar(peak.probability, probabilities[i]);
+            if let Some(masses) = masses {
+                assert_real_similar(peak.mass, masses[i]);
+            }
+        }
+    };
+    check(&[0], &[1.0], Some(&[12.0]));
+    check(&[1], &[0.5, 0.5], Some(&[12.0, 13.0033548378]));
+    check(&[0, 1], &[0.98941, 0.01059], Some(&[12.0, 13.0033548378]));
+    check(&[0, 1, 2], &[0.9893, 0.0107], None);
+    // M+3 is unreachable for C2 and ignored.
+    check(&[0, 1, 2, 3], &[0.9893, 0.0107], None);
+
+    let rounded = Generator::new(None, CoarseMassMode::Nominal).unwrap();
+    let iso = fragment
+        .conditional_fragment_isotope_dist(&precursor, &[0, 1, 2, 3], &rounded)
+        .unwrap();
+    let masses: Vec<f64> = iso.peaks().iter().map(|p| p.mass).collect();
+    assert_eq!(masses, [12.0, 13.0]);
+
+    let precursor = ef("C10H10N10O10S2");
+    let big = ef("C9H9N9O9S1")
+        .conditional_fragment_isotope_dist(&precursor, &[1], &solver)
+        .unwrap();
+    let small = ef("C1H1N1O1S1")
+        .conditional_fragment_isotope_dist(&precursor, &[1], &solver)
+        .unwrap();
+    assert!(big.peaks()[0].probability < 0.2);
+    assert!(big.peaks()[1].probability > 0.8);
+    assert!(small.peaks()[0].probability > 0.8);
+    assert!(small.peaks()[1].probability < 0.2);
+    for (b, s) in big.peaks().iter().zip(small.peaks().iter().rev()) {
+        assert_real_similar(b.probability, s.probability);
+    }
+
+    assert!(
+        fragment
+            .conditional_fragment_isotope_dist(&precursor, &[], &solver)
+            .is_err()
+    );
 }
