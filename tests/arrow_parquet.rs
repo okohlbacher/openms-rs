@@ -1977,3 +1977,44 @@ fn nested_columns_round_trip_as_in_the_release_build() {
         );
     }
 }
+
+/// Native: writing the same table twice, or two equal tables built
+/// separately, gives identical bytes (the crate-decision entry's
+/// determinism promise). Schema metadata lives in randomly seeded hash maps,
+/// so this also checks that the writers do not encode it in hash order.
+#[test]
+fn parquet_output_is_byte_identical_across_writes() {
+    let dir = scratch("determinism");
+    let pairs = [("b", "2"), ("a", "1"), ("c", "3"), ("qpx_note", "x")];
+    for (i, table) in [
+        with_metadata(&small_table(50), &pairs),
+        with_metadata(&small_table(50), &pairs),
+    ]
+    .iter()
+    .enumerate()
+    {
+        for round in 0..2 {
+            let path = dir.join(format!("awp_{i}_{round}.parquet"));
+            aio::write_table_to_parquet(table, &path, &ParquetWriteConfig::default()).unwrap();
+            let path = dir.join(format!("pf_{i}_{round}.parquet"));
+            ParquetFile::write_table(table, &path).unwrap();
+        }
+    }
+    for prefix in ["awp", "pf"] {
+        let first = std::fs::read(dir.join(format!("{prefix}_0_0.parquet"))).unwrap();
+        for (i, round) in [(0, 1), (1, 0), (1, 1)] {
+            let other = std::fs::read(dir.join(format!("{prefix}_{i}_{round}.parquet"))).unwrap();
+            assert_eq!(first, other, "{prefix} {i} {round}");
+        }
+    }
+    // The metadata survives both writers.
+    for prefix in ["awp", "pf"] {
+        let back = ParquetFile::read_table(dir.join(format!("{prefix}_0_0.parquet"))).unwrap();
+        for (key, value) in pairs {
+            assert_eq!(
+                back.schema().metadata().get(key).map(String::as_str),
+                Some(value)
+            );
+        }
+    }
+}
