@@ -48,3 +48,9 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
 ## Next step
 1. Write the five ungated consumers + tests/ms_data_consumers.rs; append pub mod lines; commit.
 2. IndexedMzMLFileLoader; 3. SQL consumer; 4. docs + provenance; 5. gate on spock; 6. report + ledger.
+
+## Incarnation 3 (branch worktree-wf_cd066dab-0a7-12), started after merging wf_ee239125-5be-17 (ff to 6fe0ff0)
+- The lead's WIP commit 6fe0ff0 already holds: 5 ungated consumers, sql consumer, indexed_mzml_file_loader.rs,
+  tests/ms_data_consumers.rs (824 lines), mod.rs pub mods, path_io cfg widen. NOT yet gated on spock.
+- Next step: (a) review WIP files compile-sanity by reading; (b) gate on spock (--features mzml / sqmass);
+  (c) tests for loader + sql consumer; (d) docs; (e) report + ledger.
