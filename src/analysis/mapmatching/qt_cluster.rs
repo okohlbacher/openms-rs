@@ -4,7 +4,7 @@
 //! A quality-threshold cluster for QT feature grouping.
 //!
 //! Native equivalent of `DATASTRUCTURES/QTCluster.h`. Like
-//! [`GridFeature`](super::grid_feature::GridFeature) it lives beside its
+//! [`GridFeature`](crate::analysis::mapmatching::grid_feature::GridFeature) it lives beside its
 //! consumer, `QTClusterFinder`, because it needs peptide sequences. See
 //! `docs/CLUSTERING_SUPPORT.md`.
 //!
@@ -14,7 +14,7 @@
 //! heaps their indices. The source keeps the per-map neighbours in
 //! `std::unordered_map`s; here they are ordered by map index, which changes
 //! two observable things, both documented where they arise: the order of
-//! [`QTCluster::all_neighbors`] and [`QTCluster::elements`], and the order in
+//! `QTCluster::all_neighbors` and `QTCluster::elements`, and the order in
 //! which neighbour distances are summed for the quality.
 
 use std::collections::{BTreeMap, BTreeSet};

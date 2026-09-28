@@ -6,7 +6,8 @@
 //! The binned-spectrum overload of `ClusterHierarchical::cluster`
 //! (`ML/CLUSTERING/ClusterHierarchical.h`). The generic overload lives in
 //! [`crate::math::ml::clustering::cluster_hierarchical`]; this one needs
-//! [`BinnedSpectrum`] and [`BinnedSpectrumCompareFunctor`], which `math` may
+//! [`BinnedSpectrum`](crate::comparison::BinnedSpectrum) and
+//! [`BinnedSpectrumCompareFunctor`](crate::comparison::BinnedSpectrumCompareFunctor), which `math` may
 //! not depend on. See `docs/CLUSTERING_SUPPORT.md`.
 
 use crate::comparison::{BinConfig, BinUnit, BinnedSpectrum, BinnedSpectrumCompareFunctor};
