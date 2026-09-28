@@ -68,10 +68,14 @@ fast-forwarded onto worktree-wf_bcdd783d-f3f-13 (first incarnation: 5a2b6b2).
   pin while its class test expects 18; InspectInfile::store refuses a known
   non-TSV extension (.txt) but accepts .tmp.
 
+## Incarnation 3 progress
+- Merged tree gated on spock: 16+17+5+8 pass.
+- XTandemInfile DONE (410653c): src/format/xtandem_infile.rs, tests/search_engine_infiles.rs (5/5 + 1 unit), byte-identical to oracle.
+- PTMXMLFile (named dependency, unmapped header) + InspectInfile written: src/format/ptm_xml_file.rs, inspect_infile.rs (idxml),
+  tests/search_engine_ptm_infiles.rs; fixtures PTMs.xml, Inspect_PTMs.xml, Sequest_PTMs.xml, *_test_template1.txt copied to tests/data.
+  inspect_infile::parse_modification_line is the shared handlePTMs grammar for SequestInfile too.
+- C++ extracts: scratchpad/F3b/c/ (script scratchpad/F3b/extract.py '<regex>').
+
 ## Next step
-0. (inc 3) scratchpad/c/ is gone; C++ extracts now go to scratchpad/F3b/.
-1. Re-gate the merged tree (gate6 log lost). 2. XTandemInfile (writer), InspectInfile, SequestInfile
-   (need PTMXMLFile reading of Inspect_PTMs.xml/Sequest_PTMs.xml: unported
-   FORMAT/PTMXMLFile.h), InspectOutfile (large; partial ok).
-3. docs/SEARCH_ENGINE_FILES_SUPPORT.md, tests/data/search_engine_files_provenance.json,
-   lane report + ledger fragment, full CI sweep.
+1. Gate g3 (ptm/inspect), commit. 2. SequestInfile (reuse parse_modification_line). 3. InspectOutfile (partial ok).
+4. docs/SEARCH_ENGINE_FILES_SUPPORT.md, tests/data/search_engine_files_provenance.json, lane report + ledger, CI sweep.

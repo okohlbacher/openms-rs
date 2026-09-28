@@ -186,6 +186,9 @@ fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
 
+/// Inspect input (parameter) files (`InspectInfile.h`).
+#[cfg(feature = "idxml")]
+pub mod inspect_infile;
 /// Kroenik (Hardklör sibling) feature files (`KroenikFile.h`).
 pub mod kroenik_file;
 /// msInspect feature files (`MsInspectFile.h`).
@@ -199,6 +202,9 @@ pub mod omssa_xml_file;
 pub mod pepnovo_infile;
 /// PepNovo de novo sequencing output (`PepNovoOutfile.h`).
 pub mod pepnovo_outfile;
+/// PTMXML modification tables (`PTMXMLFile.h`, `HANDLERS/PTMXMLHandler.h`).
+#[cfg(feature = "idxml")]
+pub mod ptm_xml_file;
 /// Permissive sequence parsing shared by the search-engine adapters.
 pub mod search_engine_text;
 /// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
