@@ -270,6 +270,22 @@
   {
    "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
    "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/ElutionModelFitter.h",
+   "sha256": "fcbdd7db84db5100d837548bd40c71f73bb152a6221f5b6fdf781823fcf4896b"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/ElutionModelFitter.cpp",
+   "sha256": "45a89bffa9f547fe4222434f6a3861b2b28020b66b6a500ff4b1ba7eab340dc4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ElutionModelFitter_test.cpp",
+   "sha256": "896223abbb5321d7e8351897ca44df227e7e8b5ce423e5037a7e1d060db1985b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ElutionModelFitter_test.featureXML",
+   "sha256": "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f"
   }
  ],
  "native_implementation": [
@@ -283,21 +299,34 @@
   "src/analysis/featurefinder/peak_width_estimator.rs",
   "src/analysis/featurefinder/seed_list_generator.rs",
   "src/analysis/featurefinder/feature_finder_algorithm.rs",
+  "src/analysis/featurefinder/elution_model_fitter.rs",
+  "src/analysis/featurefinder/glibc_logf.rs (logf transcribed from ibminode06 libm.so.6 sha256 fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0, glibc 2.39-0ubuntu8.9, __logf_fma)",
   "src/kernel/geometry.rs (ConvexHull2D keep-first scan enlargement)"
  ],
  "native_tests": [
   "tests/featurefinder_models.rs",
   "tests/featurefinder_io.rs",
-  "tests/featurefinder_oracle.rs"
+  "tests/featurefinder_oracle.rs",
+  "tests/featurefinder_elution.rs"
  ],
  "support_document": "docs/FEATUREFINDER_MODELS_SUPPORT.md",
  "fixtures": [
   {
    "path": "tests/data/featurefinder_models/oracle.tsv",
-   "sha256": "d77d8cabbbfa2abe747e96a9a5f212c4f5f6774681aefaf96101a178f8371015",
-   "rows": 15742,
-   "kind": "executed C++ oracle: ../oracle/FF1-models/driver.cpp against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, run twice with identical output",
+   "sha256": "cbad2469b087e16755c3fbc31639f2446d8c832c55abdc7ee60e66ed7b9b0f63",
+   "rows": 17746,
+   "kind": "executed C++ oracle: ../oracle/FF1-models/driver.cpp against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, run twice with identical output; the driver's stdout filtered to its tab-separated records (awk NF==3), the six OPENMS_LOG lines kept in oracle_log.txt",
    "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/featurefinder_models/oracle_log.txt",
+   "sha256": "d5a7d911cb71a6420614289032460e95fb2bf9a5c196c3f87ad77217b615b11b",
+   "kind": "the oracle driver's OPENMS_LOG_INFO lines (ElutionModelFitter success counts and imputation slope/intercept), same run"
+  },
+  {
+   "path": "tests/data/featurefinder_models/ElutionModelFitter_test.featureXML",
+   "sha256": "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f",
+   "kind": "upstream class-test data (src/tests/class_tests/openms/data at bc9cc12), byte for byte; also the oracle's input"
   },
   {
    "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML",
@@ -331,7 +360,8 @@
    "src/tests/class_tests/openms/source/EmgScoring_test.cpp",
    "src/tests/class_tests/openms/source/PeakWidthEstimator_test.cpp",
    "src/tests/class_tests/openms/source/SeedListGenerator_test.cpp",
-   "src/tests/class_tests/openms/source/LinearInterpolation_test.cpp"
+   "src/tests/class_tests/openms/source/LinearInterpolation_test.cpp",
+   "src/tests/class_tests/openms/source/ElutionModelFitter_test.cpp"
   ],
   "literal_extraction": "Every section transcribed into tests/featurefinder_models.rs and tests/featurefinder_io.rs with the ClassTest tolerances in force at its line; not transcribed: EmgFitter1D_test.cpp:120-141 (boost::mt19937 noise) and EmgModel_test.cpp:174-184 (ABORT_IF lines, no assertion). PepXMLFile_test.mzML is represented by its 13 transcribed (ms level, RT, precursor m/z) rows.",
   "evidence_tier": 3
@@ -349,34 +379,41 @@
   "runs": 2,
   "runs_identical": true,
   "hashes": [
-   "2b2234d4879f7cc64cce2550a9f1c6f67816cfe02c2798b6a7762c26ec6fdc2e  driver.cpp",
-   "fbf7e8e022744fdaef81f3de475dda6db5456082dcaa51bde68affdd8a1be95d  build/ff1_driver",
+   "da1fcd0de5903d345fd764864bc23e93967bb0129ee1ff6b3a7dc9632ca9f0e3  driver.cpp",
+   "bb0887cd1c3a0a337d2ed1a7876b218afabad2106d8e8f5a885a3019824e126f  build/ff1_driver",
+   "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f  data/ElutionModelFitter_test.featureXML",
    "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
-   "d77d8cabbbfa2abe747e96a9a5f212c4f5f6774681aefaf96101a178f8371015  results/oracle.tsv"
+   "7e891a8301e9c5751275bd27d739dadc3ac41181051d92bdfd36fa33617cee7c  results/oracle.tsv"
   ]
  },
  "external_reference_artifacts": [
   {
    "path": "../oracle/FF1-models/driver.cpp",
-   "sha256": "2b2234d4879f7cc64cce2550a9f1c6f67816cfe02c2798b6a7762c26ec6fdc2e",
+   "sha256": "da1fcd0de5903d345fd764864bc23e93967bb0129ee1ff6b3a7dc9632ca9f0e3",
    "location": "outside this repository",
    "origin_key": "cpp_oracle"
   },
   {
    "path": "../oracle/FF1-models/remote_run.sh",
-   "sha256": "c62dd024801d31b79120ef23f74ef139f626d12c801a1b7f6d15340db6123d27",
+   "sha256": "70d45a59cfe448c6a80793b8943c1ac522be3f234868dd63b379e7172f2c3e38",
    "location": "outside this repository",
    "origin_key": "cpp_oracle"
   },
   {
    "path": "../oracle/FF1-models/run.sh",
-   "sha256": "aff4e5ab08698d7cfccd64ff5659ddd00bd50baa1c7e6de1dce6981647f365f5",
+   "sha256": "2b9929f18ff26d0a2edf9b5052d5a4548e92f8597b6d1a659c9d74ae740d707c",
    "location": "outside this repository",
    "origin_key": "cpp_oracle"
   },
   {
    "path": "../oracle/FF1-models/fetch.sh",
    "sha256": "2510f722ea3a0ec1b44c791f0ec915d89d27be0edbc1747b1bf474c9e7146b0e",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF1-models/data/ElutionModelFitter_test.featureXML",
+   "sha256": "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f",
    "location": "outside this repository",
    "origin_key": "cpp_oracle"
   }

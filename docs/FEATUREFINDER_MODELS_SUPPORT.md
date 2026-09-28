@@ -13,6 +13,8 @@ them:
 | `Fitter1D.h`, `LevMarqFitter1D.h`, `MaxLikeliFitter1D.h` | [`src/analysis/featurefinder/fitter1d.rs`](../src/analysis/featurefinder/fitter1d.rs) |
 | `GaussFitter1D.h`, `BiGaussFitter1D.h`, `EmgFitter1D.h`, `IsotopeFitter1D.h`, `ExtendedIsotopeFitter1D.h` | [`src/analysis/featurefinder/fitters.rs`](../src/analysis/featurefinder/fitters.rs) |
 | `EmgScoring.h` | [`src/analysis/featurefinder/emg_scoring.rs`](../src/analysis/featurefinder/emg_scoring.rs) |
+| `ElutionModelFitter.h` | [`src/analysis/featurefinder/elution_model_fitter.rs`](../src/analysis/featurefinder/elution_model_fitter.rs), with the reference build's `logf` in [`glibc_logf.rs`](../src/analysis/featurefinder/glibc_logf.rs) |
+| `FeatureFinderAlgorithmPickedHelperStructs.h` (the remaining `getConvexhull` gap) | kernel [`src/kernel/geometry.rs`](../src/kernel/geometry.rs) `ConvexHull2D` scan enlargement |
 | `PeakWidthEstimator.h` | [`src/analysis/featurefinder/peak_width_estimator.rs`](../src/analysis/featurefinder/peak_width_estimator.rs) |
 | `SeedListGenerator.h` | [`src/analysis/featurefinder/seed_list_generator.rs`](../src/analysis/featurefinder/seed_list_generator.rs) |
 | `FeatureFinderAlgorithm.h`, `FeatureFinderDefs.h` (header only) | [`src/analysis/featurefinder/feature_finder_algorithm.rs`](../src/analysis/featurefinder/feature_finder_algorithm.rs) |
@@ -21,8 +23,12 @@ Tests: [`tests/featurefinder_models.rs`](../tests/featurefinder_models.rs) (clas
 tests, no feature), [`tests/featurefinder_io.rs`](../tests/featurefinder_io.rs)
 (class tests reading fixtures; `mzml` + `consensusxml`) and
 [`tests/featurefinder_oracle.rs`](../tests/featurefinder_oracle.rs) (executed
-Release build, no feature). Fixture:
-[`tests/data/featurefinder_models/oracle.tsv`](../tests/data/featurefinder_models/oracle.tsv).
+Release build, no feature) and
+[`tests/featurefinder_elution.rs`](../tests/featurefinder_elution.rs)
+(ElutionModelFitter class test and executed Release build; `featurexml`).
+Fixtures: [`tests/data/featurefinder_models/`](../tests/data/featurefinder_models/)
+(`oracle.tsv`, the driver's log lines in `oracle_log.txt`, and the class-test
+`ElutionModelFitter_test.featureXML`).
 Manifest: [`tests/data/featurefinder_models_provenance.json`](../tests/data/featurefinder_models_provenance.json).
 
 Everything is serial, as the source is (none of these files has an OpenMP
@@ -118,6 +124,16 @@ constructor, which samples the defaults - except `IsotopeModel`, whose
 | `GaussFitter1D`, `BiGaussFitter1D` (protected `statistics1_`, `statistics2_`), `IsotopeFitter1D` (protected `charge_`, `isotope_stdev_`, `max_isotope_`), `ExtendedIsotopeFitter1D` (protected `charge_`, `isotope_stdev_`, `monoisotopic_mz_`, `max_isotope_`): constructor, copy, `operator=`, `fit1d`, `updateMembers_` | structs of the same names with public fields, `NAME`, `defaults`, `from_param`, `Default`, `Clone`, and `Fitter1D` |
 | `EmgFitter1D`: `fit1d`; protected `Data {n, set}`, `EgmFitterFunctor` (with the static constants `c`, `sqrt2pi`, `emg_const`, `sqrt_2`), `setInitialParameters_`, `setInitialParametersMOM_`, `height_`, `width_`, `symmetry_`, `retention_`, `updateMembers_` | `EmgFitter1D` (`max_iteration`, `init_mom`); the functor is the private `emg_residuals`/`emg_jacobian`; the start values the private `initial_parameters(_mom)` |
 
+### ElutionModelFitter
+
+| Source | Rust |
+| --- | --- |
+| `ElutionModelFitter()` (defaults `asymmetric`, `add_zeros`, `unweighted_fit`, `no_imputation`, `each_trace`, `check:min_area`, `check:boundaries`, `check:width`, `check:asymmetry`, section `check`), destructor | `new`, `Default` (public fields), `defaults`, `to_param`, `set_parameters`, `from_param` |
+| `fitElutionModels(FeatureMap&)` | `fit_elution_models(&mut FeatureMap) -> Result<ElutionModelFitReport>` |
+| protected typedefs `MassTrace`, `MassTraces` | `feature_finder_picked::helper_structs::{MassTrace, MassTraces}` |
+| protected `calculateFitQuality_`, `fitAndValidateModel_` | private `calculate_fit_quality`, `fit_and_validate` |
+| `OPENMS_LOG_ERROR` / `OPENMS_LOG_INFO` lines | `ElutionModelFitReport` (`errors`, `successes`, `failures`, `imputation`, `cleared`) |
+
 ### EmgScoring, PeakWidthEstimator, SeedListGenerator, FeatureFinderAlgorithm, FeatureFinderDefs
 
 | Source | Rust |
@@ -178,6 +194,16 @@ constructor, which samples the defaults - except `IsotopeModel`, whose
   a column header leaves it empty.
 - **`PeakWidthEstimator`** pairs spectra with boundary lists by position and
   uses the first and last *visited* peak's m/z as its range.
+- **`ElutionModelFitter`** reuses one trace fitter for every feature (its
+  state after a failed fit is what the model meta values record), fits each
+  subordinate first with `each_trace`, removes every feature when no model is
+  valid, and imputes at `logf` of the `float` intensity: `std::log(float)` is
+  the C++ overload the source's `log(getIntensity())` selects. The quantities
+  of valid models go through `log(double)`. The imputation line is
+  `TransformationModelLinear` (`transformations::LinearModel`).
+- **`ConvexHull2D`** (kernel) now enlarges a scan's m/z range with strict
+  `<`/`>`, keeping the first of equal values, as `DBoundingBox<1>::enlarge`;
+  `f64::min`/`max` left the sign of equal zeros unspecified.
 
 ## Native differences
 
@@ -218,14 +244,22 @@ Each is stated at the item as well.
   the source).
 - **`Summary::mz_stdev`** is a sorted vector (a `float`-keyed `std::map` has no
   `Ord` key in Rust); NaN is refused.
+- **`ElutionModelFitter`** reports the source's log lines in
+  `ElutionModelFitReport`; is atomic (works on a copy); returns
+  `MissingInformation` for a missing `leftWidth`, `rightWidth` or
+  `isotope_probability` where the source throws `ConversionError`; and refuses
+  an imputation line through a non-finite logarithm (a zero raw intensity of a
+  valid model), which the source carries along. `logf` is the reference
+  build's `__logf_fma`, transcribed with its table (`glibc_logf.rs`), so
+  imputed intensities are identical on every host.
 - **`FeatureFinderAlgorithm`** passes the map and features to `run` instead of
   storing pointers with `setData`; the default `set_seeds` returns
   `Error::InvalidValue` for the source's `IllegalArgument`.
 
 ## Checked boundaries and evidence
 
-- **Tier 1, executed differential** (`tests/featurefinder_oracle.rs`): 15,660
-  values from `../oracle/FF1-models/driver.cpp` on **ibminode06** against the
+- **Tier 1, executed differential** (`tests/featurefinder_oracle.rs`,
+  `tests/featurefinder_elution.rs`): 17,746 values from `../oracle/FF1-models/driver.cpp` on **ibminode06** against the
   Linux x86_64 **Release** install `openms4-release-bc9cc12-c19e494-174b576`
   (conda gcc 14.4.0, libOpenMS core flags `-O3 -DNDEBUG ... -ffp-contract=off`,
   glibc 2.39), run twice with identical output: LinearInterpolation value,
@@ -236,9 +270,18 @@ Each is stated at the item as well.
   method-of-moments starts, and a skewed peak with a 37-evaluation budget),
   isotope (charge 2 and the charge-0 Gaussian path) and extended isotope fits
   (quality, center, every numeric model parameter, all samples); and
-  EmgScoring's raw and smoothed fits of the three mock elution profiles.
-  Values are compared within a relative 1e-9; the EMG models and the
-  interpolation are asserted bit-identical.
+  EmgScoring's raw and smoothed fits of the three mock elution profiles; a
+  signed-zero `ConvexHull2D` and `MassTrace::getConvexhull`; and
+  ElutionModelFitter on the class-test featureXML with the defaults,
+  `asymmetric`, `each_trace` + `unweighted_fit` + `add_zeros 0`, and
+  `asymmetric` + `no_imputation` + tight width/asymmetry checks (every
+  feature's and subordinate's intensity, model meta values and status,
+  imputation included). All 17,746 values were bit-identical on spock (Linux
+  x86_64). Values are compared within a relative 1e-9, and bit identity is
+  asserted wherever no host libm is involved: the interpolation, the EMG
+  models and the EMG fit, the hulls, and every ElutionModelFitter value. The
+  first oracle run found ElutionModelFitter's `logf` imputation (one feature,
+  3 `float` ulps apart with `log(double)`).
 - **Tier 3, class-test literals** (`tests/featurefinder_models.rs`,
   `tests/featurefinder_io.rs`): every section of the 20 class tests at
   `bc9cc12` with its persisting ClassTest tolerances, including the 173- and
@@ -281,3 +324,9 @@ Each is stated at the item as well.
 7. `PeakWidthEstimator` pairs picked spectra with boundary lists by position,
    although `PeakPickerHiRes::pickExperiment` reports boundaries for picked
    spectra only (`PeakWidthEstimator.cpp:20-33`).
+8. `ElutionModelFitter::fitElutionModels` imputes at `log(float)` - the
+   single-precision overload - while the model quantities use
+   `log(double)` (`ElutionModelFitter.cpp:446` against `:422-426`).
+9. `ElutionModelFitter` reads the reused trace fitter's parameters after a
+   failed fit, i.e. the initial values of this fit or the result of the
+   previous feature's (`ElutionModelFitter.cpp:100-118`).
