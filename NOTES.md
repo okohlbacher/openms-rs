@@ -73,7 +73,13 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
 - MSSpectrum.h true remainder: comment field, im_format/im_peak_type, sort(pred)/isSorted(pred), selectUnchecked,
   PosBegin/PosEnd + iterator-range MZBegin/MZEnd overloads, clear(bool), operator<<, operator=(SpectrumSettings).
 
+- 14:35: g7 tests green (default/nodef); clippy type_complexity fixed (9315528); doc-coverage pub mod docs
+  (f5928b2); SIMDe doc RESTORED (earlier Write clobbered it; no ledger entry, stays evidence_requires_review).
+  Ledger fragment updated (35 entries; script scratch A5b/ledger4.py). sweep2 killed; FINAL sweep ->
+  scratch A5b/sweep3/ + sweep3.out at 9315528+.
+
 ## Next step
+0. Wait sweep3; fix failures; write report (scratch then cp to main .planning/lane-reports/A5b.md); rm NOTES.
 1. g7 green -> commit. 2. Ledger fragment entries for IdentificationData, SIMDe, MSSpectrum (partial, true
    remainder), Gumbel note. 3. Report. 4. Wait sweep2; if it predates 066d175, rerun affected lines. 5. rm NOTES.md.
 
