@@ -38,3 +38,7 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 3. TDF reader core (rusqlite + zstd decoder crate) behind feature `bruker-tdf`: decide ruzstd vs zstd.
 4. HDF5Connector / ThermoRawFile / BrukerTimsImagingFile / ImzML: decide + record.
 5. Lane report + ledger fragment.
+
+## Incarnation 5 (started)
+- Branch now worktree-wf_cd066dab-0a7-10 (fast-forwarded onto wf_ee239125-5be-15 @ 06e47f9).
+- HEAD has src/format/rational_scan2im_converter.rs (570 lines, lead-saved WIP, ungated).
