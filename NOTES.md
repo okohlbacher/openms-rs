@@ -54,3 +54,13 @@ Branch: worktree-wf_ee239125-5be-34. Prereq worktree-wf_ee239125-5be-1 merged (f
   1. Gate-check: cargo check --features <zip feature> and tests string_utils / zip_input on spock.
   2. Fix compile/test failures; commit StringUtils milestone; commit ZIP milestone.
   3. MzML IMPeakType + drift time + progress; 4. ledger + report.
+
+## Session 2 progress
+- DONE+committed: ZIP test fix (00539b6), String_test.cpp port (04105b6); string_utils 22 tests, zip_input 3, featurexml 26 pass.
+- WIP (uncommitted until gate4): MSSpectrum.im_peak_type (kernel.rs) + mzML read MS:1003441, IM_PROFILE default in
+  Record::finish (fill_data only), writer MS:1003441; ReadOptions::source_selected_ion_drift_time (in source());
+  activation isChildOf(MS:1000044) route (mzml_precursor.rs read_other_dissociation_method + writer promotion).
+- Oracle ../oracle/B8a-mzml-im (ibminode06 Release) launched: `./run.sh pull`. Fixtures tests/data/mzml_im_peak_type/.
+- Progress-logger gaps of MzMLFile left alone (brief: keep reader changes away from progress calls).
+- Next: pull oracle, write tests/mzml_im_peak_type.rs comparing records; docs (MZML_MOBILITY_SUPPORT.md rows,
+  STRING_UTILS_SUPPORT.md, ZIP doc + THIRD_PARTY_CRATE_DECISIONS zip row); MSRV gate; sweep; ledger+report.

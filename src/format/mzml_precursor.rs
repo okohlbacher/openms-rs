@@ -105,7 +105,7 @@ pub(super) fn read_metadata_cv(
         return Ok(false);
     }
     let Some(&(_, key, kind)) = ACTIVATION_METADATA.iter().find(|row| row.0 == id) else {
-        return Ok(false);
+        return read_other_dissociation_method(record, id, attrs, budget);
     };
     super::record_transport::slot(budget, key)?;
     let value = if id == "MS:1000245" {
@@ -133,6 +133,59 @@ pub(super) fn read_metadata_cv(
             p.activation_methods.insert(A::Ethcd);
         }
         _ => {}
+    }
+    Ok(true)
+}
+
+/// `dissociation method`, the parent of every activation-method term.
+const DISSOCIATION_METHOD: &str = "MS:1000044";
+
+/// A pinned-CV descendant of `MS:1000044` with no route of its own.
+///
+/// The typed methods ([`METHODS`], and the two supplemental terms above) and
+/// `MS:1000044` itself are not; neither is an accession the pinned CV does not
+/// know, which the source drops with "Unknown cvParam" before this branch.
+fn other_dissociation_method(
+    id: &str,
+) -> Result<Option<&'static crate::format::controlled_vocabulary::CVTermDefinition>> {
+    if id == DISSOCIATION_METHOD || METHODS.iter().any(|(_, accession)| *accession == id) {
+        return Ok(None);
+    }
+    let cv = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?;
+    let Ok(term) = cv.get_term(id) else {
+        return Ok(None);
+    };
+    Ok(cv.is_child_of(id, DISSOCIATION_METHOD)?.then_some(term))
+}
+
+/// The source's last spectrum activation route, `cv_.isChildOf(accession,
+/// "MS:1000044")` (`MzMLHandler.cpp:2023-2026`): any other dissociation method
+/// the pinned CV knows (ultraviolet photodissociation `MS:1003246`, negative
+/// electron transfer dissociation `MS:1003247`, electron activated
+/// dissociation `MS:1003294`, combined dissociation method `MS:1003181`)
+/// becomes precursor metadata under the term's CV name, holding the term's
+/// value text (usually empty) and its unit, as `cvParamToValue` builds it for a
+/// term without a value type (`XMLHandler.cpp:167`, `:283-298`).
+///
+/// The source's chromatogram activation branch has no such route and warns
+/// "Unhandled cvParam" instead (`:2146-2149`); this reader keeps the term on a
+/// chromatogram precursor too, as it already does for the supplemental terms
+/// (CPP-219), so no activation information is dropped.
+fn read_other_dissociation_method(
+    record: &mut super::Record,
+    id: &str,
+    attrs: &BTreeMap<String, String>,
+    budget: &mut super::ParameterBudget,
+) -> Result<bool> {
+    let Some(term) = other_dissociation_method(id)? else {
+        return Ok(false);
+    };
+    let key = term.name.as_str();
+    super::record_transport::slot(budget, key)?;
+    let value = super::scalar_user_value(attrs, "xsd:string")?;
+    let p = record.precursor.as_mut().expect("checked precursor");
+    if p.cv_terms.metadata.insert(key.into(), value).is_some() {
+        return Err(invalid("duplicate precursor activation metadata"));
     }
     Ok(true)
 }
@@ -496,13 +549,11 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
         };
         cv(w, accession, &name, "", "")?;
     }
-    let mut skip = [""; 12];
-    skip[..3].copy_from_slice(&[
+    let mut skip: Vec<&str> = vec![
         "external_spectrum_id",
         "selected ion m/z",
         INTENSITY_UNIT_KEY,
-    ]);
-    let mut used = 3;
+    ];
     for (id, key, kind) in ACTIVATION_METADATA {
         if let Some(value) = p
             .cv_terms
@@ -531,9 +582,42 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
                 })
                 .unwrap_or_default();
             cv(w, id, &term.name, &text, &unit)?;
-            skip[used] = key;
-            used += 1;
+            skip.push(key);
         }
+    }
+    // The other dissociation methods the reader keeps under their CV name
+    // (`read_other_dissociation_method`) go back as the term they came from,
+    // as the source's `writeUserParam_` writes a meta value whose key names a
+    // term the mapping allows under `activation` (`MzMLHandler.cpp:3665-3673`).
+    // Only a text value is promoted, the only form the reader produces; any
+    // other stays a userParam.
+    let cv_terms = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()?;
+    for (key, value) in &p.cv_terms.metadata {
+        let crate::metadata::MetaValueData::String(text) = value.data() else {
+            continue;
+        };
+        if skip.contains(&key.as_str()) {
+            continue;
+        }
+        let Some(named) = cv_terms.find_term_by_name(key) else {
+            continue;
+        };
+        let Some(term) = other_dissociation_method(&named.id)? else {
+            continue;
+        };
+        let unit = value
+            .unit()
+            .map(|u| {
+                format!(
+                    " unitAccession=\"{}\" unitCvRef=\"{}\" unitName=\"{}\"",
+                    escape(u.accession()),
+                    escape(u.cv_ref()),
+                    escape(u.name())
+                )
+            })
+            .unwrap_or_default();
+        cv(w, &term.id, &term.name, text, &unit)?;
+        skip.push(key.as_str());
     }
     // After every cvParam: `activation` is a ParamGroupType, whose schema
     // sequence puts all cvParams before any userParam.
@@ -543,7 +627,7 @@ pub(super) fn write_end(w: &mut impl Write, p: &Precursor) -> Result<()> {
             "<userParam name=\"activation information unavailable\"/>"
         )?;
     }
-    super::write_scalar_metadata_skipping(w, &p.cv_terms.metadata, &skip[..used])?;
+    super::write_scalar_metadata_skipping(w, &p.cv_terms.metadata, &skip)?;
     writeln!(w, "</activation></precursor>")?;
     Ok(())
 }

@@ -305,6 +305,19 @@ pub struct MSSpectrum {
     pub drift_time: f64,
     /// Unit of [`Self::drift_time`]; `None` when no drift time is set.
     pub drift_time_unit: crate::metadata::DriftTimeUnit,
+    /// Processing state of the ion-mobility dimension, the source
+    /// `SpectrumSettings::im_peak_type_` (`getIMPeakType`/`setIMPeakType`,
+    /// `METADATA/SpectrumSettings.h:107-111`); `Unknown` by default.
+    ///
+    /// The mzML reader sets `Centroid` for the spectrum term `MS:1003441` (ion
+    /// mobility centroid frame) and substitutes `Profile` for
+    /// a spectrum that carries ion-mobility data but no peak type, as
+    /// `MzMLHandler` does (`MzMLHandler.cpp:248-256`, `:1646-1649`); the writer
+    /// emits `MS:1003441` for `Centroid` (`:5290-5294`).
+    ///
+    /// Unlike the source, whose `SpectrumSettings::operator==` ignores this
+    /// field, the derived [`PartialEq`] compares it.
+    pub im_peak_type: crate::metadata::IonMobilityPeakType,
 }
 
 impl Default for MSSpectrum {
@@ -329,6 +342,7 @@ impl Default for MSSpectrum {
             string_data_arrays: Vec::new(),
             drift_time: -1.0,
             drift_time_unit: crate::metadata::DriftTimeUnit::None,
+            im_peak_type: crate::metadata::IonMobilityPeakType::Unknown,
         }
     }
 }

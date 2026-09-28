@@ -1307,6 +1307,9 @@ impl PeakPickerHiRes {
             string_data_arrays: Vec::new(),
             drift_time: input.drift_time,
             drift_time_unit: input.drift_time_unit,
+            // copySpectrumMeta (SpectrumHelper.cpp:20) copies SpectrumSettings
+            // whole, the ion-mobility peak type with it.
+            im_peak_type: input.im_peak_type,
         };
         if let Some(j) = mobility {
             let mut array =
