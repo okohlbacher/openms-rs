@@ -13,7 +13,7 @@
 //! ```
 //!
 //! Ports `FORMAT/InspectInfile.h`/`.cpp`, including its modification-line
-//! parser [`InspectInfile::handle_ptms`], which shares its grammar with
+//! parser [`InspectInfile::handle_ptms`](crate::format::inspect_infile::InspectInfile::handle_ptms), which shares its grammar with
 //! `SequestInfile::handlePTMs`. See `docs/SEARCH_ENGINE_FILES_SUPPORT.md`
 //! for the API mapping.
 

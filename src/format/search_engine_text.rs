@@ -9,7 +9,7 @@
 //! *permissive* parse (`CHEMISTRY/AASequence.cpp:1390-1397` at the core pin):
 //! outside a modification bracket, a stop-codon character `*`, `#` or `+`
 //! becomes the unknown residue `X` and a space is skipped. The crate's
-//! [`AASequence::parse`] is the strict parse, so this module rewrites those
+//! [`AASequence::parse`](crate::chemistry::AASequence::parse) is the strict parse, so this module rewrites those
 //! characters first.
 //!
 //! The Sequest, Inspect and PepNovo adapters read their files with

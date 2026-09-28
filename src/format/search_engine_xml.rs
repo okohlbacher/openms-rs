@@ -12,7 +12,7 @@
 //! arrive, including the white space between elements (OMSSA resets the
 //! current modification on the white space inside `<MSHits_mods>`). This
 //! driver therefore reports every text node, white space included, as one
-//! [`SaxHandler::characters`] call, with the five predefined entities and
+//! [`SaxHandler::characters`](crate::format::search_engine_xml::SaxHandler::characters) call, with the five predefined entities and
 //! numeric character references expanded and CDATA sections appended as
 //! text. Xerces may split one text node into several calls at buffer or
 //! entity boundaries; the source handlers act on the first call only, so a
@@ -20,9 +20,10 @@
 //! intended reading.
 //!
 //! Element and attribute names are reported as written, prefix included, as
-//! Xerces reports the qualified name. A DTD is refused ([`Error::Unsupported`]),
-//! because its entities would need expanding. Every input is bounded by
-//! [`XmlReadLimits`], checked before the corresponding storage grows.
+//! Xerces reports the qualified name. A DTD is refused
+//! ([`Error::Unsupported`](crate::Error::Unsupported)), because its entities
+//! would need expanding. Every input is bounded by
+//! [`XmlReadLimits`](crate::format::search_engine_xml::XmlReadLimits), checked before the corresponding storage grows.
 
 use crate::{Error, Result};
 use quick_xml::Reader;

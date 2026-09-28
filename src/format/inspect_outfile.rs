@@ -5,13 +5,16 @@
 //! Inspect result files and Inspect's trie sequence databases.
 //!
 //! Ports `FORMAT/InspectOutfile.h`/`.cpp`: the tab-separated result reader
-//! ([`InspectOutfile::load`]), which takes precursor retention times and m/z
-//! values from the searched spectrum files, and the trie database tools
-//! Inspect searches with ([`InspectOutfile::generate_trie_db`],
-//! [`InspectOutfile::compress_trie_db`], [`InspectOutfile::sequences`]).
+//! ([`InspectOutfile::load`](crate::format::inspect_outfile::InspectOutfile::load)),
+//! which takes precursor retention times and m/z values from the searched
+//! spectrum files, and the trie database tools Inspect searches with
+//! ([`InspectOutfile::generate_trie_db`](crate::format::inspect_outfile::InspectOutfile::generate_trie_db),
+//! [`InspectOutfile::compress_trie_db`](crate::format::inspect_outfile::InspectOutfile::compress_trie_db),
+//! [`InspectOutfile::sequences`](crate::format::inspect_outfile::InspectOutfile::sequences)).
 //!
 //! A trie database is the protein sequences separated by `*`. Its index file
-//! holds one [`RECORD_LENGTH`]-byte record per protein: the protein's byte
+//! holds one [`RECORD_LENGTH`](crate::format::inspect_outfile::RECORD_LENGTH)-byte
+//! record per protein: the protein's byte
 //! position in the source database (8 bytes, little endian), its position in
 //! the trie database (4 bytes, little endian) and its name (80 bytes, NUL
 //! padded, `>` written as `}`).
