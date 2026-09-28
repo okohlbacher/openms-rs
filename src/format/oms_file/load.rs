@@ -11,7 +11,7 @@
 //! meta values in a shared `DataValue` table, and versions before 5 keep
 //! features in `FEAT_Feature` with an `overall_quality` column.
 
-use super::store::{NULL_DATE_TIME, handle_base};
+use super::store::NULL_DATE_TIME;
 use super::{MAX_SUBORDINATE_DEPTH, MAX_TABLE_ROWS, OmsLoadOptions, sql_error};
 use crate::chemistry::{
     AASequence, AdductInfo, DigestionSpecificity, EmpiricalFormula, NASequence, ProteaseDB, RNaseDB,
@@ -27,9 +27,10 @@ use crate::identification::graph::{
     ParentSequence, ProcessingSoftware, ProcessingSoftwareId, ProcessingStep, ProcessingStepId,
     ScoreType, ScoreTypeId, ScoredProcessingResult, SearchParamId,
 };
+use crate::kernel::features::Ratio;
 use crate::kernel::{
     BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, ConvexHull2D, Feature,
-    FeatureHandle, FeatureMap, Point2D, Ratio,
+    FeatureHandle, FeatureMap, Point2D,
 };
 use crate::metadata::{
     CVTerm, CompletionTime, DataProcessing, MetaInfo, MetaValue, MetaValueData, ProcessingAction,
