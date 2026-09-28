@@ -16,9 +16,9 @@
 //!
 //! The SNES ("Speedy Non-specific Enzyme Search") mode indexes mother
 //! peptides for non-specific digestion; its build and realization are ported,
-//! its spectrum query is not (see [`FragmentIndex::query_spectrum`]).
+//! its spectrum query is not (see [`FragmentIndex::query_spectrum`](crate::analysis::id::fragment_index::FragmentIndex::query_spectrum)).
 //!
-//! Parameters: [`FragmentIndexParameters`]. See
+//! Parameters: [`FragmentIndexParameters`](crate::analysis::id::fragment_index::FragmentIndexParameters). See
 //! `docs/FRAGMENT_INDEX_SUPPORT.md` for the API mapping and evidence.
 
 #[path = "fragment_index_parameters.rs"]
@@ -258,7 +258,7 @@ struct Series {
 ///
 /// Construct with [`FragmentIndex::new`] or [`FragmentIndex::from_param`],
 /// then [`FragmentIndex::build`] before querying. The source's
-/// `DefaultParamHandler` base is [`FragmentIndexParameters`].
+/// `DefaultParamHandler` base is [`FragmentIndexParameters`](crate::analysis::id::fragment_index::FragmentIndexParameters).
 #[derive(Clone, Debug)]
 pub struct FragmentIndex {
     params: FragmentIndexParameters,
