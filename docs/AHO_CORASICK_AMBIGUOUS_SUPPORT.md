@@ -2,7 +2,7 @@
 
 Source header, core pin `bc9cc12`: `src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h`
 (`AhoCorasickAmbiguous.cpp`). Rust: `src/analysis/id/aho_corasick_ambiguous.rs`.
-Tests: `tests/aho_corasick_ambiguous.rs`. Provenance:
+Tests: `tests/aho_corasick_ambiguous.rs` (with the Release oracle fixtures `tests/data/aho_corasick_ambiguous_{cases,oracle}.tsv`). Provenance:
 `tests/data/aho_corasick_ambiguous_provenance.json`.
 
 The ledger's direct TOPP consumer is `Digestor`; upstream the trie is the matcher
@@ -137,9 +137,17 @@ refusals and counts, `setQuery`, the `nextValidAA` position sequences, and the
 types, `get_all_hits` against the `next_hits` concatenation, and the refusals
 above.
 
-The class test compares sorted hit lists, so it does not check hit *order*
-within a `nextHits` result; the port follows the source's order construct by
-construct, but that order is not independently evidenced here.
+Tier 1 (executed differential): the class test compares sorted hit lists, so it
+cannot see hit *order*. `release_oracle_hit_order` replays 322 cases (the class
+test's 22 tries and queries, plus 300 seeded random tries with ambiguous needle
+residues and queries with ambiguous residues, lowercase letters, `*` and empty
+queries, at `max_aaa` 0-4 and `max_mm` 0-3) against the output of the Release
+libOpenMS (`bc9cc12-c19e494-174b576`, Linux x86_64, run on ibminode06): the trie
+size after compression, every `nextHits` result in library order, the hits left
+in the state after the final `false`, and `getAllHits`. All 1186 records match
+exactly. The driver ran twice per invocation and the oracle was invoked twice;
+all four outputs are byte-identical. Driver, generator and raw output are under
+`../oracle/I3b-aho/`, hashed in the provenance manifest.
 
 No OpenMP in the source; the trie is immutable after compression and one state
 per thread is the source's threading model, which `&self` search preserves.

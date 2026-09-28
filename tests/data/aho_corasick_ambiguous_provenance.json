@@ -1,0 +1,88 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h",
+   "sha256": "f3e3fb246277dd84d562b3e96346f5c9325fe29e277f66f9b891161f3c3ce452"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/AhoCorasickAmbiguous.cpp",
+   "sha256": "65b0a2597a0c4a00af0502ad564397893f67a223033106f9d3abb1f371875c3c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/AhoCorasickAmbiguous_test.cpp",
+   "sha256": "a3c2e4c9392897dff2dc2025f2d8d6b6f61bef61cd16d9f14b9e30af787f1eb4"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/aho_corasick_ambiguous_cases.tsv",
+   "sha256": "ef918e05323791a9ba393f9fa28984bc1a9261ba40b8d5da7c520c48d66b1c07",
+   "rows": 322,
+   "kind": "oracle input: the class test's 22 tries and queries plus 300 seeded random ones (../oracle/I3b-aho/gen_cases.py, seed 20260928)"
+  },
+  {
+   "path": "tests/data/aho_corasick_ambiguous_oracle.tsv",
+   "sha256": "d0e1b7f48d285e6601ab56f93d7d0f65ba76f0bbddcde9ac1cd459cebefeb53d",
+   "rows": 1186,
+   "kind": "executed Release libOpenMS output: trie size, every nextHits result in order, the hits left after the last call, and getAllHits; the driver's record lines of ../oracle/I3b-aho/results/oracle.tsv (sha256 c0b64764bc50edbd6301a14ee77a3cff92695abc1872a4e8e93ed8a8af53a159) with the interleaved compressTrie info-log lines removed"
+  }
+ ],
+ "oracle": {
+  "host": "ibminode06 (Linux x86_64)",
+  "build": "Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler_flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "driver_binary_sha256": "8db058bbe7cb79839d5bccc4ce0455826734b58cafd35ce973b44f37b853d1d2",
+  "runs": "two invocations of run.sh on 2026-09-28, each running the driver twice in fresh processes with a clean environment; all four outputs byte-identical, exit 0, empty stderr"
+ },
+ "evidence_tier": "1 (executed differential against the Release build: hit order, trie size and trailing hits for 322 cases) plus 3 (every class-test literal) plus 4 (native refusals)",
+ "native_implementation": [
+  "src/analysis/id/aho_corasick_ambiguous.rs"
+ ],
+ "native_tests": [
+  "tests/aho_corasick_ambiguous.rs"
+ ],
+ "support_document": "docs/AHO_CORASICK_AMBIGUOUS_SUPPORT.md",
+ "openmp": "No #pragma omp in AhoCorasickAmbiguous.cpp; the source's threading model is one ACTrieState per thread over an immutable trie, which &self search keeps.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I3b-aho/driver.cpp",
+   "sha256": "f6c7005dd746a163c3c42d34cac9527d1134bc718a24e860cf4a28de7cff3081",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/I3b-aho/gen_cases.py",
+   "sha256": "57cd155ede25577757e6fe74a46b4c5fc41db48306a19ccf43e7e9f25b60ebe3",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I3b-aho/remote_run.sh",
+   "sha256": "6148d606befed31bccb9d021139b6a22a32598f846c5001aaa11ea8d39148fab",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/I3b-aho/run.sh",
+   "sha256": "b50dc2e99ffbea1428a29df07f07fb20833243e7a7b4a55919c6d98495b0ca09",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/I3b-aho/results/oracle.tsv",
+   "sha256": "c0b64764bc50edbd6301a14ee77a3cff92695abc1872a4e8e93ed8a8af53a159",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The ACTrie oracle driver, its build and launch scripts, the case generator and the raw Release output live under ../oracle/I3b-aho/ so that no C++ is committed here. The in-repo fixtures are the generated cases (byte-identical to ../oracle/I3b-aho/cases/cases.tsv) and the driver's record lines; the sha256 values above are the evidence chain.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
