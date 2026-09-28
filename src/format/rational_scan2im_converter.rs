@@ -387,7 +387,7 @@ pub fn try_create_rational_converter(
     };
 
     let mut calibrations = BTreeMap::new();
-    let read_calibrations = || -> rusqlite::Result<Option<()>> {
+    let mut read_calibrations = || -> rusqlite::Result<Option<()>> {
         let mut statement = db.prepare(
             "SELECT Id, ModelType, C0, C1, C2, C3, C4, C5, C6, C7, C8, C9 FROM TimsCalibration",
         )?;
@@ -439,7 +439,7 @@ pub fn try_create_rational_converter(
     }
 
     let mut frame_to_cal: Vec<u32> = Vec::new();
-    let read_frames = || -> rusqlite::Result<Option<()>> {
+    let mut read_frames = || -> rusqlite::Result<Option<()>> {
         let mut statement = db.prepare("SELECT Id, TimsCalibration FROM Frames ORDER BY Id")?;
         let mut rows = statement.query([])?;
         while let Some(row) = rows.next()? {
