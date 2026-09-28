@@ -9,8 +9,9 @@
 //! `src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h`.
 //! See docs/MEAN_NOISE_SUPPORT.md for the source's fixed denominator and
 //! historical percentile conventions. The source's `DefaultParamHandler`
-//! parameters map through [`DefaultParamHandling`], implemented on
-//! [`SignalToNoiseEstimatorMeanIterative`].
+//! parameters map through
+//! [`DefaultParamHandling`](crate::param::DefaultParamHandling), implemented on
+//! [`SignalToNoiseEstimatorMeanIterative`](crate::processing::mean_noise::SignalToNoiseEstimatorMeanIterative).
 
 use crate::kernel::{MSChromatogram, MSSpectrum};
 use crate::param::handler::int_parameter;
