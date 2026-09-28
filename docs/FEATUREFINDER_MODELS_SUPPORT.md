@@ -124,7 +124,7 @@ constructor, which samples the defaults - except `IsotopeModel`, whose
 | --- | --- |
 | `EmgScoring()`, destructor | `EmgScoring::new`, `Default` |
 | `setFitterParam`, `getDefaults` | `set_fitter_param`, `defaults` |
-| `template calcElutionFitScore(MRMFeature&, MRMTransitionGroup<SpectrumType, TransitionT>&)` | `calc_elution_fit_score<T>(&MRMFeature, &MRMTransitionGroup<MSChromatogram, T>)` |
+| `template calcElutionFitScore(MRMFeature&, MRMTransitionGroup<SpectrumType, TransitionT>&)` | `calc_elution_fit_score<C: NativeIdentified, T>(&MRMFeature, &MRMTransitionGroup<C, T>)` (`MSChromatogram` or `MSSpectrum`) |
 | `elutionModelFit(points, smooth_data)` | `elution_model_fit(&[Point2D], bool)` |
 | protected `fitRT_`, `prepareFit_`, `fitter_emg1D_params_` | private `fit_rt`, `prepare_fit`, `fitter_emg1d_params` |
 | `PeakWidthEstimator(exp_picked, boundaries)` (hidden default constructor), destructor | `PeakWidthEstimator::new(&MSExperiment, &[Vec<PeakBoundary>])` |
@@ -209,9 +209,8 @@ Each is stated at the item as well.
   a rounding midpoint). The method-of-moments cube root uses the host's `pow`.
   The Gaussian models use `BasicStatistics`, which calls the host's `exp`.
 - **`ModelDescription::create_model`** is native.
-- **`EmgScoring::calc_elution_fit_score`** takes chromatogram groups
-  (`MSChromatogram`), refuses a feature without a convex hull (the source's
-  precondition is debug-only), and propagates `MRMFeature::feature`'s error for
+- **`EmgScoring::calc_elution_fit_score`** refuses a feature without a convex
+  hull (the source's precondition is debug-only), and propagates `MRMFeature::feature`'s error for
   a native ID without a feature, where the source's `feature_map_[key]`
   silently returns the first feature.
 - **`SeedListGenerator`** maps an unset peptide RT or m/z (`None`) to NaN,

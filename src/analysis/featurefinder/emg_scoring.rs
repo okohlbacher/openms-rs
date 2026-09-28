@@ -13,8 +13,8 @@
 use crate::Result;
 use crate::error::Error;
 use crate::kernel::geometry::Point2D;
-use crate::kernel::mrm::{MRMFeature, MRMTransitionGroup};
-use crate::kernel::{MSChromatogram, MSSpectrum, Peak1D};
+use crate::kernel::mrm::{MRMFeature, MRMTransitionGroup, NativeIdentified};
+use crate::kernel::{MSSpectrum, Peak1D};
 use crate::param::Param;
 use crate::processing::SpectrumFilter;
 use crate::processing::smoothing::{GaussFilter, GaussianWidth};
@@ -58,7 +58,8 @@ impl EmgScoring {
     /// [`EmgScoring::elution_model_fit`] (without smoothing) over the first
     /// convex hull of the feature that `mrmfeature` holds for each
     /// chromatogram's native ID, in chromatogram order (source template
-    /// `calcElutionFitScore`, here for chromatogram groups).
+    /// `calcElutionFitScore<SpectrumType, TransitionT>`; the chromatogram type
+    /// is any [`NativeIdentified`] one, `MSChromatogram` or `MSSpectrum`).
     ///
     /// An aborted fit contributes -1, "just the lowest pearson correlation to
     /// a fit that you can have" (a source TODO considers penalizing it more).
@@ -72,20 +73,20 @@ impl EmgScoring {
     /// [`MRMFeature::feature`] for a native ID without a feature (the source's
     /// `feature_map_[key]` then silently returns the first feature), and what
     /// the fit refuses.
-    pub fn calc_elution_fit_score<T>(
+    pub fn calc_elution_fit_score<C: NativeIdentified, T>(
         &self,
         mrmfeature: &MRMFeature,
-        transition_group: &MRMTransitionGroup<MSChromatogram, T>,
+        transition_group: &MRMTransitionGroup<C, T>,
     ) -> Result<f64> {
         let mut avg_score = 0.0f64;
         let smooth_data = false;
         let chromatograms = transition_group.chromatograms();
         for chromatogram in chromatograms {
-            let feature = mrmfeature.feature(&chromatogram.native_id)?;
+            let native_id = chromatogram.native_id();
+            let feature = mrmfeature.feature(native_id)?;
             let hull = feature.convex_hulls.first().ok_or_else(|| {
                 Error::MissingInformation(format!(
-                    "the feature of '{}' has no convex hull",
-                    chromatogram.native_id
+                    "the feature of '{native_id}' has no convex hull"
                 ))
             })?;
             avg_score += self.elution_model_fit(&hull.hull_points(), smooth_data)?;
