@@ -41,8 +41,10 @@ Code goes in src/analysis/id/ (append `pub mod` to src/analysis/id.rs only).
   merge order within a condition not reproducible (C++ class test likely flaky). Source defects: offset lookup under new id (always 0);
   "_" + Size appends char 0x01. consensusXML default max_work too small for BSA.consensusXML (raised in test).
 
+- COMMITTED: PeptideProteinResolution (4 tests, both class-test file pairs), IDDecoyProbability (5 tests; oracle
+  ../oracle/I1-iddecoy on ibminode06 Release, identical runs, sha oracle.tsv 804014f9...; Rust within 7.4e-15/4.4e-16/9.1e-15).
+- clippy --all-targets --all-features clean on dax after those.
+
 ## Next step
-1. PeptideProteinResolution (794 cpp, class test 72 lines) -> src/analysis/id/peptide_protein_resolution.rs
-2. IDDecoyProbability (needs C++ driver oracle on ibminode06; math::fitters gamma/gauss exist)
-3. IDScoreGetterSetter (609 header, no tests)
-4. Report + ledger; clippy/doc/MSRV/ci sweep.
+1. IDScoreGetterSetter (609 header, no tests) -> maybe partial; check src/analysis/false_discovery_rate.rs overlap first.
+2. Report (.planning/lane-reports/I1.md) + ledger (.planning/ledger-fragments/wave4/I1.json); doc/MSRV/ci sweep.
