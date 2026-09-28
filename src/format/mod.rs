@@ -188,6 +188,10 @@ fn single_line(value: &str) -> bool {
 
 /// Read-only `acqus` parameters of a Bruker XMass spectrum (`AcqusHandler.h`).
 pub mod acqus_handler;
+/// Bruker timsTOF `.d` (TDF) reader (`BrukerTimsFile.h`): FRAME export and
+/// unaggregated DIA-PASEF export.
+#[cfg(feature = "bruker-tdf")]
+pub mod bruker_tims_file;
 /// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
 pub mod fid_handler;
 /// IM-axis hill centroiding of one TIMS-PASEF frame (`PASEFHillCentroider.h`).
