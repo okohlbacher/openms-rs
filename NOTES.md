@@ -57,3 +57,8 @@ AASequence::fromString, so a throw desynchronises descriptions and sequences.
 1. Clippy all-features (running), CI sweep F6-sweep (running) -> fix anything.
 2. Measure: no-default-features peff+peff_sequences counts; kb-xml lib unit tests count.
 3. Write report .planning/lane-reports/F6.md; delete NOTES.md in final commit.
+
+## Incarnation 4
+Sweep of incarnation 3 died (logs/sweep*.log truncated). Re-ran as F6-sweep -> scratch F6/sweep3, log logs/sweep3.log.
+Draft report scratch F6/F6.md (fill SWEEP_RESULT), ledger already at .planning/ledger-fragments/wave4/F6.json.
+Next: wait sweep, fix, measure lib kb-xml unit count, write report, delete NOTES.md, final commit.
