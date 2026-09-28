@@ -470,7 +470,7 @@ mod search_engine {
                 .join(case)
                 .join("home/.config/OpenMS/OpenMS.ini");
             if ini.exists() {
-                let config = files.get_openms_config_dir().unwrap();
+                let config = files.get_openms_config_dir().to_path_buf();
                 fs::create_dir_all(&config).unwrap();
                 fs::write(
                     config.join("OpenMS.ini"),
@@ -608,10 +608,10 @@ mod search_engine {
         let action = spec.find("PeptideIndexing:missing_decoy_action").unwrap();
         assert_eq!(action.default_value, ParamValue::String("warn".into()));
         assert!(action.advanced);
-        assert!(
-            action.valid_strings.is_empty(),
-            "setValue drops the restrictions"
-        );
+        // Param::setValue on an existing entry keeps its restrictions and its
+        // description (Param.cpp:406-415), as the Release INI shows.
+        assert_eq!(action.valid_strings, vec!["error", "warn", "silent"]);
+        assert!(action.description.starts_with("Action to take if NO peptide"));
         assert!(spec.find("PeptideIndexing:enzyme:name").unwrap().advanced);
         assert!(
             !spec
@@ -764,8 +764,10 @@ fn the_registration_writes_the_release_ini_files() {
 #[cfg(feature = "mzml")]
 #[test]
 fn transformed_spectra_files_equal_the_release_build() {
+    use openms::data_structures::DateTime;
     use openms::format::file_handler::FileHandler;
     use openms::format::file_types::FileType;
+    let minutes = |time: Option<DateTime>| time.map(|t| t.format("yyyy-MM-dd+hh:mm").unwrap());
     for case in ["ma_none_transform", "ma_none_transform_store"] {
         let replay = replay::<AlignerNone>(case, no_preparation);
         assert_eq!(replay.code, ExitCode::ExecutionOk, "{case}: {}", replay.err);
@@ -794,7 +796,14 @@ fn transformed_spectra_files_equal_the_release_build() {
                     assert_eq!(pa.software.name, pe.software.name, "{at}");
                     assert_eq!(pa.software.version, pe.software.version, "{at}");
                     assert_eq!(pa.actions, pe.actions, "{at}");
-                    assert_eq!(pa.completion_time, pe.completion_time, "{at}");
+                    // The C++ mzML writer keeps the completion time to the
+                    // minute (MzMLHandler.cpp writes yyyy-MM-dd+hh:mm), so the
+                    // two agree to the minute.
+                    assert_eq!(
+                        minutes(pa.completion_time),
+                        minutes(pe.completion_time),
+                        "{at}"
+                    );
                     assert_eq!(pa.metadata, pe.metadata, "{at}");
                 }
             }
@@ -987,9 +996,14 @@ fn the_defs_exceptions_end_the_run_as_their_catch_blocks() {
     ] {
         THROW.with(|slot| slot.set(which));
         let (mut out, mut err) = (Vec::new(), Vec::new());
-        let result = run_with::<Thrower>(&["B7Thrower".to_owned()], &mut out, &mut err);
-        assert_eq!(result, code, "{which}");
-        assert_eq!(String::from_utf8(err).unwrap(), line, "{which}");
+        let result = run_with::<Thrower>(
+            &["B7Thrower".to_owned(), "-test".to_owned()],
+            &mut out,
+            &mut err,
+        );
+        let err = String::from_utf8(err).unwrap();
+        assert_eq!(result, code, "{which}: {err}");
+        assert_eq!(err, line, "{which}");
         assert!(
             !String::from_utf8(out).unwrap().contains(" took "),
             "{which}"

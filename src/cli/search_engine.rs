@@ -311,11 +311,12 @@ impl SearchEngineBase {
     /// "Recalculate peptide to protein association using OpenMS. Annotates
     /// target-decoy information." Then `peptide_indexing_parameter` — the
     /// indexer's defaults, which an adapter may have adjusted (for example for
-    /// non-tryptic digestion) — gets `missing_decoy_action` set to `warn`,
-    /// replacing that entry with a bare one as the source's
-    /// `Param::setValue` does (its description, restrictions and tags are
-    /// dropped), and the twelve entries of [`PEPTIDE_INDEXING_ADVANCED`]
-    /// tagged `advanced`. The whole tree is registered under the section
+    /// non-tryptic digestion) — gets `missing_decoy_action` set to `warn` and
+    /// the twelve entries of [`PEPTIDE_INDEXING_ADVANCED`] tagged `advanced`.
+    /// The value is set as the source's `Param::setValue` sets it on an
+    /// existing entry (`Param.cpp:406-415`): the value and the tags are
+    /// replaced, the description (the new one is empty) and the restrictions
+    /// stay. The whole tree is registered under the section
     /// `PeptideIndexing:`, so that its names cannot collide with the tool's
     /// own ([`ToolSpec::register_full_param`]).
     ///
