@@ -34,10 +34,16 @@ src/tests/class_tests/openms/source/<Name>_test.cpp. KDTree.h has no class test.
    - newick_tree takes Option<&dyn Fn(f32)->String>; test passes format::file_info::text_format::to_str_f32.
    - Grid: extendClustersY only used by class test (commented out in MultiplexClustering.cpp:165);
      MultiplexDistance = sqrt(dx^2 + s^2 dy^2) (MultiplexClustering.cpp:184-187), not ported in Rust.
-3. [ ] ClusteringGrid, GridBasedCluster, GridBasedClustering (+ DBoundingBox need: check drange.rs)
-4. [ ] HashGrid
-5. [ ] GridFeature, QTCluster (analysis/mapmatching)
-6. [ ] KDTree (crate search: kiddo/kdtree) - likely untouched/partial
+3. [x] ClusteringGrid, GridBasedCluster, GridBasedClustering (DBoundingBox = DIntervalBase + local enlarge)
+4. [x] HashGrid (BTreeMap cells, insertion-order cell content; boost hash order NOT reproduced -> partial)
+5. [x] GridFeature, QTCluster in src/analysis/mapmatching/ (SourceOrderedSequence emulates AASequence operator< length-first)
+6. [ ] KDTree: untouched (2208-line libkdtree++; consumer KDTreeFeatureMaps; needs nth_element-faithful optimize) -> report as backlog
+Tests: tests/ml_clustering.rs (21), tests/ml_grid_clustering.rs (9), tests/mapmatching_qt_cluster.rs (4); all pass on dax,
+  also under +1.85.0 --no-default-features. clippy --all-features clean.
+check_doc_coverage: passes but floor file docs/doc-coverage.json is LEAD's -> do not --write; report.
+Oracle: ../oracle/FF2a-clustering (driver.cpp, run.sh, remote_run.sh) running on ibminode06; results/oracle.tsv
+  -> copy to tests/data/ml_clustering_oracle.tsv + write tests/ml_clustering_oracle.rs replaying LCG inputs.
 
 ## Next step
-1. Read class tests for step 1-2, write Rust, gate on dax with slot FF2a.
+1. fetch oracle results, write tests/ml_clustering_oracle.rs, compare.
+2. docs/CLUSTERING_SUPPORT.md, tests/data/ml_clustering_provenance.json, ledger fragment, lane report.
