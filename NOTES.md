@@ -48,3 +48,9 @@ Then look at KD / TreeGuided deps (KDTreeFeatureMaps, ClusterHierarchical, Stabl
   filtered sizes, rt after transform; TG: pair distances vs 1-sim f32, tree, order, mt rt, trafo points
   x/y/note, final rt), + tg_defaults.ini vs defaults(). Copy results into tests/data/map_alignment_oracle_kd_tree_*.
 - Then: docs (MAP_ALIGNMENT_SUPPORT.md rows/sections), provenance json, clippy/doc/MSRV, sweep, report, ledger.
+
+## Restart-2 status (latest)
+- All code/tests/docs committed (f366eea). Slices measured: tree_guided 7, evaluation 5, identification 5,
+  map_alignment_oracle 6, oracle_kd_tree 3. Ledger fragment updated (backup scratch M1/M1.json.bak).
+- Report draft scratch M1/M1.md (placeholders SLICE3/4/5, SWEEP). Final sweep running -> scratch M1/sweep2.log.
+- Next: fill report, cp to .planning/lane-reports/M1.md, delete NOTES.md, final commit.
