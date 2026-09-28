@@ -19,6 +19,6 @@
  "native_implementation": ["src/analysis/id/simple_search_engine.rs", "src/chemistry/decoy_random.rs"],
  "native_tests": ["tests/simple_search_engine.rs"],
  "support_document": "docs/SIMPLE_SEARCH_ENGINE_SUPPORT.md",
- "evidence_tier": "Tier 1 (retained C++ outputs, decoded idXML under the upstream FuzzyDiff contract; largest measured relative deviation 2.1e-10) for topp_simple_search_engine_1/2_matches_retained_output; tier 4 for the other five tests.",
- "target_verification": "cargo test --locked --test simple_search_engine on dax (default features): 7 passed"
+ "evidence_tier": "Tier 1 (retained C++ outputs, decoded idXML under the upstream FuzzyDiff contract; largest measured relative deviation 2.1e-10) for topp_simple_search_engine_1/2_matches_retained_output; tier 4 for the other six tests (one of them the progress sections, by source review).",
+ "target_verification": "cargo test --locked --test simple_search_engine on dax (default features): 8 passed"
 }
