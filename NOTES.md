@@ -1,6 +1,8 @@
 # B6 lane notes (SHARED-01: DefaultParamHandler trait)
 
-Branch: worktree-wf_ee239125-5be-2 (merged prior incarnation worktree-wf_bcdd783d-f3f-2, notes only).
+Branch: worktree-wf_cd066dab-0a7-1 (incarnation 4; fast-forwarded onto worktree-wf_ee239125-5be-2 = incarnation 3,
+which merged worktree-wf_bcdd783d-f3f-2). Old scratchpad (sweep1, slices.log, fixture_hashes, provenance.py,
+ledger.py) is GONE -- sweep logs now in <this session scratchpad>/B6.
 
 ## What is missing
 - No trait over the defaults()/from_param()/from_param_with_warnings()/to_param() pattern.
@@ -59,5 +61,5 @@ Branch: worktree-wf_ee239125-5be-2 (merged prior incarnation worktree-wf_bcdd783
 - ci_matrix --check wants --write (adds default_param_handling to the paramxml slice) -- lead's file, report it.
 
 ## Next step
-1. Wait for sweep (scratchpad B6/sweep1) and slices (B6/slices.log); fix anything red.
+1. Re-run the CI sweep (incarnation 4 scratchpad B6/sweep1) + the paramxml/chemistry slices; fix anything red.
 2. Write .planning/lane-reports/B6.md; delete NOTES.md in the final commit.
