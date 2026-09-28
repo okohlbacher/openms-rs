@@ -195,5 +195,9 @@ pub mod pasef_hill_centroider;
 /// TIMS scan-index to 1/K0 conversion: the per-frame rational
 /// `TimsCalibration` model and the linear fallback (`RationalScan2ImConverter.h`).
 pub mod rational_scan2im_converter;
+/// Frame-level access to Bruker timsTOF `.d` data: the opentims layer under
+/// `BrukerTimsFile.h` (`TimsDataHandle`, frame codec, linear calibrations).
+#[cfg(feature = "bruker-tdf")]
+pub mod tims_data_handle;
 /// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
 pub mod xmass_file;
