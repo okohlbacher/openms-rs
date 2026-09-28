@@ -81,3 +81,12 @@ incarnation worktree-wf_bcdd783d-f3f-10 at 27d502a; no merge commit was needed).
 - Plan inc.5: arrow_io_helpers.rs with ParquetWriteConfig (from MSExperimentArrowExport.h),
   KeyValueMetadata (ordered, duplicates), strtod/stoll emulation for readMetaValues, isobaric table
   transcribed from records.tsv, global UUID generator in a Mutex; then tests/arrow_parquet.rs.
+- inc5 status: src/format/arrow_io_helpers.rs written; tests/arrow_parquet.rs (22 tests, record-driven)
+  17/22 passed at t3; fixes for seconds timestamps (coerce on write, ms hint on read), one empty
+  row group for empty tables, metadata kept on read -> t4 running. Test data in tests/data/arrow_parquet/.
+- Remaining NEXT: (a) green t4 + clippy + MSRV; (b) src/format/protein_identification_arrow_io.rs
+  (C++ in scratchpad/F1a/ProteinIdentificationArrowIO.cpp; Rust ProteinIdentification in
+  src/identification.rs: date_time Option<String>, Tolerance enum, digestion_enzyme String,
+  ModificationsDB caller-owned: modification_definitions::register_search_parameters);
+  (c) FeatureMapArrowIO features table (+ TOPP fixture FileConverter_9_output.featureparquet),
+  (d) docs/ARROW_PARQUET_SUPPORT.md, provenance json, THIRD_PARTY row check, report, ledger.
