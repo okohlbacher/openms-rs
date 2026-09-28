@@ -261,6 +261,10 @@ mod canonical {
 /// Compare the canonical dump of `produced` with a retained Release dump.
 fn assert_same_database(produced: &Path, expected: &str) {
     let expected_text = std::fs::read_to_string(release(expected)).unwrap();
+    assert_same_dump(produced, expected, &expected_text);
+}
+
+fn assert_same_dump(produced: &Path, expected: &str, expected_text: &str) {
     let expected_lines: Vec<&str> = expected_text.lines().collect();
     let produced_lines = canonical::dump(produced);
     let mut first_difference = None;
@@ -431,6 +435,45 @@ fn feature_map_round_trip_matches_the_release_build() {
         )
         .unwrap();
     assert_same_database(&out, "feature.rt.tables.tsv");
+    std::fs::remove_dir_all(&dir).unwrap();
+}
+
+/// The MzTabM/MzTabMFile class-test input (schema 1; 83 features, 303
+/// compounds, 2 adducts, 312 feature-level observation matches): the Release
+/// build's load and store (oracle F2-oms-mztabm, ibminode06, run twice) and
+/// the port's agree. The dump is gzip-compressed (2.3 MB of text).
+#[cfg(feature = "file-compression")]
+#[test]
+fn mztab_m_input_round_trip_matches_the_release_build() {
+    use std::io::Read;
+    let outcome = std::fs::read_to_string(release("mztabm_outcome.tsv")).unwrap();
+    assert!(outcome.contains("compounds\t303"), "{outcome}");
+    let dir = temp_dir("mztabm-round-trip");
+    let adapter = OmsFile::default();
+    let loaded = adapter
+        .load_feature_map_with(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/MzTabMFile_input_1.oms"),
+            OmsLoadOptions::source(),
+        )
+        .unwrap();
+    assert_eq!(loaded.map.features.len(), 83);
+    assert_eq!(loaded.identifications.compound_count(), 303);
+    assert_eq!(loaded.identifications.adduct_count(), 2);
+    assert_eq!(loaded.identifications.observation_match_count(), 312);
+    let out = dir.join("mztabm.rt.oms");
+    adapter
+        .store_feature_map_with(
+            &out,
+            &loaded.map,
+            Some(&loaded.identifications),
+            OmsStoreOptions::source(),
+        )
+        .unwrap();
+    let mut expected = String::new();
+    flate2::read::GzDecoder::new(std::fs::File::open(release("mztabm.rt.tables.tsv.gz")).unwrap())
+        .read_to_string(&mut expected)
+        .unwrap();
+    assert_same_dump(&out, "mztabm.rt.tables.tsv.gz", &expected);
     std::fs::remove_dir_all(&dir).unwrap();
 }
 

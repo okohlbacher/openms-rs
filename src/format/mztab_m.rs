@@ -728,13 +728,9 @@ impl MzTabM {
     ///
     /// # Notes
     ///
-    /// [`ControlledVocabulary::psi_ms`] carries all five pinned vocabularies in
-    /// one object, so its `name`, `label`, `version` and `url` identify the
-    /// vocabulary loaded last rather than PSI-MS, and the `cv[1]` block this
-    /// produces is correspondingly generic. A caller that needs the `cv[1]`
-    /// block the source writes must load `psi-ms.obo` alone under the name
-    /// `PSI-MS` and call [`MzTabM::export_feature_map_with`]. Term *lookups*
-    /// are unaffected: the shared object contains every PSI-MS term.
+    /// The vocabulary is [`ControlledVocabulary::psi_ms_only`]: the pinned
+    /// `psi-ms.obo` alone under the name `PSI-MS`, exactly what the source
+    /// loads, so the `cv[1]` block carries the source's identity.
     pub fn export_feature_map(
         feature_map: &FeatureMap,
         id_data: &IdentificationData,
@@ -742,7 +738,7 @@ impl MzTabM {
         Self::export_feature_map_with(
             feature_map,
             id_data,
-            ControlledVocabulary::psi_ms()?,
+            ControlledVocabulary::psi_ms_only()?,
             &MzTabMExportOptions::default(),
         )
     }

@@ -2686,11 +2686,11 @@ fn export_and_store_reproduce_the_retained_output_from_the_oms_input() {
             OmsLoadOptions::source(),
         )
         .unwrap();
-    // The source loads psi-ms.obo alone, named "PSI-MS".
+    // The source loads psi-ms.obo alone, named "PSI-MS"; so does psi_ms_only.
     let document = MzTabM::export_feature_map_with(
         &loaded.map,
         &loaded.identifications,
-        &psi_ms(),
+        ControlledVocabulary::psi_ms_only().unwrap(),
         &MzTabMExportOptions::source(),
     )
     .unwrap();
