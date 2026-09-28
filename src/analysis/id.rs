@@ -6,6 +6,9 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// `Percolator.h`: in-process semi-supervised target/decoy rescoring.
 pub mod percolator;
+/// `PercolatorFeatureSetHelper.h`: search-engine Percolator features and multi-engine run merging.
 pub mod percolator_feature_set_helper;
+/// `PercolatorTypes.h`: the in-process Percolator's input, output and model types.
 pub mod percolator_types;

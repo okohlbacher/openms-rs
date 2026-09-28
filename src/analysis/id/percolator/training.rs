@@ -82,10 +82,10 @@ impl Normalizer {
                         // std::min(features[ix], mins[ix]) keeps the
                         // feature unless the minimum is strictly smaller;
                         // std::max(features[ix], maxs[ix]) likewise.
-                        if !(mins[ix] < row[ix]) {
+                        if mins[ix].partial_cmp(&row[ix]) != Some(std::cmp::Ordering::Less) {
                             mins[ix] = row[ix];
                         }
-                        if !(row[ix] < maxs[ix]) {
+                        if row[ix].partial_cmp(&maxs[ix]) != Some(std::cmp::Ordering::Less) {
                             maxs[ix] = row[ix];
                         }
                     }
@@ -107,8 +107,8 @@ impl Normalizer {
 
     /// `normalize`: in place, `(x - sub) / div`.
     pub(super) fn normalize(&self, row: &mut [f64]) {
-        for ix in 0..self.sub.len() {
-            row[ix] = (row[ix] - self.sub[ix]) / self.div[ix];
+        for ((value, sub), div) in row.iter_mut().zip(&self.sub).zip(&self.div) {
+            *value = (*value - sub) / div;
         }
     }
 

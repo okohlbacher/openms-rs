@@ -18,7 +18,6 @@
 
 use crate::comparison::Tolerance;
 use crate::concept::constants::user_param::ISOTOPE_ERROR;
-use crate::data_structures::datetime::DateTime;
 use crate::identification::{
     EnzymeTermSpecificity, PeptideHit, PeptideIdentification, ProteinHit, ProteinIdentification,
 };
@@ -364,7 +363,11 @@ pub fn merge_multise_protein_ids(
     all_protein_ids: &mut Vec<ProteinIdentification>,
     new_protein_ids: &mut [ProteinIdentification],
 ) -> Result<()> {
-    merge_multise_protein_ids_at(all_protein_ids, new_protein_ids, DateTime::now())
+    merge_multise_protein_ids_at(
+        all_protein_ids,
+        new_protein_ids,
+        chrono::Local::now().naive_local(),
+    )
 }
 
 /// [`merge_multise_protein_ids`] with an explicit creation time, for
@@ -405,7 +408,7 @@ pub fn merge_multise_protein_ids(
 pub fn merge_multise_protein_ids_at(
     all_protein_ids: &mut Vec<ProteinIdentification>,
     new_protein_ids: &mut [ProteinIdentification],
-    now: DateTime,
+    now: chrono::NaiveDateTime,
 ) -> Result<()> {
     let new_run = new_protein_ids
         .first()
@@ -420,8 +423,8 @@ pub fn merge_multise_protein_ids_at(
             run
         }
         None => ProteinIdentification {
-            date_time: Some(now.iso_string()),
-            identifier: format!("TopPerc_{}", now.date_string()),
+            date_time: Some(now.format("%Y-%m-%dT%H:%M:%S").to_string()),
+            identifier: format!("TopPerc_{}", now.format("%Y-%m-%d")),
             search_engine: engine.clone(),
             search_parameters: new_run.search_parameters.clone(),
             ..ProteinIdentification::default()

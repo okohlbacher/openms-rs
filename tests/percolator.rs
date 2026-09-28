@@ -509,7 +509,7 @@ fn train_records_the_model() {
     assert_eq!(model.normalizer_type, "stdv");
     assert_eq!(model.seed, 17);
     assert!(model.weights[0] > 0.0);
-    assert_eq!(p.svm_weights(), [model.weights.clone()]);
+    assert_eq!(p.svm_weights(), std::slice::from_ref(&model.weights));
     assert_eq!(p.pi0(), -1.0);
 }
 

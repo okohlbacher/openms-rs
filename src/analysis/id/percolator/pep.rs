@@ -134,12 +134,12 @@ fn normalize_to_unit_interval(x: &[f64]) -> Vec<f64> {
         if v < lo {
             lo = v;
         }
-        if !(v < hi) {
+        if v.partial_cmp(&hi) != Some(std::cmp::Ordering::Less) {
             hi = v;
         }
     }
     let span = hi - lo;
-    if !(span > 0.0) {
+    if span.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater) {
         return vec![0.5; x.len()];
     }
     x.iter().map(|v| (v - lo) / span).collect()
@@ -404,7 +404,7 @@ fn eigen_xtx(rows: &[Vec<f64>], p: usize, alpha: f64) -> Vec<Vec<f64>> {
         }
         for a in 0..p {
             for b in 0..p {
-                g[a][b] = acc_c[a][b] * alpha + g[a][b];
+                g[a][b] += acc_c[a][b] * alpha;
             }
         }
     }

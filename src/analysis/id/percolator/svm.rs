@@ -176,7 +176,10 @@ fn tron(function: &mut TronFunction<'_>, w: &mut [f64]) -> Result<()> {
     let mut f = function.fun(w);
     function.grad(w, &mut g);
     let mut delta = nrm2(&g);
-    let search = !(delta <= EPSILON * gnorm0);
+    let search = !matches!(
+        delta.partial_cmp(&(EPSILON * gnorm0)),
+        Some(std::cmp::Ordering::Less | std::cmp::Ordering::Equal)
+    );
     let mut iter = 1usize;
     let mut w_new = vec![0.0; n];
     let mut steps = 0usize;

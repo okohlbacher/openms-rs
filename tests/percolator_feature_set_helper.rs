@@ -21,7 +21,6 @@ use openms::analysis::id::percolator_feature_set_helper::{
     merge_multise_protein_ids_at, rescale_fragment_feature,
 };
 use openms::chemistry::AASequence;
-use openms::data_structures::DateTime;
 use openms::format::idxml::{self, IdXmlDocument};
 use openms::identification::{
     PeptideHit, PeptideIdentification, ProteinHit, ProteinIdentification,
@@ -113,7 +112,10 @@ fn merge_records_engine_settings_and_run_metadata() {
     // settings nor the swap; the expectations follow the source text.
     let mut msgf = load("msgf.topperc.idXML").protein_identifications;
     let incoming = msgf[0].clone();
-    let now = DateTime::parse("2026-09-28T10:11:12").unwrap();
+    let now = chrono::NaiveDate::from_ymd_opt(2026, 9, 28)
+        .unwrap()
+        .and_hms_opt(10, 11, 12)
+        .unwrap();
     let mut merged = Vec::new();
     merge_multise_protein_ids_at(&mut merged, &mut msgf, now).unwrap();
     let run = &merged[0];

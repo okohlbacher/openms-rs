@@ -332,10 +332,10 @@ impl Percolator {
 
     fn validate(&self) -> Result<()> {
         let bad = |message: &str| Err(Error::InvalidValue(message.into()));
-        if !(self.parameters.c_pos >= 0.0) || !self.parameters.c_pos.is_finite() {
+        if self.parameters.c_pos < 0.0 || !self.parameters.c_pos.is_finite() {
             return bad("c_pos must be a finite value >= 0");
         }
-        if !(self.parameters.c_neg >= 0.0) || !self.parameters.c_neg.is_finite() {
+        if self.parameters.c_neg < 0.0 || !self.parameters.c_neg.is_finite() {
             return bad("c_neg must be a finite value >= 0");
         }
         if !(0.0..=1.0).contains(&self.parameters.test_fdr)
