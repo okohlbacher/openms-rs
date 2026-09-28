@@ -78,6 +78,9 @@ Outputs: report -> main repo .planning/lane-reports/A5b.md ; ledger -> main repo
   Ledger fragment updated (35 entries; script scratch A5b/ledger4.py). sweep2 killed; FINAL sweep ->
   scratch A5b/sweep3/ + sweep3.out at 9315528+.
 
+- sweep3 at c4ee04c: all 23 [test] lines PASS; spock dropped at first minimum-rust line. Re-running
+  quality (sweep4q) then minimum-rust (sweep4m) via OPENMS_CI_JOBS.
+
 ## Next step
 0. Wait sweep3; fix failures; write report (scratch then cp to main .planning/lane-reports/A5b.md); rm NOTES.
 1. g7 green -> commit. 2. Ledger fragment entries for IdentificationData, SIMDe, MSSpectrum (partial, true
