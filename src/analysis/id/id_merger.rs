@@ -392,7 +392,7 @@ impl IDMergerAlgorithm {
 /// # Errors
 ///
 /// A non-numeric value (source conversion error).
-fn merge_index(value: &MetaValue, position: &str) -> Result<Option<usize>> {
+pub(super) fn merge_index(value: &MetaValue, position: &str) -> Result<Option<usize>> {
     let index = match value.data() {
         MetaValueData::Integer(v) => i64::from(i32::try_from(*v).unwrap_or(-1)),
         MetaValueData::Float(v) if v.is_finite() && v.abs() < 2_147_483_648.0 => v.trunc() as i64,
@@ -407,13 +407,13 @@ fn merge_index(value: &MetaValue, position: &str) -> Result<Option<usize>> {
 
 /// `m/z, RT` as the source messages print them; unknown values print as the
 /// source's NaN.
-fn describe_position(pid: &PeptideIdentification) -> String {
+pub(super) fn describe_position(pid: &PeptideIdentification) -> String {
     let show = |v: Option<f64>| v.map_or_else(|| "nan".to_owned(), |v| v.to_string());
     format!("{}, {}", show(pid.mz), show(pid.rt))
 }
 
 /// Source `ProteinIdentification::peptideIDsMergeable`, with its warnings.
-fn peptide_ids_mergeable(
+pub(super) fn peptide_ids_mergeable(
     reference: &ProteinIdentification,
     run: &ProteinIdentification,
     experiment_type: &str,

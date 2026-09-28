@@ -8,6 +8,8 @@
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 /// `ConsensusIDAlgorithm` and its eight variants.
 pub mod consensus_id;
+/// `ConsensusMapMergerAlgorithm`: merge the identification runs of a consensus map.
+pub mod consensus_map_merger;
 /// `IDMergerAlgorithm`: merge identification runs into one run.
 pub mod id_merger;
 /// `IDScoreSwitcherAlgorithm`: switch main scores to a meta-value score.
