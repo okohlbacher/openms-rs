@@ -28,7 +28,16 @@ Code goes in src/analysis/id/ (append `pub mod` to src/analysis/id.rs only).
 - Gate log: scratchpad/logs/t1.log (cargo test --lib --test consensus_id on dax, slot I1)
 - Release install on ibminode06 has bin/ConsensusID, IDMerger, IDScoreSwitcher, IDDecoyProbability -> TOPP oracles possible.
 
+- COMMITTED: ConsensusID (11 integration tests pass on dax), IDScoreSwitcherAlgorithm (src/analysis/id/id_score_switcher.rs,
+  tests/id_score_switcher.rs 6 pass), Scores docs + tests/scores_class_test.rs.
+- Oracle ../oracle/I1-consensusid DONE on ibminode06 (Release bc9cc12/c19e494/174b576): runs identical except timestamp;
+  Release == test-data for 4/5/6; for 1 one score differs in 15th digit (0.857387152777777 vs ...778) - both within 1e-13 of Rust.
+- idXML reader findings (for report): IDFileConverter_12_output.idXML (200KB) fails "peptide parent parsing resource limit exceeded"
+  (fixed XmlLimits max_work 50M consumed by db.len() per modified sequence); IDScoreSwitcherAlgorithm_test_input.idXML is line-wrapped
+  upstream (xmlns:xsi split, attribute 'ges'), C++ tolerates, Rust refuses -> transcribed fixture instead.
+
 ## Next step
-1. Fix compile/test failures from t1.log; commit "[FEATURE,TEST,DOC] ConsensusID".
-2. Oracle ../oracle/I1-consensusid/ on ibminode06: run TOPP ConsensusID 1/4/5/6 twice; label host/build.
-3. Scores.h; IDScoreSwitcherAlgorithm; IDMergerAlgorithm; ConsensusMapMerger; IDDecoyProbability; PeptideProteinResolution.
+1. IDMergerAlgorithm -> src/analysis/id/id_merger.rs (params struct IDMergerParameters; insertion-order protein hits instead of
+   unordered_set order); class test uses newIDMergerTest1/2.idXML (core data dir).
+2. IDScoreGetterSetter, ConsensusMapMerger, IDDecoyProbability, PeptideProteinResolution.
+3. Report + ledger at the end; clippy/doc/MSRV/ci sweep.
