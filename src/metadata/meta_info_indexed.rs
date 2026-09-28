@@ -3,7 +3,7 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! The index-keyed half of `MetaInfo` and `MetaInfoInterface`, over a
-//! caller-owned [`MetaInfoRegistry`].
+//! caller-owned [`MetaInfoRegistry`](crate::metadata::meta_info_registry::MetaInfoRegistry).
 //!
 //! Completes the ports of `src/openms/include/OpenMS/METADATA/MetaInfo.h` and
 //! `src/openms/include/OpenMS/METADATA/MetaInfoInterface.h` (core SDK
@@ -16,7 +16,7 @@
 //! every name registered after the thirteen reserved ones. This crate stores
 //! [`MetaInfo`] by name (`BTreeMap<String, MetaValue>`, name order) and owns no
 //! global registry, so the index-keyed members are provided by
-//! [`IndexedMetaInfo`], implemented for `MetaInfo`, taking the registry as an
+//! [`IndexedMetaInfo`](crate::metadata::meta_info_indexed::IndexedMetaInfo), implemented for `MetaInfo`, taking the registry as an
 //! argument. `MetaInfoInterface` is composition — every record's `metadata`
 //! field — so its `UInt` overloads (`setMetaValue`, `getMetaValue`,
 //! `metaValueExists`, `removeMetaValue`, `getKeys`) are the same methods called
@@ -64,7 +64,7 @@ pub trait IndexedMetaInfo {
     /// # Errors
     ///
     /// [`Error::InvalidRange`] when the registry has no index left
-    /// ([`MetaInfoRegistry::register_name`]); nothing is stored then.
+    /// ([`MetaInfoRegistry::register_name`](crate::metadata::meta_info_registry::MetaInfoRegistry::register_name)); nothing is stored then.
     ///
     /// [`keys_in_index_order`]: IndexedMetaInfo::keys_in_index_order
     fn set_value_registered(
@@ -120,7 +120,7 @@ pub trait IndexedMetaInfo {
     ///
     /// # Errors
     ///
-    /// As [`IndexedMetaInfo::keys_as_indices`], for a stored name that is not
+    /// As [`IndexedMetaInfo::keys_as_indices`](crate::metadata::meta_info_indexed::IndexedMetaInfo::keys_as_indices), for a stored name that is not
     /// registered.
     fn keys_in_index_order(&self, registry: &MetaInfoRegistry) -> Result<Vec<String>>;
 }

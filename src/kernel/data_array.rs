@@ -87,7 +87,7 @@ impl<T: PartialOrd> DataArray<T> {
     ///
     /// # Errors
     ///
-    /// As [`MetaInfoDescription::source_lt`].
+    /// As [`MetaInfoDescription::source_lt`](crate::metadata::meta_info_description::MetaInfoDescription::source_lt).
     pub fn source_lt(&self, rhs: &Self, registry: &MetaInfoRegistry) -> Result<bool> {
         let (lhs_description, rhs_description) = (self.description_view(), rhs.description_view());
         if lhs_description != rhs_description {

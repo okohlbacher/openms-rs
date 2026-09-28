@@ -33,7 +33,7 @@
 //!
 //! The source's C++ class holds only static functions, so it becomes this
 //! module of free functions. Its regular expressions are Boost's; they run here
-//! through [`BoostRegex`], whose
+//! through [`BoostRegex`](crate::concept::boost_regex::BoostRegex), whose
 //! [`tokens`](crate::concept::boost_regex::BoostRegex::tokens) is
 //! `boost::sregex_token_iterator`, so "use the last matching sub-group" means
 //! exactly what it means in the source. `\d` is ASCII there, as in Boost's C
@@ -150,7 +150,7 @@ pub fn is_native_id(id: &str) -> bool {
 /// - anything else, including an empty string, `sample=` (WIFF) and a plain
 ///   number, gives `(?<GROUP>\d+)`.
 ///
-/// The returned text is Boost syntax, and [`BoostRegex::new`] accepts it.
+/// The returned text is Boost syntax, and [`BoostRegex::new`](crate::concept::boost_regex::BoostRegex::new) accepts it.
 pub fn regex_from_native_id(native_id: &str) -> &'static str {
     if ["scan=", "controllerType=", "function=", "frame="]
         .iter()
@@ -189,7 +189,7 @@ pub fn regex_from_native_id(native_id: &str) -> &'static str {
 /// [`Error::InvalidValue`] where the source throws `Exception::ParseError`
 /// ("Could not extract scan number"): no match, or a last group that does not
 /// convert. Also [`Error::InvalidValue`] when a search exceeds the regular
-/// expression's work budget (see [`BoostRegex::tokens`]).
+/// expression's work budget (see [`BoostRegex::tokens`](crate::concept::boost_regex::BoostRegex::tokens)).
 pub fn extract_scan_number_with(native_id: &str, scan_regexp: &BoostRegex) -> Result<i32> {
     match try_extract_scan_number_with(native_id, scan_regexp)? {
         Some(scan) => Ok(scan),

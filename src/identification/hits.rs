@@ -22,7 +22,7 @@
 //! (an `AASequence`, a `ResidueModification`), the sequence's canonical text or
 //! the modification's position stands in: equal records still hash equally.
 //! The records hold floating values and are therefore not `Eq`, so a hash-keyed
-//! container of whole hits needs a key type; [`SequenceChargeKey`] is the one
+//! container of whole hits needs a key type; [`SequenceChargeKey`](crate::identification::hits::SequenceChargeKey) is the one
 //! the source itself provides.
 
 use std::fmt;

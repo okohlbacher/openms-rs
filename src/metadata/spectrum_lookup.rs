@@ -9,7 +9,7 @@
 //! `src/openms/source/METADATA/SpectrumLookup.cpp` (core SDK `bc9cc12`). See
 //! `docs/SPECTRUM_LOOKUP_SUPPORT.md`.
 //!
-//! [`SpectrumLookup`] indexes a slice of spectra (for example
+//! [`SpectrumLookup`](crate::metadata::spectrum_lookup::SpectrumLookup) indexes a slice of spectra (for example
 //! [`MSExperiment::spectra`](crate::kernel::MSExperiment::spectra)) and answers
 //! with the position of the spectrum that matches.
 //!
@@ -27,8 +27,8 @@
 //! For example, if a spectrum reference looks like `scan=123`, where 123 is the
 //! scan number, the expression `scan=(?<SCAN>\d+)` extracts that number and
 //! allows look-up of the corresponding spectrum. Formats are registered with
-//! [`SpectrumLookup::add_reference_format`]; several can be added and are
-//! tried in order by [`SpectrumLookup::find_by_reference`].
+//! [`SpectrumLookup::add_reference_format`](crate::metadata::spectrum_lookup::SpectrumLookup::add_reference_format); several can be added and are
+//! tried in order by [`SpectrumLookup::find_by_reference`](crate::metadata::spectrum_lookup::SpectrumLookup::find_by_reference).
 //!
 //! For parsing native IDs without a lookup, use
 //! [`crate::metadata::spectrum_native_id_parser`] directly.
@@ -71,7 +71,7 @@ pub const DEFAULT_SCAN_REGEXP: &str = r"=(?<SCAN>\d+)$";
 
 /// The named groups a reference format may use (`SpectrumLookup::regexp_names_`,
 /// `"INDEX0 INDEX1 SCAN ID RT"`), in the order
-/// [`SpectrumLookup::find_by_reference`] consults them.
+/// [`SpectrumLookup::find_by_reference`](crate::metadata::spectrum_lookup::SpectrumLookup::find_by_reference) consults them.
 pub const REGEXP_NAMES: [&str; 5] = ["INDEX0", "INDEX1", "SCAN", "ID", "RT"];
 
 /// The source's default retention-time tolerance, `0.01`.
@@ -87,7 +87,7 @@ pub const DEFAULT_RT_TOLERANCE: f64 = 0.01;
 pub struct SpectrumLookup {
     /// Possible formats of spectrum references, as regular expressions, tried
     /// in order (`reference_formats`). Add to it with
-    /// [`SpectrumLookup::add_reference_format`], which checks the named groups;
+    /// [`SpectrumLookup::add_reference_format`](crate::metadata::spectrum_lookup::SpectrumLookup::add_reference_format), which checks the named groups;
     /// the field is public as in the source.
     pub reference_formats: Vec<BoostRegex>,
     /// Tolerance for look-up by retention time, in the unit of the spectra's

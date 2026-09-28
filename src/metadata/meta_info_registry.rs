@@ -8,9 +8,9 @@
 //! `src/openms/source/METADATA/MetaInfoRegistry.cpp` (core SDK `bc9cc12`). See
 //! `docs/META_INFO_REGISTRY_SUPPORT.md`.
 //!
-//! Registering a new name assigns an index of [`FIRST_REGISTERED_INDEX`]
+//! Registering a new name assigns an index of [`FIRST_REGISTERED_INDEX`](crate::metadata::meta_info_registry::FIRST_REGISTERED_INDEX)
 //! (1024) or more, counting up. Indices 1 to 1023 are reserved for fast access
-//! and never change; thirteen of them are taken by [`RESERVED_NAMES`]:
+//! and never change; thirteen of them are taken by [`RESERVED_NAMES`](crate::metadata::meta_info_registry::RESERVED_NAMES):
 //!
 //! | index | name |
 //! |---|---|
@@ -30,7 +30,7 @@
 //!
 //! The source keeps one process-wide registry behind `MetaInfo::registry()`
 //! and serialises every member with `#pragma omp critical`. This crate owns no
-//! mutable global state, so [`MetaInfoRegistry`] is an ordinary value the
+//! mutable global state, so [`MetaInfoRegistry`](crate::metadata::meta_info_registry::MetaInfoRegistry) is an ordinary value the
 //! caller owns; lookups take `&self` and registration takes `&mut self`, and a
 //! registry shared between threads goes behind a `Mutex` or `RwLock`, which is
 //! what the source's critical sections amount to.
@@ -52,12 +52,12 @@ use std::collections::BTreeMap;
 
 use crate::{Error, Result};
 
-/// The first index [`MetaInfoRegistry::register_name`] assigns; indices below
+/// The first index [`MetaInfoRegistry::register_name`](crate::metadata::meta_info_registry::MetaInfoRegistry::register_name) assigns; indices below
 /// it are reserved.
 pub const FIRST_REGISTERED_INDEX: u32 = 1024;
 
 /// The source's "not registered" answer of `getIndex`, `UInt(-1)`.
-/// [`MetaInfoRegistry::index_of`] returns `None` instead, and no name is ever
+/// [`MetaInfoRegistry::index_of`](crate::metadata::meta_info_registry::MetaInfoRegistry::index_of) returns `None` instead, and no name is ever
 /// given this index.
 pub const UNREGISTERED_INDEX: u32 = u32::MAX;
 
@@ -118,8 +118,8 @@ struct Entry {
 /// Registry which assigns unique integer indices to strings
 /// (`MetaInfoRegistry`), with a description and a unit per name.
 ///
-/// [`Default`] is the source's constructor: the [`RESERVED_NAMES`] registered
-/// and the next index [`FIRST_REGISTERED_INDEX`]. `Clone` is the copy
+/// [`Default`] is the source's constructor: the [`RESERVED_NAMES`](crate::metadata::meta_info_registry::RESERVED_NAMES) registered
+/// and the next index [`FIRST_REGISTERED_INDEX`](crate::metadata::meta_info_registry::FIRST_REGISTERED_INDEX). `Clone` is the copy
 /// constructor and assignment operator; equality, which the source does not
 /// define, compares the whole state.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -157,8 +157,8 @@ impl MetaInfoRegistry {
     ///
     /// A name registered before keeps its index, and its stored description
     /// and unit are **not** changed — the two arguments are ignored then, as in
-    /// the source. Use [`MetaInfoRegistry::set_description`] and
-    /// [`MetaInfoRegistry::set_unit`] to change them.
+    /// the source. Use [`MetaInfoRegistry::set_description`](crate::metadata::meta_info_registry::MetaInfoRegistry::set_description) and
+    /// [`MetaInfoRegistry::set_unit`](crate::metadata::meta_info_registry::MetaInfoRegistry::set_unit) to change them.
     ///
     /// # Errors
     ///
@@ -301,7 +301,7 @@ impl MetaInfoRegistry {
     }
 
     /// Whether nothing is registered, which a registry built by [`Default`]
-    /// never is. Native, as [`MetaInfoRegistry::len`].
+    /// never is. Native, as [`MetaInfoRegistry::len`](crate::metadata::meta_info_registry::MetaInfoRegistry::len).
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }

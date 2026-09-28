@@ -12,8 +12,8 @@
 //! An ion-mobility frame annotates every peak through a float data array whose
 //! *name* says it holds ion mobility, and in which unit: a child term of
 //! `MS:1002893 ! ion mobility array`, or one of the vendor `UserParam` names.
-//! [`ImDataArrayUtils::set_im_unit`] writes such a name for a unit and
-//! [`ImDataArrayUtils::im_unit`] reads the unit back. `IMDataConverter` keeps
+//! [`ImDataArrayUtils::set_im_unit`](crate::kernel::im_data_array_utils::ImDataArrayUtils::set_im_unit) writes such a name for a unit and
+//! [`ImDataArrayUtils::im_unit`](crate::kernel::im_data_array_utils::ImDataArrayUtils::im_unit) reads the unit back. `IMDataConverter` keeps
 //! both as compatibility entry points, which
 //! `crate::kernel::im_data_converter::ImDataConverter` forwards here too.
 //!
@@ -28,11 +28,11 @@ use crate::metadata::DriftTimeUnit;
 use crate::{Error, Result};
 
 /// `MS:1002816 ! mean ion mobility array`, the name
-/// [`ImDataArrayUtils::set_im_unit`] writes for milliseconds.
+/// [`ImDataArrayUtils::set_im_unit`](crate::kernel::im_data_array_utils::ImDataArrayUtils::set_im_unit) writes for milliseconds.
 pub const MEAN_ION_MOBILITY_ARRAY: &str = "mean ion mobility array";
 
 /// `MS:1003008 ! raw inverse reduced ion mobility array`, the name
-/// [`ImDataArrayUtils::set_im_unit`] writes for `1/K0` (volt-second per square
+/// [`ImDataArrayUtils::set_im_unit`](crate::kernel::im_data_array_utils::ImDataArrayUtils::set_im_unit) writes for `1/K0` (volt-second per square
 /// centimetre).
 pub const RAW_INVERSE_REDUCED_ION_MOBILITY_ARRAY: &str = "raw inverse reduced ion mobility array";
 
@@ -49,7 +49,7 @@ impl ImDataArrayUtils {
     /// | [`DriftTimeUnit::InverseReducedMobility`] | `raw inverse reduced ion mobility array` (`MS:1003008`) |
     ///
     /// The mapping is not exact — the name cannot say whether the values are
-    /// raw or binned — but it lets [`ImDataArrayUtils::im_unit`] recover the
+    /// raw or binned — but it lets [`ImDataArrayUtils::im_unit`](crate::kernel::im_data_array_utils::ImDataArrayUtils::im_unit) recover the
     /// unit. Only the name changes; the values and the rest of the array are
     /// untouched.
     ///

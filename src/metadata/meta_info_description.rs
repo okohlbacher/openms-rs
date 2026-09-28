@@ -12,12 +12,12 @@
 //! The source class is the base of the three data arrays of
 //! `METADATA/DataArrays.h`; this crate's [`DataArray`](crate::kernel::DataArray)
 //! carries the same three fields inline and reaches the ordering through
-//! [`DescriptionView`]. [`MetaInfoDescription`] is the standalone value.
+//! [`DescriptionView`](crate::metadata::meta_info_description::DescriptionView). [`MetaInfoDescription`](crate::metadata::meta_info_description::MetaInfoDescription) is the standalone value.
 //!
 //! # Ordering
 //!
 //! The source's `operator<` is not the order its `operator==` implies, and
-//! this port keeps it exactly ([`MetaInfoDescription::source_lt`]):
+//! this port keeps it exactly ([`MetaInfoDescription::source_lt`](crate::metadata::meta_info_description::MetaInfoDescription::source_lt)):
 //!
 //! 1. fewer data-processing entries sort first;
 //! 2. only when the meta values differ: a description **with** meta values
@@ -143,7 +143,7 @@ impl MetaInfoDescription {
 
 /// The three description fields of any type that carries them, borrowed.
 ///
-/// [`MetaInfoDescription::view`] and
+/// [`MetaInfoDescription::view`](crate::metadata::meta_info_description::MetaInfoDescription::view) and
 /// [`DataArray::description_view`](crate::kernel::DataArray::description_view)
 /// produce one.
 #[derive(Clone, Copy, Debug)]
@@ -176,7 +176,7 @@ impl PartialEq for DescriptionView<'_> {
 ///
 /// # Errors
 ///
-/// As [`MetaInfoDescription::source_lt`].
+/// As [`MetaInfoDescription::source_lt`](crate::metadata::meta_info_description::MetaInfoDescription::source_lt).
 pub fn description_lt(
     lhs: DescriptionView<'_>,
     rhs: DescriptionView<'_>,

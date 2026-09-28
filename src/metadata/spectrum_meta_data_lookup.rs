@@ -177,11 +177,11 @@ impl SpectrumMetaDataLookup {
     }
 
     /// Register a spectrum reference format, as
-    /// [`SpectrumLookup::add_reference_format`].
+    /// [`SpectrumLookup::add_reference_format`](crate::metadata::spectrum_lookup::SpectrumLookup::add_reference_format).
     ///
     /// # Errors
     ///
-    /// As [`SpectrumLookup::add_reference_format`].
+    /// As [`SpectrumLookup::add_reference_format`](crate::metadata::spectrum_lookup::SpectrumLookup::add_reference_format).
     pub fn add_reference_format(&mut self, regexp: &str) -> Result<()> {
         self.lookup.add_reference_format(regexp)
     }
@@ -221,7 +221,7 @@ impl SpectrumMetaDataLookup {
     ///
     /// # Errors
     ///
-    /// As [`SpectrumLookup::read_spectra`], which builds the index; nothing is
+    /// As [`SpectrumLookup::read_spectra`](crate::metadata::spectrum_lookup::SpectrumLookup::read_spectra), which builds the index; nothing is
     /// changed on error.
     pub fn read_spectra(
         &mut self,
@@ -348,7 +348,7 @@ impl SpectrumMetaDataLookup {
     /// is written to `meta` and its flag cleared (a native ID group is written
     /// even when empty, and then clears nothing). If any requested flag is
     /// left, the spectrum is looked up as in
-    /// [`SpectrumLookup::find_by_reference`] and `meta` is **replaced** by its
+    /// [`SpectrumLookup::find_by_reference`](crate::metadata::spectrum_lookup::SpectrumLookup::find_by_reference) and `meta` is **replaced** by its
     /// stored meta data, discarding what was extracted, as in the source.
     ///
     /// Numbers convert as `StringUtils::toDouble` (retention times, m/z and
@@ -361,7 +361,7 @@ impl SpectrumMetaDataLookup {
     ///   source's `ConversionError`), when a charge lies outside `i32` (the
     ///   source's conversion is undefined there), or when an MS level is
     ///   negative (the source wraps it to a huge `Size`);
-    /// - the look-up's errors, as [`SpectrumLookup::find_by_reference`]
+    /// - the look-up's errors, as [`SpectrumLookup::find_by_reference`](crate::metadata::spectrum_lookup::SpectrumLookup::find_by_reference)
     ///   (`ElementNotFound` becomes [`Error::InvalidRange`]);
     /// - [`Error::InvalidValue`] when a search exceeds its work budget.
     pub fn spectrum_meta_data_from_reference(
@@ -453,7 +453,7 @@ impl SpectrumMetaDataLookup {
     ///
     /// # Errors
     ///
-    /// As [`SpectrumLookup::read_spectra`] with the default scan expression.
+    /// As [`SpectrumLookup::read_spectra`](crate::metadata::spectrum_lookup::SpectrumLookup::read_spectra) with the default scan expression.
     pub fn add_missing_rts_to_peptide_ids(
         peptides: &mut [PeptideIdentification],
         experiment: &MSExperiment,
@@ -502,7 +502,7 @@ impl SpectrumMetaDataLookup {
     /// [`Error::InvalidRange`] when a spectrum reference names no spectrum:
     /// the source does not catch that `ElementNotFound` here, so it leaves the
     /// function with the identifications before it already annotated, as
-    /// this does. As [`SpectrumLookup::read_spectra`] otherwise, and
+    /// this does. As [`SpectrumLookup::read_spectra`](crate::metadata::spectrum_lookup::SpectrumLookup::read_spectra) otherwise, and
     /// [`Error::InvalidValue`] for a non-finite drift time.
     pub fn add_missing_im_to_peptide_ids(
         peptides: &mut [PeptideIdentification],
@@ -550,7 +550,7 @@ impl SpectrumMetaDataLookup {
     /// # Errors
     ///
     /// As [`FaimsHelper::get_compensation_voltages`] (a NaN voltage) and
-    /// [`SpectrumLookup::read_spectra`]; [`Error::InvalidValue`] for a
+    /// [`SpectrumLookup::read_spectra`](crate::metadata::spectrum_lookup::SpectrumLookup::read_spectra); [`Error::InvalidValue`] for a
     /// non-finite voltage stored as a meta value.
     pub fn add_missing_faims_to_peptide_ids(
         peptides: &mut [PeptideIdentification],
