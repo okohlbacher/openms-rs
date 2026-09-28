@@ -41,6 +41,8 @@ fn orbitrap() -> MSExperiment {
     .unwrap()
 }
 
+// The expected widths are the class test's literals, digit for digit.
+#[allow(clippy::excessive_precision)]
 #[test]
 fn peak_width_estimator() {
     let picker = PeakPickerHiRes {
