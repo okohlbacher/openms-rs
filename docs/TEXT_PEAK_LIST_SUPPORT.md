@@ -106,7 +106,7 @@ spaces. Repeated delimiters create empty fields and are not silently collapsed.
 Trailing whitespace is trimmed. Every `#` line is a header, not a free comment.
 The first three header fields select any order of `SEC`/`MIN`, `MZ`, `INT`,
 case-insensitively. Deprecated `RT`, `RETENTION_TIME`, `MASS-TO-CHARGE`, `IT` and
-`INTENSITY` remain accepted. Additional header fields are ignored. A short or
+`INTENSITY` remain accepted; the source also prints a two-line deprecation warning to `std::cerr` for each (`DTA2DFile.h:157-161`), which this port does not reproduce, as the crate has no global streams. Additional header fields are ignored. A short or
 invalid header returns a checked parse error.
 
 Minutes multiply RT by 60. The source's minutes flag is sticky: after a MIN
