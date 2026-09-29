@@ -1,0 +1,163 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h",
+      "sha256": "24eb77fb2df9710adf42b9fb7aac632291ac63b7aebc3597633c4c334cdfd9a1",
+      "lines": "39-40 the ProgressLogger base"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/CachedMzMLHandler.cpp",
+      "sha256": "3d2c5e08d70f07d02cdfc391a2a5909c9cf5d56f93255d41204e2e1695cee5dc",
+      "lines": "41-57 writeMemdump section; 97-116 readMemdump section; 175-221 createMemdumpIndex section (setProgress index restarts at 0 for chromatograms)"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/GNPSMGFFile.h",
+      "sha256": "8ffcf551c55e4e2f70522b843d8b186d51fac447c5e08f1cabf0ad880496be3a",
+      "lines": "37-39 the DefaultParamHandler and ProgressLogger bases; 59 store"
+    },
+    {
+      "path": "src/openms/source/FORMAT/GNPSMGFFile.cpp",
+      "sha256": "45240c2a2586342b27f1eb6fec24660674910fe8d00375f5bfc4f034acbc60fd",
+      "lines": "268 startProgress, 272 setProgress per feature; no endProgress"
+    }
+  ],
+  "evidence": "Executed Release differential: every backend call (arguments and nesting depth), the outcome and the static depth afterwards for CachedMzMLHandler writeMemdump/readMemdump/createMemdumpIndex (MzMLFile_1.mzML, an empty experiment, a file with the wrong magic number) and GNPSMGFFile::store with the default parameters and with output_type merged_spectra; the written cache dumps and MGF files compared byte for byte.",
+  "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
+  "fixtures": [
+    {
+      "path": "tests/data/f4_progress_release.tsv",
+      "sha256": "b40efed7a22c9af69e46b18f6715eb601b5046bb2b3688c4d9f66519ba47ad43",
+      "origin": "results/oplog_1.tsv of ../oracle/F4-progress, verbatim; oplog_2.tsv of the second run is byte-identical"
+    },
+    {
+      "path": "tests/data/f4_progress/MzMLFile_1.cached",
+      "sha256": "c1b794e55efdfa16ea7b03267aa853a886fea73918dc9b18534661a0d026a003",
+      "origin": "results/out_1/MzMLFile_1.cached of ../oracle/F4-progress, verbatim; the second run's outputs have the same sha256"
+    },
+    {
+      "path": "tests/data/f4_progress/empty.cached",
+      "sha256": "c4a0040963db01ee1ac3783b88c772d63a7383b43617f15ecb9d761f0123452c",
+      "origin": "results/out_1/empty.cached of ../oracle/F4-progress, verbatim; the second run's outputs have the same sha256"
+    },
+    {
+      "path": "tests/data/f4_progress/gnps_most_intense.mgf",
+      "sha256": "501fc085bb210af99e5b5f5d5501a643e1205232d166969e44f1a304c5e768eb",
+      "origin": "results/out_1/gnps_most_intense.mgf of ../oracle/F4-progress, verbatim; the second run's outputs have the same sha256"
+    },
+    {
+      "path": "tests/data/f4_progress/gnps_merged.mgf",
+      "sha256": "8287e83d2a86a4167c3a2b03613bda7e0f06ef8b104cd43a1f777dd71fe59fac",
+      "origin": "results/out_1/gnps_merged.mgf of ../oracle/F4-progress, verbatim; the second run's outputs have the same sha256"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2",
+      "origin": "src/tests/class_tests/openms/data/MzMLFile_1.mzML at bc9cc12, byte-identical"
+    },
+    {
+      "path": "tests/data/gnps_tables/GNPSExport_cons1.consensusXML",
+      "sha256": "3d655c7790643abdd89dfa231c96929d6169db23c3b8151ca4482068a568e824",
+      "origin": "TOPP test input GNPSExport_cons1.consensusXML, byte-identical (see tests/data/gnps_tables_provenance.json)"
+    },
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_mzml1.mzML",
+      "sha256": "46cffbb2474c6693af5eb925d77ea925b8957b090120aacb161f9f654bb037c5",
+      "origin": "TOPP test input, byte-identical (see tests/data/gnps_mgf_provenance.json)"
+    },
+    {
+      "path": "tests/data/gnps_mgf/GNPSExport_mzml2.mzML",
+      "sha256": "10b0a63a45ab800e0a71a7cc2cb4199550ae0227308cb1991651ff708cd1a2d1",
+      "origin": "TOPP test input, byte-identical (see tests/data/gnps_mgf_provenance.json)"
+    }
+  ],
+  "native_implementation": [
+    "src/format/cached_mzml_handler.rs (write_memdump_with_progress, read_memdump_with_progress, create_memdump_index_with_progress)",
+    "src/format/gnps_mgf.rs (store_with_progress, write_with_progress)"
+  ],
+  "native_tests": [
+    "tests/f4_progress.rs"
+  ],
+  "support_document": "docs/CACHED_MZML_SUPPORT.md, docs/GNPS_MGF_FILE_SUPPORT.md",
+  "release_oracle": {
+    "reference_build": "Linux x86_64 Release: the reference behaviour of the port",
+    "install_prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "install_manifest_sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+    "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+    "installed_config_h_sha256": "13c7a065862db9f20eaf89140b8aeefcf68df80beb71dc80ac42c039ca4e8729",
+    "pins": {
+      "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+      "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+      "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+    },
+    "host": "ibminode06 (Ubuntu 24.04.4 LTS, AMD EPYC 7763), work dir /scratch/kohlbach/F4-progress-oracle",
+    "compiler": "conda-forge x86_64-conda-linux-gnu-g++ 14.4.0 from the install's deps/, -O2 -std=c++20 -rdynamic, -lOpenMS with rpath to the install",
+    "driver_sha256": "9a963a0349c97df313bba29266bb6a4623b45ef07b5c86e8a605bfe351abdd34",
+    "driver_binary_sha256": "842cf9de581610b121df49ca26fcf4f806b5f571ba612679c8bd19283e3b7d01",
+    "runs": "two, 2026-09-28, both rc=0, op logs and outputs byte-identical",
+    "method": "Each case runs on a fresh object with setLogType(GUI) and make_gui_progress_logger replaced by a factory for a recording backend; time() is replaced so every call is a new second and the whole-second throttle never suppresses a set."
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/F4-progress/driver.cpp",
+      "sha256": "9a963a0349c97df313bba29266bb6a4623b45ef07b5c86e8a605bfe351abdd34",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "executed driver source"
+    },
+    {
+      "path": "../oracle/F4-progress/remote_run.sh",
+      "sha256": "860b7a847c0de967a1f96f4cc8e048c2b66c9b9c9cae5c4a9e299a82740f91fa",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "node build/run script"
+    },
+    {
+      "path": "../oracle/F4-progress/run.sh",
+      "sha256": "1b9d8e040c12b9efa4192b65ead2612fcc221c6375a6cb9e4fd74f1b1c87b9da",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "Mac-side stage/launch/fetch script"
+    },
+    {
+      "path": "../oracle/F4-progress/results/build_info.txt",
+      "sha256": "bfd496225db35cca3827814b3226cf7932c8dc3f1fdda6d11f5e91873d643765",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "host, compiler and install hashes"
+    },
+    {
+      "path": "../oracle/F4-progress/results/oplog_1.tsv",
+      "sha256": "b40efed7a22c9af69e46b18f6715eb601b5046bb2b3688c4d9f66519ba47ad43",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "first run's op log"
+    },
+    {
+      "path": "../oracle/F4-progress/results/oplog_2.tsv",
+      "sha256": "b40efed7a22c9af69e46b18f6715eb601b5046bb2b3688c4d9f66519ba47ad43",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "second run's op log"
+    },
+    {
+      "path": "../oracle/F4-progress/results/outputs_1.sha256",
+      "sha256": "854b2b5b715f2e78abcc2ed3b6565a0a0eed859bbf7af275b8f2b39eef66e84b",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "first run's output hashes"
+    },
+    {
+      "path": "../oracle/F4-progress/results/outputs_2.sha256",
+      "sha256": "854b2b5b715f2e78abcc2ed3b6565a0a0eed859bbf7af275b8f2b39eef66e84b",
+      "location": "outside this repository",
+      "origin_key": "release_oracle",
+      "role": "second run's output hashes"
+    }
+  ],
+  "external_reference_note": "The Release oracle driver, its scripts and the raw captures live under ../oracle/F4-progress/ so that no C++ is committed here. These sha256 values are the evidence chain from the Release install to the fixtures; they are recorded, not re-verified by the in-repo gate."
+}

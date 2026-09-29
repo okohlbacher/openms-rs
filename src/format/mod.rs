@@ -328,3 +328,36 @@ pub mod xtandem_infile;
 /// X! Tandem XML result files (`XTandemXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod xtandem_xml_file;
+/// Random access to a cached mzML pair, metadata plus binary side-car (`CachedMzML.h`).
+#[cfg(feature = "mzml")]
+pub mod cached_mzml;
+/// Binary on-disk cache of spectra and chromatograms (`HANDLERS/CachedMzMLHandler.h`).
+pub mod cached_mzml_handler;
+/// Chromeleon HPLC text exports into one chromatogram (`ChromeleonFile.h`).
+pub mod chromeleon;
+/// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
+pub mod edta;
+/// FLASHDeconv feature-level output headers (`FLASHDeconvFeatureFile.h`).
+pub mod flash_deconv_feature_file;
+/// FLASHDeconv spectrum-level output headers (`FLASHDeconvSpectrumFile.h`).
+pub mod flash_deconv_spectrum_file;
+/// GNPS FBMN meta-value table writer (`GNPSMetaValueFile.h`).
+pub mod gnps_meta_value;
+/// GNPS FBMN consensus-spectrum MGF writer (`GNPSMGFFile.h`).
+#[cfg(all(feature = "consensusxml", feature = "mzml"))]
+pub mod gnps_mgf;
+/// GNPS FBMN feature-quantification table writer (`GNPSQuantificationFile.h`).
+pub mod gnps_quantification;
+/// IBSpectra export of isobaric consensus maps for isobar (`IBSpectraFile.h`).
+pub mod ibspectra;
+/// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
+pub mod line_reader;
+/// NIST peptide spectral libraries in MSP text: reader and writer (`MSPFile.h`).
+pub mod msp;
+/// Metabolite MSP spectral libraries: reader and writer (`MSPGenericFile.h`).
+pub mod msp_generic;
+/// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).
+#[cfg(feature = "sqmass")]
+pub mod sqmass_file;
+/// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
+pub(crate) mod string_utils;

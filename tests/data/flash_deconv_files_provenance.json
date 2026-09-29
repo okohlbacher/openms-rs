@@ -1,0 +1,47 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/FLASHDeconvSpectrumFile.h",
+      "sha256": "c858adfa545ac6fef15c5b53b02426b66d18ee56af5313003be828cc57682dcf",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/FLASHDeconvSpectrumFile.cpp",
+      "sha256": "75343ad8f94c1308d3ce49413b75f1da48b825a626422fe1ca9e9edfd80a5916",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FLASHDeconvSpectrumFile_test.cpp",
+      "sha256": "6870a9df039d3487b7f6b34abfb447d2e07eca5583ddb4fe9dbcc854435deb54",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/FLASHDeconvFeatureFile.h",
+      "sha256": "552f731d88ff6eabfd655d03e6a34c911568c24ec4f5f6fba17faecd85696867",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/FLASHDeconvFeatureFile.cpp",
+      "sha256": "2a276753e08c5f1300adae99a601cd7daa1bb459b0e58496c59c46128685931c",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FLASHDeconvFeatureFile_test.cpp",
+      "sha256": "379a646c99159d728952df53b9c8394a74a1264829006c882db6d5bc7172b200",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [],
+  "native_implementation": [
+    "src/format/flash_deconv_spectrum_file.rs",
+    "src/format/flash_deconv_feature_file.rs"
+  ],
+  "native_tests": [
+    "tests/flash_deconv_files.rs"
+  ],
+  "support_document": "docs/FLASHDECONV_FILES_SUPPORT.md",
+  "evidence": "Tier 3 source review: the header-writer START_SECTIONs of both class tests reproduced, and each header compared in full with the text transcribed from the source stream statements. Row writers not ported."
+}
