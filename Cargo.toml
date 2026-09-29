@@ -75,7 +75,7 @@ mzml-schema = ["mzml", "xml-schema"]
 # binding, so it stays out of `default` like `mzml-schema` always has.
 xml-schema = ["dep:libxml", "dep:quick-xml", "file-compression"]
 cv-mapping = ["dep:quick-xml", "file-compression"]
-file-compression = ["dep:flate2", "dep:bzip2"]
+file-compression = ["dep:flate2", "dep:bzip2", "dep:zip"]
 sqlite = ["dep:rusqlite"]
 sqmass = ["sqlite", "mzml"]
 parallel = ["dep:rayon"]
@@ -96,6 +96,12 @@ quick-xml = { version = "=0.39.4", optional = true }
 base64 = { version = "=0.22.1", optional = true }
 flate2 = { version = "=1.1.9", optional = true }
 bzip2 = { version = "=0.6.1", optional = true }
+# ZIP containers: FORMAT/ZipIfstream (a single-entry archive read like a gzip
+# or bzip2 file) and FORMAT/ZipArchiveFile, replacing libzip. Only the archive
+# structure is used from this crate: entries are decoded with flate2 and bzip2
+# above and written stored, so no further codec is enabled. 6.0.0 declares
+# rust-version 1.83; see docs/THIRD_PARTY_CRATE_DECISIONS.md.
+zip = { version = "=6.0.0", default-features = false, features = ["deflate-flate2", "bzip2"], optional = true }
 serde_json = { version = "=1.0.150", features = ["float_roundtrip"], optional = true }
 # SQLite-backed formats: SqMass, OSW, OMSFile and the mzML SQLite handlers.
 # `bundled` vendors SQLite so there is no system dependency, at the cost of

@@ -592,9 +592,11 @@ fn all_path_entrypoints_use_shared_magic_and_compression_policy() {
     assert!(mzml::load_size_with_options(&gzip, &filtered(), &limits).is_err());
     let zip = dir.0.join("zip.mzML");
     std::fs::write(&zip, b"PK\x03\x04junk").unwrap();
+    // A ZIP signature is read as an archive (ZipIfstream); these bytes are
+    // not one, which the source reports as Exception::FileNotReadable.
     assert!(matches!(
         mzml::load_size(zip),
-        Err(openms::Error::Unsupported(_))
+        Err(openms::Error::Io(error)) if error.kind() == std::io::ErrorKind::InvalidData
     ));
     assert!(mzml::load_size(dir.0.join("missing")).is_err());
 }

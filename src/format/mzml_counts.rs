@@ -52,7 +52,7 @@ pub fn load_size(path: impl AsRef<Path>) -> Result<MzMLCounts> {
     load_size_with_options(path, &PeakFileOptions::default(), &ReadOptions::default())
 }
 /// Path form of read_size_with_options. A successful early stop does not drain
-/// compressed trailers. ZIP containers remain unsupported by the shared reader.
+/// compressed trailers. A single-file ZIP container is read like a gzip one.
 pub fn load_size_with_options(
     path: impl AsRef<Path>,
     scientific: &PeakFileOptions,

@@ -33,9 +33,23 @@ pub(crate) fn open(path: &Path) -> Result<Box<dyn BufRead>> {
             "compressed input requires the file-compression feature".into(),
         ));
     }
-    if magic.starts_with(b"PK\x03\x04") {
+    // A ZIP archive starts with a local file header, or with the end of
+    // central directory record when it has no entries. The source's
+    // `XMLFile::parse_` dispatches on the two bytes `PK` and
+    // `FileHandler::getTypeByContent` on `PK\3\4`; four bytes keep a text file
+    // that happens to begin with "PK" readable. Either way the archive must
+    // hold exactly one file, which is streamed as `ZipIfstream` does.
+    if magic.starts_with(b"PK\x03\x04") || magic.starts_with(b"PK\x05\x06") {
+        #[cfg(feature = "file-compression")]
+        {
+            drop(reader);
+            return Ok(Box::new(BufReader::new(
+                super::zip_ifstream::ZipIfstream::from_path(path)?,
+            )));
+        }
+        #[cfg(not(feature = "file-compression"))]
         return Err(Error::Unsupported(
-            "ZIP input is not a single scientific stream".into(),
+            "ZIP input requires the file-compression feature".into(),
         ));
     }
     Ok(Box::new(reader))
