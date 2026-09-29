@@ -59,8 +59,10 @@
 //!   caller names the stream with [`ConsoleStream`](crate::concept::colorizer::ConsoleStream).
 
 use std::fmt;
-use std::io::{self, IsTerminal, Write};
+use std::io::{self, Write};
 use std::sync::Mutex;
+
+use super::log_stream::{enable_console_colors, is_console};
 
 /// Text colors and styles a [`Colorizer`] supports: source
 /// `enum class ConsoleColor`.
@@ -189,13 +191,17 @@ impl Colorizer {
     }
 
     /// Whether `stream` is shown on a terminal rather than redirected to a
-    /// file or the null device: source `isTTY`. Only standard output and
-    /// standard error can be terminals; [`ConsoleStream::Other`] is `false`,
-    /// as any other stream is in the source.
+    /// file or the null device: source `isTTY` (`Colorizer.cpp:155-170`). Only
+    /// standard output and standard error can be terminals;
+    /// [`ConsoleStream::Other`] is `false`, as any other stream is in the
+    /// source. On Windows this is the source's `isattyWin`
+    /// (`Colorizer.cpp:87-110`), whether `GetConsoleMode` succeeds, so the pipe
+    /// a MSYS or Cygwin terminal provides is not a terminal; the logging
+    /// module's sinks ask the same test.
     pub fn is_tty(stream: ConsoleStream) -> bool {
         match stream {
-            ConsoleStream::Stdout => io::stdout().is_terminal(),
-            ConsoleStream::Stderr => io::stderr().is_terminal(),
+            ConsoleStream::Stdout => is_console(&io::stdout()),
+            ConsoleStream::Stderr => is_console(&io::stderr()),
             ConsoleStream::Other => false,
         }
     }
@@ -231,7 +237,14 @@ impl Colorizer {
     ) -> io::Result<()> {
         let colored = match stream {
             ConsoleStream::Other => true,
-            _ => Self::is_tty(stream),
+            _ => {
+                // The source's file-local `InitConsole` switched a Windows
+                // console to virtual-terminal mode when libOpenMS was loaded
+                // (`Colorizer.cpp:26-81`); here it happens before the first
+                // write to standard output or error. Elsewhere it does nothing.
+                enable_console_colors();
+                Self::is_tty(stream)
+            }
         };
         self.output(colored, |text| out.write_all(text.as_bytes()))
     }

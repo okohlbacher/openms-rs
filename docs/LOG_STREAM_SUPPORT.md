@@ -213,7 +213,12 @@ is coloured for standard output or standard error, and when a tool executable
 starts. On other platforms it does nothing. The console test behind colouring,
 the source's `Colorizer::isTTY` (`Colorizer.cpp:155-170`), is `isatty` on Unix
 and, on Windows, whether `GetConsoleMode` succeeds, which is false for the pipe
-a MSYS or Cygwin terminal provides; the port asks the same questions.
+a MSYS or Cygwin terminal provides; the port asks the same questions, in one
+function (`is_console`) that the logging sinks, `concept::colorizer::Colorizer::is_tty`
+and the tool executables' console (`src/cli/console.rs`) all call. Until the
+group-A integration the last two asked the standard library's `IsTerminal`,
+which on Windows calls a MSYS or Cygwin pipe a terminal. `Colorizer::write_to`
+also calls `enable_console_colors` before writing to standard output or error.
 
 No test executes the Windows branch. The GitHub Windows runners give a test
 process pipes, not a console, so `GetConsoleMode` fails there and neither the

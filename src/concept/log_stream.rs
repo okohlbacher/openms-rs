@@ -133,12 +133,16 @@ impl LogSink {
 /// descriptor, and on Windows (`isattyWin`, `Colorizer.cpp:87-110`) whether
 /// `GetConsoleMode` succeeds for its handle, which is false for the pipe a MSYS or Cygwin
 /// terminal provides.
+///
+/// The one port of that test: the logging sinks,
+/// [`crate::concept::colorizer::Colorizer::is_tty`] and the tool executables'
+/// console all ask it.
 #[cfg(not(windows))]
-fn is_console(stream: &impl io::IsTerminal) -> bool {
+pub(crate) fn is_console(stream: &impl io::IsTerminal) -> bool {
     stream.is_terminal()
 }
 #[cfg(windows)]
-fn is_console(stream: &impl winapi_util::AsHandleRef) -> bool {
+pub(crate) fn is_console(stream: &impl winapi_util::AsHandleRef) -> bool {
     winapi_util::console::mode(stream).is_ok()
 }
 

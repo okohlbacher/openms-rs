@@ -16,9 +16,10 @@
 //! so the text is the one the source writes when standard error is not a
 //! terminal and `COLUMNS` is unset: no colours and no shaping.
 
+use crate::concept::colorizer::{Colorizer, ConsoleStream};
 use crate::concept::log_stream::LogColor;
 use std::cell::Cell;
-use std::io::{BufRead, IsTerminal, Read, Result as IoResult, Write};
+use std::io::{BufRead, Read, Result as IoResult, Write};
 use std::sync::OnceLock;
 
 /// The width that turns shaping off, the source's
@@ -56,12 +57,12 @@ pub(crate) fn with_process_streams<R>(body: impl FnOnce() -> R) -> R {
 /// Source `InitConsole::~InitConsole` (`Colorizer.cpp:30-40`): `undoAll` on
 /// `cout`, then on `cerr`, each written only to a terminal.
 fn reset_terminals() {
-    if std::io::stdout().is_terminal() {
+    if Colorizer::is_tty(ConsoleStream::Stdout) {
         let mut out = std::io::stdout().lock();
         let _ = out.write_all(b"\x1b[0m");
         let _ = out.flush();
     }
-    if std::io::stderr().is_terminal() {
+    if Colorizer::is_tty(ConsoleStream::Stderr) {
         let _ = std::io::stderr().lock().write_all(b"\x1b[0m");
     }
 }
@@ -74,7 +75,7 @@ fn process_streams() -> bool {
 /// the process's streams and standard error is a terminal, as the source's
 /// `Colorizer::isTTY(std::cerr)`.
 fn error_stream_coloured() -> bool {
-    process_streams() && std::io::stderr().is_terminal()
+    process_streams() && Colorizer::is_tty(ConsoleStream::Stderr)
 }
 
 /// How the usage text is laid out: the console width (at least 10, or
