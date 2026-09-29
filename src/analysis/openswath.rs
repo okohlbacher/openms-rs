@@ -19,3 +19,5 @@ pub mod reaction_monitoring_transition;
 pub mod targeted_experiment;
 /// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
 pub mod targeted_experiment_helper;
+/// `TransitionTSVFile`: read and write OpenSWATH transition lists (TSV/CSV/MRM).
+pub mod transition_tsv_file;
