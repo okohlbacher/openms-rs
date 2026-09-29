@@ -26,6 +26,18 @@ TOPPBase_defs. B8a: FeatureXMLFile. B8b: MathFunctions, PeptideIdentification, U
 DecoyGenerator. B8c: Param.h.
 Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 
+## Findings/fixes so far
+- 36a9c871 collapse B8c list_item_text onto concept::numeric_formatting::ostream_g.
+- 1e1124ac CLI to_int32/to_double -> string_utils (1e-400 now refused like Release).
+- ca214457 ParamXML ZIP test + oracle ../oracle/integ-B-paramxml-zip (ParamXMLFile.h last gap closed -> complete).
+- Complete claims checked OK: TOPPExternalToolBase, INIUpdater, TOPPBase_defs, FeatureXMLFile,
+  MathFunctions, PeptideIdentification, USI, TSG (B6 chem trio), NLargest/ThresholdMower/Normalizer.
+- Ledger: TOPPBase.h + ParamJSONFile.h take B8c's entry (superset of B0's).
+- ZIP (B8a) also touches ledger scopes of ConsensusXMLFile, XMLFile, IdXMLFile, FileHandler,
+  *Handler.h: amend text, status unchanged.
+- Proposed CI: scratchpad/integB/jobs_patch.py, new_lines.tsv, run_lines.sh (slot integ-B).
+- DefaultParamHandler unknown-key warning wording differs from Release (lead decision).
+
 ## Next step
-1. Wait for check1; fix semantic merge breaks.
-2. Start sweep integ-B-sweep; attack complete claims meanwhile.
+1. Poll sweep1 (slot integ-B-sweep) and new_lines1.out; fix failures.
+2. Re-sweep after fixes; write INTEG-B.json + INTEG-B.md.
