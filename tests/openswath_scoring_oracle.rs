@@ -83,7 +83,7 @@ fn oracle() -> BTreeMap<String, String> {
 ///   `dotprodScoring`/`manhattanScoring`, likewise Eigen: the prescore
 ///   (`prescore*`, `with_iso*`, `*dotprod_score_dia`, `*manhatt_score_dia`) and
 ///   library (`lib.dot`, `lib.man`) scores;
-/// - `by2.*`, fragment m/z at charge 2 from the chemistry port's
+/// - `by2.*` and `theor1.*`, fragment m/z from the chemistry port's
 ///   `TheoreticalSpectrumGenerator`, which adds the protons after the residues
 ///   where the source starts from `PROTON_MASS_U * charge` and adds residues
 ///   (`TheoreticalSpectrumGenerator.cpp:724-794`); outside this port's scope and
@@ -92,9 +92,11 @@ fn reordered(key: &str) -> bool {
     key.contains("shape")
         || key.contains("dotprod_score_dia")
         || key.contains("manhatt_score_dia")
-        || ["prescore", "with_iso", "lib.dot", "lib.man", "by2."]
-            .iter()
-            .any(|p| key.starts_with(p))
+        || [
+            "prescore", "with_iso", "lib.dot", "lib.man", "by2.", "theor1.",
+        ]
+        .iter()
+        .any(|p| key.starts_with(p))
 }
 
 fn compare(port: &Rec, prefix: &str) {
