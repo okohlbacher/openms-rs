@@ -144,8 +144,10 @@ and precursor scores need it.
 - `alignToGrid_`'s maximum index is taken from the next profile point after
   each step, as in the source.
 - The two `fetchSpectrumSwath` forms differ as in the source: the returning
-  single-map form with resampling returns one (possibly empty) merged spectrum
-  even when nothing was fetched; the out-parameter form returns nothing.
+  single-map form with resampling returns one merged spectrum even when
+  nothing was fetched (an empty spectrum; the source's `addUpSpectra` indexes
+  the empty vector there, which is undefined behaviour); the out-parameter form
+  returns nothing.
 
 ## Native differences
 

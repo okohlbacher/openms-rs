@@ -771,8 +771,10 @@ impl OpenSwathScoring {
     /// [`SpectrumAdditionMethod::Addition`] they are returned as they are and
     /// merged downstream by the scores; with
     /// [`SpectrumAdditionMethod::Resample`] one merged spectrum is returned,
-    /// even when nothing was fetched (the merge of no spectra is an empty
-    /// spectrum). `im_range` is used only for resampling, to drift-filter.
+    /// even when nothing was fetched: the merge of no spectra is an empty
+    /// spectrum here, where the source's `addUpSpectra` indexes the empty
+    /// vector (undefined behaviour). `im_range` is used only for resampling, to
+    /// drift-filter.
     ///
     /// # Errors
     ///
