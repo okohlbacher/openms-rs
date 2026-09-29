@@ -32,9 +32,15 @@ pub mod feature_grouping_algorithm_qt;
 /// Unlabeled feature grouping by stepwise pairing (source
 /// `FeatureGroupingAlgorithmUnlabeled.h`).
 pub mod feature_grouping_algorithm_unlabeled;
+/// Matching MS2 spectra to features by precursor position (source
+/// `FeatureMapping.h`).
+pub mod feature_mapping;
 /// A feature as QT feature grouping stores it (source
 /// `DATASTRUCTURES/GridFeature.h`).
 pub mod grid_feature;
+/// Features of several maps in one (RT, m/z) kd-tree (source
+/// `ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h` and `KDTreeFeatureNode.h`).
+pub mod kd_tree_feature_maps;
 /// Pair finding for isotope-labeled features within one map (source
 /// `LabeledPairFinder.h`).
 pub mod labeled_pair_finder;
