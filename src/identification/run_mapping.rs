@@ -51,9 +51,13 @@ impl IdentifierMSRunMapper {
         for run in runs {
             if next.reverse.contains_key(&run.primary_ms_run_paths) {
                 *self = next;
-                return Err(bad(
-                    "multiple protein identifications have the same MS run path list",
-                ));
+                // The source's Exception::InvalidValue message, with the
+                // offending path list joined by ',' as its value.
+                return Err(bad(&format!(
+                    "the value '{}' was used but is not valid; Multiple protein \
+                     identifications with the same ms-run-path. Check input!",
+                    run.primary_ms_run_paths.join(",")
+                )));
             }
             next.reverse
                 .insert(run.primary_ms_run_paths.clone(), run.identifier.clone());

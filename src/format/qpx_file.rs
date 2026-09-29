@@ -60,7 +60,7 @@
 
 use crate::analysis::scores::{ScoreType, find_peptide_score};
 use crate::chemistry::proforma::{ConversionPolicy, Peptidoform, WriteMode};
-use crate::chemistry::{AASequence, ModificationsDB, SequenceModification};
+use crate::chemistry::{AASequence, ModificationsDB, PeptideFragmentType, SequenceModification};
 use crate::concept::constants::user_param::{FRAGMENT_ANNOTATION_USERPARAM, RANK};
 use crate::concept::fuzzy_string_comparator::format_g;
 use crate::concept::parallel::{Threads, map_collect};
@@ -199,10 +199,13 @@ fn require_unique_run_identifiers(proteins: &[ProteinIdentification]) -> Result<
     let mut seen: HashSet<&str> = HashSet::with_capacity(proteins.len());
     for run in proteins {
         if !seen.insert(run.identifier.as_str()) {
+            // The source's Exception::InvalidValue message, with the
+            // identifier as its value.
             return Err(Error::InvalidValue(format!(
-                "QPXFile: several identification runs share the identifier '{}'. Their MS run \
-                 paths cannot be told apart, so a PSM could be attributed to the wrong run file.",
-                run.identifier
+                "the value '{id}' was used but is not valid; QPXFile: several identification \
+                 runs share the identifier '{id}'. Their MS run paths cannot be told apart, so a \
+                 PSM could be attributed to the wrong run file.",
+                id = run.identifier
             )));
         }
     }
@@ -294,6 +297,17 @@ struct ModificationEntry {
     positions: Vec<Position>,
 }
 
+/// The name a modification is grouped and written under: the source's
+/// `getModificationName()`, which is the modification's id. A mass tag the
+/// sequence parser could not resolve (`M[+123.456]`) is a modification the
+/// source creates with only a full id, so its name is empty (measured).
+fn modification_name(modification: &SequenceModification) -> String {
+    match modification {
+        SequenceModification::Known(known) => known.name().to_owned(),
+        SequenceModification::MassTag(_) => String::new(),
+    }
+}
+
 fn unimod_accession(modification: &SequenceModification) -> Option<String> {
     modification
         .record_id()
@@ -316,14 +330,14 @@ fn modification_entries(sequence: &AASequence) -> Result<Vec<ModificationEntry>>
         // The source assigns rather than inserts here; the N-terminus is
         // always the first entry, so the two agree.
         entries.insert(
-            modification.name().to_owned(),
+            modification_name(modification),
             (unimod_accession(modification), vec![(0, None)]),
         );
     }
     for (index, residue) in sequence.as_str().chars().enumerate() {
         if let Some(modification) = sequence.residue_modification(index)? {
             entries
-                .entry(modification.name().to_owned())
+                .entry(modification_name(modification))
                 .or_insert_with(|| (unimod_accession(modification), Vec::new()))
                 .1
                 .push((position(index + 1)?, Some(residue)));
@@ -332,7 +346,7 @@ fn modification_entries(sequence: &AASequence) -> Result<Vec<ModificationEntry>>
     if let Some(modification) = sequence.c_terminal_modification() {
         let at = position(sequence.len() + 1)?;
         entries
-            .entry(modification.name().to_owned())
+            .entry(modification_name(modification))
             .or_insert_with(|| (unimod_accession(modification), Vec::new()))
             .1
             .push((at, None));
@@ -345,6 +359,19 @@ fn modification_entries(sequence: &AASequence) -> Result<Vec<ModificationEntry>>
             positions,
         })
         .collect())
+}
+
+/// The m/z of a sequence at a non-zero charge, as `AASequence::getMZ(charge)`
+/// computes it: the full ion's monoisotopic mass summed in the source's order
+/// (charge protons, terminal modifications, residues, then water), divided by
+/// the charge; 0 for an empty sequence, whose mass the source reports as 0.
+///
+/// The last bits can still differ from the source's: the sequence port sums
+/// a modified residue as its internal formula's mass plus the modification's,
+/// the source as the full residue's formula mass minus water (measured: 2 ULP
+/// on `PEM(Oxidation)TIDER` at charge 2, see `docs/QPX_SUPPORT.md`).
+fn sequence_mz(sequence: &AASequence, charge: i32) -> Result<f64> {
+    Ok(sequence.mono_mass_for(PeptideFragmentType::Full, charge)? / f64::from(charge))
 }
 
 /// The ProForma canonical text of a sequence (`ProForma::toString(
@@ -363,13 +390,28 @@ fn numeric(value: &MetaValue, key: &str) -> Result<f64> {
     match value.data() {
         MetaValueData::Integer(number) => Ok(*number as f64),
         MetaValueData::Float(number) => Ok(*number),
-        MetaValueData::Empty => Err(Error::InvalidValue(format!(
-            "QPXFile: could not convert the empty metadata value '{key}' to double"
-        ))),
+        // The source's Exception::ConversionError message.
+        MetaValueData::Empty => Err(Error::InvalidValue(
+            "Could not convert DataValue of type 'Empty' to double".into(),
+        )),
         _ => Err(Error::InvalidValue(format!(
-            "QPXFile: metadata value '{key}' ({}) is not numeric",
+            "QPXFile: metadata value '{key}' of type '{}' and value '{}' is not numeric",
+            data_type_name(value),
             data_value_text(value)
         ))),
+    }
+}
+
+/// The source's `DataValue::NamesOfDataType` entry of a value's type.
+fn data_type_name(value: &MetaValue) -> &'static str {
+    match value.data() {
+        MetaValueData::String(_) => "String",
+        MetaValueData::Integer(_) => "Int",
+        MetaValueData::Float(_) => "Double",
+        MetaValueData::StringList(_) => "StringList",
+        MetaValueData::IntegerList(_) => "IntList",
+        MetaValueData::FloatList(_) => "DoubleList",
+        MetaValueData::Empty => "Empty",
     }
 }
 
@@ -773,7 +815,7 @@ fn build_qpx_psm_table(
             decoys.push(decoy_annotation(hit).unwrap_or(false));
 
             let calc_mz = if charge > 0 {
-                sequence.mz(i32::from(charge))? as f32
+                sequence_mz(sequence, i32::from(charge))? as f32
             } else {
                 0.0
             };
@@ -814,10 +856,13 @@ fn build_qpx_psm_table(
             rts.push(peptide.rt.filter(|rt| !rt.is_nan()).map(|rt| rt as f32));
             mobilities.push(ion_mobility(hit, peptide)?.map(|value| value as f32));
             missed.push(match hit.metadata.get("missed_cleavages") {
+                // The source's Exception::ConversionError message
+                // (`DataValue::operator int`).
                 Some(value) => Some(value.as_i64().map_err(|_| {
                     Error::InvalidValue(format!(
-                        "QPXFile: could not convert non-integer metadata value \
-                             'missed_cleavages' ({}) to int",
+                        "Could not convert non-integer DataValue of type '{}' and value '{}' to \
+                         int",
+                        data_type_name(value),
                         data_value_text(value)
                     ))
                 })? as i16),
@@ -1083,7 +1128,7 @@ impl QpxFile {
                 peps.push(posterior_error_probability(hit, pep_score.as_ref())?);
                 decoys.push(decoy_annotation(hit));
                 calculated.push(if hit.charge > 0 {
-                    Some(sequence.mz(hit.charge)?)
+                    Some(sequence_mz(sequence, hit.charge)?)
                 } else {
                     None
                 });
@@ -1719,7 +1764,7 @@ impl QpxFile {
                 let stored = get_double_value(calculated_col.as_deref(), row, 0.0)?;
                 // A sequence without known chemistry has no m/z to compare;
                 // the source computes one regardless.
-                if let Ok(reconstructed) = hit.sequence.mz(hit.charge) {
+                if let Ok(reconstructed) = sequence_mz(&hit.sequence, hit.charge) {
                     let difference = (reconstructed - stored).abs();
                     if difference > 1e-4 {
                         warnings.push(format!(

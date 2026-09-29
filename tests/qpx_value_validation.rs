@@ -7,9 +7,14 @@
 //! Every section of the upstream class test `QPXValueValidation_test.cpp`
 //! (core `bc9cc12`) is carried over; its tables come from
 //! `QPXFile::exportPSMsToQPXArrow` and `ConsensusMapArrowExport`, so here
-//! they are built column by column with the same key values. The exact
-//! diagnostics beyond the class test are transcribed from
-//! `QPXValueValidation.cpp` (source review).
+//! they are built column by column with the same key values.
+//!
+//! The exact diagnostics are the executed Release build's:
+//! [`diagnostics_match_the_release_build`] checks every case against the
+//! `validate` records of `tests/data/qpx/cpp_release_records.tsv`, which the
+//! oracle driver `F1c-qpx` (Linux x86_64 Release install
+//! `openms4-release-bc9cc12-c19e494-174b576`, ibminode06, run twice) wrote
+//! for the same tables built with Arrow C++.
 #![cfg(feature = "arrow")]
 
 use arrow_array::builder::{
@@ -967,4 +972,288 @@ fn write_table_to_parquet_applies_the_value_contract() {
     let run_file = metadata(&make_psm_table(1), "run_file");
     aio::write_table_to_parquet(&run_file, dir.join("run.parquet"), &config).unwrap();
     std::fs::remove_dir_all(&dir).unwrap();
+}
+
+// ---------------------------------------------------------------------------
+// Differential against the Release build
+// ---------------------------------------------------------------------------
+
+/// The `validate <tag>/...` records: validity and every diagnostic, in order.
+fn release(tag: &str) -> (bool, Vec<String>) {
+    let text = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/qpx/cpp_release_records.tsv"),
+    )
+    .unwrap();
+    let mut valid = None;
+    let mut errors = Vec::new();
+    for line in text.lines() {
+        let mut parts = line.splitn(3, '\t');
+        if parts.next() != Some("validate") {
+            continue;
+        }
+        let key = parts.next().unwrap();
+        let value = parts.next().unwrap_or("").to_owned();
+        let Some(rest) = key.strip_prefix(tag).and_then(|r| r.strip_prefix('/')) else {
+            continue;
+        };
+        if rest == "valid" {
+            valid = Some(value == "true");
+        } else if rest.parse::<usize>().is_ok() {
+            errors.push(value);
+        }
+    }
+    (
+        valid.unwrap_or_else(|| panic!("no record for {tag}")),
+        errors,
+    )
+}
+
+fn assert_release(tag: &str, result: &ValidationResult) {
+    assert_eq!((result.valid, result.errors.clone()), release(tag), "{tag}");
+}
+
+#[test]
+fn diagnostics_match_the_release_build() {
+    let t2 = make_psm_table(2);
+    let schema = QPXPSMSchema::schema();
+    let psm_cases: Vec<(&str, RecordBatch)> = vec![
+        ("psm/valid", t2.clone()),
+        ("psm/empty_table", make_psm_table(0)),
+        (
+            "psm/no_scan",
+            psm_table(&[
+                ("PEPTIDER", 2, "run1", None),
+                ("DFPIANGER", 2, "run1", Some(vec![1001])),
+            ]),
+        ),
+        (
+            "psm/no_run",
+            replace_column(&t2, QPXPSMSchema::RUN_FILE_NAME, strings(&["", "run1"])),
+        ),
+        (
+            "psm/blank_run",
+            replace_column(&t2, QPXPSMSchema::RUN_FILE_NAME, strings(&["   ", "run1"])),
+        ),
+        (
+            "psm/empty_peptidoform",
+            replace_column(&t2, QPXPSMSchema::PEPTIDOFORM, strings(&["PEPTIDER", ""])),
+        ),
+        (
+            "psm/null_scan_component",
+            replace_column(
+                &t2,
+                QPXPSMSchema::SCAN,
+                int32_lists(
+                    &field_of(&schema, QPXPSMSchema::SCAN),
+                    &[Some(vec![Some(1000), None]), Some(vec![Some(1001)])],
+                ),
+            ),
+        ),
+        (
+            "psm/duplicate",
+            psm_table(&[
+                ("PEPTIDER", 2, "run1", Some(vec![1000])),
+                ("PEPTIDER", 2, "run1", Some(vec![1000])),
+            ]),
+        ),
+        (
+            "psm/reordered_scans",
+            replace_column(
+                &psm_table(&[
+                    ("PEPTIDER", 2, "run1", Some(vec![2, 1])),
+                    ("PEPTIDER", 2, "run1", Some(vec![1, 2])),
+                ]),
+                QPXPSMSchema::PSM_ID,
+                Arc::new(Int64Array::from(vec![1, 2])),
+            ),
+        ),
+        (
+            "psm/id_collision",
+            replace_column(
+                &t2,
+                QPXPSMSchema::PSM_ID,
+                Arc::new(Int64Array::from(vec![7, 7])),
+            ),
+        ),
+    ];
+    for (tag, table) in &psm_cases {
+        assert_release(tag, &validate(View::Psm, table));
+    }
+    assert_release("psm/as_pg", &validate(View::ProteinGroup, &t2));
+    let mut validator = QpxValueValidation::new(View::Psm);
+    assert!(validator.validate(&t2).valid);
+    assert_release("psm/second_batch", &validator.validate(&t2));
+
+    let rt1 = 3000.0_f64 as f32;
+    let rt2 = 3000.0001_f64 as f32;
+    let unmapped = feature_table(
+        &[
+            ("", 2, "run1", Some(rt1), 400.0),
+            ("", 2, "run1", Some(rt2), 500.0),
+        ],
+        None,
+    );
+    let same = replace_column(
+        &unmapped,
+        QPXFeatureSchema::OBSERVED_MZ,
+        floats(&[Some(400.0), Some(400.0)]),
+    );
+    let same = replace_column(
+        &same,
+        QPXFeatureSchema::RT,
+        floats(&[Some(3000.0), Some(3000.0)]),
+    );
+    let one = feature_table(&[("", 2, "run1", Some(3000.0), 400.0)], None);
+    let single = [("PEPTIDER", 2, "run1", Some(10.0), 400.0)];
+    let feature_cases: Vec<(&str, RecordBatch)> = vec![
+        ("feature/unmapped", unmapped.clone()),
+        ("feature/same_mz", same.clone()),
+        (
+            "feature/signed_zero",
+            replace_column(
+                &same,
+                QPXFeatureSchema::RT,
+                floats(&[Some(0.0), Some(-0.0)]),
+            ),
+        ),
+        (
+            "feature/null_rt",
+            replace_column(&same, QPXFeatureSchema::RT, floats(&[None, Some(0.0)])),
+        ),
+        (
+            "feature/both_null",
+            replace_column(&same, QPXFeatureSchema::RT, floats(&[None, None])),
+        ),
+        (
+            "feature/nan_rt",
+            replace_column(&one, QPXFeatureSchema::RT, floats(&[Some(f32::NAN)])),
+        ),
+        (
+            "feature/inf_mz",
+            replace_column(
+                &one,
+                QPXFeatureSchema::OBSERVED_MZ,
+                floats(&[Some(f32::INFINITY)]),
+            ),
+        ),
+        (
+            "feature/bad_intensities",
+            feature_table(
+                &single,
+                Some(vec![Some(vec![
+                    Some((Some("LFQ"), Some(1.0))),
+                    Some((Some("LFQ"), Some(f32::NAN))),
+                    Some((Some("light"), Some(2.0))),
+                    Some((Some(" "), Some(3.0))),
+                    None,
+                ])]),
+            ),
+        ),
+        (
+            "feature/tmt",
+            feature_table(
+                &single,
+                Some(vec![Some(vec![
+                    Some((Some("TMT126"), Some(1.0))),
+                    Some((Some("TMT127N"), Some(1.0))),
+                ])]),
+            ),
+        ),
+        (
+            "feature/null_list",
+            feature_table(&single, Some(vec![None])),
+        ),
+    ];
+    for (tag, table) in &feature_cases {
+        assert_release(tag, &validate(View::Feature, table));
+    }
+
+    let two = [
+        pg_row(&["P1"], &["r1"], Some("LFQ"), Some(1.0)),
+        pg_row(&["P2"], &["r1"], Some("LFQ"), Some(1.0)),
+    ];
+    let pg_cases: Vec<(&str, RecordBatch)> = vec![
+        (
+            "pg/good",
+            pg_table(
+                &[
+                    pg_row(&["P1", "P2"], &["r1", "r2"], Some("LFQ"), Some(10.0)),
+                    pg_row(&["P1", "P3"], &["r1"], Some("LFQ"), Some(11.0)),
+                    pg_row(&["P1", "P2"], &["r3"], None, None),
+                ],
+                None,
+            ),
+        ),
+        (
+            "pg/same_group",
+            pg_table(
+                &[
+                    pg_row(&["P2", "P1"], &["r1"], Some("LFQ"), Some(1.0)),
+                    pg_row(&["P1", "P2", "P1"], &["r1"], Some("LFQ"), Some(2.0)),
+                ],
+                None,
+            ),
+        ),
+        (
+            "pg/overlap",
+            pg_table(
+                &[
+                    pg_row(&["P1"], &["r1", "r2"], Some("LFQ"), Some(1.0)),
+                    pg_row(&["P1"], &["r2", "r3"], Some("LFQ"), Some(2.0)),
+                ],
+                None,
+            ),
+        ),
+        (
+            "pg/malformed",
+            pg_table(
+                &[
+                    (Some(vec![]), Some(vec![Some("r1")]), Some("LFQ"), Some(1.0)),
+                    (
+                        Some(vec![Some("P1"), Some(" ")]),
+                        Some(vec![]),
+                        Some("LFQ"),
+                        None,
+                    ),
+                    pg_row(&["P2"], &["r1", "r1"], Some("light"), Some(f32::INFINITY)),
+                    pg_row(&["P3"], &["r1"], Some(""), Some(1.0)),
+                    (Some(vec![Some("P4")]), Some(vec![None]), None, Some(1.0)),
+                ],
+                None,
+            ),
+        ),
+        (
+            "pg/additional_good",
+            pg_table(
+                &two,
+                Some(vec![
+                    Some(vec![(
+                        "LFQ",
+                        vec![("iBAQ", Some(1.0)), ("top3", Some(2.0))],
+                    )]),
+                    None,
+                ]),
+            ),
+        ),
+        (
+            "pg/additional_bad",
+            pg_table(
+                &two,
+                Some(vec![
+                    Some(vec![
+                        (
+                            "TMT126",
+                            vec![("iBAQ", Some(1.0)), ("iBAQ", Some(f32::NAN))],
+                        ),
+                        ("light", vec![(" ", Some(1.0))]),
+                    ]),
+                    Some(vec![("LFQ", vec![]), ("LFQ", vec![])]),
+                ]),
+            ),
+        ),
+    ];
+    for (tag, table) in &pg_cases {
+        assert_release(tag, &validate(View::ProteinGroup, table));
+    }
 }

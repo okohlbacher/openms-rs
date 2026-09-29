@@ -180,6 +180,9 @@ pub mod parquet_filter;
 pub mod protein_identification_arrow_io;
 /// Opaque QPX row identities: BLAKE2b-64 over canonical JSON composites
 /// (`QPXIdentity.h`).
+/// All-or-nothing writing of a QPX collection (`QPXCollectionExport.h`).
+#[cfg(feature = "arrow")]
+pub mod qpx_collection_export;
 /// Peptide-spectrum matches as Arrow tables and QPX psm Parquet files
 /// (`QPXFile.h`).
 #[cfg(feature = "arrow")]
