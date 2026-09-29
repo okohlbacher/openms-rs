@@ -32,6 +32,7 @@
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/MRM_ASSAY_SUPPORT.md).
 //! The source contains no `#pragma omp`; the port is serial.
 //!
+//! [`MRMIonSeries`]: crate::analysis::openswath::mrm_ion_series::MRMIonSeries
 //! [`AASequence`]: crate::chemistry::AASequence
 //! [`EmpiricalFormula`]: crate::chemistry::EmpiricalFormula
 //! [`ReactionMonitoringTransition`]: crate::analysis::openswath::reaction_monitoring_transition::ReactionMonitoringTransition

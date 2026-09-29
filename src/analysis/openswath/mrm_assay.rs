@@ -200,8 +200,10 @@ impl MRMAssay {
             .collect()
     }
 
-    /// [`random_sequence`](Self::random_sequence) from a fresh
-    /// `boost::mt19937(seed)`, as the class test drives it.
+    /// A random sequence of `sequence_size` residues (source
+    /// `getRandomSequence_`) from a fresh `boost::mt19937(seed)`, as the class
+    /// test drives it: each residue is `ANDCEQGHILMFSTWYV[draw % 17]` with the
+    /// source's `[0, 9]` draw, so only the first ten residues occur.
     pub fn random_sequence_with_seed(sequence_size: usize, seed: u32) -> String {
         Self::random_sequence(sequence_size, &mut BoostUniformInt::new(seed))
     }
