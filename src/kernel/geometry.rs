@@ -12,6 +12,8 @@
 //! `docs/ISOTOPE_SOURCE_PRECISION_SUPPORT.md`.
 
 use super::NumericRange;
+use crate::concept::hash_utils::{hash_combine, hash_float, hash_int};
+use crate::data_structures::{DBoundingBox1, DPosition1};
 use crate::{Error, Result};
 
 /// A position in retention time (seconds) and mass-to-charge ratio.
@@ -407,6 +409,59 @@ impl ConvexHull2D {
         }
     }
 
+    /// The per-scan m/z intervals, ascending in RT: source `getMapPoints()`,
+    /// which returns the `HullPointType` map `RT -> DBoundingBox<1>`.
+    ///
+    /// Each entry is a scan's retention time and the one-dimensional box from
+    /// its lowest to its highest m/z. The source map is keyed by the RT, so
+    /// entries are unique and sorted; `f64` is not a map key in Rust, so this
+    /// is a sorted vector of pairs. An outline-only hull (built with
+    /// [`Self::set_hull_points`]) has no map points, as in the source.
+    pub fn map_points(&self) -> Vec<(f64, DBoundingBox1)> {
+        self.scans
+            .iter()
+            .map(|scan| {
+                (
+                    scan.rt,
+                    DBoundingBox1::new(
+                        DPosition1::filled(scan.min_mz),
+                        DPosition1::filled(scan.max_mz),
+                    ),
+                )
+            })
+            .collect()
+    }
+
+    /// The source's `std::hash<ConvexHull2D>` value.
+    ///
+    /// Starting from 0, `hash_combine` folds in `hash_int` of the number of
+    /// map points, then per map point `hash_float` of the RT and the
+    /// `std::hash<DBoundingBox<1>>` of its m/z box
+    /// ([`DBoundingBox1::source_hash64`]); then `hash_int` of the number of
+    /// hull points and, per hull point, `std::hash<DPosition<2>>` (0 folded
+    /// with `hash_float` of RT and of m/z). The hull points are
+    /// [`Self::hull_points`], which the source's `getHullPoints()` also
+    /// computes, and caches, when it hashes a hull built from points. Sizes
+    /// are hashed as 8-byte `size_t`, so the value is the one the source
+    /// computes on a 64-bit little-endian host.
+    pub fn source_hash64(&self) -> u64 {
+        let mut seed = 0;
+        hash_combine(&mut seed, hash_int(self.scans.len() as u64));
+        for (rt, mz) in self.map_points() {
+            hash_combine(&mut seed, hash_float(rt));
+            hash_combine(&mut seed, mz.source_hash64());
+        }
+        let outline = self.hull_points();
+        hash_combine(&mut seed, hash_int(outline.len() as u64));
+        for point in outline {
+            let mut position = 0;
+            hash_combine(&mut position, hash_float(point.rt));
+            hash_combine(&mut position, hash_float(point.mz));
+            hash_combine(&mut seed, position);
+        }
+        seed
+    }
+
     fn require_scan_mode(&self) -> Result<()> {
         if !self.outline.is_empty() {
             Err(Error::Unsupported(
@@ -415,5 +470,13 @@ impl ConvexHull2D {
         } else {
             Ok(())
         }
+    }
+}
+
+impl std::hash::Hash for ConvexHull2D {
+    /// Feeds [`ConvexHull2D::source_hash64`] to the hasher, so equal hulls
+    /// hash alike.
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_u64(self.source_hash64());
     }
 }

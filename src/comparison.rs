@@ -63,6 +63,9 @@
 //! [`SpectrumAligner`] and [`SpectrumAlignmentScore`] both call, so the
 //! parameterised functor and the direct entry point cannot diverge.
 
+use crate::data_structures::matched_iterator::{
+    DaTrait, MatchTrait, MatchedIterator, MzCoordinate, PpmTrait,
+};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, MSSpectrum, Peak1D, Precursor, Result};
 use std::collections::BTreeMap;
@@ -322,8 +325,9 @@ pub(crate) fn matched_alignment(
     target: &MSSpectrum,
     tolerance: Tolerance,
 ) -> Result<Vec<(usize, usize)>> {
-    // This forward traversal deliberately retains MatchedIterator's f32 distance
-    // and tolerance arithmetic, including stopping at equal-distance duplicates.
+    // The traversal is data_structures::matched_iterator, the port of
+    // MatchedIterator with DaTrait or PpmTrait: f32 distance and tolerance
+    // arithmetic, including stopping at equal-distance duplicates.
     let (Tolerance::Absolute(value) | Tolerance::Ppm(value)) = tolerance;
     if !value.is_finite() || value < 0.0 || !(value as f32).is_finite() {
         return Err(bad(
@@ -341,30 +345,30 @@ pub(crate) fn matched_alignment(
     {
         return Err(bad("ppm alignment coordinates exceed upstream f32 range"));
     }
-    let mut pairs = Vec::new();
-    let mut j = 0;
-    for (i, peak) in reference.peaks.iter().enumerate() {
-        let allowed = match tolerance {
-            Tolerance::Absolute(value) => value as f32,
-            Tolerance::Ppm(value) => (value as f32 / 1e6_f32) * peak.mz as f32,
-        };
-        if !allowed.is_finite() {
-            return Err(bad("ppm tolerance window overflow"));
+    let tolerance_f32 = value as f32;
+    Ok(match tolerance {
+        Tolerance::Absolute(_) => {
+            MatchedIterator::<Peak1D, DaTrait>::new(&reference.peaks, &target.peaks, tolerance_f32)
+                .collect()
         }
-        let mut distance = (peak.mz - target.peaks[j].mz).abs() as f32;
-        while j + 1 < target.len() {
-            let next = (peak.mz - target.peaks[j + 1].mz).abs() as f32;
-            if next >= distance {
-                break;
+        Tolerance::Ppm(_) => {
+            if reference.peaks.iter().any(|peak| {
+                !<PpmTrait as MatchTrait<Peak1D>>::allowed_tol(tolerance_f32, peak).is_finite()
+            }) {
+                return Err(bad("ppm tolerance window overflow"));
             }
-            j += 1;
-            distance = next;
+            MatchedIterator::<Peak1D, PpmTrait>::new(&reference.peaks, &target.peaks, tolerance_f32)
+                .collect()
         }
-        if distance <= allowed {
-            pairs.push((i, j));
-        }
+    })
+}
+
+impl MzCoordinate for Peak1D {
+    /// The peak's m/z, source `Peak1D::getMZ()`, for the m/z traits of
+    /// [`MatchedIterator`].
+    fn mz_coordinate(&self) -> f64 {
+        self.mz
     }
-    Ok(pairs)
 }
 
 /// Sparse bin-coordinate convention.

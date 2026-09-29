@@ -78,6 +78,8 @@ sqlite = ["dep:rusqlite"]
 sqmass = ["sqlite", "mzml"]
 parallel = ["dep:rayon"]
 network = ["dep:ureq"]
+# Runtime Unimod XML reader (FORMAT/UnimodXMLFile.h, CHEMISTRY/UnimodXMLDataProvider.h).
+unimod-xml = ["dep:quick-xml"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }

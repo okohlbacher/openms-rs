@@ -44,13 +44,13 @@ FeatureFinderCentroided_1 window against the C2 oracle.
 |---|---|---|
 | `CoarseIsotopePatternGenerator(Size max_isotope = 0, bool round_masses = false)` | `CoarseIsotopePatternGenerator::new(Option<usize>, CoarseMassMode)`, `Default` | `0` is `None`; `Some(0)` and more than `MAX_ISOTOPE_PEAKS` are rejected. Precision starts at `Double`. |
 | `~CoarseIsotopePatternGenerator()` | implicit drop | |
-| `setMaxIsotope` | not ported | construct a new generator; the limit is fixed at construction |
-| `setRoundMasses` | not ported | construct with the wanted `CoarseMassMode` |
+| `setMaxIsotope` | `set_max_peaks(Option<usize>)` | same validation as `new` |
+| `setRoundMasses` | `set_mass_mode(CoarseMassMode)` | |
 | `getMaxIsotope` | `max_peaks` | |
 | `getRoundMasses` | `mass_mode` | `false` = `Approximate`, `true` = `Nominal` |
 | `setIsotopeOverride(const Element*, const IsotopeDistribution&)` | `set_isotope_override(&str, IsotopeDistribution)` | symbol key; validated (see native differences); narrowed to `f32` when read in source precision |
 | `clearIsotopeOverrides` | `clear_isotope_overrides` | |
-| `getIsotopeOverrides` | not ported | no accessor; keys are private atom values |
+| `getIsotopeOverrides` | `isotope_overrides()` | (symbol, distribution) pairs, e.g. `C`, `(13)C` |
 | `run(const EmpiricalFormula&)` | `run` | honours `ProbabilityPrecision` |
 | `estimateFromPeptideWeight` | `estimate_from_peptide_weight` | |
 | `estimateFromPeptideMonoWeight` | `estimate_from_peptide_mono_weight` | |
@@ -64,7 +64,7 @@ FeatureFinderCentroided_1 window against the C2 oracle.
 | `estimateFromMonoWeightAndComp` | `estimate_from_mono_weight_and_comp` | |
 | `estimateFromWeightAndCompAndS(w, S, C, H, N, O, P)` | not a generator method | formula via `AveragineComposition::estimate_average_mass_with_sulfur`, then `run` |
 | `estimateForFragmentFromPeptideWeight` | `estimate_fragment_from_weights(.., PEPTIDE)` | |
-| `estimateForFragmentFromPeptideWeightAndS` | not ported | fixed-sulfur fragment wrapper, deferred in ISOTOPE_SUPPORT.md |
+| `estimateForFragmentFromPeptideWeightAndS` | `estimate_fragment_from_peptide_weight_and_sulfur` | bit-identical to the SDK in source precision (`docs/CHEMISTRY_VALUE_MEMBERS_SUPPORT.md`) |
 | `estimateForFragmentFromRNAWeight` | `estimate_fragment_from_weights(.., RNA)` | |
 | `estimateForFragmentFromDNAWeight` | `estimate_fragment_from_weights(.., DNA)` | |
 | `estimateForFragmentFromWeightAndComp` | `estimate_fragment_from_weights(.., composition)` | |
@@ -85,7 +85,7 @@ FeatureFinderCentroided_1 window against the C2 oracle.
 |---|---|---|
 | `MassAbundance` (`Peak1D`) | `IsotopePeak` | both fields `f64`; source precision stores binary32 values |
 | `ContainerType`, iterator typedefs | `peaks()` slice | |
-| `enum Sorted` | not ported | declared, unused by the implementation |
+| `enum Sorted` | `isotopes::Sorted` | declared, unused by the implementation |
 | `IsotopeDistribution()` | `Default` (`(0, 1)`), `empty()` | |
 | copy and move constructors, destructor, `operator=` | `Clone`, moves | |
 | `set(const ContainerType&)`, `set(ContainerType&&)` | `from_peaks` | validated |
@@ -96,19 +96,23 @@ FeatureFinderCentroided_1 window against the C2 oracle.
 | `trimIntensities` | `trim_intensities` | |
 | `sortByIntensity`, `sortByMass` | `sort_by_probability`, `sort_by_mass` | stable sorts |
 | `renormalize` | `renormalize`, `renormalize_with(ProbabilityPrecision)` | |
-| `merge` | not ported | deferred in ISOTOPE_SUPPORT.md |
+| `merge` | `merge` | the source binning; weights add in `f64` (`docs/CHEMISTRY_VALUE_MEMBERS_SUPPORT.md`) |
 | `trimRight` | `trim_right` | identical, including removal of every peak |
 | `trimLeft` | `trim_left_source` | source; `trim_left` keeps the native all-below removal |
 | `averageMass` | `average_mass` | |
 | `operator==`, `operator!=` | `PartialEq` | |
-| `operator<` | not ported | |
+| `operator<` | `Ord` | size, then the first differing peak by (mass, weight) |
 | `begin`, `end`, `rbegin`, `rend` | `peaks().iter()`, `.rev()` | |
 | `insert(mass, intensity)` | `insert(IsotopePeak)` | |
-| `operator[]` | `peaks()[i]` | read-only; mutation only through validated methods |
-| `sort_`, `transform_` (protected) | not ported | internal helpers |
-| `std::hash<IsotopeDistribution>` | not ported | `f64` fields |
+| `operator[]` | `peaks()[i]`; `set_peak` | mutation validated |
+| `sort_`, `transform_` (protected) | the sorts; `try_for_each_peak_mut` | internal helpers; the mutable iterators are `try_for_each_peak_mut` too |
+| `std::hash<IsotopeDistribution>` | `Hash`; `source_hash64` | the SDK value, intensities narrowed to `float` |
 
 ### `DATASTRUCTURES/DBoundingBox.h` (with `width`/`height` of `DIntervalBase.h`)
+
+This table is the validated `kernel::geometry::BoundingBox2D`. The source template
+itself, with every member below, is `data_structures::dbounding_box::DBoundingBox`
+(`docs/DBOUNDING_BOX_SUPPORT.md`).
 
 | Source member | Rust | Notes |
 |---|---|---|

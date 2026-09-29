@@ -218,6 +218,14 @@ impl RNaseDB {
     pub fn has_enzyme(&self, name: &str) -> bool {
         self.names.contains_key(name)
     }
+    /// Whether `enzyme` is one of this registry's records (by identity):
+    /// source `hasEnzyme(const DigestionEnzymeRNA*)`. A registry built with
+    /// [`Self::from_records`] from the same values holds different records.
+    pub fn has_enzyme_record(&self, enzyme: &DigestionEnzymeRNA) -> bool {
+        self.enzymes
+            .iter()
+            .any(|e| std::ptr::eq(Arc::as_ptr(e), enzyme))
+    }
     pub fn names(&self) -> Vec<&str> {
         self.enzymes.iter().map(|e| e.name()).collect()
     }

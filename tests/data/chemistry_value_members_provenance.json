@@ -1,0 +1,206 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build for the rows of tests/chemistry_members_oracle.rs and the oracle rows of tests/enzymatic_digestion_members.rs and tests/digestion.rs; class-test literals (tier 3) and source-derived values (tier 4) elsewhere",
+ "method": "Two oracle drivers link libOpenMS of the Linux x86_64 Release install and print every compared value: doubles as %.17g and their bits, std::hash values as 16 hex digits. Each was built with x86_64-conda-linux-gnu-g++ 14.4.0 and libOpenMS's core flags (-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp) and run twice in a clean environment on ibminode06; both runs agreed byte for byte.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/EmpiricalFormula.h",
+   "sha256": "9c2a81ef15a7beb3e52c3ba9e1db9b98ae68f27aa3eb5f62cd3a5562f978927d"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EmpiricalFormula.cpp",
+   "sha256": "7ebd85a51d761174faf90068997b2348d6291641d231db0a7f2131cdc3d614ad"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EmpiricalFormula_test.cpp",
+   "sha256": "948dc7774bbc6129106c6e252eee743168ef60ad8d9c948bf78aa4090a52d239"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/Element.h",
+   "sha256": "f16252262e822c5f93c438de3235a23bee6237e23d71de9e39ff3e2b7f708786"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/Element.cpp",
+   "sha256": "feda52cb1ede3fc3823939660ecea3312b218edb85dd468f845ef5c09432ed69"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Element_test.cpp",
+   "sha256": "849dcf9c50f14fd29b6aff68276bef6bc9e53ea60e048dcc782f4efb24758bde"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ElementDB.h",
+   "sha256": "2903d20126658479d7376982c1c8be89ec7dbd2c6bd13d5b759b560128189836"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ElementDB.cpp",
+   "sha256": "16bd77ddf39f9d374a06e70ac0e690358ea855184175a9a6ecedea64ae9b3e58"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ElementDB_test.cpp",
+   "sha256": "93561eff7d59b591bee8a6826d6c701684e5ed0ebf207cbe4f67bda02e610a0c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h",
+   "sha256": "d82891844f6de8a3335cc0cd7a09b46bbe4055af5e25119b3fc4fdab17ea8201"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp",
+   "sha256": "987934145e3cf0d5f5eff97fc580ef2c680e8b3a932d36c8c4855d4ef063bf38"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IsotopeDistribution_test.cpp",
+   "sha256": "214145a80bb77529d479bf9117f8f3b213139f2e11c416a0b0068bb3c2bde975"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h",
+   "sha256": "e13e47c2e04d49813771857043d588a8bc51f73d75afaf38526f86ea9e783b28"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp",
+   "sha256": "0974fabc36a93f741c210d89e940215fa773306b99b5b45309a35cb4b43a2f8c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/CoarseIsotopeDistribution_test.cpp",
+   "sha256": "33731eb0978031e8b45bad0fe533ede51e09c1af9b9db0c96422cd9be8e8f92a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/Ribonucleotide.h",
+   "sha256": "73490e6d33be78469261a2dff83b6014c55f69f53d7c1ee5a3b84a8f3bb75c18"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/Ribonucleotide.cpp",
+   "sha256": "a40433bc08f7394327fa724aa6d48283fc1bd8a9c9f8096be6f4ea1c785826bb"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Ribonucleotide_test.cpp",
+   "sha256": "8cb8c031d2e6a07217233ecf59c608895f6e5be0ba5ab15bdb94a77602d2e4f4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/EnzymaticDigestion.h",
+   "sha256": "ecddf6367faafe9c80170b1d3cb01c937d0d8e8b9adedc081336e0ddfb38709f"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+   "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h",
+   "sha256": "2b89aa4a51ddc169321fd1b24d5cd7a73c3ba0c9db11d8f548a89845e26b471f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ProteaseDB_test.cpp",
+   "sha256": "790ab10c745b6012ed96f68f60039048c657a8fbf825ab3609aacd3d2b320bcb"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RNaseDB_test.cpp",
+   "sha256": "a56a26e79f48854290335e9472f35ba7b0227e1e4668b9402bbef31f66624ea0"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+   "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/Peak1D.h",
+   "sha256": "c012a457f39ccceee9e8636983f3c7143543c57b20975ce50cdf63226c810ed8"
+  }
+ ],
+ "native_implementation": [
+  "src/chemistry/empirical_formula.rs",
+  "src/chemistry/element_db.rs",
+  "src/chemistry/isotopes/distribution_members.rs",
+  "src/chemistry/isotopes/generator_members.rs",
+  "src/chemistry/ribonucleotide.rs",
+  "src/chemistry/enzymatic_digestion.rs",
+  "src/chemistry/digestion.rs",
+  "src/chemistry/rnase.rs"
+ ],
+ "native_tests": [
+  "tests/chemistry_members_oracle.rs",
+  "tests/empirical_formula_members.rs",
+  "tests/element_db.rs",
+  "tests/isotope_distribution_members.rs",
+  "tests/coarse_generator_members.rs",
+  "tests/ribonucleotide_source_forms.rs",
+  "tests/enzymatic_digestion_members.rs",
+  "tests/digestion.rs"
+ ],
+ "support_document": "docs/CHEMISTRY_VALUE_MEMBERS_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/A5a-chem/driver.cpp",
+   "sha256": "939f86c72a993ab6cb4221a3a550d0ed94ceeae55fc7ef97ea5bd94b4ee50664",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-chem/remote_run.sh",
+   "sha256": "ba618cf553cb90943ccbd4b35c187f92837d7cdf038084c65c49fc54aa41e7d2",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-chem/run.sh",
+   "sha256": "859b846902acf7e1e84a55924d9d1dc3af1e5c79a8143d8a6ee03e9d97529164",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-chem/results/records.tsv",
+   "sha256": "8de8db89310d5c776c0b908936d04e8394a338fb817f49f2e4bea50736f59263",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-chem/results/hashes.txt",
+   "sha256": "e4a9d7bf039946201ed244ffb07cfcf0ca921c396f4deb38a546c2ac99eef1da",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-enzymes/driver.cpp",
+   "sha256": "aabf6fcafac8babfba0c529589d3355183923a49c26df5d3a9899cd543237627",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-enzymes/remote_run.sh",
+   "sha256": "cbf1ab4044de1205f221be205aa40abbbe066a8f3cca00e86f54635fb2e2b1a3",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-enzymes/run.sh",
+   "sha256": "4bc33776d862b38c1a2e6fea3c86b771151a510321ec366fdd421078d3579686",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-enzymes/results/records.tsv",
+   "sha256": "be7650be3d6cb9aa613250c2308ed01b4b41a2b954edba3d16c44c7a73659487",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-enzymes/results/hashes.txt",
+   "sha256": "5b8718623f2654b830ab7b538cef285cf715bdd2b2da27e070fd2a651903060d",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  }
+ ],
+ "external_reference_note": "The two oracle drivers and their recorded output live outside this repository under ../oracle/A5a-chem and ../oracle/A5a-enzymes so that no C++ is committed here. The expected values of the tier-1 tests are literals transcribed from results/records.tsv; the sha256 values above are the evidence chain for them. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "execution": {
+  "node": "ibminode06 (Linux 6.8.0-124-generic x86_64)",
+  "cpp_build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release; core bc9cc12, cli c19e494, topp 174b576); libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "environment": "env -i HOME PATH=/usr/bin:/bin OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<prefix>/share/OpenMS/4.0.0",
+  "repeats": "each driver ran twice; results/differ.txt is empty for both"
+ },
+ "native_boundaries": [
+  "Iridium keeps its declared table (CPP-249), so its isotope elements, stream text and hash differ from the SDK and are not compared.",
+  "Negative counts on the binomial branch of calculateTheoreticalIsotopesNumber are refused instead of wrapping to unsigned.",
+  "Multi-element lightest-isotope sums follow the port's entry order; the SDK sums in element address order, compared within four ulps.",
+  "set_source_specificity refuses SPEC_UNKNOWN, SPEC_NOCTERM and SPEC_NONTERM."
+ ],
+ "license": "OpenMS BSD-3-Clause; source attribution retained through this manifest and repository notices."
+}

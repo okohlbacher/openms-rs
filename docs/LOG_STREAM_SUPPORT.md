@@ -143,8 +143,8 @@ February and 30/31-day boundaries of every year through 10000. It passed before
 and after the change. The check is integer arithmetic, so results are the same
 on every machine.
 
-General mutable Colorizer composition and its separate insertion API are outside
-this logging module. Local-time zone interpretation follows the host's
+General mutable Colorizer composition and its separate insertion API are
+`concept::colorizer::Colorizer`, outside this logging module. Local-time zone interpretation follows the host's
 chrono-supported zone facilities.
 
 ## Process exit

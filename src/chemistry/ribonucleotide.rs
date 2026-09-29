@@ -6,6 +6,9 @@
 //! Declared masses are independent fields; formula changes never replace them.
 
 use super::EmpiricalFormula;
+use crate::concept::hash_utils::{
+    fnv1a_hash_bytes, fnv1a_hash_string, hash_char, hash_combine, hash_float, hash_int,
+};
 use crate::{Error, Result};
 use std::cmp::Ordering;
 use std::fmt;
@@ -141,6 +144,78 @@ impl Ribonucleotide {
                 .and_then(|n| bytes.checked_add(n))
         })
         .ok_or_else(|| invalid("ribonucleotide payload size overflows"))
+    }
+}
+
+impl Ribonucleotide {
+    /// The text source `operator<<(std::ostream&, const Ribonucleotide&)`
+    /// writes: `Ribonucleotide '<code>' (<name>, <formula>)`, the formula in
+    /// the source's stream form ([`EmpiricalFormula::source_stream_text`], which
+    /// omits counts of one).
+    ///
+    /// [`std::fmt::Display`] writes the same frame with the formula's native
+    /// round-trip form instead, so `C10H12N5O6P` there reads `C10H12N5O6P1`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use openms::chemistry::ribonucleotide::{Ribonucleotide, RibonucleotideRecord};
+    ///
+    /// let record = RibonucleotideRecord {
+    ///     name: "adenosine".into(),
+    ///     code: "A".into(),
+    ///     formula: "C10H13N5O4".parse().unwrap(),
+    ///     ..RibonucleotideRecord::default()
+    /// };
+    /// let adenosine = Ribonucleotide::from_record(record).unwrap();
+    /// assert_eq!(
+    ///     adenosine.source_stream_text(),
+    ///     "Ribonucleotide 'A' (adenosine, C10H13N5O4)"
+    /// );
+    /// ```
+    pub fn source_stream_text(&self) -> String {
+        format!(
+            "Ribonucleotide '{}' ({}, {})",
+            self.code(),
+            self.name(),
+            self.formula().source_stream_text()
+        )
+    }
+
+    /// The value source `std::hash<Ribonucleotide>` computes.
+    ///
+    /// Starting from a zero seed, [`hash_combine`] folds in, in order, the
+    /// [`fnv1a_hash_string`] of name, code, new code and HTML code, the
+    /// [`EmpiricalFormula::source_hash64`] of the formula and of the base-loss
+    /// formula, [`hash_char`] of the origin, [`hash_float`] of the mono and
+    /// average masses, and [`hash_int`] of the terminal specificity's source
+    /// enum value (`ANYWHERE` 0, `FIVE_PRIME` 1, `THREE_PRIME` 2) as a 4-byte
+    /// `int`.
+    ///
+    /// The source origin is one `char` byte. An origin above U+00FF has no
+    /// single-byte form; its UTF-8 bytes are hashed with [`fnv1a_hash_bytes`]
+    /// instead, which a source record cannot produce.
+    pub fn source_hash64(&self) -> u64 {
+        let mut seed = 0u64;
+        for text in [self.name(), self.code(), self.new_code(), self.html_code()] {
+            hash_combine(&mut seed, fnv1a_hash_string(text));
+        }
+        hash_combine(&mut seed, self.formula().source_hash64());
+        hash_combine(&mut seed, self.baseloss_formula().source_hash64());
+        let origin = match u8::try_from(u32::from(self.origin())) {
+            Ok(byte) => hash_char(byte),
+            Err(_) => fnv1a_hash_bytes(self.origin().encode_utf8(&mut [0; 4]).as_bytes()),
+        };
+        hash_combine(&mut seed, origin);
+        hash_combine(&mut seed, hash_float(self.mono_mass()));
+        hash_combine(&mut seed, hash_float(self.average_mass()));
+        let term: i32 = match self.term_specificity() {
+            RibonucleotideTermSpecificity::Anywhere => 0,
+            RibonucleotideTermSpecificity::FivePrime => 1,
+            RibonucleotideTermSpecificity::ThreePrime => 2,
+        };
+        hash_combine(&mut seed, hash_int(term));
+        seed
     }
 }
 

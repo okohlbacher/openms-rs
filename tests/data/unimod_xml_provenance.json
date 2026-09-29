@@ -1,0 +1,107 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
+ "method": "An oracle driver calls UnimodXMLDataProvider::loadModifications on the installed CHEMISTRY/unimod.xml and custom_mods.xml and prints every record (id, full id, record id, origin, term specificity name, full name, difference masses as %.17g, difference formula, source classification name, neutral losses). Built with x86_64-conda-linux-gnu-g++ 14.4.0 and libOpenMS's core flags, run twice on ibminode06 in a clean environment; both runs identical.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/UnimodXMLDataProvider.h",
+   "sha256": "7b1faf6250bc4d40dce6b55deff2ccf57c0b372754e942cebb04c173f1573b28"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/UnimodXMLDataProvider.cpp",
+   "sha256": "9a69f0237624595b3a6451ee7cd8a77855c88c7de53ba9cc9f79445ffba2cae7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/UnimodXMLFile.h",
+   "sha256": "bb36c067776f6e800620600b465b1bdbdbadb80ea7b3a7e60bf27b10e9eaa84f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/UnimodXMLFile.cpp",
+   "sha256": "af22a83a17fb6af2aa53f86fa219ba26283634581102447905ae0f91f18b07d1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h",
+   "sha256": "0c38c9a801959286330d22b92eead65297fecb981db2e68b74b215221a4621b9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/UnimodXMLHandler.cpp",
+   "sha256": "a3039be959495b5287bdb0048398ccac0f93a4627e7ff4ffe6fa1efba076a317"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ResidueModification.h",
+   "sha256": "c9e87e432f3399782dc5148af1465d021a578468076b4e386a544bfd5359bf0e"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
+   "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/unimod_provider_release.tsv",
+   "sha256": "e396582a3ddca5429846d4609aea9a502e48de57081dacba873919f2a6cdbdfd",
+   "origin": "../oracle/A5a-unimod/results/records.tsv, output of the Release build"
+  }
+ ],
+ "inputs": [
+  {
+   "path": "resources/modifications/unimod.xml",
+   "sha256": "22231d3289f2330895cee8bc119c1f9bc52b0006447b3f28a196e778e4591091",
+   "note": "git blob 27c7c09e2c1be112f8449035804ba1eab4d8ef17, identical to share/OpenMS/CHEMISTRY/unimod.xml at core bc9cc12"
+  },
+  {
+   "path": "resources/modifications/custom_mods.xml",
+   "sha256": "2078bf44aae64075cceb6a90549f20d203684df84ea11c7065293707ec8ba8b3",
+   "note": "git blob b5dac0748ae5905941c21ddddaf3c91f98db0eee, identical to share/OpenMS/CHEMISTRY/custom_mods.xml at core bc9cc12"
+  }
+ ],
+ "native_implementation": [
+  "src/format/unimod_xml.rs",
+  "src/chemistry/modification_classification.rs"
+ ],
+ "native_tests": [
+  "tests/unimod_xml.rs"
+ ],
+ "support_document": "docs/UNIMOD_XML_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/A5a-unimod/driver.cpp",
+   "sha256": "1295df11d935d1388742df58d42c50b461c9d504c7091486eb12db4558ac7772",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-unimod/remote_run.sh",
+   "sha256": "b2594dd71bf57c8b6e9175a15194664981523b8a74785bf50b20e7e0c4b8f80a",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-unimod/run.sh",
+   "sha256": "fb2b8d76dc5840a5e3e4a55c95515a822dcd1830e6bbd65e6d33dab19c3b5912",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-unimod/results/records.tsv",
+   "sha256": "e396582a3ddca5429846d4609aea9a502e48de57081dacba873919f2a6cdbdfd",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/A5a-unimod/results/hashes.txt",
+   "sha256": "afe745ab956b13e45f6570229c1ed30ab433386a28cd348366aba977bfbdeb8c",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  }
+ ],
+ "external_reference_note": "The oracle driver and its build and run scripts live outside this repository under ../oracle/A5a-unimod so that no C++ is committed here; its output is the fixture above (identical sha256). They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
+ "execution": {
+  "node": "ibminode06 (Linux 6.8.0-124-generic x86_64)",
+  "cpp_build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release; core bc9cc12, cli c19e494, topp 174b576)",
+  "environment": "env -i HOME PATH=/usr/bin:/bin OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<prefix>/share/OpenMS/4.0.0",
+  "repeats": "run twice; results/differ.txt empty"
+ },
+ "license": "OpenMS BSD-3-Clause; the fixture is derived from UniMod data (Design Science License, resources/modifications/DESIGN_SCIENCE_LICENSE.txt) and OpenMS custom modifications (BSD-3-Clause)."
+}

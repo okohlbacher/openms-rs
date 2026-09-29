@@ -15,89 +15,21 @@
 //! is the port of the declaration in `FeatureFinderAlgorithmPicked.h`; the
 //! picked feature finder itself uses none of it.
 //!
-//! The typedefs name `DATASTRUCTURES/IsotopeCluster.h` types, which are not
-//! ported on their own; the aliases here spell them out.
+//! The typedefs name `DATASTRUCTURES/IsotopeCluster.h` types, which
+//! `data_structures::isotope_cluster` ports; this module re-exports them.
 //!
 //! See `docs/FEATURE_FINDER_PICKED_SUPPORT.md`.
 
-use std::collections::BTreeSet;
 use std::fmt;
-use std::ops::{Deref, DerefMut};
 use std::panic::Location;
 
 use crate::Error;
 
-/// Index to a peak: the scan index and the peak index within that scan.
-///
-/// Source `FeatureFinderDefs::IndexPair`, a typedef of
-/// `IsotopeCluster::IndexPair`, `std::pair<Size, Size>`. The source comment
-/// calls the two members `UInt`s; they are `Size`.
-pub type IndexPair = (usize, usize);
-
-/// A set of peak indices: source `FeatureFinderDefs::IndexSet`
-/// (`IsotopeCluster::IndexSet`, `std::set<IndexPair>`).
-///
-/// Ordered as the source's `std::set` orders its pairs: by scan index, then by
-/// peak index, without duplicates.
-pub type IndexSet = BTreeSet<IndexPair>;
-
-/// A set of peak indices with a charge estimate: source
-/// `FeatureFinderDefs::ChargedIndexSet` (`IsotopeCluster::ChargedIndexSet`).
-///
-/// The source derives it from [`IndexSet`]; here the set is the field
-/// [`Self::indices`], and `Deref` gives the set's methods to the struct as the
-/// base class does.
-///
-/// The source struct declares no comparison of its own, so `a == b` and `a <
-/// b` reach `std::set`'s operators through the base class and compare the
-/// index sets only, lexicographically; the charge takes no part. The
-/// comparisons here do the same (executed against the Release build:
-/// `../oracle/ffap-complete-fix1/drivers/defs_eq_probe.cpp`, where two sets
-/// with equal indices and charges 1 and 2 compare equal).
-#[derive(Clone, Debug, Default)]
-pub struct ChargedIndexSet {
-    /// The peak indices (the source's base class).
-    pub indices: IndexSet,
-    /// Charge estimate; zero, the default, means "no charge estimate".
-    pub charge: i32,
-}
-
-impl PartialEq for ChargedIndexSet {
-    /// `std::operator==` on the base `std::set`: the indices only.
-    fn eq(&self, other: &Self) -> bool {
-        self.indices == other.indices
-    }
-}
-
-impl Eq for ChargedIndexSet {}
-
-impl PartialOrd for ChargedIndexSet {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for ChargedIndexSet {
-    /// `std::operator<` on the base `std::set`: the indices only, compared
-    /// lexicographically.
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.indices.cmp(&other.indices)
-    }
-}
-
-impl Deref for ChargedIndexSet {
-    type Target = IndexSet;
-
-    fn deref(&self) -> &IndexSet {
-        &self.indices
-    }
-}
-
-impl DerefMut for ChargedIndexSet {
-    fn deref_mut(&mut self) -> &mut IndexSet {
-        &mut self.indices
-    }
-}
+/// Source `FeatureFinderDefs::IndexPair`, `IndexSet` and `ChargedIndexSet`:
+/// typedefs of the `DATASTRUCTURES/IsotopeCluster.h` types, which
+/// `data_structures::isotope_cluster` ports and this module re-exports. The
+/// source comment calls the two `IndexPair` members `UInt`s; they are `Size`.
+pub use crate::data_structures::isotope_cluster::{ChargedIndexSet, IndexPair, IndexSet};
 
 /// Whether a peak is already used in a feature: source
 /// `FeatureFinderDefs::Flag`.

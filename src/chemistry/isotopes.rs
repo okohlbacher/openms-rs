@@ -26,6 +26,10 @@ use super::{Atom, C13C12_MASSDIFF_U, EmpiricalFormula, PROTON_MASS_U, element, p
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
 
+mod distribution_members;
+mod generator_members;
+pub use distribution_members::Sorted;
+
 /// Maximum length of any allocated isotope vector, including gap filling.
 pub const MAX_ISOTOPE_PEAKS: usize = 1_000_000;
 /// Maximum probability products in one coarse run or raw convolution/power call.
@@ -1477,7 +1481,7 @@ fn atom_distribution(atom: Atom) -> IsotopeDistribution {
     IsotopeDistribution { peaks }
 }
 
-fn lightest_mass(formula: &EmpiricalFormula) -> f64 {
+pub(super) fn lightest_mass(formula: &EmpiricalFormula) -> f64 {
     formula.atoms.iter().fold(
         f64::from(formula.charge) * PROTON_MASS_U,
         |mass, (&atom, &count)| mass + f64::from(count) * lightest_isotope_mass(atom),
