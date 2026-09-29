@@ -22,6 +22,11 @@
 //! computations keep the source's evaluation order, and three source defects
 //! that change results are reproduced and documented at the items that carry
 //! them. See `docs/MRM_TRANSITION_GROUP_PICKER_SUPPORT.md`.
+//!
+//! [`MRMTransitionGroupPicker::pick_transition_group`]: crate::analysis::openswath::mrm_transition_group_picker::MRMTransitionGroupPicker::pick_transition_group
+//! [`MRMTransitionGroup`]: crate::kernel::mrm::MRMTransitionGroup
+//! [`PeakPickerChromatogram`]: crate::processing::chromatogram::PeakPickerChromatogram
+//! [`PeakIntegrator`]: crate::analysis::peak_integrator::PeakIntegrator
 
 use crate::analysis::openswath::scoring::{
     compute_and_append_rank, normalized_cross_correlation, ranked_mutual_information,

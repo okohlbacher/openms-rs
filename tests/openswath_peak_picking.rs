@@ -1184,9 +1184,9 @@ fn hand_picked(group: &Group) -> Vec<MSChromatogram> {
             arrays[PeakPickerChromatogram::IDX_ABUNDANCE] =
                 DataArray::new("IntegratedIntensity", vec![1000.0]);
             arrays[PeakPickerChromatogram::IDX_LEFTBORDER] =
-                DataArray::new("leftWidth", vec![1481.840]);
+                DataArray::new("leftWidth", vec![1481.840_f64 as f32]);
             arrays[PeakPickerChromatogram::IDX_RIGHTBORDER] =
-                DataArray::new("rightWidth", vec![1512.290]);
+                DataArray::new("rightWidth", vec![1512.290_f64 as f32]);
             MSChromatogram {
                 native_id: chromatogram.native_id.clone(),
                 peaks: vec![ChromatogramPeak::new(1490.0, 170.0)],
@@ -1197,6 +1197,10 @@ fn hand_picked(group: &Group) -> Vec<MSChromatogram> {
         .collect()
 }
 
+/// Settings and expected `[area 2, apex 2, area 1, apex 1, ratio]` of one
+/// `createMRMFeature` class-test block.
+type CreateCase<'a> = (Vec<(&'a str, ParamValue)>, [f64; 5]);
+
 /// `MRMTransitionGroupPicker_test.cpp:504-634`. The class test spells its
 /// picker keys `PeakPickerChromatogram::method`, which match no parameter; the
 /// chromatogram picker is not used by `createMRMFeature` either way.
@@ -1204,7 +1208,7 @@ fn hand_picked(group: &Group) -> Vec<MSChromatogram> {
 fn group_picker_class_test_create_mrm_feature() {
     let group = transition_group_1();
     // (settings, [area 2, apex 2, area 1, apex 1 (NaN: not asserted), ratio])
-    let cases: [(Vec<(&str, ParamValue)>, [f64; 5]); 4] = [
+    let cases: [CreateCase<'_>; 4] = [
         (
             Vec::new(),
             [535801.503, 157694.0, 61405.95106, 30286.9130513267, 8.72556],
