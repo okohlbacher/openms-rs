@@ -66,3 +66,5 @@ pub mod mrm_scoring;
 pub mod openswath_scores;
 /// Ion mobility scoring of fragment and precursor mobilograms, from `ANALYSIS/OPENSWATH/IonMobilityScoring.h`.
 pub mod ion_mobility_scoring;
+/// The driver calling the chromatographic, library, DIA and ion mobility scores, from `ANALYSIS/OPENSWATH/OpenSwathScoring.h`.
+pub mod openswath_scoring;
