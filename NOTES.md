@@ -43,9 +43,12 @@ Clustering [0,0,0,0,2,0,0,0], PeakWidthEstimator, SplinePackage, SplineInterpola
 Tests: tests/featurefinder_multiplex.rs (no features), tests/featurefinder_multiplex_filtering.rs (mzml), tests/spline_interpolated_peaks.rs.
 Extra headers ported as deps: PROCESSING/MISC/SplinePackage.h, SplineInterpolatedPeaks.h (src/processing/spline/), FEATUREFINDER/PeakWidthEstimator.h.
 
+## Status (3f00f0fc)
+All 12 scope headers + 3 deps ported; class tests pass; TOPP differential 11/11 pass (FuzzyDiff contract), release build on spock.
+Ledger fragment written: .planning/ledger-fragments/wave4/FF2b.json. Provenance: tests/data/featurefinder_multiplex_provenance.json.
+NOTE: scratchpad/sweep/summary.log was STALE from another session; use a fresh log dir.
+
 ## Next step
-1. FeatureFinderMultiplexAlgorithm: needs LinearRegressionWithoutIntercept (not ported; ML/REGRESSION, tiny), PeakIntegrator (src/analysis/peak_integrator.rs),
-   make_peak_position_unique (src/kernel/spectrum_helper.rs), SpectrumType get_type (src/kernel/spectrum_type.rs), ConvexHull2D.
-   C++ read fully (scratchpad/mx/FeatureFinderMultiplexAlgorithm.cpp). Note run(): label_mass_shift_[...] = param (overwrites).
-2. Class test FeatureFinderMultiplexAlgorithm_test: 2 consensus features, H/L ~ 3 +-0.2; tier 1: TOPP retained outputs FeatureFinderMultiplex_{1..11}.
-3. Docs: docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md, provenance tests/data/featurefinder_multiplex_provenance.json, doc coverage, report+ledger.
+1. Wait for CI sweep (scratchpad/logs/sweep.log, log dir scratchpad/sweep); fix anything of ours.
+2. Measure slices: each new test file under --no-default-features --features <list>; MSRV +1.85.0.
+3. Write report .planning/lane-reports/FF2b.md (Bash heredoc); delete NOTES.md in final commit.
