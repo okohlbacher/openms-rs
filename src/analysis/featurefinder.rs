@@ -6,5 +6,8 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// FeatureFinderMultiplex and its building blocks (`FEATUREFINDER/Multiplex*.h`,
+/// `FeatureFinderMultiplexAlgorithm.h`).
 pub mod multiplex;
+/// Peak width estimation from picked peaks (`FEATUREFINDER/PeakWidthEstimator.h`).
 pub mod peak_width_estimator;
