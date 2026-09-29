@@ -1,0 +1,9 @@
+PeakPickerHiRes
+-instance
+2
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_threads.json
+-in
+/x/in.mzML
+-out
+/x/out.mzML

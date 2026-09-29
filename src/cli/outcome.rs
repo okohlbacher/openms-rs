@@ -88,6 +88,19 @@ impl ToolError {
         )
     }
 
+    /// The source's `InvalidParameter` arm (`TOPPBase.cpp:475-480`):
+    /// `Invalid parameter: <what>` and [`ExitCode::IllegalParameters`]. A tool
+    /// that refuses a parameter value where the source returns or throws for
+    /// an illegal parameter says so with this; an [`Error::InvalidValue`] or
+    /// [`Error::InvalidRange`] that escapes a tool body is the source's
+    /// same-named exception and ends as `UNKNOWN_ERROR` (`495-499`).
+    pub fn invalid_parameter(what: impl fmt::Display) -> Self {
+        Self::caught(
+            ExitCode::IllegalParameters,
+            format!("Invalid parameter: {what}"),
+        )
+    }
+
     /// The source's `FileNotFound` arm (`TOPPBase.cpp:436-441`): `Error: File
     /// not found (<what>)` and [`ExitCode::InputFileNotFound`].
     pub fn file_not_found(what: impl fmt::Display) -> Self {

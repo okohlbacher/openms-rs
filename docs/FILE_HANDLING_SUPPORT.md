@@ -27,7 +27,11 @@ conflicting recognized suffixes and explicit format choices.
 `FileHandler::read_experiment` and `write_experiment` dispatch typed streams.
 `load_experiment` uses the filename, then common content signatures when the
 suffix is unknown, and enforces an optional allowed-format list. Supported input
-formats are DTA, DTA2D, MS2, MGF and optional mzML. Output supports DTA, DTA2D,
+formats are DTA, DTA2D, MS2, MGF and, with the `mzml` feature, mzML, mzXML and
+mzData; `load_experiment_with_progress` adds the source's log type,
+`rewrite_source_file` and `compute_hash`, and every mzML load ends with the
+source's SRM conversion ([FILE_HANDLER_SUPPORT.md](FILE_HANDLER_SUPPORT.md)).
+Output supports DTA, DTA2D,
 MS2, MGF and optional mzML. MS2 writing is a native extension; the source registry
 correctly retains the C++ adapter's read-only property. Adapter-specific metadata and scientific limits still
 apply. DTA output requires exactly one spectrum and rejects experiment-level
@@ -43,9 +47,10 @@ The bzip2 dependency uses its pure Rust backend. ZIP containers remain unsupport
 Content recognition reads at most 64 KiB and examines five lines, or up to 512
 for IMS markers. It recognizes common XML and text signatures and replays all
 preview bytes to the real parser. It is a heuristic, not a validator or a complete
-port of every source content-detection rule. Directory probing, other formats,
-identification/transition dispatch, source-file bookkeeping and
-SHA1 helpers remain open. No adapter is substituted for an unsupported format.
+port of every source content-detection rule. Directory probing, other formats
+and identification/transition dispatch remain open; source-file bookkeeping and
+the SHA-1 helper are ported ([FILE_HANDLER_SUPPORT.md](FILE_HANDLER_SUPPORT.md)).
+No adapter is substituted for an unsupported format.
 
 ## Feature and consensus dispatch
 

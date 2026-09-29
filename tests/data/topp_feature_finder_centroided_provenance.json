@@ -420,6 +420,34 @@
    "sha256": "b6bb2d545ecd6ec4cf88ff99df822ec68c0d565e2b1a45fcaa3d4dcd1234008f",
    "origin_key": "b11_oracle_faims",
    "note": "Not a C++ run: it re-implements Plan::new, Plan::feature_box, the stable sort by intensity and the quadtree's add/split/quadrant/query_node in f32 and reads the three C++ Release group fixtures, so the absorption order of the 653.776 Da cluster is derived rather than read off a port run. Its output is results/quadorder.txt (sha256 a0e8be904dd094b08ece991fbb6186e2c035b7700025a8eb6a975b637c54f524)."
+  },
+  {
+   "path": "../oracle/A1-release-rerun/manifest.json",
+   "sha256": "47564af6b2448612643ddf3bf38a5c57dcad2515f9baa5b417ea8a4f126eebb3",
+   "origin_key": "fixtures",
+   "role": "A1 / EVID-01 Release re-run manifest: host and build identity, driver and input hashes, every case's Release exit code and stream/output hashes, the run1/run2 reproduction, and the difference from the macOS Debug runs",
+   "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/linux_release.py",
+   "sha256": "c061bff32180d116cdc0af1e2306f284287be587661cd0bd4ba4a7cf3e4b1bb3",
+   "origin_key": "fixtures",
+   "role": "shim that imports the three original drivers verbatim and rebinds only their location constants to the Release install",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/run.sh",
+   "sha256": "67c193edbb6a152941c1f15b199641ada8844038a87cea1173e14568d689c682",
+   "origin_key": "fixtures",
+   "role": "entry point: stage, fetch, compare",
+   "label": "oracle helper (tier 1 executed differential inputs)"
+  },
+  {
+   "path": "../oracle/A1-release-rerun/divergences.json",
+   "sha256": "5552d1396dca5d3c54e379e15d2fa29bf428a96093a9f9f5df7dcadcea7134b3",
+   "origin_key": "fixtures",
+   "role": "per case, the Release run against the macOS product-SDK run, with diffs",
+   "label": "oracle-generated (tier 1 executed differential), Linux x86_64 Release"
   }
  ],
  "native_implementation": [
@@ -431,5 +459,11 @@
  ],
  "support_document": "docs/TOPP_FEATURE_FINDER_CENTROIDED_SUPPORT.md",
  "upstream_test_definition": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt lines 425-428 (TOPP_FeatureFinderCentroided_1 and its FuzzyDiff comparison) and lines 83-85 (TOPPWRITEINI_<tool>)",
- "determinism": "The wrapper passes ToolContext::thread_policy to the algorithm's seed loop, whose results keep seed order, and every later step is serial. -threads 0, 1, 2, 4 and 8 write byte-identical featureXML, unique ids included, which tests/topp_feature_finder_centroided.rs::the_output_is_byte_identical_at_every_thread_count asserts for the plain input and ::the_faims_output_is_byte_identical_at_every_thread_count for the three-voltage FAIMS input, where the path runs the algorithm once per voltage, draws further unique ids and sums intensities in f32 over a quadtree query order; every other assertion here is exact."
+ "determinism": "The wrapper passes ToolContext::thread_policy to the algorithm's seed loop, whose results keep seed order, and every later step is serial. -threads 0, 1, 2, 4 and 8 write byte-identical featureXML, unique ids included, which tests/topp_feature_finder_centroided.rs::the_output_is_byte_identical_at_every_thread_count asserts for the plain input and ::the_faims_output_is_byte_identical_at_every_thread_count for the three-voltage FAIMS input, where the path runs the algorithm once per voltage, draws further unique ids and sums intensities in f32 over a quadtree query order; every other assertion here is exact.",
+ "release_verification": {
+  "oracle": "../oracle/A1-release-rerun",
+  "build": "C++ Release build at the port's pins (core bc9cc12, cli c19e494, topp 174b576), Linux x86_64, GCC 14.4.0, CMAKE_BUILD_TYPE=Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, run on ibminode06",
+  "why": "the C1 FeatureFinderCentroided cases (../oracle/topp-early-bundle) ran on the macOS arm64 product SDK, a Debug build of core 4fdec46",
+  "result": "every C1 case re-executed twice on the Release build and reproduced. Every exit code and Error: line the tests assert is the Release run's; FFC_FileFilter_44_force and FFC_im_arrays_ms2_only (Debug-only preconditions, exit 8) exit 0 in Release with '0 features found.' and an empty map, as the tests assert; FFC_1_threads_0/1/2/4/8 are byte-identical in Release; every featureXML differs from the Debug one only in the last digits of rt (2.2e-13), score_fit (9.1e-11) and score_correlation (3.1e-12) relative on TOPP_FeatureFinderCentroided_1, with mz, intensity and hulls identical and every FuzzyDiff verdict equal. ../oracle/ffc-wrapper-c5 was not re-run"
+ }
 }

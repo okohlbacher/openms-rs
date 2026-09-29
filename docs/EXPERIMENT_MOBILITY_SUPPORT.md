@@ -85,7 +85,7 @@ Mapped to code from earlier work packages:
 | `template<class Container> void get2DData(Container&) const` | `MSExperiment::get_2d_data() -> Result<Vec<Peak2D>>`, `append_2d_data(&mut Vec<Peak2D>)` (`src/kernel/experiment_2d.rs`). The C++ template is duck-typed on `push_back`/`setRT`/`setMZ`/`setIntensity`; the Rust form fixes the element type to `Peak2D`, which every source instantiation in the SDK uses |
 | `template<class Container> void set2DData(const Container&)` | `MSExperiment::set_2d_data(&[Peak2D]) -> Result<MSExperiment>` |
 | `template<class Container> void set2DData(const Container&, const StringList&)` | `MSExperiment::set_2d_data_rich(&[RichPeak2D], &[String])` |
-| `template<bool add_mass_traces, class Container> void set2DData(const Container&)` | **not ported**: the `add_mass_traces = true` specialization, which expands `num_of_masstraces` / `masstrace_intensity_<i>` meta values into peaks at ¹³C spacing, has no Rust counterpart. See *Deferrals* below |
+| `template<bool add_mass_traces, class Container> void set2DData(const Container&)` | `add_mass_traces = false` is `set_2d_data`. `add_mass_traces = true` is `MSExperiment::set_2d_data_mass_traces(&[F]) -> Result<MSExperiment>` and `set_2d_data_mass_traces_with_limits`, for any `F: Deref<Target = BaseFeature>` (`Feature`, `ConsensusFeature`), in `src/kernel/experiment_2d.rs`: each `num_of_masstraces` / `masstrace_intensity_<i>` pair becomes a peak at `mz + C13C12_MASSDIFF_U / charge * i`. See *Mass-trace import* below |
 | `struct SumIntensityReduction` | the default reduction of `MSExperiment::aggregate` / `extract_xics` (`src/kernel/experiment_aggregation.rs`); the source needs a named functor only for template deduction |
 | `template<class MzReductionFunctionType> aggregate(ranges, ms_level, func)` | `MSExperiment::aggregate_with(regions, ms_level, closure)`, `aggregate_with_limits` |
 | `aggregate(ranges, ms_level)` | `MSExperiment::aggregate(regions, ms_level)` |
@@ -114,7 +114,7 @@ Mapped to code from earlier work packages:
 | `const ExperimentalSettings& getExperimentalSettings() const`, non-const | the public `MSExperiment::settings` field |
 | `void getPrimaryMSRunPath(StringList& toFill) const` | `ExperimentalSettings::primary_ms_run_path` handling in `src/metadata/experimental_settings.rs`, reached through `experiment.settings` |
 | `ConstIterator getPrecursorSpectrum(ConstIterator) const`, `int getPrecursorSpectrum(int) const` | `MSExperiment::precursor_spectrum_index(index) -> Result<Option<usize>>`; `None` replaces both the past-the-end iterator and the `-1` |
-| `ConstIterator getFirstProductSpectrum(ConstIterator) const`, `int getFirstProductSpectrum(int) const` | **not ported**. See *Deferrals* below |
+| `ConstIterator getFirstProductSpectrum(ConstIterator) const`, `int getFirstProductSpectrum(int) const` | `MSExperiment::first_product_spectrum_index(index) -> Option<usize>` (`src/kernel.rs`); `None` replaces both `end()` and `-1`, and every index is accepted, since the `int` overload answers `-1` outside the spectra and `index == len()` is `end()`. The multiple-precursor `OPENMS_LOG_WARN` line goes to the crate's warning log stream |
 | `void swap(MSExperiment& from)` | `std::mem::swap(&mut a, &mut b)` |
 | `void setSpectra(const std::vector<MSSpectrum>&)`, `setSpectra(std::vector<MSSpectrum>&&)` | assign the public `spectra` field (by clone or by move) |
 | `void addSpectrum(const MSSpectrum&)`, `addSpectrum(MSSpectrum&&)` | `experiment.spectra.push(...)` |
@@ -130,7 +130,7 @@ Mapped to code from earlier work packages:
 | `const SpectrumRangeManagerType& spectrumRanges() const` | `MSExperiment::spectrum_range_manager() -> Result<SpectrumRangeManager>` |
 | `const ChromatogramRangeManagerType& chromatogramRanges() const` | `MSExperiment::chromatogram_range_manager() -> Result<RangeManager>` |
 | `const RangeManagerType& combinedRanges() const` | `MSExperiment::combined_range_manager() -> Result<RangeManager>` |
-| `std::ostream& operator<<(std::ostream&, const MSExperiment&)` (free function) | **not ported**: there is no `Display` for `MSExperiment`. See *Deferrals* below |
+| `std::ostream& operator<<(std::ostream&, const MSExperiment&)` (free function) | `impl Display for MSExperiment` (`src/kernel.rs`), with the `MSSpectrum` dump it needs. `format!("{exp:#}")` is the source text byte for byte; `{}` keeps the crate's Rust number formatting. See *Stream output* below |
 | `using MSRun = MSExperiment` (namespace alias) | not ported; one name, `MSExperiment` |
 | `PeakMap` (the `StandardTypes.h` alias this header pulls in) | not ported; one name, `MSExperiment` |
 
@@ -148,7 +148,7 @@ Type aliases, nested helpers and protected state:
 | protected `spectra_`, `chromatograms_` | the public `spectra`, `chromatograms` fields |
 | protected `spectrum_ranges_`, `chromatogram_ranges_`, `combined_ranges_` | no counterpart: these three caches are what on-demand computation replaces |
 | private `ContainerAdd_<T, false>::addData_` (both overloads) | the private `PointSource` trait of `src/kernel/experiment_2d.rs` |
-| private `ContainerAdd_<T, true>::addData_` | not ported; the mass-trace deferral above |
+| private `ContainerAdd_<T, true>::addData_` | the per-feature expansion inside `import_mass_traces` of `src/kernel/experiment_2d.rs` |
 | private `createSpec_(rt)`, `createSpec_(rt, metadata_names)` | private row construction inside `src/kernel/experiment_2d.rs` |
 
 ## API mapping: `KERNEL/AreaIterator.h`
@@ -420,7 +420,7 @@ any of them. That is not an accounting, and 22 of the 54 carried more than five
 assertion macros, which the standing rule requires to be ported rather than
 mapped. The three tables below replace that list.
 
-**Ported** — a Rust test asserts the section's own literals. 50 sections.
+**Ported** — a Rust test asserts the section's own literals. 54 sections.
 
 | # | Section | Macros | Rust test and one asserted value |
 | --- | --- | --- | --- |
@@ -429,6 +429,7 @@ mapped. The three tables below replace that list.
 | 5 | `operator=(const MSExperiment&)` | 7 | `source_copy_assignment_carries_contacts_spectra_and_mz_range` — `min_mz() == 5.0`, `max_mz() == 10.0` |
 | 6 | `operator=(MSExperiment&&) &` | 9 | `source_move_assignment_transfers_everything_and_empties_the_origin` — `moved == original` and `origin.len() == 0` |
 | 9 | `get2DData(Container&)` | 26 | `tests/experiment_2d.rs::source_ms1_export_literal_sequence_and_append` — the first exported point is `Peak2D::new(11.1, 5., 47.11)` |
+| 11 | `template<bool add_mass_traces, class Container> void set2DData(...)` | 10 | `tests/experiment_2d.rs::source_set_2d_data_mass_traces_literals_and_precondition` — the charge-2 feature's second trace is `Peak2D::new(18.5, 19.5 + C13C12_MASSDIFF_U / 2.0, 12.0)`; the section's plain and rich halves are `source_plain_roundtrip_replaces_all_current_data_and_returns_old_ownership` and `source_rich_metadata_literals_missing_nan_and_duplicate_names` |
 | 13 | `getMSLevels()` | 1 | `source_swap_exchanges_comment_spectra_levels_and_ranges` — an emptied run answers `ms_levels().len() == 0` |
 | 14 | `getSize()` | 1 | same test — `total_peak_count() == 0` for the emptied run, `2` for the receiving one |
 | 15 | `getRange()` | 1 | same test — `combined_range_manager().has_range() == HasRangeType::None` |
@@ -454,6 +455,8 @@ mapped. The three tables below replace that list.
 | 39 | `operator=(const ExperimentalSettings&)` | 1 | same test — after `receiver.settings = labelled.settings.clone()`, `receiver.settings.comment == "test"` |
 | 40 | `getPrecursorSpectrum(ConstIterator) const` | 12 | `source_precursor_spectrum_literals_for_both_overloads` — `precursor_spectrum_index(3) == Some(2)` |
 | 41 | `getPrecursorSpectrum(int) const` | 10 | same test — index `0` answers `None`, the source's `-1` |
+| 42 | `getFirstProductSpectrum(ConstIterator) const` | 11 | `source_first_product_spectrum_literals_for_both_overloads` — `first_product_spectrum_index(2) == Some(3)`, and `None` for `end()` |
+| 43 | `getFirstProductSpectrum(int) const` | 10 | same test — index `0` answers `Some(1)`, index `1` answers `None`, the source's `-1` |
 | 45 | `swap(MSExperiment&)` | 10 | `source_swap_exchanges_comment_spectra_levels_and_ranges` — the receiver reports `comment == "stupid comment"` and `min_intensity() == 0.5` |
 | 46 | `clear(bool)` | 4 | `source_sort_spectra_reset_and_settings_assignment_literals` — `clear(false)` empties the containers but leaves `edit != MSExperiment::default()` |
 | 47 | `isIMFrame() const` | 4 | `source_is_im_frame` — four scans at one RT with drift times `30, 40, 45, 50` report `true`; duplicating one drift time makes it `false` |
@@ -462,6 +465,7 @@ mapped. The three tables below replace that list.
 | 50 | `addChromatogram(const MSChromatogram&)` | 6 | same test — pushing the second leaves `chromatograms[0] == first` |
 | 52 | `std::vector<MSChromatogram>& getChromatograms()` | 4 | same test — `mem::swap` moves all `2` entries out and back |
 | 53 | `calculateTIC(float, UInt) const` | 17 | `tests/experiment_summary.rs::source_tic_literals_cover_negative_zero_and_two_positive_bins` — bin `2.0` yields `ChromatogramPeak::new(4.0, 4.5)` |
+| 54 | `std::ostream& operator<<(std::ostream&, const MSExperiment&)` | 5 | `source_stream_output_section_and_release_text` — all five substrings, `"MSEXPERIMENT BEGIN"` to `"10.77"`, and the whole Release text |
 | 55 | `aggregate(ranges, ms_level, func)` | 16 | `tests/experiment_aggregation.rs::source_custom_aggregate_and_ms_level_literals` — `[[1000.0, 1100.0], [2000.0, 2100.0, 2200.0]]` |
 | 56 | `get2DPeakDataPerSpectrum(...)` | 35 | `tests/peak_data.rs::source_per_spectrum_literal_queries` — row `2.0` carries m/z `[150.0, 250.0]` |
 | 57 | `get2DPeakDataIMPerSpectrum(...)` | 56 | `source_get_2d_peak_data_im_per_spectrum` — row `1.0` carries mobilities `[0.8, 1.2]` |
@@ -498,41 +502,85 @@ sections.
 | 44 | `clearMetaDataArrays()` | 3 | `tests/experiment_summary.rs::clear_arrays_is_source_spectrum_only_and_atomic_on_late_work_failure` — after the call every spectrum's float, integer and string arrays are empty and `total_peak_count() == 3` |
 | 51 | `getChromatograms() const` | 0 | the section body is `NOT_TESTABLE // tested above`; section 52's port covers the container — `source_add_chromatogram_appends_without_touching_earlier_entries` asserts `chromatograms[0] == first` |
 
-**Unaccounted** — no Rust code asserts these at all. 4 sections, covering the
-three deferrals below.
+No section is unaccounted. The four that were — 11, 42, 43 and 54, the three
+members earlier recorded as deferrals — are ported above. Across both class
+tests: **81 sections, 60 ported, 21 mapped with a cited test function and one
+concrete asserted value, 0 unaccounted.**
 
-| # | Section | Macros | Why |
-| --- | --- | --- | --- |
-| 11 | `template<bool add_mass_traces, class Container> void set2DData(...)` | 10 | the mass-trace specialization is not ported |
-| 42 | `ConstIterator getFirstProductSpectrum(ConstIterator) const` | 11 | not ported |
-| 43 | `int getFirstProductSpectrum(int) const` | 10 | not ported |
-| 54 | `std::ostream& operator<<(std::ostream&, const MSExperiment&)` | 5 | no `Display` for `MSExperiment` |
+## The last three members
 
-Four sections, three deferrals: the two `getFirstProductSpectrum` overloads
-share one. Across both class tests: **81 sections, 56 ported, 21 mapped with a
-cited test function and one concrete asserted value, 4 unaccounted.**
+Each was checked against a Release oracle as well as its class-test section:
+`../oracle/msexperiment-close` (outside the repository) builds a driver against
+the Linux x86_64 Release install of core `bc9cc12`, cli `c19e494`, topp
+`174b576` on ibminode06 (gcc 14.4.0, libOpenMS's own flags), runs it twice,
+and the two runs agree byte for byte. SHA-256: `driver.cpp` `a9ba6c19…`,
+`libOpenMS.so` `abd4fc99…`, stdout `c1fc9393…`, stderr `8b771038…`. The tests
+named `release_*` in `tests/experiment_2d.rs` and `tests/experiment_mobility.rs`
+assert its values.
 
-## Deferrals
+### Mass-trace import
 
-These three are outside this work package's file ownership. Each needs a file
-this package does not own, so the gap is recorded rather than half-closed:
+`set_2d_data_mass_traces` ports `set2DData<true>` (`MSExperiment.h:265-289`)
+with `ContainerAdd_<T, true>::addData_` (`MSExperiment.h:1368-1393`), whose one
+caller is `FileConverter` turning a feature map into peaks
+(`FileConverter.cpp:590`, topp `174b576`). The source loop is kept as it runs:
+per feature, the retention-time check and the opening of a new spectrum first,
+then its peaks. So the first failing feature decides the error, and a retention
+time whose features all record `num_of_masstraces = 0` still yields an empty
+spectrum (oracle case `mass_zero_negative_int_values`). The m/z is
+`mz + C13C12_MASSDIFF_U / charge * i` in that operation order, charge `0` counts
+as `1`, and a negative charge spaces the traces downward. `num_of_masstraces`
+converts only from a nonnegative integer and a trace intensity from an integer
+or a float, as `DataValue`'s conversion operators do (`DataValue.cpp:480-492`,
+`:554-567`). A huge count cannot run long: each trace needs its own meta value,
+so at most `metadata.len() + 1` names are looked up before one is missing, and
+every expanded peak counts against `Data2DLimits::max_points`.
 
-1. **`set2DData<add_mass_traces = true>`** — expanding a feature's
-   `num_of_masstraces` and `masstrace_intensity_<i>` meta values into peaks
-   spaced by `Constants::C13C12_MASSDIFF_U / charge` (charge `0` treated as `1`),
-   and throwing `Exception::Precondition` when an expected
-   `masstrace_intensity_<i>` is missing. Belongs in
-   `src/kernel/experiment_2d.rs`, next to the other 2D import. The constant
-   already exists in `src/concept/constants.rs` and the meta-value names in
-   `src/analysis/feature_finding_metabo.rs`.
-2. **`getFirstProductSpectrum`** (both overloads) — the forward search for the
-   first spectrum of the next higher MS level whose first precursor names the
-   current scan, bounded by the next scan of a lower level. Belongs in
-   `src/kernel.rs` beside `precursor_spectrum_index`.
-3. **`operator<<(std::ostream&, const MSExperiment&)`** — the
-   `MSEXPERIMENT BEGIN` / `MSSPECTRUM BEGIN` / `MSCHROMATOGRAM BEGIN` diagnostic
-   stream. `MSSpectrum` and `MSChromatogram` already have their `Display`
-   counterparts; the experiment-level one belongs with them in `src/kernel.rs`.
+Native differences, each asserted by a test:
+
+- **Atomic.** The source clears the experiment first and throws mid-loop,
+  leaving the peaks added so far (`mass_missing_trace` keeps one spectrum and
+  one peak); the port replaces nothing on an error and returns the replaced map
+  on success, as `set_2d_data` already does.
+- **Nonfinite values are refused.** The source stores `float(1e40)`, infinity
+  (`mass_intensity_overflow`); the port refuses a nonfinite intensity, as its
+  plain and rich imports do.
+- **Error types.** `Precondition` and `ConversionError` become
+  `Error::InvalidValue` (`Error::UnsortedData` for a decreasing retention time).
+  The missing-trace message is the source's text; the conversion messages are
+  native.
+- **A non-numeric trace intensity is refused.** The source's `operator float`
+  returns the union's `double` member for every type other than an integer or
+  empty (`DataValue.cpp:491`), so a string-valued intensity becomes the bit
+  pattern of a pointer. The oracle does not run this case, since its value is an
+  address.
+
+### First product spectrum
+
+`first_product_spectrum_index` ports both `getFirstProductSpectrum` overloads
+(`MSExperiment.cpp:997-1062`). The parent's reference is the typed
+`Precursor::spectrum_reference`, the mzML `spectrumRef` the source keeps as the
+`"spectrum_ref"` meta value; the source's `StringUtils::toStr` would also
+stringify a non-string meta value there, which the typed field cannot hold. A
+visited candidate with several precursors writes the source's warning line to
+the crate's warning log stream (oracle case `product_multiple_precursors`,
+text byte-identical); the source log stream's repetition summary is that
+stream's own behaviour, not this function's.
+
+### Stream output
+
+`impl Display for MSExperiment` ports `operator<<` (`MSExperiment.cpp:1365-1387`)
+and needed `impl Display for MSSpectrum` (`MSSpectrum.h:767-782`), which did not
+exist. The settings operators it delegates to print only their own delimiters
+(`ExperimentalSettings.cpp:140-145`, `SpectrumSettings.cpp:185-190`). The
+crate's peak `Display` writes Rust's shortest round-trip numbers, which is what
+`{}` keeps; the alternate form `{:#}`, now honoured by `Peak1D`,
+`ChromatogramPeak`, `MSSpectrum`, `MSChromatogram` and `MSExperiment`, writes
+each number as the default C++ stream does (`%g`, six significant digits, glibc
+`nan`/`-nan`). `format!("{exp:#}")` is the Release text byte for byte for the
+class test's map, an empty map, and a map with seven-digit m/z values, signed
+zeros, NaNs of both signs, infinity and `1e+21` (oracle cases
+`stream_section54`, `stream_empty`, `stream_numbers`).
 
 ## Source defect candidates
 

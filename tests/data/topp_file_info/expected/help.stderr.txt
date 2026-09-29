@@ -1,8 +1,8 @@
-stty: stdin isn't a terminal
+stty: 'standard input': Inappropriate ioctl for device
 
 FileInfo -- Shows basic information about the file, such as data ranges and file type.
 Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_FileInfo.html
-Version: 1.0.0 (OpenMS core 4.0.0, revision 4fdec46)
+Version: 1.0.0 (OpenMS core 4.0.0, revision bc9cc12)
 To cite OpenMS:
  + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
 

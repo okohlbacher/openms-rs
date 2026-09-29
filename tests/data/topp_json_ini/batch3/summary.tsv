@@ -1,0 +1,8 @@
+case	tool	exit	args
+x_missing_log	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/does_not_exist.ini -in /x/in.mzML -out /x/out.mzML -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/x_missing_log/cwd/log.txt
+x_missing_write_ini	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/does_not_exist.ini -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/x_missing_write_ini/cwd/out.ini
+x_malformed_log	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/malformed.ini -in /x/in.mzML -out /x/out.mzML -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/x_malformed_log/cwd/log.txt
+j_missing_log	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/does_not_exist.json -in /x/in.mzML -out /x/out.mzML -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/j_missing_log/cwd/log.txt
+fi_forced_dta_on_featurexml	FileInfo	3	-test -in /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/FileInfo_3_input.featureXML -in_type dta -no_progress -out /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/fi_forced_dta_on_featurexml/cwd/mismatch.txt
+fi_forced_mzml_on_featurexml	FileInfo	3	-test -in /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/FileInfo_3_input.featureXML -in_type mzML -no_progress -out /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/fi_forced_mzml_on_featurexml/cwd/mismatch.txt
+fi_forced_featurexml_on_dta	FileInfo	8	-test -in /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/FileInfo_1_input.dta -in_type featureXML -no_progress -out /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/fi_forced_featurexml_on_dta/cwd/mismatch.txt

@@ -1,0 +1,2 @@
+Warning: Could not determine format of input file '/scratch/kohlbach/b0-oracle/inputs/unknown_name_and_content'!
+Error: Unable to read file (type: unknown is not allowed for loading an experiment. Allowed types are: , mzML, raw in: /scratch/kohlbach/b0-oracle/inputs/unknown_name_and_content)

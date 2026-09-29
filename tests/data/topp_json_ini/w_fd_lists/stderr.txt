@@ -1,0 +1,6 @@
+Default-Parameter 'FuzzyDiff:1:in1' overridden: '' --> '/x/a.txt'!
+Default-Parameter 'FuzzyDiff:1:in2' overridden: '' --> '/x/b.txt'!
+Default-Parameter 'FuzzyDiff:1:ratio' overridden: '1' --> '2'!
+Default-Parameter 'FuzzyDiff:1:absdiff' overridden: '0' --> '0.5'!
+Default-Parameter 'FuzzyDiff:1:whitelist' overridden: '[<?xml-stylesheet]' --> '[a, b c]'!
+Default-Parameter 'FuzzyDiff:1:verbose' overridden: '2' --> '3'!

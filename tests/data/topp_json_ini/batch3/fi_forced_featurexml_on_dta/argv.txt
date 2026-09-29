@@ -1,0 +1,9 @@
+FileInfo
+-test
+-in
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/FileInfo_1_input.dta
+-in_type
+featureXML
+-no_progress
+-out
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/fi_forced_featurexml_on_dta/cwd/mismatch.txt

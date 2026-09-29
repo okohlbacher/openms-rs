@@ -87,6 +87,7 @@
 
 use super::model::{FileInfoResult, Options, ProcessingStep, Range, RangeSet};
 use super::text_format::{DEFAULT_STREAM_PRECISION, fixed_truncated, ostream_g};
+use crate::format::file_handler::{LoadTarget, check_allowed};
 use crate::format::{FileHandler, FileType};
 use crate::kernel::ranges::{MSDim, RangeManager};
 use crate::math::statistic_functions::SummaryStatistics;
@@ -169,9 +170,10 @@ impl FileInfo {
     /// - [`Error::Parse`] for a type the source cannot load as a peak file
     ///   either, with the source message `type is not supported for loading
     ///   experiments`;
+    /// - [`Error::Parse`] for a detected type other than a forced one, the
+    ///   source's `ParseError`;
     /// - [`Error::InvalidValue`] for imzML, which the source refuses with
-    ///   `Exception::InvalidFileType`, for a detected type other than a forced
-    ///   one (the source's `ParseError`), and for a statistics block above
+    ///   `Exception::InvalidFileType`, and for a statistics block above
     ///   [`FileInfo::MAX_STATISTICS_VALUES`];
     /// - the loader's error for malformed input or exceeded reader limits, and
     ///   the kernel's error for values the range and type computations refuse.
@@ -487,7 +489,7 @@ fn unported_branch(in_type: FileType) -> Error {
 /// The error `FileHandler::loadExperiment` gives for a type it cannot load
 /// into an experiment (`FileHandler.cpp:855-1008`): it detects the type
 /// itself, refuses one outside the allowed forced type with `ParseError`
-/// (here [`Error::InvalidValue`], as [`FileHandler`] maps it), refuses imzML
+/// (`FileHandler.cpp:859-863`: `<message> in: <file>`), refuses imzML
 /// with `InvalidFileType` (here [`Error::InvalidValue`]) and every other type
 /// with `ParseError` (here [`Error::Parse`]).
 fn refused_by_source_loader(path: &Path, name: &str, in_type: FileType) -> Error {
@@ -495,12 +497,10 @@ fn refused_by_source_loader(path: &Path, name: &str, in_type: FileType) -> Error
         Ok(detected) => detected,
         Err(error) => return error,
     };
-    if detected != in_type {
-        return Error::InvalidValue(format!(
-            "{name}: type {} is not allowed for loading an experiment; allowed types are: {}",
-            detected.name(),
-            in_type.name()
-        ));
+    // The source's `ParseError` for a type outside the one allowed type, the
+    // forced `-in_type` (`FileHandler.cpp:859-863`), exit 3.
+    if let Err(error) = check_allowed(detected, &[in_type], name, LoadTarget::Experiment) {
+        return error;
     }
     if in_type == FileType::ImzMl {
         return Error::InvalidValue(format!(

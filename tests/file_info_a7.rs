@@ -1247,21 +1247,32 @@ fn identifications_with_a_hitless_identification_are_refused() {
 }
 
 /// The type the branch is entered with selects the loader, and a mismatch is
-/// refused, as `FileHandler::loadIdentifications` refuses one (Release exit 3).
+/// refused as `FileHandler::loadIdentifications` refuses one: `ParseError`
+/// (`FileHandler.cpp:1518-1523`), exit 3, with the Release build's text
+/// (`id10_forced_mzid` of `../oracle/a7-fileinfo`: `Error: Unable to read file
+/// (type: idXML is not allowed for loading identifications, Allowed types
+/// are: , mzid in: <input>)`).
 #[cfg(feature = "idxml")]
 #[test]
 fn identifications_forced_type_must_match_the_content() {
+    let path = input("FileInfo_10_input.idXML");
     let error = FileInfo::new()
         .run(
-            input("FileInfo_10_input.idXML"),
+            &path,
             &Options {
                 forced_type: FileType::MzIdentMl,
                 ..Options::default()
             },
         )
         .expect_err("an idXML forced to mzIdentML must be refused");
-    let Error::InvalidValue(message) = &error else {
-        panic!("expected InvalidValue, got {error}");
+    let Error::Parse { message, .. } = &error else {
+        panic!("expected the source's ParseError, got {error}");
     };
-    assert!(message.contains("idXML"), "{message}");
+    assert_eq!(
+        message,
+        &format!(
+            "type: idXML is not allowed for loading identifications, Allowed types are: , mzid in: {}",
+            path.display()
+        )
+    );
 }

@@ -580,18 +580,18 @@ impl MSChromatogram {
 /// test match on the surrounding text.
 ///
 /// A formatter precision is forwarded to each point, as for
-/// [`Mobilogram`](crate::kernel::Mobilogram). C++ stream locale and precision
-/// state is not otherwise emulated.
+/// [`Mobilogram`](crate::kernel::Mobilogram), and so is the alternate flag:
+/// `{:#}` writes each point as a default C++ stream does (`%g`, six
+/// significant digits), the source text byte for byte, as in
+/// [`MSExperiment`](crate::kernel::MSExperiment)'s dump. C++ stream locale and
+/// precision state is not otherwise emulated.
 impl std::fmt::Display for MSChromatogram {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(formatter, "-- MSCHROMATOGRAM BEGIN --")?;
         writeln!(formatter, "-- CHROMATOGRAMSETTINGS BEGIN --")?;
         writeln!(formatter, "-- CHROMATOGRAMSETTINGS END --")?;
         for point in &self.peaks {
-            match formatter.precision() {
-                Some(precision) => writeln!(formatter, "{point:.precision$}")?,
-                None => writeln!(formatter, "{point}")?,
-            }
+            super::write_point_line(formatter, point)?;
         }
         writeln!(formatter, "-- MSCHROMATOGRAM END --")
     }

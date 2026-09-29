@@ -60,7 +60,7 @@ sources are unchanged against the core pin.
 | `isSupported` | none; `can_read_experiment` and siblings report native availability | not ported |
 | `getOptions`, `setOptions` | the `&PeakFileOptions` argument of `load_experiment_with_options` | ported as an argument |
 | `getFeatOptions`, `setFeatOptions` | the `&FeatureFileOptions` argument of `load_feature_map_with_options` | ported as an argument |
-| `loadExperiment` | `load_experiment`, `load_experiment_with_options` | partial: DTA, DTA2D, MGF, MS2, mzML; no log type, `rewrite_source_file` or `compute_hash` |
+| `loadExperiment` | `load_experiment`, `load_experiment_with_options`, `load_experiment_with_progress` | partial: DTA, DTA2D, MGF, MS2, mzML, mzXML, mzData, with the log type, `rewrite_source_file`, `compute_hash` and the SRM conversion ([FILE_HANDLER_SUPPORT.md](FILE_HANDLER_SUPPORT.md)) |
 | `storeExperiment` | `store_experiment` | existing |
 | `loadSpectrum`, `storeSpectrum` | none | not ported |
 | `loadFeatures` | `load_feature_map`, `load_feature_map_with_options` | partial: featureXML only |
@@ -68,7 +68,7 @@ sources are unchanged against the core pin.
 | `loadConsensusFeatures`, `storeConsensusFeatures` | `load_consensus_map`, `store_consensus_map` | existing |
 | `loadIdentifications`, `storeIdentifications` | `load_identifications`, `store_identifications` | existing, idXML only |
 | `loadTransitions`, `storeTransitions`, `loadTransformations`, `storeTransformations`, `storeQC` | none | not ported |
-| `computeFileHash` | none | not ported |
+| `computeFileHash` | `FileHandler::compute_file_hash` | ported ([FILE_HANDLER_SUPPORT.md](FILE_HANDLER_SUPPORT.md)) |
 | `applyPostLoadOptions_` (protected) | none | not needed: only the TDF branch uses it |
 
 `PeakFileOptions.h` is the existing `format::peak_options::PeakFileOptions`,
@@ -151,9 +151,10 @@ unchanged. `load_experiment_with_options` forwards it the way
    disallowed type). `get_type` reads at most 64 KiB, and returns
    `Error::Unsupported` for ZIP content and for gzip/bzip2 content without the
    `file-compression` feature, where the source looks inside.
-8. **No SRM conversion after mzML loading.** `loadExperiment` moves SRM spectra
-   into chromatograms (`ChromatogramTools::convertSpectraToChromatograms`);
-   neither native loader does.
+8. **SRM conversion after mzML loading** (closed). `loadExperiment` moves SRM
+   spectra into chromatograms (`ChromatogramTools::convertSpectraToChromatograms`),
+   and every native experiment loader now does too
+   ([FILE_HANDLER_SUPPORT.md](FILE_HANDLER_SUPPORT.md)).
 9. **NaN never reaches a range filter.** The source keeps a NaN intensity, since
    both `encloses` comparisons fail; the native readers reject non-finite values
    first.

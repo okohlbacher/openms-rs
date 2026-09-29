@@ -12,6 +12,14 @@
 //!   line from its output; the case name quoted in each comment is the one in
 //!   the oracle's `manifest.json`. Evidence: oracle-generated (tier 1 executed
 //!   differential). None of these cases reaches a Debug-only precondition.
+//!   The `run.sh` and `cli2` cases were re-executed twice on the Linux x86_64
+//!   Release build at the pins on ibminode06 (`../oracle/A1-release-rerun`,
+//!   `lifecycle/`): every exit code is the same, and the streams and files
+//!   differ only by the revision on the usage text's version line, the
+//!   terminal probe, host paths and the Debug build's extra warnings on
+//!   standard error (`Update ranges was called …`), which no case here
+//!   asserts. The `ini_read_failures` cases were not
+//!   re-run and remain Debug product-SDK evidence.
 //! * **Upstream class-test cases** transcribe the `TOPPBase_test.cpp` sections
 //!   (cli c19e494) that apply to the native API, with their literals unchanged
 //!   (tier 3 source review). Sections that cannot apply are named in
@@ -1476,6 +1484,130 @@ fn ended_with(result: ToolResult, args: &[&str]) -> Outcome {
     run::<StreamTool>(args)
 }
 
+/// A tool whose body reads its parameters with a chosen accessor.
+struct AccessorTool;
+/// The body [`AccessorTool`] runs.
+type AccessorCall = fn(&ToolContext) -> ToolResult;
+thread_local! {
+    static ACCESSOR_CALL: RefCell<Option<AccessorCall>> = const { RefCell::new(None) };
+}
+impl Tool for AccessorTool {
+    const NAME: &'static str = "AccessorTool";
+    const DESCRIPTION: &'static str = "Reads its parameters";
+    fn register(spec: &mut ToolSpec) -> Result<()> {
+        spec.register_int_option("count", "<n>", 3, "a number", false, false)?;
+        spec.register_string_option("name", "<text>", "x", "a text", false, false)?;
+        Ok(())
+    }
+    fn run(ctx: &ToolContext) -> ToolResult {
+        let call = ACCESSOR_CALL.with(|slot| slot.borrow_mut().take()).unwrap();
+        call(ctx)
+    }
+}
+fn with_accessor(call: AccessorCall) -> Outcome {
+    ACCESSOR_CALL.with(|slot| *slot.borrow_mut() = Some(call));
+    run::<AccessorTool>(&["-test"])
+}
+
+/// A body that reads a parameter it did not register, or reads one with the
+/// wrong accessor, is a programming error the source raises as
+/// `UnregisteredParameter` or `WrongParameterType` (`TOPPBase_defs.h:53-75`;
+/// thrown by `findEntry_` and the typed accessors, `TOPPBase.cpp:1058-1066`
+/// and `1390-1400`). Its catch blocks (`482-493`) write `Internal error:
+/// Request for unregistered parameter '<name>'` and `Internal error: Request
+/// for parameter with wrong type '<name>'` through `writeLogError_` and
+/// return `INTERNAL_ERROR` (12); the exception unwinds past the closing line.
+/// A refusal the body handles itself changes nothing: an error it returns
+/// later takes its own arm.
+#[test]
+fn accessor_misuse_ends_as_the_source_catch_blocks_end_it() {
+    let unregistered = with_accessor(|ctx| {
+        ctx.string("nope")?;
+        Ok(ExitCode::ExecutionOk)
+    });
+    assert_eq!(
+        unregistered.code,
+        ExitCode::InternalError,
+        "{}",
+        unregistered.err
+    );
+    assert_eq!(
+        unregistered.err,
+        "Internal error: Request for unregistered parameter 'nope'\n"
+    );
+    assert!(!unregistered.out.contains(" took "), "{}", unregistered.out);
+
+    let wrong_type = with_accessor(|ctx| {
+        ctx.string("count")?;
+        Ok(ExitCode::ExecutionOk)
+    });
+    assert_eq!(
+        wrong_type.code,
+        ExitCode::InternalError,
+        "{}",
+        wrong_type.err
+    );
+    assert_eq!(
+        wrong_type.err,
+        "Internal error: Request for parameter with wrong type 'count'\n"
+    );
+
+    for call in [
+        (|ctx: &ToolContext| {
+            ctx.int("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        }) as fn(&ToolContext) -> ToolResult,
+        |ctx| {
+            ctx.double("count")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.flag("count")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.string_list("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.int_list("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.double_list("name")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+        |ctx| {
+            ctx.output_dir("count")
+                .map(|_| ExitCode::ExecutionOk)
+                .map_err(ToolError::from)
+        },
+    ] {
+        let outcome = with_accessor(call);
+        assert_eq!(outcome.code, ExitCode::InternalError, "{}", outcome.err);
+        assert!(
+            outcome
+                .err
+                .starts_with("Internal error: Request for parameter with wrong type '"),
+            "{}",
+            outcome.err
+        );
+    }
+
+    let handled = with_accessor(|ctx| {
+        assert!(ctx.string("nope").is_err());
+        Err(openms::Error::InvalidValue("later".into()).into())
+    });
+    assert_eq!(handled.code, ExitCode::UnknownError, "{}", handled.err);
+    assert_eq!(handled.err, "Error: Unexpected internal error (later)\n");
+}
+
 /// The body's streams are the caller's. After the body returns, whatever its
 /// exit code, the source prints its run-time line on the info log, standard
 /// output (`TOPPBase.cpp:413-424`; oracle `plain_run` in
@@ -1560,8 +1692,18 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     ))));
     assert_eq!(missing.code, ExitCode::InputFileNotFound, "{}", missing.err);
 
+    // The source's InvalidValue and InvalidRange derive from BaseException
+    // (Exception.h) and take its arm (TOPPBase.cpp:495-499); a tool that
+    // refuses a parameter says so with ToolError::invalid_parameter.
     let invalid = stream_tool(Err(Error::InvalidValue("bad".into())));
-    assert_eq!(invalid.code, ExitCode::IllegalParameters, "{}", invalid.err);
+    assert_eq!(invalid.code, ExitCode::UnknownError, "{}", invalid.err);
+    assert!(
+        invalid
+            .err
+            .contains("Error: Unexpected internal error (bad)"),
+        "{}",
+        invalid.err
+    );
 
     let unsupported = stream_tool(Err(Error::Unsupported("not here".into())));
     assert_eq!(
@@ -1573,9 +1715,9 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
 
     // Native mappings (tier 4). A std::io::Error does not say whether it read
     // or wrote, and inputs are checked before the body runs, so a denied
-    // permission is taken as a failed write. The source's own InvalidRange and
-    // MissingInformation exceptions would reach its BaseException arm (exit 8);
-    // these follow InvalidParameter and RequiredParameterNotGiven instead.
+    // permission is taken as a failed write. The source's own
+    // MissingInformation exception would reach its BaseException arm (exit
+    // 8); it follows RequiredParameterNotGiven instead.
     let denied = stream_tool(Err(Error::Io(std::io::Error::from(
         std::io::ErrorKind::PermissionDenied,
     ))));
@@ -1600,7 +1742,14 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
     );
 
     let range = stream_tool(Err(Error::InvalidRange("inverted".into())));
-    assert_eq!(range.code, ExitCode::IllegalParameters, "{}", range.err);
+    assert_eq!(range.code, ExitCode::UnknownError, "{}", range.err);
+    assert!(
+        range
+            .err
+            .contains("Error: Unexpected internal error (inverted)"),
+        "{}",
+        range.err
+    );
 
     let information = stream_tool(Err(Error::MissingInformation("no charge".into())));
     assert_eq!(
@@ -1637,9 +1786,13 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
 /// code, and no closing `<tool> took …` line, because the source's exception
 /// unwinds past it (`TOPPBase.cpp:413-499`). A body that returns the same
 /// exit code after writing the same line itself is a returned `main_`, and
-/// the closing line follows (Release evidence for both: `FileInfo` oracles
-/// `out_is_directory`, exit 8 without the line, and `in_is_directory`, exit
-/// 10 with it, `tests/topp_file_info.rs`).
+/// the closing line follows (Linux Release evidence for both, retained in
+/// `tests/data/topp_exception_exits` and replayed by `tests/topp_file_info.rs`:
+/// `FileInfo` cases `fi_out_is_directory_log`, exit 8 without the line, and
+/// `fi_notype_log`, exit 10 with it). The `FileInfo` oracle `in_is_directory`,
+/// once quoted here for the second, ran on the macOS Debug product SDK; the
+/// Release build ends that case with exit 12 from the initialisation catch
+/// instead (`../oracle/A1-release-rerun`).
 #[test]
 fn a_caught_exception_prints_no_closing_line_and_reaches_the_log() {
     let dir = Workdir::new("caught");
@@ -2661,12 +2814,10 @@ fn the_input_format_is_detected_by_name_then_content() {
 
 /// Oracle `in_unknown_name_and_content`: a file whose name and content are both
 /// unknown only warns in the format check (TOPPBase.cpp:1580-1583), and the run
-/// continues to the load, which refuses it; nothing is written. The C++ load
-/// failure is a `ParseError`, exit 3 ("type: unknown is not allowed for loading
-/// an experiment"); this port's `FileHandler::load_experiment` reports
-/// `Error::InvalidValue`, exit 6. That difference belongs to the loader
-/// (`src/format/file_handler.rs`) and is recorded in `docs/TOPP_CLI_SUPPORT.md`;
-/// the exit code is therefore only asserted to be a failure.
+/// continues to the load, which refuses it; nothing is written. The load
+/// failure is the source's `ParseError`, exit 3 ("type: unknown is not allowed
+/// for loading an experiment", `FileHandler.cpp:859-863`), in both builds;
+/// `tests/topp_b0_release.rs` compares it for every ported tool.
 #[test]
 fn an_undetermined_input_format_only_warns() {
     let dir = Workdir::new("input-unknown");
@@ -2680,8 +2831,14 @@ fn an_undetermined_input_format_only_warns() {
         "{}",
         outcome.err
     );
-    assert_ne!(outcome.code, ExitCode::ExecutionOk, "{}", outcome.err);
-    assert_ne!(outcome.code, ExitCode::InputFileNotFound, "{}", outcome.err);
+    assert_eq!(outcome.code, ExitCode::InputFileCorrupt, "{}", outcome.err);
+    assert!(
+        outcome.err.contains(&format!(
+            "type: unknown is not allowed for loading an experiment. Allowed types are: , mzML in: {input})"
+        )),
+        "{}",
+        outcome.err
+    );
     assert!(!Path::new(&out).exists());
 }
 

@@ -309,21 +309,21 @@ impl MSDataWritingProcessor for LowMemoryPicker {
 /// [`ExitCode::InputFileCorrupt`], as the source's `ParseError` arm
 /// (`TOPPBase.cpp:460-465`) and as in the in-memory mode, whose loader errors
 /// propagate the same way; [`Error::Unsupported`] is
-/// `INCOMPATIBLE_INPUT_DATA`. Only [`Error::InvalidValue`],
+/// `INCOMPATIBLE_INPUT_DATA`. [`Error::InvalidValue`],
 /// [`Error::InvalidRange`] and [`Error::MissingInformation`] are reported as
 /// `Error: Unexpected internal error (<reason>)` with
 /// [`ExitCode::UnknownError`], because the source exceptions they stand for
-/// derive straight from `BaseException` and take that arm there, while this
-/// port's framework mapping reserves parameter codes for them.
+/// derive straight from `BaseException` and take that arm there; the
+/// framework maps the first two the same way, and this path maps
+/// `MissingInformation` too, which the framework reserves a parameter code
+/// for.
 ///
-/// One error has no source counterpart and no agreement between the two modes:
-/// the transform's own administrative ceiling
-/// ([`mzml::TransformOptions::max_bytes`] and `max_work`) is an
-/// [`Error::InvalidValue`], so it takes the `Unexpected internal error` arm
-/// here, where the in-memory mode's loader ceilings reach the framework's
-/// `InvalidValue` mapping and exit `ILLEGAL_PARAMETERS`. The source has no
-/// ceiling of either kind, so neither code is its answer, and nothing
-/// distinguishes this error from the picker's by kind alone.
+/// One error has no source counterpart: the transform's own administrative
+/// ceiling ([`mzml::TransformOptions::max_bytes`] and `max_work`) is an
+/// [`Error::InvalidValue`], so it takes the `Unexpected internal error` arm,
+/// as the in-memory mode's loader ceilings do through the framework's
+/// mapping. The source has no ceiling of either kind, so exit 8 is this
+/// port's answer, not the source's.
 fn run_low_memory(
     ctx: &ToolContext,
     input: &str,

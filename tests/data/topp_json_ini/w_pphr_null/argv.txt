@@ -1,0 +1,5 @@
+PeakPickerHiRes
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_null.json
+-write_ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_null/cwd/out.ini

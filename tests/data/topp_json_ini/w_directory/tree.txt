@@ -1,0 +1,3 @@
+cwd
+cwd/dir.json
+home

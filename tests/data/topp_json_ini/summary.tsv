@@ -1,0 +1,63 @@
+case	tool	exit	args
+w_pphr_all	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_all.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_all/cwd/out.ini
+w_pphr_flat	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_flat.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_flat/cwd/out.ini
+w_pphr_in_string	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_in_string.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_in_string/cwd/out.ini
+w_pphr_in_noclass	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_in_noclass.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_in_noclass/cwd/out.ini
+w_pphr_in_nopath	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_in_nopath.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_in_nopath/cwd/out.ini
+w_pphr_in_classnum	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_in_classnum.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_in_classnum/cwd/out.ini
+w_pphr_unknown	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_unknown/cwd/out.ini
+w_pphr_bool_string	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_bool_string.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_bool_string/cwd/out.ini
+w_pphr_bool_number	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_bool_number.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_bool_number/cwd/out.ini
+w_pphr_int_bool	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_int_bool.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_int_bool/cwd/out.ini
+w_pphr_int_string	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_int_string.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_int_string/cwd/out.ini
+w_pphr_int_float	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_int_float.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_int_float/cwd/out.ini
+w_pphr_int_huge	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_int_huge.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_int_huge/cwd/out.ini
+w_pphr_int_u64	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_int_u64.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_int_u64/cwd/out.ini
+w_pphr_intlist	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_intlist.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_intlist/cwd/out.ini
+w_pphr_intlist_huge	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_intlist_huge.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_intlist_huge/cwd/out.ini
+w_pphr_intlist_string	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_intlist_string.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_intlist_string/cwd/out.ini
+w_pphr_intlist_scalar	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_intlist_scalar.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_intlist_scalar/cwd/out.ini
+w_pphr_double_bool	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_double_bool.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_double_bool/cwd/out.ini
+w_pphr_double_int	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_double_int.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_double_int/cwd/out.ini
+w_pphr_string_number	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_string_number.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_string_number/cwd/out.ini
+w_pphr_string_file_object	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_string_file_object.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_string_file_object/cwd/out.ini
+w_pphr_out_object	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_out_object.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_out_object/cwd/out.ini
+w_pphr_array_root	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_array_root.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_array_root/cwd/out.ini
+w_pphr_string_root	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_string_root.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_string_root/cwd/out.ini
+w_pphr_syntax	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_syntax.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_syntax/cwd/out.ini
+w_pphr_trailing_comma	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_trailing_comma.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_trailing_comma/cwd/out.ini
+w_pphr_empty	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_empty.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_empty/cwd/out.ini
+w_pphr_ws	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_ws.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_ws/cwd/out.ini
+w_pphr_null	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_null.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_null/cwd/out.ini
+w_pphr_empty_obj	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_empty_obj.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_empty_obj/cwd/out.ini
+w_pphr_empty_section	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_empty_section.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_empty_section/cwd/out.ini
+w_pphr_bom	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_bom.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_bom/cwd/out.ini
+w_pphr_dup	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_dup.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_dup/cwd/out.ini
+w_pphr_version	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_version.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_version/cwd/out.ini
+w_pphr_neg_zero	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_neg_zero.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_neg_zero/cwd/out.ini
+w_pphr_inf	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_inf.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_inf/cwd/out.ini
+w_pphr_key_colon	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_key_colon.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_key_colon/cwd/out.ini
+w_pphr_trailing_garbage	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_trailing_garbage.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_trailing_garbage/cwd/out.ini
+w_pphr_upper	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_upper.JSON -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_upper/cwd/out.ini
+w_pphr_plain_gz	PeakPickerHiRes	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_plain.json.gz -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_plain_gz/cwd/out.ini
+w_pphr_instance2	PeakPickerHiRes	3	-instance 2 -ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_threads.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_instance2/cwd/out.ini
+w_pphr_instance2_empty	PeakPickerHiRes	0	-instance 2 -ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_empty_obj.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_instance2_empty/cwd/out.ini
+w_missing	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/does_not_exist.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_missing/cwd/out.ini
+w_directory	PeakPickerHiRes	12	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_directory/cwd/dir.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_directory/cwd/out.ini
+w_fd_lists	FuzzyDiff	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/fd_lists.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_fd_lists/cwd/out.ini
+w_fd_list_number	FuzzyDiff	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/fd_list_number.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_fd_list_number/cwd/out.ini
+w_fd_list_string	FuzzyDiff	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/fd_list_string.json -write_ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_fd_list_string/cwd/out.ini
+r_fi_run	FileInfo	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_run/cwd/run.json
+r_fi_run_debug	FileInfo	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_run_debug/cwd/run.json -debug 1
+r_fi_run_override	FileInfo	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_run_override/cwd/run.json -in_type dta
+r_fi_run_log	FileInfo	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_run_log/cwd/run.json -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_run_log/cwd/log.txt
+r_pphr_huge	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_int_huge.json -in /x/in.mzML -out /x/out.mzML
+r_pphr_unknown	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json -in /x/in.mzML -out /x/out.mzML
+r_pphr_unknown_log	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json -in /x/in.mzML -out /x/out.mzML -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_unknown_log/cwd/log.txt
+r_pphr_syntax	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_syntax.json -in /x/in.mzML -out /x/out.mzML
+r_pphr_missing	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/does_not_exist.json -in /x/in.mzML -out /x/out.mzML
+r_pphr_debug	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json -in /x/in.mzML -out /x/out.mzML -debug 1
+r_pphr_instance2	PeakPickerHiRes	3	-instance 2 -ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_threads.json -in /x/in.mzML -out /x/out.mzML
+r_pphr_debug_log	PeakPickerHiRes	3	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json -in /x/in.mzML -out /x/out.mzML -debug 1 -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug_log/cwd/log.txt
+r_pphr_debug2_log	PeakPickerHiRes	1	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_all.json -out /x/out.mzML -debug 2 -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug2_log/cwd/log.txt
+r_fi_debug2_log	FileInfo	0	-ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/run.json -debug 2 -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/log.txt

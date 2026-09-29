@@ -12,11 +12,20 @@
 //!   (test-data `0cb15f2`, `topp/CMakeLists.txt:881-904`) run through the tool
 //!   and compared with FuzzyDiff (`FuzzyDiff.ini`, ratio 1.01, absdiff 0.01) and
 //!   the registered whitelist `File name`;
-//! - tier 1, executed differential: the product-SDK FileInfo (Debug, core
-//!   `4fdec46`) from the C1 oracle (`../oracle/topp-early-bundle`, run1) and
-//!   from this package's oracle (`../oracle/topp-file-info-tool`, run1, both
-//!   runs reproduced): exit codes, diagnostics, usage text, `-write_ini`, and
-//!   reports compared byte for byte with only the `File name` lines normalised;
+//! - tier 1, executed differential: the C1 oracle (`../oracle/topp-early-bundle`)
+//!   and this package's oracle (`../oracle/topp-file-info-tool`) first ran on
+//!   the macOS arm64 product SDK, a **Debug** build of core `4fdec46`. Every
+//!   case of both was re-executed on the C++ **Release** build at the pins
+//!   (Linux x86_64, ibminode06, core `bc9cc12`, cli `c19e494`, topp `174b576`;
+//!   `../oracle/A1-release-rerun`, run1 and run2, manifest sha256 in
+//!   `tests/data/topp_file_info_provenance.json`), and the assertions here are
+//!   the Release run's: exit codes, diagnostics, usage text, `-write_ini`, and
+//!   reports compared byte for byte with only the `File name` lines normalised.
+//!   Every report, INI and diagnostic the tests quote is the same in both
+//!   builds; the usage texts retained here are the Release build's streams,
+//!   and the one case whose exit differs, a directory as `-in` (Release 12,
+//!   Debug SDK 10), is an open framework gap:
+//!   [`a_directory_input_is_a_recorded_difference_from_the_linux_release_build`];
 //! - tier 4, the explicit refusal of every branch and flag the preview does not
 //!   run, and native checks of the output routing.
 //!
@@ -44,12 +53,12 @@ use std::path::{Path, PathBuf};
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// The C++ usage version line: the product SDK names its build revision.
-const CPP_VERSION: &str = "1.0.0 (OpenMS core 4.0.0, revision 4fdec46)";
+/// The C++ usage version line: the Release build names its core revision.
+const CPP_VERSION: &str = "1.0.0 (OpenMS core 4.0.0, revision bc9cc12)";
 
-/// The console-width probe of the C++ usage text, absent without a terminal
-/// in this port (`docs/TOPP_CLI_SUPPORT.md`, *Usage text*).
-const STTY_LINE: &str = "stty: stdin isn't a terminal\n";
+/// The console-width probe of the C++ usage text on Linux, absent without a
+/// terminal in this port (`docs/TOPP_CLI_SUPPORT.md`, *Usage text*).
+const STTY_LINE: &str = "stty: 'standard input': Inappropriate ioctl for device\n";
 
 fn data(relative: &str) -> String {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -690,7 +699,12 @@ fn c1_empty_mzml_with_a_dangling_reference() {
 }
 
 /// C1 `FileInfo_on_FFC_1_oracle_output` and `FileInfo_on_FFC_1_retained_output`:
-/// `-m -p -s` on the C++ FeatureFinderCentroided_1 outputs.
+/// `-m -p -s` on the C++ FeatureFinderCentroided_1 outputs. The first input is
+/// the Release build's `TOPP_FeatureFinderCentroided_1` output
+/// (`../oracle/A1-release-rerun`, run1); the Debug SDK's output differs from it
+/// in the last digits of `rt`, `score_fit` and `score_correlation`, and the
+/// Release FileInfo prints the same report on it byte for byte (apart from the
+/// `File name` line) as the Debug FileInfo printed on the Debug output.
 #[test]
 fn c1_feature_finder_centroided_1_outputs() {
     let oracle = tool("inputs/FeatureFinderCentroided_1_oracle_output.featureXML");
@@ -762,8 +776,9 @@ fn an_existing_out_is_truncated_by_a_failing_run() {
 /// C1 `FileInfo_index_on_dta`: `-i` on a DTA file prints the error line, then
 /// the usage text, and exits 6 with nothing on the output stream but the
 /// closing line: `outputTo_` returns `ILLEGAL_PARAMETERS`, so `TOPPBase`
-/// prints `FileInfo took …`, in the C1 product-SDK run as in the Release
-/// build (`release_fileinfo_refusals_end_as_in_the_release_build`).
+/// prints `FileInfo took …`, in the C1 case on the Release build
+/// (`../oracle/A1-release-rerun`, whose standard error is the retained file)
+/// as with `-log` (`release_fileinfo_refusals_end_as_in_the_release_build`).
 #[test]
 fn c1_index_check_on_a_non_mzml_file_exits_6_with_usage() {
     let input = library("inputs/FileInfo_1_input.dta");
@@ -1064,7 +1079,8 @@ fn detailed_and_corrupt_flags_on_featurexml() {
 /// Oracle `out_is_directory`: `-out` naming an existing directory passes the
 /// writability check, and the open fails as the source's `FileNotWritable`,
 /// exit 8. The exception unwinds past `TOPPBase`'s closing line, so the
-/// output stream is empty, in the product-SDK oracle as in the Release build
+/// output stream is empty, in the Release re-run of this case
+/// (`../oracle/A1-release-rerun`) as with `-log`
 /// (`release_fileinfo_refusals_end_as_in_the_release_build`).
 #[test]
 fn out_naming_a_directory_exits_8() {
@@ -1093,12 +1109,20 @@ fn out_naming_a_directory_exits_8() {
     assert_eq!(outcome.took, None);
 }
 
-/// Oracle `in_is_directory`: a directory as `-in` has no type; exit 10, an
-/// exit code `outputTo_` returns, so the closing line follows, and the
-/// output stream holds nothing else. That oracle ran the macOS product SDK,
-/// whose libc++ reads a directory as an empty file; the Linux Release build's
-/// libstdc++ throws instead (see
-/// `a_directory_input_is_a_recorded_difference_from_the_linux_release_build`).
+/// What this port does with a directory as `-in`: the framework's input check
+/// warns that the format is undetermined and the tool refuses with exit 10,
+/// an exit code `outputTo_` returns, so the closing line follows.
+///
+/// **This is not the Release build's behaviour.** The expectation came from
+/// oracle `in_is_directory` on the macOS product SDK (Debug, libc++), which
+/// reads a directory as an empty file. The Release build at the pins exits 12
+/// instead, in `../oracle/A1-release-rerun` (case `in_is_directory`, run1 and
+/// run2) as in `../oracle/topp-exception-exits` (`fi_undetermined_log`); see
+/// [`a_directory_input_is_a_recorded_difference_from_the_linux_release_build`].
+/// The divergence is in the framework's input check (`src/cli.rs`,
+/// `input_path`), not in the tool, and is reported to the framework lane;
+/// this test pins the port's current behaviour until that lands, when it is
+/// replaced by the Release expectation.
 #[test]
 fn in_naming_a_directory_exits_10() {
     let dir = Workdir::new();
@@ -1174,15 +1198,23 @@ fn release_fileinfo_debug_lines_reach_the_log() {
 }
 
 /// Oracle `fi_undetermined_log`: a directory as `-in` on the Linux Release
-/// build. `TOPPBase`'s input check asks `FileHandler::getType`, whose content
-/// sniffing reads the directory; libstdc++ throws `std::ios_base::failure`,
-/// which only the initialisation catch handles: `Unable to initialize or run
-/// FileInfo: basic_filebuf::underflow error reading the file: Is a
-/// directory`, exit 12, nothing logged. The macOS product SDK (libc++) reads
-/// the directory as an empty file instead and ends with the tool's own
-/// refusal, exit 10 (`in_naming_a_directory_exits_10`), which is what this
-/// port does. Recorded here, and in `docs/TOPP_CLI_SUPPORT.md` (*Input
-/// checks on a directory*), as a difference the port has not closed.
+/// build. `TOPPBase`'s input check asks `FileHandler::getType`
+/// (`FileHandler.cpp:204-251` at core `bc9cc12`), whose content sniffing
+/// reads the directory through `TextFile::getLine` (`TextFile.cpp:111-149`),
+/// which pulls characters straight from the `streambuf`; libstdc++'s
+/// `basic_filebuf::underflow` throws `std::ios_base::failure`, which no
+/// `istream` catches there and only the initialisation catch handles: `Unable
+/// to initialize or run FileInfo: basic_filebuf::underflow error reading the
+/// file: Is a directory`, exit 12, nothing logged. The re-run of the
+/// `topp-file-info-tool` cases on the same Release build
+/// (`../oracle/A1-release-rerun`, case `in_is_directory`, both repetitions)
+/// ends identically without `-log`: exit 12, that one line on standard error,
+/// nothing on standard output. The macOS product SDK (libc++) reads the
+/// directory as an empty file instead and ends with the tool's own refusal,
+/// exit 10 (`in_naming_a_directory_exits_10`), which is what this port does.
+/// Recorded here, and in `docs/TOPP_CLI_SUPPORT.md` (*Input checks on a
+/// directory*), as a difference the port has not closed; the fix belongs to
+/// the framework's input check.
 #[test]
 fn a_directory_input_is_a_recorded_difference_from_the_linux_release_build() {
     use release_runs::ReleaseRun;
@@ -1198,7 +1230,8 @@ fn a_directory_input_is_a_recorded_difference_from_the_linux_release_build() {
     );
     assert_eq!((release.out.as_str(), release.took.is_some()), ("", false));
     assert_eq!(release.log, None);
-    // The port follows the product SDK: the framework warns, the tool refuses.
+    // The open gap: the port still ends as the macOS Debug SDK did (the
+    // framework warns, the tool refuses with 10), not as the Release build.
     assert_eq!(replay.code, ExitCode::ParseError);
     assert!(replay.took.is_some());
 }
@@ -1227,18 +1260,18 @@ fn a_zero_byte_input_exits_4() {
 /// Oracle `forced_dta_on_featurexml`, `forced_mzml_on_featurexml` and
 /// `forced_featurexml_on_dta`: a forced type the loader's own detection
 /// contradicts. The source loader throws: `ParseError` for the experiment
-/// loader (exit 3) and `InvalidFileType` for the feature loader (exit 8). The
-/// library maps the first to `Error::InvalidValue` (exit 6) and lets the
-/// feature loader refuse the second itself; both are documented native
-/// differences (`docs/TOPP_FILE_INFO_SUPPORT.md`). No report is written.
+/// loader (exit 3, `FileHandler.cpp:859-863` at core `bc9cc12`) and
+/// `InvalidFileType` for the feature loader (exit 8, `FileHandler.cpp:1257-1262`,
+/// `FORMAT/FileInfo.cpp:1084`). The library raises both as the source does.
+/// No report is written.
 #[test]
 fn a_forced_type_the_file_contradicts_is_refused() {
     let featurexml = library("inputs/FileInfo_3_input.featureXML");
     let dta = library("inputs/FileInfo_1_input.dta");
     for (input, forced, code) in [
-        (&featurexml, "dta", ExitCode::IllegalParameters),
-        (&featurexml, "mzML", ExitCode::IllegalParameters),
-        (&dta, "featureXML", ExitCode::IncompatibleInputData),
+        (&featurexml, "dta", ExitCode::InputFileCorrupt),
+        (&featurexml, "mzML", ExitCode::InputFileCorrupt),
+        (&dta, "featureXML", ExitCode::UnknownError),
     ] {
         let dir = Workdir::new();
         let out = dir.file("mismatch.tmp.txt");
