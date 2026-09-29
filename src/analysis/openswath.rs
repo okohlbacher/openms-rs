@@ -7,6 +7,8 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
+/// Coordinates, extraction and annotated chromatograms for targeted experiments, from `ANALYSIS/OPENSWATH/ChromatogramExtractor.h`.
+pub mod chromatogram_extractor;
 /// Chromatogram extraction at given coordinates, from `ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h`.
 pub mod chromatogram_extractor_algorithm;
 /// Conversions between kernel and light records, from `ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h`.

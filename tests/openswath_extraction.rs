@@ -13,18 +13,26 @@
 //! (tier 1; see `tests/data/openswath_extraction_provenance.json`).
 
 use openms::Error;
+use openms::analysis::openswath::chromatogram_extractor::{
+    ChromatogramExtractor, prepare_coordinates, return_chromatogram,
+};
 use openms::analysis::openswath::chromatogram_extractor_algorithm::{
     ChromatogramExtractorAlgorithm, ExtractionCoordinates, ExtractionFilter,
 };
 use openms::analysis::openswath::data_structures::Chromatogram;
+use openms::analysis::openswath::openswath_helper::compute_transition_group_id;
 use openms::analysis::openswath::peak_map_extractor::{ExtractedPeakMap, PeakMapExtractor};
-use openms::analysis::openswath::spectrum_access::SpectrumAccess;
 use openms::analysis::openswath::spectrum_access_openms::SpectrumAccessOpenMS;
 use openms::analysis::openswath::swath_map::SwathMap;
 use openms::analysis::openswath::swath_window_loader::{
     annotate_swath_maps, annotate_swath_maps_from_file, parse_swath_windows, read_swath_windows,
 };
+use openms::analysis::openswath::transition_experiment::{
+    LightCompound, LightTargetedExperiment, LightTransition,
+};
+use openms::constants::C13C12_MASSDIFF_U;
 use openms::kernel::{DataArray, MSExperiment, MSSpectrum, Peak1D};
+use openms::metadata::ChromatogramType;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -113,7 +121,7 @@ const IM_ARR: [f64; 22] = [
 fn tophat_class_test_sequence() {
     let x = ChromatogramExtractorAlgorithm::new();
     let mut pos = 0usize;
-    let mut f = |mz: f64, w: f64, ppm: bool, pos: &mut usize| {
+    let f = |mz: f64, w: f64, ppm: bool, pos: &mut usize| {
         x.extract_value_tophat(&MZ_ARR, &INT_ARR, pos, mz, w, ppm)
             .unwrap()
     };
@@ -143,7 +151,7 @@ fn tophat_class_test_sequence() {
 fn tophat_im_class_test_sequence() {
     let x = ChromatogramExtractorAlgorithm::new();
     let mut pos = 0usize;
-    let mut f = |mz: f64, im: f64, pos: &mut usize| {
+    let f = |mz: f64, im: f64, pos: &mut usize| {
         x.extract_value_tophat_im(&MZ_ARR, &INT_ARR, &IM_ARR, pos, mz, im, 0.2, 0.3, false)
             .unwrap()
     };
@@ -707,4 +715,301 @@ fn swath_windows_native_contract() {
     ));
     let (lower, upper) = parse_swath_windows("  4e2\t425\r\n425 450\r\n").unwrap();
     assert_eq!((lower, upper), (vec![400.0, 425.0], vec![425.0, 450.0]));
+}
+
+// ---------------------------------------------------------------------------
+// ChromatogramExtractor
+// ---------------------------------------------------------------------------
+
+/// ChromatogramExtractor_input.TraML as the source's `convertTargetedExp`
+/// turns it into a light experiment. TraMLFile and `convertTargetedExp` are
+/// not ported yet, so the conversion is transcribed; the oracle prints the
+/// converted compounds and transitions (see the provenance manifest).
+fn traml_light_experiment() -> LightTargetedExperiment {
+    let mut exp = LightTargetedExperiment::new();
+    for (id, seq, rt) in [("tr_gr1", "PEPTIDEA", 44.0), ("tr_gr2", "PEPTIDEB", 2.0)] {
+        exp.compounds.push(LightCompound {
+            id: id.into(),
+            sequence: seq.into(),
+            rt,
+            ..LightCompound::default()
+        });
+    }
+    for (name, pep, prec, prod, lib) in [
+        ("tr1", "tr_gr1", 500.0, 628.45, 1.0),
+        ("tr2", "tr_gr1", 500.0, 654.38, 2.0),
+        ("tr3", "tr_gr2", 501.0, 618.31, 10000.0),
+    ] {
+        exp.transitions.push(LightTransition {
+            transition_name: name.into(),
+            peptide_ref: pep.into(),
+            precursor_mz: prec,
+            product_mz: prod,
+            library_intensity: lib,
+            ..LightTransition::default()
+        });
+    }
+    exp
+}
+
+/// ChromatogramExtractor_test.cpp: `prepare_coordinates`, transitions.
+#[test]
+fn prepare_coordinates_transitions() {
+    let exp = traml_light_experiment();
+    let mut chroms = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut chroms, &mut coords, &exp, 1.0, false, 0).unwrap();
+    assert_eq!(chroms.len(), coords.len());
+    assert_eq!(coords.len(), 3);
+    assert_eq!(coords[0].mz, 618.31);
+    assert_eq!(coords[1].mz, 628.45);
+    assert_eq!(coords[2].mz, 654.38);
+    real_similar(coords[0].rt_start, 1.5);
+    real_similar(coords[1].rt_start, 43.5);
+    real_similar(coords[2].rt_start, 43.5);
+    real_similar(coords[0].rt_end, 2.5);
+    real_similar(coords[1].rt_end, 44.5);
+    real_similar(coords[2].rt_end, 44.5);
+    assert_eq!(coords[0].id, "tr3");
+    assert_eq!(coords[1].id, "tr1");
+    assert_eq!(coords[2].id, "tr2");
+    // Derived: MS2 fields.
+    assert_eq!(coords[0].mz_precursor, 501.0);
+    assert_eq!(coords[0].ion_mobility, -1.0);
+}
+
+/// ChromatogramExtractor_test.cpp: `prepare_coordinates`, peptides, and the
+/// issue #7284 isotope regression.
+#[test]
+fn prepare_coordinates_peptides_and_isotopes() {
+    let exp = traml_light_experiment();
+    let mut chroms = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut chroms, &mut coords, &exp, 1.0, true, 0).unwrap();
+    assert_eq!(chroms.len(), coords.len());
+    assert_eq!(coords.len(), 2);
+    assert_eq!(coords[0].mz, 500.0);
+    assert_eq!(coords[1].mz, 501.0);
+    real_similar(coords[0].rt_start, 43.5);
+    real_similar(coords[1].rt_start, 1.5);
+    real_similar(coords[0].rt_end, 44.5);
+    real_similar(coords[1].rt_end, 2.5);
+    assert_eq!(coords[0].id, "tr_gr1_Precursor_i0");
+    assert_eq!(coords[1].id, "tr_gr2_Precursor_i0");
+    assert_eq!(compute_transition_group_id(&coords[0].id), "tr_gr1");
+    assert_eq!(compute_transition_group_id(&coords[1].id), "tr_gr2");
+
+    let mut chroms = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut chroms, &mut coords, &exp, 1.0, true, 2).unwrap();
+    assert_eq!(chroms.len(), coords.len());
+    assert_eq!(coords.len(), 6);
+    let d = C13C12_MASSDIFF_U;
+    for (c, (mz, id)) in coords.iter().zip([
+        (500.0, "tr_gr1_Precursor_i0"),
+        (501.0, "tr_gr2_Precursor_i0"),
+        (500.0 + d, "tr_gr1_Precursor_i1"),
+        (501.0 + d, "tr_gr2_Precursor_i1"),
+        (500.0 + 2.0 * d, "tr_gr1_Precursor_i2"),
+        (501.0 + 2.0 * d, "tr_gr2_Precursor_i2"),
+    ]) {
+        real_similar(c.mz, mz);
+        assert_eq!(c.id, id);
+    }
+}
+
+/// Derived: the three RT-window modes, a compound without transitions, a
+/// dangling compound reference, and atomicity.
+#[test]
+fn prepare_coordinates_contract() {
+    let mut exp = traml_light_experiment();
+    let mut chroms = Vec::new();
+    let mut coords = Vec::new();
+    // Negative window: whole RT range.
+    prepare_coordinates(&mut chroms, &mut coords, &exp, -1.0, false, 0).unwrap();
+    assert!(coords.iter().all(|c| c.rt_start == 0.0 && c.rt_end == -1.0));
+    // NaN window without RT ranges: refused, nothing appended.
+    assert!(matches!(
+        prepare_coordinates(&mut chroms, &mut coords, &exp, f64::NAN, false, 0),
+        Err(Error::InvalidValue(_))
+    ));
+    assert_eq!((chroms.len(), coords.len()), (3, 3));
+    // NaN window with RT ranges: copied.
+    for c in &mut exp.compounds {
+        c.rt_start = 10.0;
+        c.rt_end = 20.0;
+    }
+    let mut chroms = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut chroms, &mut coords, &exp, f64::NAN, false, 0).unwrap();
+    assert!(
+        coords
+            .iter()
+            .all(|c| c.rt_start == 10.0 && c.rt_end == 20.0)
+    );
+    // RT-limited without RT: refused.
+    exp.compounds[0].rt = f64::NAN;
+    assert!(matches!(
+        prepare_coordinates(&mut chroms, &mut coords, &exp, 5.0, true, 0),
+        Err(Error::InvalidValue(_))
+    ));
+    // A compound without transitions gets one coordinate at m/z 0, no isotopes.
+    let mut exp = traml_light_experiment();
+    exp.compounds.push(LightCompound {
+        id: "lonely".into(),
+        rt: 7.0,
+        drift_time: 3.0,
+        ..LightCompound::default()
+    });
+    let mut chroms = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut chroms, &mut coords, &exp, 1.0, true, 1).unwrap();
+    assert_eq!(coords.len(), 5);
+    assert_eq!(coords[0].id, "lonely_Precursor_i0");
+    assert_eq!(
+        (
+            coords[0].mz,
+            coords[0].rt_start,
+            coords[0].rt_end,
+            coords[0].ion_mobility
+        ),
+        (0.0, 0.0, -1.0, 0.0)
+    );
+    // A transition referencing an unknown compound.
+    exp.transitions[0].peptide_ref = "missing".into();
+    assert!(matches!(
+        prepare_coordinates(&mut chroms, &mut coords, &exp, 1.0, false, 0),
+        Err(Error::MissingInformation(_))
+    ));
+}
+
+/// ChromatogramExtractor_test.cpp: `return_chromatogram` after extraction
+/// over ChromatogramExtractor_input.mzML.
+#[cfg(feature = "mzml")]
+#[test]
+fn return_chromatogram_class_test() {
+    let bytes = std::fs::read(data(
+        "openswath_extraction_ChromatogramExtractor_input.mzML",
+    ))
+    .unwrap();
+    let exp = Arc::new(openms::format::mzml::read(bytes.as_slice()).unwrap());
+    let input = SpectrumAccessOpenMS::new(Arc::clone(&exp));
+    let light = traml_light_experiment();
+    let mut output = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut output, &mut coords, &light, -1.0, false, 0).unwrap();
+    ChromatogramExtractor::new()
+        .extract_chromatograms(&input, &mut output, &coords, 0.05, false, "tophat")
+        .unwrap();
+    let mut chromatograms = Vec::new();
+    return_chromatogram(
+        &output,
+        &coords,
+        &light,
+        &exp.spectra[0],
+        &mut chromatograms,
+        false,
+        0.0,
+    )
+    .unwrap();
+    assert_eq!(chromatograms.len(), 3);
+    assert_eq!(
+        chromatograms[0].chromatogram_type,
+        ChromatogramType::SelectedReactionMonitoring
+    );
+    real_similar(chromatograms[0].product.mz, 618.31);
+    assert!(
+        chromatograms[0]
+            .precursor
+            .cv_terms
+            .metadata
+            .contains_key("peptide_sequence")
+    );
+    // Derived: the rest of the annotation.
+    assert_eq!(chromatograms[0].native_id, "tr3");
+    assert_eq!(chromatograms[0].precursor.mz, 501.0);
+    assert_eq!(chromatograms[0].peaks.len(), 59);
+    assert_eq!(
+        chromatograms[0].precursor.cv_terms.metadata["peptide_sequence"].to_string(),
+        "PEPTIDEB"
+    );
+    assert_eq!(
+        chromatograms[0].precursor.isolation_window_lower_offset,
+        exp.spectra[0].precursors[0].isolation_window_lower_offset
+    );
+}
+
+/// Derived: MS1 conversion, ion-mobility annotation, data-processing marks and
+/// the error paths.
+#[test]
+fn return_chromatogram_contract() {
+    let light = traml_light_experiment();
+    let mut output = Vec::new();
+    let mut coords = Vec::new();
+    prepare_coordinates(&mut output, &mut coords, &light, -1.0, true, 1).unwrap();
+    coords[0].ion_mobility = 0.9;
+    let mut settings = MSSpectrum::default();
+    settings
+        .data_processing
+        .push(Arc::new(openms::metadata::DataProcessing::default()));
+    let mut chromatograms = Vec::new();
+    return_chromatogram(
+        &output,
+        &coords,
+        &light,
+        &settings,
+        &mut chromatograms,
+        true,
+        0.2,
+    )
+    .unwrap();
+    assert_eq!(chromatograms.len(), 4);
+    let c = &chromatograms[0];
+    assert_eq!(c.chromatogram_type, ChromatogramType::BasePeak);
+    assert_eq!(c.native_id, "tr_gr1_Precursor_i0");
+    assert_eq!(c.precursor.mz, 500.0);
+    assert_eq!(c.precursor.drift_time, Some(0.9));
+    assert_eq!(c.precursor.drift_window_lower_offset, 0.1);
+    assert_eq!(
+        c.precursor.cv_terms.metadata["peptide_sequence"].to_string(),
+        "PEPTIDEA"
+    );
+    assert!(
+        c.data_processing[0]
+            .metadata
+            .contains_key("performed_on_spectra")
+    );
+    assert!(settings.data_processing[0].metadata.is_empty());
+    // Coordinates with no drift time (-1) get none.
+    assert_eq!(chromatograms[1].precursor.drift_time, None);
+
+    // MS2 with an unknown transition id, and too few coordinates.
+    let mut bad = coords.clone();
+    bad[0].id = "nope".into();
+    let before = chromatograms.len();
+    assert!(matches!(
+        return_chromatogram(
+            &output,
+            &bad,
+            &light,
+            &settings,
+            &mut chromatograms,
+            false,
+            0.0
+        ),
+        Err(Error::MissingInformation(_))
+    ));
+    assert!(matches!(
+        return_chromatogram(
+            &output,
+            &coords[..1],
+            &light,
+            &settings,
+            &mut chromatograms,
+            true,
+            0.0
+        ),
+        Err(Error::InvalidValue(_))
+    ));
+    assert_eq!(chromatograms.len(), before);
 }
