@@ -272,10 +272,10 @@ impl CachedMzMLHandler {
     ) -> Result<()> {
         let mut meta = exp.clone();
         for spectrum in &mut meta.spectra {
-            clear_spectrum_data(spectrum);
+            spectrum.clear(false);
         }
         for chromatogram in &mut meta.chromatograms {
-            clear_chromatogram_data(chromatogram);
+            chromatogram.clear(false);
         }
         if add_cache_meta_value {
             let mut processing = crate::metadata::DataProcessing::default();
@@ -748,23 +748,4 @@ impl CachedMzMLHandler {
             writer,
         )
     }
-}
-
-/// `MSSpectrum::clear(false)`: the peaks and every data array, keeping the
-/// settings and meta values.
-#[cfg(feature = "mzml")]
-pub(crate) fn clear_spectrum_data(spectrum: &mut MSSpectrum) {
-    spectrum.peaks.clear();
-    spectrum.float_data_arrays.clear();
-    spectrum.integer_data_arrays.clear();
-    spectrum.string_data_arrays.clear();
-}
-
-/// `MSChromatogram::clear(false)`, as [`clear_spectrum_data`].
-#[cfg(feature = "mzml")]
-pub(crate) fn clear_chromatogram_data(chromatogram: &mut MSChromatogram) {
-    chromatogram.peaks.clear();
-    chromatogram.float_data_arrays.clear();
-    chromatogram.integer_data_arrays.clear();
-    chromatogram.string_data_arrays.clear();
 }
