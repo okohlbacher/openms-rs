@@ -990,9 +990,11 @@ impl TransitionTSVFile {
 
     /// A peptide from a line (`createPeptide_`).
     fn create_peptide(&self, t: &TsvTransition, warnings: &mut Vec<String>) -> Result<Peptide> {
-        let mut peptide = Peptide::default();
+        let mut peptide = Peptide {
+            sequence: t.peptide_sequence.clone(),
+            ..Peptide::default()
+        };
         peptide.id = t.group_id.clone();
-        peptide.sequence = t.peptide_sequence.clone();
         let meta = &mut peptide.base.cv_terms.metadata;
         meta.insert(
             "full_peptide_name".into(),
@@ -1062,10 +1064,12 @@ impl TransitionTSVFile {
 
     /// A compound (metabolite) from a line (`createCompound_`).
     fn create_compound(&self, t: &TsvTransition) -> Result<Compound> {
-        let mut compound = Compound::default();
+        let mut compound = Compound {
+            molecular_formula: t.sum_formula.clone(),
+            smiles_string: t.smiles.clone(),
+            ..Compound::default()
+        };
         compound.id = t.group_id.clone();
-        compound.molecular_formula = t.sum_formula.clone();
-        compound.smiles_string = t.smiles.clone();
         let meta = &mut compound.base.cv_terms.metadata;
         meta.insert(
             "CompoundName".into(),
