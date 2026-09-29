@@ -165,7 +165,10 @@ pub struct PeakPickerChromatogram {
     pub peak_width: Option<f64>,
     /// Boundary-extension S/N threshold. Zero disables the boundary S/N gate.
     pub signal_to_noise: f64,
-    /// Boundary and apex-report estimator; source window defaults to 1000 s.
+    /// Boundary and apex-report estimator (source `snt_`); the source window
+    /// defaults to 1000 s (`sn_win_len`), the bin count to 30
+    /// (`sn_bin_count`) and its log messages to off
+    /// (`write_sn_log_messages`).
     ///
     /// This estimator always runs under [`PickingCompatibility::source`], so
     /// its whole source profile applies whatever
@@ -235,8 +238,12 @@ impl Default for PeakPickerChromatogram {
             },
             peak_width: None,
             signal_to_noise: 1.0,
+            // Source constructor: `updateMembers_` hands `sn_win_len` (1000)
+            // and `write_sn_log_messages` (false) to `snt_`, whose own
+            // defaults are 200 and true.
             noise_estimator: SignalToNoiseEstimatorMedian {
                 window_length: 1000.0,
+                write_log_messages: false,
                 ..Default::default()
             },
             seed_signal_to_noise: 1.0,
