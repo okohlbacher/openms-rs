@@ -70,7 +70,12 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
   scratchpad/integB/ledger_digest.py (58 entries; do NOT rerun make_ledger.py, it would drop them).
 - MSExperiment.h / LogStream.h name-level member check vs their docs: hold.
 
+- facf18ef JSON -0 scanner collapse (param_json tests pass on dax, clippy ok).
+- Report draft updated (items 8, 9; duplicates; table). sweep4 was stopped (pre-refactor tree).
+
 ## Next step
-1. Final sweep sweep4 (slot integ-B-sweep2, log scratchpad/integB/sweep4) on the final tree.
-2. Report: scratchpad/integB/INTEG-B.md -> fill SWEEP_RESULT + digestion section; cp to .planning/lane-reports/INTEG-B.md.
+1. Final sweep sweep5 (slot integ-B-sweep2, log scratchpad/integB/sweep5) on tree facf18ef.
+   If the ssh dies, remote logs stay in /scratch/kohlbach/agents/integ-B-sweep2/.ci-line.N.log
+   (summarise with scratchpad/integB/summ.sh; resume with .rest.sh FROM TO).
+2. Fill SWEEP_RESULT in scratchpad/integB/INTEG-B.md; cp to .planning/lane-reports/INTEG-B.md.
 3. Delete NOTES.md in final commit.
