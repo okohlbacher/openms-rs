@@ -51,5 +51,12 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 - sweep1 (merged, pre-fix): test-job lines 1-23 all pass (5901 all-features); stopped at 24 to free dax.
 - sweep3 = final sweep, slot integ-B-sweep2, log dir scratchpad/integB/sweep3.
 
+- sweep3 (slot integ-B-sweep2, tree = e76f1ce1): the ssh died with the previous incarnation
+  after line 46. Lines 1-46 ALL PASS (remote logs /scratch/kohlbach/agents/integ-B-sweep2/.ci-line.N.log,
+  summarised by scratchpad/integB/summ.sh). Lines 47-54 relaunched detached on dax via
+  .rest.sh (DONE marker .rest.DONE, output .rest.out in the slot).
+
 ## Next step
-1. Wait sweep3; fix failures; fill report; cp report; delete NOTES.md in final commit.
+1. Poll dax slot integ-B-sweep2 for .rest.DONE; read .rest.out; fix failures.
+2. Fill SWEEP_RESULT in scratchpad/integB/INTEG-B.md; cp to .planning/lane-reports/INTEG-B.md.
+3. Delete NOTES.md in final commit.
