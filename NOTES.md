@@ -34,3 +34,12 @@ Branch: worktree-wf_cd066dab-0a7-19 (retry; merged -14 notes).
   DocumentIdentifier expectations (loaded path, type name dta2d/ms2).
 - Plan DTA2D: WriteOptions -> struct {limits, discard_unrepresentable}; strict default refuses text that does not
   read back exactly; source() = C++ behaviour. MS2: record DocumentIdentifier, doc ms2.rs to 100%.
+
+## Done (incarnation 3)
+- 9b55dd03 DTA2D source number text (tier 1 vs retained Release bytes) + DocumentIdentifier for DTA2D/MS2.
+- 629a82cf DTAFile path load/store, name=basename, source line split, DEFAULT_MS_LEVEL; class test ported.
+- Oracle ../oracle/F7c-transform-progress (driver.cpp, run.sh start|poll|fetch) launched on ibminode06
+  for MzXMLFile::transform progress (8 cases + filtered). Next: fetch, add transform_with_progress to mzxml.rs.
+- Gate cmd that works: OPENMS_GATE_HOST=spock OPENMS_GATE_JOBS=64 ~/.local/bin/openms-kim-gate.sh F7c test --locked --all-features --test <t> ...
+  (no shell variables in the command; the sandbox refuses them). Edit scripts go in scratchpad as .py files.
+- Do NOT run check_doc_coverage.py --write (docs/doc-coverage.json is the lead's).
