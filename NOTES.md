@@ -30,7 +30,7 @@ F1a infra: src/format/{arrow_io_helpers,arrow_schema_registry,parquet_file}.rs, 
 - Fixtures copied to tests/data/openswath_parquet/ (sha256 recorded via shasum). pyarrow available locally.
 
 ## Next step
-1. Write src/format/parquet_reader_helpers.rs (crate-private) + xic_parquet_file.rs, tests/openswath_parquet.rs.
+1. DONE readers (tests/openswath_parquet.rs 23 pass on spock, --features arrow).
 2. xim_parquet_file.rs, xipm_parquet_file.rs.
 3. ms_chromatogram_parquet_consumer.rs, mobilogram_parquet_consumer.rs (XIPM consumer partial: needs ExtractedPeakMap).
 4. ArrowExports last (likely untouched).
