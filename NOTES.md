@@ -30,10 +30,10 @@ Extracted to scratchpad/cpp via `git -C <core> archive -o X.tar bc9cc12 '*Parque
 - Oracle ../oracle/O5c-parquet done (ibminode06, identical runs).
 
 ## Next step
-1. OpenSwathOSWParquetWriter + Reader: src/analysis/openswath/openswath_osw_parquet_{writer,reader}.rs.
-   Class tests: OpenSwathOSWParquetWriter_test, _Reader_test (uses core fixture
-   src/tests/class_tests/openms/data/OpenSwathWorkflow_tworuns_1_17.output.oswpq, blob 45ede51), RoundTrip_test.
-   Oracle ../oracle/O5c-oswpq: writer with rich FeatureMap meta values (DataValue toString/toDouble precision!),
-   reader fetch* on tworuns fixture + writer outputs.
-2. OpenSwathParquetExporter: needs OpenSwathExportData.h (unported) -> likely gap.
-3. Report + ledger fragment.
+1. Writer+Reader code committed (WIP; clippy clean). Oracle ../oracle/O5c-oswpq launched (run.sh pull; fixture tworuns
+   copied into fixtures/). Records F/Z/X/OK/E/L/PGC/PG/TFC/TF/UC/U (see driver header); files flattened case__rel with '/'->'#'.
+2. Copy results into tests/data/openswath_osw_parquet/ + provenance; write tests/openswath_osw_parquet.rs:
+   Rust writer on same inputs (mirror richFeatures()/secondRunFeatures()/classFeatures() exactly) -> compare every table
+   value by value + metadata.json modulo build_time; reader outputs vs L/PG/TF/U dumps; X facts (run dir left behind).
+3. Class tests: Writer_test, Reader_test, RoundTrip_test (needs traml_input records from transition_parquet_file data).
+4. Exporter: OpenSwathExportData.h unported -> decide.
