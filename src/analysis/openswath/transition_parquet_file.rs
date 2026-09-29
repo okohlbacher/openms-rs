@@ -107,7 +107,7 @@
 //! [`OSWTransitionSchema`]: crate::format::arrow_schema_registry::OSWTransitionSchema
 //! [`SourceIDMapping`]: crate::analysis::openswath::openswath_library_id_normalizer::SourceIDMapping
 //! [`ZipArchiveFile::extract_entry_to_temp_file`]: crate::format::zip_archive_file::ZipArchiveFile::extract_entry_to_temp_file
-//! [`AASequence`]: crate::chemistry::sequence::AASequence
+//! [`AASequence`]: crate::chemistry::AASequence
 
 use crate::analysis::openswath::openswath_library_id_normalizer::{
     OpenSwathLibraryIDNormalizer, SourceIDMapping,
@@ -115,7 +115,7 @@ use crate::analysis::openswath::openswath_library_id_normalizer::{
 use crate::analysis::openswath::transition_experiment::{
     LightCompound, LightModification, LightProtein, LightTargetedExperiment, LightTransition,
 };
-use crate::chemistry::sequence::AASequence;
+use crate::chemistry::{AASequence, SequenceModification};
 use crate::format::arrow_schema_registry::validation::{self, Mode};
 use crate::format::arrow_schema_registry::{OSWPrecursorSchema, OSWTransitionSchema};
 use crate::format::parquet_file::ParquetFile;
@@ -648,7 +648,7 @@ fn read_library(
 
 /// The UniMod record id of a sequence modification, -1 when it has none (a
 /// mass tag), as `ResidueModification::getUniModRecordId`.
-fn unimod_id(modification: &crate::chemistry::sequence::SequenceModification) -> i32 {
+fn unimod_id(modification: &SequenceModification) -> i32 {
     modification
         .record_id()
         .and_then(|id| i32::try_from(id).ok())

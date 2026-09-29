@@ -23,7 +23,14 @@ Extracted to scratchpad/cpp via `git -C <core> archive -o X.tar bc9cc12 '*Parque
 - Class test TransitionParquetFile_test uses MRMAssay_detectingTransistionCompound_input.TraML.
 - OpenSwathParquetExporter needs OpenSwathExportData.h (NOT ported anywhere) -> likely gap.
 
+## Status
+- src/analysis/openswath/transition_parquet_file.rs written + registered (cfg arrow+file-compression); clippy clean on spock.
+- Oracle ../oracle/O5c-parquet (driver.cpp, node.sh, run.sh push|pull) started on ibminode06:/scratch/kohlbach/O5c-parquet.
+  Records C/T/P/M/Z/E/OK/F (see driver header). Files flat in results/files/<case>__<name>.
+
 ## Next step
-1. Write src/analysis/openswath/transition_parquet_file.rs (cfg arrow + file-compression), tests/transition_parquet_file.rs
-   transcribing the class test.
-2. Then OSWParquetWriter/Reader (read headers + tests), exporter last.
+1. `../oracle/O5c-parquet/run.sh pull`; check results/DONE, differ.txt, compile.log.
+2. Copy results into tests/data/transition_parquet_file/ + provenance json; write tests/transition_parquet_file.rs
+   (class-test transcription + oracle replay: Rust reader on C++ files vs C/T/P/M dumps (compound order = row order,
+   compare as sets), Rust writer tables vs C++ tables, metadata.json equal except build_time).
+3. Then OSWParquetWriter/Reader, exporter last (needs OpenSwathExportData, unported).
