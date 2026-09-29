@@ -57,7 +57,9 @@ every value it can hold:
 
 It is implemented as `f64::total_cmp` on the value with `-0.0` folded into
 `+0.0`, with `Eq` and `Hash` defined on the same folded key. NaN is refused at
-construction, so the order is a genuine total order.
+construction, so the order is a genuine total order; no set the source returns
+ever holds a NaN (see "NaN voltages" below), so nothing the source can return
+is excluded by that.
 
 The obvious alternative, `f64::to_bits`, is not this order. IEEE 754 bit
 patterns place every negative value after every positive value and order
@@ -109,16 +111,24 @@ test `voltages_order_numerically_and_not_by_bit_pattern` pins this.
 
 ## Native differences
 
-- **NaN voltages are refused.** A FAIMS spectrum with a NaN drift time makes
-  `get_compensation_voltages` return `Error::InvalidValue` naming the spectrum
-  index. The source inserts the NaN into its `std::set<double>`, which breaks
-  the strict weak ordering the container requires. The executed oracle shows
-  the result depends on insertion order. As the first element the NaN becomes
-  the tree root, every later voltage compares equal to it and is dropped, and
-  `erase(DRIFTTIME_NOT_SET)` then erases the NaN itself and logs the
-  missing-voltage warning. The set comes back **empty with a spurious warning**
-  (`nan_first`). Anywhere later, the NaN alone is dropped (`nan_middle`,
-  `nan_last`). This is reported as a C++ issue candidate.
+- **(Closed by DEBT-04.) NaN voltages are reproduced, no longer refused.** The
+  refusal rested on the argument that a NaN breaks the strict weak ordering
+  `std::set<double>` requires, so the result would be unspecified. What the
+  Release build does is deterministic and does not depend on the shape of the
+  tree: under `operator<` a NaN is equivalent to every element, so `insert`
+  (`FAIMSHelper.cpp:45`) walks to the largest element, finds it "equal" and
+  inserts nothing, unless the set is still empty, when the NaN becomes its
+  only element and every later voltage is "equal" to it and dropped.
+  `erase(DRIFTTIME_NOT_SET)` (`:50`) then finds the NaN equivalent to `-1.0`
+  and removes it. So a NaN on the first FAIMS spectrum gives an **empty set
+  with a spurious missing-voltage warning** (`nan_first`), and a NaN anywhere
+  later is dropped (`nan_middle`, `nan_last`); `get_compensation_voltages`
+  returns exactly that. Tier 1 twice over: the three rows of
+  `../oracle/pte-faims-helper` and the eight `faims_*` rows of
+  `../oracle/A3a-source-order` (Linux x86_64 Release build, ibminode06). The
+  defect itself stands as CPP-244. `ImDataConverter::split_by_faims_cv` still
+  refuses a NaN voltage, because its own `std::map<double, ...>` grouping of a
+  NaN (CPP-280) is not ported yet.
 - **Warnings are returned, not logged.** This kernel module is not wired to
   `LogStream`; the caller decides where `CompensationVoltages::warnings` goes.
 - **NaN filter parameters and non-positive tolerances are refused.** A NaN
@@ -128,9 +138,10 @@ test `voltages_order_numerically_and_not_by_bit_pattern` pins this.
   keeps only the unannotated identifications (oracle `tolerance_zero`,
   `tolerance_negative`, `tolerance_nan`, `target_nan`, and
   `target_nan_tolerance_infinite`, which shows that even an infinite tolerance
-  cannot match a NaN target). A NaN target is refused for the reason
-  `CompensationVoltage::new` refuses NaN, so no voltage
-  `get_compensation_voltages` returns is refused as a target. An infinite
+  cannot match a NaN target). That is the reason for all three refusals: a
+  parameter under which no annotated identification can ever be kept is a
+  caller error the source cannot report. No ordering is involved, and no
+  voltage `get_compensation_voltages` returns is refused as a target. An infinite
   target is not refused (see the preserved conventions above). A positive
   infinite tolerance stays valid and keeps every identification (oracle
   `tolerance_infinite`).
@@ -155,10 +166,10 @@ test `voltages_order_numerically_and_not_by_bit_pattern` pins this.
 | --- | --- | --- |
 | `FAIMSHelper_test.cpp:32-104` literals | 3 (source review) | the constructor and destructor sections; 19 spectra and the voltages {-65, -55, -45} of `IM_FAIMS_test.mzML`; FAIMS detected beyond the first spectrum with the sentinel ignored; empty for non-FAIMS data |
 | `oracle_cases.tsv`, `faims_file_*` | 1 (executed differential) | the C++ `MzMLFile` load of `IM_FAIMS_test.mzML`: native ID, MS level, drift time (hexadecimal) and unit of all 19 spectra, and the resulting voltage set in iteration order |
-| `oracle_cases.tsv`, `faims_cvs` | 1 (executed differential) | 16 synthetic experiments: the two class-test experiments, empty, order, signed zeros, infinities, sentinel only, sentinel on another unit, unit `NONE`, duplicates, adjacent doubles, NaN first/middle/last and NaN on another unit. The Rust voltages match bit for bit, including the sign of zero, for the 13 cases without a FAIMS NaN; the three NaN cases are refused and their C++ results asserted |
+| `oracle_cases.tsv`, `faims_cvs` | 1 (executed differential) | 16 synthetic experiments: the two class-test experiments, empty, order, signed zeros, infinities, sentinel only, sentinel on another unit, unit `NONE`, duplicates, adjacent doubles, NaN first/middle/last and NaN on another unit. The Rust voltages match bit for bit, including the sign of zero, for all 16 cases, the three FAIMS NaN cases included (DEBT-04; they used to be refused) |
 | `oracle_cases.tsv`, `faims_filter*` | 1 (executed differential) | 15 `faims_filter` records: 13 parameter cases on nine identifications (double, integer, unannotated, other key, boundary values), including NaN and infinite targets at the default and at an infinite tolerance, one empty input, and an empty `DataValue` annotation. Kept lists match for the nine accepted cases, the four infinite-target cases among them. The five refused cases and the conversion exception are asserted against their recorded C++ outcomes. Two `faims_filter_infinite_annotation` records filter `+inf`, `-inf` and `-45` annotations by `±inf` at an infinite tolerance: C++ keeps only the unannotated identification, and the port keeps the same on the representable subset |
 | oracle stderr (manifest) | 1 | the missing-voltage warning occurs three times: after the class-test sentinel case, after `only_sentinel`, and after `nan_first` (whose empty result shows `erase` removed the NaN root) |
-| `tests/faims_helper.rs` native tests | 4 | ordering, equality and hashing of `CompensationVoltage`; NaN refusal with the spectrum index; parameter and annotation refusals; infinite targets accepted; strict boundary, order preservation and unchanged input; the ceilings |
+| `tests/faims_helper.rs` native tests | 4 | ordering, equality and hashing of `CompensationVoltage`; parameter and annotation refusals; infinite targets accepted; strict boundary, order preservation and unchanged input; the ceilings |
 
 The oracle is product-sdk (Debug, core `4fdec46`), accepted as a
 development-time oracle. `git diff 4fdec46 bc9cc12` is empty for
@@ -195,7 +206,8 @@ ledger records `FAIMSHelper.h` as `complete`.
   first, the result is empty and a spurious missing-voltage warning is logged;
   otherwise the NaN is silently dropped. The executed evidence is in
   `oracle_cases.tsv` (`nan_first`, `nan_middle`, `nan_last`). A NaN reaches this
-  path from any reader that accepts `NaN` as a cvParam value.
+  path from any reader that accepts `NaN` as a cvParam value. Filed as CPP-244;
+  since DEBT-04 the port reproduces it rather than refusing it.
 - **Silent no-match parameters in `filterPeptidesByFAIMSCV`.** A tolerance of
   zero or less, or a NaN target or tolerance, keeps only unannotated
   identifications without any diagnostic, even at an infinite tolerance. This

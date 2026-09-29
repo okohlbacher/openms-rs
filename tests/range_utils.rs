@@ -668,10 +668,14 @@ fn inverted_and_nonfinite_ranges_are_rejected() {
         InIntensityRange::new(0.0, f64::INFINITY, false),
         Err(Error::InvalidValue(_))
     ));
-    assert!(matches!(
-        IsInIsolationWindow::new([100.0, f64::NAN], false),
-        Err(Error::InvalidValue(_))
-    ));
+    // `IsInIsolationWindow::new` accepts NaN since DEBT-04: the source's
+    // `std::sort` is reproduced (tests/a3a_source_order.rs pins the order and
+    // the predicate against the Release build). On two elements that sort is
+    // one `__insertion_sort` step, and `NaN < 100.0` is false, so the list
+    // stays as given.
+    let with_nan = IsInIsolationWindow::new([100.0, f64::NAN], false).unwrap();
+    assert_eq!(with_nan.mz_values()[0], 100.0);
+    assert!(with_nan.mz_values()[1].is_nan());
     // A degenerate closed range is valid and matches exactly its point.
     let point = InMzRange::new(5.0, 5.0, false).unwrap();
     assert!(point.contains(5.0));

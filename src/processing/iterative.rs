@@ -24,6 +24,8 @@ use super::peak_picking::{
 };
 use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{DataArray, MSExperiment, MSSpectrum, Peak1D, SpectrumType};
+use crate::math::source_sort::{TemporaryBuffer, source_sort_by, source_stable_sort_permutation};
+use crate::math::{libstdcxx, x86_64};
 use crate::{Error, Result};
 
 /// The progress label of source `pickExperiment` (`PeakPickerIterative.h:384`).
@@ -437,7 +439,15 @@ impl PeakPickerIterative {
             }
         }
         charge_sort(&mut work, candidates.len())?;
-        candidates.sort_by(|a, b| b.priority.total_cmp(&a.priority));
+        // `std::sort(PeakCandidates.begin(), PeakCandidates.end(),
+        // sort_peaks_by_intensity)` (`PeakPickerIterative.h:311`, comparator
+        // `a.peak_apex_intensity > b.peak_apex_intensity` at `:36-39`): the
+        // libstdc++ introsort, which is not stable. Above 16 candidates it
+        // reorders equally intense seeds, and that order decides which of two
+        // overlapping candidates survives the merge below and, through the
+        // final `sortByPosition`, the order of peaks it cannot tell apart
+        // (`../oracle/A3a-source-order`, cases `ppi_tie_*`).
+        source_sort_by(&mut candidates, |a, b| a.priority > b.priority)?;
         let noise = if self.signal_to_noise > 0.0 {
             let mut estimator = self.noise_estimator.clone();
             self.limit_noise(&mut estimator)?;
@@ -487,7 +497,32 @@ impl PeakPickerIterative {
         }
         candidates.retain(|c| c.valid);
         charge_sort(&mut work, candidates.len())?;
-        candidates.sort_by(|a, b| a.mz.total_cmp(&b.mz));
+        // The source pushes the surviving candidates in this order and then
+        // calls `output.sortByPosition()` (`:366`). With its three float data
+        // arrays that is `MSSpectrum::sortByPosition` (`MSSpectrum.cpp:444-460`):
+        // nothing when `std::is_sorted` under `PositionLess` holds, and
+        // otherwise `MSSpectrum::sort` (`MSSpectrum.h:363-374`), a
+        // `std::stable_sort` of an index vector under `<` on the m/z. A NaN
+        // centroid, which a zero integrated intensity produces in the source
+        // profile, is incomparable, so both steps are reproduced as the
+        // Release build runs them rather than by a total order.
+        let sorted = libstdcxx::is_sorted_by(&candidates, |a, b| f64::from(a.mz) < f64::from(b.mz));
+        if !sorted {
+            let order = source_stable_sort_permutation(
+                candidates.len(),
+                |a, b| f64::from(candidates[a].mz) < f64::from(candidates[b].mz),
+                TemporaryBuffer::Allocate,
+            )?;
+            let mut slots: Vec<Option<Candidate>> = candidates.into_iter().map(Some).collect();
+            candidates = order
+                .into_iter()
+                .map(|index| {
+                    slots[index]
+                        .take()
+                        .ok_or_else(|| bad("sort permutation repeats"))
+                })
+                .collect::<Result<Vec<_>>>()?;
+        }
         self.output(input, candidates, copies)
     }
 
@@ -562,12 +597,18 @@ impl PeakPickerIterative {
         // `:315` honour it by skipping `snt.init` and every S/N break), so a
         // peak's support extends across the negative samples.
         //
-        // A zero sum still fails, through `finite` below: it divides to an
-        // infinite or, when the weighted sum is zero too, a NaN m/z.
-        // `sortByPosition` then orders the output with `std::stable_sort`, whose
-        // comparator a NaN makes not a strict weak ordering; libstdc++'s merge
-        // sort stays in bounds there, so this is a wrong order rather than an
-        // out-of-bounds read, but which order it is is not pinned by any case.
+        // A zero sum is reproduced too. It divides to an infinite m/z or, when
+        // the weighted sum is zero as well, to a NaN, which the source stores
+        // in the candidate's `float` m/z (`:230`) and carries on with: the
+        // closest-sample search keeps the centre, since no distance is less
+        // than an infinite or NaN one; the merge test (`:337`) is false for a
+        // NaN; and the final `sortByPosition` orders the peaks by the
+        // Release build's `std::stable_sort`, which stays in bounds on any
+        // comparison (`crate::math::source_sort`). The measured cases are the
+        // `ppi_zero_*` and `ppi_tie_*` rows of `../oracle/A3a-source-order`.
+        // A *finite* quotient beyond the `float` range still fails: that
+        // `double` to `float` conversion is undefined behaviour
+        // ([conv.double]), not an ordering question.
         //
         // The native profile keeps the whole refusal, since it does not admit
         // the negative samples that produce a nonpositive sum in the first
@@ -577,9 +618,22 @@ impl PeakPickerIterative {
                 "iterative candidate has nonpositive integrated intensity",
             ));
         }
-        let weighted_mz = finite(weighted / integrated)?;
+        // `divsd`: a `0 / 0` is x86_64's default NaN on every host, as in the
+        // Release build.
+        let quotient = x86_64::div(weighted, integrated);
+        let weighted_mz = if self.compatibility.allow_negative_intensities {
+            quotient
+        } else {
+            finite(quotient)?
+        };
         candidate.intensity = integrated;
-        candidate.mz = checked_f32(weighted_mz)?;
+        candidate.mz = if weighted_mz.is_finite() {
+            checked_f32(weighted_mz)?
+        } else {
+            // An infinity or a NaN converts to the `float` of the same kind,
+            // with `cvtsd2ss`'s NaN bits.
+            x86_64::narrow(weighted_mz)
+        };
         candidate.region.left_index = left;
         candidate.region.right_index = right;
         let mut min_diff = (weighted_mz - points[i].mz).abs();

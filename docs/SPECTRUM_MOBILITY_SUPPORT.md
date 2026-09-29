@@ -152,6 +152,9 @@ member is unaccounted for, and names the file that owns each row.
   `std::is_sorted` guard does.
 - **Stable ordering.** Both sorts are stable, so equal keys keep their input
   order, matching `std::stable_sort` and `std::inplace_merge`.
+  `sort_by_ion_mobility` runs libstdc++'s own `std::stable_sort` on the index
+  vector, so keys that are not strictly weakly ordered (a NaN) land where the
+  Release build puts them too.
 - **Chunk semantics.** `[start, end)` half-open, `Chunks::add` closing a run at
   the spectrum's current length, and an empty chunk list sorting nothing.
 - **Raster geometry.** Row-major with m/z slowest, `mz_bin * im_bins + im_bin`;
@@ -189,11 +192,17 @@ member is unaccounted for, and names the file that owns each row.
   ion-mobility array has no entries — which `checkDataArraySizes_` explicitly
   permits — is left in whatever order it was in, silently, and `isSortedByIM`
   reports `true` for it. The port refuses the mismatch.
-- **Both refuse a non-finite ion-mobility array** rather than reporting it
-  sorted. `std::is_sorted` uses `<`, under which a NaN neighbour compares
-  unordered and the array is declared sorted. This is the one place the port
-  differs from `MSSpectrum::is_sorted`, which folds an invalid coordinate into
-  `false`.
+- **(Closed by DEBT-04.)** Both used to refuse a non-finite ion-mobility
+  array, on the argument that the order `std::is_sorted` and `std::stable_sort`
+  give a NaN is unspecified. Lead decision D16 puts reproducing the Release
+  build's order in scope, so both now run the source's own algorithms:
+  `is_sorted_by_im` is `std::is_sorted` under `<` (a NaN between two values
+  does not make the array unsorted, and `[1, NaN, 0.5]` reports sorted, as the
+  Release build reports it), and `sort_by_ion_mobility` is the libstdc++
+  `std::stable_sort` of the index vector (`crate::math::source_sort`), which
+  stays in bounds on any comparison. Tier 1: `../oracle/A3a-source-order`,
+  cases `mob_*` (NaN, `+-inf`, signed zeros, 3 to 31 peaks, with and without a
+  second float array), compared bit for bit by `tests/a3a_source_order.rs`.
 - **`maybe_im_data` returns `Option<(DriftTimeUnit, &[f32])>`.** The source's
   `{DriftTimeUnit::NONE, {}}` conflates three states: no ion-mobility array, an
   ion-mobility array with no entries, and an ion-mobility array whose CV term

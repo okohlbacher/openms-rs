@@ -49,10 +49,13 @@ use std::hash::{Hash, Hasher};
 /// - no tolerance: two adjacent doubles are distinct voltages.
 ///
 /// NaN has no place in that order: `operator<` is false both ways for NaN, so
-/// the source set treats it as equal to whatever element it is compared with,
-/// which breaks the strict weak ordering `std::set` requires and makes the
-/// result depend on insertion order. [`new`](Self::new) therefore refuses NaN,
-/// and [`Ord`] is a genuine total order.
+/// the source set treats it as equivalent to whatever element it is compared
+/// with. What the source then does is deterministic, and
+/// [`FaimsHelper::get_compensation_voltages`] reproduces it; but no set the
+/// source returns ever holds a NaN (a NaN only enters an empty set, and the
+/// sentinel `erase` then removes it again). [`new`](Self::new) therefore
+/// refuses NaN, so that [`Ord`] is a genuine total order on every value this
+/// type can hold, and nothing the source can return is excluded by that.
 ///
 /// The order is implemented as [`f64::total_cmp`] on the value with negative
 /// zero folded into positive zero. Plain `f64::to_bits` is *not* this order:
@@ -72,8 +75,8 @@ impl CompensationVoltage {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when `volts` is NaN, which the source
-    /// `std::set<double>` cannot order (see the type documentation).
+    /// Returns [`Error::InvalidValue`] when `volts` is NaN, which no voltage
+    /// set the source returns contains (see the type documentation).
     pub fn new(volts: f64) -> Result<Self> {
         if volts.is_nan() {
             return Err(Error::InvalidValue(
@@ -229,16 +232,26 @@ impl FaimsHelper {
     /// the value `-1.0` is removed, as the source's `erase` does; `-1.0` with a
     /// FAIMS unit is never a real voltage here.
     ///
+    /// A NaN drift time on a FAIMS spectrum is reproduced as the Release
+    /// build's `std::set<double>` handles it. Under `operator<` a NaN is
+    /// equivalent to every element, so `insert` (`FAIMSHelper.cpp:45`) walks
+    /// the tree to its largest element, finds it "equal" and inserts nothing
+    /// — unless the set is still empty, when the NaN becomes its only element
+    /// and every later voltage is "equal" to it and dropped. The sentinel
+    /// `erase` (`:50`) then finds the NaN equivalent to `-1.0` and removes it,
+    /// so the result is empty and the warning is logged. In short: a NaN on
+    /// the *first* FAIMS spectrum empties the result and raises
+    /// [`MISSING_VOLTAGE_WARNING`](Self::MISSING_VOLTAGE_WARNING); a NaN
+    /// anywhere later is ignored. Both are the executed behaviour
+    /// (`../oracle/A3a-source-order`, cases `faims_*`); neither depends on the
+    /// shape of the tree.
+    ///
     /// # Errors
     ///
     /// Returns [`Error::InvalidValue`] when the experiment holds more than
     /// [`MAX_SPECTRA`](Self::MAX_SPECTRA) spectra, checked before anything is
-    /// collected, and when a FAIMS spectrum carries a NaN drift time. The
-    /// source inserts the NaN into its `std::set<double>`, whose ordering it
-    /// breaks: depending on insertion order the NaN is kept, displaces nothing,
-    /// or causes later voltages to be dropped. This refuses the input instead,
-    /// naming the spectrum index. The experiment is only borrowed, so nothing
-    /// is mutated in any case.
+    /// collected. The experiment is only borrowed, so nothing is mutated in
+    /// any case.
     ///
     /// # Examples
     ///
@@ -268,19 +281,29 @@ impl FaimsHelper {
             )));
         }
         let mut voltages = BTreeSet::new();
-        for (index, spectrum) in experiment.spectra.iter().enumerate() {
+        // Whether the source set is `{NaN}`: a NaN inserted while it was empty.
+        let mut holds_nan = false;
+        for spectrum in &experiment.spectra {
             if spectrum.drift_time_unit != DriftTimeUnit::FaimsCompensationVoltage {
                 continue;
             }
-            let voltage = CompensationVoltage::new(spectrum.drift_time).map_err(|_| {
-                Error::InvalidValue(format!(
-                    "spectrum {index} carries a NaN FAIMS compensation voltage"
-                ))
-            })?;
-            voltages.insert(voltage);
+            if holds_nan {
+                // Every value is "equal" to the NaN: not inserted.
+                continue;
+            }
+            match CompensationVoltage::new(spectrum.drift_time) {
+                Ok(voltage) => {
+                    voltages.insert(voltage);
+                }
+                // A NaN is inserted only into the empty set; into any other
+                // it is "equal" to the largest element and dropped.
+                Err(_) => holds_nan = voltages.is_empty(),
+            }
         }
         let mut warnings = Vec::new();
-        if voltages.remove(&CompensationVoltage(ImTypes::DRIFTTIME_NOT_SET)) {
+        // `erase(DRIFTTIME_NOT_SET)`: the NaN is equivalent to `-1.0` too.
+        let erased = holds_nan || voltages.remove(&CompensationVoltage(ImTypes::DRIFTTIME_NOT_SET));
+        if erased {
             warnings.push(Self::MISSING_VOLTAGE_WARNING.to_owned());
         }
         Ok(CompensationVoltages { voltages, warnings })
@@ -335,9 +358,14 @@ impl FaimsHelper {
     /// [`MAX_PEPTIDE_IDENTIFICATIONS`](Self::MAX_PEPTIDE_IDENTIFICATIONS)
     /// identifications. The source accepts the NaN and non-positive parameters
     /// and silently keeps only the unannotated identifications, because its
-    /// strict comparison can never succeed with them. A NaN target is refused
-    /// for the same reason [`CompensationVoltage::new`] refuses NaN, so no
-    /// voltage this module returns is ever refused as a target.
+    /// strict comparison `|cv - target_cv| < cv_tolerance` can never succeed
+    /// with them. That is the reason for all three refusals: a parameter under
+    /// which no annotated identification can ever be kept is a caller error
+    /// the source cannot report. No ordering is involved (nothing here sorts
+    /// or searches), and since every voltage
+    /// [`get_compensation_voltages`](Self::get_compensation_voltages) returns
+    /// is a [`CompensationVoltage`], none of them is ever refused as a
+    /// target.
     ///
     /// Returns [`Error::InvalidValue`], naming the identification index, when a
     /// `FAIMS_CV` annotation is empty or not a number. The source converts an
@@ -350,9 +378,9 @@ impl FaimsHelper {
         target_cv: f64,
         cv_tolerance: f64,
     ) -> Result<Vec<PeptideIdentification>> {
-        if CompensationVoltage::new(target_cv).is_err() {
+        if target_cv.is_nan() {
             return Err(Error::InvalidValue(
-                "the target FAIMS compensation voltage must not be NaN".into(),
+                "the target FAIMS compensation voltage must not be NaN: it keeps no annotated identification".into(),
             ));
         }
         if cv_tolerance.is_nan() || cv_tolerance <= 0.0 {

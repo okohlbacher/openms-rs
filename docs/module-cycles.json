@@ -57,6 +57,7 @@
    "concept",
    "format",
    "identification",
+   "math",
    "metadata",
    "param"
   ],
@@ -73,6 +74,7 @@
    "chemistry",
    "concept",
    "kernel",
+   "math",
    "metadata",
    "param"
   ],

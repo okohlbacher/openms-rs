@@ -228,11 +228,16 @@ Each item is covered by the executed oracle unless marked otherwise.
    (`bound_float_collapse_rt`, `bound_merge_float_collapse`,
    `edge_zero_extent_hull_outside_margin`; `edge_hull_less_convex_hull` is
    refused by difference 2).
-7. **Callbacks.** The comparator may be called twice per comparison (once in the
-   source's merge sort); a comparator that is not a strict weak ordering is
-   undefined in the source and may panic in Rust's sort. A Rust callback cannot
-   throw: a failing callback returns `Err` through
-   `filter_with_fallible_callback`.
+7. **Callbacks.** The comparator is called once per comparison, in the order
+   of the source's `std::stable_sort` (`FeatureOverlapFilter.cpp:141`), which
+   `crate::math::source_sort::source_stable_sort_permutation` reproduces. A
+   comparator that is not a strict weak ordering (the default one on a NaN
+   overall quality) gives the Release build's order: tier 1,
+   `../oracle/A3a-source-order`, cases `fof_*`, in `tests/a3a_source_order.rs`.
+   (Before DEBT-04 the port emulated the sort with a library `sort_by`, which
+   called the comparator twice per comparison and could panic on such a
+   comparator.) A Rust callback cannot throw: a failing callback returns `Err`
+   through `filter_with_fallible_callback`.
 8. **The quadtree takes the box function per call** and removal of an absent
    value is an error (the source asserts, then writes through `end()`).
 9. **Serial**, as the source; no `parallel` path, so no thread-count contract

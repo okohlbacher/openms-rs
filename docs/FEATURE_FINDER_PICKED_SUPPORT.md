@@ -483,7 +483,14 @@ as the source's second run (driver case reuse, three runs, and debug_twice):
   (`Seed::operator<`), so seeds of equal intensity share one entry. A later
   debug run's abort map reads every stored seed's spectrum and peak index in
   *that* run's input (stale scaled: the first run's 25 seeds read on doubled
-  intensities, 40 entries).
+  intensities, 40 entries). A seed with a NaN intensity, which no run of the
+  finder produces (its intensity score, and so its overall score, is NaN and
+  never reaches a seed threshold), is stored as `operator[]`'s `lower_bound`
+  stores it: into the empty map it becomes the only entry and takes every later
+  reason; into a non-empty map it replaces the reason of the least intense
+  entry. `debug::AbortReasons::insert` reproduces both since DEBT-04 (it used
+  to refuse a NaN key as unorderable): tier 1, `../oracle/A3a-source-order`,
+  cases `abort_*`, in `tests/a3a_source_order.rs`.
 - **`isotope_distributions_` is extended, never cleared**
   (`IsotopeWindows::precalculate_onto`), so a reused object's windows, and with
   them its seeds and features, can differ from a fresh object's (reuse run 2).
