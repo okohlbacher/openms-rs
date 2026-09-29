@@ -65,7 +65,12 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 - Still to member-check: DefaultParamHandler, WindowMower, RankScaler, SqrtScaler, SNEstimatorMedian,
   SpectrumAnnotator, NASG, DecoyGenerator (B8b, missing from report table), MSExperiment, LogStream.
 
+- a54ea6a8 digestion leading-site oracle + tests/digestion_leading_site.rs (7 pass stable/1.85, clippy ok).
+  Result: recorded native difference, ProteaseDigestion.h stays complete; INTEG-B.json amended by
+  scratchpad/integB/ledger_digest.py (58 entries; do NOT rerun make_ledger.py, it would drop them).
+- MSExperiment.h / LogStream.h name-level member check vs their docs: hold.
+
 ## Next step
-1. Pull digestion oracle; decide fix/downgrade; member-check the list above.
-2. Fill SWEEP_RESULT in scratchpad/integB/INTEG-B.md; cp to .planning/lane-reports/INTEG-B.md.
+1. Final sweep sweep4 (slot integ-B-sweep2, log scratchpad/integB/sweep4) on the final tree.
+2. Report: scratchpad/integB/INTEG-B.md -> fill SWEEP_RESULT + digestion section; cp to .planning/lane-reports/INTEG-B.md.
 3. Delete NOTES.md in final commit.
