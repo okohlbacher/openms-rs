@@ -21,9 +21,9 @@ use openms::analysis::featurefinder::multiplex::delta_masses_generator::{
     KNOWN_LABELS, LabelMassShifts, Labelling, label_master_list,
 };
 use openms::analysis::featurefinder::multiplex::{
-    DeltaMass, LabelSet, MultiplexDeltaMasses, MultiplexDeltaMassesGenerator,
-    MultiplexFilteredMSExperiment, MultiplexFilteredPeak, MultiplexIsotopicPeakPattern,
-    MultiplexSatelliteCentroided, MultiplexSatelliteProfile,
+    DeltaMass, FeatureFinderMultiplexAlgorithm, LabelSet, MultiplexDeltaMasses,
+    MultiplexDeltaMassesGenerator, MultiplexFilteredMSExperiment, MultiplexFilteredPeak,
+    MultiplexIsotopicPeakPattern, MultiplexSatelliteCentroided, MultiplexSatelliteProfile,
 };
 use openms::constants::C13C12_MASSDIFF_U;
 
@@ -414,4 +414,25 @@ fn label_mass_shift_parameters() {
     let parsed = LabelMassShifts::from_param(&defaults).unwrap();
     assert_eq!(parsed, LabelMassShifts::default());
     assert_eq!(parsed.masses.len(), 14);
+}
+
+/// The source's `getFeatureMap`, `getConsensusMap` and `getBlacklist` return
+/// non-const references, and the `FeatureFinderMultiplex` tool edits the maps
+/// in place and moves the blacklist spectra out (topp `174b576`,
+/// `src/FeatureFinderMultiplex.cpp:317-355`): a change through the mutable
+/// accessor is what the next read sees.
+#[test]
+fn algorithm_result_maps_are_mutable_in_place() {
+    let mut algorithm = FeatureFinderMultiplexAlgorithm::new();
+    algorithm.feature_map_mut().identifier = "cv_group".to_string();
+    algorithm.consensus_map_mut().experiment_type = "labeled_MS1".to_string();
+    algorithm
+        .blacklist_mut()
+        .spectra
+        .push(openms::kernel::MSSpectrum::default());
+    assert_eq!(algorithm.feature_map().identifier, "cv_group");
+    assert_eq!(algorithm.consensus_map().experiment_type, "labeled_MS1");
+    let moved = std::mem::take(&mut algorithm.blacklist_mut().spectra);
+    assert_eq!(moved.len(), 1);
+    assert!(algorithm.blacklist().spectra.is_empty());
 }

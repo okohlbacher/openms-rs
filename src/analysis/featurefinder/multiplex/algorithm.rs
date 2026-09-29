@@ -653,6 +653,27 @@ impl FeatureFinderMultiplexAlgorithm {
         &self.exp_blacklist
     }
 
+    /// Mutable access to the features of the most recent run (the source's
+    /// `getFeatureMap` returns `FeatureMap&`; the `FeatureFinderMultiplex`
+    /// tool annotates each feature with the FAIMS compensation voltage in
+    /// place).
+    pub fn feature_map_mut(&mut self) -> &mut FeatureMap {
+        &mut self.feature_map
+    }
+
+    /// Mutable access to the multiplets of the most recent run (the source's
+    /// `getConsensusMap` returns `ConsensusMap&`).
+    pub fn consensus_map_mut(&mut self) -> &mut ConsensusMap {
+        &mut self.consensus_map
+    }
+
+    /// Mutable access to the blacklist of the most recent run (the source's
+    /// `getBlacklist` returns `MSExperiment&`; the tool moves its spectra into
+    /// the combined blacklist).
+    pub fn blacklist_mut(&mut self) -> &mut MSExperiment {
+        &mut self.exp_blacklist
+    }
+
     /// Whether the last run treated its input as centroided (source
     /// `centroided_`).
     pub fn is_centroided(&self) -> bool {
