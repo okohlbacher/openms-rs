@@ -24,11 +24,11 @@
 //! - When the target lies at least two peaks to the right of the first peak of
 //!   the spectrum, the leftward walk stops *on* the first peak without adding
 //!   it, even when it lies inside the window
-//!   (`ChromatogramExtractorAlgorithm.cpp:96-100`). The class test's
+//!   (`ChromatogramExtractorAlgorithm.cpp:77-103`). The class test's
 //!   `400.05 -> 8400` omits the intensity 8 of the first peak for this reason.
 //! - When the target lies above every peak, the last peak is added twice: once
-//!   as the "current" peak (`:73-83`) and again as the first step of the
-//!   leftward walk (`:88-100`).
+//!   as the "current" peak (`:63-75`) and again as the first step of the
+//!   leftward walk (`:77-103`).
 //!
 //! Both are recorded as C++ defect candidates in the support document.
 //!
@@ -51,7 +51,7 @@ use std::cmp::Ordering;
 pub const MAX_EXTRACTED_POINTS: usize = 1 << 30;
 
 /// The progress label of [`ChromatogramExtractorAlgorithm::extract_chromatograms`],
-/// source `ChromatogramExtractorAlgorithm.cpp:256`.
+/// source `ChromatogramExtractorAlgorithm.cpp:275`.
 pub const EXTRACTION_PROGRESS_LABEL: &str = "Extracting chromatograms";
 
 /// Where and what to extract: m/z, ion mobility and an RT range, with an id.
@@ -175,19 +175,19 @@ fn tophat_walk(
     }
     let inside = |i: usize| mz[i] > left && mz[i] < right;
 
-    // :64-68 advance until the first peak at or above the target.
+    // :52-58 advance until the first peak at or above the target.
     while *pos < n && mz[*pos] < target {
         *pos += 1;
     }
     let it = *pos;
 
-    // :73-83 the current peak, or the last one when the walk passed the end.
+    // :63-75 the current peak, or the last one when the walk passed the end.
     let current = if it == n { n - 1 } else { it };
     if inside(current) && accept(current) {
         integrated += intensity[current];
     }
 
-    // :88-106 walk left. The first step may land on the first peak, which is
+    // :77-103 walk left. The first step may land on the first peak, which is
     // then added by the special case; the loop itself never adds index 0.
     let mut walker = it;
     if it != 0 {
@@ -203,7 +203,7 @@ fn tophat_walk(
         walker -= 1;
     }
 
-    // :110-121 walk right.
+    // :105-119 walk right.
     let mut walker = it;
     if it != n {
         walker += 1;
@@ -275,9 +275,15 @@ impl ChromatogramExtractorAlgorithm {
     ) -> Result<f64> {
         check_walk_arrays(mz.len(), intensity.len(), "intensity", *pos)?;
         let (left, right) = mz_window(target_mz, mz_extraction_window, ppm);
-        Ok(tophat_walk(mz, intensity, pos, target_mz, left, right, |_| {
-            true
-        }))
+        Ok(tophat_walk(
+            mz,
+            intensity,
+            pos,
+            target_mz,
+            left,
+            right,
+            |_| true,
+        ))
     }
 
     /// Integrate the intensity within `mz ± mz_extraction_window / 2` and
@@ -312,9 +318,15 @@ impl ChromatogramExtractorAlgorithm {
         let (left, right) = mz_window(target_mz, mz_extraction_window, ppm);
         let left_im = target_im - im_extraction_window / 2.0;
         let right_im = target_im + im_extraction_window / 2.0;
-        Ok(tophat_walk(mz, intensity, pos, target_mz, left, right, |i| {
-            ion_mobility[i] > left_im && ion_mobility[i] < right_im
-        }))
+        Ok(tophat_walk(
+            mz,
+            intensity,
+            pos,
+            target_mz,
+            left,
+            right,
+            |i| ion_mobility[i] > left_im && ion_mobility[i] < right_im,
+        ))
     }
 
     /// Extract chromatograms at the m/z, ion mobility and RT of each
@@ -383,7 +395,7 @@ impl ChromatogramExtractorAlgorithm {
     /// [`ChromatogramExtractorAlgorithm::extract_chromatograms`], reporting to
     /// `progress` as the source's `ProgressLogger` base does:
     /// `startProgress(0, n, "Extracting chromatograms")`, `setProgress(i)`
-    /// before spectrum `i`, `endProgress()` (`:256-259`, `:327`).
+    /// before spectrum `i`, `endProgress()` (`:275-278`, `:352`).
     ///
     /// # Errors
     ///
