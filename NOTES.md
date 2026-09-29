@@ -46,3 +46,13 @@ MRMChromHandler -> check whether ported; probably blocked (name the deps).
 - Feature plan: new `traml = ["dep:quick-xml","file-compression"]` in default (Cargo.toml, report it).
 - C++ defect candidates: Compound MS:1002476 sets actual_peptide_ drift time; Product charge
   via toDouble; handleCVParam_ value-type checks nested inside `if (obsolete)`.
+
+## Status (session 1, late)
+- PQP heavy path done: tests/transition_pqp_file.rs 7/7 on dax (--features semantic-validation,sqlite).
+- Docs: docs/TRAML_SUPPORT.md, TRANSITION_TSV_SUPPORT.md, TRANSITION_PQP_SUPPORT.md. Provenance manifests
+  tests/data/{traml,transition_tsv_file,transition_pqp_file}_provenance.json (script scratchpad/O1b/make_provenance.py).
+- Ledger fragment written: .planning/ledger-fragments/wave4/O1b.json.
+- MRMFile / TargetedDataFileLoader: untouched (deps SwathMap partial, SwathFile, SimpleOpenMSSpectraAccessFactory,
+  MRMChromHandler unmapped).
+- DO NOT run tools/check_schema_feature_graph.py locally (it runs cargo).
+- Remaining: MSRV slices + clippy + doc gate results; CI sweep; report; delete NOTES.md in final commit.
