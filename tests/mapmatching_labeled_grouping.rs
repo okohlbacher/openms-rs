@@ -290,3 +290,56 @@ fn feature_grouping_algorithm_labeled_parameters() {
     let algorithm = FeatureGroupingAlgorithmLabeled::from_param(&manual_param()).unwrap();
     assert_eq!(algorithm.to_param().unwrap(), manual_param());
 }
+
+#[test]
+fn labeled_pair_finder_mrm_mode() {
+    // Tier 4, derived from the source: in `mrm` mode a pair needs equal
+    // charges, a precursor difference (meta value `MZ`) within `mz_dev` of the
+    // pair distance and a fragment difference within `mz_dev` of 0 or of the
+    // pair distance. A (RT 1.0, fragment 100, precursor 500) and B (RT 1.4,
+    // fragment 100, precursor 504) qualify both ways round (window RT
+    // [t+0.4-1, t+0.4+2]); the greedy step keeps one pair. Without `mrm` the
+    // fragment m/z would have to be 104, so no pair forms. A feature without
+    // `MZ` is the source's `ConversionError`.
+    let mut p = manual_param();
+    let mut features = Vec::new();
+    for (i, (rt, precursor)) in [(1.0, 500.0), (1.4, 504.0)].into_iter().enumerate() {
+        let mut feature = Feature::new(rt, 100.0, 1.0);
+        feature.charge = 1;
+        feature.unique_id = 10 + i as u64;
+        feature.metadata.insert(
+            "MZ".into(),
+            openms::metadata::MetaValue::try_from(precursor).unwrap(),
+        );
+        features.push(feature);
+    }
+    let map = FeatureMap::from_features(features);
+    let input = vec![MapConversion::feature_map_to_consensus(5, &map, None).unwrap()];
+    let mut generator = UniqueIdGenerator::from_seed(3);
+
+    let plain = LabeledPairFinder::from_param(&p).unwrap();
+    let mut out = ConsensusMap::new();
+    light_heavy_headers(&mut out);
+    plain
+        .run_with_generator(&input, &mut out, &mut generator)
+        .unwrap();
+    assert_eq!(out.len(), 0);
+
+    set(&mut p, "mrm", ParamValue::String("true".into()));
+    let mrm = LabeledPairFinder::from_param(&p).unwrap();
+    let mut out = ConsensusMap::new();
+    light_heavy_headers(&mut out);
+    mrm.run_with_generator(&input, &mut out, &mut generator)
+        .unwrap();
+    assert_eq!(out.len(), 1);
+    assert_eq!(out.features[0].len(), 2);
+
+    let mut without = input.clone();
+    without[0].features[0].metadata.clear();
+    let mut out = ConsensusMap::new();
+    light_heavy_headers(&mut out);
+    assert!(
+        mrm.run_with_generator(&without, &mut out, &mut generator)
+            .is_err()
+    );
+}
