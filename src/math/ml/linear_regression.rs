@@ -17,9 +17,8 @@
 //! normalizer — compares them against thresholds. The Student's t quantile
 //! comes from `statrs` (polished by Newton steps) in place of Boost.Math; it
 //! is within `1e-13` relative of Boost on the oracle cases, not bit-identical,
-//! and feeds only
-//! [`LinearRegression::t_value`], [`LinearRegression::lower`] and
-//! [`LinearRegression::upper`].
+//! and feeds only `t_value`, and through it `lower` and `upper` (within
+//! `1e-12`).
 
 use crate::math::statistic_functions::{covariance, mean, variance_with_mean};
 use crate::{Error, Result};

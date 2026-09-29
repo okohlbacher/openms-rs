@@ -7,20 +7,26 @@
 //! Ports the four `ML/RANSAC` headers at core `bc9cc12`:
 //!
 //! - `RANSACModel.h`: the CRTP base `RansacModel<ModelT>` becomes the
-//!   [`RansacModel`] trait, its `DPair`/`DVec`/`ModelParameters` typedefs the
-//!   [`DPair`] and [`ModelParameters`] aliases;
-//! - `RANSACModelLinear.h`/`.cpp`: [`RansacModelLinear`], over
-//!   [`LinearRegression`];
-//! - `RANSACModelQuadratic.h`/`.cpp`: [`RansacModelQuadratic`], over
-//!   [`QuadraticRegression`];
-//! - `RANSAC.h` (header-only): [`RansacParam`] and [`Ransac`].
+//!   [`RansacModel`](crate::math::ml::ransac::RansacModel) trait, its
+//!   `DPair`/`DVec`/`ModelParameters` typedefs the
+//!   [`DPair`](crate::math::ml::ransac::DPair) and
+//!   [`ModelParameters`](crate::math::ml::ransac::ModelParameters) aliases;
+//! - `RANSACModelLinear.h`/`.cpp`:
+//!   [`RansacModelLinear`](crate::math::ml::ransac::RansacModelLinear), over
+//!   [`LinearRegression`](crate::math::ml::linear_regression::LinearRegression);
+//! - `RANSACModelQuadratic.h`/`.cpp`:
+//!   [`RansacModelQuadratic`](crate::math::ml::ransac::RansacModelQuadratic),
+//!   over [`QuadraticRegression`](crate::math::ml::quadratic_regression::QuadraticRegression);
+//! - `RANSAC.h` (header-only): [`RansacParam`](crate::math::ml::ransac::RansacParam)
+//!   and [`Ransac`](crate::math::ml::ransac::Ransac).
 //!
 //! The algorithm follows the SciPy cookbook reference
 //! (<http://wiki.scipy.org/Cookbook/RANSAC>) that the source was implemented
 //! and tested against, with the source's own refinements: a candidate that
 //! explains more points always wins, and equal counts are decided by the
 //! residual sum of squares. Samples are drawn by shuffling the whole input
-//! with [`RandomShuffler`], so a seed reproduces the source's result exactly.
+//! with [`RandomShuffler`](crate::math::random_shuffler::RandomShuffler), so a
+//! seed reproduces the source's result exactly.
 //! See `docs/RANSAC_SUPPORT.md` for the member mapping and the evidence.
 
 use super::linear_regression::LinearRegression;
