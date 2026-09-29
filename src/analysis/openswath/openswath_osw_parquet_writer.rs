@@ -60,6 +60,16 @@
 //!   existing archive is returned to the caller instead.
 //! - `metadata.json`'s `build_time` is written as `""`, as in
 //!   [`TransitionParquetFile`](crate::analysis::openswath::transition_parquet_file::TransitionParquetFile).
+//! - `feature_precursor.parquet`'s `precursor_apex_intensity` is the MS1
+//!   subordinate's own `peak_apex_int`. The source writes
+//!   `appendOptionalFloat_(b, extractMetaDouble_(sub, "peak_apex_int", value), value, ..)`
+//!   with `value` passed by value, and C++ leaves the order in which the
+//!   arguments are evaluated unspecified: the executed Linux Release build
+//!   (GCC 14.4, `-O2`) copies `value` before the extraction runs and writes
+//!   the double extracted before it on the same feature (measured: `7.0`, a
+//!   preceding transition's `points_across_half_height`, where the
+//!   subordinate carries `3.25`). The null pattern agrees. Every other
+//!   column written the same way agrees with the Release build.
 //!
 //! Reproduced source behaviour worth knowing: an error raised while the
 //! features are converted (a missing `PeptideRef`, an unknown transition)
@@ -745,6 +755,8 @@ impl RunTables {
                     "precursor_area_intensity",
                     finite(Some(f64::from(sub.intensity))),
                 );
+                // The subordinate's own value; the Release build writes a stale
+                // one here (argument evaluation order, see the module docs).
                 fp.f64(
                     "precursor_apex_intensity",
                     finite(meta_double(sub_meta, "peak_apex_int")),

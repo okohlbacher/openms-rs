@@ -35,7 +35,9 @@ use openms::kernel::{Feature, FeatureMap};
 use openms::metadata::MetaValue;
 use openms::system::file::TempDir;
 
-use arrow_array::{ArrayRef, BooleanArray, Float64Array, Int32Array, Int64Array, RecordBatch};
+use arrow_array::{
+    Array, ArrayRef, BooleanArray, Float64Array, Int32Array, Int64Array, RecordBatch,
+};
 use arrow_schema::{Field, Schema};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::path::{Path, PathBuf};
@@ -193,6 +195,10 @@ fn assert_tables_equal(ctx: &str, got: &Path, want: &Path) {
     };
     assert_eq!(fields(&g.schema()), fields(&w.schema()), "{ctx} schema");
     for (i, field) in w.schema().fields().iter().enumerate() {
+        if field.name() == "precursor_apex_intensity" {
+            assert_precursor_apex_divergence(ctx, g.column(i), w.column(i));
+            continue;
+        }
         assert_eq!(
             g.column(i).to_data(),
             w.column(i).to_data(),
@@ -200,6 +206,37 @@ fn assert_tables_equal(ctx: &str, got: &Path, want: &Path) {
             field.name()
         );
     }
+}
+
+/// Documented divergence (writer module docs): the Release build fills
+/// `precursor_apex_intensity` with a stale double because C++ does not order
+/// the evaluation of `appendOptionalFloat_`'s arguments. The only row that
+/// carries a value is feature A's isotope-2 subordinate, whose own
+/// `peak_apex_int` is 3.25 (the driver's `s_iso`); the Release build wrote
+/// 7.0, the `points_across_half_height` of the MS2 subordinate `s1`
+/// extracted before it. Rows without a value are null on both sides.
+fn assert_precursor_apex_divergence(ctx: &str, got: &ArrayRef, want: &ArrayRef) {
+    let values = |a: &ArrayRef| {
+        let a = a.as_any().downcast_ref::<Float64Array>().unwrap();
+        (0..a.len())
+            .map(|i| if a.is_null(i) { None } else { Some(a.value(i)) })
+            .collect::<Vec<_>>()
+    };
+    let (g, w) = (values(got), values(want));
+    if w.is_empty() {
+        assert!(g.is_empty(), "{ctx} precursor_apex_intensity");
+        return;
+    }
+    assert_eq!(
+        w,
+        [None, Some(7.0), None],
+        "{ctx} Release precursor_apex_intensity"
+    );
+    assert_eq!(
+        g,
+        [None, Some(3.25), None],
+        "{ctx} precursor_apex_intensity"
+    );
 }
 
 fn mask_build_time(text: &str) -> String {
@@ -1106,7 +1143,7 @@ fn check_reader(all: &[Vec<String>], case: &str, path: &Path) {
         "OK" => {
             result.unwrap_or_else(|e| panic!("{c}: {e:?}"));
             assert_eq!(reader.oswpq_path(), path);
-            let want = of(all, "L", &c);
+            let want = of(all, "L", case);
             assert_eq!(reader.rows().len(), want.len(), "{c}");
             for (row, w) in reader.rows().iter().zip(want) {
                 let ctx = format!("{c} row {}", w[2]);
@@ -1315,7 +1352,7 @@ fn oracle_reader_preserved_archive_divergence() {
         .write(&zip, &rich, &second_run_features(), 7, "second.mzML", false)
         .unwrap();
     let reader = OpenSwathOSWParquetReader::from_path(&zip).unwrap();
-    let want = of(&all, "L", "r_rich_dir/load");
+    let want = of(&all, "L", "r_rich_dir");
     assert_eq!(reader.rows().len(), want.len());
     for (row, w) in reader.rows().iter().zip(want) {
         assert_eq!(row.group_id, w[13]);
