@@ -1,0 +1,114 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "method": "Executed differential (evidence tier 1): ../oracle/B8b-dbs/driver.cpp compiled with libOpenMS's Release flags against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 and run twice on ibminode06, each case in a fresh process with OPENMS_DATA_PATH set to the install's share directory, both runs byte-identical. ProteaseDB::getInstance() there loads the built-in provider and share/OpenMS/CHEMISTRY/Enzymes.xml (sha256 2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995, the file enzymes.rs is generated from). Transcribed ProteaseDB_test.cpp literals are tier 3.",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ProteaseDB.h",
+   "sha256": "8c2b07e76e13183911d9a27cc8821680fe75f8d123b9c1262b10a818eb52ec6a",
+   "role": "The ported header: the provider constructor, the four engine-name listings and writeTSV."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ProteaseDB.cpp",
+   "sha256": "861c641e158a864286ff897e2c6659489fec65d1cb4996e3ba35b38dce1bab05",
+   "role": "Default constructor (built-in provider, then the optional Enzymes.xml provider), the listings and writeTSV."
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/DigestionEnzymeDB.h",
+   "sha256": "2b89aa4a51ddc169321fd1b24d5cd7a73c3ba0c9db11d8f548a89845e26b471f",
+   "role": "Header-only base: getEnzyme, getEnzymeByRegEx, getAllNames, hasEnzyme (both), hasRegEx, the iterators, addEnzyme_ with its replace-by-name rule and the pointer-ordered set."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/BuiltInProteaseDataProvider.cpp",
+   "sha256": "97075b2157f09bb6cc7b86913483731a166a02cca2a794082ea9e970f85ffaca",
+   "role": "The 33 compiled-in definitions, in the same order as Enzymes.xml."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EnzymeXMLDataProvider.cpp",
+   "sha256": "5b9351840ed2d6cd77991b408b455b198758054236aeac676739a8b99cfacea0",
+   "role": "The optional Enzymes.xml provider whose definitions replace the built-in ones by name."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813",
+   "role": "toLower: per-byte std::tolower, the lower-cased name key."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ProteaseDB_test.cpp",
+   "sha256": "790ab10c745b6012ed96f68f60039048c657a8fbf825ab3609aacd3d2b320bcb",
+   "role": "Class-test literals transcribed in source_literals_of_the_class_test."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/protease_db_oracle.tsv",
+   "kind": "executed C++ output: stdout of the oracle's protease case (iteration order, name listings, every name/lower/upper/synonym key through hasEnzyme and getEnzyme, every regex through hasRegEx and getEnzymeByRegEx, hasEnzyme by pointer)",
+   "derivation": "case protease, run 1; run 2 identical",
+   "evidence_tier": 1,
+   "host": "ibminode06 (Linux 6.8.0-124-generic x86_64)",
+   "build": "Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c; driver compiled with conda-forge g++ 14.4.0 and -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp; built driver sha256 43adabae7b793bea9e091c4446b8c5424266bcfa576fe1e8eea2b662613bf073",
+   "sha256": "14d9d5c5b4f9218aebc360b5028fa2fd0e4d45558ee1ceea2d45590e9ffce420",
+   "rows": 199
+  },
+  {
+   "path": "tests/data/protease_db_oracle_writetsv.tsv",
+   "kind": "executed C++ output: the file ProteaseDB::getInstance()->writeTSV wrote",
+   "derivation": "case protease_tsv, run 1; run 2 identical",
+   "evidence_tier": 1,
+   "host": "ibminode06 (Linux 6.8.0-124-generic x86_64)",
+   "build": "as tests/data/protease_db_oracle.tsv",
+   "sha256": "fe6efae291b60b2820df747ae3b88fa951bc3facb07f854e59bc8cc2fba27ae8",
+   "rows": 34
+  }
+ ],
+ "native_implementation": [
+  "src/chemistry/digestion/protease_db.rs",
+  "src/chemistry/digestion.rs",
+  "src/chemistry/digestion/enzymes.rs"
+ ],
+ "native_tests": [
+  "tests/protease_db.rs",
+  "tests/digestion.rs"
+ ],
+ "support_document": "docs/DIGESTION_SUPPORT.md",
+ "support_documents": [
+  "docs/DIGESTION_SUPPORT.md"
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B8b-dbs/driver.cpp",
+   "sha256": "151b369f88c439756867f2e3901387322de3f66ba2a2afb9423af547fb04a6a6",
+   "origin_key": "fixtures",
+   "note": "oracle driver shared with tests/data/modifications_db_provenance.json; built binary sha256 43adabae7b793bea9e091c4446b8c5424266bcfa576fe1e8eea2b662613bf073"
+  },
+  {
+   "path": "../oracle/B8b-dbs/cases.txt",
+   "sha256": "9be4e8b0f0715a0b6bde50c571c9505e2885edc69766c06e61f86fa6cfc14e2d",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-dbs/run.sh",
+   "sha256": "5bde33ea9288151d44c1c795b40bfdd7c6215cee04635192c8c7b89e95ed4de2",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-dbs/remote_run.sh",
+   "sha256": "b97bc829433a679efc2abd12c09cf92bd2bb7f6ece176d90818bb3f51ac93f0f",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-dbs/results/hashes.txt",
+   "sha256": "75a70174e41903f8c55804f9f40bd29b0d95f2beba5ebb1b2854ff7481e5e260",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The oracle driver and its scripts live in ../oracle/B8b-dbs/; they ran on ibminode06 against the Linux x86_64 Release install, and results/hashes.txt there records the driver, binary, libOpenMS.so and share-file hashes.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
