@@ -37,7 +37,20 @@ Prereq merge: worktree-wf_ee239125-5be-1 fast-forwarded f0990c0 -> 9fcb962 (no m
   re-run the file gate. Scratch dir $SCRATCH/B8b was wiped -> recreate helper scripts there.
 - Ledger fragment wave4/B8b.json does NOT exist yet; lane report not written yet.
 
+## Findings (restart 3)
+- PeptideIdentification gate GREEN on dax (identification 18, peptide_identification 17, consensus 2, math_functions 29).
+- C++ extracted to $SCRATCH/B8b/cpp via $SCRATCH/B8b/extract.sh (flat names: X.h, impl_X.cpp, test_X_test.cpp).
+- ProteaseDB C++: const_enzymes_ is std::set<const T*> => getAllNames/getAll*Names/writeTSV order = heap ADDRESS
+  order (defect candidate; oracle needed). Names also registered lower-cased (Rust get_enzyme lacks this).
+  getEnzymeByRegEx returns single enzyme = map overwrite; test expects RKP -> "Arg-C". Default ctor = builtin
+  provider + Enzymes.xml (same sha 2f160f3e as Rust table) replacing by name (replacement erases regex entry).
+- fancy-regex already a non-optional dep; facade src/concept/boost_regex.rs.
+- Provider ctor design (if time): owned DigestionEnzymeProtein, ProteaseDB struct w/ OnceLock global,
+  from_enzymes/extend (later name replaces), from Param (EnzymeXML). Deferred: IDFilter depends only on query API.
+
 ## Next step
-1. Re-gate PeptideIdentification tests on dax (tests/peptide_identification*.rs, tests/identification.rs).
-2. ModificationsDB members; ProteaseDB writeTSV (+oracle for both writeTSV outputs).
-3. IDFilter: countHits, getBestHit, filterGroupsByScore, regex, keepBestPerPeptide*, digestion filter.
+1. ProteaseDB: write_tsv, lowercase name lookup, get_enzyme_by_regex (single), docs 100%; oracle later.
+2. ModificationsDB: has, search_fast, find_modification_index, sorted mass search x2, all_search_modifications,
+   write_tsv, search_modification(&mod), add_modification.
+3. IDFilter: countHits, getBestHit, predicates, digestion filter, etc.
+4. One combined oracle ../oracle/B8b-dbs-idfilter on ibminode06.
