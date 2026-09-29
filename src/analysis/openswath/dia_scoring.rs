@@ -6,9 +6,9 @@
 //! from `ANALYSIS/OPENSWATH/DIAScoring.h` (class `DIAScoring`).
 //!
 //! In DIA analysis a full MS2 spectrum is recorded at every chromatographic
-//! point. [`DiaScoring`] computes scores from that spectrum:
+//! point. [`DiaScoring`](crate::analysis::openswath::dia_scoring::DiaScoring) computes scores from that spectrum:
 //!
-//! - **Isotope scores** ([`DiaScoring::dia_isotope_scores`]):
+//! - **Isotope scores** ([`DiaScoring::dia_isotope_scores`](crate::analysis::openswath::dia_scoring::DiaScoring::dia_isotope_scores)):
 //!   - *isotope correlation*: the Pearson correlation of each fragment ion's
 //!     observed isotopes with the theoretical averagine distribution, weighted
 //!     by the relative intensity of the transition (more is better);
@@ -16,13 +16,13 @@
 //!     stronger than the current peak, which would indicate the peak is itself
 //!     an isotope of another peak. This counts how often such a peak was seen,
 //!     weighted by the relative intensity of the transition (less is better).
-//! - **Mass-difference score** ([`DiaScoring::dia_massdiff_score`]): the ppm
+//! - **Mass-difference score** ([`DiaScoring::dia_massdiff_score`](crate::analysis::openswath::dia_scoring::DiaScoring::dia_massdiff_score)): the ppm
 //!   difference of the experimental to the expected signal,
 //!   `sum(|ppm difference|) / #observed transitions` (less is better). A list
 //!   of all ppm differences is also returned, `-1` where no signal was found.
-//! - **b/y ion score** ([`DiaScoring::dia_by_ion_score`]): presence of the b/y
+//! - **b/y ion score** ([`DiaScoring::dia_by_ion_score`](crate::analysis::openswath::dia_scoring::DiaScoring::dia_by_ion_score)): presence of the b/y
 //!   ions of the peptide.
-//! - **Theoretical spectrum** ([`DiaScoring::score_with_isotopes`]): a dot
+//! - **Theoretical spectrum** ([`DiaScoring::score_with_isotopes`](crate::analysis::openswath::dia_scoring::DiaScoring::score_with_isotopes)): a dot
 //!   product and a Manhattan score against a theoretical spectrum.
 //!
 //! Spectra are the light OpenSWATH spectra
@@ -642,7 +642,7 @@ impl DiaScoring {
     ///
     /// [`Error::InvalidValue`] for a charge outside `1..=255` (the source checks
     /// `charge > 0` only in debug builds), the errors of
-    /// [`by_series`](super::dia_helper::by_series) and the window-integration
+    /// [`by_series`] and the window-integration
     /// errors.
     pub fn dia_by_ion_score(
         &self,

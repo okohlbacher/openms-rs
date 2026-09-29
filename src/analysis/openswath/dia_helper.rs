@@ -5,10 +5,10 @@
 //! Helper functions for the DIA scoring of OpenSWATH, from
 //! `ANALYSIS/OPENSWATH/DIAHelper.h` (namespace `OpenMS::DIAHelpers`).
 //!
-//! Window integration over light spectra ([`integrate_window`],
-//! [`integrate_windows`] and their spectrum-sequence forms), extraction-window
-//! arithmetic ([`adjust_extraction_window`], [`create_mz_range_ppm`]),
-//! theoretical b/y masses ([`by_series`], [`theoretical_masses`]) and the
+//! Window integration over light spectra ([`integrate_window`](crate::analysis::openswath::dia_helper::integrate_window),
+//! [`integrate_windows`](crate::analysis::openswath::dia_helper::integrate_windows) and their spectrum-sequence forms), extraction-window
+//! arithmetic ([`adjust_extraction_window`](crate::analysis::openswath::dia_helper::adjust_extraction_window), [`create_mz_range_ppm`](crate::analysis::openswath::dia_helper::create_mz_range_ppm)),
+//! theoretical b/y masses ([`by_series`](crate::analysis::openswath::dia_helper::by_series), [`theoretical_masses`](crate::analysis::openswath::dia_helper::theoretical_masses)) and the
 //! averagine isotope helpers used by [`DiaPrescore`](crate::analysis::openswath::dia_prescoring::DiaPrescore)
 //! and [`DiaScoring`](crate::analysis::openswath::dia_scoring::DiaScoring).
 //!

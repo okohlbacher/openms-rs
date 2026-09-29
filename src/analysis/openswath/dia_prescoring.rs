@@ -6,7 +6,7 @@
 //! from `ANALYSIS/OPENSWATH/DIAPrescoring.h` (class `DiaPrescore`).
 //!
 //! In DIA (SWATH) analysis a full MS2 spectrum is recorded at every
-//! chromatographic point. [`DiaPrescore`] simulates a theoretical spectrum from
+//! chromatographic point. [`DiaPrescore`](crate::analysis::openswath::dia_prescoring::DiaPrescore) simulates a theoretical spectrum from
 //! the library intensities of a transition group (an averagine isotope pattern
 //! per transition, plus two pre-isotope positions per transition) and computes
 //! a Manhattan distance and a rescaled dot product between the observed
@@ -362,7 +362,7 @@ impl DiaPrescore {
     ///
     /// # Errors
     ///
-    /// As [`integrate_windows_sequence`](super::dia_helper::integrate_windows_sequence):
+    /// As [`integrate_windows_sequence`]:
     /// in particular [`Error::MissingInformation`] for an empty theoretical
     /// spectrum. [`Error::InvalidValue`] when `int_theor` or `int_theor_neg` is
     /// shorter than `mz_theor`.

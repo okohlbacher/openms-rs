@@ -19,7 +19,7 @@
 //! - *rt_score*: deviation from the expected retention time;
 //! - signal-to-noise and ranked mutual-information scores.
 //!
-//! [`MRMScoring`] holds the precomputed cross-correlation and
+//! [`MRMScoring`](crate::analysis::openswath::mrm_scoring::MRMScoring) holds the precomputed cross-correlation and
 //! mutual-information matrices; the `initialize_*` methods build them and the
 //! `calc_*` methods reduce them to scores. Cross-correlations are computed for
 //! lags up to 10 points (the source's `XCORR_MAX_DELAY`), or the trace length if
@@ -27,7 +27,7 @@
 //!
 //! # Native differences
 //!
-//! - The matrices are [`ScoreMatrix`] values, a column-major stand-in for the
+//! - The matrices are [`ScoreMatrix`](crate::analysis::openswath::mrm_scoring::ScoreMatrix) values, a column-major stand-in for the
 //!   source's `OpenMS::Matrix` (from `DATASTRUCTURES/Matrix.h`, which this port
 //!   does not provide yet). Every initialisation starts from a zeroed matrix;
 //!   the source resizes in place, which leaves earlier values in entries it does

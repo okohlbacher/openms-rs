@@ -9,26 +9,26 @@
 //! These scores use the ion mobilograms of individual peptides in one (or
 //! more) frames:
 //!
-//! - [`IonMobilityScoring::drift_scoring`] scores fragment ion mobilograms
+//! - [`IonMobilityScoring::drift_scoring`](crate::analysis::openswath::ion_mobility_scoring::IonMobilityScoring::drift_scoring) scores fragment ion mobilograms
 //!   extracted from a DIA frame;
-//! - [`IonMobilityScoring::drift_scoring_ms1`] scores the precursor ion
+//! - [`IonMobilityScoring::drift_scoring_ms1`](crate::analysis::openswath::ion_mobility_scoring::IonMobilityScoring::drift_scoring_ms1) scores the precursor ion
 //!   mobility in an MS1 frame;
-//! - [`IonMobilityScoring::drift_scoring_ms1_contrast`] cross-correlates
+//! - [`IonMobilityScoring::drift_scoring_ms1_contrast`](crate::analysis::openswath::ion_mobility_scoring::IonMobilityScoring::drift_scoring_ms1_contrast) cross-correlates
 //!   precursor against fragment ion mobilograms;
-//! - [`IonMobilityScoring::drift_id_scoring`] scores an identification
+//! - [`IonMobilityScoring::drift_id_scoring`](crate::analysis::openswath::ion_mobility_scoring::IonMobilityScoring::drift_id_scoring) scores an identification
 //!   transition against the detection transitions.
 //!
-//! Scores are written into an [`OpenSwathScores`]. On an error the scores are
+//! Scores are written into an [`OpenSwathScores`](crate::kernel::mrm::OpenSwathScores). On an error the scores are
 //! left unchanged.
 //!
 //! # Gaps
 //!
 //! - Ion-mobilogram peak picking (`apply_im_peak_picking = true`) needs
 //!   `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`, which is not ported yet; the
-//!   request fails with [`Error::Unsupported`] naming that dependency.
+//!   request fails with [`Error::Unsupported`](crate::Error::Unsupported) naming that dependency.
 //! - The optional `MobilogramParquetConsumer` export (from
 //!   `FORMAT/DATAACCESS/MobilogramParquetConsumer.h`) is represented by the
-//!   [`MobilogramSink`] trait; the Parquet implementation of it is a backlog
+//!   [`MobilogramSink`](crate::analysis::openswath::ion_mobility_scoring::MobilogramSink) trait; the Parquet implementation of it is a backlog
 //!   item of the format port.
 //!
 //! See `docs/OPENSWATH_SCORING_SUPPORT.md`.

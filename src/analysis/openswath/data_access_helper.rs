@@ -9,7 +9,7 @@
 //! `OpenSwathDataAccessHelper`, whose static members become free functions).
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!
-//! `convertPeptideToAASequence` is [`convert_peptide_to_aa_sequence`], added
+//! `convertPeptideToAASequence` is [`convert_peptide_to_aa_sequence`](crate::analysis::openswath::data_access_helper::convert_peptide_to_aa_sequence), added
 //! with the OpenSWATH scoring port. Not ported yet, because they read the
 //! heavyweight `ANALYSIS/TARGETED/TargetedExperiment`: `convertTargetedExp` and
 //! both `convertTargetedCompound` overloads.
@@ -148,7 +148,7 @@ pub fn convert_to_openms_chromatogram_filter(
 /// The sequence is parsed, then every modification with a UniMod id other
 /// than -1 is set as `UniMod:<id>` at its location (-1 the N-terminus, the
 /// sequence length the C-terminus), through
-/// [`set_modification`](super::targeted_experiment_helper::set_modification).
+/// [`set_modification`].
 ///
 /// # Errors
 ///

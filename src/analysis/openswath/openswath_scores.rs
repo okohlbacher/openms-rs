@@ -9,7 +9,7 @@
 //! The score records themselves (`OpenSwath_Scores` and `OpenSwath_Ind_Scores`)
 //! are ported in [`crate::kernel::mrm`], because `MRMFeature` stores one by
 //! value; this module adds the methods from `OpenSwathScores.cpp` to
-//! [`OpenSwathScores`] and ports [`OpenSwathScoresUsage`].
+//! [`OpenSwathScores`](crate::kernel::mrm::OpenSwathScores) and ports [`OpenSwathScoresUsage`](crate::analysis::openswath::openswath_scores::OpenSwathScoresUsage).
 //!
 //! See `docs/OPENSWATH_SCORING_SUPPORT.md`.
 

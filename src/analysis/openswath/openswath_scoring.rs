@@ -5,15 +5,15 @@
 //! The class that calls the OpenSWATH scoring routines, from
 //! `ANALYSIS/OPENSWATH/OpenSwathScoring.h` (class `OpenSwathScoring`).
 //!
-//! [`OpenSwathScoring`] invokes the chromatographic
-//! ([`MRMScoring`]), library, full-spectrum DIA
-//! ([`DiaScoring`]) and ion mobility
-//! ([`IonMobilityScoring`]) scores for one
-//! peak group, as selected by an [`OpenSwathScoresUsage`], and fetches the
-//! DIA spectra at the peak apex ([`OpenSwathScoring::fetch_spectrum_swath`]).
+//! [`OpenSwathScoring`](crate::analysis::openswath::openswath_scoring::OpenSwathScoring) invokes the chromatographic
+//! ([`MRMScoring`](crate::analysis::openswath::mrm_scoring::MRMScoring)), library, full-spectrum DIA
+//! ([`DiaScoring`](crate::analysis::openswath::dia_scoring::DiaScoring)) and ion mobility
+//! ([`IonMobilityScoring`](crate::analysis::openswath::ion_mobility_scoring::IonMobilityScoring)) scores for one
+//! peak group, as selected by an [`OpenSwathScoresUsage`](crate::analysis::openswath::openswath_scores::OpenSwathScoresUsage), and fetches the
+//! DIA spectra at the peak apex ([`OpenSwathScoring::fetch_spectrum_swath`](crate::analysis::openswath::openswath_scoring::OpenSwathScoring::fetch_spectrum_swath)).
 //!
-//! Every scoring call writes into its [`OpenSwathScores`] (or
-//! [`OpenSwathIndScores`]) only on success; on an error the scores are
+//! Every scoring call writes into its [`OpenSwathScores`](crate::kernel::mrm::OpenSwathScores) (or
+//! [`OpenSwathIndScores`](crate::kernel::mrm::OpenSwathIndScores)) only on success; on an error the scores are
 //! unchanged.
 //!
 //! The source keeps thread-local pools and caches (spectra, formulas,
