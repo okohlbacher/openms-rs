@@ -616,6 +616,7 @@ fn ransac_is_reproducible_and_param_alias_agrees() {
 fn random_shuffler_seeding() {
     let mut a = RandomShuffler::new(4711);
     let mut b = RandomShuffler::default();
+    assert_eq!(b, RandomShuffler::with_seed(RandomShuffler::DEFAULT_SEED));
     b.seed(4711);
     assert_eq!(a, b);
     let mut left: Vec<u8> = b"ABCDEFGHIJKLMNOPQRST".to_vec();

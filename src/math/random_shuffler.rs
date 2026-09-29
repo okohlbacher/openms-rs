@@ -12,13 +12,10 @@
 //! `Math::RandomShuffler`: a portable, seedable Fisher–Yates shuffle.
 //!
 //! Ports the `RandomShuffler` class of `MATH/MathFunctions.h` (lines 477-506 at
-//! core `bc9cc12`); the header's free functions live in
-//! [`crate::concept::math_functions`]. The class exists so that a shuffle gives
-//! the same permutation on every platform for the same seed, which
-//! `std::shuffle` does not promise. [`crate::math::ml::ransac`] draws its
-//! samples through it, and `DecoyGenerator` shuffles peptide sequences with the
-//! same algorithm (its private engine in `chemistry` delegates to the mapping
-//! and loop defined here).
+//! core `bc9cc12`). The class exists so that a seed gives the same permutation
+//! on every platform and standard library, which `std::shuffle` does not
+//! promise. [`crate::math::ml::ransac`] draws its samples through it, which is
+//! why it lives in `math`: that module must stay a sink of the module graph.
 //!
 //! Three pieces make the permutation source-exact:
 //!
@@ -29,66 +26,102 @@
 //!    and not `rand`'s widening multiply;
 //! 3. the source's descending loop `for i = n-1 .. 1: swap(a[i], a[d(0, i)])`.
 //!
-//! See `docs/RANSAC_SUPPORT.md` for the evidence.
+//! The crate-private `DecoyRandom` engine of the decoy generator implements the
+//! same three pieces with a draw budget; see `docs/RANSAC_SUPPORT.md` for why
+//! the two are not yet one type.
 
-use crate::{Error, Result};
-use rand_mt::Mt64;
-
-/// Boost's `mt19937_64::default_seed`, used by the source's default
-/// constructor.
-pub const DEFAULT_SEED: u64 = 5489;
+pub use rand_mt::Mt64;
 
 /// A seedable shuffler whose permutations match the source's on every
 /// platform.
 ///
 /// Equality compares the whole engine state, so two shufflers are equal
 /// exactly when they will produce the same future permutations.
+///
+/// Boost's `mersenne_twister_engine::seed` also rewrites the low 31 bits of the
+/// first state word and repairs an all-zero state; `Mt64` does neither, and
+/// neither changes any output: the twist reads only the upper 33 bits of that
+/// word before replacing it, and the repair cannot trigger after an integer
+/// seed.
+///
+/// ```
+/// use openms::math::random_shuffler::RandomShuffler;
+///
+/// let mut shuffler = RandomShuffler::new(0);
+/// let mut items = [1, 2, 3, 4, 5];
+/// shuffler.portable_random_shuffle(&mut items);
+/// let mut again = RandomShuffler::new(0);
+/// let mut copy = [1, 2, 3, 4, 5];
+/// again.portable_random_shuffle(&mut copy);
+/// assert_eq!(items, copy);
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RandomShuffler {
     engine: Mt64,
 }
 
 impl Default for RandomShuffler {
-    /// The source's `RandomShuffler()`: an engine seeded with
-    /// [`DEFAULT_SEED`], as a default-constructed `boost::mt19937_64` is.
+    /// The source's `RandomShuffler() = default`: a default-constructed
+    /// `boost::mt19937_64`, seeded with [`RandomShuffler::DEFAULT_SEED`].
     fn default() -> Self {
-        Self::new(DEFAULT_SEED)
+        Self::with_seed(Self::DEFAULT_SEED)
     }
 }
 
 impl RandomShuffler {
-    /// A shuffler whose engine is in the state of `boost::mt19937_64(seed)`.
+    /// Boost's `mt19937_64::default_seed`, used by the default constructor.
+    pub const DEFAULT_SEED: u64 = 5489;
+
+    /// The source's `explicit RandomShuffler(int seed)`.
     ///
-    /// The source's seeding constructor takes an `int`, so a 64-bit seed
-    /// passed to it is first narrowed; [`RandomShuffler::from_int_seed`]
-    /// reproduces that conversion. This constructor takes the full 64-bit
-    /// seed, as the source's [`seed`](RandomShuffler::seed) member does.
-    pub fn new(seed: u64) -> Self {
+    /// `boost::mt19937_64`'s seeding constructor takes a `uint64_t`, so a
+    /// negative `int` arrives sign-extended: `new(-1)` equals
+    /// `with_seed(u64::MAX)`.
+    pub fn new(seed: i32) -> Self {
+        Self::with_seed(i64::from(seed) as u64)
+    }
+
+    /// A shuffler whose engine is in the state of `boost::mt19937_64(seed)`
+    /// for any 64-bit seed.
+    ///
+    /// Native addition: the source's constructor takes an `int`, while its
+    /// [`seed`](RandomShuffler::seed) member accepts the full `uint64_t` range.
+    pub fn with_seed(seed: u64) -> Self {
         Self {
             engine: Mt64::new(seed),
         }
     }
 
-    /// The source's `explicit RandomShuffler(int seed)`.
-    ///
-    /// `boost::mt19937_64`'s seeding constructor takes a `uint64_t`, so a
-    /// negative `int` arrives sign-extended: `-1` seeds with `u64::MAX`.
-    pub fn from_int_seed(seed: i32) -> Self {
-        Self::new(i64::from(seed) as u64)
+    /// The source's `explicit RandomShuffler(const boost::mt19937_64&)`: adopt
+    /// an engine in whatever state it is in.
+    pub fn from_engine(engine: Mt64) -> Self {
+        Self { engine }
     }
 
-    /// Restart the engine as `boost::mt19937_64::seed(val)` does; the next
-    /// permutation is the first one [`RandomShuffler::new`] with the same seed
-    /// would produce.
+    /// Read access to the engine: the source's public member `rng_`.
+    pub fn engine(&self) -> &Mt64 {
+        &self.engine
+    }
+
+    /// Mutable access to the engine: the source's public member `rng_`.
+    /// Drawing from it advances the stream the shuffle draws from, as using
+    /// `rng_` directly does in the source.
+    pub fn engine_mut(&mut self) -> &mut Mt64 {
+        &mut self.engine
+    }
+
+    /// Give up the shuffler and return its engine.
+    pub fn into_engine(self) -> Mt64 {
+        self.engine
+    }
+
+    /// The source's `seed(uint64_t val)`: restart the stream; the next word is
+    /// the first word of [`RandomShuffler::with_seed`] with the same seed.
     pub fn seed(&mut self, val: u64) {
         self.engine.reseed(val);
     }
 
-    /// One raw engine word.
-    ///
-    /// The source exposes its engine as the public member `rng_`; this is the
-    /// one operation a caller can perform on it without changing its state
-    /// in another way.
+    /// One raw 64-bit engine word (the source's `rng_()`).
     pub fn next_u64(&mut self) -> u64 {
         self.engine.next_u64()
     }
@@ -97,95 +130,36 @@ impl RandomShuffler {
     ///
     /// For `i` from `len - 1` down to `1`, draws `j` uniformly from `[0, i]`
     /// with Boost's `uniform_int` mapping and swaps `data[i]` with `data[j]`.
-    /// Empty and one-element slices draw nothing. Each position normally costs
-    /// one engine word; Boost's rejection step can cost more, with probability
-    /// below `(i + 1) / 2^64` per draw.
+    /// Empty and one-element slices draw nothing. The permutation depends only
+    /// on the seed and the length, never on the element type or the platform.
+    /// Each position normally costs one engine word; Boost's rejection step can
+    /// cost more, with probability below `(i + 1) / 2^64` per draw, so the cost
+    /// is linear in the length.
     pub fn portable_random_shuffle<T>(&mut self, data: &mut [T]) {
         for end in (1..data.len()).rev() {
-            // A slice length always fits in u64 on every supported target.
-            let selected = bounded_unbudgeted(|| self.engine.next_u64(), end as u64) as usize;
+            // usize is at most 64 bits on every supported target, so the index
+            // and the drawn value (at most `end`) convert without loss.
+            let selected = bounded(&mut self.engine, end as u64) as usize;
             data.swap(end, selected);
         }
     }
 }
 
-/// Boost `uniform_int(0, high)` over a full-range 64-bit engine, without a
-/// draw budget.
+/// Boost `uniform_int(0, high)` over a full-range 64-bit engine.
 ///
-/// Rejection continues until a word lands in a complete bucket; the chance
-/// that a word is rejected is `(2^64 mod (high + 1)) / 2^64`.
-fn bounded_unbudgeted(mut next: impl FnMut() -> u64, high: u64) -> u64 {
+/// Boost computes the bucket size as `brange / (range + 1)`, plus one when
+/// `brange % (range + 1) == range`, with `brange = 2^64 - 1`: that is
+/// `floor(2^64 / (high + 1))`, computed here directly in `u128`. A word that
+/// lands in the final partial bucket is rejected and another one drawn.
+fn bounded(engine: &mut Mt64, high: u64) -> u64 {
     if high == 0 {
         return 0;
     }
-    let bucket = bucket_size(high);
+    let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
     loop {
-        let result = next() / bucket;
+        let result = engine.next_u64() / bucket;
         if result <= high {
             return result;
-        }
-    }
-}
-
-/// Boost's bucket size for `uniform_int(0, high)` over the range `[0, 2^64)`,
-/// `floor(2^64 / (high + 1))`, for `high >= 1`.
-///
-/// Boost computes it as `brange / (range + 1)`, incremented when
-/// `brange % (range + 1) == range`, with `brange = 2^64 - 1`; that is the same
-/// integer. `u128` expresses `2^64` directly and the quotient fits a nonzero
-/// `u64` for every `high >= 1`.
-fn bucket_size(high: u64) -> u64 {
-    ((1_u128 << 64) / (u128::from(high) + 1)) as u64
-}
-
-/// The source's descending Fisher–Yates loop over caller-supplied raw words,
-/// with a draw budget.
-///
-/// Every raw draw, including a rejected one, consumes one unit of
-/// `remaining_draws` before the word is read. On error `data` keeps the swaps
-/// already made; callers that need atomicity stage a copy. Empty and
-/// one-element slices draw nothing.
-///
-/// # Errors
-///
-/// Returns [`Error::InvalidValue`] when the budget is exhausted before the
-/// shuffle finishes.
-pub(crate) fn shuffle_from<T>(
-    mut next: impl FnMut() -> u64,
-    data: &mut [T],
-    remaining_draws: &mut usize,
-) -> Result<()> {
-    for end in (1..data.len()).rev() {
-        let high = u64::try_from(end)
-            .map_err(|_| Error::InvalidValue("shuffle range exceeds u64".into()))?;
-        let selected = bounded_from(&mut next, high, remaining_draws)? as usize;
-        // selected <= end, so the usize conversion cannot truncate.
-        data.swap(end, selected);
-    }
-    Ok(())
-}
-
-/// Boost `uniform_int(0, high)` with a draw budget; see [`shuffle_from`].
-///
-/// # Errors
-///
-/// Returns [`Error::InvalidValue`] when the budget runs out.
-pub(crate) fn bounded_from(
-    mut next: impl FnMut() -> u64,
-    high: u64,
-    remaining_draws: &mut usize,
-) -> Result<u64> {
-    if high == 0 {
-        return Ok(0);
-    }
-    let bucket = bucket_size(high);
-    loop {
-        *remaining_draws = remaining_draws
-            .checked_sub(1)
-            .ok_or_else(|| Error::InvalidValue("random draw limit exceeded".into()))?;
-        let result = next() / bucket;
-        if result <= high {
-            return Ok(result);
         }
     }
 }
@@ -195,44 +169,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn unbudgeted_and_budgeted_paths_choose_the_same_permutation() {
-        for seed in [0, 4711, u64::MAX] {
-            let mut public = RandomShuffler::new(seed);
-            let mut data: Vec<u32> = (0..257).collect();
-            public.portable_random_shuffle(&mut data);
-
-            let mut raw = Mt64::new(seed);
-            let mut staged: Vec<u32> = (0..257).collect();
-            let mut remaining = usize::MAX;
-            shuffle_from(|| raw.next_u64(), &mut staged, &mut remaining).unwrap();
-            assert_eq!(data, staged);
-            assert_eq!(public.engine, raw);
-        }
-    }
-
-    #[test]
-    fn rejection_repeats_until_a_complete_bucket() {
-        // For [0,2], floor(2^64/3) leaves u64::MAX outside every bucket.
-        let words = [u64::MAX, u64::MAX, 7];
-        let mut index = 0;
-        let value = bounded_unbudgeted(
-            || {
-                index += 1;
-                words[index - 1]
-            },
-            2,
-        );
-        assert_eq!(value, 0);
-        assert_eq!(index, 3);
-    }
-
-    #[test]
-    fn default_is_the_boost_default_seed() {
-        assert_eq!(RandomShuffler::default(), RandomShuffler::new(5489));
+    fn constructors_and_seeding() {
+        assert_eq!(RandomShuffler::default(), RandomShuffler::with_seed(5489));
+        assert_eq!(RandomShuffler::new(-1), RandomShuffler::with_seed(u64::MAX));
+        assert_eq!(RandomShuffler::new(42), RandomShuffler::with_seed(42));
+        let mut reseeded = RandomShuffler::new(1);
+        reseeded.seed(7);
+        assert_eq!(reseeded, RandomShuffler::with_seed(7));
+        let engine = RandomShuffler::with_seed(9).into_engine();
         assert_eq!(
-            RandomShuffler::from_int_seed(-1),
-            RandomShuffler::new(u64::MAX)
+            RandomShuffler::from_engine(engine.clone()).engine(),
+            &engine
         );
-        assert_eq!(RandomShuffler::from_int_seed(42), RandomShuffler::new(42));
+    }
+
+    #[test]
+    fn bucket_division_not_modulo() {
+        // For [0,1] the bucket is 2^63: the word 2^63 - 1 maps to 0, although
+        // modulo 2 would give 1.
+        let high = 1_u64;
+        let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
+        assert_eq!(((1_u64 << 63) - 1) / bucket, 0);
+        assert_eq!(u64::MAX / bucket, 1);
     }
 }

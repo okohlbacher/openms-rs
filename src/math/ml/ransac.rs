@@ -326,7 +326,7 @@ impl<M: RansacModel + Default> Ransac<M> {
     /// time-seeded constructor, so every run is reproducible.
     pub fn new(seed: u64) -> Self {
         Self {
-            shuffler: RandomShuffler::from_int_seed(seed as i32),
+            shuffler: RandomShuffler::new(seed as i32),
             model: M::default(),
         }
     }

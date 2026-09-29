@@ -20,9 +20,16 @@ Prereqs merged: 0a7-27, 0a7-30 (commit "[MERGE] O4b prerequisites").
 - CalibrationWorkflow needs MRMFeatureFinderScoring, OpenSwathWorkflow, SwathMapMassCorrection, TransitionPQP/TSV (all unmapped) -> probably untouched/partial.
 - TSE needs AccurateMassSearchEngine (unmapped), PeakPickerHiRes/Gauss/SGolay (partial), Deisotoper, S/N median, BinnedSpectralContrastAngle (complete).
 
-## Next step (revised)
-1. src/math/random_shuffler.rs + decoy_random delegation.
-2. src/math/ml/{linear_regression,quadratic_regression}.rs.
-3. src/math/ml/ransac.rs (RANSACParam, RansacModel trait, Linear, Quadratic, Ransac).
-4. src/analysis/openswath/mrm_rt_normalizer.rs.
-5. TSE partial; CalibrationWorkflow assessment.
+## Done (incarnation 1)
+- src/math/random_shuffler.rs (API identical to lane B8b's concept::math_functions::random_shuffler on branch
+  worktree-wf_cd066dab-0a7-39 -> report: lead collapses them; math must own it (sink)). decoy_random.rs UNTOUCHED (B8b moves it).
+- src/math/ml/{linear_regression,linear_regression_without_intercept,quadratic_regression,ransac}.rs
+- src/analysis/openswath/mrm_rt_normalizer.rs; tests/ransac.rs (13), tests/mrm_rt_normalizer.rs (9) pass on spock.
+- Oracle ../oracle/O4b-ransac (gen_data.py -> datasets.tsv, cases.tsv; driver.cpp interposes time()); run via `bash run.sh` (background).
+
+## Next step
+1. Fetch oracle results; write tests/ransac_oracle.rs comparing bits (t-quantile: tolerance), fixtures in tests/data/ransac_oracle_*.tsv.
+2. docs/RANSAC_SUPPORT.md, tests/data/ransac_provenance.json, THIRD_PARTY entry? (statrs already a dep; add row for students_t).
+3. TSE partial (deps: GaussFilter, SavitzkyGolay, PeakPickerHiRes, S/N median, BinnedSpectrum, Deisotoper, TargetedExperiment from O1a).
+4. CalibrationWorkflow: likely untouched (needs MRMFeatureFinderScoring, OpenSwathWorkflow, SwathMapMassCorrection...).
+5. Report + ledger fragment; delete NOTES.md.
