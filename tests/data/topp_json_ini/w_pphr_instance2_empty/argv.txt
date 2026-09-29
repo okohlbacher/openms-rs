@@ -1,0 +1,7 @@
+PeakPickerHiRes
+-instance
+2
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_empty_obj.json
+-write_ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_instance2_empty/cwd/out.ini

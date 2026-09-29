@@ -262,10 +262,9 @@ fn a_chromatogram_below_the_spectrum_maximum_leaves_the_scale_alone() {
 /// on an empty range with no assertion guard, so a Release build throws too.
 /// Executed at the pinned Release build on both fixtures below: exit 8, *Empty
 /// or uninitialized range object. Did you forget to call updateRanges()?*, no
-/// output file. The port refuses both and writes nothing, but exits 6, because
-/// `Error::InvalidValue` maps to `ILLEGAL_PARAMETERS` crate-wide where the
-/// source's same-named exception reaches its `UNKNOWN_ERROR` arm; see
-/// `run_failure` in `src/cli.rs`. The C++ FileInfo prints
+/// output file. The port refuses both the same way: the exception's text in
+/// the `BaseException` arm's line (`TOPPBase.cpp:495-499`), exit 8, and
+/// nothing written. The C++ FileInfo prints
 /// `intensity: <none> .. <none>` under *Combined Ranges* for both.
 ///
 /// The two fixtures are two of the ways to get there: scans that carry a
@@ -289,9 +288,11 @@ fn an_empty_combined_intensity_range_is_refused() {
             "-out",
             &out.to_string_lossy(),
         ]);
-        assert_eq!(code, ExitCode::IllegalParameters, "{name}: {err}");
+        assert_eq!(code, ExitCode::UnknownError, "{name}: {err}");
         assert!(
-            err.contains("run has no intensities to normalize"),
+            err.contains(
+                "Error: Unexpected internal error (Empty or uninitialized range object. Did you forget to call updateRanges()?)"
+            ),
             "{name}: unexpected diagnostic {err}"
         );
         assert!(

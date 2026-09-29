@@ -266,12 +266,13 @@ crashes the reference FileInfo.
    writes them with `OPENMS_LOG_WARN`, not into either report; the library
    prints nothing and the caller decides. `fasta_duplicate_warnings_match_the_source_log`
    compares them with the tool's stderr, byte for byte and in order.
-4. **A forced type that does not match the content is refused with this crate's
-   message.** `FileHandler::loadIdentifications` refuses an idXML forced to
-   mzIdentML with `type: idXML is not allowed for loading identifications` and
-   the tool exits 3; the port returns
-   `Error::InvalidValue("idXML is not an allowed input format")`, which is how
-   `FileHandler` maps that refusal throughout this crate.
+4. ~~**A forced type that does not match the content is refused with this
+   crate's message.**~~ **Closed** by the B0 integration lane (2026-09-27).
+   `FileHandler::loadIdentifications` refuses an idXML forced to mzIdentML with
+   `type: idXML is not allowed for loading identifications, Allowed types are:
+   , mzid in: <file>` and the tool exits 3 (`id10_forced_mzid` of
+   `../oracle/a7-fileinfo`); the port raises the same `ParseError` through
+   `FileHandler`'s allowed-type check (`FileHandler.cpp:1518-1523`).
 5. ~~**Every NaN the FileInfo text layer prints is spelled `nan`, where glibc
    spells a NaN whose sign bit is set `-nan`.**~~ **CLOSED** on 2026-09-20. It
    is kept here with its measurement, because the measurement is what makes the

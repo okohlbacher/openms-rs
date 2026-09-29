@@ -274,8 +274,13 @@ fn mergeability_requires_engine_and_version_and_delegates_label_rules() {
     b.search_parameters.variable_modifications.push("M".into());
     assert!(!a.peptide_ids_mergeable(&b, "label-free").unwrap());
     assert!(a.peptide_ids_mergeable(&b, "labeled_MS1").unwrap());
+    // The source compares an unparseable charge string as text and never
+    // throws (Release oracle protein-identification-closure,
+    // mergeable_invalid_charges: false, and true against an identical run).
     b.search_parameters.charges = "invalid".into();
-    assert!(a.peptide_ids_mergeable(&b, "labeled_MS1").is_err());
+    assert!(!a.peptide_ids_mergeable(&b, "labeled_MS1").unwrap());
+    let c = b.clone();
+    assert!(b.peptide_ids_mergeable(&c, "label-free").unwrap());
 }
 
 #[test]

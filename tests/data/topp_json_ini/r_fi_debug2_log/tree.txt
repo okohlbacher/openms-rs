@@ -1,0 +1,4 @@
+cwd
+cwd/log.txt
+cwd/run.json
+home

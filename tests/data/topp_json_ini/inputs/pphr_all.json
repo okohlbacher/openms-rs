@@ -1,0 +1,10 @@
+{
+  "algorithm": {"signal_to_noise": 1.5, "ms_levels": [1, 2], "report_FWHM": true, "missing": 3,
+    "report_FWHM_unit": "absolute", "SignalToNoise": {"win_len": 150, "write_log_messages": false}},
+  "processOption": "lowmemory",
+  "threads": 2,
+  "no_progress": true,
+  "in": {"class": "File", "path": "/x/in.mzML"},
+  "out": "/x/out.mzML",
+  "log": null
+}

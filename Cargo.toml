@@ -62,7 +62,7 @@ numpress = ["dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
 rna-json = ["dep:serde_json"]
 proforma-json = ["dep:serde_json"]
-paramxml = ["dep:quick-xml", "file-compression"]
+paramxml = ["dep:quick-xml", "dep:serde_json", "file-compression"]
 featurexml = ["dep:quick-xml", "file-compression"]
 consensusxml = ["dep:quick-xml", "file-compression"]
 semantic-validation = ["cv-mapping"]
@@ -145,6 +145,17 @@ cpu-time = "=1.0.0"
 # architecture, so it is not in their dependency graph at all.
 [target.'cfg(any(target_arch = "x86", target_arch = "x86_64"))'.dependencies]
 raw-cpuid = { version = "=11.6.0", default-features = false }
+
+# The console mode the source's `InitConsole` sets when libOpenMS is loaded
+# (Colorizer.cpp): on Windows, ENABLE_VIRTUAL_TERMINAL_PROCESSING on standard
+# output and on standard error, so that the log streams' ANSI colours render on
+# a console, and the console test behind the source's `Colorizer::isTTY`.
+# GetConsoleMode and SetConsoleMode are FFI, which is `unsafe` and this crate
+# forbids; `winapi-util` (Unlicense OR MIT, the crate termcolor, walkdir and
+# same-file use) wraps exactly those two calls. Not in any other platform's
+# dependency graph (docs/THIRD_PARTY_CRATE_DECISIONS.md).
+[target.'cfg(windows)'.dependencies]
+winapi-util = "=0.1.11"
 
 # Line tables keep panics and backtraces addressable while cutting the full
 # DWARF that made target/ reach 27 GB across 225 test binaries. Test semantics

@@ -20,7 +20,9 @@
 //!    as the Release build refuses them without TDL;
 //! 4. the INI merge of the instance, `common:<tool>:` and `common:` sections
 //!    and a strict update of the defaults, which rejects unknown parameters and
-//!    invalid values, then the source's `checkParam_` warnings;
+//!    invalid values, then the source's `checkParam_` warnings; an `-ini`
+//!    whose name is of type JSON is read onto the defaults by
+//!    [`param_json`](crate::format::param_json), as `ParamJSONFile::load`;
 //! 5. parameter and file validation, then the tool body, then the run-time
 //!    and peak-memory line.
 //!
@@ -78,7 +80,7 @@ pub use tool_handler::{
 use crate::data_structures::ToolInfo;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::{FileType, type_by_file_name};
-use crate::format::paramxml;
+use crate::format::{param_json, paramxml};
 use crate::param::{Param, ParamEntry, ParamUpdateOptions, ParamValue};
 use crate::system::file;
 use crate::{Error, Result};
@@ -989,7 +991,10 @@ fn prepare<T: Tool>(
         ini_path = text_value(&cmd, "ini")?;
         session.debug(out, &format!("INI file: {ini_path}"), 1)?;
         session.debug(out, &format!("INI location: {location}"), 1)?;
-        let loaded = match load_ini(&ini_path, err)? {
+        if is_json_ini(&ini_path) {
+            session.debug(out, "Assuming INI is a cwl file", 1)?;
+        }
+        let loaded = match load_any_ini(session, T::NAME, &ini_path, &defaults, out, err)? {
             Ok(loaded) => loaded,
             Err(code) => return Ok(Prepared::Done(code)),
         };
@@ -1150,8 +1155,7 @@ const TDL_WRITERS: [(&str, &str); 4] = [
 /// The message of the Release build's `std::runtime_error` from
 /// `ParamCWLFile` and `ParamJSONFile` when TDL is not compiled in
 /// (`ParamCWLFile.cpp:331`, `ParamJSONFile.cpp:326`).
-pub const TDL_UNAVAILABLE: &str =
-    "TDL support is not available. Rebuild with -DENABLE_TDL=ON to enable this feature.";
+pub const TDL_UNAVAILABLE: &str = param_json::TDL_UNAVAILABLE;
 
 /// Source `handleWriteCommands_` (`TOPPBase.cpp:2546-2686`).
 ///
@@ -1187,7 +1191,7 @@ fn write_commands<T: Tool>(
         let mut written = defaults.checked_clone()?;
         if cmd.exists("ini")? {
             let ini_path = text_value(cmd, "ini")?;
-            let loaded = match load_ini(&ini_path, err)? {
+            let loaded = match load_any_ini(session, T::NAME, &ini_path, defaults, out, err)? {
                 Ok(loaded) => loaded,
                 Err(code) => return Ok(Some(code)),
             };
@@ -1276,6 +1280,152 @@ fn write_commands<T: Tool>(
     Ok(None)
 }
 
+/// Whether an `-ini` file is read as JSON: the source asks
+/// `FileHandler::getTypeByFileName` for `FileTypes::JSON`
+/// (`TOPPBase.cpp:283` and `2619`), a lexical test of the name.
+fn is_json_ini(path: &str) -> bool {
+    type_by_file_name(path) == FileType::Json
+}
+
+/// The `-ini` file as the INI merge and `-write_ini` read it: a JSON document
+/// through [`load_json_ini`], anything else as parameter XML through
+/// [`load_ini`]. `tool` is the tool's name, for the initialisation catch.
+///
+/// A failure the source's run-phase catch takes is written as its
+/// `writeLogError_` writes it, to the error stream and the `-log` file
+/// (oracle `r_pphr_unknown_log` of `../oracle/json-ini`); one the
+/// initialisation catch takes reaches the error stream only.
+fn load_any_ini(
+    session: &Session<'_>,
+    tool: &str,
+    path: &str,
+    defaults: &Param,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> Result<std::result::Result<Param, ExitCode>> {
+    if is_json_ini(path) {
+        load_json_ini(session, tool, path, defaults, out, err)
+    } else {
+        load_ini(session, path, out, err)
+    }
+}
+
+/// A JSON `-ini` file, source `TOPPBase.cpp:283-296` and `2619-2629`: the
+/// tool's defaults with the values of `ParamJSONFile::load`
+/// ([`param_json::load`]).
+///
+/// The source's `load` returns `true` or throws, so its `ILLEGAL_PARAMETERS`
+/// return is never reached. Its failures (oracle `../oracle/json-ini`):
+///
+/// * A missing file is [`ExitCode::InputFileNotFound`] and an unreadable one
+///   [`ExitCode::InputFileNotReadable`], the `FileNotFound` and
+///   `FileNotReadable` of `ParamJSONFile.cpp:46-56`, caught at
+///   `TOPPBase.cpp:436-441` and `448-453` (oracle `w_missing`).
+/// * A document that is no JSON or no object, a name the tool does not have,
+///   and a value of the wrong JSON type are the source's `ParseError`:
+///   `Error: Unable to read file (<message> in: )` and
+///   [`ExitCode::InputFileCorrupt`] (`460-465`).
+/// * A file that opens and then fails to read, such as a directory, throws
+///   the `std::ios_base::failure` of libstdc++'s `basic_filebuf::underflow`
+///   out of `json::parse`. No OpenMS catch takes it, so the initialisation
+///   catch writes `Unable to initialize or run <tool>: basic_filebuf::underflow
+///   error reading the file: <strerror>` and the tool exits with
+///   [`ExitCode::InternalError`] (`510-514`; oracle `w_directory`).
+/// * Any other failure to open is [`ExitCode::UnknownError`] with the
+///   `IOException` wording, as in [`load_ini`] (`ParamJSONFile.cpp:57-60`).
+///
+/// The warning lines of the load go to standard error as the source's
+/// `OPENMS_LOG_WARN` does.
+fn load_json_ini(
+    session: &Session<'_>,
+    tool: &str,
+    path: &str,
+    defaults: &Param,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> Result<std::result::Result<Param, ExitCode>> {
+    let not_found = format!("Error: File not found (the file '{path}' could not be found)");
+    let not_readable = format!(
+        "Error: File not readable (the file '{path}' is not readable for the current user)"
+    );
+    if !file::exists(path) {
+        session.error(out, err, &not_found)?;
+        return Ok(Err(ExitCode::InputFileNotFound));
+    }
+    if (file::is_directory(path) || std::path::Path::new(path).is_file()) && !file::readable(path) {
+        session.error(out, err, &not_readable)?;
+        return Ok(Err(ExitCode::InputFileNotReadable));
+    }
+    let mut loaded = defaults.checked_clone()?;
+    match param_json::load(path, &mut loaded) {
+        Ok(warnings) => {
+            for warning in &warnings {
+                log_warning(err, warning)?;
+            }
+            Ok(Ok(loaded))
+        }
+        Err(Error::Parse { message, .. }) => {
+            session.error(
+                out,
+                err,
+                &format!("Error: Unable to read file ({message} in: )"),
+            )?;
+            Ok(Err(ExitCode::InputFileCorrupt))
+        }
+        Err(Error::Io(error)) => {
+            use std::io::ErrorKind;
+            let (code, text) = match error.kind() {
+                ErrorKind::NotFound => (ExitCode::InputFileNotFound, not_found),
+                ErrorKind::PermissionDenied => (ExitCode::InputFileNotReadable, not_readable),
+                _ if reopen_failure(path).is_some() => (
+                    ExitCode::UnknownError,
+                    format!("Error: Unexpected internal error (IO error for file '{path}')"),
+                ),
+                _ => {
+                    log_error(
+                        err,
+                        &format!(
+                            "Unable to initialize or run {tool}: basic_filebuf::underflow error reading the file: {}",
+                            os_error_text(&error)
+                        ),
+                    )?;
+                    return Ok(Err(ExitCode::InternalError));
+                }
+            };
+            session.error(out, err, &text)?;
+            Ok(Err(code))
+        }
+        Err(error) => Ok(Err(run_failure_logged(session, &error, out, err))),
+    }
+}
+
+/// [`run_failure`] for a failure the source's run-phase catch takes, each line
+/// written as its `writeLogError_` writes it: to the error stream and the
+/// `-log` file.
+fn run_failure_logged(
+    session: &Session<'_>,
+    error: &Error,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> ExitCode {
+    let mut text = Vec::new();
+    let code = run_failure(error, &mut text);
+    for line in String::from_utf8_lossy(&text).lines() {
+        let _ = session.error(out, err, line);
+    }
+    code
+}
+
+/// The C library's text for an operating-system error, as `strerror` gives
+/// it: the standard library's rendering without its ` (os error <n>)`.
+fn os_error_text(error: &std::io::Error) -> String {
+    let text = error.to_string();
+    match (error.raw_os_error(), text.rfind(" (os error ")) {
+        (Some(_), Some(at)) if text.ends_with(')') => text[..at].to_owned(),
+        _ => text,
+    }
+}
+
 /// Load an INI file with the exit codes the source's run-phase catch assigns.
 ///
 /// Both callers, the INI merge and `-write_ini`, load inside the source's
@@ -1283,7 +1433,12 @@ fn write_commands<T: Tool>(
 /// a failure takes the inner catch:
 ///
 /// * A missing file is [`ExitCode::InputFileNotFound`]: `XMLFile::parse_`
-///   checks `File::exists` (caught at `436-441`).
+///   checks `File::exists` (`XMLFile.cpp:124-127`) and throws `FileNotFound`,
+///   whose text is `the file '<path>' could not be found`
+///   (`Exception.cpp:166-167`; caught at `436-441`).
+///
+/// Each diagnostic is written as the source's `writeLogError_` writes it, to
+/// the error stream and the `-log` file.
 /// * An existing file this process cannot read is
 ///   [`ExitCode::InputFileNotReadable`], with the source's `FileNotReadable`
 ///   wording (`448-453`). In the source, xerces cannot open the file, and
@@ -1310,7 +1465,11 @@ fn write_commands<T: Tool>(
 /// * A readable directory, malformed XML and any other read failure of an
 ///   existing file are [`ExitCode::InputFileCorrupt`], the source's
 ///   `ParseError` (`460-465`). For a directory the diagnostic is the source's
-///   without the file-type hint that `XMLHandler::fatalError` appends. The
+///   without the file-type hint that `XMLHandler::fatalError` appends. For
+///   malformed XML it is `Error: Unable to read file (While loading '<path>':
+///   <reason> in: <path>)` as the Release build frames it (oracle
+///   `x_malformed_log` of `../oracle/json-ini`, batch 3), with this port's
+///   reader's `<reason>` where the source gives xerces'. The
 ///   character device `/dev/null` is readable and reads as an empty document,
 ///   so it is a `ParseError` here as in the source (oracle `ini_dev_null` and
 ///   `write_ini_ini_dev_null`).
@@ -1326,13 +1485,18 @@ fn write_commands<T: Tool>(
 /// The same mapping applies when the file changes between these checks and the
 /// load. Failures other than I/O and parsing, such as a document beyond the
 /// reader's limits, map as in `run_failure`.
-fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param, ExitCode>> {
-    let not_found = format!("Error: File not found (the file '{path}' does not exist)");
+fn load_ini(
+    session: &Session<'_>,
+    path: &str,
+    out: &mut dyn Write,
+    err: &mut dyn Write,
+) -> Result<std::result::Result<Param, ExitCode>> {
+    let not_found = format!("Error: File not found (the file '{path}' could not be found)");
     let not_readable = format!(
         "Error: File not readable (the file '{path}' is not readable for the current user)"
     );
     if !file::exists(path) {
-        log_error(err, &not_found)?;
+        session.error(out, err, &not_found)?;
         return Ok(Err(ExitCode::InputFileNotFound));
     }
     // `file::readable` refuses a device or a FIFO without opening it, which
@@ -1340,11 +1504,12 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
     // load, whose open failure is mapped below.
     let directory = file::is_directory(path);
     if (directory || std::path::Path::new(path).is_file()) && !file::readable(path) {
-        log_error(err, &not_readable)?;
+        session.error(out, err, &not_readable)?;
         return Ok(Err(ExitCode::InputFileNotReadable));
     }
     if directory {
-        log_error(
+        session.error(
+            out,
             err,
             &format!(
                 "Error: Unable to read file (While loading '{path}': unable to read data from file)"
@@ -1372,10 +1537,20 @@ fn load_ini(path: &str, err: &mut dyn Write) -> Result<std::result::Result<Param
                     format!("Error: Unable to read file (While loading '{path}': {error})"),
                 ),
             };
-            log_error(err, &text)?;
+            session.error(out, err, &text)?;
             Ok(Err(code))
         }
-        Err(error) => Ok(Err(run_failure(&error, err))),
+        Err(Error::Parse { message, .. }) => {
+            session.error(
+                out,
+                err,
+                &format!(
+                    "Error: Unable to read file (While loading '{path}': {message} in: {path})"
+                ),
+            )?;
+            Ok(Err(ExitCode::InputFileCorrupt))
+        }
+        Err(error) => Ok(Err(run_failure_logged(session, &error, out, err))),
     }
 }
 
@@ -2128,11 +2303,16 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
 ///   this arm: `load_ini` maps their read failures itself.
 /// * Any other I/O failure is `UNKNOWN_ERROR`, the `BaseException` arm
 ///   (495-499).
-/// * An invalid value or range is `ILLEGAL_PARAMETERS`, as `InvalidParameter`
-///   (475-480), and missing information is `MISSING_PARAMETERS`, as
-///   `RequiredParameterNotGiven` (466-474). The source's own `InvalidValue`,
-///   `InvalidRange` and `MissingInformation` exceptions derive directly from
-///   `BaseException` and would exit `UNKNOWN_ERROR` there.
+/// * An invalid value or range is the source's `InvalidValue` or
+///   `InvalidRange` exception, which derives from `BaseException` and takes
+///   its arm (495-499): `Error: Unexpected internal error (<what>)` and
+///   `UNKNOWN_ERROR` (Release oracle: MapNormalizer's empty intensity range).
+///   A tool that refuses a parameter where the source returns
+///   `ILLEGAL_PARAMETERS` says so itself ([`ToolError::invalid_parameter`]).
+/// * Missing information is `MISSING_PARAMETERS`, as
+///   `RequiredParameterNotGiven` (466-474). The source's own
+///   `MissingInformation` exception derives directly from `BaseException` and
+///   would exit `UNKNOWN_ERROR` there.
 /// * `Unsupported` and `UnsortedData` are `INCOMPATIBLE_INPUT_DATA`, the code
 ///   the source tools return explicitly for those conditions.
 fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
@@ -2157,8 +2337,8 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
             (ExitCode::IncompatibleInputData, format!("Error: {error}"))
         }
         Error::InvalidValue(_) | Error::InvalidRange(_) => (
-            ExitCode::IllegalParameters,
-            format!("Invalid parameter: {error}"),
+            ExitCode::UnknownError,
+            format!("Error: Unexpected internal error ({})", error_text(error)),
         ),
         Error::MissingInformation(_) => (ExitCode::MissingParameters, format!("Error: {error}")),
     };
@@ -2332,7 +2512,11 @@ pub fn run_with_registry<T: Tool>(
 ///   peak-memory part only where the platform reports it.
 /// * A [`ToolError`]: `main_` threw, and the exception unwound past that line
 ///   to a catch block, so there is no closing line. [`ToolError::Error`] takes
-///   the run-phase mapping ([`run_failure`]); [`ToolError::Caught`] is the
+///   the run-phase mapping ([`run_failure`]), unless it is an accessor's
+///   refusal the source raises as an exception of its own
+///   ([`ToolContext::escaped_refusal`]: an unregistered parameter or one read
+///   with the wrong accessor, exit 12, and an invalid flag value, exit 6);
+///   [`ToolError::Caught`] is the
 ///   tool's own catch-block text. Both are written as `writeLogError_` writes
 ///   them, so they also reach the log file. [`ToolError::Escaped`] is the
 ///   initialisation catch's line on the error stream only.
@@ -2356,6 +2540,10 @@ fn run_body<T: Tool>(
             code
         }
         Err(ToolError::Error(error)) => {
+            if let Some((code, text)) = ctx.escaped_refusal(&error) {
+                let _ = session.error(out, err, &text);
+                return code;
+            }
             let mut text = Vec::new();
             let code = run_failure(&error, &mut text);
             let text = String::from_utf8_lossy(&text);
@@ -2425,10 +2613,23 @@ fn report_unsupported_cpu(message: &'static str) -> ExitCode {
 ///
 /// Separate and `#[inline(never)]` only so that [`run`]'s processor check comes
 /// first in the emitted code as well as in the source.
+///
+/// First, on Windows, the console is switched to virtual-terminal processing as
+/// the source's `InitConsole` does when libOpenMS is loaded
+/// ([`enable_console_colors`](crate::concept::log_stream::enable_console_colors)).
+/// On every way out of the tool (a return with any exit code, or a panic
+/// unwinding) the log streams are finished as the source's destructors finish
+/// them at process exit ([`ProcessLogs`](crate::concept::log_stream::ProcessLogs)):
+/// repetition summaries and unterminated lines still held reach their streams,
+/// after the tool's own output and before the terminal reset.
 #[inline(never)]
 fn run_from_environment<T: Tool>() -> ExitCode {
+    crate::concept::log_stream::enable_console_colors();
     let arguments: Vec<String> = std::env::args().collect();
     let mut out = std::io::stdout();
     let mut err = std::io::stderr();
-    console::with_process_streams(|| run_with::<T>(&arguments, &mut out, &mut err))
+    console::with_process_streams(|| {
+        let _logs = crate::concept::log_stream::ProcessLogs::new();
+        run_with::<T>(&arguments, &mut out, &mut err)
+    })
 }

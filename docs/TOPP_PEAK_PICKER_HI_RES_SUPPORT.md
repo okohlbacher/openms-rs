@@ -442,8 +442,8 @@ added to the source's output, not a change to it. Pinned by
    the refusal and the complete run with the sibling lane that lifts it.
 9. **A picker failure that is not the centroided refusal** is reported as
    `Error: Unexpected internal error (<reason>)` with `UNKNOWN_ERROR`, the code
-   `TOPPBase` gives an unmapped exception, rather than the framework's default
-   mapping of `Error::InvalidValue` to `ILLEGAL_PARAMETERS`: these are data and
+   `TOPPBase` gives an unmapped exception, which is also the framework's
+   mapping of an `Error::InvalidValue` escaping a tool body: these are data and
    resource conditions, not parameter errors. One of them, a non-converging
    FWHM bisection, is where the source loops forever.
 10. **`-threads` reaches the picking, where the source's does not.** The source

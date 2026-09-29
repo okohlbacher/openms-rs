@@ -1,0 +1,468 @@
+# OPENMS_ASSERTIONS not defined
+# inputs	{INPUTS}
+mzml_plain	P	S	0	1	loading mzML	0
+mzml_plain	P	S	0	4	loading spectra list	1
+mzml_plain	P	N	1
+mzml_plain	P	V	1	2
+mzml_plain	P	N	2
+mzml_plain	P	V	2	2
+mzml_plain	P	N	3
+mzml_plain	P	V	3	2
+mzml_plain	P	N	4
+mzml_plain	P	V	4	2
+mzml_plain	P	E	1	0
+mzml_plain	P	S	0	2	loading chromatogram list	1
+mzml_plain	P	N	1
+mzml_plain	P	V	1	2
+mzml_plain	P	N	2
+mzml_plain	P	V	2	2
+mzml_plain	P	E	1	0
+mzml_plain	P	E	0	37187
+mzml_plain	R
+mzml_plain	D	0
+mzml_plain	size	4	2
+mzml_plain	sf	0	tiny1.RAW	file:///F:/data/Exp01	Thermo RAW format	71be39fb2700ab2f3c8b2234b91274968b6899b1	1	multiple peak list nativeID format	MS:1000774	0
+mzml_plain	sf	1	ac.dta	file:///F:/data/Exp02	DTA format	81be39fb2700ab2f3c8b2234b91244968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_plain	sf	2	parameters.par	file:///C:/settings/	Thermo RAW format	61be39fb2700ab2f3c8b2234b91274968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_plain	sf	3	pr.dta	file:///F:/data/Exp03	DTA format	81be39fb2700ab2f3c8b2234b91244968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_plain	sf	4	tiny1.dta	file:///F:/data/Exp01	DTA format	81be39fb2700ab2f3c8b2234b91274968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_plain	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_plain	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_plain	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_plain	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_plain	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_plain	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_plain	stored
+mzml_rewrite	P	S	0	1	loading mzML	0
+mzml_rewrite	P	S	0	4	loading spectra list	1
+mzml_rewrite	P	N	1
+mzml_rewrite	P	V	1	2
+mzml_rewrite	P	N	2
+mzml_rewrite	P	V	2	2
+mzml_rewrite	P	N	3
+mzml_rewrite	P	V	3	2
+mzml_rewrite	P	N	4
+mzml_rewrite	P	V	4	2
+mzml_rewrite	P	E	1	0
+mzml_rewrite	P	S	0	2	loading chromatogram list	1
+mzml_rewrite	P	N	1
+mzml_rewrite	P	V	1	2
+mzml_rewrite	P	N	2
+mzml_rewrite	P	V	2	2
+mzml_rewrite	P	E	1	0
+mzml_rewrite	P	E	0	37187
+mzml_rewrite	R
+mzml_rewrite	D	0
+mzml_rewrite	size	4	2
+mzml_rewrite	sf	0	MzMLFile_1.mzML	file://{INPUTS}	mzML file	71be39fb2700ab2f3c8b2234b91274968b6899b1	1	multiple peak list nativeID format	MS:1000774	0
+mzml_rewrite	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_rewrite	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_rewrite	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_rewrite	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_rewrite	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_rewrite	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_rewrite	stored
+mzml_rewrite_hash	P	S	0	1	loading mzML	0
+mzml_rewrite_hash	P	S	0	4	loading spectra list	1
+mzml_rewrite_hash	P	N	1
+mzml_rewrite_hash	P	V	1	2
+mzml_rewrite_hash	P	N	2
+mzml_rewrite_hash	P	V	2	2
+mzml_rewrite_hash	P	N	3
+mzml_rewrite_hash	P	V	3	2
+mzml_rewrite_hash	P	N	4
+mzml_rewrite_hash	P	V	4	2
+mzml_rewrite_hash	P	E	1	0
+mzml_rewrite_hash	P	S	0	2	loading chromatogram list	1
+mzml_rewrite_hash	P	N	1
+mzml_rewrite_hash	P	V	1	2
+mzml_rewrite_hash	P	N	2
+mzml_rewrite_hash	P	V	2	2
+mzml_rewrite_hash	P	E	1	0
+mzml_rewrite_hash	P	E	0	37187
+mzml_rewrite_hash	R
+mzml_rewrite_hash	D	0
+mzml_rewrite_hash	size	4	2
+mzml_rewrite_hash	sf	0	MzMLFile_1.mzML	file://{INPUTS}	mzML file	36007593dbca0ba59a1f4fc32fb970f0e8991fa6	1	multiple peak list nativeID format	MS:1000774	0
+mzml_rewrite_hash	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_rewrite_hash	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_rewrite_hash	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_rewrite_hash	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_rewrite_hash	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_rewrite_hash	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_rewrite_hash	stored
+mzml_hash_only	P	S	0	1	loading mzML	0
+mzml_hash_only	P	S	0	4	loading spectra list	1
+mzml_hash_only	P	N	1
+mzml_hash_only	P	V	1	2
+mzml_hash_only	P	N	2
+mzml_hash_only	P	V	2	2
+mzml_hash_only	P	N	3
+mzml_hash_only	P	V	3	2
+mzml_hash_only	P	N	4
+mzml_hash_only	P	V	4	2
+mzml_hash_only	P	E	1	0
+mzml_hash_only	P	S	0	2	loading chromatogram list	1
+mzml_hash_only	P	N	1
+mzml_hash_only	P	V	1	2
+mzml_hash_only	P	N	2
+mzml_hash_only	P	V	2	2
+mzml_hash_only	P	E	1	0
+mzml_hash_only	P	E	0	37187
+mzml_hash_only	R
+mzml_hash_only	D	0
+mzml_hash_only	size	4	2
+mzml_hash_only	sf	0	tiny1.RAW	file:///F:/data/Exp01	Thermo RAW format	71be39fb2700ab2f3c8b2234b91274968b6899b1	1	multiple peak list nativeID format	MS:1000774	0
+mzml_hash_only	sf	1	ac.dta	file:///F:/data/Exp02	DTA format	81be39fb2700ab2f3c8b2234b91244968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_hash_only	sf	2	parameters.par	file:///C:/settings/	Thermo RAW format	61be39fb2700ab2f3c8b2234b91274968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_hash_only	sf	3	pr.dta	file:///F:/data/Exp03	DTA format	81be39fb2700ab2f3c8b2234b91244968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_hash_only	sf	4	tiny1.dta	file:///F:/data/Exp01	DTA format	81be39fb2700ab2f3c8b2234b91274968b6899b1	1	no nativeID format	MS:1000824	0
+mzml_hash_only	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_hash_only	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_hash_only	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_hash_only	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_hash_only	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_hash_only	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_hash_only	stored
+mzml_gz_rewrite_hash	P	S	0	1	loading mzML	0
+mzml_gz_rewrite_hash	P	S	0	4	loading spectra list	1
+mzml_gz_rewrite_hash	P	N	1
+mzml_gz_rewrite_hash	P	V	1	2
+mzml_gz_rewrite_hash	P	N	2
+mzml_gz_rewrite_hash	P	V	2	2
+mzml_gz_rewrite_hash	P	N	3
+mzml_gz_rewrite_hash	P	V	3	2
+mzml_gz_rewrite_hash	P	N	4
+mzml_gz_rewrite_hash	P	V	4	2
+mzml_gz_rewrite_hash	P	E	1	0
+mzml_gz_rewrite_hash	P	S	0	2	loading chromatogram list	1
+mzml_gz_rewrite_hash	P	N	1
+mzml_gz_rewrite_hash	P	V	1	2
+mzml_gz_rewrite_hash	P	N	2
+mzml_gz_rewrite_hash	P	V	2	2
+mzml_gz_rewrite_hash	P	E	1	0
+mzml_gz_rewrite_hash	P	E	0	4721
+mzml_gz_rewrite_hash	R
+mzml_gz_rewrite_hash	D	0
+mzml_gz_rewrite_hash	size	4	2
+mzml_gz_rewrite_hash	sf	0	MzMLFile_1.mzML.gz	file://{INPUTS}	mzML file	1beb66917ceabe1810c244e36610dad146616ceb	1	multiple peak list nativeID format	MS:1000774	0
+mzml_gz_rewrite_hash	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_gz_rewrite_hash	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_gz_rewrite_hash	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_gz_rewrite_hash	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_gz_rewrite_hash	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_gz_rewrite_hash	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_gz_rewrite_hash	stored
+dta2d_plain	P	S	0	0	loading DTA2D file	0
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	V	0	1
+dta2d_plain	P	E	0	0
+dta2d_plain	R
+dta2d_plain	D	0
+dta2d_plain	size	9	0
+dta2d_plain	spec	0	4711.1000000000004	1	3	index=0	0	0	230.02000000000001	430.01999999999998	630.01999999999998
+dta2d_plain	spec	1	4711.1999999999998	1	1	index=1	0	0	231.50999999999999
+dta2d_plain	spec	2	4711.3000000000002	1	1	index=2	0	0	139.41999999999999
+dta2d_plain	spec	3	4711.3999999999996	1	1	index=3	0	0	149.93000000000001
+dta2d_plain	spec	4	4711.5	1	1	index=4	0	0	169.65000000000001
+dta2d_plain	spec	5	4711.6000000000004	1	1	index=5	0	0	189.30000000000001
+dta2d_plain	spec	6	4711.6999999999998	1	1	index=6	0	0	202.28
+dta2d_plain	spec	7	4711.8000000000002	1	1	index=7	0	0	207.81999999999999
+dta2d_plain	spec	8	4711.8999999999996	1	1	index=8	0	0	219.72
+dta2d_plain	stored
+dta2d_mz_rewrite_hash	P	S	0	0	loading DTA2D file	0
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	V	0	1
+dta2d_mz_rewrite_hash	P	E	0	0
+dta2d_mz_rewrite_hash	R
+dta2d_mz_rewrite_hash	D	0
+dta2d_mz_rewrite_hash	size	1	0
+dta2d_mz_rewrite_hash	sf	0	DTA2DFile_test_1.dta2d	file://{INPUTS}	DTA file	d50d5144cc3805749b9e8d16f3bc8994979d8142	1			0
+dta2d_mz_rewrite_hash	spec	0	4711.1000000000004	1	2	index=0	0	0	430.01999999999998	630.01999999999998
+dta2d_mz_rewrite_hash	stored
+dta2d_rewrite	P	S	0	0	loading DTA2D file	0
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	V	0	1
+dta2d_rewrite	P	E	0	0
+dta2d_rewrite	R
+dta2d_rewrite	D	0
+dta2d_rewrite	size	9	0
+dta2d_rewrite	sf	0	DTA2DFile_test_1.dta2d	file://{INPUTS}	DTA file		0			0
+dta2d_rewrite	spec	0	4711.1000000000004	1	3	index=0	0	0	230.02000000000001	430.01999999999998	630.01999999999998
+dta2d_rewrite	spec	1	4711.1999999999998	1	1	index=1	0	0	231.50999999999999
+dta2d_rewrite	spec	2	4711.3000000000002	1	1	index=2	0	0	139.41999999999999
+dta2d_rewrite	spec	3	4711.3999999999996	1	1	index=3	0	0	149.93000000000001
+dta2d_rewrite	spec	4	4711.5	1	1	index=4	0	0	169.65000000000001
+dta2d_rewrite	spec	5	4711.6000000000004	1	1	index=5	0	0	189.30000000000001
+dta2d_rewrite	spec	6	4711.6999999999998	1	1	index=6	0	0	202.28
+dta2d_rewrite	spec	7	4711.8000000000002	1	1	index=7	0	0	207.81999999999999
+dta2d_rewrite	spec	8	4711.8999999999996	1	1	index=8	0	0	219.72
+dta2d_rewrite	stored
+dta2d_bogus_allowed	X	Parse Error	type: dta2d is not allowed for loading an experiment. Allowed types are:  in: {INPUTS}/DTA2DFile_test_1.dta2d
+dta2d_bogus_allowed	D	0
+mzdata_plain	P	S	0	3	loading mzData file	0
+mzdata_plain	P	V	1	1
+mzdata_plain	P	V	2	1
+mzdata_plain	P	V	3	1
+mzdata_plain	P	E	0	0
+mzdata_plain	R
+mzdata_plain	D	0
+mzdata_plain	size	3	0
+mzdata_plain	sf	0	MzDataFile_test_1.raw	/share/data/	MS		0			0
+mzdata_plain	spec	0	60	1	1	spectrum=10	1	0	120
+mzdata_plain	spec	1	120	2	3	spectrum=11	1	2	110	120	130
+mzdata_plain	spec	2	180	1	5	spectrum=12	4	0	100	110	120
+mzdata_plain	stored
+mzdata_mz	P	S	0	3	loading mzData file	0
+mzdata_mz	P	V	1	1
+mzdata_mz	P	V	2	1
+mzdata_mz	P	V	3	1
+mzdata_mz	P	E	0	0
+mzdata_mz	R
+mzdata_mz	D	0
+mzdata_mz	size	3	0
+mzdata_mz	sf	0	MzDataFile_test_1.raw	/share/data/	MS		0			0
+mzdata_mz	spec	0	60	1	1	spectrum=10	1	0	120
+mzdata_mz	spec	1	120	2	2	spectrum=11	1	2	120	130
+mzdata_mz	spec	2	180	1	3	spectrum=12	4	0	120	130	140
+mzdata_mz	stored
+mzxml_mz	P	S	0	4	loading mzXML file	0
+mzxml_mz	P	V	0	1
+mzxml_mz	P	V	1	1
+mzxml_mz	P	V	2	1
+mzxml_mz	P	V	3	1
+mzxml_mz	P	E	0	0
+mzxml_mz	R
+mzxml_mz	D	0
+mzxml_mz	size	4	0
+mzxml_mz	sf	0	File_test_1.raw		RAWData	2fd4e1c67a2d28fced849ee1bb76e7391b93eb12	1			0
+mzxml_mz	sf	1	File_test_2.raw		processedData	2fd4e1c67a2d28fced849ee1bb76e7391b93eb13	1			0
+mzxml_mz	spec	0	60	1	1	scan=10	0	0	120
+mzxml_mz	spec	1	120	1	2	scan=11	0	0	120	130
+mzxml_mz	spec	2	180	1	3	scan=12	0	0	120	130	140
+mzxml_mz	spec	3	5	2	3	scan=13	0	3	120	130	140
+mzxml_mz	stored
+mzxml_plain	P	S	0	4	loading mzXML file	0
+mzxml_plain	P	V	0	1
+mzxml_plain	P	V	1	1
+mzxml_plain	P	V	2	1
+mzxml_plain	P	V	3	1
+mzxml_plain	P	E	0	0
+mzxml_plain	R
+mzxml_plain	D	0
+mzxml_plain	size	4	0
+mzxml_plain	sf	0	File_test_1.raw		RAWData	2fd4e1c67a2d28fced849ee1bb76e7391b93eb12	1			0
+mzxml_plain	sf	1	File_test_2.raw		processedData	2fd4e1c67a2d28fced849ee1bb76e7391b93eb13	1			0
+mzxml_plain	spec	0	60	1	1	scan=10	0	0	120
+mzxml_plain	spec	1	120	1	3	scan=11	0	0	110	120	130
+mzxml_plain	spec	2	180	1	5	scan=12	0	0	100	110	120
+mzxml_plain	spec	3	5	2	5	scan=13	0	3	100	110	120
+mzxml_plain	stored
+mzxml_rewrite_hash	P	S	0	4	loading mzXML file	0
+mzxml_rewrite_hash	P	V	0	1
+mzxml_rewrite_hash	P	V	1	1
+mzxml_rewrite_hash	P	V	2	1
+mzxml_rewrite_hash	P	V	3	1
+mzxml_rewrite_hash	P	E	0	0
+mzxml_rewrite_hash	R
+mzxml_rewrite_hash	D	0
+mzxml_rewrite_hash	size	4	0
+mzxml_rewrite_hash	sf	0	MzXMLFile_1.mzXML	file://{INPUTS}	ISB mzXML file	e8f2e6d1aececc37a6d759e9c6df10f72d60c45e	1			0
+mzxml_rewrite_hash	spec	0	60	1	1	scan=10	0	0	120
+mzxml_rewrite_hash	spec	1	120	1	3	scan=11	0	0	110	120	130
+mzxml_rewrite_hash	spec	2	180	1	5	scan=12	0	0	100	110	120
+mzxml_rewrite_hash	spec	3	5	2	5	scan=13	0	3	100	110	120
+mzxml_rewrite_hash	stored
+mzdata_rewrite_hash	P	S	0	3	loading mzData file	0
+mzdata_rewrite_hash	P	V	1	1
+mzdata_rewrite_hash	P	V	2	1
+mzdata_rewrite_hash	P	V	3	1
+mzdata_rewrite_hash	P	E	0	0
+mzdata_rewrite_hash	R
+mzdata_rewrite_hash	D	0
+mzdata_rewrite_hash	size	3	0
+mzdata_rewrite_hash	sf	0	MzDataFile_1.mzData	file://{INPUTS}	PSI mzData file	5fe24f0a3ab5d145716851547e47fb53d9bb2b79	1			0
+mzdata_rewrite_hash	spec	0	60	1	1	spectrum=10	1	0	120
+mzdata_rewrite_hash	spec	1	120	2	3	spectrum=11	1	2	110	120	130
+mzdata_rewrite_hash	spec	2	180	1	5	spectrum=12	4	0	100	110	120
+mzdata_rewrite_hash	stored
+srm	P	S	0	1	loading mzML	0
+srm	P	S	0	3	loading spectra list	1
+srm	P	N	1
+srm	P	V	1	2
+srm	P	N	2
+srm	P	V	2	2
+srm	P	N	3
+srm	P	V	3	2
+srm	P	E	1	0
+srm	P	E	0	6540
+srm	R
+srm	D	0
+srm	size	0	2
+srm	chrom	0	chromatogram=scan=1	5	500	300	2	1:10	2:20
+srm	chrom	1	chromatogram=scan=3	5	600	400	1	3:5
+srm	stored
+srm_mixed	P	S	0	1	loading mzML	0
+srm_mixed	P	S	0	8	loading spectra list	1
+srm_mixed	P	N	1
+srm_mixed	P	V	1	2
+srm_mixed	P	N	2
+srm_mixed	P	V	2	2
+srm_mixed	P	N	3
+srm_mixed	P	V	3	2
+srm_mixed	P	N	4
+srm_mixed	P	V	4	2
+srm_mixed	P	N	5
+srm_mixed	P	V	5	2
+srm_mixed	P	N	6
+srm_mixed	P	V	6	2
+srm_mixed	P	N	7
+srm_mixed	P	V	7	2
+srm_mixed	P	N	8
+srm_mixed	P	V	8	2
+srm_mixed	P	E	1	0
+srm_mixed	P	S	0	1	loading chromatogram list	1
+srm_mixed	P	N	1
+srm_mixed	P	V	1	2
+srm_mixed	P	E	1	0
+srm_mixed	P	E	0	16603
+srm_mixed	R
+srm_mixed	D	0
+srm_mixed	size	2	4
+srm_mixed	sf	0	srm_spectra_mixed.mzML	file://{INPUTS}	mzML file	0640a130a7adc0b86c12f72b25e18b51de1f46a3	1			0
+srm_mixed	spec	0	1.5	1	12	scan=2	0	0	100	100.25	100.5
+srm_mixed	spec	1	6	2	3	scan=8	0	1	150	175	199
+srm_mixed	chrom	0	TIC	1	0	0	2	0.5:10	6.5:20
+srm_mixed	chrom	1	chromatogram=scan=1	5	500	300	2	1:10	2:20
+srm_mixed	chrom	2	chromatogram=scan=4	5	600	400	1	3:5
+srm_mixed	chrom	3	chromatogram=scan=4	5	600	410	1	3:7
+srm_mixed	stored
+mgf_rewrite_hash	P	S	0	131	loading MGF	0
+mgf_rewrite_hash	P	V	76	1
+mgf_rewrite_hash	P	V	-1	1
+mgf_rewrite_hash	P	E	0	0
+mgf_rewrite_hash	R
+mgf_rewrite_hash	D	0
+mgf_rewrite_hash	size	2	0
+mgf_rewrite_hash	sf	0	mgf_two_blocks.mgf	file://{INPUTS}	Mascot MGF file	d0f17ef81b48ddd003d1d135ba2e1e518ee17a00	1			0
+mgf_rewrite_hash	spec	0	-1	2	2	index=0	0	1	100.5	200.25
+mgf_rewrite_hash	spec	1	-1	2	1	index=1	0	1	150.5
+mgf_rewrite_hash	stored
+ms2_rewrite_hash	R
+ms2_rewrite_hash	D	0
+ms2_rewrite_hash	size	2	0
+ms2_rewrite_hash	sf	0	MS2File_test_spectra.ms2	file://{INPUTS}		ec0f4891979c2d6eeced0da455c8f02619c0e626	1			0
+ms2_rewrite_hash	spec	0	-1	2	4	index=0	0	1	1	2	3
+ms2_rewrite_hash	spec	1	-1	2	4	index=1	0	1	1	2	3
+ms2_rewrite_hash	stored
+dta_rewrite_hash	R
+dta_rewrite_hash	D	0
+dta_rewrite_hash	size	1	0
+dta_rewrite_hash	sf	0	dta_extractor_1_output.dta	file://{INPUTS}	DTA file	8a62f54e7cc7ea17fcaab7578a81b3aae970b54a	1			0
+dta_rewrite_hash	spec	0	-1	2	1		0	1	120
+dta_rewrite_hash	stored
+missing_dta2d	P	S	0	0	loading DTA2D file	0
+missing_dta2d	X	FileNotFound	the file '{INPUTS}/missing.dta2d' could not be found
+missing_dta2d	D	1
+mzml_relative	P	S	0	1	loading mzML	0
+mzml_relative	P	S	0	4	loading spectra list	1
+mzml_relative	P	N	1
+mzml_relative	P	V	1	2
+mzml_relative	P	N	2
+mzml_relative	P	V	2	2
+mzml_relative	P	N	3
+mzml_relative	P	V	3	2
+mzml_relative	P	N	4
+mzml_relative	P	V	4	2
+mzml_relative	P	E	1	0
+mzml_relative	P	S	0	2	loading chromatogram list	1
+mzml_relative	P	N	1
+mzml_relative	P	V	1	2
+mzml_relative	P	N	2
+mzml_relative	P	V	2	2
+mzml_relative	P	E	1	0
+mzml_relative	P	E	0	37187
+mzml_relative	R
+mzml_relative	D	0
+mzml_relative	size	4	2
+mzml_relative	sf	0	MzMLFile_1.mzML	file://{INPUTS}	mzML file	36007593dbca0ba59a1f4fc32fb970f0e8991fa6	1	multiple peak list nativeID format	MS:1000774	0
+mzml_relative	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_relative	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_relative	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_relative	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_relative	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_relative	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_relative	stored
+mzml_dot_relative	P	S	0	1	loading mzML	0
+mzml_dot_relative	P	S	0	4	loading spectra list	1
+mzml_dot_relative	P	N	1
+mzml_dot_relative	P	V	1	2
+mzml_dot_relative	P	N	2
+mzml_dot_relative	P	V	2	2
+mzml_dot_relative	P	N	3
+mzml_dot_relative	P	V	3	2
+mzml_dot_relative	P	N	4
+mzml_dot_relative	P	V	4	2
+mzml_dot_relative	P	E	1	0
+mzml_dot_relative	P	S	0	2	loading chromatogram list	1
+mzml_dot_relative	P	N	1
+mzml_dot_relative	P	V	1	2
+mzml_dot_relative	P	N	2
+mzml_dot_relative	P	V	2	2
+mzml_dot_relative	P	E	1	0
+mzml_dot_relative	P	E	0	37187
+mzml_dot_relative	R
+mzml_dot_relative	D	0
+mzml_dot_relative	size	4	2
+mzml_dot_relative	sf	0	MzMLFile_1.mzML	file://{INPUTS}/.	mzML file	71be39fb2700ab2f3c8b2234b91274968b6899b1	1	multiple peak list nativeID format	MS:1000774	0
+mzml_dot_relative	spec	0	5.0999999999999996	1	15	index=0	2	0	0	1	2
+mzml_dot_relative	spec	1	5.2000000000000002	2	10	index=1	3	2	0	2	4
+mzml_dot_relative	spec	2	5.2999999999999998	1	15	index=2	2	0	0	1	2
+mzml_dot_relative	spec	3	5.4000000000000004	1	0	index=3	2	0
+mzml_dot_relative	chrom	0	tic native	1	0	0	15	0:15	1:14	2:13	3:12	4:11	5:10	6:9	7:8	8:7	9:6	10:5	11:4	12:3	13:2	14:1
+mzml_dot_relative	chrom	1	sic native	1	0	0	10	0:10	1:9	2:8	3:7	4:6	5:5	6:4	7:3	8:2	9:1
+mzml_dot_relative	stored
+hash	empty.txt	da39a3ee5e6b4b0d3255bfef95601890afd80709
+hash	hello.txt	aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
+hash	missing.txt	
+hash	dir.d	da39a3ee5e6b4b0d3255bfef95601890afd80709
+hash	MzMLFile_1.mzML	36007593dbca0ba59a1f4fc32fb970f0e8991fa6
+hash	MzMLFile_1.mzML.gz	1beb66917ceabe1810c244e36610dad146616ceb
+hash	DTA2DFile_test_1.dta2d	d50d5144cc3805749b9e8d16f3bc8994979d8142
+# end
+mzml_rewrite	W	Expecting a single source file in mzML. Found 5 will take only first one for rewriting.
+mzml_rewrite_hash	W	Expecting a single source file in mzML. Found 5 will take only first one for rewriting.
+mzml_gz_rewrite_hash	W	Expecting a single source file in mzML. Found 5 will take only first one for rewriting.
+dta2d_mz_rewrite_hash	W	No source file annotated.
+dta2d_rewrite	W	No source file annotated.
+mzxml_rewrite_hash	W	Expecting a single source file in mzML. Found 2 will take only first one for rewriting.
+srm_mixed	W	ChromatogramTools: need exactly one precursor (given 0) and one or more product ions (1), skipping conversion of this spectrum to chromatogram. If this is a MS1 chromatogram, please force conversion (e.g. with -convert_to_chromatograms).
+srm_mixed	W	ChromatogramTools: need exactly one precursor (given 1) and one or more product ions (0), skipping conversion of this spectrum to chromatogram. If this is a MS1 chromatogram, please force conversion (e.g. with -convert_to_chromatograms).
+srm_mixed	W	ChromatogramTools: need exactly one precursor (given 2) and one or more product ions (1), skipping conversion of this spectrum to chromatogram. If this is a MS1 chromatogram, please force conversion (e.g. with -convert_to_chromatograms).
+srm_mixed	W	No source file annotated.
+mgf_rewrite_hash	W	No source file annotated.
+ms2_rewrite_hash	W	No source file annotated.
+dta_rewrite_hash	W	No source file annotated.
+mzml_relative	W	Expecting a single source file in mzML. Found 5 will take only first one for rewriting.
+mzml_dot_relative	W	Expecting a single source file in mzML. Found 5 will take only first one for rewriting.

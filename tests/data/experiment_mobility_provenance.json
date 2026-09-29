@@ -46,10 +46,13 @@
   "native_implementation": [
     "src/kernel/experiment_mobility.rs",
     "src/kernel/area_iteration.rs",
-    "src/kernel.rs"
+    "src/kernel.rs",
+    "src/kernel/experiment_2d.rs",
+    "src/kernel/chromatogram_merge.rs"
   ],
   "native_tests": [
-    "tests/experiment_mobility.rs"
+    "tests/experiment_mobility.rs",
+    "tests/experiment_2d.rs"
   ],
   "support": "docs/EXPERIMENT_MOBILITY_SUPPORT.md",
   "source_anchors": [
@@ -227,10 +230,45 @@
       "path": "src/tests/class_tests/openms/source/AreaIterator_test.cpp",
       "line": 194,
       "operation": "the overall test's mobility cases: lowIM(0).highIM(2) selects all eight peaks, lowIM(0).highIM(0.9) selects none"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 265,
+      "operation": "set2DData<add_mass_traces, Container> clears, then per element opens a spectrum on a new RT (throwing Precondition when the RT decreases) before adding its data"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSExperiment.h",
+      "line": 1374,
+      "operation": "ContainerAdd_<T, true>::addData_ expands num_of_masstraces into masstrace_intensity_<i> peaks at getMZ() + C13C12_MASSDIFF_U / charge * i, charge 0 read as 1, throwing Precondition on a missing name"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 997,
+      "operation": "getFirstProductSpectrum walks forward from the parent, stops at a lower MS level and returns the first level+1 spectrum whose first precursor's nonempty spectrum_ref equals the parent's native ID"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1029,
+      "operation": "a visited candidate with several precursors logs OPENMS_LOG_WARN before its first precursor is compared"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1049,
+      "operation": "the int overload answers -1 outside the spectra and for end()"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSExperiment.cpp",
+      "line": 1365,
+      "operation": "operator<< writes the MSEXPERIMENT banner, the ExperimentalSettings block, every spectrum, every chromatogram and the closing banner"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "line": 767,
+      "operation": "operator<<(ostream&, const MSSpectrum&) writes the MSSPECTRUM banner, the SpectrumSettings block and one Peak1D line per peak"
     }
   ],
   "evidence_tier": 3,
-  "evidence": "Tier 3 (source review): every literal in tests/experiment_mobility.rs is transcribed from the two pinned class tests. No C++ was built or executed and no retained C++ output exists for these headers, so tier 1 is unavailable. Class-test section accounting across both files: 81 sections, 56 ported (a Rust test asserts the section's own literals), 21 mapped (no transcription, but a named Rust test function asserts a concrete value exercising the same member; every mapped section carries five assertion macros or fewer), 4 unaccounted. The per-section tables with the test function and the asserted value for each are in docs/EXPERIMENT_MOBILITY_SUPPORT.md. This replaces the previous claim of 14 ported and 63 mapped, which an audit found unsupported: the earlier revision of the support document accounted for 54 MSExperiment_test.cpp sections with a bare list of nine Rust test files and named no test function and no asserted value for any of them, and 22 of those 54 carried more than five assertion macros and therefore had to be ported, not mapped. The four unaccounted sections are the set2DData add_mass_traces specialization (10 macros), both getFirstProductSpectrum overloads (11 and 10) and operator<<(ostream&, const MSExperiment&) (5) - the three deferrals recorded in the support document, each needing a file outside this work package's ownership. Macro counts exclude TEST_PRECONDITION_VIOLATED, which OPENMS_PRECONDITION compiles away in a release build. Everything the port checks that the source does not - the drift-time ordering and finiteness guards, the ion mobility array length guard, the raster sortedness and finiteness guards, the resource ceilings and the atomic commit - is tier 4 (Rust-only invariants) derived from the source lines anchored above.",
+  "evidence": "Tier 3 (source review): every literal in tests/experiment_mobility.rs is transcribed from the two pinned class tests. No C++ was built or executed and no retained C++ output exists for these headers, so tier 1 is unavailable. Class-test section accounting across both files: 81 sections, 60 ported (a Rust test asserts the section's own literals), 21 mapped (no transcription, but a named Rust test function asserts a concrete value exercising the same member; every mapped section carries five assertion macros or fewer), 0 unaccounted. The per-section tables with the test function and the asserted value for each are in docs/EXPERIMENT_MOBILITY_SUPPORT.md. This replaces the previous claim of 14 ported and 63 mapped, which an audit found unsupported: the earlier revision of the support document accounted for 54 MSExperiment_test.cpp sections with a bare list of nine Rust test files and named no test function and no asserted value for any of them, and 22 of those 54 carried more than five assertion macros and therefore had to be ported, not mapped. The four sections that stayed unaccounted until the last three members were ported - the set2DData add_mass_traces specialization (section 11, 10 macros), both getFirstProductSpectrum overloads (42 and 43, 11 and 10) and operator<<(ostream&, const MSExperiment&) (54, 5) - are now ported in tests/experiment_2d.rs and tests/experiment_mobility.rs. Those three members also carry tier 1 evidence: the release_* tests assert the output of ../oracle/msexperiment-close (outside the repository), a driver built against the Linux x86_64 Release install of core bc9cc12, cli c19e494 and topp 174b576 on ibminode06 with gcc 14.4.0 and libOpenMS's own flags, run twice with byte-identical results (sha256 driver.cpp a9ba6c19cb223bc4aad89ef190bde4b3519883d527644a5527b6c9a8e4923387, libOpenMS.so abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, stdout c1fc9393444d045bc6db0ad63c0de0e419737442f3e13589fc90dea1b082922b, stderr 8b77103858adc0ebfa01b9c68989d14fdb541d021065e3ae0ce8d15ea3a82741). Macro counts exclude TEST_PRECONDITION_VIOLATED, which OPENMS_PRECONDITION compiles away in a release build. Everything the port checks that the source does not - the drift-time ordering and finiteness guards, the ion mobility array length guard, the raster sortedness and finiteness guards, the resource ceilings and the atomic commit - is tier 4 (Rust-only invariants) derived from the source lines anchored above.",
   "target_verification": {
     "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
     "source_revisions": [

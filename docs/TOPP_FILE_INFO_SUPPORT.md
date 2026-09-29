@@ -135,13 +135,21 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    and the loadable `-i` cases use the core `IndexedmzMLFile_1` fixture.
 3. **A forced type the file contradicts.** The source's loaders detect the type
    themselves and throw when it is not the forced one: `ParseError`, exit 3, from
-   `loadExperiment` (oracle `forced_dta_on_featurexml`,
+   `loadExperiment` (`FileHandler.cpp:859-863`; oracle `forced_dta_on_featurexml`,
    `forced_mzml_on_featurexml`) and `InvalidFileType`, exit 8, from `loadFeatures`
-   (oracle `forced_featurexml_on_dta`). The library maps the first to
-   `Error::InvalidValue`, exit 6, and the featureXML branch, which does not pass
-   the forced type to the feature loader, reaches the loader's own refusal,
-   exit 11. Both are recorded in `a_forced_type_the_file_contradicts_is_refused`;
-   closing them belongs to the library (integrator request 2).
+   (oracle `forced_featurexml_on_dta`). The library raises the first as the
+   source does, `type: <detected> is not allowed for loading an experiment.
+   Allowed types are: , <forced> in: <file>`, exit 3, compared with the Release
+   build in `tests/topp_json_ini.rs` (batch 3 of `../oracle/json-ini`; the
+   lifecycle prints it after its `parse error on line 0: `). The featureXML
+   branch checks the detected type against `{FEATUREXML}` as the source's
+   `loadFeatures` call does (`FORMAT/FileInfo.cpp:1084`) and raises the
+   loader's `InvalidFileType`, `Error: Unexpected internal error (the file
+   '<file>' could not be created because the type specified was not valid.
+   type: dta is not allowed for loading features. Allowed types are: ,
+   featureXML)`, exit 8, byte for byte the Release build's line
+   (`fi_forced_featurexml_on_dta` of `../oracle/json-ini`, batch 3; closed by
+   the B0 integration lane, 2026-09-27).
 4. **Validation order.** The framework checks every option before the tool body,
    where the source reads `-in` inside `outputTo_`, after `-out` was opened. A
    run with a missing or empty `-in` therefore leaves no `-out` file here, while

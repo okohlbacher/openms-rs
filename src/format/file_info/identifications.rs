@@ -87,6 +87,7 @@ use super::text_format::{WRITTEN_DIGITS_F32, to_str};
 use crate::chemistry::{AASequence, SequenceModification};
 use crate::concept::math_functions::round;
 use crate::format::FileHandler;
+use crate::format::file_handler::{LoadTarget, check_allowed};
 use crate::format::file_types::FileType;
 use crate::identification::{PeptideIdentification, ProteinIdentification};
 use crate::kernel::MSExperiment;
@@ -369,16 +370,16 @@ fn write_trailing_sections(
 }
 
 /// `IdXMLFile::load` for idXML, `FileHandler::loadIdentifications` restricted
-/// to `{MZIDENTML}` for mzIdentML.
+/// to `{MZIDENTML}` for mzIdentML, whose refusal of another detected type is
+/// the source's `ParseError` (`FileHandler.cpp:1518-1523`), exit 3.
 fn load(path: &Path, in_type: FileType) -> Result<IdData> {
     if in_type == FileType::MzIdentMl {
-        let detected = FileHandler::get_type(path)?;
-        if detected != FileType::MzIdentMl {
-            return Err(Error::InvalidValue(format!(
-                "{} is not an allowed input format",
-                detected.name()
-            )));
-        }
+        check_allowed(
+            FileHandler::get_type(path)?,
+            &[FileType::MzIdentMl],
+            &path.display().to_string(),
+            LoadTarget::Identifications,
+        )?;
         let document = crate::format::mzidentml::load(path)?;
         return Ok(IdData {
             proteins: document.protein_identifications,

@@ -164,9 +164,10 @@ impl Tool for FileInfo {
     /// line (oracle `out_is_directory`). The library's errors, which the
     /// framework maps to exit codes: [`Error::Parse`] for a corrupt input (3),
     /// [`Error::Unsupported`] for an unported branch or flag (11),
-    /// [`Error::InvalidValue`] for a detected type other than the forced one
-    /// (6, where the source exits 3 or 8; see the support document), and
-    /// [`Error::Io`] when a report cannot be written.
+    /// [`Error::Parse`] for a detected type other than the forced one (3, the
+    /// loader's `ParseError`; the featureXML branch refuses with 11 where the
+    /// source exits 8, see the support document), and [`Error::Io`] when a
+    /// report cannot be written.
     fn run_io(ctx: &ToolContext, out: &mut dyn Write, err: &mut dyn Write) -> ToolResult {
         let input = ctx.string("in")?.to_owned();
         let mut text_file = open_output(ctx.string("out")?)?;

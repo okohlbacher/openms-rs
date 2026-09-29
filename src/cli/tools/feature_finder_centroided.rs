@@ -172,7 +172,7 @@ use crate::analysis::feature_finder_picked::algorithm::{self, Options};
 use crate::analysis::feature_finder_picked::debug::{DebugOutput, ReportLine, TerminationKind};
 use crate::analysis::feature_finder_picked::instance::FeatureFinderAlgorithmPicked;
 use crate::analysis::feature_finder_picked::seeds;
-use crate::cli::{ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
+use crate::cli::{Citation, ExitCode, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::concept::constants::user_param::FAIMS_CV;
 use crate::concept::{HasUniqueId, UniqueIdGenerator};
 use crate::format::file_handler::FileHandler;
@@ -515,6 +515,23 @@ fn has_per_peak_mobility(experiment: &MSExperiment) -> bool {
 impl Tool for FeatureFinderCentroided {
     const NAME: &'static str = "FeatureFinderCentroided";
     const DESCRIPTION: &'static str = "Detects two-dimensional features in LC-MS data.";
+    /// The two publications the source's constructor cites
+    /// (`FeatureFinderCentroided.cpp:124-136`), printed after the OpenMS
+    /// citation by `--help` and listed by DOI in the CTD.
+    const CITATIONS: &'static [Citation] = &[
+        Citation {
+            authors: "Sturm M",
+            title: "A novel feature detection algorithm for centroided data",
+            when_where: "Dissertation, 2010-09-15, p.37 ff",
+            doi: "https://publikationen.uni-tuebingen.de/xmlui/bitstream/handle/10900/49453/pdf/Dissertation_Marc_Sturm.pdf",
+        },
+        Citation {
+            authors: "Weisser H",
+            title: "An automated pipeline for high-throughput label-free quantitative proteomics",
+            when_where: "J. Proteome Res., 2013, PMID: 23391308",
+            doi: "https://doi.org/10.1021/pr300992u",
+        },
+    ];
 
     /// Source `registerOptionsAndFlags_` (`FeatureFinderCentroided.cpp:140-163`).
     ///

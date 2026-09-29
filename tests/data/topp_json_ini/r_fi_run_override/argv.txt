@@ -1,0 +1,5 @@
+FileInfo
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_run_override/cwd/run.json
+-in_type
+dta

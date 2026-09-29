@@ -1,0 +1,1 @@
+Error: Unable to read file (Ignoring JSON file '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_string_root.json' because of unexpected data type. Expecting a dictionary as type. in: )

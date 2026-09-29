@@ -19,7 +19,7 @@ use crate::param::{Param, ParamValue};
 use crate::system::file;
 use crate::{Error, Result};
 use std::io::Write;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 /// Seed of the unique-id generator under `-test`, as `TOPPBase::main` sets it
 /// (`TOPPBase.cpp:369-376`). Its first two raw draws are
@@ -51,6 +51,20 @@ pub struct ToolContext {
     force: bool,
     threads: i64,
     log: Arc<ToolLog>,
+    refusals: Arc<Mutex<Vec<Refusal>>>,
+}
+
+/// An accessor refusal the source raises as an exception of its own, kept so
+/// that the lifecycle can end the run as the source's catch block does when
+/// the refusal escapes the tool body ([`ToolContext::escaped_refusal`]).
+#[derive(Clone, Debug)]
+struct Refusal {
+    /// The text of the [`Error`] the accessor returned.
+    error: String,
+    /// The code of the source's catch block.
+    code: ExitCode,
+    /// The catch block's `writeLogError_` line.
+    text: String,
 }
 
 impl ToolContext {
@@ -85,7 +99,64 @@ impl ToolContext {
             force,
             threads,
             log,
+            refusals: Arc::default(),
         }
+    }
+
+    /// `error`, recorded as the source's exception that ends a run with
+    /// `code` and `text` when it escapes the tool body.
+    ///
+    /// A refusal is kept once however often it recurs: its text names the
+    /// parameter, so the record is bounded by the names the tool's code asks
+    /// for, not by how often it asks.
+    fn refuse(&self, error: Error, code: ExitCode, text: String) -> Error {
+        if let Ok(mut refusals) = self.refusals.lock() {
+            let error = error.to_string();
+            if !refusals.iter().any(|refusal| refusal.error == error) {
+                refusals.push(Refusal { error, code, text });
+            }
+        }
+        error
+    }
+
+    /// Source `UnregisteredParameter` (`TOPPBase_defs.h:53-63`), caught at
+    /// `TOPPBase.cpp:482-487`: `Internal error: Request for unregistered
+    /// parameter '<name>'`, exit 12.
+    fn unregistered(&self, name: &str) -> Error {
+        self.refuse(
+            bad(format!("parameter '{name}' was not registered")),
+            ExitCode::InternalError,
+            format!("Internal error: Request for unregistered parameter '{name}'"),
+        )
+    }
+
+    /// Source `WrongParameterType` (`TOPPBase_defs.h:65-75`), caught at
+    /// `TOPPBase.cpp:488-493`: `Internal error: Request for parameter with
+    /// wrong type '<name>'`, exit 12. `message` is this port's error text.
+    fn wrong_type(&self, name: &str, message: String) -> Error {
+        self.refuse(
+            bad(message),
+            ExitCode::InternalError,
+            format!("Internal error: Request for parameter with wrong type '{name}'"),
+        )
+    }
+
+    /// The source's exit code and catch-block line for `error` when it is an
+    /// accessor refusal of this run that escaped the tool body: `UnregisteredParameter`
+    /// and `WrongParameterType` (exit 12) and a flag's `InvalidParameter`
+    /// (exit 6). `None` for any other error, which the lifecycle maps as
+    /// `run_failure` does.
+    pub(crate) fn escaped_refusal(&self, error: &Error) -> Option<(ExitCode, String)> {
+        if !matches!(error, Error::InvalidValue(_)) {
+            return None;
+        }
+        let text = error.to_string();
+        let refusals = self.refusals.lock().ok()?;
+        refusals
+            .iter()
+            .rev()
+            .find(|refusal| refusal.error == text)
+            .map(|refusal| (refusal.code, refusal.text.clone()))
     }
 
     /// The executable and INI section name, as `toolName_`.
@@ -335,9 +406,7 @@ impl ToolContext {
     }
 
     fn value(&self, name: &str) -> Result<&ParamValue> {
-        self.param
-            .value(name)
-            .map_err(|_| bad(format!("parameter '{name}' was not registered")))
+        self.param.value(name).map_err(|_| self.unregistered(name))
     }
 
     /// A string, input-file, output-file or output-prefix option, as
@@ -354,7 +423,7 @@ impl ToolContext {
                 self.write_debug(&format!("Value of string option '{name}': {text}"), 1);
                 Ok(text)
             }
-            _ => Err(bad(format!("parameter '{name}' is not a string"))),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string"))),
         }
     }
     /// An output-directory option, as `getOutputDirOption`: the directory,
@@ -380,7 +449,7 @@ impl ToolContext {
                 }
                 Ok(text)
             }
-            _ => Err(bad(format!("parameter '{name}' is not a string"))),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string"))),
         }
     }
     /// An integer option, as `getIntOption_`.
@@ -395,7 +464,7 @@ impl ToolContext {
                 self.write_debug(&format!("Value of int option '{name}': {value}"), 1);
                 Ok(*value)
             }
-            _ => Err(bad(format!("parameter '{name}' is not an integer"))),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not an integer"))),
         }
     }
     /// A floating-point option, as `getDoubleOption_`.
@@ -415,9 +484,10 @@ impl ToolContext {
                 );
                 Ok(*value)
             }
-            _ => Err(bad(format!(
-                "parameter '{name}' is not a floating-point number"
-            ))),
+            _ => Err(self.wrong_type(
+                name,
+                format!("parameter '{name}' is not a floating-point number"),
+            )),
         }
     }
     /// A string, input-file or output-file list, as `getStringList_`.
@@ -434,7 +504,7 @@ impl ToolContext {
                 }
                 Ok(values)
             }
-            _ => Err(bad(format!("parameter '{name}' is not a string list"))),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string list"))),
         }
     }
     /// An integer list, as `getIntList_`.
@@ -451,7 +521,7 @@ impl ToolContext {
                 }
                 Ok(values)
             }
-            _ => Err(bad(format!("parameter '{name}' is not an integer list"))),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not an integer list"))),
         }
     }
     /// A floating-point list, as `getDoubleList_`.
@@ -471,7 +541,7 @@ impl ToolContext {
                 }
                 Ok(values)
             }
-            _ => Err(bad(format!("parameter '{name}' is not a float list"))),
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a float list"))),
         }
     }
     /// Source `getFlag_`: a registered flag is true only when it was given.
@@ -491,10 +561,19 @@ impl ToolContext {
                 self.write_debug(&format!("Value of string option '{name}': 0"), 1);
                 Ok(false)
             }
-            ParamValue::String(text) => Err(bad(format!(
-                "Invalid value '{text}' for flag parameter '{name}'. Valid values are 'true' and 'false' only."
-            ))),
-            _ => Err(bad(format!("parameter '{name}' is not a flag"))),
+            ParamValue::String(text) => {
+                // Source `getParamAsBool_`'s `InvalidParameter`
+                // (`TOPPBase.cpp:1822-1840`), caught at `475-480`.
+                let message = format!(
+                    "Invalid value '{text}' for flag parameter '{name}'. Valid values are 'true' and 'false' only."
+                );
+                Err(self.refuse(
+                    bad(message.clone()),
+                    ExitCode::IllegalParameters,
+                    format!("Invalid parameter: {message}"),
+                ))
+            }
+            _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a flag"))),
         }
     }
     /// Values of a registered subsection with the subsection prefix removed,

@@ -1,0 +1,47 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/FileHandler.h",
+      "sha256": "aab489c2dcc5669cfec17357adaef9c2863dcb0927b27f2eff37c1817f89ee86",
+      "lines": "164-179 loadExperiment and its log, rewrite_source_file and compute_hash arguments; 406-411 computeFileHash"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FileHandler.cpp",
+      "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e",
+      "lines": "83-187 the SHA-1 and its file reader; 768-778 computeFileHash; 849-1013 loadExperiment's dispatch, 853 the debug-only precondition, 904-912 mzML with the SRM conversion; 1014-1051 rewrite_source_file"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+      "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e",
+      "lines": "110-215 convertSpectraToChromatograms; 164-165 the skipped-spectrum warning"
+    },
+    {
+      "path": "src/openms/source/FORMAT/FileTypes.cpp",
+      "sha256": "6ef7ff6ff9ee67407c6c9e12a989fe8045e402bd2d4c8034cb163ec26b2848bf",
+      "lines": "259-275 typeToMZML"
+    },
+    {
+      "path": "src/openms/source/SYSTEM/File.cpp",
+      "sha256": "1670f67c6c86a1026d12f2ceb78fcaf06d23b4181e81b8b76aaf91506d54b2e6",
+      "lines": "398-407 absolutePath (lexical fs::absolute); 449-457 path"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/FileHandler_test.cpp",
+      "sha256": "c37bce50b91839fbc5cc19991985da0965726513e91bd0bbcab0600395157941",
+      "lines": "229-283 loadExperiment; 285-320 computeFileHash"
+    }
+  ],
+  "oracle": {
+    "directory": "../oracle/file-handler-load",
+    "driver_sha256": "86d992fdda18c7472022b88ec964d58b1f964ad3048625025943301dcb824384",
+    "build": "OpenMS4 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12, cli c19e494, topp 174b576); libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c; OPENMS_ASSERTIONS not defined",
+    "host": "ibminode06, Ubuntu 24.04.4 LTS, AMD EPYC 7763, x86_64-conda-linux-gnu-g++ 14.4.0 -O2 -std=c++20 -rdynamic",
+    "runs": "two repetitions, 2026-09-22, op logs byte-identical and OpenMS logs identical apart from the per-repetition output directory",
+    "inputs": "make_inputs.py: the port's fixtures MzMLFile_1.mzML (tests/data/mzml_load_source_original.mzML), DTA2DFile_test_1.dta2d, MzXMLFile_1.mzXML and MzDataFile_1.mzData, each byte-identical to the core class-test file of that name; srm_spectra.mzML and srm_spectra_mixed.mzML (tests/data/file_info/inputs); mgf_two_blocks.mgf, MS2File_test_spectra.ms2 and dta_extractor_1_output.dta; MzMLFile_1.mzML.gz (gzip, mtime 0); empty.txt, hello.txt and an empty directory dir.d",
+    "fixture": "tests/data/file_handler_load_release.tsv, written by extract.py: the op log with the node's inputs directory replaced by {INPUTS}, then one <case> W <text> row per warning-level log line of the case",
+    "fixture_sha256": "2cf6a0993e5986af541e8e2b8412ad891de56146736fb3cebec1b6bf6b2efb7b"
+  }
+}

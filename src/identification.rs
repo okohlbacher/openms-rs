@@ -29,6 +29,9 @@ fn finite(value: f64, name: &str) -> Result<()> {
         Err(bad(&format!("{name} must be finite")))
     }
 }
+fn array_not_found(kind: &str, name: &str) -> Error {
+    Error::InvalidValue(format!("element not found: {kind}: {name}"))
+}
 fn text_value(metadata: &MetaInfo, key: &str) -> String {
     metadata
         .get(key)
@@ -492,6 +495,94 @@ impl ProteinGroup {
         }
         Ok(())
     }
+    /// The source `ProteinGroup::operator<`, a "best first" order: a higher
+    /// probability is less, then a group with fewer accessions, then the
+    /// lexically smaller accession list. The float comparisons are the source's
+    /// own, so a NaN probability is neither greater nor smaller than any other
+    /// and the comparison falls through to the accessions, exactly as in C++.
+    /// Sample arrays take no part in the order.
+    pub fn source_less(&self, other: &Self) -> bool {
+        if self.probability > other.probability {
+            return true;
+        }
+        if self.probability < other.probability {
+            return false;
+        }
+        match self.accessions.len().cmp(&other.accessions.len()) {
+            std::cmp::Ordering::Less => true,
+            std::cmp::Ordering::Greater => false,
+            std::cmp::Ordering::Equal => self.accessions < other.accessions,
+        }
+    }
+    /// The first float array named `name`, the source `getFloatDataArrayByName`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when no float array has that name, where the
+    /// source throws `Exception::ElementNotFound`.
+    pub fn float_data_array_by_name(&self, name: &str) -> Result<&DataArray<f32>> {
+        self.float_data_arrays
+            .iter()
+            .find(|array| array.name == name)
+            .ok_or_else(|| array_not_found("FloatDataArray", name))
+    }
+    /// Mutable [`ProteinGroup::float_data_array_by_name`], the non-`const` overload.
+    ///
+    /// # Errors
+    ///
+    /// As [`ProteinGroup::float_data_array_by_name`].
+    pub fn float_data_array_by_name_mut(&mut self, name: &str) -> Result<&mut DataArray<f32>> {
+        self.float_data_arrays
+            .iter_mut()
+            .find(|array| array.name == name)
+            .ok_or_else(|| array_not_found("FloatDataArray", name))
+    }
+    /// The first integer array named `name`, the source `getIntegerDataArrayByName`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when no integer array has that name, where the
+    /// source throws `Exception::ElementNotFound`.
+    pub fn integer_data_array_by_name(&self, name: &str) -> Result<&DataArray<i32>> {
+        self.integer_data_arrays
+            .iter()
+            .find(|array| array.name == name)
+            .ok_or_else(|| array_not_found("IntegerDataArray", name))
+    }
+    /// Mutable [`ProteinGroup::integer_data_array_by_name`], the non-`const` overload.
+    ///
+    /// # Errors
+    ///
+    /// As [`ProteinGroup::integer_data_array_by_name`].
+    pub fn integer_data_array_by_name_mut(&mut self, name: &str) -> Result<&mut DataArray<i32>> {
+        self.integer_data_arrays
+            .iter_mut()
+            .find(|array| array.name == name)
+            .ok_or_else(|| array_not_found("IntegerDataArray", name))
+    }
+    /// The first string array named `name`, the source `getStringDataArrayByName`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when no string array has that name, where the
+    /// source throws `Exception::ElementNotFound`.
+    pub fn string_data_array_by_name(&self, name: &str) -> Result<&DataArray<String>> {
+        self.string_data_arrays
+            .iter()
+            .find(|array| array.name == name)
+            .ok_or_else(|| array_not_found("StringDataArray", name))
+    }
+    /// Mutable [`ProteinGroup::string_data_array_by_name`], the non-`const` overload.
+    ///
+    /// # Errors
+    ///
+    /// As [`ProteinGroup::string_data_array_by_name`].
+    pub fn string_data_array_by_name_mut(&mut self, name: &str) -> Result<&mut DataArray<String>> {
+        self.string_data_arrays
+            .iter_mut()
+            .find(|array| array.name == name)
+            .ok_or_else(|| array_not_found("StringDataArray", name))
+    }
     /// Source order: descending probability, fewer accessions, lexical list.
     pub fn sort(groups: &mut [Self]) -> Result<()> {
         for group in groups.iter() {
@@ -513,6 +604,19 @@ pub enum PeakMassType {
     #[default]
     Monoisotopic,
     Average,
+}
+impl PeakMassType {
+    /// The source `NamesOfPeakMassType`, indexed by the enum order.
+    pub const NAMES: [&'static str; 2] = ["Monoisotopic", "Average"];
+    /// This mass type's entry of [`PeakMassType::NAMES`].
+    pub fn name(self) -> &'static str {
+        Self::NAMES[self as usize]
+    }
+    /// The source `getAllNamesOfPeakMassType`, which copies the name array into
+    /// a `StringList`; [`PeakMassType::NAMES`] is the same list unallocated.
+    pub fn all_names() -> Vec<String> {
+        Self::NAMES.iter().map(|name| (*name).to_string()).collect()
+    }
 }
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum EnzymeTermSpecificity {
@@ -569,58 +673,113 @@ impl SearchParameters {
             }
         }
         validate_meta(&self.metadata)?;
-        self.charge_range()?;
         Ok(())
     }
-    /// Accept one signed charge, a comma-separated list, or ':'/'-' range.
-    /// Empty means unspecified; reversed ranges and malformed strings are errors.
-    pub fn charge_range(&self) -> Result<Option<(i32, i32)>> {
-        let text = self.charges.trim();
-        if text.is_empty() {
-            return Ok(None);
+    /// The source `getChargeRange`: the minimum and maximum charge that
+    /// [`SearchParameters::charges`] allows, rule for rule as in C++ (Release
+    /// oracle `protein-identification-closure`, cases `charge_range` and
+    /// `charge_range2`, 71 strings).
+    ///
+    /// 1. The whole string as one integer gives `(n, n)`. Integers follow
+    ///    `StringUtils::toInt32`: ASCII blanks (space, tab, CR, LF) around them,
+    ///    one optional leading `+`, then an optionally negative decimal that must
+    ///    fit `i32` and end the string.
+    /// 2. Otherwise, with a `,`, every comma-separated item (blanks trimmed) must
+    ///    be such an integer; the result is their minimum and maximum.
+    /// 3. Otherwise, with a `:`, the two sides are charge values, and three or
+    ///    more sides are an error. A charge value drops every `-` and counts as
+    ///    negative if it had one, or else drops every `+`, and must then be an
+    ///    integer: `3-` is -3, `2+` is 2.
+    /// 4. Otherwise, with one to three `-`, the string splits at the first `-`
+    ///    (one) or the second (two or three) into two charge values.
+    /// 5. Otherwise the range is `(0, 0)` - the empty string, `abc`, `2+ and 3+`
+    ///    and an out-of-range `2147483648` alike.
+    ///
+    /// Reversed ranges stay reversed (`5-2` is `(5, 2)`), and the minus rule
+    /// yields the source's own values for odd strings (`1-2-3` is `(-12, 3)`).
+    /// No setting is validated against this: the source never checks the
+    /// string, and a run whose charges it cannot read loads, sorts and merges.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] where the source throws `ConversionError` (a
+    /// list item or range side that is no integer, e.g. `1,,3`, `2-`, `2:`), and
+    /// [`Error::MissingInformation`] for more than two `:`-separated sides.
+    pub fn charge_range(&self) -> Result<(i32, i32)> {
+        let text = self.charges.as_str();
+        if let Some(value) = source_int32(text) {
+            return Ok((value, value));
         }
-        let parse = |s: &str| parse_charge(s.trim());
-        let pair = if let Ok(value) = parse(text) {
-            (value, value)
-        } else if text.contains(',') {
-            let mut values = text.split(',').map(parse);
-            let first = values.next().expect("nonempty split")?;
-            let mut pair = (first, first);
-            for value in values {
-                let value = value?;
-                pair = (pair.0.min(value), pair.1.max(value));
+        let conversion = || bad("charge string in SearchParameters is not convertible");
+        if text.contains(',') {
+            let mut range: Option<(i32, i32)> = None;
+            for item in text.split(',') {
+                let value = source_int32(trim_source_blanks(item)).ok_or_else(conversion)?;
+                range = Some(match range {
+                    Some((low, high)) => (low.min(value), high.max(value)),
+                    None => (value, value),
+                });
             }
-            pair
-        } else if text.contains(':') {
-            let values: Vec<_> = text.split(':').collect();
-            if values.len() != 2 {
-                return Err(bad("charge range needs two endpoints"));
-            }
-            (parse(values[0])?, parse(values[1])?)
-        } else {
-            let mut pairs = Vec::new();
-            for (index, _) in text.match_indices('-') {
-                if index > 0 {
-                    if let (Ok(a), Ok(b)) = (parse(&text[..index]), parse(&text[index + 1..])) {
-                        pairs.push((a, b));
-                    }
-                }
-            }
-            if pairs.len() != 1 {
-                return Err(bad("malformed or ambiguous charge range"));
-            }
-            pairs[0]
-        };
-        if pair.0 > pair.1 {
-            return Err(bad("charge range endpoints are reversed"));
+            return range.ok_or_else(conversion);
         }
-        Ok(Some(pair))
+        if text.contains(':') {
+            let sides: Vec<&str> = text.split(':').collect();
+            if sides.len() > 2 {
+                return Err(Error::MissingInformation(
+                    "Charge string in SearchParameters not parseable.".into(),
+                ));
+            }
+            return Ok((
+                source_charge_value(sides[0])?,
+                source_charge_value(sides[1])?,
+            ));
+        }
+        let minus: Vec<usize> = text.match_indices('-').map(|(index, _)| index).collect();
+        if !minus.is_empty() && minus.len() <= 3 {
+            let split = if minus.len() == 1 { minus[0] } else { minus[1] };
+            return Ok((
+                source_charge_value(&text[..split])?,
+                source_charge_value(&text[split + 1..])?,
+            ));
+        }
+        Ok((0, 0))
+    }
+    /// The source `SearchParameters::operator==`: every typed setting, but not
+    /// the settings' own metadata.
+    ///
+    /// The source compares the fourteen typed members and leaves out the
+    /// inherited `MetaInfoInterface`, so two settings that differ only in
+    /// metadata - the `SE:` engine keys, `InferenceEngine` or per-engine
+    /// settings - are equal there (Release oracle
+    /// `protein-identification-closure`, case `sp_equality`). The derived
+    /// [`PartialEq`] is structural and compares [`SearchParameters::metadata`]
+    /// too; this is the source's relation. The digestion enzyme is compared by
+    /// name and cleavage expression, the two parts of the source `Protease`
+    /// this record carries.
+    pub fn source_equal(&self, other: &Self) -> bool {
+        self.database == other.database
+            && self.database_version == other.database_version
+            && self.taxonomy == other.taxonomy
+            && self.charges == other.charges
+            && self.mass_type == other.mass_type
+            && self.fixed_modifications == other.fixed_modifications
+            && self.variable_modifications == other.variable_modifications
+            && self.missed_cleavages == other.missed_cleavages
+            && self.fragment_tolerance == other.fragment_tolerance
+            && self.precursor_tolerance == other.precursor_tolerance
+            && self.digestion_enzyme == other.digestion_enzyme
+            && self.digestion_regex == other.digestion_regex
+            && self.enzyme_specificity == other.enzyme_specificity
     }
     /// Source merging ignores mass type and missed cleavages. Modification
     /// differences are allowed only for labeled_MS1 experiments.
+    ///
+    /// Like the source, this compares the stored values and validates nothing:
+    /// a charge string the source cannot read is still compared as text, and a
+    /// NaN tolerance equals nothing (Release oracle
+    /// `protein-identification-closure`, case `mergeable_invalid_charges`).
+    /// The result is always `Ok`; the `Result` is kept for API stability.
     pub fn mergeable(&self, other: &Self, experiment_type: &str) -> Result<bool> {
-        self.validate()?;
-        other.validate()?;
         let basename = |path: &str| path.rsplit(['/', '\\']).next().unwrap_or("").to_owned();
         let same = basename(&self.database) == basename(&other.database)
             && self.database_version == other.database_version
@@ -638,25 +797,40 @@ impl SearchParameters {
                     && set(&self.variable_modifications) == set(&other.variable_modifications))))
     }
 }
-fn parse_charge(text: &str) -> Result<i32> {
-    if let Ok(value) = text.parse::<i32>() {
-        return Ok(value);
+/// The blanks `StringUtils::trim` and `toInt32` skip: space, tab, LF and CR.
+fn is_source_blank(c: char) -> bool {
+    matches!(c, ' ' | '\t' | '\n' | '\r')
+}
+fn trim_source_blanks(text: &str) -> &str {
+    text.trim_matches(is_source_blank)
+}
+/// `StringUtils::toInt32`: blanks, one optional `+`, then `std::from_chars`
+/// (an optional `-` and at least one digit, in range), then only blanks.
+fn source_int32(text: &str) -> Option<i32> {
+    let text = trim_source_blanks(text);
+    let text = text.strip_prefix('+').unwrap_or(text);
+    let digits_from = usize::from(text.starts_with('-'));
+    let end = text[digits_from..]
+        .find(|c: char| !c.is_ascii_digit())
+        .map_or(text.len(), |offset| digits_from + offset);
+    if end == digits_from || end != text.len() {
+        return None;
     }
-    if let Some(unsigned) = text.strip_suffix('+') {
-        return unsigned
-            .parse::<u32>()
-            .ok()
-            .and_then(|v| i32::try_from(v).ok())
-            .ok_or_else(|| bad("invalid charge"));
-    }
-    if let Some(unsigned) = text.strip_suffix('-') {
-        return unsigned
-            .parse::<u32>()
-            .ok()
-            .and_then(|v| i32::try_from(-i64::from(v)).ok())
-            .ok_or_else(|| bad("invalid charge"));
-    }
-    Err(bad("invalid charge"))
+    text.parse::<i32>().ok()
+}
+/// `SearchParameters::getChargeValue_`: a charge written with its sign before
+/// or after the number. Any `-` makes it negative and every `-` is dropped;
+/// otherwise every `+` is dropped. The rest must be a `toInt32` integer.
+fn source_charge_value(text: &str) -> Result<i32> {
+    let negative = text.contains('-');
+    let digits: String = text
+        .chars()
+        .filter(|&c| c != if negative { '-' } else { '+' })
+        .collect();
+    let value = source_int32(&digits)
+        .ok_or_else(|| bad("charge value in SearchParameters is not convertible"))?;
+    // With every '-' dropped the value is nonnegative, so negating cannot overflow.
+    Ok(if negative { -value } else { value })
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -729,13 +903,74 @@ impl ProteinIdentification {
     pub fn find_hit(&self, accession: &str) -> Option<&ProteinHit> {
         self.hits.iter().find(|hit| hit.accession == accession)
     }
+    /// The source `findHit`, which returns a mutable iterator to the first hit
+    /// with `accession` (`end()` when there is none, here `None`).
+    pub fn find_hit_mut(&mut self, accession: &str) -> Option<&mut ProteinHit> {
+        self.hits.iter_mut().find(|hit| hit.accession == accession)
+    }
+    /// The source `ProteinIdentification::operator==`: run metadata, identity,
+    /// engine, date, hits, both group lists and score configuration, with the
+    /// search settings compared by [`SearchParameters::source_equal`], so their
+    /// own metadata does not count (Release oracle `protein-identification-closure`,
+    /// case `sp_equality`: two runs differing only in `InferenceEngine` are
+    /// equal although [`ProteinIdentification::inference_engine`] differs).
+    ///
+    /// The run paths are part of the run metadata in the source (`spectra_data`
+    /// and `spectra_data_raw`), so both dedicated path lists count. The derived
+    /// [`PartialEq`] additionally compares the settings' metadata.
+    pub fn source_equal(&self, other: &Self) -> bool {
+        self.metadata == other.metadata
+            && self.primary_ms_run_paths == other.primary_ms_run_paths
+            && self.raw_ms_run_paths == other.raw_ms_run_paths
+            && self.identifier == other.identifier
+            && self.search_engine == other.search_engine
+            && self.search_engine_version == other.search_engine_version
+            && self
+                .search_parameters
+                .source_equal(&other.search_parameters)
+            && self.date_time == other.date_time
+            && self.hits == other.hits
+            && self.protein_groups == other.protein_groups
+            && self.indistinguishable_groups == other.indistinguishable_groups
+            && self.score_type == other.score_type
+            && self.significance_threshold == other.significance_threshold
+            && self.higher_score_better == other.higher_score_better
+    }
     /// Union of all supplied evidence intervals, independently of run IDs, as
     /// in OpenMS. Every affected protein needs a nonempty sequence. Errors are atomic.
+    ///
+    /// As in the source, only what the computation reads is checked: the
+    /// protein sequences and the evidence of this run's own accessions, whose
+    /// positions must be known, ordered and inside the protein. Scores, other
+    /// metadata and evidence for accessions that are not hits play no part
+    /// (Release oracle `protein-identification-closure`, cases `coverage` and
+    /// `validation_free_helpers`: NaN scores and reversed evidence of another
+    /// accession leave the result unchanged). An endpoint equal to the protein
+    /// length passes the source check and then writes past its coverage
+    /// vector; it is an error here.
     pub fn compute_coverage(&mut self, peptides: &[PeptideIdentification]) -> Result<()> {
-        self.validate()?;
+        self.compute_coverage_of(peptides.iter())
+    }
+    /// The source `computeCoverage(const ConsensusMap&, bool)`: coverage from
+    /// the identifications of every consensus feature, in map order, plus the
+    /// unassigned identifications when `use_unassigned_ids` is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`ProteinIdentification::compute_coverage`].
+    pub fn compute_coverage_from_consensus_map(
+        &mut self,
+        map: &crate::kernel::ConsensusMap,
+        use_unassigned_ids: bool,
+    ) -> Result<()> {
+        self.compute_coverage_of(consensus_map_ids(map, use_unassigned_ids))
+    }
+    fn compute_coverage_of<'a>(
+        &mut self,
+        peptides: impl Iterator<Item = &'a PeptideIdentification>,
+    ) -> Result<()> {
         let mut evidence: BTreeMap<&str, Vec<&PeptideEvidence>> = BTreeMap::new();
         for identification in peptides {
-            identification.validate()?;
             for hit in &identification.hits {
                 for item in &hit.evidences {
                     evidence
@@ -749,7 +984,9 @@ impl ProteinIdentification {
         for protein in &self.hits {
             let length = protein.sequence.len();
             if length == 0 {
-                return Err(bad("protein sequence is required to compute coverage"));
+                return Err(Error::MissingInformation(
+                    "protein sequence is required to compute coverage".into(),
+                ));
             }
             let mut ranges = Vec::new();
             for item in evidence
@@ -757,13 +994,17 @@ impl ProteinIdentification {
                 .into_iter()
                 .flatten()
             {
-                let range = item.positions()?;
-                if *range.end() >= length {
-                    return Err(bad(
-                        "inclusive peptide evidence endpoint is outside protein sequence",
+                let (Some(start), Some(end)) = (item.start, item.end) else {
+                    return Err(Error::MissingInformation(
+                        "peptide evidence has unknown start or end".into(),
+                    ));
+                };
+                if start > end || end >= length {
+                    return Err(Error::MissingInformation(
+                        "peptide evidence positions are reversed or outside the protein".into(),
                     ));
                 }
-                ranges.push((*range.start(), *range.end() + 1));
+                ranges.push((start, end + 1));
             }
             ranges.sort_unstable();
             let mut covered = 0_usize;
@@ -788,21 +1029,54 @@ impl ProteinIdentification {
     /// Distinct chemical records at the same position are retained, even when
     /// they share a full ID. Equal records deduplicate by complete value.
     /// Unknown positions are errors; failures leave all protein records unchanged.
+    ///
+    /// As in the source, scores and metadata are not validated, and evidence
+    /// for an accession that is not one of this run's hits is not read (Release
+    /// oracle `protein-identification-closure`, case `validation_free_helpers`).
+    /// Evidence of this run's own accessions must have known, ordered
+    /// positions that hold the modified residues, and a mapped position must
+    /// lie inside a known protein sequence: the source would store the
+    /// wrapped `Size` of an unknown position or a position past the protein.
     pub fn compute_modifications(
         &mut self,
         peptides: &[PeptideIdentification],
         skip: &BTreeSet<String>,
     ) -> Result<()> {
-        self.validate()?;
+        self.compute_modifications_of(peptides.iter(), skip)
+    }
+    /// The source `computeModifications(const ConsensusMap&, const StringList&,
+    /// bool)`: modifications from the identifications of every consensus
+    /// feature, in map order, plus the unassigned identifications when
+    /// `use_unassigned_ids` is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`ProteinIdentification::compute_modifications`].
+    pub fn compute_modifications_from_consensus_map(
+        &mut self,
+        map: &crate::kernel::ConsensusMap,
+        skip: &BTreeSet<String>,
+        use_unassigned_ids: bool,
+    ) -> Result<()> {
+        self.compute_modifications_of(consensus_map_ids(map, use_unassigned_ids), skip)
+    }
+    fn compute_modifications_of<'a>(
+        &mut self,
+        peptides: impl Iterator<Item = &'a PeptideIdentification>,
+        skip: &BTreeSet<String>,
+    ) -> Result<()> {
+        let accessions: BTreeSet<&str> = self.hits.iter().map(|h| h.accession.as_str()).collect();
         let mut mapped: BTreeMap<String, BTreeSet<(usize, String, SequenceModification)>> =
             BTreeMap::new();
         for identification in peptides {
-            identification.validate()?;
             for hit in &identification.hits {
                 if !hit.sequence.is_modified() {
                     continue;
                 }
                 for evidence in &hit.evidences {
+                    if !accessions.contains(evidence.protein_accession.as_str()) {
+                        continue;
+                    }
                     let positions = evidence.positions()?;
                     let mut put = |position, modification: &SequenceModification| {
                         if !skip.contains(modification.name())
@@ -849,10 +1123,34 @@ impl ProteinIdentification {
                         modification: modification.clone(),
                     })
                     .collect();
-                hit.validate()?;
+                if !hit.sequence.is_empty()
+                    && hit
+                        .modifications
+                        .iter()
+                        .any(|m| m.position >= hit.sequence.len())
+                {
+                    return Err(bad("protein modification position outside sequence"));
+                }
             }
         }
         self.hits = next;
         Ok(())
     }
+}
+
+/// The identifications a source `ConsensusMap` overload visits: every
+/// feature's, in map order, then the unassigned ones when requested.
+fn consensus_map_ids(
+    map: &crate::kernel::ConsensusMap,
+    use_unassigned_ids: bool,
+) -> impl Iterator<Item = &PeptideIdentification> {
+    let unassigned: &[PeptideIdentification] = if use_unassigned_ids {
+        &map.unassigned_peptide_identifications
+    } else {
+        &[]
+    };
+    map.features
+        .iter()
+        .flat_map(|feature| feature.base.peptide_identifications.iter())
+        .chain(unassigned)
 }

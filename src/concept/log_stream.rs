@@ -11,18 +11,26 @@
 //! to observe final flush errors; destruction can only make a best-effort flush.
 
 use chrono::{Datelike, NaiveDate, Timelike};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::fmt;
-use std::io::{self, IsTerminal, Write};
+use std::io::{self, Write};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
 
+/// Source `LogStreamBuf::UNKNOWN_LOG_LEVEL`: the level an unbound stream reports.
 pub const UNKNOWN_LOG_LEVEL: &str = "UNKNOWN_LOG_LEVEL";
+/// Source `BUFFER_LENGTH` (`LogStream.cpp:33`): the put buffer; a full one is synchronised.
 pub const LOG_BUFFER_BYTES: usize = 32_768;
+/// Native ceiling on one logical line, partial text included.
 pub const MAX_LOG_LINE_BYTES: usize = 1_048_576;
+/// Native ceiling on a level name or an unexpanded prefix.
 pub const MAX_LOG_TEXT_BYTES: usize = 65_536;
+/// Native ceiling on the destinations of one stream.
 pub const MAX_LOG_SINKS: usize = 1024;
+/// Native allocation and input budget of one write, flush or finish, and ceiling on the
+/// prefixes a stream stores.
 pub const MAX_LOG_OPERATION_BYTES: usize = 16 * 1024 * 1024;
+/// Native work budget of one write, flush or finish.
 pub const MAX_LOG_OPERATION_WORK: usize = 50_000_000;
 
 fn invalid(message: &'static str) -> io::Error {
@@ -80,12 +88,19 @@ impl PartialEq for LogSink {
 }
 impl Eq for LogSink {}
 impl LogSink {
+    /// Source `Colorizer::colorStream_` (`Colorizer.cpp:139-153`): codes go to any stream
+    /// but the process's standard output and error, and to those only when they are a
+    /// console.
     fn color_allowed(&self) -> bool {
-        match self.kind {
-            SinkKind::Other => true,
-            SinkKind::Stdout => io::stdout().is_terminal(),
-            SinkKind::Stderr => io::stderr().is_terminal(),
+        let console = match self.kind {
+            SinkKind::Other => return true,
+            SinkKind::Stdout => is_console(&io::stdout()),
+            SinkKind::Stderr => is_console(&io::stderr()),
+        };
+        if console {
+            enable_console_colors();
         }
+        console
     }
     /// Arbitrary writers receive ANSI colors when a colored logger uses them, as in C++.
     pub fn new(writer: impl Write + Send + 'static) -> Self {
@@ -114,6 +129,47 @@ impl LogSink {
     }
 }
 
+/// Source `Colorizer::isTTY` (`Colorizer.cpp:155-170`): `isatty` on the stream's
+/// descriptor, and on Windows (`isattyWin`, `Colorizer.cpp:87-110`) whether
+/// `GetConsoleMode` succeeds for its handle, which is false for the pipe a MSYS or Cygwin
+/// terminal provides.
+#[cfg(not(windows))]
+fn is_console(stream: &impl io::IsTerminal) -> bool {
+    stream.is_terminal()
+}
+#[cfg(windows)]
+fn is_console(stream: &impl winapi_util::AsHandleRef) -> bool {
+    winapi_util::console::mode(stream).is_ok()
+}
+
+/// Source `InitConsole` (`Colorizer.cpp:26-81`), whose constructor runs when libOpenMS is
+/// loaded: on Windows, `ENABLE_VIRTUAL_TERMINAL_PROCESSING` is added to the console mode of
+/// standard output and, independently, of standard error, so that ANSI colour codes render
+/// on a console. A stream that is not a console, or whose mode cannot be changed, is left
+/// as it is and nothing is reported, as in the source; the mode is not restored at exit, as
+/// in the source. On other platforms this does nothing.
+///
+/// Rust has no load-time constructors, so this runs the first time a record is coloured for
+/// standard output or standard error, and when a tool executable starts. It acts once per
+/// process; later calls return at once.
+pub fn enable_console_colors() {
+    #[cfg(windows)]
+    {
+        static ENABLED: std::sync::Once = std::sync::Once::new();
+        ENABLED.call_once(|| {
+            use winapi_util::console::{mode, set_mode};
+            /// `wincon.h`.
+            const ENABLE_VIRTUAL_TERMINAL_PROCESSING: u32 = 0x0004;
+            if let Ok(current) = mode(io::stdout()) {
+                let _ = set_mode(io::stdout(), current | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+            if let Ok(current) = mode(io::stderr()) {
+                let _ = set_mode(io::stderr(), current | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            }
+        });
+    }
+}
+
 /// A notification receives the complete rendered record, including its trailing LF.
 /// Use a captured shared writer when an accumulating source-style notifier buffer is needed.
 pub type LogNotification = Arc<dyn Fn(&[u8]) -> io::Result<()> + Send + Sync>;
@@ -121,11 +177,17 @@ pub type LogNotification = Arc<dyn Fn(&[u8]) -> io::Result<()> + Send + Sync>;
 /// Calendar fields used by the source's local-time prefix tokens.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LogTime {
+    /// Year, 0 to 9999.
     pub year: u16,
+    /// Month, 1 to 12.
     pub month: u8,
+    /// Day of the month, only days the month has.
     pub day: u8,
+    /// Hour, 0 to 23.
     pub hour: u8,
+    /// Minute, 0 to 59.
     pub minute: u8,
+    /// Second, 0 to 60 (a leap second).
     pub second: u8,
 }
 impl LogTime {
@@ -152,16 +214,27 @@ impl LogTime {
 /// Supplies local calendar fields. No implicit UTC substitution is made for local time.
 pub type LogClock = Arc<dyn Fn() -> io::Result<LogTime> + Send + Sync>;
 
+/// Source `ConsoleColor` (`Colorizer.h`), in source order, with the codes of the source's
+/// `colors_` table: each style's enable code before a record and its disable code after it.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LogColor {
+    /// `\x1b[91m` ... `\x1b[39m`; the fatal and error streams.
     Red,
+    /// `\x1b[92m` ... `\x1b[39m`.
     Green,
+    /// `\x1b[93m` ... `\x1b[39m`; the warning stream.
     Yellow,
+    /// `\x1b[94m` ... `\x1b[39m`.
     Blue,
+    /// `\x1b[95m` ... `\x1b[39m`; the debug stream.
     Magenta,
+    /// `\x1b[96m` ... `\x1b[39m`.
     Cyan,
+    /// `\x1b[4m` ... `\x1b[24m`.
     Underline,
+    /// `\x1b[1m` ... `\x1b[22m`.
     Bright,
+    /// `\x1b[7m` ... `\x1b[27m`.
     Invert,
 }
 impl LogColor {
@@ -239,6 +312,8 @@ impl Default for LogStream {
     }
 }
 impl LogStream {
+    /// Source `LogStream(new LogStreamBuf(level), true)`: a bound stream with no
+    /// destinations. A level over [`MAX_LOG_TEXT_BYTES`] is refused.
     pub fn new(level: impl AsRef<str>) -> io::Result<Self> {
         let level = level.as_ref();
         check_text(level)?;
@@ -247,6 +322,7 @@ impl LogStream {
         logger.level = level.to_owned();
         Ok(logger)
     }
+    /// Source `getLevel`: the level, or [`UNKNOWN_LOG_LEVEL`] for an unbound stream.
     pub fn level(&self) -> &str {
         if self.bound {
             &self.level
@@ -254,6 +330,7 @@ impl LogStream {
             UNKNOWN_LOG_LEVEL
         }
     }
+    /// Source `setLevel`; an unbound stream ignores it.
     pub fn set_level(&mut self, level: impl AsRef<str>) -> io::Result<()> {
         if self.bound {
             check_text(level.as_ref())?;
@@ -261,9 +338,13 @@ impl LogStream {
         }
         Ok(())
     }
+    /// The source's `Colorizer*` argument of `LogStreamBuf`: the style every record gets
+    /// on a destination that accepts colour, or none.
     pub fn set_color(&mut self, color: Option<LogColor>) {
         self.color = color;
     }
+    /// Native: the clock the time prefix tokens read (local time by default); with `None`
+    /// a record whose prefix needs the time fails.
     pub fn set_clock(&mut self, clock: Option<LogClock>) {
         self.clock = clock;
     }
@@ -281,9 +362,12 @@ impl LogStream {
             failed: false,
         }
     }
+    /// Source `hasStream`: whether `sink` is a destination.
     pub fn has_stream(&self, sink: &LogSink) -> bool {
         self.routes.iter().any(|route| route.sink == *sink)
     }
+    /// Source `insert`: add `sink` as the last destination, without a prefix; an unbound
+    /// stream, or a destination already present, is left as it is.
     pub fn insert(&mut self, sink: &LogSink) -> io::Result<()> {
         if !self.bound || self.has_stream(sink) {
             return Ok(());
@@ -298,6 +382,8 @@ impl LogStream {
         });
         Ok(())
     }
+    /// Source `insertNotification` and `LogStreamNotifier::registerAt`: insert `sink` and
+    /// call `callback` with every record it receives, after the output lock is released.
     pub fn insert_notification(
         &mut self,
         sink: &LogSink,
@@ -309,6 +395,8 @@ impl LogStream {
         }
         Ok(())
     }
+    /// Source `remove`: synchronise complete lines, then drop the destination; partial
+    /// text and the cache stay.
     pub fn remove(&mut self, sink: &LogSink) -> io::Result<()> {
         if let Some(index) = self.routes.iter().position(|r| r.sink == *sink) {
             self.flush()?; // Source keeps incomplete text and duplicate cache across removal.
@@ -316,6 +404,8 @@ impl LogStream {
         }
         Ok(())
     }
+    /// Source `removeAllStreams`: deliver complete and partial text, flush every
+    /// destination, then drop them all; the cache stays.
     pub fn remove_all_streams(&mut self) -> io::Result<()> {
         let result = (|| {
             self.flush_incomplete()?;
@@ -327,6 +417,8 @@ impl LogStream {
         })();
         self.finish_operation(result)
     }
+    /// Source `setPrefix(stream, prefix)`: the prefix of one destination, with the tokens
+    /// `%y %T %t %D %d %S %s %%`.
     pub fn set_prefix(&mut self, sink: &LogSink, prefix: impl AsRef<str>) -> io::Result<()> {
         let Some(index) = self.routes.iter().position(|r| r.sink == *sink) else {
             return Ok(());
@@ -357,11 +449,15 @@ impl LogStream {
         }
         Ok(())
     }
+    /// Source `LogStreamBuf::clearCache`: report every repeated cached line as
+    /// `<line> occurred N times`, in lexical order, and empty the cache.
     pub fn clear_cache(&mut self) -> io::Result<()> {
         self.ready()?;
         let result = self.clear_cache_inner(&mut Budget::default());
         self.finish_operation(result)
     }
+    /// Source `flushIncomplete`: deliver complete lines and then the unterminated one,
+    /// which bypasses the cache.
     pub fn flush_incomplete(&mut self) -> io::Result<()> {
         self.ready()?;
         let mut budget = Budget::default();
@@ -704,6 +800,8 @@ pub struct LogSinkGuard<'a> {
     removed: bool,
 }
 impl<'a> LogSinkGuard<'a> {
+    /// Source `LogSinkGuard(log_stream, stream)`: when `sink` is a destination, deliver
+    /// pending text and detach it until the guard ends.
     pub fn new(logger: &'a mut LogStream, sink: &LogSink) -> io::Result<Self> {
         let removed = logger.has_stream(sink);
         if removed {
@@ -716,6 +814,8 @@ impl<'a> LogSinkGuard<'a> {
             removed,
         })
     }
+    /// Source `~LogSinkGuard`, returning its errors: deliver pending text and insert the
+    /// sink again, last and without its old prefix or notification.
     pub fn restore(mut self) -> io::Result<()> {
         self.restore_inner()
     }
@@ -749,16 +849,22 @@ impl Drop for LogSinkGuard<'_> {
 /// Five independently routed levels; their labels are not numeric filtering priorities.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LogLevel {
+    /// `FATAL_ERROR`, red, to standard error (`OPENMS_LOG_FATAL_ERROR`).
     Fatal,
+    /// `ERROR`, red, to standard error (`OPENMS_LOG_ERROR`).
     Error,
+    /// `WARNING`, yellow, to standard error (`OPENMS_LOG_WARN`).
     Warn,
+    /// `INFO`, uncoloured, to standard output (`OPENMS_LOG_INFO`).
     Info,
+    /// `DEBUG`, magenta, no destination until one is inserted (`OPENMS_LOG_DEBUG`).
     Debug,
 }
 impl LogLevel {
     fn index(self) -> usize {
         self as usize
     }
+    /// The level name the source's stream carries, which `%y` prints.
     pub fn label(self) -> &'static str {
         match self {
             Self::Fatal => "FATAL_ERROR",
@@ -787,16 +893,23 @@ impl LogLevel {
         logger
     }
 }
+/// The five global streams (source `g_log_fatal` ... `g_log_debug`, `LogStream.cpp:667-672`).
+/// Statics are never dropped in Rust, so [`finish_process_logs`] does what their destructors do.
+static GLOBAL_LOGS: [OnceLock<RwLock<LogStream>>; 5] = [const { OnceLock::new() }; 5];
 fn global(level: LogLevel) -> &'static RwLock<LogStream> {
-    static LOGS: [OnceLock<RwLock<LogStream>>; 5] = [const { OnceLock::new() }; 5];
-    LOGS[level.index()].get_or_init(|| RwLock::new(level.configured()))
+    GLOBAL_LOGS[level.index()].get_or_init(|| RwLock::new(level.configured()))
 }
 /// Configure a global route before threads first access it. Existing TLS streams retain
 /// their earlier snapshot. Recursive access to the same stream returns `WouldBlock`.
+///
+/// The calling thread becomes responsible for the global streams: when it ends, after its
+/// own streams, they are finished as by [`finish_process_logs`]. For the main thread that is
+/// process exit, where the platform runs its thread-local destructors.
 pub fn with_global_log<T>(
     level: LogLevel,
     action: impl FnOnce(&mut LogStream) -> io::Result<T>,
 ) -> io::Result<T> {
+    let _ = LOCAL.try_with(|logs| logs.owns_globals.set(true));
     let mut logger = global(level).try_write().map_err(|error| match error {
         std::sync::TryLockError::WouldBlock => {
             io::Error::new(io::ErrorKind::WouldBlock, "global logger is in use")
@@ -805,8 +918,58 @@ pub fn with_global_log<T>(
     })?;
     action(&mut logger)
 }
+/// One thread's five streams (source `getThreadLocalLog*`, `LogStream.cpp:694-722`) and the
+/// order the thread first used them in.
+struct LocalLogs {
+    slots: [RefCell<Option<LogStream>>; 5],
+    created: RefCell<Vec<LogLevel>>,
+    /// Whether this thread used [`with_global_log`], and so finishes the global streams.
+    owns_globals: Cell<bool>,
+}
+impl LocalLogs {
+    /// Finish every stream, most recently created first, keeping it for further use.
+    fn finish(&self, first_error: &mut Option<io::Error>) {
+        let created = self.created.borrow().clone();
+        for level in created.into_iter().rev() {
+            match self.slots[level.index()].try_borrow_mut() {
+                Ok(mut slot) => {
+                    if let Some(logger) = slot.as_mut().filter(|logger| !logger.failed) {
+                        keep_first(first_error, logger.finish());
+                    }
+                }
+                Err(_) => keep_first(first_error, Err(local_in_use())),
+            }
+        }
+    }
+}
+/// The source's function-local `thread_local` streams are destroyed in reverse order of
+/// construction when the thread ends, each flushing as `~LogStreamBuf` does. A thread that
+/// used the global streams then finishes them, as the source's static destructors run after
+/// the exiting thread's `thread_local` ones.
+impl Drop for LocalLogs {
+    fn drop(&mut self) {
+        for level in std::mem::take(self.created.get_mut()).into_iter().rev() {
+            drop(self.slots[level.index()].get_mut().take());
+        }
+        if self.owns_globals.get() {
+            finish_globals(&mut None);
+        }
+    }
+}
 thread_local! {
-    static LOCAL: [RefCell<Option<LogStream>>; 5] = std::array::from_fn(|_| RefCell::new(None));
+    static LOCAL: LocalLogs = LocalLogs {
+        slots: std::array::from_fn(|_| RefCell::new(None)),
+        created: RefCell::new(Vec::new()),
+        owns_globals: Cell::new(false),
+    };
+}
+fn local_in_use() -> io::Error {
+    io::Error::new(io::ErrorKind::WouldBlock, "thread-local logger is in use")
+}
+fn keep_first(first_error: &mut Option<io::Error>, result: io::Result<()>) {
+    if let Err(error) = result {
+        first_error.get_or_insert(error);
+    }
 }
 /// Access the current thread's independently buffered and cached global-route snapshot.
 pub fn with_thread_local_log<T>(
@@ -815,9 +978,9 @@ pub fn with_thread_local_log<T>(
 ) -> io::Result<T> {
     LOCAL
         .try_with(|logs| {
-            let mut slot = logs[level.index()].try_borrow_mut().map_err(|_| {
-                io::Error::new(io::ErrorKind::WouldBlock, "thread-local logger is in use")
-            })?;
+            let mut slot = logs.slots[level.index()]
+                .try_borrow_mut()
+                .map_err(|_| local_in_use())?;
             if slot.is_none() {
                 let configuration = global(level).try_read().map_err(|error| match error {
                     std::sync::TryLockError::WouldBlock => io::Error::new(
@@ -827,6 +990,7 @@ pub fn with_thread_local_log<T>(
                     std::sync::TryLockError::Poisoned(_) => poisoned(),
                 })?;
                 *slot = Some(configuration.clone_configuration());
+                logs.created.borrow_mut().push(level);
             }
             action(slot.as_mut().expect("initialized thread-local logger"))
         })
@@ -837,6 +1001,111 @@ pub fn with_thread_local_log<T>(
             )
         })?
 }
+/// Deliver what the log streams still hold, as the source's destructors do at process exit
+/// (`~LogStreamBuf`, `LogStream.cpp:111-128`): complete buffered lines, then the repetition
+/// summaries of the duplicate cache, then an unterminated line.
+///
+/// The order is the source's: first the calling thread's streams, most recently created
+/// first (its `thread_local` streams, destroyed before any static), then the global streams
+/// debug, info, warning, error, fatal (the reverse of their definition order). Every stream
+/// stays usable afterwards, with an empty cache. A stream whose output failed earlier is
+/// skipped; every other stream is finished even when one fails, and the first error is
+/// returned. Streams of other threads are finished when those threads end.
+///
+/// Rust runs no destructor for a static. The thread that used [`with_global_log`] finishes
+/// the global streams when it ends; for the main thread that is process exit only where the
+/// platform runs the main thread's thread-local destructors (Linux with glibc and macOS do,
+/// for a return from `main` and for `std::process::exit`). This call makes the moment and
+/// the order explicit and returns errors: tool executables make it through [`ProcessLogs`]
+/// on every way out of the process, and a program of its own can hold a [`ProcessLogs`].
+///
+/// The global debug stream is flushed too. The source constructs it with `delete_buf =
+/// false` (`LogStream.cpp:672`, "should be 'true', but segfaults"), so its buffer is never
+/// destroyed and whatever it holds is lost at exit; the port delivers it (CPP-355).
+pub fn finish_process_logs() -> io::Result<()> {
+    let mut first_error = None;
+    // A thread whose streams are being destroyed has them finished by that destruction.
+    let _ = LOCAL.try_with(|logs| logs.finish(&mut first_error));
+    finish_globals(&mut first_error);
+    first_error.map_or(Ok(()), Err)
+}
+/// The global streams, in the order the source's static destructors run.
+fn finish_globals(first_error: &mut Option<io::Error>) {
+    for level in [
+        LogLevel::Debug,
+        LogLevel::Info,
+        LogLevel::Warn,
+        LogLevel::Error,
+        LogLevel::Fatal,
+    ] {
+        let Some(lock) = GLOBAL_LOGS[level.index()].get() else {
+            continue;
+        };
+        match lock.try_write() {
+            Ok(mut logger) => {
+                if !logger.failed {
+                    keep_first(first_error, logger.finish());
+                }
+            }
+            Err(std::sync::TryLockError::WouldBlock) => keep_first(
+                first_error,
+                Err(io::Error::new(
+                    io::ErrorKind::WouldBlock,
+                    "global logger is in use",
+                )),
+            ),
+            Err(std::sync::TryLockError::Poisoned(_)) => {
+                keep_first(first_error, Err(poisoned()));
+            }
+        }
+    }
+}
+
+/// Runs [`finish_process_logs`] when dropped: at the end of the scope that holds it, on an
+/// early return and while a panic unwinds. Hold one in `main` for the rest of the process.
+///
+/// Dropping it ignores errors, as the source's destructors do; [`ProcessLogs::finish`]
+/// returns them.
+///
+/// ```
+/// use openms::concept::log_stream::{with_global_log, LogLevel, ProcessLogs};
+/// use std::io::Write;
+///
+/// fn main() -> std::io::Result<()> {
+///     let logs = ProcessLogs::new();
+///     with_global_log(LogLevel::Info, |log| write!(log, "delivered when `logs` goes"))?;
+///     logs.finish()
+/// }
+/// ```
+#[must_use = "the log streams are finished when this value is dropped"]
+#[derive(Debug)]
+pub struct ProcessLogs {
+    finished: bool,
+}
+impl ProcessLogs {
+    /// A guard that finishes the log streams when it is dropped.
+    pub fn new() -> Self {
+        Self { finished: false }
+    }
+    /// Finish now and return the first error.
+    pub fn finish(mut self) -> io::Result<()> {
+        self.finished = true;
+        finish_process_logs()
+    }
+}
+impl Default for ProcessLogs {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+impl Drop for ProcessLogs {
+    fn drop(&mut self) {
+        if !self.finished {
+            let _ = finish_process_logs();
+        }
+    }
+}
+
 /// Write and flush one formatted line. Fatal logging does not exit the process.
 pub fn log_message(level: LogLevel, message: fmt::Arguments<'_>) -> io::Result<()> {
     with_thread_local_log(level, |logger| {
