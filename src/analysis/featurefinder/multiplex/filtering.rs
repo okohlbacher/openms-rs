@@ -327,7 +327,7 @@ impl MultiplexFiltering {
                     .peaks
                     .iter()
                     .zip(marks)
-                    .filter(|(_, &mark)| mark != -1)
+                    .filter(|&(_, &mark)| mark != -1)
                     .map(|(peak, _)| *peak)
                     .collect(),
                 ..MSSpectrum::default()
