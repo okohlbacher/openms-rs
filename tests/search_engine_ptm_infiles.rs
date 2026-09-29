@@ -13,7 +13,7 @@
 
 use openms::Error;
 use openms::format::inspect_infile::InspectInfile;
-use openms::format::ptm_xml_file::PTMXMLFile;
+use openms::format::ptm_xml;
 use openms::format::sequest_infile::SequestInfile;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -54,34 +54,31 @@ fn parse_message(error: Error) -> String {
 
 #[test]
 fn ptmxml_load() {
-    let table = PTMXMLFile::new().load(data("PTMs.xml")).unwrap();
+    let table = ptm_xml::load(data("PTMXMLFile_PTMs.xml")).unwrap();
     assert_eq!(table["TEST"].0, "N2O2-CH3");
     assert_eq!(table["TEST"].1, "KLR");
 }
 
 #[test]
 fn ptmxml_store_round_trips() {
-    let file = PTMXMLFile::new();
-    let table = file.load(data("PTMs.xml")).unwrap();
+    let table = ptm_xml::load(data("PTMXMLFile_PTMs.xml")).unwrap();
     let dir = temp_dir("ptmxml");
     let path = dir.join("PTMs.xml");
-    file.store(&path, &table).unwrap();
-    let back = file.load(&path).unwrap();
+    ptm_xml::store(&path, &table).unwrap();
+    let back = ptm_xml::load(&path).unwrap();
     assert_eq!(back["TEST"].0, "N2O2-CH3");
     assert_eq!(back["TEST"].1, "KLR");
     // The source layout, byte for byte: it is the fixture's.
     assert_eq!(
         std::fs::read_to_string(&path).unwrap(),
-        std::fs::read_to_string(data("PTMs.xml")).unwrap()
+        std::fs::read_to_string(data("PTMXMLFile_PTMs.xml")).unwrap()
     );
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
 #[test]
 fn ptmxml_missing_file_is_an_io_error() {
-    let error = PTMXMLFile::new()
-        .load(data("does_not_exist_PTMs.xml"))
-        .unwrap_err();
+    let error = ptm_xml::load(data("does_not_exist_PTMs.xml")).unwrap_err();
     assert!(matches!(error, Error::Io(_)), "{error:?}");
 }
 

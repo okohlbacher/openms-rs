@@ -371,7 +371,7 @@
    "role": "upstream class-test fixture, copied unmodified"
   },
   {
-   "path": "tests/data/PTMs.xml",
+   "path": "tests/data/PTMXMLFile_PTMs.xml",
    "source_path": "src/tests/class_tests/openms/data/PTMs.xml",
    "sha256": "7bde0cc5292f4b58b6dfa54882621c1c522083bb766084d19a0c962e1c100e9e",
    "bytes": 139,

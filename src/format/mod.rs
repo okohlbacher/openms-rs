@@ -373,12 +373,11 @@ pub mod pepxml_mascot;
 /// ProteinProphet protXML reader (`ProtXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod protxml;
-/// PTMXML post-translational modification lists (`PTMXMLFile.h`, `PTMXMLHandler.h`).
-#[cfg(feature = "kb-xml")]
+/// PTMXML post-translational modification lists (`PTMXMLFile.h`, `PTMXMLHandler.h`),
+/// read by the Inspect and Sequest adapters (`idxml`) and the knowledge-base
+/// readers (`kb-xml`).
+#[cfg(any(feature = "idxml", feature = "kb-xml"))]
 pub mod ptm_xml;
-/// PTMXML modification tables (`PTMXMLFile.h`, `HANDLERS/PTMXMLHandler.h`).
-#[cfg(feature = "idxml")]
-pub mod ptm_xml_file;
 /// TIMS scan-index to 1/K0 conversion: the per-frame rational
 /// `TimsCalibration` model and the linear fallback (`RationalScan2ImConverter.h`).
 pub mod rational_scan2im_converter;

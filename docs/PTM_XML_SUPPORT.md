@@ -1,10 +1,14 @@
 # PTMXML
 
-`format::ptm_xml` (feature `kb-xml`) ports `FORMAT/PTMXMLFile.h` and
+`format::ptm_xml` (feature `kb-xml` or `idxml`) ports `FORMAT/PTMXMLFile.h` and
 `FORMAT/HANDLERS/PTMXMLHandler.h` from OpenMS4-core
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Parsing runs on the shared bounded
 SAX driver `src/format/sax_xml.rs` (quick-xml), which stands in for the
-Xerces-based `Internal::XMLFile` / `XMLHandler` base classes.
+Xerces-based `Internal::XMLFile` / `XMLHandler` base classes and delivers
+character data where the Release build's Xerces does. The Inspect and Sequest
+adapters (`format::inspect_infile`, `format::sequest_infile`, `idxml`) read
+their modification tables through it; lane F3b's separate
+`format::ptm_xml_file` was folded into this module at wave-4 integration.
 
 ## API mapping
 
@@ -53,4 +57,15 @@ Xerces-based `Internal::XMLFile` / `XMLHandler` base classes.
 sections of `PTMXMLFile_test.cpp` over the byte-identical fixture
 `tests/data/PTMXMLFile_PTMs.xml` (tier 3); multi-entry writer order from
 `PTMXMLHandler.cpp:28-35`, escaping, compressed store/load and failure
-atomicity (tier 4). Provenance: `tests/data/ptm_xml_provenance.json`.
+atomicity (tier 4). Two tests compare against the executed Linux x86_64
+Release build (`../oracle/integ-F-ptmxml`, ibminode06,
+`openms4-release-bc9cc12-c19e494-174b576`, run twice; records in
+`tests/data/ptm_xml_release/cpp_release_records.txt`, tier 1): the source's
+`store` writes a name holding `<`, `>`, `&`, `"` or `'` unescaped, which its own
+`load` then refuses, and reading the escaped name keeps only the last character
+run, because Xerces splits the text at every reference and
+`PTMXMLHandler::onCharacters` assigns (`PTMXMLHandler.cpp:56-66`); `A&amp;B`
+reads as `&B`. This writer escapes (the documented native difference), so a
+name holding one of those characters does not survive a round trip here either.
+`tests/search_engine_ptm_infiles.rs` loads and stores the same fixture through
+this module under `idxml` alone. Provenance: `tests/data/ptm_xml_provenance.json`.

@@ -21,7 +21,7 @@ use crate::chemistry::EmpiricalFormula;
 use crate::data_structures::string_utils::{split, to_float};
 use crate::format::file_info::text_format::{ostream_g, to_str};
 use crate::format::file_types::{FileType, has_valid_extension};
-use crate::format::ptm_xml_file::{PTMXMLFile, PtmInformations};
+use crate::format::ptm_xml::{self, PtmInformation};
 use crate::{Error, Result};
 use std::collections::BTreeMap;
 use std::io::Write;
@@ -412,7 +412,7 @@ fn parse_modifications(
     monoisotopic: bool,
     out: &mut BTreeMap<String, Vec<String>>,
 ) -> Result<()> {
-    let mut ptm_informations = PtmInformations::new();
+    let mut ptm_informations = PtmInformation::new();
     for modification in split(modification_line, ':') {
         if modification.is_empty() {
             continue;
@@ -451,7 +451,7 @@ fn parse_modifications(
                         ),
                     )));
                 }
-                ptm_informations = PTMXMLFile::new().load(modifications_file)?;
+                ptm_informations = ptm_xml::load(modifications_file)?;
             }
             if let Some((composition, possible)) = ptm_informations.get(first) {
                 mass = composition.clone();

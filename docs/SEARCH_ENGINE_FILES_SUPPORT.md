@@ -20,10 +20,12 @@ formats written by SpecArray, msInspect and Kroenik, port these OpenMS4-core
 | `FORMAT/SpecArrayFile.h` | `format::spec_array_file` | none |
 | `FORMAT/MsInspectFile.h` | `format::ms_inspect_file` | none |
 | `FORMAT/KroenikFile.h` | `format::kroenik_file` | none |
-| `FORMAT/PTMXMLFile.h`, `FORMAT/HANDLERS/PTMXMLHandler.h` | `format::ptm_xml_file` | `idxml` |
+| `FORMAT/PTMXMLFile.h`, `FORMAT/HANDLERS/PTMXMLHandler.h` | `format::ptm_xml` (see [PTM_XML_SUPPORT](PTM_XML_SUPPORT.md)) | `idxml` or `kb-xml` |
 
-`PTMXMLFile` is not in the lane's list; it is ported because `InspectInfile`
-and `SequestInfile` look modification names up in PTMXML tables. The `idxml`
+`PTMXMLFile` is not in the lane's list; `InspectInfile` and `SequestInfile`
+look modification names up in PTMXML tables. Lanes F3b and F6 both ported it
+in wave 4; integration kept lane F6's `format::ptm_xml` (bounded, compressed
+input and output, atomic store) and removed F3b's `format::ptm_xml_file`. The `idxml`
 modules need the crate's XML reader; `InspectOutfile` needs the mzXML and mzData
 readers of `mzml`. No dependency was added.
 
@@ -92,7 +94,7 @@ several. Copy construction, assignment and `operator==` become `Clone` and
 | `getWantedRecords`, `compressTrieDB`, `generateTrieDB` | `wanted_records`, `compress_trie_db`, `generate_trie_db` |
 | `getACAndACType`, `getPrecursorRTandMZ`, `getLabels` | `ac_and_ac_type`, `precursor_rt_and_mz`, `labels -> DatabaseLabels` |
 | `getSequences`, `getExperiment`, `getSearchEngineAndVersion`, `readOutHeader` | `sequences`, `experiment -> (MSExperiment, type name)`, `search_engine_and_version`, `read_out_header -> InspectOutHeader` |
-| `PTMXMLFile::load`, `store` (and `PTMXMLHandler`) | `load`, `load_reader`, `store`, `write` |
+| `PTMXMLFile::load`, `store` (and `PTMXMLHandler`) | `ptm_xml::load`, `read`, `store`, `write` (see [PTM_XML_SUPPORT](PTM_XML_SUPPORT.md)) |
 
 Two declared C++ members have no Rust counterpart, because the pin gives them no
 behaviour: `XTandemInfile::getNoiseSuppression`/`setNoiseSuppression` are
@@ -110,8 +112,10 @@ Each is documented in full at the Rust item.
   line end, and a Sequest iterator incremented past the end.
 - On error a loader returns nothing. The source has often already changed the
   caller's containers before it throws.
-- `PTMXMLFile` escapes `&`, `<` and `>` when writing. The source writes the text
-  raw, so it can produce a malformed document.
+- `PTMXMLFile` escapes the five XML special characters when writing. The source
+  writes the text raw, so it can produce a malformed document; reading an
+  escaped name back keeps only its last character run, as the Release build
+  does (see [PTM_XML_SUPPORT](PTM_XML_SUPPORT.md)).
 - Source behaviour that looks like a defect but is kept for parity, and named as
   a defect candidate in the rustdoc: `InspectOutfile::load` gives each
   identification the scan of the next spectrum. `XTandemXMLFile` keeps
