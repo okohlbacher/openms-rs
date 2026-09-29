@@ -339,6 +339,11 @@ impl MultiplexFiltering {
         }
     }
 
+    /// The intensity cutoff (source `intensity_cutoff_`).
+    pub fn intensity_cutoff(&self) -> f64 {
+        self.intensity_cutoff
+    }
+
     /// The blacklist marks: per spectrum and peak, `-1` for white or the mass
     /// trace index that blacklisted it (source `blacklist_`).
     pub fn blacklist(&self) -> &[Vec<i32>] {

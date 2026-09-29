@@ -37,6 +37,15 @@ FilteredMSExperiment -> Filtering -> FilteringCentroided/Profile -> Clustering (
 ## Layout
 src/analysis/featurefinder/multiplex.rs + multiplex/*.rs, one file per header; featurefinder.rs gets `pub mod multiplex;`.
 
+## Status (commit 7b15f348 + getter)
+PASSING on spock: all leaf types, DeltaMassesGenerator, Filtering base, Centroided [0,0,0,0,4,4,4,0], Profile [0,0,0,0,4,5,4,0],
+Clustering [0,0,0,0,2,0,0,0], PeakWidthEstimator, SplinePackage, SplineInterpolatedPeaks class tests.
+Tests: tests/featurefinder_multiplex.rs (no features), tests/featurefinder_multiplex_filtering.rs (mzml), tests/spline_interpolated_peaks.rs.
+Extra headers ported as deps: PROCESSING/MISC/SplinePackage.h, SplineInterpolatedPeaks.h (src/processing/spline/), FEATUREFINDER/PeakWidthEstimator.h.
+
 ## Next step
-1. Survey Rust deps (AASequence/ModificationsDB, MSExperiment, SplineInterpolatedPeaks, PeakPickerHiRes, IsotopeDistribution, Param).
-2. Port the leaf data types (DeltaMasses, IsotopicPeakPattern, Satellite*, FilteredPeak, FilteredMSExperiment), commit.
+1. FeatureFinderMultiplexAlgorithm: needs LinearRegressionWithoutIntercept (not ported; ML/REGRESSION, tiny), PeakIntegrator (src/analysis/peak_integrator.rs),
+   make_peak_position_unique (src/kernel/spectrum_helper.rs), SpectrumType get_type (src/kernel/spectrum_type.rs), ConvexHull2D.
+   C++ read fully (scratchpad/mx/FeatureFinderMultiplexAlgorithm.cpp). Note run(): label_mass_shift_[...] = param (overwrites).
+2. Class test FeatureFinderMultiplexAlgorithm_test: 2 consensus features, H/L ~ 3 +-0.2; tier 1: TOPP retained outputs FeatureFinderMultiplex_{1..11}.
+3. Docs: docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md, provenance tests/data/featurefinder_multiplex_provenance.json, doc coverage, report+ledger.
