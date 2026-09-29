@@ -6,7 +6,7 @@
 //! (`XTandemInfile_test.cpp` at core `bc9cc12`) and a byte-exact comparison
 //! with the files the executed C++ Release build wrote
 //! (`tests/data/search_engine_oracle/*_infile.out`, written on ibminode06 by
-//! `driver.cpp.txt`; see `tests/search_engine_oracle.rs`).
+//! `../oracle/F3b-search-engine/driver.cpp`; see `tests/search_engine_oracle.rs`).
 
 use openms::chemistry::ModificationDefinitionsSet;
 use openms::format::xtandem_infile::{ErrorUnit, MassType, XTandemInfile};

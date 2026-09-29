@@ -505,12 +505,6 @@
    "role": "oracle build/run record"
   },
   {
-   "path": "tests/data/search_engine_oracle/driver.cpp.txt",
-   "sha256": "22160b15ce61ec29f76b724788240e19d751a054044416672a730b971544453d",
-   "bytes": 14622,
-   "role": "oracle build/run record"
-  },
-  {
    "path": "tests/data/search_engine_oracle/hashes.txt",
    "sha256": "7fb98f69890a32c91710dc477ea795d8c6c721ad8890c0ec721cb7c3f628288d",
    "bytes": 1483,
@@ -600,5 +594,26 @@
    "bytes": 7172,
    "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
   }
- ]
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F3b-search-engine/driver.cpp",
+   "sha256": "22160b15ce61ec29f76b724788240e19d751a054044416672a730b971544453d",
+   "location": "outside this repository",
+   "origin_key": "oracle_outputs"
+  },
+  {
+   "path": "../oracle/F3b-search-engine/remote_run.sh",
+   "sha256": "a71e89a27cfd5dd2638b186d37a26d0e2fad2c88ee80417ec0d34bc2af5878a5",
+   "location": "outside this repository",
+   "origin_key": "oracle_outputs"
+  },
+  {
+   "path": "../oracle/F3b-search-engine/run.sh",
+   "sha256": "858a570b1b686c9681c27a0b2f93c0285c6a2cb65115b22e93bc4254ee7b59fa",
+   "location": "outside this repository",
+   "origin_key": "oracle_outputs"
+  }
+ ],
+ "external_reference_note": "The C++ oracle driver and its build/run scripts stay under ../oracle/F3b-search-engine/ (no C++ enters the repository); the lane had committed a byte-identical copy as tests/data/search_engine_oracle/driver.cpp.txt, removed at wave-4 integration."
 }

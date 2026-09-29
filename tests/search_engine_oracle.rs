@@ -6,7 +6,9 @@
 //! Release build (tier 1).
 //!
 //! `tests/data/search_engine_oracle/*.out` were written by
-//! `tests/data/search_engine_oracle/driver.cpp.txt`, built against the Linux
+//! the oracle driver `../oracle/F3b-search-engine/driver.cpp` (outside the
+//! repository; sha256 in `tests/data/search_engine_files_provenance.json`),
+//! built against the Linux
 //! x86_64 Release install `openms4-release-bc9cc12-c19e494-174b576` and run on
 //! ibminode06 (`host.txt`, `compiler.txt`, `hashes.txt`), twice, with
 //! byte-identical output once the run date is masked. Each dump lists every

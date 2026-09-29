@@ -8,7 +8,7 @@
 //! at core `bc9cc12`, fixtures copied from its `src/tests/class_tests/openms/data/`)
 //! and a byte-exact comparison with the files the executed C++ Release build
 //! wrote (`tests/data/search_engine_oracle/{inspect,sequest}_infile.out`,
-//! ibminode06, `driver.cpp.txt`).
+//! ibminode06, `../oracle/F3b-search-engine/driver.cpp`).
 #![cfg(feature = "idxml")]
 
 use openms::Error;

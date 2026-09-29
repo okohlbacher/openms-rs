@@ -31,7 +31,8 @@ fn temp_dir(tag: &str) -> PathBuf {
 }
 
 /// A retained output of the executed C++ Release build (ibminode06,
-/// `openms4-release-bc9cc12-c19e494-174b576`; `driver.cpp.txt` beside it).
+/// `openms4-release-bc9cc12-c19e494-174b576`; driver
+/// `../oracle/F3b-search-engine/driver.cpp`, outside the repository).
 fn oracle(name: &str) -> String {
     std::fs::read_to_string(data(&format!("search_engine_oracle/{name}"))).unwrap()
 }

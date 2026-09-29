@@ -130,9 +130,11 @@ Each is documented in full at the Rust item.
 | Executed C++ Release build (ibminode06, `openms4-release-bc9cc12-c19e494-174b576`), two runs, byte-identical after masking the run date | `tests/search_engine_oracle.rs`, `search_engine_infiles.rs`, `search_engine_ptm_infiles.rs`, `search_engine_inspect_outfile.rs` against `tests/data/search_engine_oracle/` |
 
 `tests/data/search_engine_files_provenance.json` records the sha256 of every
-source file, fixture and oracle output. The oracle's driver is
-`tests/data/search_engine_oracle/driver.cpp.txt`. Its host, compiler and hashes
-records sit beside the outputs.
+source file, fixture and oracle output. The oracle's driver and scripts are
+`../oracle/F3b-search-engine/{driver.cpp,remote_run.sh,run.sh}`, outside the
+repository (no C++ enters it), recorded with their sha256 as external
+reference artifacts. Its host, compiler and hashes records sit beside the
+outputs.
 
 A class-test check that cannot run at the pin is replaced by an independently
 derived or oracle expectation, and the test says so. Examples:
