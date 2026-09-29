@@ -42,3 +42,7 @@ pub mod transition_experiment;
 pub mod transition_helper;
 /// The nested targeted experiment, from `OPENSWATHALGO/DATAACCESS/Transitions.h`.
 pub mod transitions;
+/// Chromatogram extraction at given coordinates, from `ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h`.
+pub mod chromatogram_extractor_algorithm;
+/// SWATH-window files and SWATH-map annotation, from `ANALYSIS/OPENSWATH/SwathWindowLoader.h`.
+pub mod swath_window_loader;
