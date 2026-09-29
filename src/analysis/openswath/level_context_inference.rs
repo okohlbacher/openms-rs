@@ -145,6 +145,20 @@ impl LevelContextInference {
     /// passed through unwrapped, as the source's `std::invalid_argument` is
     /// not caught by its `Exception::BaseException` handler. Returns
     /// [`Error::InvalidRange`] when `input` exceeds [`MAX_ROWS`] (native).
+    ///
+    /// # Known divergence
+    ///
+    /// When every target outscores every decoy of a group, all its p-values
+    /// are equal and the local-FDR density estimate sees identical values.
+    /// Whether its bandwidth then collapses depends on the last bit of the
+    /// probit transform, which [`lfdr`] computes up to two units in the last
+    /// place away from the source's Boost (80-bit on x86_64). On the upstream
+    /// fixture's protein and gene levels the source gets a usable bandwidth and
+    /// this port a collapsed one, which [`lfdr`] refuses: the call returns
+    /// [`Error::InvalidValue`] where the source returns rows. The cause is in
+    /// `math::multiple_testing`; see the support document. With a single
+    /// finite target p-value the source's `lfdr` crashes (a C++ defect); this
+    /// port returns the error instead.
     pub fn infer(
         input: &[LevelContextInputRow],
         config: &LevelContextInferenceConfig,
