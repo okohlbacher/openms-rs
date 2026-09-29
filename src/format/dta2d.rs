@@ -16,13 +16,13 @@
 //! `precisionWrapper` and so `StringUtils::toStr(value, true)`: retention time
 //! and m/z with [`to_str`], intensity with [`to_str_f32`]. By default they
 //! refuse a value whose text would not read back exactly, and anything else
-//! DTA2D cannot carry; [`WriteOptions::source`] writes what the source writes.
+//! DTA2D cannot carry; [`WriteOptions::source`](crate::format::dta2d::WriteOptions::source) writes what the source writes.
 //!
 //! `load`, `store` and `storeTIC` are templates over `MapType`, documented as
 //! "a MSExperiment or have the same interface"; every instantiation in the
 //! pinned source is `PeakMap` (`FileHandler.cpp:877-883`, `:1159-1165`, the
 //! class test), and this crate has one experiment type, so `MapType` is
-//! [`MSExperiment`] here.
+//! [`MSExperiment`](crate::MSExperiment) here.
 //!
 //! [`to_str`]: crate::format::file_info::text_format::to_str
 //! [`to_str_f32`]: crate::format::file_info::text_format::to_str_f32
@@ -562,7 +562,7 @@ fn render(
 /// (`DTA2DFile.h:297-320`) through `calculateTIC()` with its defaults: MS1
 /// TIC only, one row per scan (including empty scans), m/z written as the
 /// literal `0`, and f32 accumulation in storage order. Other data are
-/// unconsumed; the numbers are spelled as [`write`] spells them.
+/// unconsumed; the numbers are spelled as [`write`](fn@write) spells them.
 ///
 /// # Errors
 ///

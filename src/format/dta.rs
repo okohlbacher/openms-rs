@@ -25,7 +25,7 @@
 //! Both templates are documented as taking "a MSSpectrum or [a type with] the
 //! same interface"; every instantiation in the pinned source is `MSSpectrum`
 //! (`FileHandler.cpp:796`, `:832`, `:873` and `:1155`, the last two on `exp[0]`), and this crate has one
-//! spectrum type, so `SpectrumType` is [`MSSpectrum`] here.
+//! spectrum type, so `SpectrumType` is [`MSSpectrum`](crate::MSSpectrum) here.
 //!
 //! # Numeric text
 //!

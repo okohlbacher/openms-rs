@@ -17,7 +17,7 @@
 //! `load` is a template over `MapType`, documented as "a MSExperiment or have
 //! the same interface"; every instantiation in the pinned source is `PeakMap`
 //! (`FileHandler.cpp:931-937` and the class test), and this crate has one
-//! experiment type, so `MapType` is [`MSExperiment`] here.
+//! experiment type, so `MapType` is [`MSExperiment`](crate::MSExperiment) here.
 
 use super::{number, parse_error};
 use crate::{Error, MSExperiment, MSSpectrum, Peak1D, Precursor, Result};
