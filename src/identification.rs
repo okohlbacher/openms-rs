@@ -6,12 +6,14 @@
 //! Positions are zero-based and inclusive, matching the OpenMS metadata model.
 //! Missing values use Option rather than numeric sentinels or NaN.
 
+/// The identification graph (`METADATA/ID/IdentificationData.h` and its record types).
 pub mod graph;
 mod protein_run;
 mod run_mapping;
 pub use run_mapping::IdentifierMSRunMapper;
 mod peptide_identification;
 pub use peptide_identification::{ConsensusIdLocation, ConsensusUidMap, MAX_UID_IDENTIFICATIONS};
+/// Universal Spectrum Identifiers (`METADATA/USI.h`).
 pub mod usi;
 
 use crate::chemistry::{AASequence, SequenceModification};
@@ -72,6 +74,12 @@ impl PartialOrd for FlankingResidue {
     }
 }
 impl FlankingResidue {
+    /// The residue for a source flanking character: `X` unknown, `[` and `]`
+    /// the protein termini, any other uppercase letter a residue.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for any other character.
     pub fn from_code(code: char) -> Result<Self> {
         match code {
             'X' => Ok(Self::Unknown),
@@ -83,6 +91,7 @@ impl FlankingResidue {
             )),
         }
     }
+    /// The source flanking character (`X`, `[`, `]` or the residue).
     pub fn code(self) -> char {
         match self {
             Self::Unknown => 'X',
@@ -111,6 +120,12 @@ pub struct PeptideEvidence {
     pub aa_after: FlankingResidue,
 }
 impl PeptideEvidence {
+    /// An evidence for `accession` over the inclusive residue range
+    /// `positions`, flanking residues unknown.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`].
     pub fn new(accession: impl Into<String>, positions: RangeInclusive<usize>) -> Result<Self> {
         let value = Self {
             protein_accession: accession.into(),
@@ -121,6 +136,12 @@ impl PeptideEvidence {
         value.validate()?;
         Ok(value)
     }
+    /// Checks that a known start does not exceed a known end and that both
+    /// flanking residues are valid.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the violated rule.
     pub fn validate(&self) -> Result<()> {
         if let (Some(start), Some(end)) = (self.start, self.end) {
             if start > end {
@@ -134,6 +155,12 @@ impl PeptideEvidence {
     pub fn has_valid_limits(&self) -> bool {
         matches!((self.start,self.end),(Some(start),Some(end)) if start<=end)
     }
+    /// The inclusive residue range.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when the evidence is invalid or a position is
+    /// unknown.
     pub fn positions(&self) -> Result<RangeInclusive<usize>> {
         self.validate()?;
         match (self.start, self.end) {
@@ -143,12 +170,17 @@ impl PeptideEvidence {
     }
 }
 
+/// The `target_decoy` annotation of a hit.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum TargetDecoyType {
+    /// No annotation.
     #[default]
     Unknown,
+    /// `target`.
     Target,
+    /// `decoy`.
     Decoy,
+    /// `target+decoy` (peptides only).
     TargetAndDecoy,
 }
 fn target_decoy(metadata: &MetaInfo, allow_mixed: bool) -> Result<TargetDecoyType> {
@@ -181,6 +213,7 @@ fn set_target_decoy(metadata: &mut MetaInfo, value: TargetDecoyType) {
     }
 }
 
+/// One annotated fragment peak of a peptide hit (`PeptideHit::PeakAnnotation`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PeakAnnotation {
     pub mz: f64,
@@ -189,6 +222,11 @@ pub struct PeakAnnotation {
     pub annotation: String,
 }
 impl PeakAnnotation {
+    /// Checks that m/z and intensity are finite.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite value.
     pub fn validate(&self) -> Result<()> {
         finite(self.mz, "annotation m/z")?;
         finite(self.intensity, "annotation intensity")
@@ -209,6 +247,8 @@ impl PeakAnnotation {
     }
 }
 
+/// A secondary search-engine result attached to a peptide hit
+/// (`PeptideHit::PepXMLAnalysisResult`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AnalysisResult {
     pub score_type: String,
@@ -217,6 +257,11 @@ pub struct AnalysisResult {
     pub sub_scores: BTreeMap<String, f64>,
 }
 impl AnalysisResult {
+    /// Checks that the main and sub-scores are finite.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite score.
     pub fn validate(&self) -> Result<()> {
         finite(self.main_score, "analysis score")?;
         for &score in self.sub_scores.values() {
@@ -226,6 +271,8 @@ impl AnalysisResult {
     }
 }
 
+/// One candidate peptide for a spectrum (`METADATA/PeptideHit.h`): sequence,
+/// score, rank, charge, protein evidences, peak annotations and meta values.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PeptideHit {
     pub sequence: AASequence,
@@ -238,6 +285,12 @@ pub struct PeptideHit {
     pub metadata: MetaInfo,
 }
 impl PeptideHit {
+    /// A hit with score, rank, charge and sequence (the source's four-argument
+    /// constructor).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`].
     pub fn new(score: f64, rank: u32, charge: i32, sequence: AASequence) -> Result<Self> {
         let value = Self {
             score,
@@ -249,6 +302,12 @@ impl PeptideHit {
         value.validate()?;
         Ok(value)
     }
+    /// Checks the score, meta values, evidences, annotations, analysis
+    /// results and the `target_decoy` annotation.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first invalid part.
     pub fn validate(&self) -> Result<()> {
         finite(self.score, "peptide score")?;
         validate_meta(&self.metadata)?;
@@ -264,6 +323,8 @@ impl PeptideHit {
         self.target_decoy_type()?;
         Ok(())
     }
+    /// The non-empty protein accessions of the evidences
+    /// (`extractProteinAccessionsSet`).
     pub fn protein_accessions(&self) -> BTreeSet<&str> {
         self.evidences
             .iter()
@@ -275,15 +336,28 @@ impl PeptideHit {
     pub fn identity_key(&self) -> (AASequence, i32) {
         (self.sequence.clone(), self.charge)
     }
+    /// Whether both hits have the same annotated sequence and charge.
     pub fn same_sequence_and_charge(&self, other: &Self) -> bool {
         self.sequence == other.sequence && self.charge == other.charge
     }
+    /// The `target_decoy` annotation (`getTargetDecoyType`), compared
+    /// case-insensitively.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for another value.
     pub fn target_decoy_type(&self) -> Result<TargetDecoyType> {
         target_decoy(&self.metadata, true)
     }
+    /// Whether the annotation is exactly `decoy` (`isDecoy`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::target_decoy_type`].
     pub fn is_decoy(&self) -> Result<bool> {
         Ok(self.target_decoy_type()? == TargetDecoyType::Decoy)
     }
+    /// Sets the annotation; `Unknown` removes it (`setTargetDecoyType`).
     pub fn set_target_decoy_type(&mut self, value: TargetDecoyType) {
         set_target_decoy(&mut self.metadata, value);
     }
@@ -493,6 +567,7 @@ pub struct ProteinModification {
     pub modification: SequenceModification,
 }
 
+/// One identified protein (`METADATA/ProteinHit.h`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ProteinHit {
     pub score: f64,
@@ -506,6 +581,12 @@ pub struct ProteinHit {
     pub metadata: MetaInfo,
 }
 impl ProteinHit {
+    /// A hit with score, rank, accession and sequence; accession and sequence
+    /// are trimmed as the source's setters do.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`].
     pub fn new(
         score: f64,
         rank: u32,
@@ -522,6 +603,12 @@ impl ProteinHit {
         value.validate()?;
         Ok(value)
     }
+    /// Checks the score, sequence alphabet, coverage percentage, modification
+    /// positions, meta values and `target_decoy` annotation.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first invalid part.
     pub fn validate(&self) -> Result<()> {
         finite(self.score, "protein score")?;
         if !self
@@ -545,19 +632,36 @@ impl ProteinHit {
         self.target_decoy_type()?;
         Ok(())
     }
+    /// The `Description` meta value (`getDescription`), empty when absent.
     pub fn description(&self) -> String {
         text_value(&self.metadata, "Description")
     }
+    /// Sets the `Description` meta value (`setDescription`).
     pub fn set_description(&mut self, value: impl Into<String>) {
         self.metadata
             .insert("Description".into(), value.into().into());
     }
+    /// The `target_decoy` annotation; `target+decoy` is not a protein state.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for another value.
     pub fn target_decoy_type(&self) -> Result<TargetDecoyType> {
         target_decoy(&self.metadata, false)
     }
+    /// Whether the annotation is `decoy`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::target_decoy_type`].
     pub fn is_decoy(&self) -> Result<bool> {
         Ok(self.target_decoy_type()? == TargetDecoyType::Decoy)
     }
+    /// Sets the annotation; `Unknown` removes it.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for `TargetAndDecoy`.
     pub fn set_target_decoy_type(&mut self, value: TargetDecoyType) -> Result<()> {
         if value == TargetDecoyType::TargetAndDecoy {
             return Err(bad("protein target/decoy status cannot be mixed"));
@@ -578,6 +682,11 @@ pub struct ProteinGroup {
     pub string_data_arrays: Vec<DataArray<String>>,
 }
 impl ProteinGroup {
+    /// Checks that the probability and float quantities are finite.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite value.
     pub fn validate(&self) -> Result<()> {
         finite(self.probability, "protein group probability")?;
         if self
@@ -693,10 +802,13 @@ impl ProteinGroup {
     }
 }
 
+/// Mass type of a search (`ProteinIdentification::PeakMassType`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PeakMassType {
+    /// Monoisotopic masses.
     #[default]
     Monoisotopic,
+    /// Average masses.
     Average,
 }
 impl PeakMassType {
@@ -712,15 +824,22 @@ impl PeakMassType {
         Self::NAMES.iter().map(|name| (*name).to_string()).collect()
     }
 }
+/// Enzyme specificity of a search (`EnzymaticDigestion::Specificity` as
+/// stored in the search parameters).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum EnzymeTermSpecificity {
+    /// Not stated.
     #[default]
     Unknown,
+    /// Both termini enzymatic.
     Full,
+    /// At least one terminus enzymatic.
     Semi,
+    /// No enzyme restriction.
     None,
 }
 
+/// The settings of one search (`ProteinIdentification::SearchParameters`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct SearchParameters {
     pub database: String,
@@ -759,6 +878,12 @@ impl Default for SearchParameters {
     }
 }
 impl SearchParameters {
+    /// Checks that both mass tolerances are finite and nonnegative and the
+    /// meta values are valid.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the violated rule.
     pub fn validate(&self) -> Result<()> {
         for tolerance in [self.fragment_tolerance, self.precursor_tolerance] {
             let (Tolerance::Absolute(v) | Tolerance::Ppm(v)) = tolerance;
@@ -927,6 +1052,9 @@ fn source_charge_value(text: &str) -> Result<i32> {
     Ok(if negative { -value } else { value })
 }
 
+/// One identification run (`METADATA/ProteinIdentification.h`): search engine,
+/// search parameters, protein hits and groups; peptide identifications refer to
+/// it by [`Self::identifier`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProteinIdentification {
     pub identifier: String,
@@ -966,9 +1094,15 @@ impl Default for ProteinIdentification {
     }
 }
 impl ProteinIdentification {
+    /// An empty run with higher-is-better scores.
     pub fn new() -> Self {
         Self::default()
     }
+    /// Checks the threshold, meta values, search parameters, hits and groups.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first invalid part.
     pub fn validate(&self) -> Result<()> {
         finite(
             self.significance_threshold,
@@ -988,12 +1122,19 @@ impl ProteinIdentification {
         }
         Ok(())
     }
+    /// Sorts the hits best first in the run's orientation, keeping ties in
+    /// order (`sort`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`], before anything moves.
     pub fn sort(&mut self) -> Result<()> {
         self.validate()?;
         self.hits
             .sort_by(|a, b| score_order(a.score, b.score, self.higher_score_better));
         Ok(())
     }
+    /// The first hit with `accession` (`findHit`).
     pub fn find_hit(&self, accession: &str) -> Option<&ProteinHit> {
         self.hits.iter().find(|hit| hit.accession == accession)
     }
