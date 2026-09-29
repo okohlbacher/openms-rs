@@ -6,6 +6,16 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Median normalisation of consensus maps and the accession/description
+/// filter shared with the threshold normaliser (source
+/// `ConsensusMapNormalizerAlgorithmMedian.h`).
+pub mod consensus_map_normalizer_median;
+/// Quantile normalisation of consensus maps (source
+/// `ConsensusMapNormalizerAlgorithmQuantile.h`).
+pub mod consensus_map_normalizer_quantile;
+/// Ratio-threshold normalisation of consensus maps (source
+/// `ConsensusMapNormalizerAlgorithmThreshold.h`).
+pub mod consensus_map_normalizer_threshold;
 /// A feature as QT feature grouping stores it (source
 /// `DATASTRUCTURES/GridFeature.h`).
 pub mod grid_feature;
