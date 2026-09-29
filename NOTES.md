@@ -84,3 +84,11 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
 - sweep3/sweep4 produced only the header line (spock timeout). Report F7a.md still NOT written.
 - Next: (1) retry sweep (sweep5) in background; (2) write report F7a.md from slice logs; (3) decide on validateCV_
   record-level CV promotion (optional); (4) delete NOTES.md in final commit.
+- FINDING (inc 5): the "record-level metadata written as userParam only" claim (doc row validator_, native-diff bullet,
+  ledger MzMLHandler + WritingConsumer scopes) is WRONG: spectrum/chromatogram metadata goes through
+  mzml_header/write.rs:443 x.metadata("spectrum"/"chromatogram") -> same promotion as header owners, limited to
+  reversible promotions (xml.rs:265-267; mapping.rs:7 SPECTRUM_CV; chromatogram never). Plain write_scalar_metadata
+  only for scanList/scan/scanWindow (mzml_settings.rs:392,431,460), precursor (mzml_precursor.rs:546), product
+  (mzml.rs:3309). C++ paths: 5374 spec, 5389 scanList, 5443 scan, 5462/5491 window, 4736 precursor, 4755 product, 5930 chrom.
+  Fix docs + ledger wording. B8a already did ZIP input (don't duplicate). F4 did CachedMzMLHandler (7bfad445, not in
+  base) -> MSDataCachedConsumer unblocked next wave. sweep5 running (task b62uh81ma).
