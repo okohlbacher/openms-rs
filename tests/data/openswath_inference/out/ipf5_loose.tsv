@@ -1,0 +1,2 @@
+P	1	0.20000000000000001
+ERROR	Precondition	Transition inference requires num_peptidoforms > 0 for non-null hypotheses.

@@ -1,0 +1,11 @@
+C	b
+C	Decoy_b
+C	a
+C	Z
+C	decoy_x
+T	t1	a	0
+T	Decoy_t2	b	0
+T	t3	Decoy_b	0
+T	t4	Z	1
+T	t1	a	0
+T	DECOYt5	Z	0
