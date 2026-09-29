@@ -7,7 +7,7 @@
 //! The sections marked "class test" port `GzipIfstream_test.cpp`,
 //! `Bzip2Ifstream_test.cpp` and `ZipIfstream_test.cpp` at core `bc9cc12`,
 //! with their literals as expected values; their data files are the upstream
-//! bytes (tests/data/compressed_streams/provenance.json). The rest checks
+//! bytes (tests/data/compressed_streams_provenance.json). The rest checks
 //! invariants of the formats: a round trip reproduces its input, and the
 //! gzip and bzip2 framing rules of RFC 1952 and libbzip2.
 

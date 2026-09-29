@@ -105,32 +105,46 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/F6-peff-sequences/driver.cpp",
-   "sha256": "b873d5254688e38965551e2017a103f94853f0816b0859e0fdcd42549a959ded"
+   "sha256": "b873d5254688e38965551e2017a103f94853f0816b0859e0fdcd42549a959ded",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   },
   {
    "path": "../oracle/F6-peff-sequences/remote_run.sh",
-   "sha256": "0077a8f25a49c6a2cd96b1e30c1c18a6117ef9dd4e3341408baed86fda344ac5"
+   "sha256": "0077a8f25a49c6a2cd96b1e30c1c18a6117ef9dd4e3341408baed86fda344ac5",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   },
   {
    "path": "../oracle/F6-peff-sequences/run.sh",
-   "sha256": "55fff8e048a05fc79243278a20289710fbfc8e34bba9fdec76d2ae5d8bfd7b9f"
+   "sha256": "55fff8e048a05fc79243278a20289710fbfc8e34bba9fdec76d2ae5d8bfd7b9f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   },
   {
    "path": "../oracle/F6-peff-sequences/results/stdout_1.tsv",
-   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9"
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   },
   {
    "path": "../oracle/F6-peff-sequences/results/stdout_2.tsv",
-   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9"
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   },
   {
    "path": "../oracle/F6-peff-sequences/results/stderr_1.txt",
-   "sha256": "f9f576c0f52c38ab96c3326ea51a9be1cc12ee64138aa51ac1d83062c37adc64"
+   "sha256": "f9f576c0f52c38ab96c3326ea51a9be1cc12ee64138aa51ac1d83062c37adc64",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   },
   {
    "path": "../oracle/F6-peff-sequences/results/build_info.txt",
    "sha256": "8969d1ba938cafd0de473c60092708c2e45e7e68517ac31c48ce7fd620e9356d",
-   "note": "ibminode06, Ubuntu 24.04.4, AMD EPYC 7763, conda-forge g++ 14.4.0 -O2 -std=c++20, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c); two runs byte-identical"
+   "note": "ibminode06, Ubuntu 24.04.4, AMD EPYC 7763, conda-forge g++ 14.4.0 -O2 -std=c++20, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c); two runs byte-identical",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
   }
  ],
  "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
@@ -140,5 +154,6 @@
    "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
   ],
   "source_changes": []
- }
+ },
+ "external_reference_note": "The C++ oracle driver and its scripts (../oracle/F6-peff-sequences/, built against the Linux x86_64 Release install on ibminode06) stay outside the repository; no C++ enters it. Its retained stdout is tests/data/peff_sequences_oracle.tsv."
 }
