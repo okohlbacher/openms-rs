@@ -56,7 +56,16 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
   summarised by scratchpad/integB/summ.sh). Lines 47-54 relaunched detached on dax via
   .rest.sh (DONE marker .rest.DONE, output .rest.out in the slot).
 
+- sweep3 COMPLETE: 54/54 pass at e76f1ce1 (47-54 via .rest.sh: 47:11, 48:15, 49:12, 50:1 passed; fmt/fma-check/clippy/doc rc=0).
+- Digestion attack (B8b finding): C++ tokenize_ yields a duplicate 0 for a leading zero-width cut
+  (Asp-N/Lys-N on D/K-leading seq) -> ProteaseDigestion::digest (complete on main) emits an extra
+  discarded empty product and shifted MC products; Rust dedups. Oracle launched:
+  ../oracle/integ-B-digest-leading (run.sh pull). Plan: downgrade ProteaseDigestion.h in INTEG-B.json
+  with named gap unless fixed; EnzymaticDigestion.h (partial) scope names countInternalCleavageSites.
+- Still to member-check: DefaultParamHandler, WindowMower, RankScaler, SqrtScaler, SNEstimatorMedian,
+  SpectrumAnnotator, NASG, DecoyGenerator (B8b, missing from report table), MSExperiment, LogStream.
+
 ## Next step
-1. Poll dax slot integ-B-sweep2 for .rest.DONE; read .rest.out; fix failures.
+1. Pull digestion oracle; decide fix/downgrade; member-check the list above.
 2. Fill SWEEP_RESULT in scratchpad/integB/INTEG-B.md; cp to .planning/lane-reports/INTEG-B.md.
 3. Delete NOTES.md in final commit.
