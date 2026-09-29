@@ -59,6 +59,29 @@ fn close(actual: f64, expected: f64, relative: f64, what: &str) {
     );
 }
 
+/// The peptide identifications of a consensus feature as `(map_index, first
+/// hit sequence)`, ordered as the tool's `sortPeptideIdentificationsByMapIndex`
+/// leaves them: stably by `map_index`, identifications without one last.
+fn identifications(
+    feature: &openms::kernel::features::ConsensusFeature,
+) -> Vec<(Option<i64>, String)> {
+    let mut ids: Vec<(Option<i64>, String)> = feature
+        .peptide_identifications
+        .iter()
+        .map(|id| {
+            (
+                id.metadata.get("map_index").and_then(|v| v.as_i64().ok()),
+                id.hits
+                    .first()
+                    .map(|h| h.sequence.to_string())
+                    .unwrap_or_default(),
+            )
+        })
+        .collect();
+    ids.sort_by_key(|(index, _)| (index.is_none(), *index));
+    ids
+}
+
 fn run_case(case: usize, compare_quality: bool) {
     let dir = "tests/data";
     let ini = paramxml::load(format!(
@@ -94,16 +117,6 @@ fn run_case(case: usize, compare_quality: bool) {
     algorithm
         .group_with_generator(std::slice::from_ref(&map), &mut out, &mut generator)
         .unwrap();
-    // `sortPeptideIdentificationsByMapIndex`: a stable sort by `map_index`.
-    for feature in &mut out.features {
-        feature.peptide_identifications.sort_by_key(|id| {
-            id.metadata
-                .get("map_index")
-                .and_then(|v| v.as_i64().ok())
-                .unwrap_or(-1)
-        });
-    }
-
     let expected = consensusxml::load(format!(
         "{dir}/feature_linker_labeled_{case}_output.consensusXML"
     ))
@@ -156,23 +169,9 @@ fn run_case(case: usize, compare_quality: bool) {
             );
         }
         assert_eq!(produced.charge, retained.charge, "{at}: charge");
-        let ids = |f: &openms::kernel::features::ConsensusFeature| -> Vec<(Option<i64>, String)> {
-            f.peptide_identifications
-                .iter()
-                .map(|id| {
-                    (
-                        id.metadata.get("map_index").and_then(|v| v.as_i64().ok()),
-                        id.hits
-                            .first()
-                            .map(|h| h.sequence.to_string())
-                            .unwrap_or_default(),
-                    )
-                })
-                .collect()
-        };
         assert_eq!(
-            ids(produced),
-            ids(retained),
+            identifications(produced),
+            identifications(retained),
             "{at}: peptide identifications"
         );
     }

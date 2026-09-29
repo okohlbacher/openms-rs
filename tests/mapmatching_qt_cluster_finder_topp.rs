@@ -21,7 +21,9 @@
 //! nor the values compared here.
 //!
 //! Compared as in `tests/mapmatching_feature_grouping_topp.rs`: order, handle
-//! identities exactly, values within the six significant digits stored.
+//! identities exactly, values within the six significant digits stored, and
+//! each consensus feature's peptide identifications (map index and first-hit
+//! sequence, in the order the tool sorts them).
 
 #![cfg(all(feature = "featurexml", feature = "consensusxml", feature = "paramxml"))]
 
@@ -36,6 +38,29 @@ const DIR: &str = "tests/data";
 const NULL_DATE: &str = "date=\"0000-00-00T00:00:00\"";
 /// The stand-in used only when a reader refuses [`NULL_DATE`].
 const VALID_DATE: &str = "date=\"1970-01-01T00:00:00\"";
+
+/// The peptide identifications of a consensus feature as `(map_index, first
+/// hit sequence)`, ordered as the tool's `sortPeptideIdentificationsByMapIndex`
+/// leaves them: stably by `map_index`, identifications without one last.
+fn identifications(
+    feature: &openms::kernel::features::ConsensusFeature,
+) -> Vec<(Option<i64>, String)> {
+    let mut ids: Vec<(Option<i64>, String)> = feature
+        .peptide_identifications
+        .iter()
+        .map(|id| {
+            (
+                id.metadata.get("map_index").and_then(|v| v.as_i64().ok()),
+                id.hits
+                    .first()
+                    .map(|h| h.sequence.to_string())
+                    .unwrap_or_default(),
+            )
+        })
+        .collect();
+    ids.sort_by_key(|(index, _)| (index.is_none(), *index));
+    ids
+}
 
 fn close(actual: f64, expected: f64, relative: f64, what: &str) {
     let bound = relative * expected.abs() + 1e-6;
@@ -149,6 +174,11 @@ fn compare(out: &ConsensusMap, expected_file: &str, case: &str) {
             &format!("{at} quality"),
         );
         assert_eq!(produced.charge, retained.charge, "{at}: charge");
+        assert_eq!(
+            identifications(produced),
+            identifications(retained),
+            "{at}: peptide identifications"
+        );
     }
 }
 

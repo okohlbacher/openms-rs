@@ -258,3 +258,29 @@ pub(crate) fn canonical_sort(features: &mut [ConsensusFeature]) {
     });
     features.sort_by_key(|feature| std::cmp::Reverse(feature.len()));
 }
+
+/// Source `ConsensusFeature::insert(UInt64 map_index, const BaseFeature&)`: a
+/// handle to `element` under `map_index`, and the element's peptide
+/// identifications appended with `map_index` recorded on each.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when the handle duplicates one already
+/// present (source `Exception::InvalidValue`) or `map_index` exceeds the
+/// meta-value integer range.
+pub(crate) fn insert_base_feature(
+    consensus: &mut ConsensusFeature,
+    map_index: u64,
+    element: &crate::kernel::features::BaseFeature,
+) -> Result<()> {
+    consensus.insert(FeatureHandle::new(map_index, element))?;
+    let value = MetaValue::try_from(map_index)?;
+    for identification in &element.peptide_identifications {
+        let mut identification = identification.clone();
+        identification
+            .metadata
+            .insert(MAP_INDEX.into(), value.clone());
+        consensus.peptide_identifications.push(identification);
+    }
+    Ok(())
+}

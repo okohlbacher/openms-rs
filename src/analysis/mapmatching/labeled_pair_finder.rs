@@ -27,13 +27,13 @@
 //! is not.
 
 use super::base_group_finder::{BaseGroupFinder, check_ids};
+use super::feature_grouping_algorithm::insert_base_feature;
 use super::params::{add_float, add_string, bad, flag, flag_text, float, string};
 use crate::concept::UniqueIdGenerator;
 use crate::error::Result;
-use crate::kernel::features::{ConsensusFeature, ConsensusMap, FeatureHandle};
+use crate::kernel::features::{ConsensusFeature, ConsensusMap};
 use crate::math::fitters::gauss::{GaussFitResult, GaussFitter};
 use crate::math::histogram::Histogram;
-use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use std::cmp::Ordering;
 use std::collections::BTreeSet;
@@ -612,33 +612,13 @@ fn pair(
 ) -> Result<ConsensusFeature> {
     let mut consensus = ConsensusFeature::new();
     consensus.unique_id = generator.get_unique_id();
-    insert_base(&mut consensus, light_index, light)?;
+    insert_base_feature(&mut consensus, light_index, &light.base)?;
     consensus.metadata.clear();
-    insert_base(&mut consensus, heavy_index, heavy)?;
+    insert_base_feature(&mut consensus, heavy_index, &heavy.base)?;
     consensus.quality = score as f32;
     consensus.charge = light.charge;
     consensus.compute_monoisotopic_consensus()?;
     Ok(consensus)
-}
-
-/// Source `ConsensusFeature::insert(UInt64 map_index, const BaseFeature&)`:
-/// a handle to `element` under `map_index`, and the element's peptide
-/// identifications appended with `map_index` recorded on each.
-fn insert_base(
-    consensus: &mut ConsensusFeature,
-    map_index: u64,
-    element: &ConsensusFeature,
-) -> Result<()> {
-    consensus.insert(FeatureHandle::new(map_index, &element.base))?;
-    let value = MetaValue::try_from(map_index)?;
-    for identification in &element.peptide_identifications {
-        let mut identification = identification.clone();
-        identification
-            .metadata
-            .insert("map_index".into(), value.clone());
-        consensus.peptide_identifications.push(identification);
-    }
-    Ok(())
 }
 
 impl BaseGroupFinder for LabeledPairFinder {

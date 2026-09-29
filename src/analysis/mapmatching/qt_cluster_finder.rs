@@ -52,6 +52,7 @@ use std::collections::{BTreeMap, BTreeSet, BinaryHeap};
 
 use super::base_group_finder::BaseGroupFinder;
 use super::feature_distance::FeatureDistance;
+use super::feature_grouping_algorithm::insert_base_feature;
 use super::grid_feature::GridFeature;
 use super::params::{add_float, add_int, add_string, bad, flag, flag_text, float, int};
 use super::qt_cluster::{BulkData, Element, QTCluster};
@@ -60,9 +61,7 @@ use crate::concept::constants::user_param::{
     ADDUCT_GROUP, DC_CHARGE_ADDUCTS, IIMN_BEST_ION, IIMN_LINKED_GROUPS,
 };
 use crate::error::{Error, Result};
-use crate::kernel::features::{
-    BaseFeature, ConsensusFeature, ConsensusMap, FeatureHandle, FeatureMap,
-};
+use crate::kernel::features::{BaseFeature, ConsensusFeature, ConsensusMap, FeatureMap};
 use crate::math::ml::clustering::hash_grid::HashGrid;
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param};
@@ -862,7 +861,7 @@ impl<'a> Clustering<'_, 'a> {
         for element in elements {
             self.already_used.insert(key(element));
             let elem = element.feature.feature();
-            feature.insert(FeatureHandle::new(element.map_index as u64, elem))?;
+            insert_base_feature(&mut feature, element.map_index as u64, elem)?;
             if let Some(adducts) = elem.metadata.get(DC_CHARGE_ADDUCTS) {
                 feature
                     .metadata

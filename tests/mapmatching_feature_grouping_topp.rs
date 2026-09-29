@@ -24,7 +24,9 @@
 //!
 //! Compared: the number and order of consensus features, each one's handles
 //! (map index and unique ID, exactly, plus RT, m/z and intensity) and each
-//! consensus feature's RT, m/z, intensity, charge and quality. The upstream
+//! consensus feature's RT, m/z, intensity, charge and quality, and its peptide
+//! identifications (map index and first-hit sequence, in the order the tool
+//! sorts them by map index). The upstream
 //! whitelist skips every line containing `id=`, which includes every handle
 //! line, so this is stricter than the upstream test. The retained file stores
 //! numbers with six significant digits: a stored value differs from the value
@@ -40,6 +42,29 @@
 
 use openms::analysis::mapmatching::feature_grouping_algorithm_unlabeled::FeatureGroupingAlgorithmUnlabeled;
 use openms::format::{consensusxml, featurexml, paramxml};
+
+/// The peptide identifications of a consensus feature as `(map_index, first
+/// hit sequence)`, ordered as the tool's `sortPeptideIdentificationsByMapIndex`
+/// leaves them: stably by `map_index`, identifications without one last.
+fn identifications(
+    feature: &openms::kernel::features::ConsensusFeature,
+) -> Vec<(Option<i64>, String)> {
+    let mut ids: Vec<(Option<i64>, String)> = feature
+        .peptide_identifications
+        .iter()
+        .map(|id| {
+            (
+                id.metadata.get("map_index").and_then(|v| v.as_i64().ok()),
+                id.hits
+                    .first()
+                    .map(|h| h.sequence.to_string())
+                    .unwrap_or_default(),
+            )
+        })
+        .collect();
+    ids.sort_by_key(|(index, _)| (index.is_none(), *index));
+    ids
+}
 
 fn close(actual: f64, expected: f64, relative: f64, what: &str) {
     let bound = relative * expected.abs() + 1e-6;
@@ -133,6 +158,11 @@ fn run_case(case: usize, inputs: usize) {
             &format!("{at} quality"),
         );
         assert_eq!(produced.charge, retained.charge, "{at}: charge");
+        assert_eq!(
+            identifications(produced),
+            identifications(retained),
+            "{at}: peptide identifications"
+        );
     }
 }
 
