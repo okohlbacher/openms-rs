@@ -26,7 +26,13 @@ Branch: worktree-wf_cd066dab-0a7-18 (incarnation 2 merged -13), base f0990c0. Sl
 - Existing Release oracle ../oracle/B8a-zip-input (ibminode06): LZMA entry -> FileNotReadable (Release libzip has no LZMA), bad CRC -> ParseError, junk -> FileNotReadable, dir-only/empty -> FileEmpty.
 - Own oracle ../oracle/F7b-streams launched on ibminode06 (run.sh push/pull).
 
-## Next step
+## Incarnation 3, late state
+- All tests green on dax; oracle ../oracle/F7b-streams pulled (results/records.tsv), differential tests tests/compressed_streams_oracle.rs + tests/zip_input_oracle.rs pass.
+- Ledger fragment written (.planning/ledger-fragments/wave4/F7b.json, 16 entries); report draft in scratchpad F7b.md.
+- CI sweep F7b-sweep running (rust.yml regenerated locally only for the sweep, then reverted).
+- Remaining: sweep result -> write report, delete NOTES.md, final commit.
+
+## Next step (older)
 1. `bash ../oracle/F7b-streams/run.sh pull`; copy results/records.tsv into tests/data/compressed_streams/f7b_oracle_records.tsv (+ oracle data files) and write the differential test.
 2. Provenance manifest tests/data/compressed_streams/provenance.json; THIRD_PARTY_CRATE_DECISIONS entry for zip.
 3. Full CI sweep; MSRV +1.85.0 check; clippy; doc.
