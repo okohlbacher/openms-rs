@@ -1264,51 +1264,14 @@ fn item_text(value: f64) -> String {
 /// Significant digits of the source writer's stream,
 /// `os.precision(writtenDigits<double>(0.0))` (`ParamXMLFile.cpp:64`):
 /// `std::numeric_limits<double>::digits10`.
-const STREAM_DIGITS: usize = 15;
+const STREAM_DIGITS: u32 = 15;
 
 /// [`NumberText::Source`]'s text of a floating-point list item,
 /// `os << list[i]` (`ParamXMLFile.cpp:328`) on a stream of precision
-/// [`STREAM_DIGITS`] with the default format flags: `%.15g`.
-///
-/// The value is rounded to 15 significant digits; with `X` the decimal
-/// exponent after that rounding, it is written in scientific notation when
-/// `X < -4` or `X >= 15`, and otherwise in fixed notation, and in either case
-/// trailing zeros and a trailing point are removed. The exponent keeps its
-/// sign and at least two digits (`1e+20`, `1e-05`). Zero is `0` or `-0`; a NaN
-/// is `nan` or, with its sign bit set, `-nan`, and an infinity `inf` or
-/// `-inf`, as glibc prints them for the Linux Release build.
+/// [`STREAM_DIGITS`] with the default format flags: `%.15g`, which is
+/// [`ostream_g`](crate::concept::numeric_formatting::ostream_g) at precision 15
+/// (`4`, `1e+20`, `1e-05`, `-0`, and glibc's `nan`, `-nan`, `inf` and `-inf`
+/// for the Linux Release build).
 fn list_item_text(value: f64) -> String {
-    if value.is_nan() {
-        return if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-        .into();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.into();
-    }
-    if value == 0.0 {
-        return if value.is_sign_negative() { "-0" } else { "0" }.into();
-    }
-    let scientific = format!("{:.*e}", STREAM_DIGITS - 1, value);
-    let Some((mantissa, exponent)) = scientific.split_once('e') else {
-        // `{:e}` always writes an exponent.
-        return scientific;
-    };
-    let exponent: i32 = exponent.parse().unwrap_or(0);
-    let trim = |text: &str| -> String {
-        if text.contains('.') {
-            text.trim_end_matches('0').trim_end_matches('.').to_owned()
-        } else {
-            text.to_owned()
-        }
-    };
-    if exponent < -4 || exponent >= STREAM_DIGITS as i32 {
-        let sign = if exponent < 0 { '-' } else { '+' };
-        return format!("{}e{sign}{:02}", trim(mantissa), exponent.unsigned_abs());
-    }
-    let decimals = usize::try_from(STREAM_DIGITS as i32 - 1 - exponent).unwrap_or(0);
-    trim(&format!("{value:.decimals$}"))
+    crate::concept::numeric_formatting::ostream_g(value, STREAM_DIGITS)
 }
