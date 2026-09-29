@@ -51,3 +51,6 @@ Prereqs merged: 0a7-27, 0a7-30 (commit "[MERGE] O4b prerequisites").
   all entry points need MRMFeatureFinderScoring, SwathMapMassCorrection, ChromatogramExtractor/ChromExtractParams (OpenSwathWorkflow.h),
   TransitionPQPFile, IChromatogramHandler (all unported).
 - Sweep running: scratchpad/sweep (slot O4b-sweep); lane tests: scratchpad/lane_tests_mzml.out.
+- Measured (spock): stable --features mzml: ransac 13, ransac_oracle 1, mrm_rt_normalizer 9, tse 12, tse_oracle 1.
+  +1.85 no-default: 13/1/9, tse 8 (4 mzml-gated), tse_oracle 0 (crate gate). +1.85 no-default mzml: tse 12, tse_oracle 1.
+- Report draft: scratchpad/O4b.md (PASSCOUNTS_PLACEHOLDER to fill after sweep).
