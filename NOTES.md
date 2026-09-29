@@ -20,6 +20,16 @@ Worktree branch: worktree-wf_a10fdd71-2d2-12, base f0990c0.
 - A2a.md, A2b.md, A4.md reports are missing (worktree copies deleted); summaries are in the brief.
 - Logs: scratchpad/logs/ (build1.log = test --no-run on dax slot integ-A)
 
+## Findings
+- build1 (test --no-run all-features) on dax: OK. sweep1 running (scratchpad/logs/sweep1).
+- Member checker: scratchpad/members.py (headers exported to scratchpad/core-bc9cc12). STRICT=1 mode.
+- Overlaps: ChromatogramTools (A2a complete vs A3a native_eq -> complete w/ A3a scope);
+  StatisticFunctions (A3a complete vs A2b partial gap 2: Pearson/Matthews explicit f64::NAN) -> FIXING
+  via x86_64 ops + collapse source_pearson (feature_finder_picked/scoring.rs) into pearson_correlation_coefficient;
+  oracle ../oracle/integ-A-correlation (ibminode06) launched;
+  MSSpectrum, IMDataConverter both partial -> merge scopes; SpectrumNativeIDParser A5b complete supersedes A3b.
+- Ribonucleotide complete vs Element partial: same immutable-record design; Ribonucleotide has from_record (ok).
+
 ## Next step
 1. Wait build1; fix compile errors.
 2. Full sweep: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=96 ~/.local/bin/openms-ci-sweep.sh integ-A <scratch>/sweep1
