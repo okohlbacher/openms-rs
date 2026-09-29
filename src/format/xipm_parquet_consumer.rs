@@ -115,7 +115,7 @@ impl XIPMParquetConsumer {
     /// Nothing is written before the first flush.
     pub fn new(filename: impl AsRef<Path>, transition_exp: &LightTargetedExperiment) -> Self {
         Self {
-            maps: TransitionMaps::build(transition_exp, false),
+            maps: TransitionMaps::build(transition_exp, true),
             pending: Vec::new(),
             pending_bytes: 0,
             output: Some(StagedParquet::new(filename.as_ref(), XIPMSchema::schema())),

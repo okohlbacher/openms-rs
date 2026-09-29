@@ -19,29 +19,31 @@
 //! # Filter evaluation
 //!
 //! The source first tries an Arrow Dataset scan with the filter pushed down
-//! (only when built `WITH_ARROW_DATASET`), then Arrow compute, and falls back
-//! to its own row-by-row evaluator when Arrow cannot bind or execute the
-//! expression. Every expression the parser builds is a left-to-right chain of
-//! comparisons joined by AND/OR without negation, so Kleene logic with a null
-//! row dropped selects exactly the rows the row-by-row evaluator selects with
-//! a null comparison counted as false. This port therefore evaluates every
-//! filter row by row, with the operand rules that the Arrow path and its
-//! fallback produce together:
+//! (when built `WITH_ARROW_DATASET`), then Arrow compute, and falls back to its
+//! own row-by-row evaluator (`applyManualFilter`) when Arrow cannot bind or run
+//! the expression. In the executed Release build (Arrow C++ 23.0.1) Arrow's
+//! compute functions are not registered, so the first two paths fail ("No
+//! function registered with name: equal") and every filter runs through the
+//! row evaluator (measured, `../oracle/F1b-openswath`). This port is that
+//! evaluator:
 //!
+//! - conditions are joined left to right, without precedence; a missing
+//!   connector is AND;
+//! - a null cell makes its comparison false;
 //! - an integer condition compares against any signed or unsigned integer
 //!   column or a boolean one (as 1/0); an unsigned value above `i64::MAX`
-//!   is an error, as in the fallback;
-//! - a string condition compares against a `string`, `large_string`,
-//!   `binary` or `large_binary` column, byte-wise;
+//!   is an error;
+//! - a string condition compares byte-wise against a `string` or
+//!   `large_string` column;
 //! - any other column type is an error once a non-null value has to be
 //!   compared ("Unsupported integer column type" / "Unsupported string column
-//!   type"), which is what the fallback throws after Arrow refuses to bind.
+//!   type").
 //!
-//! Native difference: an integer condition on a floating-point column, which
-//! Arrow compute would evaluate after casting the literal to `double`, is
-//! refused here. No OpenSWATH Parquet schema has a filterable floating-point
-//! column: XIM's `FEATURE_RT` is pruned before evaluation, and XIPM exposes no
-//! filter.
+//! Before any row is read, the conditions' columns are matched to the schema
+//! case-insensitively (an unknown column is an error) and integer literals are
+//! parsed with `StringUtils::toInt64` rules (a failure is the source's
+//! `Exception::ConversionError`, reported here as [`Error::InvalidValue`] with
+//! the source's message).
 
 use crate::format::numpress_coder::{
     self as codec, NumpressCoderLimits, NumpressCompression, Work,
@@ -678,8 +680,11 @@ struct BoundCondition<'a> {
 
 /// The value of an integer filter literal (`StringUtils::toInt64`).
 fn parse_int(value: &str) -> Result<i64> {
-    source_to_int64(value)
-        .ok_or_else(|| Error::InvalidValue(format!("Invalid integer filter value: {value}")))
+    source_to_int64(value).ok_or_else(|| {
+        Error::InvalidValue(format!(
+            "Could not convert string '{value}' to an integer value"
+        ))
+    })
 }
 
 /// `StringUtils::toInt64`: leading and trailing spaces, tabs, line feeds and
@@ -756,8 +761,6 @@ fn evaluate(bound: &BoundCondition<'_>, row: usize) -> Result<bool> {
     let lhs: &[u8] = match array.data_type() {
         DataType::Utf8 => array.as_string::<i32>().value(row).as_bytes(),
         DataType::LargeUtf8 => array.as_string::<i64>().value(row).as_bytes(),
-        DataType::Binary => array.as_binary::<i32>().value(row),
-        DataType::LargeBinary => array.as_binary::<i64>().value(row),
         other => {
             return Err(Error::InvalidValue(format!(
                 "Unsupported string column type: {other}"
@@ -905,6 +908,46 @@ fn charge(budget: &mut DecodeBudget, count: usize) -> Result<()> {
     Ok(())
 }
 
+/// MS-Numpress linear, including the payloads the source's own writers
+/// produce with a fixed point of zero.
+///
+/// The source's mass-accuracy estimator returns 0 for fewer than three
+/// values, and its writers then store every value as the integer 0 under a
+/// fixed point of 0; its decoder divides by that fixed point and returns NaN
+/// (measured: the Release build reads such a one-point chromatogram back as
+/// `-nan`). The crate's Numpress decoder refuses non-finite results, which
+/// would make a whole source-written file unreadable, so a payload whose fixed
+/// point is zero is decoded here as the source decodes it: each stored integer
+/// divided by that zero — NaN for 0 (with the sign bit set, the x86 result the
+/// source produces), an infinity otherwise.
+fn linear(bytes: &[u8], work: &mut Work) -> Result<Vec<f64>> {
+    let fixed = match bytes.get(..8) {
+        Some(head) => {
+            let mut word = [0u8; 8];
+            word.copy_from_slice(head);
+            f64::from_be_bytes(word)
+        }
+        None => return codec::decode_raw(bytes, NumpressCompression::Linear, work),
+    };
+    if fixed != 0.0 || bytes.len() == 8 {
+        return codec::decode_raw(bytes, NumpressCompression::Linear, work);
+    }
+    // Decode the integers with a unit fixed point, then divide by the zero.
+    let mut unit = bytes.to_vec();
+    unit[..8].copy_from_slice(&1.0f64.to_be_bytes());
+    let integers = codec::decode_raw(&unit, NumpressCompression::Linear, work)?;
+    Ok(integers
+        .into_iter()
+        .map(|integer| {
+            if integer == 0.0 {
+                -f64::NAN
+            } else {
+                integer / fixed
+            }
+        })
+        .collect())
+}
+
 /// `decodeBinary_`: decode one binary cell by its compression identifier.
 ///
 /// 0 raw little-endian doubles, 1 zlib-compressed doubles, 2/3/4 MS-Numpress
@@ -926,7 +969,10 @@ pub(crate) fn decode(
         return Ok(Vec::new());
     }
     let mut work = Work::new(budget.limits.array);
-    let numpress = |bytes: &[u8], mode, work: &mut Work| codec::decode_raw(bytes, mode, work);
+    let numpress = |bytes: &[u8], mode, work: &mut Work| match mode {
+        NumpressCompression::Linear => linear(bytes, work),
+        _ => codec::decode_raw(bytes, mode, work),
+    };
     let values = match compression {
         0 => {
             return bytes_to_doubles(
