@@ -289,8 +289,12 @@ fn negative_zero_is_zero_unless_written_as_a_float() {
     for (document, negative) in [
         (r#"{"d": -0}"#, false),
         (r#"{"d":-0 }"#, false),
+        (r#"{"d":-0}"#, false),
+        ("\u{feff}{\"d\":-0}", false),
+        ("{\"d\": -0}\n", false),
         (r#"{"d": -0.0}"#, true),
         (r#"{"d": -0e0}"#, true),
+        (r#"{"s": "\"-0", "d": -0.0}"#, true),
         (r#"{"d": 1e-0, "s": "-0"}"#, false),
     ] {
         load(document, &mut param).unwrap();
