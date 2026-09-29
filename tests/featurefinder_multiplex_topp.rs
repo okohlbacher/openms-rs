@@ -52,11 +52,21 @@ fn fuzzy(actual: f64, expected: f64) -> bool {
     a.max(b) / a.min(b) <= 1.01
 }
 
+thread_local! {
+    /// Largest relative deviation seen by [`check`] in this test thread, for
+    /// the report printed by [`case`]; never asserted on.
+    static WORST: std::cell::Cell<f64> = const { std::cell::Cell::new(0.0) };
+}
+
 fn check(what: &str, actual: f64, expected: f64) {
     assert!(
         fuzzy(actual, expected),
         "{what}: {actual} does not match {expected}"
     );
+    if expected != 0.0 {
+        let deviation = ((actual - expected) / expected).abs();
+        WORST.with(|w| w.set(w.get().max(deviation)));
+    }
 }
 
 fn run(case: u32) -> (FeatureMap, ConsensusMap) {
@@ -193,11 +203,18 @@ fn compare_consensus(case: u32, actual: &ConsensusMap) {
 }
 
 fn case(n: u32, with_consensus: bool) {
+    WORST.with(|w| w.set(0.0));
     let (features, consensus) = run(n);
     compare_features(n, &features);
     if with_consensus {
         compare_consensus(n, &consensus);
     }
+    eprintln!(
+        "case {n}: {} features, {} consensus features, largest relative deviation {:e}",
+        features.features.len(),
+        consensus.features.len(),
+        WORST.with(|w| w.get())
+    );
 }
 
 #[test]
