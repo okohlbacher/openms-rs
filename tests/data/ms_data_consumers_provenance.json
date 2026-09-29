@@ -120,6 +120,26 @@
     {
       "path": "tests/data/f4_progress/empty.cached",
       "sha256": "c4a0040963db01ee1ac3783b88c772d63a7383b43617f15ecb9d761f0123452c"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/cpp_release_records.tsv",
+      "sha256": "0ad8a2cd28bcbd146bdcbdf5498c205bc959e84dfdce6d5fb823dcbf7ec64403"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/all_clear.cached",
+      "sha256": "c1b794e55efdfa16ea7b03267aa853a886fea73918dc9b18534661a0d026a003"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/spectra_keep.cached",
+      "sha256": "0046436751ce5a4035876fc94b1490492f785cdf68788f7561a3ae8875fb3463"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/empty.cached",
+      "sha256": "c4a0040963db01ee1ac3783b88c772d63a7383b43617f15ecb9d761f0123452c"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/order.cached",
+      "sha256": "b372fdd63b75975755ecef46218412bc59b6840433a524d4789dff4873fda46b"
     }
   ],
   "native_implementation": [
@@ -151,11 +171,51 @@
     "Every START_SECTION of NoopMSDataConsumer_test.cpp, MSDataStoringConsumer_test.cpp, MSDataTransformingConsumer_test.cpp, MSDataChainingConsumer_test.cpp, MSDataAggregatingConsumer_test.cpp and IndexedMzMLFileLoader_test.cpp is transcribed with its line numbers (source review, tier 3). No C++ was executed.",
     "MSDataSqlConsumer has no upstream class test; tests/ms_data_sql_consumer.rs derives every expectation from MSDataSqlConsumer.cpp, the central one being that streamed records read back identically to MzMLSqliteHandler::write_experiment of the same experiment (tier 4).",
     "IndexedMzMLFileLoader_test.cpp's VALIDATE_TMP_FILES step runs under the mzml-schema feature (libxml2 XSD validation of both written files).",
-    "MSDataCachedConsumer (ported at wave-4 integration, INTEG-F, once lane F4's CachedMzMLHandler and lane F7a's consumers met): every START_SECTION of MSDataCachedConsumer_test.cpp is transcribed in tests/ms_data_cached_consumer.rs (tier 3). release_build_bytes streams MzMLFile_1.mzML through the consumer and requires the bytes of tests/data/f4_progress/MzMLFile_1.cached and empty.cached, which CachedMzMLHandler::writeMemdump wrote on the Linux x86_64 Release build (../oracle/F4-progress, ibminode06, openms4-release-bc9cc12-c19e494-174b576, two runs with the same sha256; see tests/data/f4_progress_provenance.json): writeMemdump (CachedMzMLHandler.cpp:33-58) and the consumer's constructor, consumeSpectrum, consumeChromatogram and destructor (MSDataCachedConsumer.cpp:18-75) write the same identifier, records and counts (tier 1 bytes, tier 4 equivalence)."
+    "MSDataCachedConsumer (ported at wave-4 integration, INTEG-F, once lane F4's CachedMzMLHandler and lane F7a's consumers met): every START_SECTION of MSDataCachedConsumer_test.cpp is transcribed in tests/ms_data_cached_consumer.rs (tier 3). release_build_bytes streams MzMLFile_1.mzML through the consumer and requires the bytes of tests/data/f4_progress/MzMLFile_1.cached and empty.cached, which CachedMzMLHandler::writeMemdump wrote on the Linux x86_64 Release build (../oracle/F4-progress, ibminode06, openms4-release-bc9cc12-c19e494-174b576, two runs with the same sha256; see tests/data/f4_progress_provenance.json): writeMemdump (CachedMzMLHandler.cpp:33-58) and the consumer's constructor, consumeSpectrum, consumeChromatogram and destructor (MSDataCachedConsumer.cpp:18-75) write the same identifier, records and counts (tier 1 bytes, tier 4 equivalence).",
+    "MSDataCachedConsumer, tier 1 (wave-4 integration): ../oracle/integ-F-cachedconsumer links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06 and runs the Release build's own MSDataCachedConsumer twice (identical files and records) over MzMLFile_1.mzML: every record with clearData, spectra 0 and 1 without it, nothing, and a spectrum after a chromatogram. tests/ms_data_cached_consumer.rs (release_consumer_*) requires the same four files byte for byte (tests/data/ms_data_cached_consumer/, verbatim), the same cleared or unchanged records, and the source's IllegalArgument message. The consumer's all-records file equals the writeMemdump output of ../oracle/F4-progress byte for byte."
   ],
   "gaps": [
     "MSDataAggregatingConsumer merges with a caller-supplied function: the source's SpectrumAddition::addUpSpectra(s_list, -1, true) (ANALYSIS/OPENSWATH/SpectrumAddition.h) is unported, and format may not depend on analysis. Its class test's 17/120/230 run with a merge double that adds intensities on the shared m/z grid.",
     "No tier 1 differential: no C++ oracle was run for these consumers.",
     "This manifest is not listed in SOURCE_PROVENANCE.json; registering it is the integrator's step."
-  ]
+  ],
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/integ-F-cachedconsumer/driver.cpp",
+      "sha256": "09a1b9b41d907308b3f0acca99f24b016469568ca257d4e8bfa62a9daf4fd3ec",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/remote_run.sh",
+      "sha256": "03fd926ec50c5933d1512610ad14ff5d683c9a0cc46a120e5fe60cc52530ce21",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/run.sh",
+      "sha256": "a697d1d8ad0247fe7c166b190c4d2ad9a761ea239db1412f9e96a6909281878e",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/results/hashes.txt",
+      "sha256": "c929e374213332e543fb90bdd5f2aa0c72ea674cbb62d28b085280238914c1e8",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/results/records.tsv",
+      "sha256": "0ad8a2cd28bcbd146bdcbdf5498c205bc959e84dfdce6d5fb823dcbf7ec64403",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/results/host.txt",
+      "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    }
+  ],
+  "external_reference_note": "The integ-F-cachedconsumer oracle driver is C++ and stays outside the repository; the files and records it wrote were copied verbatim into tests/data/ms_data_cached_consumer/ (hashes under reused_fixtures), and its results/hashes.txt hashes the driver, the input, the built binary, libOpenMS.so and every file it wrote."
 }

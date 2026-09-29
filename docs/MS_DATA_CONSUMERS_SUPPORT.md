@@ -127,7 +127,7 @@ answers `Continue` unless it forwards another consumer's `Break`.
   flush behaviour; the caller's record cleared; `addRun`/`setRunId`; the run
   written once at the end, named after the sqMass file; drop equivalent to
   `finish`; the refusals.
-- `tests/ms_data_cached_consumer.rs` (feature `mzml`, 10 tests): every
+- `tests/ms_data_cached_consumer.rs` (feature `mzml`, 13 tests): every
   section of `MSDataCachedConsumer_test.cpp` (tier 3) on the unmodified
   `MzMLFile_1.mzML`. `release_build_bytes` streams that file through the
   consumer and requires the bytes the Linux x86_64 Release build's
@@ -137,8 +137,14 @@ answers `Continue` unless it forwards another consumer's `Break`.
   (`CachedMzMLHandler.cpp:33-58`) and the consumer's constructor,
   `consumeSpectrum`, `consumeChromatogram` and destructor
   (`MSDataCachedConsumer.cpp:18-75`) write the same identifier, records and
-  counts (tier 1 bytes, tier 4 equivalence). Native tests cover the ordering
-  refusal, the cached and cleared data arrays and an uncreatable file.
+  counts (tier 1 bytes, tier 4 equivalence). The `release_consumer_*` tests
+  compare with the Release build's own `MSDataCachedConsumer` directly
+  (`../oracle/integ-F-cachedconsumer`, ibminode06, run twice, identical): all
+  records with `clearData`, spectra 0 and 1 without it, nothing, and a
+  spectrum after a chromatogram give the same four files byte for byte
+  (`tests/data/ms_data_cached_consumer/`), the same cleared or unchanged
+  records, and the source's `IllegalArgument` message (tier 1). Native tests
+  cover the cached and cleared data arrays and an uncreatable file.
 
 ## C++ observations
 

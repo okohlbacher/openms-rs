@@ -18,7 +18,9 @@
 //! counts, which is what the consumer's constructor, `consumeSpectrum`,
 //! `consumeChromatogram` and destructor write in turn
 //! (`MSDataCachedConsumer.cpp:18-75`), so the bytes must agree (tier 1 bytes,
-//! tier 4 equivalence).
+//! tier 4 equivalence). The `release_consumer_*` tests below compare with the
+//! Release build's own `MSDataCachedConsumer` directly (tier 1,
+//! `../oracle/integ-F-cachedconsumer`).
 #![cfg(feature = "mzml")]
 
 use openms::Error;
@@ -311,4 +313,126 @@ fn unwritable_path_is_an_error() {
         MSDataCachedConsumer::new(&missing),
         Err(Error::Io(_))
     ));
+}
+
+// ---------------------------------------------------------------------------
+// Executed differential against the Linux x86_64 Release build
+// ---------------------------------------------------------------------------
+//
+// `tests/data/ms_data_cached_consumer/` holds the files and records the
+// oracle driver `../oracle/integ-F-cachedconsumer` (outside the repository)
+// wrote with the Release build's own `MSDataCachedConsumer`, linking the
+// Linux x86_64 Release install `openms4-release-bc9cc12-c19e494-174b576` on
+// ibminode06, run twice with identical files and records.
+
+fn release(name: &str) -> Vec<u8> {
+    std::fs::read(data(&format!("ms_data_cached_consumer/{name}"))).unwrap()
+}
+
+fn release_record(key: &str) -> String {
+    let text = String::from_utf8(release("cpp_release_records.tsv")).unwrap();
+    text.lines()
+        .find_map(|line| line.strip_prefix(&format!("{key}\t")).map(str::to_owned))
+        .unwrap_or_else(|| panic!("no record {key}"))
+}
+
+/// Every record streamed with `clearData` (the default), spectra then
+/// chromatograms: the same bytes, and the same cleared records (peaks and
+/// all data arrays gone, native IDs kept).
+#[test]
+fn release_consumer_all_records_cleared() {
+    let dir = TempDir::new(false).unwrap();
+    let path = dir.path().join("all_clear.cached");
+    let mut exp = load_exp();
+    assert_eq!(release_record("spectra"), exp.spectra.len().to_string());
+    assert_eq!(
+        release_record("chromatograms"),
+        exp.chromatograms.len().to_string()
+    );
+    let mut cached_consumer = MSDataCachedConsumer::new(&path).unwrap();
+    cached_consumer
+        .set_expected_size(exp.spectra.len(), exp.chromatograms.len())
+        .unwrap();
+    for spectrum in &mut exp.spectra {
+        go(cached_consumer.consume_spectrum(spectrum));
+    }
+    for chromatogram in &mut exp.chromatograms {
+        go(cached_consumer.consume_chromatogram(chromatogram));
+    }
+    drop(cached_consumer);
+    assert!(std::fs::read(&path).unwrap() == release("all_clear.cached"));
+    for (i, s) in exp.spectra.iter().enumerate() {
+        assert_eq!(
+            format!(
+                "{}|{}|{}|{}|{}",
+                s.peaks.len(),
+                s.float_data_arrays.len(),
+                s.integer_data_arrays.len(),
+                s.string_data_arrays.len(),
+                s.native_id
+            ),
+            release_record(&format!("all_clear.spectrum{i}"))
+        );
+    }
+    for (i, c) in exp.chromatograms.iter().enumerate() {
+        assert_eq!(
+            format!("{}|{}", c.peaks.len(), c.native_id),
+            release_record(&format!("all_clear.chromatogram{i}"))
+        );
+    }
+}
+
+/// Spectra 0 and 1 without `clearData`: the same bytes, the records
+/// unchanged; and a consumer given nothing.
+#[test]
+fn release_consumer_kept_records_and_empty_file() {
+    let dir = TempDir::new(false).unwrap();
+    let path = dir.path().join("spectra_keep.cached");
+    let original = load_exp();
+    let mut exp = original.clone();
+    let mut cached_consumer = MSDataCachedConsumer::with_clear_data(&path, false).unwrap();
+    go(cached_consumer.consume_spectrum(&mut exp.spectra[0]));
+    go(cached_consumer.consume_spectrum(&mut exp.spectra[1]));
+    cached_consumer.finish().unwrap();
+    assert!(std::fs::read(&path).unwrap() == release("spectra_keep.cached"));
+    let unchanged = format!(
+        "{}{}",
+        u8::from(exp.spectra[0] == original.spectra[0]),
+        u8::from(exp.spectra[1] == original.spectra[1])
+    );
+    assert_eq!(unchanged, release_record("spectra_keep.unchanged"));
+
+    let empty = dir.path().join("empty.cached");
+    MSDataCachedConsumer::with_clear_data(&empty, false)
+        .unwrap()
+        .finish()
+        .unwrap();
+    assert!(std::fs::read(&empty).unwrap() == release("empty.cached"));
+}
+
+/// A spectrum after a chromatogram: the Release build throws
+/// `IllegalArgument` with this message, leaves the spectrum unchanged and
+/// writes a file holding the one chromatogram.
+#[test]
+fn release_consumer_refuses_a_spectrum_after_a_chromatogram() {
+    let dir = TempDir::new(false).unwrap();
+    let path = dir.path().join("order.cached");
+    let original = load_exp();
+    let mut exp = original.clone();
+    let mut cached_consumer = MSDataCachedConsumer::new(&path).unwrap();
+    go(cached_consumer.consume_chromatogram(&mut exp.chromatograms[0]));
+    let message = match cached_consumer.consume_spectrum(&mut exp.spectra[0]) {
+        Err(Error::InvalidValue(message)) => message,
+        other => panic!("expected the refusal, got {other:?}"),
+    };
+    assert_eq!(
+        format!("IllegalArgument: {message}"),
+        release_record("order.exception")
+    );
+    assert_eq!(
+        u8::from(exp.spectra[0] == original.spectra[0]).to_string(),
+        release_record("order.spectrum_unchanged")
+    );
+    drop(cached_consumer);
+    assert!(std::fs::read(&path).unwrap() == release("order.cached"));
 }
