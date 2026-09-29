@@ -44,6 +44,14 @@ Order: 1 QPXValueValidation (+ wire into arrow_io_helpers gate), 2 QPXIdentity, 
 - operator double on a string DataValue is UB-ish garbage in C++ -> Rust refuses (defect candidate).
 - isKnownScoreType = ScoreType::from_normalized_name; higher_better = ScoreType::parse(key).ok().
 
+## Oracle (done)
+- ../oracle/F1c-qpx (driver.cpp, node.sh, run.sh; `bash run.sh push` then `pull`), ibminode06 Release,
+  run twice identical records. Outputs copied to tests/data/qpx/ (records, import_records, 5 parquet).
+- Findings: C++ import resolves mass deltas only via process-global ModificationsDB mutated by
+  AASequence::fromString (fresh process = Rust behaviour); AASequence mz differs 1-2 ULP (sequence port);
+  ProForma parser error text differs (parser port); mass-tag mod name is "" in C++.
+
 ## Next step
-1. QPXFile (src/format/qpx_file.rs) + tests/qpx_file.rs. 2. Oracle ../oracle/F1c-qpx on ibminode06.
-3. QPXCollectionExport::Transaction. 4. docs/QPX_SUPPORT.md, provenance, report, ledger.
+1. Get tests/qpx_file.rs green (calculated_mz tolerance 1e-15 declared; unordered metadata lists sorted).
+2. docs/QPX_SUPPORT.md, tests/data/qpx_provenance.json, THIRD_PARTY blake2 row, ARROW_PARQUET_SUPPORT update.
+3. MSRV + clippy + doc + ci sweep; report + ledger fragment; delete NOTES.md in final commit.
