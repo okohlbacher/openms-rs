@@ -9,7 +9,7 @@
 //! `docs/FEATURE_GROUPING_SUPPORT.md`.
 //!
 //! The corresponding consensus features must be aligned, but may deviate
-//! slightly in position. The distance is [`FeatureDistance`].
+//! slightly in position. The distance is [`FeatureDistance`](crate::analysis::mapmatching::feature_distance::FeatureDistance).
 //!
 //! # Additional criteria for pairing
 //!
@@ -256,7 +256,10 @@ impl StablePairFinder {
                 continue;
             }
             let (d1, d2_1) = nn_distance_1[fi1];
-            if nn_index_1[fi1] != Some(fi0) || !(d1 * gap <= d2_1) {
+            // The source's `<=`, false for a NaN.
+            #[allow(clippy::neg_cmp_op_on_partial_ord)]
+            let rejected = nn_index_1[fi1] != Some(fi0) || !(d1 * gap <= d2_1);
+            if rejected {
                 continue;
             }
             let mut f = ConsensusFeature::new();

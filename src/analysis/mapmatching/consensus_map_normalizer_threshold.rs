@@ -98,9 +98,7 @@ impl ConsensusMapNormalizerAlgorithmThreshold {
         let mut ratios = Vec::with_capacity(number_of_maps);
         for j in 0..number_of_maps {
             let mut kept = Vec::new();
-            for k in 0..number_of_features {
-                let reference = feature_int[reference_map][k];
-                let value = feature_int[j][k];
+            for (&reference, &value) in feature_int[reference_map].iter().zip(&feature_int[j]) {
                 if reference != 0.0 && value != 0.0 {
                     let ratio = reference / value;
                     if ratio > ratio_threshold && ratio < 1.0 / ratio_threshold {

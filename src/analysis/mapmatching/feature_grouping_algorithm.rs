@@ -12,8 +12,8 @@
 //! `group(vector<FeatureMap>, ConsensusMap&)`, a virtual consensus-map
 //! overload that converts to feature maps and forwards, the public
 //! `transferSubelements`, and the protected template `postprocess_`. Here the
-//! two `group` overloads are the trait methods [`FeatureGroupingAlgorithm::group`]
-//! and [`FeatureGroupingAlgorithm::group_consensus`], and the other two are
+//! two `group` overloads are the trait methods [`FeatureGroupingAlgorithm::group`](crate::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm::group)
+//! and [`FeatureGroupingAlgorithm::group_consensus`](crate::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm::group_consensus), and the other two are
 //! free functions.
 
 use std::cmp::Ordering;
@@ -256,5 +256,5 @@ pub(crate) fn canonical_sort(features: &mut [ConsensusFeature]) {
             .map(FeatureHandle::key)
             .cmp(b.handles().iter().map(FeatureHandle::key))
     });
-    features.sort_by(|a, b| b.len().cmp(&a.len()));
+    features.sort_by_key(|feature| std::cmp::Reverse(feature.len()));
 }

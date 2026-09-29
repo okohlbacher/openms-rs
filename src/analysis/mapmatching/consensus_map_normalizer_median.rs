@@ -7,7 +7,7 @@
 //! Native equivalent of `ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h`.
 //! The accession/description filter the source shares with
 //! `ConsensusMapNormalizerAlgorithmThreshold` (its `friend`) is
-//! [`IdentificationFilter`] here. See `docs/CONSENSUS_MAP_NORMALIZER_SUPPORT.md`.
+//! [`IdentificationFilter`](crate::analysis::mapmatching::consensus_map_normalizer_median::IdentificationFilter) here. See `docs/CONSENSUS_MAP_NORMALIZER_SUPPORT.md`.
 //!
 //! The source class is a stateless bag of static functions whose copy
 //! constructor and assignment are suppressed; here it is a unit struct with

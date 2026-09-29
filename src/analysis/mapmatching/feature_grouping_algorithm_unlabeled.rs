@@ -12,16 +12,16 @@
 //! The corresponding features must be aligned, but may deviate slightly in
 //! position. There are two ways to run the algorithm:
 //!
-//! - call [`FeatureGroupingAlgorithm::group`] with all maps in memory; or
-//! - call [`FeatureGroupingAlgorithmUnlabeled::set_reference`], then
-//!   [`FeatureGroupingAlgorithmUnlabeled::add_to_group`] once per further map,
-//!   then [`FeatureGroupingAlgorithmUnlabeled::result_map`]. Only the
+//! - call [`FeatureGroupingAlgorithm::group`](crate::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm::group) with all maps in memory; or
+//! - call [`FeatureGroupingAlgorithmUnlabeled::set_reference`](crate::analysis::mapmatching::feature_grouping_algorithm_unlabeled::FeatureGroupingAlgorithmUnlabeled::set_reference), then
+//!   [`FeatureGroupingAlgorithmUnlabeled::add_to_group`](crate::analysis::mapmatching::feature_grouping_algorithm_unlabeled::FeatureGroupingAlgorithmUnlabeled::add_to_group) once per further map,
+//!   then [`FeatureGroupingAlgorithmUnlabeled::result_map`](crate::analysis::mapmatching::feature_grouping_algorithm_unlabeled::FeatureGroupingAlgorithmUnlabeled::result_map). Only the
 //!   reference and the current map need to be in memory at a time.
 //!
 //! The two are **not** equivalent: `group` post-processes the result
 //! (protein identifications transferred, unassigned peptide identifications
 //! re-indexed, canonical sorting — see
-//! [`postprocess`](super::feature_grouping_algorithm::postprocess)); the
+//! [`postprocess`](crate::analysis::mapmatching::feature_grouping_algorithm::postprocess)); the
 //! incremental path returns the raw pair-finder result, and callers must
 //! post-process it themselves if needed, as the `FeatureLinkerUnlabeled` tool
 //! does.

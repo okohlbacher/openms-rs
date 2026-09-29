@@ -27,7 +27,7 @@
 //!
 //! When an absolute difference exceeds its maximum, the result depends on
 //! `force_constraints`: without it, that dimension may exceed one and the pair
-//! is flagged invalid; with it, the distance is [`FeatureDistance::INFINITY`].
+//! is flagged invalid; with it, the distance is [`FeatureDistance::INFINITY`](crate::analysis::mapmatching::feature_distance::FeatureDistance::INFINITY).
 //!
 //! By default two features pair only when their charges are equal or at least
 //! one is unknown (`0`); otherwise the distance is infinite. `ignore_charge`

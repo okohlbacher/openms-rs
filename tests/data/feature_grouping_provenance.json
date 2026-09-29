@@ -1,0 +1,211 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h",
+   "sha256": "834b3d3139b49b882176cc8d1675bc05b664be4613f830f55958035689e21d96"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureDistance.cpp",
+   "sha256": "3fa4e1490e7da31e0942624beda2cd688977f3746944a8ea5307487a54884be0"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureDistance_test.cpp",
+   "sha256": "244007da4a1e8798e483bc1e0c6d2195141323023e97fcf13013217dc4c355ec"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/BaseGroupFinder.h",
+   "sha256": "1b099215c6de778d8e2c267abc49a068ea026e632bf2b648f59d0e41be628ff7"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/BaseGroupFinder.cpp",
+   "sha256": "d9c65e471d23e54be9b830d001006c8871b57c10f0732de8f103b4016c1d8e2c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BaseGroupFinder_test.cpp",
+   "sha256": "07b2ebec87c52236be247fb97a937db3ca7e6d0a331a3564c32ce32013397e7d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h",
+   "sha256": "2f3c96fda3eb05f4c93131d06de2f0b739b0adbced28ec6f7856b6a62f983d05"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/StablePairFinder.cpp",
+   "sha256": "5cdb9ea37eeeeebdb6b30800a9223baeed319552bb81b4c0759420e7f3fb20c2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/StablePairFinder_test.cpp",
+   "sha256": "309b5b2b32db800ef123f37340d638d0643c1deeff5009fe4fef9da8a25aee6c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h",
+   "sha256": "8996fcebb91b83b320149c6629cf1c5a11c420ea3fbce647439f4699ba873a51"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.cpp",
+   "sha256": "e0c0003dc5f03456f05796dacd552db8afdc9fb4cb6d80ac6481d2b936f6a11c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithm_test.cpp",
+   "sha256": "18b08a502846c4d2c3d70409194c325ffb48df1d621327c8a85961d9ea62468e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h",
+   "sha256": "3c287bedda56af287f107fdbb39b5cab9d9fb0c5e5adaf3a4aa522d9c6f85f21"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.cpp",
+   "sha256": "37780e721d618189854ccc93a082411b1cafc2063c7f4d34bd9e4b1da9c826f5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithmUnlabeled_test.cpp",
+   "sha256": "e57a91e54485f997a4d0e533feecbf2afe698e774ce4702a18e84c91b67daa7e"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/mapmatching/params.rs",
+  "src/analysis/mapmatching/feature_distance.rs",
+  "src/analysis/mapmatching/base_group_finder.rs",
+  "src/analysis/mapmatching/stable_pair_finder.rs",
+  "src/analysis/mapmatching/feature_grouping_algorithm.rs",
+  "src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs"
+ ],
+ "native_tests": [
+  "tests/mapmatching_feature_grouping.rs",
+  "tests/mapmatching_feature_grouping_topp.rs"
+ ],
+ "support_document": "docs/FEATURE_GROUPING_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/feature_linker_unlabeled_1_input1.featureXML",
+   "sha256": "9f18331a4ac75dfd403f97b242ec7576340590b85c98b8b288ad0285657091ba",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_1_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_1_input2.featureXML",
+   "sha256": "55b19c1cdba42ae976928c80750435ca37eaeeb5e16986d58b39010847c54a9b",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_1_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_1_input3.featureXML",
+   "sha256": "2543cd0709277f21717836b2fb6c3f4788ce5eb0ec692857e2f65375f0e06dda",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_1_input3.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_1_output.consensusXML",
+   "sha256": "b5a4fb1b7823b026b28482485bb207391d7c191b6722e94e1122aa2ecf8ae94e",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeled_1_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_1_parameters.ini",
+   "sha256": "4b34b3d7101e2c071ea852936ba975222d646eb25b6869610dbf453b9e76a9ae",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeled_1_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_2_input1.featureXML",
+   "sha256": "d74534c4e60cd3acb7a5b24de0c4dc7b47fdf2dc7e9ae5e4cbde7f2ab8e37466",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_2_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_2_input2.featureXML",
+   "sha256": "8fd56ac8f9eb612a670c6b4149e1106e9bf40b2af7910e6d3eb7c1b11f1963a3",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_2_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_2_input3.featureXML",
+   "sha256": "878d3bf70f53f6958fecc5cb97526fc4a4a6a38564f4d3bccc6d91dbb2ee396b",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_2_input3.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_2_output.consensusXML",
+   "sha256": "8d27981ef7f7561ab133f916d06a12cc2df2dc5e5bb9538b9a2f03776c4d77ee",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeled_2_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_2_parameters.ini",
+   "sha256": "770b843f6eef8eca69cc8ca7812227661643aac403463353ef0dcecfcbaa3061",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeled_2_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_3_input1.featureXML",
+   "sha256": "07fb1f597cb3cdab53439999fb06624f15714b1e0dadf5cb4818faa9ddb8b30e",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_3_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_3_input2.featureXML",
+   "sha256": "d69c9f3f90f07180fc94da6e97b9538319c736a6b0e60db39a7107eaf91c61e0",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeled_3_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_3_output.consensusXML",
+   "sha256": "b103707d1eea6b0adc7143997c7145901794cec7b46c44f1f87dedf40bd39f35",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeled_3_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_3_parameters.ini",
+   "sha256": "3c8eabdc57e04ee4ee4c604c3b5090231d1a74fff4ff64be649c13855697bf93",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeled_3_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  }
+ ],
+ "upstream_test_definition": {
+  "package": "test-data",
+  "revision": "0cb15f2",
+  "path": "topp/CMakeLists.txt",
+  "lines": "2879-2887",
+  "tests": [
+   "TOPP_FeatureLinkerUnlabeled_1",
+   "TOPP_FeatureLinkerUnlabeled_2",
+   "TOPP_FeatureLinkerUnlabeled_3"
+  ],
+  "tool": "FeatureLinkerUnlabeled (topp 174b576 src/FeatureLinkerUnlabeled.cpp: setReference, addToGroup, getResultMap, sortByMZ)"
+ },
+ "evidence_tier": {
+  "tier_1_retained_output": "tests/mapmatching_feature_grouping_topp.rs: the three FeatureLinkerUnlabeled cases; order and handle identities exact, values within the six stored significant digits",
+  "tier_3_class_tests": "tests/mapmatching_feature_grouping.rs: every section of FeatureDistance_test.cpp, StablePairFinder_test.cpp, FeatureGroupingAlgorithm_test.cpp and BaseGroupFinder_test.cpp",
+  "tier_4_native": "defaults and restrictions, log-transformed distance, input checks, use_identifications, old_map_index renumbering, group and the incremental path on a hand-built case"
+ },
+ "not_ported": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h",
+   "reason": "backlog: fibonacci-heap tie order and HashGrid iteration order; tier-1 target FeatureLinkerUnlabeledQT_*"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
+   "reason": "needs QTClusterFinder"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
+   "reason": "needs DATASTRUCTURES/KDTree.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h",
+   "reason": "not started"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h",
+   "reason": "needs LabeledPairFinder"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h",
+   "reason": "not started"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h",
+   "reason": "needs WNetMatcher"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h",
+   "reason": "not started"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h",
+   "reason": "not started"
+  }
+ ],
+ "target_verification": [
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_feature_grouping --test mapmatching_feature_grouping_topp",
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_feature_grouping"
+ ]
+}
