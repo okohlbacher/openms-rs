@@ -93,8 +93,9 @@ pub(crate) fn store_reporting<T>(
     }
 }
 
-/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2.
-#[cfg(feature = "idxml")]
+/// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2;
+/// the Parquet writers (`arrow`) publish their encoded files the same way.
+#[cfg(any(feature = "idxml", feature = "arrow"))]
 pub(crate) fn write_plain(
     path: &Path,
     save: impl FnOnce(&mut dyn Write) -> Result<()>,
@@ -147,6 +148,29 @@ fn write_as(
     drop(file);
     std::fs::rename(&temporary.0, path)?;
     Ok(())
+}
+
+/// A destination written through a sibling temporary file and renamed onto
+/// it only on [`commit`](Self::commit), for writers that stream their output
+/// over many calls; dropping it uncommitted removes the temporary file.
+#[cfg(feature = "arrow")]
+pub(crate) struct StagedFile(TemporaryFile);
+
+#[cfg(feature = "arrow")]
+impl StagedFile {
+    /// Create the temporary file next to `destination`.
+    pub(crate) fn create(destination: &Path) -> Result<(Self, File)> {
+        let (temporary, file) = TemporaryFile::create(destination)?;
+        Ok((Self(temporary), file))
+    }
+
+    /// Flush `file` to disk and move it onto `destination`.
+    pub(crate) fn commit(self, file: File, destination: &Path) -> Result<()> {
+        file.sync_all()?;
+        drop(file);
+        std::fs::rename(&self.0.0, destination)?;
+        Ok(())
+    }
 }
 
 struct TemporaryFile(PathBuf);

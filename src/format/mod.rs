@@ -156,6 +156,61 @@ pub mod xml_schema;
 #[cfg(feature = "paramxml")]
 pub mod qcml;
 
+/// Writing, concatenating and reading Arrow tables as Parquet, and the QPX
+/// naming helpers the Parquet exporters share (`ArrowIOHelpers.h`).
+#[cfg(feature = "arrow")]
+pub mod arrow_io_helpers;
+/// Arrow schema definitions of the OpenMS Parquet tables and their
+/// validation (`ArrowSchemaRegistry.h`).
+#[cfg(feature = "arrow")]
+pub mod arrow_schema_registry;
+/// The features table of a FeatureMap as an Arrow table
+/// (`FeatureMapArrowIO.h`, features half).
+#[cfg(feature = "arrow")]
+pub mod feature_map_arrow_io;
+/// OpenSWATH mobilograms to `.xim` Parquet
+/// (`DATAACCESS/MobilogramParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod mobilogram_parquet_consumer;
+/// OpenSWATH chromatograms to `.xic` Parquet
+/// (`DATAACCESS/MSChromatogramParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod ms_chromatogram_parquet_consumer;
+/// MSExperiment spectra and chromatograms as Arrow tables and Parquet files
+/// (`MSExperimentArrowExport.h`).
+#[cfg(feature = "arrow")]
+pub mod msexperiment_arrow_export;
+/// Shared writer machinery of the OpenSWATH Parquet consumers.
+#[cfg(feature = "arrow")]
+mod openswath_parquet_writer;
+/// Shared Parquet read/write helpers and type-coercing column accessors
+/// (`ParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod parquet_file;
+/// Typed filter expressions for Parquet-backed readers (`ParquetFilter.h`).
+pub mod parquet_filter;
+/// Shared Arrow/Parquet reader helpers of the OpenSWATH readers
+/// (`DATAACCESS/ParquetReaderHelpers.h`, private in the source too).
+#[cfg(feature = "arrow")]
+mod parquet_reader_helpers;
+/// Protein hits, protein groups and search parameters as Arrow tables and
+/// Parquet files (`ProteinIdentificationArrowIO.h`).
+#[cfg(feature = "arrow")]
+pub mod protein_identification_arrow_io;
+/// OpenSWATH chromatogram Parquet files, `.xic` (`XICParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xic_parquet_file;
+/// OpenSWATH mobilogram Parquet files, `.xim` (`XIMParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xim_parquet_file;
+/// Targeted peak maps to `.xipm` Parquet
+/// (`DATAACCESS/XIPMParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod xipm_parquet_consumer;
+/// Extracted ion peak-map Parquet files, `.xipm` (`XIPMParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xipm_parquet_file;
+
 use crate::{Error, Result};
 
 fn parse_error(line: usize, message: impl Into<String>) -> Error {

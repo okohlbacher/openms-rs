@@ -78,6 +78,13 @@ sqlite = ["dep:rusqlite"]
 sqmass = ["sqlite", "mzml"]
 parallel = ["dep:rayon"]
 network = ["dep:ureq"]
+# Apache Arrow tables and Parquet files: the FORMAT Arrow/Parquet family
+# (ArrowSchemaRegistry, ArrowIOHelpers, ParquetFile, the *ArrowIO classes) and
+# everything built on it. Kept out of `default` because ZSTD, the source's
+# default Parquet codec, compiles the C zstd library (see
+# docs/THIRD_PARTY_CRATE_DECISIONS.md). `numpress` because the OpenSWATH
+# Parquet files (.xic/.xim/.xipm) store MS-Numpress + zlib arrays.
+arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet", "numpress"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }
@@ -118,6 +125,18 @@ fancy-regex = { version = "=0.19.2", default-features = false, features = ["std"
 # HTTP for SYSTEM/NetworkGetRequest and the update check. Pure Rust, blocking,
 # no async runtime. Its MSRV is exactly ours, so the pin is load-bearing.
 ureq = { version = "=3.4.1", optional = true }
+# Apache Arrow C++ and its Parquet reader/writer (the FORMAT Arrow/Parquet
+# family). The arrow-rs sub-crates rather than the `arrow` umbrella, which would
+# add arrow-arith, arrow-ord, arrow-row and arrow-string (regex) that nothing
+# here calls. 60.0 needs Rust 1.88; 59.3.0 is the last release declaring 1.85.
+# Codecs: every one ParquetWriteConfig names (SNAPPY, GZIP, LZ4, ZSTD) plus
+# BROTLI, so files other producers wrote can be read. `zstd` builds the C zstd
+# library through zstd-sys, the reason the feature stays out of `default`.
+arrow-array = { version = "=59.3.0", optional = true }
+arrow-schema = { version = "=59.3.0", optional = true }
+arrow-buffer = { version = "=59.3.0", optional = true }
+arrow-select = { version = "=59.3.0", optional = true }
+parquet = { version = "=59.3.0", default-features = false, features = ["arrow", "snap", "flate2-rust_backend", "lz4", "zstd", "brotli"], optional = true }
 
 [dev-dependencies]
 # Eigen's NonLinearOptimization Levenberg-Marquardt. Measured against the Eigen
