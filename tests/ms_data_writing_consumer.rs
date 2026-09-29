@@ -1383,7 +1383,10 @@ fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
         text.contains("accession=\"MS:1000285\" name=\"total ion current\""),
         "{text}"
     );
-    assert!(!text.contains("userParam name=\"total ion current\""), "{text}");
+    assert!(
+        !text.contains("userParam name=\"total ion current\""),
+        "{text}"
+    );
     // The scan-level key stays a userParam.
     let user = "<userParam name=\"dwell time\" type=\"xsd:double\" value=\"2.5\"/>";
     assert!(text.contains(user), "{text}");
@@ -1401,7 +1404,10 @@ fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
         "<cvParam cvRef=\"MS\" accession=\"MS:1000502\" name=\"dwell time\" value=\"2.5\"/>",
     );
     let moved = mzml::read(promoted.as_bytes()).unwrap();
-    assert_eq!(moved.spectra[0].metadata["dwell time"].as_f64().unwrap(), 2.5);
+    assert_eq!(
+        moved.spectra[0].metadata["dwell time"].as_f64().unwrap(),
+        2.5
+    );
     assert!(
         moved.spectra[0].acquisition_info.acquisitions[0]
             .metadata
@@ -1414,4 +1420,163 @@ fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
     let mut whole = Vec::new();
     mzml::write(&mut whole, &experiment).unwrap();
     assert_eq!(text, String::from_utf8(whole).unwrap());
+}
+
+// ---------------------------------------------------------------------------
+// validator_, tier 1: the Release build's own streaming consumer. The fixture
+// carries a PSI-MS-named metadata key on every record owner the writer reaches
+// (spectrum, scanList, scan, precursor activation, chromatogram), and the
+// expected outputs are FileConverter -process_lowmemory (MzMLFile::transform
+// into a PlainMSDataWritingConsumer, FileConverter.cpp:633-657 at topp
+// 174b576) and plain FileConverter (MzMLFile::store) of it, run twice on the
+// Linux x86_64 Release install on ibminode06 (../oracle/F7a-record-cv).
+// ---------------------------------------------------------------------------
+const RECORD_CV_INPUT: &str = include_str!("data/mzml_record_cv/record_cv.mzML");
+const RECORD_CV_LOWMEM: &str = include_str!("data/mzml_record_cv/FileConverter_lowmemory_out.mzML");
+const RECORD_CV_STORE: &str = include_str!("data/mzml_record_cv/FileConverter_out.mzML");
+/// The fixture's metadata keys; every other param is structural.
+const RECORD_CV_KEYS: [&str; 12] = [
+    "total ion current",
+    "lowest observed m/z",
+    "filter string",
+    "fixture note",
+    "sum of spectra",
+    "dwell time",
+    "fixture scan note",
+    "collision energy",
+    "percent collision energy",
+    "fixture activation note",
+    "chromatogram title",
+    "fixture chromatogram note",
+];
+/// Promotions the source makes and its own reader does not reverse: `sum of
+/// spectra` under <scanList> is read as the method of combination, its value
+/// dropped (MzMLHandler.cpp:2259-2264), `dwell time` under <scan> is read into
+/// the spectrum's metadata (:2274-2277),
+/// and `chromatogram title` becomes the chromatogram's name (:3403-3406). The
+/// port keeps each as a userParam on the owner it came from.
+const NOT_REVERSED: [&str; 3] = ["sum of spectra", "dwell time", "chromatogram title"];
+
+/// (element path, param element, name) of every fixture key, in document order.
+fn record_params(text: &str) -> Vec<(String, String, String)> {
+    let mut stack: Vec<String> = Vec::new();
+    let mut params = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("</") {
+            let name: String = rest.chars().take_while(|c| *c != '>').collect();
+            while let Some(open) = stack.pop() {
+                if open == name {
+                    break;
+                }
+            }
+            continue;
+        }
+        let Some(rest) = line.strip_prefix('<') else {
+            continue;
+        };
+        if rest.starts_with('?') {
+            continue;
+        }
+        let tag: String = rest
+            .chars()
+            .take_while(|c| !c.is_whitespace() && *c != '>' && *c != '/')
+            .collect();
+        if tag == "cvParam" || tag == "userParam" {
+            let name = line
+                .split(" name=\"")
+                .nth(1)
+                .and_then(|tail| tail.split('"').next())
+                .unwrap_or_default()
+                .to_owned();
+            if RECORD_CV_KEYS.contains(&name.as_str()) {
+                params.push((stack.join("/"), tag, name));
+            }
+        } else if !line.ends_with("/>") && !line.contains(&format!("</{tag}>")) {
+            stack.push(tag);
+        }
+    }
+    params
+}
+
+/// What the port writes: the source's params with the non-reversed promotions
+/// kept as userParams, compared as sets (a userParam follows every cvParam).
+fn expected_from_source(source: &str) -> Vec<(String, String, String)> {
+    let mut expected: Vec<_> = record_params(source)
+        .into_iter()
+        .map(|(owner, tag, name)| {
+            if NOT_REVERSED.contains(&name.as_str()) {
+                assert_eq!(tag, "cvParam", "the source promotes {name}");
+                (owner, "userParam".to_owned(), name)
+            } else {
+                (owner, tag, name)
+            }
+        })
+        .collect();
+    expected.sort();
+    expected
+}
+
+fn param_line<'a>(text: &'a str, name: &str) -> &'a str {
+    let needle = format!(" name=\"{name}\"");
+    let mut lines = text.lines().filter(|l| l.contains(&needle));
+    let line = lines.next().unwrap_or_else(|| panic!("no {name} param"));
+    assert!(lines.next().is_none(), "{name} written twice");
+    line.trim()
+}
+
+#[test]
+fn record_level_cv_promotion_matches_the_release_streaming_writer() {
+    let experiment = mzml::read(RECORD_CV_INPUT.as_bytes()).unwrap();
+    // The fixture really exercises every owner: 12 keys, all read back.
+    let source = record_params(RECORD_CV_LOWMEM);
+    assert_eq!(source.len(), RECORD_CV_KEYS.len(), "{source:?}");
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    consumer
+        .set_expected_size(experiment.spectra.len(), experiment.chromatograms.len())
+        .unwrap();
+    for spectrum in &experiment.spectra {
+        consumer.consume_spectrum(&mut spectrum.clone()).unwrap();
+    }
+    for chromatogram in &experiment.chromatograms {
+        consumer
+            .consume_chromatogram(&mut chromatogram.clone())
+            .unwrap();
+    }
+    let streamed = written(consumer);
+
+    let mut port = record_params(&streamed);
+    port.sort();
+    assert_eq!(port, expected_from_source(RECORD_CV_LOWMEM), "{streamed}");
+
+    // The one activation key whose name is not its term's: the source finds no
+    // term for "percent collision energy" and writes the same userParam line.
+    assert_eq!(
+        param_line(&streamed, "percent collision energy"),
+        param_line(RECORD_CV_LOWMEM, "percent collision energy")
+    );
+    assert_eq!(
+        param_line(RECORD_CV_LOWMEM, "percent collision energy"),
+        "<userParam name=\"percent collision energy\" type=\"xsd:double\" value=\"35.0\"/>"
+    );
+
+    // The whole-document writer, which the consumer drives per record, agrees
+    // with MzMLFile::store in the same way.
+    let mut whole = Vec::new();
+    mzml::write(&mut whole, &experiment).unwrap();
+    let whole = String::from_utf8(whole).unwrap();
+    let mut port = record_params(&whole);
+    port.sort();
+    assert_eq!(port, expected_from_source(RECORD_CV_STORE), "{whole}");
+    // Both source runs promote identically, streamed or stored.
+    assert_eq!(
+        record_params(RECORD_CV_LOWMEM),
+        record_params(RECORD_CV_STORE)
+    );
+
+    // Everything the port wrote comes back on the owner it was read from.
+    let reloaded = mzml::read(streamed.as_bytes()).unwrap();
+    assert_eq!(reloaded.spectra, experiment.spectra);
+    assert_eq!(reloaded.chromatograms, experiment.chromatograms);
 }
