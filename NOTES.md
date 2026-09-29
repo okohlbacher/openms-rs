@@ -48,10 +48,13 @@ No earlier incarnation notes.
 - DONE item 3: parse_what(): Parse{line:0} prints the message alone; 3 tests now exact.
 - DONE item 5: src/format/param_cwl.rs ParamCwlFile refusal; cli write_commands stores through
   ParamCwlFile/ParamJsonFile; tests/param_cwl.rs.
+- DONE item 2 (commit d4401e9a): src/format/param_json/nlohmann.rs (nlohmann 3.11.2 lexer/parser
+  error path), tests/param_json_syntax.rs, tests/param_int_width.rs; Release oracle
+  ../oracle/B8c-numbers (ibminode06, Release install, run twice, differ.txt empty) retained
+  in tests/data/b8c_release + tests/data/b8c_release_provenance.json. Docs updated there too.
+- Restart (incarnation 3, 2026-09-29): merged -36 (own earlier run) + -1 into
+  worktree-wf_cd066dab-0a7-40. d4401e9a NOT yet gated.
 ## Next step
-1. Item 2: port nlohmann 3.11.2 lexer+parser error path (scratchpad b8c/lexer.hpp, parser.hpp)
-   as a syntax pre-check in src/format/param_json.rs (submodule), then a Release oracle
-   ../oracle/B8c-numbers on ibminode06 (driver: ParamXMLFile::store text, isValid/update of
-   wide ints, GaussTraceFitter probe, ParamJSONFile::load on many malformed JSON docs).
-2. Docs: TOPP_CLI_SUPPORT.md rows (exit table line ~160, text ~480, ~761), PARAMXML_SUPPORT.md,
-   FFC/FILE_INFO docs mention of 'parse error on line 0'. Then clippy/doc/MSRV/sweep, report, ledger.
+1. Gate on spock: nextest default + features touched (paramxml, json?), clippy -D warnings,
+   doc, MSRV +1.85.0, then CI sweep (openms-ci-sweep.sh B8c-sweep <logdir>).
+2. Count tests per slice for the new test files; write report + ledger; delete NOTES.md.
