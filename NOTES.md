@@ -38,10 +38,18 @@ Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils
 - F7b ZIP input vs B8a zip_input.rs (cross-group, flag to lead).
 - F3b driver.cpp.txt must go.
 
-## Next step (incarnation 3, 12:05)
-- t1.log (test --all-features --all-targets --no-fail-fast, dax): 6582 passed, 0 failed, 21 ignored. DONE.
-- sweep1 (scratch/sweep1) died: ssh via sshgw dropped during line 1 ("Can't assign requested address"). Uncommitted
-  rust.yml/ci_matrix.py/ci_coverage_baseline.json = proposed slices (DO NOT COMMIT; lead's files; copy in ci_proposed.patch).
-1. Re-run sweep -> scratch/sweep2 (background, poll). If ssh keeps dropping, run lines in chunks via openms-kim-gate.sh.
-2. Consolidated INTEG-F.json (scratch ledger.py; validate with core_sdk_coverage in scratch copy) + INTEG-F.md via Bash.
-3. Revert the three lead files, delete NOTES.md in final commit.
+## Incarnation 3 progress (12:05-)
+- Verified: extcheck 249 artifacts OK; trial_register 36 new manifests OK (check_core_sdk); trial_ledger.py (scratch)
+  merges INTEG-F.json into reviewed-apis + core_sdk_coverage --write OK (core complete 130->215), restored.
+- Audit CHK items all mapped (InspectInfile max_ptm_size, XTandem max_valid_evalue, ParamXML write*, MGF updateMembers_
+  in doc, StringManager xerces ptrs = Rust ownership). AcqusHandler Release claim now TRUE (F5-xmass oracle populated).
+- 5bec6a37 collapse F4 clear_*_data -> kernel clear(false).
+- MSDataCachedConsumer ported (src/format/ms_data_cached_consumer.rs, tests/ms_data_cached_consumer.rs, doc, manifest,
+  ledger.py entry). Proposed ci_matrix mzml slice + ms_data_cached_consumer (uncommitted, --write done).
+  Gate g1 (scratch logs/g1.log) running; then commit.
+- sweep2 running on dax slot integ-F-sweep (logs/sweep2.out; remote .ci-line.N.log) - snapshot BEFORE the consumer port.
+
+## Next step
+1. g1 green -> commit consumer. Then gate clippy --all-features --all-targets, doc --all-features, +1.85.0 mzml slice.
+2. Wait sweep2; collect per-line pass counts via ssh (read-only).
+3. Write INTEG-F.md (Bash heredoc) from lane reports + this; revert lead files; delete NOTES.md; final commit.
