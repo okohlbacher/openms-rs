@@ -60,3 +60,5 @@ pub mod dia_helper;
 pub mod dia_prescoring;
 /// Full-spectrum DIA scores (isotopes, mass error, b/y ions), from `ANALYSIS/OPENSWATH/DIAScoring.h`.
 pub mod dia_scoring;
+/// Cross-correlation, library, S/N and mutual-information scores of SRM/MRM peak groups, from `ANALYSIS/OPENSWATH/MRMScoring.h`.
+pub mod mrm_scoring;
