@@ -12,7 +12,7 @@
 //! arrive, including the white space between elements (OMSSA resets the
 //! current modification on the white space inside `<MSHits_mods>`). This
 //! driver therefore reports every text node, white space included, as one
-//! [`SaxHandler::characters`](crate::format::search_engine_xml::SaxHandler::characters) call, with the five predefined entities and
+//! `SaxHandler::characters` call, with the five predefined entities and
 //! numeric character references expanded and CDATA sections appended as
 //! text. Xerces may split one text node into several calls at buffer or
 //! entity boundaries; the source handlers act on the first call only, so a
