@@ -42,8 +42,16 @@ Worktree branch: worktree-wf_a10fdd71-2d2-12, base f0990c0.
   USI twice (src/metadata/usi.rs A5b vs src/identification/usi.rs B8b), StringUtils twice
   (concept/string_conversion.rs A5b vs data_structures/string_utils.rs B8a), ProteaseDB twice (digestion.rs vs B8b protease_db.rs).
 
+- DONE 1a07ab94 isTTY collapse; b99728f6 module-cycles --write; 86b0e14e string_conversion fix
+  (oracle ../oracle/integ-A-stringutils, 52 rows) + version_info to_int32 collapse.
+- sweep1 (pre-fix tree, slot integ-A): lines 1-23 green, then STOPPED (obsolete tree).
+- sweep2 (final code tree, slot integ-A-sweep): logs scratchpad/integ-A/sweep2*, RUNNING.
+- Slices measured (dax): unimod_xml 3 (stable and 1.85, --features unimod-xml), console_utils 5 (paramxml, 1.85),
+  imaging_types 29 (mzml, 1.85), a3a_source_order 11 + statistic_functions 34 (no-default, 1.85).
+- INTEG-A.json written by scratchpad/integ-A/consolidate.py (168 entries: 124 complete, 38 partial, 6 native_eq).
+- Python gates: all pass except lead-owned regenerations (core_sdk_coverage --write, ci_matrix --write, ci_coverage).
+- SCRATCHPAD IS SHARED with other agents: keep files under scratchpad/integ-A/.
+
 ## Next step
-1. Wait build1; fix compile errors.
-2. Full sweep: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=96 ~/.local/bin/openms-ci-sweep.sh integ-A <scratch>/sweep1
-3. Attack complete claims (A5a, A5b, A2a, A2b, A3a StatisticFunctions).
-4. Cross-group dup check vs integ-B (numeric_formatting, string_conversion, USI).
+1. Write report .planning/lane-reports/INTEG-A.md (Bash heredoc).
+2. When sweep2 finishes: record counts in report; delete NOTES.md in the final commit.
