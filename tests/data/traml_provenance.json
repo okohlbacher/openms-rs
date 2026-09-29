@@ -1,0 +1,120 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/TraMLFile.h",
+      "sha256": "6632a885d10a8b5ccbde6ae75443041f1081acd438c05d1ff08dc0d13c766dc1"
+    },
+    {
+      "path": "src/openms/source/FORMAT/TraMLFile.cpp",
+      "sha256": "7a55c30381d39cdce9cf894feb9e555336a938553a16a27fbfeae83e1268e516"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/TraMLHandler.h",
+      "sha256": "16fa45f6a4b3b50c93fd9a517a7e5061a9b197ece388b79f9c24fa3c1a28a2f6"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/TraMLHandler.cpp",
+      "sha256": "0b5a2ff4f1c51e556aec5dca5cd3823dff939ff924b8e424fc512bfa2e125cc2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TraMLFile_test.cpp",
+      "sha256": "f9bd132b09141a871c456ea83b67520f939628c73b1037183a418e968aa112bf"
+    },
+    {
+      "path": "share/OpenMS/MAPPING/TraML-mapping.xml",
+      "sha256": "141ed4eda7a183caff55e4cfececbd73e69aed46899f3e3b427d17604a6213d4"
+    }
+  ],
+  "native_implementation": [
+    "src/format/traml.rs",
+    "src/format/traml_handler.rs"
+  ],
+  "native_tests": [
+    "tests/traml.rs"
+  ],
+  "support": "docs/TRAML_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/traml/ToyExample1.traML",
+      "sha256": "db0f5a5289d37ca847ec3e556f46cbd983a3918d77584b16e26226ac12bd73b2",
+      "origin": "src/tests/class_tests/openms/data/ToyExample1.traML at core bc9cc12"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_output.TraML",
+      "sha256": "9aab52a7cbb25fadea7ae9f60f4dccf330742b2a320fc4183063a3cbe56e69d4",
+      "origin": "topp/ConvertTSVToTraML_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_2_output.TraML",
+      "sha256": "6bed54ad01f1e0e5fef2c8950f279221a7f1f9f620652afc19ad8e432faff33b",
+      "origin": "topp/ConvertTSVToTraML_2_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_3_output.TraML",
+      "sha256": "12bb9a151f3ae06c358d0f6a59809efb99f8ffc2497ee853a8033fc5fd79054c",
+      "origin": "topp/ConvertTSVToTraML_3_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_5_output.TraML",
+      "sha256": "1b2a5aa830aa9469edb8e066983055171a7b779c7196f98a644fb32c9b0b0f6e",
+      "origin": "topp/ConvertTSVToTraML_5_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_6_output.TraML",
+      "sha256": "981e3f7718add29ed1ca15162c8b93120e9d24e18ab020519aea8320d33fb66d",
+      "origin": "topp/ConvertTSVToTraML_6_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_3_output.TraML",
+      "sha256": "2b0ba354a47b259e0c3e0ab1db2313eb732b24376a8f7ec74f2f37edcd343c8d",
+      "origin": "topp/TargetedFileConverter_3_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_4_output.TraML",
+      "sha256": "e208c937ba5941bceddfb8d9ca360701e11237001de4a28556040ff8d252c8ad",
+      "origin": "topp/TargetedFileConverter_4_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_13_output.TraML",
+      "sha256": "ac0b374968f1728467d7bb78a74767c1dc0476eba21e946d5987a9d7a696ccef",
+      "origin": "topp/TargetedFileConverter_13_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/FileMerger_9_input1.traML",
+      "sha256": "8e7e942982807c96616a3c49edb8d1f5e5b16f622a0b2d37df426e26ce84d079",
+      "origin": "topp/FileMerger_9_input1.traML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/FileMerger_9_input2.traML",
+      "sha256": "9dd21b2b7431ea2ddb1cfd7e7e0e1b5f65fd3bb984cf747cea30a47512d38cd8",
+      "origin": "topp/FileMerger_9_input2.traML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/FileMerger_9_output.traML",
+      "sha256": "f81db892ab0ad7f2a4ef4d5fa9c4a62941bb73ea76d413d8a9ff53866eb12057",
+      "origin": "topp/FileMerger_9_output.traML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/OpenSwathDecoyGenerator_output.TraML",
+      "sha256": "22c406fc1ec97ef6dc539c90a97e1b84cef81dd1ee10a5e4a404626aa54b93b7",
+      "origin": "topp/OpenSwathDecoyGenerator_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "resources/cv/TraML-mapping.xml",
+      "sha256": "141ed4eda7a183caff55e4cfececbd73e69aed46899f3e3b427d17604a6213d4",
+      "origin": "share/OpenMS/MAPPING/TraML-mapping.xml at core bc9cc12"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (retained C++ output): ten TraML documents written by C++ TraMLHandler::writeTo (retained TOPP outputs at test-data 0cb15f2, compared upstream with FuzzyDiff, topp/CMakeLists.txt:59) are loaded and re-stored and reproduce their files line for line, numbers as identical doubles, userParam runs sorted; FileMerger_9 (FileMerger.cpp:385-406 at topp 174b576) reproduced by merge. Tier 3: TraMLFile_test.cpp store/equal/assign/add/isSemanticallyValid. Tier 4: dropped-data refusal, routing, limits, escaping. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test traml`: 13 passed.",
+  "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:963-964 (FileMerger_9), 1688-1689 (OpenSwathDecoyGenerator_test_1), 1736-1864 (TargetedFileConverter)"
+}

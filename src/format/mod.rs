@@ -208,3 +208,9 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+/// HUPO PSI TraML transition lists (`TraMLFile.h`).
+#[cfg(feature = "traml")]
+pub mod traml;
+/// The TraML reader and writer (`HANDLERS/TraMLHandler.h`).
+#[cfg(feature = "traml")]
+pub mod traml_handler;
