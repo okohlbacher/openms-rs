@@ -71,6 +71,21 @@
    "path": "src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h",
    "sha256": "3134c07bdbd5a4faec1d18d91b4ea54abcc0aa811c643b74249811385724e9cb",
    "url": "https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DTAFile.h",
+   "sha256": "ca105c52973bb781e0d8f0040a0f8e4f170430afe3a9bb65aedd2b44513ca382",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/include/OpenMS/FORMAT/DTAFile.h"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DTAFile.cpp",
+   "sha256": "c4f9d317f3b8437c23586078112997f2e81b593f2e8685fc4817be06a7da3d4a",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/DTAFile.cpp"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/DTAFile_test.cpp",
+   "sha256": "968bab5d16e3e00e909ca8a4e6a0610f4120c17f0bc6ca43e9382b82d3c5a2b5",
+   "url": "https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/tests/class_tests/openms/source/DTAFile_test.cpp"
   }
  ],
  "fixtures": [
@@ -121,6 +136,14 @@
    "bytes": 313,
    "origin": "written by the OpenMS4 Release build's DTA2DFile::storeTIC (core bc9cc12) on ibminode06 from DTA2DFile_test_1.dta2d; three repetitions and both logger modes byte-identical",
    "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/text_peak_lists/DTAFile_test.dta",
+   "source": "src/tests/class_tests/openms/data/DTAFile_test.dta",
+   "sha256": "8ceb7d33d780330cdafbf7b0c82e333e149d3a130a72162301bb82a2c61b6f9d",
+   "bytes": 407,
+   "nonempty_lines": 26,
+   "peak_rows": 25
   }
  ],
  "reference_test": "tests/text_peak_lists.rs",
@@ -166,7 +189,8 @@
   "direct f32 parsing rather than f64 double rounding",
   "filtered/discarded input resource charging",
   "native writer loss-prevention preflight and flush errors",
-  "MS1-only TIC and explicit unconsumed metadata projection"
+  "MS1-only TIC and explicit unconsumed metadata projection",
+  "DTA line splitting on a tab or single spaces, and store/load without a precursor"
  ],
  "native_differences": [
   "Malformed short DTA2D headers return checked errors instead of indexing beyond source vector.",

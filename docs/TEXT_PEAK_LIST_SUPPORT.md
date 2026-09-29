@@ -1,4 +1,4 @@
-# MS2 and DTA2D peak lists
+# DTA, MS2 and DTA2D peak lists
 
 `format::ms2` and `format::dta2d` provide buffered `read`, `read_with_options`,
 atomic `read_into`/`read_into_with_options`, `load`/`load_with_options`, and
@@ -38,6 +38,43 @@ dependency or external converter is involved.
 `:1159-1165`, and both class tests), and this crate has one experiment type,
 so the port fixes `MapType` to `MSExperiment` rather than inventing a trait
 with one implementor.
+
+## DTA
+
+`format::dta` ports `FORMAT/DTAFile.h`, the single-spectrum DTA file: its
+`load` template is `dta::load` (path) and `dta::read` (stream), its `store`
+template `dta::store`/`store_with_options` (path) and `write`,
+`write_with_options`, `write_with_convention` (stream). The constructor and
+destructor have no counterpart, since the class's only member,
+`default_ms_level_`, is set to 2 by the constructor (`DTAFile.cpp:16-19`) and
+changed by nothing; it is the constant `dta::DEFAULT_MS_LEVEL`.
+`SpectrumType` is `MSSpectrum`, the only instantiation in the pinned source
+(`FileHandler.cpp:796`, `:832`, `:873`, `:1155`).
+
+- **Reading.** The first line is the MH+ mass and the charge; a charge of 0
+  keeps the mass as the precursor m/z, any other charge `z` gives
+  `(MH+ - PROTON_MASS_U) / z + PROTON_MASS_U` (`DTAFile.h:118-126`). Every
+  line is trimmed of spaces, tabs, CR and LF, split on a tab if it has one and
+  on single spaces otherwise, and must give exactly two fields, whose
+  surrounding whitespace the number conversion skips (`StringUtils::toDouble`,
+  `toInt32`). Two adjacent spaces therefore make a line of three fields and a
+  parse error, as in the source. Blank lines after the first are skipped.
+  `dta::load` names the spectrum after the file's base name
+  (`DTAFile.h:164`); a stream read leaves the name empty. Nonfinite values are
+  a checked parse error, where the source would store them.
+- **Writing.** The numeric text, the two mass conventions and the lossless
+  default with `WriteOptions::source()` for the source's silent discard are
+  described in the `format::dta` module documentation. `store_with_options`
+  produces and checks the text before it creates the file, so a refused
+  spectrum leaves no file; the source creates the file first. The source's
+  `std::cerr` warning when it drops a second precursor has no counterpart; the
+  default refuses that spectrum instead.
+- **Evidence.** `DTAFile_test.cpp`'s load and store sections are
+  `dta_class_test_load` and `dta_class_test_store` (tier 3, with the class
+  tests' `TEST_REAL_SIMILAR` tolerances); the line splitting is
+  `dta_lines_split_as_the_source_splits_them` (tier 4 from `DTAFile.h:87-160`
+  and `StringUtils.cpp`). The writer's text is tier 1 through DTAExtractor
+  (`tests/topp_dta_extractor.rs`, `docs/TOPP_CLI_SUPPORT.md`).
 
 ## MS2 conventions
 

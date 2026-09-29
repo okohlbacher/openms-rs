@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-use openms::format::{dta2d, ms2};
+use openms::format::{dta, dta2d, ms2};
 use openms::{MSExperiment, MSSpectrum, Peak1D, Precursor};
 use std::io::{self, Cursor, Write};
 const MS2: &[u8] = include_bytes!("data/text_peak_lists/MS2File_test_spectra.ms2");
@@ -589,4 +589,183 @@ fn path_loads_record_the_loaded_file_path_and_type() {
         ms2::load(data_path("missing.ms2")),
         Err(openms::Error::Io(_))
     ));
+}
+
+/// `TEST_REAL_SIMILAR` with the class tests' default tolerances: similar when
+/// the relative difference is at most 1e-5 or the absolute one at most 1e-5.
+fn similar(actual: f64, expected: f64) -> bool {
+    let absolute = (actual - expected).abs();
+    absolute <= 1e-5 || absolute <= 1e-5 * expected.abs().max(actual.abs())
+}
+
+fn temp_path(name: &str) -> std::path::PathBuf {
+    std::env::temp_dir().join(format!("openms-dta-{}-{name}", std::process::id()))
+}
+
+/// `DTAFile_test.cpp:26-265`, both halves (the source loads the same file into
+/// a templated and a plain spectrum): 25 peaks, the precursor recomputed from
+/// MH+ 1745.22 and charge 3, MS level 2, and the file's base name as the
+/// spectrum's name (`DTAFile.h:164`).
+#[test]
+fn dta_class_test_load() {
+    let path = data_path("DTAFile_test.dta");
+    let s = dta::load(&path).unwrap();
+    assert_eq!(s.name, "DTAFile_test.dta");
+    assert_eq!(s.ms_level, dta::DEFAULT_MS_LEVEL);
+    assert_eq!(s.ms_level, 2);
+    assert_eq!(s.precursors.len(), 1);
+    assert!(
+        similar(s.precursors[0].mz, 582.40666),
+        "{}",
+        s.precursors[0].mz
+    );
+    assert!(
+        similar(s.precursors[0].mz, 582.4066),
+        "{}",
+        s.precursors[0].mz
+    );
+    assert_eq!(s.precursors[0].charge, 3);
+    let expected = [
+        (139.42, 318.52),
+        (149.93, 61870.99),
+        (169.65, 62074.22),
+        (189.30, 53737.85),
+        (202.28, 49410.25),
+        (207.82, 17038.71),
+        (219.72, 73629.98),
+        (230.02, 47218.89),
+        (231.51, 89935.22),
+        (263.88, 81685.67),
+        (318.38, 11876.49),
+        (362.22, 91984.30),
+        (389.84, 35049.17),
+        (489.86, 55259.42),
+        (508.47, 63411.68),
+        (521.44, 42096.49),
+        (546.98, 7133.92),
+        (562.72, 47540.11),
+        (579.61, 63350.29),
+        (600.60, 29075.85),
+        (628.64, 41030.62),
+        (629.66, 51153.79),
+        (630.37, 31411.63),
+        (652.64, 26967.56),
+        (712.18, 29235.72),
+    ];
+    assert_eq!(s.peaks.len(), 25);
+    for (peak, (mz, intensity)) in s.peaks.iter().zip(expected) {
+        assert!(similar(peak.mz, mz), "{} {mz}", peak.mz);
+        assert!(
+            similar(f64::from(peak.intensity), intensity),
+            "{} {intensity}",
+            peak.intensity
+        );
+    }
+    // The stream form is the same spectrum without the name.
+    let read = dta::read(std::io::BufReader::new(std::fs::File::open(&path).unwrap())).unwrap();
+    assert!(read.name.is_empty());
+    assert_eq!(read.peaks, s.peaks);
+    assert_eq!(read.precursors, s.precursors);
+    // `TEST_EXCEPTION(Exception::FileNotFound, f1.load("data_Idontexist", s))`.
+    assert!(matches!(
+        dta::load("data_Idontexist"),
+        Err(openms::Error::Io(_))
+    ));
+}
+
+/// `DTAFile_test.cpp:266-340`: a stored spectrum loads back with its
+/// precursor and peaks, with and without a precursor, in the default and in
+/// the source mode (whose legacy 1.0 Da proton mass moves the charge-3
+/// precursor by 7.3 mDa, still within `TEST_REAL_SIMILAR`).
+#[test]
+fn dta_class_test_store() {
+    let peaks = vec![
+        Peak1D::new(11.4, 11.5),
+        Peak1D::new(12.4, 12.5),
+        Peak1D::new(13.4, 13.5),
+    ];
+    let with_precursor = MSSpectrum {
+        precursors: vec![Precursor::new(582.40666, 3)],
+        peaks: peaks.clone(),
+        ..Default::default()
+    };
+    let without = MSSpectrum {
+        peaks,
+        ..Default::default()
+    };
+    let path = temp_path("store.dta");
+    for options in [dta::WriteOptions::default(), dta::WriteOptions::source()] {
+        dta::store_with_options(&path, &with_precursor, &options).unwrap();
+        let loaded = dta::load(&path).unwrap();
+        assert_eq!(loaded.precursors.len(), 1);
+        assert!(similar(loaded.precursors[0].mz, 582.40666));
+        assert_eq!(loaded.precursors[0].charge, 3);
+        assert_eq!(loaded.peaks.len(), 3);
+        for (peak, (mz, intensity)) in
+            loaded
+                .peaks
+                .iter()
+                .zip([(11.4, 11.5), (12.4, 12.5), (13.4, 13.5)])
+        {
+            assert!(similar(peak.mz, mz));
+            assert!(similar(f64::from(peak.intensity), intensity));
+        }
+        dta::store_with_options(&path, &without, &options).unwrap();
+        let loaded = dta::load(&path).unwrap();
+        assert_eq!(loaded.peaks.len(), 3);
+        // The source writes a default precursor, "0 0", for a spectrum without one.
+        assert_eq!(loaded.precursors, [Precursor::new(0., 0)]);
+    }
+    // The default mode is the reader's exact inverse up to the text's precision.
+    dta::store(&path, &with_precursor).unwrap();
+    assert!((dta::load(&path).unwrap().precursors[0].mz - 582.40666).abs() < 1e-9);
+    // A refused spectrum creates no file.
+    std::fs::remove_file(&path).unwrap();
+    let mut two = with_precursor.clone();
+    two.precursors.push(Precursor::new(100., 1));
+    assert!(dta::store(&path, &two).is_err());
+    assert!(!path.exists());
+    dta::store_with_options(&path, &two, &dta::WriteOptions::source()).unwrap();
+    std::fs::remove_file(&path).unwrap();
+}
+
+/// `DTAFile.h:87-160`: a line is trimmed and split on a tab when it has one,
+/// otherwise on single spaces, and must give exactly two fields; the number
+/// conversion (`StringUtils::toDouble`/`toInt32`) skips surrounding spaces,
+/// tabs, CR and LF.
+#[test]
+fn dta_lines_split_as_the_source_splits_them() {
+    let ok = |text: &str| dta::read(text.as_bytes()).unwrap();
+    let s = ok("1745.22\t 3\r\n139.42 \t318.52\n\n  \t \n149.93\t61870.99 \n");
+    assert_eq!(s.precursors[0].charge, 3);
+    assert_eq!(
+        s.peaks,
+        [Peak1D::new(139.42, 318.52), Peak1D::new(149.93, 61870.99)]
+    );
+    assert_eq!(
+        ok("500 +2\n").precursors,
+        [Precursor::new(
+            (500. - openms::chemistry::PROTON_MASS_U) / 2. + openms::chemistry::PROTON_MASS_U,
+            2
+        )]
+    );
+    assert_eq!(ok("500 0\n").precursors, [Precursor::new(500., 0)]);
+    for bad in [
+        "",
+        "\n1 2\n",
+        "500  2\n",
+        "500 2 1\n",
+        "500 2.5\n",
+        "500 2\n1  2\n",
+        "500 2\n1 2 3\n",
+        "500 2\n1\n",
+        "500 2\n1 x\n",
+        "500 2\n1\t\t2\n",
+    ] {
+        let error = dta::read(bad.as_bytes()).unwrap_err();
+        assert!(
+            matches!(error, openms::Error::Parse { .. }),
+            "{bad:?}: {error:?}"
+        );
+    }
 }
