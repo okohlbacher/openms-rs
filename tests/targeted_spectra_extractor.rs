@@ -39,6 +39,7 @@ fn set(param: &mut Param, key: &str, value: ParamValue) {
 }
 
 /// The parameters most class-test sections set.
+#[cfg(feature = "mzml")]
 fn class_test_extractor(extra: &[(&str, ParamValue)]) -> TargetedSpectraExtractor {
     let mut params = TargetedSpectraExtractor::new().unwrap().to_param().unwrap();
     set(
