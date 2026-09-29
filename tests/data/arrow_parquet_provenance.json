@@ -5,7 +5,7 @@
  "license": "BSD-3-Clause",
  "method": "Executed differential: four oracle drivers link the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06, each run twice in a clean environment with byte-identical records; the Rust tests transcribe the records and read the Parquet files the executed library wrote, plus the retained C++-written TOPP fixture bundles. ParquetFilter is transcribed from its upstream class test.",
  "evidence_tier": "1 (executed differential; ParquetFilter tier 3, source review of the class test)",
- "reference_tools": "../oracle/F1a-arrow, ../oracle/F1a-arrow2, ../oracle/F1a-protein, ../oracle/F1a-features (driver.cpp, node.sh, run.sh)",
+ "reference_tools": "../oracle/F1a-arrow, ../oracle/F1a-arrow2, ../oracle/F1a-protein, ../oracle/F1a-features (driver.cpp, node.sh, run.sh), ../oracle/integ-F-psmarrowio (driver.cpp, remote_run.sh, run.sh; wave-4 integration)",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FORMAT/ArrowIOHelpers.h",
@@ -347,6 +347,76 @@
    "path": "tests/data/arrow_parquet/pia_search_params_defs.parquet",
    "sha256": "3e01ac3ce050c24822398e8663a554750ed5b70ff409e048d314e7e89b2d085c",
    "kind": "Parquet file written by the executed Release build, oracle part 3 (ProteinIdentificationArrowIO export)"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/cpp_release_records.tsv",
+   "sha256": "525c2e5742fedd9c39e663f4bb0d1d7f39e3d57746c07156e11a7001fd88e157",
+   "kind": "Records written by the executed Release build, oracle integ-F-psmarrowio (PSMArrowIO import)"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/cpp_release_stderr.txt",
+   "sha256": "1237d26452494e9a7cbbb0b57cbfd786de805884a16b40b73dbb18c921d9ab74",
+   "kind": "Log lines written by the executed Release build, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/protein_groups.parquet",
+   "sha256": "e6781a92c373236cf3ca6e52394c1b74b08a4c3897ca6b834d9579d219dabb6b",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/proteins.parquet",
+   "sha256": "1292be59eca9526f6dc84d360968f453e8aca89b19183c4eb931d8206c053726",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/psms.parquet",
+   "sha256": "b92fedc3e665c98e02b2067c0904a81d1e87d743afac8a37b0a6d7b12a58b6b4",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/search_params.parquet",
+   "sha256": "9135f01f83084cb14db18a80048870d44f4092a013b5cfaee175413f673575dd",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/protein_groups.parquet",
+   "sha256": "9433791aec31518a2cecc1b772f6e2577de48a9ad490ab4d5e6e5602346d5996",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/proteins.parquet",
+   "sha256": "75586af4499122c2f26fbefb8933cf3202a330e58d6a7e59ced04dc9cb93a829",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/psms.parquet",
+   "sha256": "cba0c07fe1fe20be1b10f52fd598003c02f00edf8ca76da4b12b8c65ac03fe8a",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/search_params.parquet",
+   "sha256": "5691c5a207178b6378951bdaeac29e72213f140bac50511767cf0e530fa10f92",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/protein_groups.parquet",
+   "sha256": "135becc06b49d078b2991d5d5aff16c3283ae349ad77ab255ee82aa9f7493a72",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/proteins.parquet",
+   "sha256": "f79c91d3ad4c021d8c300f85aed3939e14f7adedc8717e363a4b1265c35e1ca2",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/psms.parquet",
+   "sha256": "42015b387271b7f4a81ede34071339880987db883d1a8b2c08c5dc3362bd021f",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/search_params.parquet",
+   "sha256": "da8fc3e60129896dbd75198c9d2f4c5e9f1e38d4a4212dfe9bc89f255b3b8ee9",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
   }
  ],
  "native_implementation": [
@@ -510,8 +580,50 @@
    "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
    "location": "outside this repository",
    "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/driver.cpp",
+   "sha256": "1bb5ddd2c74d0d09a45ecd7a9dc8b0cce4c167867576b2684f3dbdb3cf8f9af5",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/remote_run.sh",
+   "sha256": "2bc9c87a9da9203ed09c4a2c18d5651d1a683db7eafc58b73aea976929630721",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/run.sh",
+   "sha256": "7c8d20da30cb3327b5b249f60e367e5518b85a8a8889c24d2b9c45dc8701ca79",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/hashes.txt",
+   "sha256": "b427ae0b20b4c28ca1ff4c9b71e4b99216e9f889fb6f2a2704854c8e9275ac8a",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/records.tsv",
+   "sha256": "525c2e5742fedd9c39e663f4bb0d1d7f39e3d57746c07156e11a7001fd88e157",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/host.txt",
+   "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/stderr.txt",
+   "sha256": "1237d26452494e9a7cbbb0b57cbfd786de805884a16b40b73dbb18c921d9ab74",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
   }
  ],
  "external_reference_note": "The oracle drivers are C++ and stay outside the repository; their records were copied verbatim into tests/data/arrow_parquet/ (hashes above), and results/hashes.txt of each oracle hashes the driver, the built binary, libOpenMS.so and every file it wrote. The C++-written pia_*.parquet files embed a fresh uuid and creation_date per run, so the two runs of oracle part 3 differ in those files only; the records are identical.",
- "psm_arrow_io_note": "PSMArrowIO (wave-4 integration, INTEG-F): tests/psm_arrow_io.rs ports every section of PSMArrowIO_test.cpp (tier 3) and imports the C++-written test-data fixtures IDMerger_idparquet_input1/2.idparquet (already listed under fixtures), which topp/CMakeLists.txt:178 at test-data 0cb15f2 records as written by IDFileConverter from topp/IDMerger_1_input1.idXML (sha256 3621364be45a069a2bd4224832231e1608528c098accdc1ede1aa83003de3cdd) and topp/IDMerger_1_input2.idXML (sha256 a7ece5d0cec93d55c9b43ed53a456222c8f73035be78a6995b069ae742d390eb); the expected identifications are transcribed from those two idXML files, and the retained topp/IDMerger_idparquet_output.idXML (sha256 0fa0bf1a78d3dab97b0474cf62bdaa5f47451ad0224a253a338df7bac42d1c73, the C++ import merged by IDMerger, which sorts hits) shows the same hits. No C++ was executed for PSMArrowIO itself."
+ "psm_arrow_io_note": "PSMArrowIO (wave-4 integration, INTEG-F): tests/psm_arrow_io.rs ports every section of PSMArrowIO_test.cpp (tier 3) and imports the C++-written test-data fixtures IDMerger_idparquet_input1/2.idparquet (already listed under fixtures), which topp/CMakeLists.txt:178 at test-data 0cb15f2 records as written by IDFileConverter from topp/IDMerger_1_input1.idXML (sha256 3621364be45a069a2bd4224832231e1608528c098accdc1ede1aa83003de3cdd) and topp/IDMerger_1_input2.idXML (sha256 a7ece5d0cec93d55c9b43ed53a456222c8f73035be78a6995b069ae742d390eb); the expected identifications are transcribed from those two idXML files, and the retained topp/IDMerger_idparquet_output.idXML (sha256 0fa0bf1a78d3dab97b0474cf62bdaa5f47451ad0224a253a338df7bac42d1c73, the C++ import merged by IDMerger, which sorts hits) shows the same hits. Tier 1: ../oracle/integ-F-psmarrowio links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (run twice, identical records): PSMArrowIO::importFromParquet of the four C++-written idparquet fixtures and of the Release build's own exportToParquet bundles of the class test's minimal, decoy and multi-rank sets, field for field (tests/data/psm_arrow_io/cpp_release_records.tsv, cpp_release_stderr.txt and export_*/, verbatim; the bundles embed a fresh uuid and creation_date per run)."
 }

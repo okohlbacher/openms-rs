@@ -18,8 +18,11 @@
 //!   identifications, which are transcribed here; the retained
 //!   `IDMerger_idparquet_output.idXML` (the C++ import, merged by IDMerger,
 //!   which sorts each identification's hits, `IDMerger.cpp:411`) shows the same
-//!   hits, scores, charges and protein references. The other two are checked
+//!   hits, scores, charges and protein references. All four are also checked
 //!   against the format's own invariants (tier 4).
+//! * **Executed differential** (tier 1, below): what the Linux x86_64 Release
+//!   build's `PSMArrowIO` imports from those four fixtures and from its own
+//!   bundles of the class-test data, field for field.
 #![cfg(feature = "arrow")]
 
 use arrow_array::cast::AsArray;
@@ -29,13 +32,14 @@ use openms::Error;
 use openms::chemistry::{
     AASequence, EmpiricalFormula, ModificationRecord, ModificationsDB, ResidueModification,
 };
+use openms::data_structures::datetime::DateTime;
 use openms::format::arrow_io_helpers::ParquetWriteConfig;
 use openms::format::parquet_file::ParquetFile;
 use openms::format::psm_arrow_io::{PROTEIN_GROUPS, PROTEINS, PSMArrowIO, PSMS, SEARCH_PARAMS};
 use openms::identification::{
     FlankingResidue, PeptideEvidence, PeptideHit, PeptideIdentification, ProteinIdentification,
 };
-use openms::metadata::MetaValue;
+use openms::metadata::{MetaValue, MetaValueData};
 use openms::system::file::TempDir;
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -268,10 +272,8 @@ fn empty_psms_round_trips() {
     assert_eq!(prot_ids_in.len(), 1);
 }
 
-// START_SECTION(([EXTRA] decoy_round_trips))
-#[test]
-fn decoy_round_trips() {
-    // Build a single decoy PSM (target_decoy=decoy) and verify is_decoy round-trips.
+/// The class test's decoy data set: a single decoy PSM (target_decoy=decoy).
+fn decoy_ids() -> (Vec<ProteinIdentification>, Vec<PeptideIdentification>) {
     let prot_ids = vec![ProteinIdentification {
         identifier: "run_decoy".into(),
         score_type: "score".into(),
@@ -296,6 +298,14 @@ fn decoy_round_trips() {
         hits: vec![hit],
         ..PeptideIdentification::default()
     }];
+    (prot_ids, pep_ids)
+}
+
+// START_SECTION(([EXTRA] decoy_round_trips))
+#[test]
+fn decoy_round_trips() {
+    // Build a single decoy PSM (target_decoy=decoy) and verify is_decoy round-trips.
+    let (prot_ids, pep_ids) = decoy_ids();
     let tmp = TempDir::new(false).unwrap();
     let dir = new_dir(&tmp, "decoy");
 
@@ -315,10 +325,9 @@ fn decoy_round_trips() {
     );
 }
 
-// START_SECTION(([EXTRA] multi_rank_round_trips))
-#[test]
-fn multi_rank_round_trips() {
-    // A PID with three rank-ordered PSMs: all three survive the round trip.
+/// The class test's multi-rank data set: one identification with three
+/// rank-ordered PSMs.
+fn multi_rank_ids() -> (Vec<ProteinIdentification>, Vec<PeptideIdentification>) {
     let prot_ids = vec![ProteinIdentification {
         identifier: "run_multirank".into(),
         score_type: "score".into(),
@@ -345,7 +354,14 @@ fn multi_rank_round_trips() {
         });
         pid.hits.push(hit);
     }
-    let pep_ids = vec![pid];
+    (prot_ids, vec![pid])
+}
+
+// START_SECTION(([EXTRA] multi_rank_round_trips))
+#[test]
+fn multi_rank_round_trips() {
+    // A PID with three rank-ordered PSMs: all three survive the round trip.
+    let (prot_ids, pep_ids) = multi_rank_ids();
     let tmp = TempDir::new(false).unwrap();
     let dir = new_dir(&tmp, "multirank");
 
@@ -684,5 +700,335 @@ fn import_of_a_missing_directory_is_refused() {
             format!("PSMArrowIO: not a directory: {}", dir.display())
         ),
         other => panic!("expected the not-a-directory refusal, got {other:?}"),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Executed differential against the Linux x86_64 Release build
+// ---------------------------------------------------------------------------
+//
+// `tests/data/psm_arrow_io/cpp_release_records.tsv`, `cpp_release_stderr.txt`
+// and the three bundles `tests/data/psm_arrow_io/export_{minimal,decoy,multirank}`
+// were produced by the oracle driver `../oracle/integ-F-psmarrowio` (outside
+// the repository) linking the Linux x86_64 Release install
+// `openms4-release-bc9cc12-c19e494-174b576` on ibminode06, run twice with
+// identical records. The driver imports the four C++-written fixtures with
+// `PSMArrowIO::importFromParquet` and records every field below; it also
+// exports the class test's minimal, decoy and multi-rank sets with
+// `PSMArrowIO::exportToParquet` and records their re-import. Doubles are the
+// hex of their bits; a run identifier is recorded without its trailing
+// `_<unique id>`.
+
+fn release_records() -> Vec<(String, String, String)> {
+    let text = std::fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/psm_arrow_io/cpp_release_records.tsv"),
+    )
+    .unwrap();
+    text.lines()
+        .map(|line| {
+            let mut parts = line.splitn(3, '\t');
+            let set = parts.next().unwrap().to_owned();
+            let key = parts.next().unwrap().to_owned();
+            let value = unescape(parts.next().unwrap_or(""));
+            (set, key, value)
+        })
+        .collect()
+}
+
+/// The driver's `esc` undone (`\t`, `\n`, `\\`, `\xNN`).
+fn unescape(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'\\' && i + 1 < bytes.len() {
+            match bytes[i + 1] {
+                b't' => out.push(b'\t'),
+                b'n' => out.push(b'\n'),
+                b'\\' => out.push(b'\\'),
+                b'x' if i + 3 < bytes.len() => {
+                    let hex = std::str::from_utf8(&bytes[i + 2..i + 4]).unwrap();
+                    out.push(u8::from_str_radix(hex, 16).unwrap());
+                    i += 4;
+                    continue;
+                }
+                other => {
+                    out.push(b'\\');
+                    out.push(other);
+                }
+            }
+            i += 2;
+        } else {
+            out.push(bytes[i]);
+            i += 1;
+        }
+    }
+    String::from_utf8(out).unwrap()
+}
+
+fn bits(value: f64) -> String {
+    format!("{:016x}", value.to_bits())
+}
+
+fn meta_value(value: &MetaValue) -> String {
+    match value.data() {
+        MetaValueData::Empty => "e:".to_owned(),
+        MetaValueData::String(s) => format!("s:{s}"),
+        MetaValueData::Integer(i) => format!("i:{i}"),
+        MetaValueData::Float(f) => format!("d:{}", bits(*f)),
+        MetaValueData::StringList(l) => {
+            format!(
+                "sl:{}",
+                l.iter().map(|s| format!("{s}|")).collect::<String>()
+            )
+        }
+        MetaValueData::IntegerList(l) => {
+            format!(
+                "il:{}",
+                l.iter().map(|i| format!("{i}|")).collect::<String>()
+            )
+        }
+        MetaValueData::FloatList(l) => format!(
+            "dl:{}",
+            l.iter()
+                .map(|f| format!("{}|", bits(*f)))
+                .collect::<String>()
+        ),
+    }
+}
+
+fn flank(residue: FlankingResidue) -> char {
+    match residue {
+        FlankingResidue::Unknown => 'X',
+        FlankingResidue::NTerminus => '[',
+        FlankingResidue::CTerminus => ']',
+        FlankingResidue::Residue(c) => c,
+    }
+}
+
+fn position(value: Option<usize>) -> String {
+    value.map_or_else(|| "-1".to_owned(), |v| v.to_string())
+}
+
+type Records = Vec<(String, String, String)>;
+
+/// The driver's `dump`, field for field.
+fn records_of(
+    set: &str,
+    proteins: &[ProteinIdentification],
+    peptides: &[PeptideIdentification],
+) -> Records {
+    let mut out = Vec::new();
+    let mut rec = |key: String, value: String| out.push((set.to_owned(), key, value));
+    rec("runs".into(), proteins.len().to_string());
+    for (i, p) in proteins.iter().enumerate() {
+        let k = format!("run{i}");
+        let id = match p.identifier.rfind('_') {
+            Some(pos) => p.identifier[..pos].to_owned(),
+            None => format!("{}|nounderscore", p.identifier),
+        };
+        rec(format!("{k}.id"), id);
+        rec(format!("{k}.engine"), p.search_engine.clone());
+        rec(
+            format!("{k}.engine_version"),
+            p.search_engine_version.clone(),
+        );
+        let date = p
+            .date_time
+            .as_deref()
+            .and_then(|text| DateTime::parse(text).ok())
+            .filter(|date| date.is_valid())
+            .and_then(|date| date.format("yyyy-MM-ddThh:mm:ss").ok())
+            .unwrap_or_else(|| "invalid".to_owned());
+        rec(format!("{k}.date"), date);
+        rec(format!("{k}.score_type"), p.score_type.clone());
+        let hsb = if p.higher_score_better { "1" } else { "0" };
+        rec(format!("{k}.hsb"), hsb.into());
+        rec(format!("{k}.threshold"), bits(p.significance_threshold));
+        rec(
+            format!("{k}.enzyme"),
+            p.search_parameters.digestion_enzyme.clone(),
+        );
+        rec(
+            format!("{k}.paths"),
+            p.primary_ms_run_paths
+                .iter()
+                .map(|s| format!("{s}|"))
+                .collect(),
+        );
+        rec(format!("{k}.hits"), p.hits.len().to_string());
+        for (j, h) in p.hits.iter().enumerate() {
+            rec(
+                format!("{k}.hit{j}"),
+                format!("{}|{}", h.accession, bits(h.score)),
+            );
+        }
+    }
+    rec("peps".into(), peptides.len().to_string());
+    for (n, pep) in peptides.iter().enumerate() {
+        let k = format!("pep{n}");
+        let run = proteins
+            .iter()
+            .position(|p| p.identifier == pep.identifier)
+            .map_or(-1, |i| i as i64);
+        rec(format!("{k}.run"), run.to_string());
+        rec(
+            format!("{k}.rt"),
+            pep.rt.map_or_else(|| "none".to_owned(), bits),
+        );
+        rec(
+            format!("{k}.mz"),
+            pep.mz.map_or_else(|| "none".to_owned(), bits),
+        );
+        rec(format!("{k}.score_type"), pep.score_type.clone());
+        let hsb = if pep.higher_score_better { "1" } else { "0" };
+        rec(format!("{k}.hsb"), hsb.into());
+        rec(format!("{k}.ref"), pep.spectrum_reference());
+        rec(format!("{k}.hits"), pep.hits.len().to_string());
+        for (j, h) in pep.hits.iter().enumerate() {
+            let hk = format!("{k}.h{j}");
+            rec(
+                hk.clone(),
+                format!("{}|{}|{}|{}", bits(h.score), h.sequence, h.charge, h.rank),
+            );
+            let evidences: String = h
+                .evidences
+                .iter()
+                .map(|e| {
+                    format!(
+                        "{},{},{},{},{};",
+                        e.protein_accession,
+                        flank(e.aa_before),
+                        flank(e.aa_after),
+                        position(e.start),
+                        position(e.end)
+                    )
+                })
+                .collect();
+            rec(format!("{hk}.ev"), evidences);
+            // The source keeps a hit's rank as its "rank" meta value
+            // (PeptideHit::getRank/setRank, PeptideHit.cpp:152-155 and
+            // 341-346: set only when nonzero); this crate keeps it as the
+            // `rank` field, so it is recorded among the meta values here.
+            let mut metadata = h.metadata.clone();
+            if h.rank != 0 && !metadata.contains_key("rank") {
+                metadata.insert("rank".into(), i64::from(h.rank).into());
+            }
+            let metas: String = metadata
+                .iter()
+                .map(|(key, value)| format!("{key}={};", meta_value(value)))
+                .collect();
+            rec(format!("{hk}.meta"), metas);
+        }
+    }
+    out
+}
+
+fn release_set(set: &str) -> Records {
+    release_records()
+        .into_iter()
+        .filter(|(s, k, _)| s == set && k != "ok" && k != "export_ok")
+        .collect()
+}
+
+fn assert_records(expected: &Records, actual: &Records) {
+    for (e, a) in expected.iter().zip(actual) {
+        assert_eq!(e, a);
+    }
+    assert_eq!(expected.len(), actual.len(), "{}", expected[0].0);
+}
+
+/// The four C++-written fixtures import as the Release build imports them,
+/// with QPXFile's warnings in the order the Release build logged them.
+#[test]
+fn fixtures_import_as_the_release_build_imports_them() {
+    let records = release_records();
+    let mut warnings = Vec::new();
+    for (set, bundle) in [
+        (
+            "IDMerger_idparquet_input1.idparquet",
+            "IDMerger_idparquet_input1.idparquet",
+        ),
+        (
+            "IDMerger_idparquet_input2.idparquet",
+            "IDMerger_idparquet_input2.idparquet",
+        ),
+        ("IDRipper_4_input.idparquet", "IDRipper_4_input.idparquet"),
+        (
+            "PercolatorAdapter_idparquet_in.idparquet",
+            "THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet",
+        ),
+    ] {
+        assert!(records.contains(&(set.to_owned(), "ok".to_owned(), "1".to_owned())));
+        let mut proteins = Vec::new();
+        let mut peptides = Vec::new();
+        warnings.extend(
+            PSMArrowIO::import_from_parquet(fixture(bundle), &mut proteins, &mut peptides).unwrap(),
+        );
+        assert_records(&release_set(set), &records_of(set, &proteins, &peptides));
+    }
+    let stderr = std::fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/psm_arrow_io/cpp_release_stderr.txt"),
+    )
+    .unwrap();
+    // Native difference, documented at the check in qpx_file.rs: the source
+    // gives B, Z and X an empty formula (ResidueDB.cpp:236, 239, 245), so it
+    // computes an m/z for such a peptidoform (each residue counting as -H2O)
+    // and compares it; this crate has no m/z for a residue without chemistry
+    // and does not compare. The Release build warned for exactly two such
+    // peptidoforms (IDRipper_4_input's BBBB... rows).
+    let without_chemistry = |line: &str| {
+        let peptidoform = line.split('\'').nth(1).unwrap_or("");
+        peptidoform.contains(['B', 'Z', 'X'])
+    };
+    let all: Vec<&str> = stderr
+        .lines()
+        .filter(|l| l.starts_with("QPXFile:"))
+        .collect();
+    assert_eq!(all.iter().filter(|l| without_chemistry(l)).count(), 2);
+    let cpp: Vec<&str> = all.into_iter().filter(|l| !without_chemistry(l)).collect();
+    let rust: Vec<&str> = warnings
+        .iter()
+        .map(String::as_str)
+        .filter(|l| l.starts_with("QPXFile:"))
+        .collect();
+    assert_eq!(rust, cpp);
+}
+
+/// The Release build's own bundles of the class-test data import here as
+/// they import there, and this port's bundles of the same data import to the
+/// same records.
+#[test]
+fn release_bundles_and_this_ports_bundles_import_alike() {
+    type Build = fn() -> (Vec<ProteinIdentification>, Vec<PeptideIdentification>);
+    let builders: [(&str, Build); 3] = [
+        ("minimal", build_minimal_ids),
+        ("decoy", decoy_ids),
+        ("multirank", multi_rank_ids),
+    ];
+    let records = release_records();
+    let tmp = TempDir::new(false).unwrap();
+    for (name, build) in builders {
+        let set = format!("export_{name}");
+        assert!(records.contains(&(set.clone(), "export_ok".to_owned(), "1".to_owned())));
+        let expected = release_set(&set);
+
+        let cpp_bundle = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/psm_arrow_io")
+            .join(&set);
+        let mut proteins = Vec::new();
+        let mut peptides = Vec::new();
+        PSMArrowIO::import_from_parquet(&cpp_bundle, &mut proteins, &mut peptides).unwrap();
+        assert_records(&expected, &records_of(&set, &proteins, &peptides));
+
+        let (prots, peps) = build();
+        let dir = new_dir(&tmp, name);
+        PSMArrowIO::export_to_parquet(&prots, &peps, &dir, true, &config()).unwrap();
+        let mut proteins = Vec::new();
+        let mut peptides = Vec::new();
+        PSMArrowIO::import_from_parquet(&dir, &mut proteins, &mut peptides).unwrap();
+        assert_records(&expected, &records_of(&set, &proteins, &peptides));
     }
 }

@@ -287,7 +287,7 @@ live outside the repository (`../oracle/F1a-arrow`, `F1a-arrow2`,
   the source reads them; orphaned subordinates and an empty table.
 * `tests/parquet_filter.rs` (19 tests, default build): every section of the
   upstream class test `ParquetFilter_test.cpp` (tier 3).
-* `tests/psm_arrow_io.rs` (14 tests, wave-4 integration): every section of
+* `tests/psm_arrow_io.rs` (16 tests, wave-4 integration): every section of
   the upstream class test `PSMArrowIO_test.cpp` (tier 3), including the
   peptidoform chemistry and definition registration; the C++-written
   `IDMerger_idparquet_input{1,2}.idparquet` fixtures, which the test-data
@@ -298,3 +298,17 @@ live outside the repository (`../oracle/F1a-arrow`, `F1a-arrow2`,
   shows them; all four C++-written idparquet fixtures import with the
   bundle's invariants (identifications per `peptide_identification_index`,
   hits per row, runs per search-parameter row, fresh identifiers; tier 4).
+  Tier 1: `../oracle/integ-F-psmarrowio` (ibminode06, Linux x86_64 Release
+  `openms4-release-bc9cc12-c19e494-174b576`, run twice, identical records)
+  records what the Release build's `importFromParquet` returns for the four
+  fixtures and for its own `exportToParquet` bundles of the class test's
+  minimal, decoy and multi-rank sets; the port imports the same fixtures and
+  the Release build's bundles (`tests/data/psm_arrow_io/`) to the same
+  records field for field (doubles by bits; the source keeps a hit's rank as
+  its `rank` meta value, `PeptideHit.cpp:152-155`, this crate as
+  `PeptideHit::rank`), logs the same QPXFile warnings except for peptidoforms
+  with B, Z or X (the source gives those residues an empty formula,
+  `ResidueDB.cpp:236-245`, and compares a mass counting each as -H2O; this
+  crate has no mass for them and does not compare, as documented at the check
+  in `qpx_file.rs`), and its own bundles of the same sets import to the same
+  records.
