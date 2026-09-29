@@ -361,3 +361,25 @@ pub mod msp_generic;
 pub mod sqmass_file;
 /// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
 pub(crate) mod string_utils;
+/// Read-only `acqus` parameters of a Bruker XMass spectrum (`AcqusHandler.h`).
+pub mod acqus_handler;
+/// Bruker timsTOF `.d` (TDF) reader (`BrukerTimsFile.h`): FRAME export and
+/// unaggregated DIA-PASEF export.
+#[cfg(feature = "bruker-tdf")]
+pub mod bruker_tims_file;
+/// Bruker timsTOF MALDI imaging `.d` reader (`BrukerTimsImagingFile.h`).
+#[cfg(all(feature = "bruker-tdf", feature = "mzml"))]
+pub mod bruker_tims_imaging_file;
+/// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
+pub mod fid_handler;
+/// IM-axis hill centroiding of one TIMS-PASEF frame (`PASEFHillCentroider.h`).
+pub mod pasef_hill_centroider;
+/// TIMS scan-index to 1/K0 conversion: the per-frame rational
+/// `TimsCalibration` model and the linear fallback (`RationalScan2ImConverter.h`).
+pub mod rational_scan2im_converter;
+/// Frame-level access to Bruker timsTOF `.d` data: the opentims layer under
+/// `BrukerTimsFile.h` (`TimsDataHandle`, frame codec, linear calibrations).
+#[cfg(feature = "bruker-tdf")]
+pub mod tims_data_handle;
+/// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
+pub mod xmass_file;
