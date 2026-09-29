@@ -54,7 +54,11 @@ Merged 0a7-51 (fast-forward, contains 0a7-34). Previous sweep (scratchpad/logs/s
 .planning/ledger-fragments/wave4/FF2b.json; report FF2b.md NOT written. Scratchpad is shared with other lanes: use
 scratchpad/FF2b-sweep2 as the log dir.
 
+## Restart 3 progress
+Added feature_map_mut/consensus_map_mut/blacklist_mut (d69bbf84) + test; ledger amended.
+MSRV slices measured (old tree): {} ff_multiplex 16 + spline 4; mzml filtering 7; mzml,paramxml algorithm 3;
+consensusxml,featurexml,mzml,paramxml topp 11. Slices derived via ci_matrix --write on a scratch copy (don't touch lead files).
+
 ## Next step
-1. Check Param shape (defaults/from_param/to_param) vs brief; re-run sweep into scratchpad/FF2b-sweep2.
-2. Measure slices: each new test file under --no-default-features --features <list>; MSRV +1.85.0.
-3. Write report .planning/lane-reports/FF2b.md (Bash heredoc); delete NOTES.md in final commit.
+1. Wait for sweep (task blhiisk9s, logs scratchpad/FF2b-sweep2) and gate b4f0bkes8 (S1b 17 tests, clippy, doc on HEAD).
+2. Write report .planning/lane-reports/FF2b.md (Bash heredoc); delete NOTES.md in final commit.
