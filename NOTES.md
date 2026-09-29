@@ -40,7 +40,10 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
   by (map_index, feature_index); Math::quantile(vector) = MathFunctions.h variant (id=max(0,n*q-1)), private helper;
   Adduct::toAdductString not ported -> private helper via element_table()+count (Unsupported for isotopes).
 
+- QT DONE (commits 6ae4eca8..ba454b11): QTClusterFinder partial (QT_5 tie order), FeatureGroupingAlgorithmQT complete.
+- Incarnation 3 (worktree-wf_a10fdd71-2d2-10): merged -52 (fast-forward, already contained -34).
+
 ## Next step
-1. Write src/analysis/mapmatching/qt_cluster_finder.rs + feature_grouping_algorithm_qt.rs, tests (QTClusterFinder_test,
-   FeatureGroupingAlgorithmQT_test) + tier 1 FeatureLinkerUnlabeledQT_* (CMakeLists lines TBD).
-2. Lane report at .planning/lane-reports/M2.md (write with Bash cat heredoc); delete NOTES.md in the final commit.
+1. LabeledPairFinder -> FeatureGroupingAlgorithmLabeled (class tests + FeatureLinkerLabeled TOPP retained outputs).
+2. FeatureGroupingAlgorithmKD (needs KDTree / FeatureMapping? check), FeatureMapping, WNetMatcher -> FeatureGroupingAlgorithmWNet, PipEchoAlgorithm.
+3. Lane report at .planning/lane-reports/M2.md (write with Bash cat heredoc); delete NOTES.md in the final commit.
