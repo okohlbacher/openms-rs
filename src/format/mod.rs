@@ -199,6 +199,10 @@ pub mod xic_parquet_file;
 /// OpenSWATH mobilogram Parquet files, `.xim` (`XIMParquetFile.h`).
 #[cfg(feature = "arrow")]
 pub mod xim_parquet_file;
+/// Targeted peak maps to `.xipm` Parquet
+/// (`DATAACCESS/XIPMParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod xipm_parquet_consumer;
 /// Extracted ion peak-map Parquet files, `.xipm` (`XIPMParquetFile.h`).
 #[cfg(feature = "arrow")]
 pub mod xipm_parquet_file;

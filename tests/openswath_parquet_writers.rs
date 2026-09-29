@@ -499,3 +499,288 @@ fn mobilogram_consumer_ipf_precursor_stays_target() {
     let none: [&str; 0] = [];
     assert_eq!(xim.analytes(&none, true).unwrap().len(), 1);
 }
+
+// ----------------------------------------------------- XIPMParquetConsumer ----
+
+use openms::analysis::openswath::openswath_helper::compute_precursor_id;
+use openms::analysis::openswath::peak_map_extractor::ExtractedPeakMap;
+use openms::format::xipm_parquet_consumer::XIPMParquetConsumer;
+use openms::format::xipm_parquet_file::{XipmParquetFile, XipmQuery};
+
+/// The class tests' `makeExperiment_`.
+fn xipm_library() -> LightTargetedExperiment {
+    let mut library = pep1_library();
+    library.compounds[0].rt = 100.0;
+    library.compounds[0].drift_time = 1.1;
+    library
+}
+
+/// `makeMixedIPFExperiment_`.
+fn xipm_ipf_library() -> LightTargetedExperiment {
+    let mut library = xipm_library();
+    let mut decoy = transition("tr1_ident_decoy", "pep1");
+    decoy.precursor_mz = 600.2;
+    decoy.product_mz = 501.2;
+    decoy.fragment_charge = 1;
+    decoy.fragment_nr = 3;
+    decoy.set_fragment_type("b");
+    decoy.set_detecting_transition(false);
+    decoy.set_identifying_transition(true);
+    decoy.set_decoy(true);
+    library.transitions.push(decoy);
+    library
+}
+
+/// `makeTransitionPeakMap_(native_id, target_mz, mz_values)`.
+fn transition_peak_map(native_id: &str, target_mz: f64, mz: &[f64]) -> ExtractedPeakMap {
+    ExtractedPeakMap {
+        native_id: native_id.into(),
+        target_mz,
+        target_rt: 100.0,
+        target_ion_mobility: 1.1,
+        rt_start: 95.0,
+        rt_end: 105.0,
+        mz: mz.to_vec(),
+        rt: vec![100.0; mz.len()],
+        ion_mobility: vec![1.05; mz.len()],
+        intensity: vec![1000.0; mz.len()],
+    }
+}
+
+/// `makeTransitionPeakMap_()`.
+fn tr1_peak_map() -> ExtractedPeakMap {
+    ExtractedPeakMap {
+        native_id: "tr1".into(),
+        target_mz: 500.2,
+        target_rt: 100.0,
+        target_ion_mobility: 1.1,
+        rt_start: 95.0,
+        rt_end: 105.0,
+        mz: vec![500.19, 500.20],
+        rt: vec![100.0, 101.0],
+        ion_mobility: vec![1.05, 1.08],
+        intensity: vec![1000.0, 900.0],
+    }
+}
+
+/// `makePrecursorPeakMap_()`.
+fn precursor_peak_map() -> ExtractedPeakMap {
+    ExtractedPeakMap {
+        native_id: compute_precursor_id("pep1", 0),
+        target_mz: 600.2,
+        target_rt: 100.0,
+        target_ion_mobility: 1.1,
+        rt_start: 95.0,
+        rt_end: 105.0,
+        mz: vec![600.19],
+        rt: vec![100.0],
+        ion_mobility: vec![1.06],
+        intensity: vec![500.0],
+    }
+}
+
+/// `writeTestFile_(run_id, source_file)` of `XIPMParquetFile_test.cpp`.
+fn write_xipm(test: &str) -> PathBuf {
+    let out = scratch(test).join("out.xipm");
+    let mut consumer = XIPMParquetConsumer::new(&out, &xipm_library());
+    consumer
+        .consume_peak_map(&tr1_peak_map(), 7, "run1.mzML", 2)
+        .unwrap();
+    consumer
+        .consume_peak_map(&precursor_peak_map(), 7, "run1.mzML", 1)
+        .unwrap();
+    consumer.finalize().unwrap();
+    out
+}
+
+/// `START_SECTION(XIPMParquetConsumer_basic_roundtrip)`.
+#[test]
+fn xipm_consumer_basic_roundtrip() {
+    let out = scratch("xipm-basic").join("out.xipm");
+    {
+        let mut consumer = XIPMParquetConsumer::new(&out, &xipm_library());
+        consumer
+            .consume_peak_map(&tr1_peak_map(), 7, "run1.mzML", 2)
+            .unwrap();
+        consumer
+            .consume_peak_map(&precursor_peak_map(), 7, "run1.mzML", 1)
+            .unwrap();
+    }
+    assert!(out.exists());
+    assert!(std::fs::metadata(&out).unwrap().len() > 0);
+    let peak_maps = XipmParquetFile::new(&out).unwrap().load().unwrap();
+    assert_eq!(peak_maps.len(), 2);
+    assert_eq!(peak_maps[0].target_rt, Some(100.0));
+    assert_eq!(peak_maps[1].target_rt, Some(100.0));
+}
+
+/// `START_SECTION(XIPMParquetConsumer_empty_file)`.
+#[test]
+fn xipm_consumer_empty_file() {
+    let out = scratch("xipm-empty").join("out.xipm");
+    {
+        let _consumer = XIPMParquetConsumer::new(&out, &xipm_library());
+    }
+    assert!(out.exists());
+}
+
+/// `START_SECTION(XIPMParquetConsumer_explicit_finalize_writes_file)`.
+#[test]
+fn xipm_consumer_explicit_finalize() {
+    let out = scratch("xipm-final").join("out.xipm");
+    {
+        let mut consumer = XIPMParquetConsumer::new(&out, &xipm_library());
+        consumer
+            .consume_peak_map(&tr1_peak_map(), 7, "run1.mzML", 2)
+            .unwrap();
+        consumer.finalize().unwrap();
+    }
+    assert!(out.exists());
+    assert!(std::fs::metadata(&out).unwrap().len() > 0);
+}
+
+/// `START_SECTION(XIPMParquetConsumer_mixed_target_and_decoy_identifying_transitions_keep_target_precursor_decoy)`.
+#[test]
+fn xipm_consumer_ipf_precursor_stays_target() {
+    let out = scratch("xipm-ipf").join("out.xipm");
+    {
+        let mut consumer = XIPMParquetConsumer::new(&out, &xipm_ipf_library());
+        consumer
+            .consume_peak_map(
+                &transition_peak_map("tr1", 500.2, &[500.19, 500.20]),
+                7,
+                "run1.mzML",
+                2,
+            )
+            .unwrap();
+        consumer
+            .consume_peak_map(
+                &transition_peak_map("tr1_ident_decoy", 501.2, &[501.19, 501.20]),
+                7,
+                "run1.mzML",
+                2,
+            )
+            .unwrap();
+    }
+    let peak_maps = XipmParquetFile::new(&out).unwrap().load().unwrap();
+    assert_eq!(peak_maps.len(), 2);
+    let mut product_decoy_zero = 0;
+    let mut product_decoy_one = 0;
+    for peak_map in &peak_maps {
+        assert_eq!(peak_map.precursor_decoy, Some(0));
+        match peak_map.product_decoy {
+            Some(0) => product_decoy_zero += 1,
+            Some(1) => product_decoy_one += 1,
+            other => panic!("product decoy {other:?}"),
+        }
+    }
+    assert_eq!(product_decoy_zero, 1);
+    assert_eq!(product_decoy_one, 1);
+}
+
+/// `XIPMParquetFile_test.cpp`, every section, on the file its
+/// `writeTestFile_` / `writeEmptyTestFile_` write.
+#[test]
+fn xipm_file_class_test_on_written_file() {
+    let file = write_xipm("xipm-file");
+    let xipm = XipmParquetFile::new(&file).unwrap();
+    // load
+    let peak_maps = xipm.load().unwrap();
+    assert_eq!(peak_maps.len(), 2);
+    assert_eq!(peak_maps[0].mz.len(), peak_maps[0].rt.len());
+    assert_eq!(peak_maps[0].mz.len(), peak_maps[0].ion_mobility.len());
+    assert_eq!(peak_maps[0].mz.len(), peak_maps[0].intensity.len());
+    assert_eq!(peak_maps[0].target_rt, Some(100.0));
+    // getPeakMaps(...filters...)
+    let precursor = xipm
+        .peak_maps(&XipmQuery {
+            ms_level: Some(1),
+            run_id: Some(7),
+            peakmap_type: "precursor".into(),
+            ..XipmQuery::default()
+        })
+        .unwrap();
+    assert_eq!(precursor.len(), 1);
+    assert_eq!(precursor[0].peakmap_type, "precursor");
+    let transition = xipm
+        .peak_maps(&XipmQuery {
+            transition_id: Some(1),
+            ms_level: Some(2),
+            run_id: Some(7),
+            peakmap_type: "transition".into(),
+            ..XipmQuery::default()
+        })
+        .unwrap();
+    assert_eq!(transition.len(), 1);
+    assert_eq!(transition[0].annotation, "y7^1");
+    assert_eq!(transition[0].target_rt, Some(100.0));
+    // getPeakMaps_multi_file
+    let multi = XipmParquetFile::from_files(&[&file, &file]).unwrap();
+    assert_eq!(multi.load().unwrap().len(), 4);
+    // getRuns
+    let runs = xipm.runs().unwrap();
+    assert_eq!(runs.len(), 1);
+    assert_eq!(runs[0].run_id, 7);
+    // getColumns
+    let columns = xipm.columns().unwrap();
+    for wanted in ["MZ_DATA", "RT_DATA", "MOBILITY_DATA", "TARGET_RT"] {
+        assert!(columns.iter().any(|c| c == wanted), "{wanted}");
+    }
+    // getPeakMaps_empty_file, getRuns_empty_file
+    let empty = scratch("xipm-file-empty").join("out.xipm");
+    XIPMParquetConsumer::new(&empty, &xipm_library())
+        .finalize()
+        .unwrap();
+    let empty = XipmParquetFile::new(&empty).unwrap();
+    assert!(empty.load().unwrap().is_empty());
+    assert!(empty.runs().unwrap().is_empty());
+}
+
+/// The file written here and the retained upstream `XIPMParquetFile_1_input.xipm`
+/// (the same two peak maps, written by the C++ consumer before TARGET_RT
+/// existed) decode to the same rows.
+#[test]
+fn xipm_written_matches_the_retained_cpp_xipm() {
+    let ours = XipmParquetFile::new(write_xipm("xipm-diff"))
+        .unwrap()
+        .load()
+        .unwrap();
+    let theirs = XipmParquetFile::new(data("XIPMParquetFile_1_input.xipm"))
+        .unwrap()
+        .load()
+        .unwrap();
+    assert_eq!(ours.len(), theirs.len());
+    for (a, b) in ours.iter().zip(&theirs) {
+        assert_eq!(a.run_id, b.run_id);
+        assert_eq!(a.source_file, b.source_file);
+        assert_eq!(a.ms_level, b.ms_level);
+        assert_eq!(a.peakmap_type, b.peakmap_type);
+        assert_eq!(a.precursor_id, b.precursor_id);
+        assert_eq!(a.transition_id, b.transition_id);
+        assert_eq!(a.modified_sequence, b.modified_sequence);
+        assert_eq!(a.precursor_charge, b.precursor_charge);
+        assert_eq!(a.product_charge, b.product_charge);
+        assert_eq!(a.detecting_transition, b.detecting_transition);
+        assert_eq!(a.precursor_decoy, b.precursor_decoy);
+        assert_eq!(a.product_decoy, b.product_decoy);
+        assert_eq!(a.transition_ordinal, b.transition_ordinal);
+        assert_eq!(a.transition_type, b.transition_type);
+        assert_eq!(a.annotation, b.annotation);
+        assert_eq!(a.target_mz.to_bits(), b.target_mz.to_bits());
+        assert_eq!(a.target_rt, b.target_rt);
+        assert_eq!(a.target_ion_mobility, b.target_ion_mobility);
+        assert_eq!(a.rt_start, b.rt_start);
+        assert_eq!(a.rt_end, b.rt_end);
+        for (x, y) in [
+            (&a.mz, &b.mz),
+            (&a.rt, &b.rt),
+            (&a.ion_mobility, &b.ion_mobility),
+            (&a.intensity, &b.intensity),
+        ] {
+            assert_eq!(x.len(), y.len());
+            for (p, q) in x.iter().zip(y.iter()) {
+                assert_eq!(p.to_bits(), q.to_bits());
+            }
+        }
+    }
+}

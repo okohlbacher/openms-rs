@@ -21,6 +21,8 @@ pub mod mock_objects;
 pub mod mrm_feature_access;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
+/// Extracted targeted peak maps, from `ANALYSIS/OPENSWATH/PeakMapExtractor.h` (result type only).
+pub mod peak_map_extractor;
 /// Distances, cross-correlation, ranks and mutual information, from `OPENSWATHALGO/ALGO/Scoring.h`.
 pub mod scoring;
 /// The spectrum access interface, from `OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h`.
