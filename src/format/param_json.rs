@@ -184,55 +184,34 @@ fn read_bounded(path: &Path) -> Result<Vec<u8>> {
 /// * a UTF-8 byte order mark is skipped, where `serde_json` refuses it;
 /// * a NUL byte after the value ends the document, as the source's scanner
 ///   takes it for the end of input;
-/// * `-0` is the integer 0, where `serde_json` reads the float `-0.0`
-///   ([`negative_zero_as_zero`]).
+/// * `-0` is the integer 0, where `serde_json` reads the float `-0.0`: the
+///   scanner reports each such number token
+///   ([`nlohmann::Checked::negative_zeros`]) and its `-` becomes a space,
+///   which keeps every later byte in place.
 ///
 /// A byte of the source's `last read: '...'` that is not UTF-8 is written as
 /// U+FFFD, since the message is text here.
 fn parse(bytes: &[u8]) -> Result<Value> {
-    let end = nlohmann::check(bytes).map_err(|what| parse_error(String::from_utf8_lossy(&what)))?;
-    let bytes = &bytes[..end];
+    let checked =
+        nlohmann::check(bytes).map_err(|what| parse_error(String::from_utf8_lossy(&what)))?;
+    let bytes = &bytes[..checked.end];
+    let mut normalised = Vec::new();
+    let bytes = if checked.negative_zeros.is_empty() {
+        bytes
+    } else {
+        normalised.extend_from_slice(bytes);
+        for &at in &checked.negative_zeros {
+            if let Some(minus) = normalised.get_mut(at) {
+                *minus = b' ';
+            }
+        }
+        &normalised[..]
+    };
     let bytes = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
-    let normalised = negative_zero_as_zero(bytes);
-    let bytes = normalised.as_deref().unwrap_or(bytes);
     serde_json::from_slice(bytes).map_err(|error| Error::Parse {
         line: error.line(),
         message: error.to_string(),
     })
-}
-
-/// The document with every number token `-0` written ` 0`, or `None` when it
-/// has none. `nlohmann::json` reads `-0` as the integer 0 and `-0.0` as the
-/// float -0.0; `serde_json` reads both as -0.0, which a floating-point
-/// parameter would keep. The space keeps every later byte in place. A `-`
-/// inside a string or after an exponent's `e` is left alone.
-fn negative_zero_as_zero(bytes: &[u8]) -> Option<Vec<u8>> {
-    let mut copy: Option<Vec<u8>> = None;
-    let (mut in_string, mut escaped) = (false, false);
-    for (index, &byte) in bytes.iter().enumerate() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if byte == b'\\' {
-                escaped = true;
-            } else if byte == b'"' {
-                in_string = false;
-            }
-            continue;
-        }
-        if byte == b'"' {
-            in_string = true;
-            continue;
-        }
-        let token = byte == b'-'
-            && bytes.get(index + 1) == Some(&b'0')
-            && !matches!(bytes.get(index + 2), Some(b'0'..=b'9' | b'.' | b'e' | b'E'))
-            && !matches!(index.checked_sub(1).map(|at| bytes[at]), Some(b'e' | b'E'));
-        if token {
-            copy.get_or_insert_with(|| bytes.to_vec())[index] = b' ';
-        }
-    }
-    copy
 }
 
 fn parse_error(message: impl Into<String>) -> Error {

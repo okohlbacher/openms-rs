@@ -17,6 +17,9 @@
 //! * the byte offset at which the document ends: its end, or its first NUL
 //!   byte after a complete value, which the source's scanner takes for the end
 //!   of input (`lexer.hpp`, `case '\0'`), so bytes after it are never read;
+//!   and the offsets of the number tokens that are exactly `-0`, which the
+//!   source reads as the integer 0 (`strtoll`) where `serde_json` reads the
+//!   float -0.0 ([`Checked`]);
 //! * or the source exception's `what()`: a `parse_error.101` with its line,
 //!   column and message, or the `out_of_range.406` a number beyond `double`
 //!   raises when the parser reaches it (`parser.hpp`, `value_float`).
@@ -127,6 +130,8 @@ struct Lexer<'a> {
     error_message: &'static str,
     /// A floating-point token's value (`value_float`).
     value_float: f64,
+    /// The offsets of the number tokens `-0` scanned so far.
+    negative_zeros: Vec<usize>,
 }
 
 impl<'a> Lexer<'a> {
@@ -143,6 +148,7 @@ impl<'a> Lexer<'a> {
             number: Vec::new(),
             error_message: "",
             value_float: 0.0,
+            negative_zeros: Vec::new(),
         }
     }
 
@@ -360,6 +366,8 @@ impl<'a> Lexer<'a> {
     /// `scan_number`: the state machine of RFC 8259's grammar, then the value
     /// of a floating-point token, which the parser checks.
     fn scan_number(&mut self) -> Token {
+        // `scan` saw a byte, so it is the one before `next`.
+        let start = self.next.saturating_sub(1);
         self.reset();
         let mut kind = Token::ValueUnsigned;
         let first = self.current.unwrap_or(b'0');
@@ -417,6 +425,9 @@ impl<'a> Lexer<'a> {
             _ => false,
         };
         if integral {
+            if self.number == b"-0" {
+                self.negative_zeros.push(start);
+            }
             return kind;
         }
         // `strtod` in the "C" locale: the token is always a complete decimal
@@ -560,12 +571,22 @@ impl Parser<'_> {
     }
 }
 
-/// `json::parse(input)` in strict mode, as far as it succeeds or fails: the
-/// offset of the byte that ended the input (the length, or a NUL byte after
-/// the value), or the `what()` of the exception the source throws. The text
-/// is the source's bytes; a byte of `last read: '…'` may be any byte the
+/// What [`check`] learned about a document the source accepts.
+#[derive(Debug)]
+pub(super) struct Checked {
+    /// The offset of the byte that ended the input: the length, or a NUL byte
+    /// after the value.
+    pub(super) end: usize,
+    /// The offsets, all below `end`, of the number tokens that are exactly
+    /// `-0`: the source's `strtoll` makes each the integer 0.
+    pub(super) negative_zeros: Vec<usize>,
+}
+
+/// `json::parse(input)` in strict mode, as far as it succeeds or fails: what
+/// [`Checked`] holds, or the `what()` of the exception the source throws. The
+/// text is the source's bytes; a byte of `last read: '…'` may be any byte the
 /// document holds.
-pub(super) fn check(input: &[u8]) -> Result<usize, Vec<u8>> {
+pub(super) fn check(input: &[u8]) -> Result<Checked, Vec<u8>> {
     let mut parser = Parser {
         lexer: Lexer::new(input),
         last: Token::Uninitialized,
@@ -575,9 +596,13 @@ pub(super) fn check(input: &[u8]) -> Result<usize, Vec<u8>> {
     if parser.next_token() != Token::EndOfInput {
         return Err(parser.syntax_error(Token::EndOfInput, "value"));
     }
-    Ok(if parser.lexer.current.is_some() {
+    let end = if parser.lexer.current.is_some() {
         parser.lexer.next - 1
     } else {
         input.len()
+    };
+    Ok(Checked {
+        end,
+        negative_zeros: parser.lexer.negative_zeros,
     })
 }
