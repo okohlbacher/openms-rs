@@ -419,7 +419,17 @@ impl Decoder {
                     let magic = self.input.available();
                     if available > 1 && magic[0] == 0x1f && magic[1] == 0x8b {
                         self.input.consume(2);
-                        read_header(&mut self.input)?;
+                        match read_header(&mut self.input) {
+                            Ok(()) => {}
+                            // After a member, zlib 1.3.2 treats a header it
+                            // cannot use as trailing garbage (Release oracle
+                            // case g_bad_second).
+                            Err(Fault::Corrupt(_) | Fault::Truncated) if !self.direct => {
+                                self.how = How::Done;
+                                continue;
+                            }
+                            Err(fault) => return Err(fault),
+                        }
                         self.how = How::Gzip(Box::new(Member {
                             inflate: flate2::Decompress::new(false),
                             crc: flate2::Crc::new(),

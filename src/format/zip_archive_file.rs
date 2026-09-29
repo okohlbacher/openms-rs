@@ -170,8 +170,9 @@ impl ZipArchiveFile {
     /// Add or replace entry `entry_name` of the archive at `archive_path` with
     /// the contents of the file `source_file_path`, stored without compression.
     ///
-    /// The archive is created when it does not exist; an existing empty file
-    /// counts as an empty archive, as libzip treats it. An existing entry of
+    /// The archive is created when it does not exist; an existing file that is
+    /// not an archive, an empty one included, is refused, as libzip 1.11
+    /// refuses it in the Release build. An existing entry of
     /// that name keeps its position, and a new one is appended. The other
     /// entries are copied unchanged, compressed data included. The source
     /// file is streamed, never held in memory. `entry_name` is used verbatim:
@@ -544,13 +545,9 @@ fn rewrite(
         )
     };
     let existing = match File::open(archive_path) {
-        Ok(file) => {
-            if file.metadata()?.len() == 0 {
-                None
-            } else {
-                Some(zip::ZipArchive::new(file).map_err(|error| failed(&error))?)
-            }
-        }
+        // An existing empty file is not an archive to libzip 1.11 either
+        // (Release oracle case za/addToEmpty).
+        Ok(file) => Some(zip::ZipArchive::new(file).map_err(|error| failed(&error))?),
         Err(error) if error.kind() == io::ErrorKind::NotFound => None,
         Err(error) => return Err(failed(&error)),
     };

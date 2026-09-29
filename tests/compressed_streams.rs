@@ -640,10 +640,13 @@ fn add_or_replace_keeps_positions_and_other_entries() {
         Err(Error::InvalidValue(_))
     ));
     assert_eq!(std::fs::read(&text).unwrap(), b"plain");
-    // An empty file is an empty archive.
+    // An empty file is not an archive either (Release oracle za/addToEmpty).
     let empty = scratch.write("empty.zip", b"");
-    ZipArchiveFile::add_or_replace_from_file(&empty, "a", &a).unwrap();
-    assert_eq!(ZipArchiveFile::list_entries(&empty), vec!["a".to_owned()]);
+    assert!(matches!(
+        ZipArchiveFile::add_or_replace_from_file(&empty, "a", &a),
+        Err(Error::InvalidValue(_))
+    ));
+    assert_eq!(std::fs::read(&empty).unwrap(), b"");
 }
 
 #[test]
