@@ -1144,12 +1144,17 @@ fn write_table_to_parquet_qpx_gate_and_metadata_match_the_release_build() {
         run_file
     );
     // The source validates a psm_file table with QPXValueValidation and
-    // refuses this one; the port refuses every psm_file table until that
-    // validator is ported.
+    // refuses this one: it does not carry the QPX psm schema.
     assert!(rec("writeTableToParquet", "qpx psm_file invalid table").starts_with("false"));
     let path = dir.join("awp_qpx3.parquet");
     let psm = with_metadata(&table, &[("qpx_version", "1.1"), ("file_type", "psm_file")]);
-    assert!(aio::write_table_to_parquet(&psm, &path, &config).is_err());
+    match aio::write_table_to_parquet(&psm, &path, &config) {
+        Err(Error::InvalidValue(message)) => {
+            assert!(message.contains("refusing invalid QPX psm_file table"));
+            assert!(message.contains("schema: "));
+        }
+        other => panic!("expected a QPX value refusal, got {other:?}"),
+    }
     assert!(!path.exists());
     assert_eq!(rec("writeTableToParquet", "custom metadata"), "true");
     let path = dir.join("awp_metadata.parquet");

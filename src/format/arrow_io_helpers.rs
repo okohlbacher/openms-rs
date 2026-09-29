@@ -36,6 +36,7 @@ use crate::data_structures::list;
 use crate::format::arrow_schema_registry::validation::types_equal;
 use crate::format::parquet_file::{encode, publish, writer_properties};
 use crate::format::percolator_infile::ScanNumberPattern;
+use crate::format::qpx_value_validation::{QpxValueValidation, View};
 use crate::kernel::features::{ColumnHeader, ConsensusMap};
 use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
@@ -272,12 +273,14 @@ fn codec(config: &ParquetWriteConfig) -> Result<ParquetCodec> {
     })
 }
 
-/// Refuse a QPX view table this port cannot validate before it is written.
+/// Validate a QPX view table before a generic Parquet helper writes it.
 ///
 /// Ports the source's `validateQPXValuesForWrite`: a table whose schema
 /// metadata has no `qpx_version` passes; one that has it but no `file_type`
-/// is refused; a `psm_file`, `feature_file` or `pg_file` table is checked
-/// with `QPXValueValidation`; every other `file_type` passes.
+/// is refused; a `psm_file`, `feature_file` or `pg_file` table is checked by
+/// a fresh [`QpxValueValidation`] of that view and refused with its joined
+/// diagnostics; every other `file_type` (QPX sidecars these exporters do not
+/// produce) passes.
 fn validate_qpx_values_for_write(table: &RecordBatch, filename: &Path) -> Result<()> {
     let schema = table.schema();
     let metadata = schema.metadata();
@@ -290,13 +293,20 @@ fn validate_qpx_values_for_write(table: &RecordBatch, filename: &Path) -> Result
             filename.display()
         )));
     };
-    match file_type.as_str() {
-        "psm_file" | "feature_file" | "pg_file" => Err(Error::Unsupported(format!(
-            "ArrowIOHelpers: refusing QPX {file_type} table for {}: QPX value validation \
-             (FORMAT/QPXValueValidation.h) is not ported",
+    let view = match file_type.as_str() {
+        "psm_file" => View::Psm,
+        "feature_file" => View::Feature,
+        "pg_file" => View::ProteinGroup,
+        _ => return Ok(()),
+    };
+    let validation = QpxValueValidation::new(view).validate(table);
+    if validation.valid {
+        Ok(())
+    } else {
+        Err(Error::InvalidValue(format!(
+            "ArrowIOHelpers: refusing invalid QPX {file_type} table for {}: {validation}",
             filename.display()
-        ))),
-        _ => Ok(()),
+        )))
     }
 }
 
@@ -323,10 +333,10 @@ fn validate_qpx_values_for_write(table: &RecordBatch, filename: &Path) -> Result
 /// * the data page size in bytes (0 is accepted, as measured).
 ///
 /// A table whose schema metadata marks it as a QPX `psm_file`,
-/// `feature_file` or `pg_file` view is refused: the source validates its
-/// values with `QPXValueValidation`, which is not ported yet. A QPX table
-/// without `file_type` is refused as in the source; any other QPX
-/// `file_type` is written.
+/// `feature_file` or `pg_file` view is first checked with
+/// [`QpxValueValidation`] and refused when it violates the QPX value
+/// contract, before any file is touched. A QPX table without `file_type` is
+/// refused as in the source; any other QPX `file_type` is written.
 ///
 /// Native differences: the source opens (and truncates) the destination
 /// before it encodes and removes the fragment when a later step fails, which
@@ -338,8 +348,8 @@ fn validate_qpx_values_for_write(table: &RecordBatch, filename: &Path) -> Result
 /// # Errors
 ///
 /// [`Error::InvalidValue`] for an invalid level, row group size or data page
-/// size, a QPX table without `file_type`, or a Parquet encoding failure;
-/// [`Error::Unsupported`] for a QPX view table; [`Error::Io`] when the file
+/// size, a QPX table without `file_type`, a QPX view table that fails value
+/// validation, or a Parquet encoding failure; [`Error::Io`] when the file
 /// cannot be written.
 pub fn write_table_to_parquet(
     table: &RecordBatch,
