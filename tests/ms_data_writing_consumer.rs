@@ -1363,6 +1363,9 @@ fn peak_file_options_are_fixed_once_the_header_is_written() {
 #[test]
 fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
     let mut record = spectrum("scan=1", 1.0, 100.0);
+    // Written as `no combination` when empty (MzMLHandler.cpp:5380-5388), so
+    // set it for the record to compare equal after the round trip.
+    record.acquisition_info.method_of_combination = "no combination".into();
     record.metadata.insert(
         "total ion current".into(),
         MetaValue::try_from(30.0).unwrap(),
@@ -1408,10 +1411,15 @@ fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
         moved.spectra[0].metadata["dwell time"].as_f64().unwrap(),
         2.5
     );
+    // The scan is left with nothing of its own, so no acquisition is kept.
     assert!(
-        moved.spectra[0].acquisition_info.acquisitions[0]
-            .metadata
-            .is_empty()
+        moved.spectra[0]
+            .acquisition_info
+            .acquisitions
+            .iter()
+            .all(|scan| !scan.metadata.contains_key("dwell time")),
+        "{:?}",
+        moved.spectra[0].acquisition_info
     );
 
     // And the stream is still the whole-document writer's output.
@@ -1457,42 +1465,44 @@ const RECORD_CV_KEYS: [&str; 12] = [
 /// port keeps each as a userParam on the owner it came from.
 const NOT_REVERSED: [&str; 3] = ["sum of spectra", "dwell time", "chromatogram title"];
 
-/// (element path, param element, name) of every fixture key, in document order.
+/// (element path, param element, name) of every fixture key, in document
+/// order. Tags are tokenised, not lines: the two writers break lines
+/// differently (`</activation></precursor>` is one line here).
 fn record_params(text: &str) -> Vec<(String, String, String)> {
-    let mut stack: Vec<String> = Vec::new();
+    let mut stack: Vec<&str> = Vec::new();
     let mut params = Vec::new();
-    for line in text.lines() {
-        let line = line.trim();
-        if let Some(rest) = line.strip_prefix("</") {
-            let name: String = rest.chars().take_while(|c| *c != '>').collect();
-            while let Some(open) = stack.pop() {
-                if open == name {
+    let mut rest = text;
+    while let Some(open) = rest.find('<') {
+        let Some(close) = rest[open..].find('>') else {
+            break;
+        };
+        let token = &rest[open + 1..open + close];
+        rest = &rest[open + close + 1..];
+        if let Some(name) = token.strip_prefix('/') {
+            while let Some(top) = stack.pop() {
+                if top == name.trim() {
                     break;
                 }
             }
             continue;
         }
-        let Some(rest) = line.strip_prefix('<') else {
-            continue;
-        };
-        if rest.starts_with('?') {
+        if token.starts_with('?') || token.starts_with('!') {
             continue;
         }
-        let tag: String = rest
-            .chars()
-            .take_while(|c| !c.is_whitespace() && *c != '>' && *c != '/')
-            .collect();
+        let tag = token
+            .split(|c: char| c.is_whitespace() || c == '/')
+            .next()
+            .unwrap_or_default();
         if tag == "cvParam" || tag == "userParam" {
-            let name = line
+            let name = token
                 .split(" name=\"")
                 .nth(1)
                 .and_then(|tail| tail.split('"').next())
-                .unwrap_or_default()
-                .to_owned();
-            if RECORD_CV_KEYS.contains(&name.as_str()) {
-                params.push((stack.join("/"), tag, name));
+                .unwrap_or_default();
+            if RECORD_CV_KEYS.contains(&name) {
+                params.push((stack.join("/"), tag.to_owned(), name.to_owned()));
             }
-        } else if !line.ends_with("/>") && !line.contains(&format!("</{tag}>")) {
+        } else if !token.ends_with('/') {
             stack.push(tag);
         }
     }
