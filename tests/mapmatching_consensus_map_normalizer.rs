@@ -284,8 +284,10 @@ fn passes_filters() {
         protein_accession: "P02769|ALBU_BOVIN".into(),
         ..PeptideEvidence::default()
     });
-    let mut pid = PeptideIdentification::default();
-    pid.hits = vec![hit];
+    let pid = PeptideIdentification {
+        hits: vec![hit],
+        ..PeptideIdentification::default()
+    };
     map.features[0].peptide_identifications = vec![pid];
 
     assert!(passes(&map, "ALBU", ""));
@@ -296,8 +298,10 @@ fn passes_filters() {
         ..ProteinHit::default()
     };
     protein_hit.set_description(format!("Serum albumin {} bovine", "x".repeat(4096)));
-    let mut protein_id = ProteinIdentification::default();
-    protein_id.hits = vec![protein_hit];
+    let protein_id = ProteinIdentification {
+        hits: vec![protein_hit],
+        ..ProteinIdentification::default()
+    };
     map.protein_identifications = vec![protein_id];
 
     assert!(passes(&map, "ALBU", "^Serum albumin .* bovine$"));

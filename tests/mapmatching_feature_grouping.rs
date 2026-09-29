@@ -549,8 +549,8 @@ fn feature_grouping_algorithm_transfer_reindexes_identifications() {
         ids[0].metadata.get("map_index").unwrap().as_i64().unwrap(),
         2
     );
-    assert!(ids[0].metadata.get("old_map_index").is_none());
-    assert!(ids[1].metadata.get("map_index").is_none());
+    assert!(!ids[0].metadata.contains_key("old_map_index"));
+    assert!(!ids[1].metadata.contains_key("map_index"));
 }
 
 // ---------------------------------------------------------------------------
