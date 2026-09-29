@@ -644,7 +644,9 @@ fn spectra_semi_wide(exp: &MSExperiment, config: &ArrowSpectraExportConfig) -> R
 
 /// Whether a chromatogram point passes the RT window.
 fn rt_passes(rt: f64, config: &ArrowChromatogramExportConfig) -> bool {
-    !(config.min_rt != 0.0 && rt < config.min_rt) && !(config.max_rt != 0.0 && rt > config.max_rt)
+    let below = config.min_rt != 0.0 && rt < config.min_rt;
+    let above = config.max_rt != 0.0 && rt > config.max_rt;
+    !(below || above)
 }
 
 /// `exportChromatogramsToArrow`.
