@@ -140,5 +140,33 @@ anything is built (arrow-rs builders would panic; the source's fail).
   `XICParquetFile_1_input.xic`, which the C++ consumer wrote; the two peak maps
   of the XIPM class test, written here, equal `XIPMParquetFile_1_input.xipm`
   field by field.
-- Tier 1: the executed Release oracle `../oracle/F1b-openswath` (see
-  `tests/data/openswath_parquet_provenance.json`).
+- Tier 1: the executed Release oracle `../oracle/F1b-openswath` (ibminode06,
+  Linux x86_64 Release `openms4-release-bc9cc12-c19e494-174b576`, g++ 14.4
+  `-O2 -DNDEBUG`, Arrow C++ 23.0.1; run twice, records and files
+  byte-identical), `tests/openswath_parquet_oracle.rs`: 28 textual filters, 7
+  argument/typed filters, 12 analyte listings, columns, runs and a decoded row
+  of the `.xic` reader; 6 filters, 2 argument queries, 4 analyte listings and
+  two decoded rows of the `.xim` reader; the three writers on one library
+  (numeric and non-numeric ids, a negative id, a decoy-only precursor, an
+  orphan reference, empty and one-point arrays), where the C++-written files
+  read here equal the C++ reader's rows bit for bit and the Rust-written files
+  do too (except the arrays below); and seven `MSExperimentArrowExport`
+  tables (long/semi-wide, RT/m/z/level windows, column selection), whose
+  C++-written Parquet files equal the Rust tables column by column. See
+  `tests/data/openswath_parquet_provenance.json`.
+
+Measured on the Release build and recorded in the oracle:
+
+- A one- or two-point chromatogram written by `MSChromatogramParquetConsumer`
+  reads back with RT `-nan` (fixed point 0), and negative RTs come back as
+  about 4.29e8 (wrapped unsigned integers). The Rust writer stores both
+  losslessly (identifier 1); the Rust reader decodes such source-written
+  payloads as the source does (NaN), so these files stay readable.
+- One chromatogram with an unknown native id makes the source's `finalize()`
+  fail ("Column 3 named PRECURSOR_ID expected length 2 but got length 1") and
+  the file holds no chromatogram at all.
+- `MSChromatogramParquetConsumer` accepts a chromatogram after `finalize()`
+  and silently drops it; the mobilogram and peak-map writers throw
+  `IllegalArgument`.
+- Arrow compute is not initialised in this build, so every filter falls back
+  to the row evaluator, logging two warnings per call.
