@@ -15,6 +15,28 @@ TOPP data FeatureFinderMultiplex_{1..11}_* at test-data 0cb15f2.
 Dependency order: DeltaMasses -> DeltaMassesGenerator -> IsotopicPeakPattern -> Satellite* -> FilteredPeak ->
 FilteredMSExperiment -> Filtering -> FilteringCentroided/Profile -> Clustering (uses FF2a GridBasedClustering) -> Algorithm.
 
+## Rust API survey (done)
+- MSExperiment/MSSpectrum in src/kernel.rs (peaks Vec<Peak1D{mz f64,intensity f32}>, rt f64). find_nearest/rt_begin do an O(n) sortedness
+  check per call -> write local partition_point helpers; C++ findNearest(mz,tol) (MSSpectrum.cpp:311) does NOT try the other side,
+  Rust find_nearest_with_tolerance does (window variant) -> use local helper.
+- source_sort_by (src/math/source_sort.rs) = libstdc++ std::sort; use for delta-mass list sort (unstable in C++).
+- pearson_correlation_coefficient / rank_correlation_coefficient in src/math/statistic_functions.rs (NaN pass-through preserved).
+- CoarseIsotopePatternGenerator::new(Some(n), CoarseMassMode::?) .with_precision(ProbabilityPrecision::SourceSingle); estimate_from_{peptide,rna,dna}_weight.
+- PeakPickerHiRes::pick_experiment -> PickedExperiment{experiment, spectrum_boundaries: Vec<Option<Vec<PeakBoundary{min,max}>>>}.
+- GridBasedClustering::without_properties(metric Fn(&Point,&Point)->f64, xs, ys, grid_x, grid_y) (FF2a), .cluster(), .results() BTreeMap<i32,GridBasedCluster>.
+- Param pattern: src/processing/peak_picking.rs:1853-1985 (DefaultParamHandler::new + set_defaults + set_parameters_with).
+- Missing deps: SplineInterpolatedPeaks + SplinePackage (PROCESSING/MISC, unmapped, nobody porting) needed by FilteringProfile + Algorithm;
+  PeakWidthEstimator (FEATUREFINDER, unmapped) needed by profile MultiplexClustering ctor. C++ extracted to scratchpad/k/.
+
+## C++ defect candidates found
+- Filtering.cpp filterPeakPositions_: zeroth-peak check calls checkSatellite(rt_idx, mz_idx) with a WHITE-spectrum index, satellites store ORIGINAL indices.
+- DeltaMassesGenerator: Leu branch reads samples_labels_[1] with one sample (UB); getLabelShort/Long operator[] inserts; "Label:13C(6)" long->short maps to Arg6 (first insert) never Lys6;
+  label validity check is substring-of-list (e.g. "Arg" or "" accepted); negative max_nr_labelled_aas wraps unsigned.
+- Centroided/Profile filter(): omp parallel for with blacklist read/write race -> only serial is deterministic.
+
+## Layout
+src/analysis/featurefinder/multiplex.rs + multiplex/*.rs, one file per header; featurefinder.rs gets `pub mod multiplex;`.
+
 ## Next step
 1. Survey Rust deps (AASequence/ModificationsDB, MSExperiment, SplineInterpolatedPeaks, PeakPickerHiRes, IsotopeDistribution, Param).
 2. Port the leaf data types (DeltaMasses, IsotopicPeakPattern, Satellite*, FilteredPeak, FilteredMSExperiment), commit.
