@@ -199,6 +199,9 @@ struct Winner {
 struct BestPerPeptideIndex {
     winners: BTreeMap<(String, String, i32), Winner>,
     processed: Vec<HitPosition>,
+    ignore_mods: bool,
+    ignore_charges: bool,
+    nr_best_spectrum: usize,
 }
 
 impl BestPerPeptideIndex {
@@ -212,10 +215,9 @@ impl BestPerPeptideIndex {
         index: usize,
         id: &mut PeptideIdentification,
         run: Option<&str>,
-        ignore_mods: bool,
-        ignore_charges: bool,
-        nr_best_spectrum: usize,
     ) -> Result<()> {
+        let (ignore_mods, ignore_charges, nr_best_spectrum) =
+            (self.ignore_mods, self.ignore_charges, self.nr_best_spectrum);
         let higher_score_better = id.higher_score_better;
         // Source: make sure the first hit is the best one.
         id.sort()?;
@@ -282,19 +284,16 @@ fn annotate_lists(
     for list in lists.iter() {
         validate_peptides(list)?;
     }
-    let mut index = BestPerPeptideIndex::default();
+    let mut index = BestPerPeptideIndex {
+        ignore_mods,
+        ignore_charges,
+        nr_best_spectrum,
+        ..BestPerPeptideIndex::default()
+    };
     for (l, list) in lists.iter_mut().enumerate() {
         for (i, id) in list.iter_mut().enumerate() {
             let run = per_run.then(|| id.identifier.clone());
-            index.visit(
-                l,
-                i,
-                id,
-                run.as_deref(),
-                ignore_mods,
-                ignore_charges,
-                nr_best_spectrum,
-            )?;
+            index.visit(l, i, id, run.as_deref())?;
         }
     }
     for (l, list) in lists.iter_mut().enumerate() {

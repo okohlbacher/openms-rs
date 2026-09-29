@@ -190,6 +190,46 @@ impl Protease {
     pub fn count_internal_cleavage_sites(self, sequence: &str) -> Result<usize> {
         Ok(self.cleavage_sites(sequence)?.len().saturating_sub(2))
     }
+    /// The source's `EnzymaticDigestion::countInternalCleavageSites` as
+    /// `filterByMissedCleavages` sees it: the number of tokens its
+    /// Boost `sregex_token_iterator` split yields, minus one, cast to `Int`.
+    ///
+    /// Two source effects make this differ from
+    /// [`Self::count_internal_cleavage_sites`]: a zero-width match at
+    /// position 0 (a lookahead-only rule such as Asp-N or Lys-N on a peptide
+    /// that starts with D or K) produces an empty leading token and counts as
+    /// one more site, and `no cleavage` (expression `()`) is never split, so
+    /// `size() - 1` wraps and becomes -1. A match at the end adds no trailing
+    /// token. The executed C++ oracle behind `tests/id_filter_oracle.rs`
+    /// checks both.
+    ///
+    /// # Errors
+    ///
+    /// As [`Protease::cleavage_sites`].
+    pub(crate) fn source_token_cleavage_count(self, sequence: &str) -> Result<i64> {
+        if self == Self::NoCleavage {
+            validate_sequence(sequence)?;
+            return Ok(-1);
+        }
+        let internal = self.count_internal_cleavage_sites(sequence)?;
+        let leading = match self.metadata().rule {
+            CleavageRule::Boundary {
+                previous,
+                previous_two,
+                next,
+                forbidden_next,
+            } => {
+                let bytes = sequence.as_bytes();
+                previous.is_empty()
+                    && previous_two.is_empty()
+                    && bytes.first().is_some_and(|first| {
+                        (next.is_empty() || next.contains(first)) && !forbidden_next.contains(first)
+                    })
+            }
+            CleavageRule::Never => false,
+        };
+        Ok(i64::try_from(internal).unwrap_or(i64::MAX) + i64::from(leading))
+    }
 }
 impl FromStr for Protease {
     type Err = Error;

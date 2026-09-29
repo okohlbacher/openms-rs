@@ -9,7 +9,7 @@
 
 use super::predicates::{GetMatchingItems, try_filter_peptide_evidences};
 use crate::Result;
-use crate::chemistry::{AASequence, ProductValidation, Protease, ProteaseDigestion};
+use crate::chemistry::{AASequence, ProductValidation, ProteaseDigestion};
 use crate::format::fasta::FASTAEntry;
 use crate::identification::{PeptideEvidence, PeptideHit, PeptideIdentification};
 
@@ -45,18 +45,13 @@ impl<'a> PeptideDigestionFilter<'a> {
     /// sequence (`countInternalCleavageSites`, cast to `Int` by
     /// `filterByMissedCleavages`).
     ///
-    /// For the enzyme `no cleavage` the source's tokenizer returns no
-    /// position, and `size() - 1` wraps to `SIZE_MAX`, which becomes `-1`;
-    /// that value is kept, so a minimum bound of 0 removes every hit under
-    /// `no cleavage`.
+    /// This is the source's token count, not
+    /// [`ProteaseDigestion::count_internal_cleavage_sites`]: a peptide that
+    /// starts at a lookahead-only site (Asp-N, Lys-N) counts one more, and the
+    /// enzyme `no cleavage` yields -1, so a minimum bound of 0 removes every
+    /// hit under it.
     fn missed_cleavages(&self, sequence: &str) -> Result<i64> {
-        if self.digestion.enzyme == Protease::NoCleavage {
-            return Ok(-1);
-        }
-        Ok(
-            i64::try_from(self.digestion.count_internal_cleavage_sites(sequence)?)
-                .unwrap_or(i64::MAX),
-        )
+        self.digestion.enzyme.source_token_cleavage_count(sequence)
     }
 
     /// Whether the hit should be **removed** (the source's `operator()`, for
