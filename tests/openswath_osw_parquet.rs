@@ -183,7 +183,46 @@ fn container(all: &[Vec<String>], tmp: &Path, source: &str, name: &str) -> PathB
 
 // ------------------------------------------------------------------ file comparison
 
-fn assert_tables_equal(ctx: &str, got: &Path, want: &Path) {
+/// Documented divergence (writer module docs, "Differences from the
+/// source"): at some `appendOptionalFloat_(b, extractMetaDouble_(x, key,
+/// value), value, ..)` call sites the Release build copies `value` before the
+/// extraction runs (C++ leaves the evaluation order of arguments
+/// unspecified), so it writes the double extracted before, where the port
+/// writes the subordinate's own value. Every entry is
+/// `(file, column, row, Release value, port value)`; the values come from the
+/// driver's `richFeatures()` (`tests/openswath_osw_parquet.rs::rich_features`)
+/// and the Release files. The null pattern always agrees.
+const STALE: &[(&str, &str, usize, f64, f64)] = &[
+    // s_iso's peak_apex_int is 3.25; 7.0 is s1's points_across_half_height.
+    (
+        "runs/run_id=42/feature_precursor.parquet",
+        "precursor_apex_intensity",
+        1,
+        7.0,
+        3.25,
+    ),
+    // s1's total_xic is 20.0; 7.25 is feature A's im_log_intensity.
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "total_area_intensity",
+        0,
+        7.25,
+        20.0,
+    ),
+];
+
+fn float_at(a: &ArrayRef, row: usize) -> Option<f64> {
+    let a = a.as_any().downcast_ref::<Float64Array>()?;
+    if a.is_null(row) {
+        None
+    } else {
+        Some(a.value(row))
+    }
+}
+
+/// Compares every column of `got` with `want`; returns the [`STALE`]
+/// entries it had to apply. Panics listing every other difference.
+fn assert_tables_equal(ctx: &str, rel: &str, got: &Path, want: &Path) -> BTreeSet<usize> {
     let g = ParquetFile::read_table(got).unwrap_or_else(|e| panic!("{ctx}: {e}"));
     let w = ParquetFile::read_table(want).unwrap();
     assert_eq!(g.num_rows(), w.num_rows(), "{ctx} rows");
@@ -194,49 +233,47 @@ fn assert_tables_equal(ctx: &str, got: &Path, want: &Path) {
             .collect::<Vec<_>>()
     };
     assert_eq!(fields(&g.schema()), fields(&w.schema()), "{ctx} schema");
+    let mut used = BTreeSet::new();
+    let mut problems = Vec::new();
     for (i, field) in w.schema().fields().iter().enumerate() {
-        if field.name() == "precursor_apex_intensity" {
-            assert_precursor_apex_divergence(ctx, g.column(i), w.column(i));
+        let (gc, wc) = (g.column(i), w.column(i));
+        if gc.to_data() == wc.to_data() {
             continue;
         }
-        assert_eq!(
-            g.column(i).to_data(),
-            w.column(i).to_data(),
-            "{ctx} column {}",
-            field.name()
-        );
+        if field.data_type() != &arrow_schema::DataType::Float64 {
+            problems.push(format!("{} (non-float column)", field.name()));
+            continue;
+        }
+        for row in 0..wc.len() {
+            let (gv, wv) = (float_at(gc, row), float_at(wc, row));
+            let equal = match (gv, wv) {
+                (Some(x), Some(y)) => x.to_bits() == y.to_bits(),
+                (None, None) => true,
+                _ => false,
+            };
+            if equal {
+                continue;
+            }
+            let stale = STALE.iter().position(|&(file, column, r, release, port)| {
+                file == rel
+                    && column == field.name()
+                    && r == row
+                    && wv == Some(release)
+                    && gv == Some(port)
+            });
+            match stale {
+                Some(k) => {
+                    used.insert(k);
+                }
+                None => problems.push(format!(
+                    "{} row {row}: got {gv:?}, want {wv:?}",
+                    field.name()
+                )),
+            }
+        }
     }
-}
-
-/// Documented divergence (writer module docs): the Release build fills
-/// `precursor_apex_intensity` with a stale double because C++ does not order
-/// the evaluation of `appendOptionalFloat_`'s arguments. The only row that
-/// carries a value is feature A's isotope-2 subordinate, whose own
-/// `peak_apex_int` is 3.25 (the driver's `s_iso`); the Release build wrote
-/// 7.0, the `points_across_half_height` of the MS2 subordinate `s1`
-/// extracted before it. Rows without a value are null on both sides.
-fn assert_precursor_apex_divergence(ctx: &str, got: &ArrayRef, want: &ArrayRef) {
-    let values = |a: &ArrayRef| {
-        let a = a.as_any().downcast_ref::<Float64Array>().unwrap();
-        (0..a.len())
-            .map(|i| if a.is_null(i) { None } else { Some(a.value(i)) })
-            .collect::<Vec<_>>()
-    };
-    let (g, w) = (values(got), values(want));
-    if w.is_empty() {
-        assert!(g.is_empty(), "{ctx} precursor_apex_intensity");
-        return;
-    }
-    assert_eq!(
-        w,
-        [None, Some(7.0), None],
-        "{ctx} Release precursor_apex_intensity"
-    );
-    assert_eq!(
-        g,
-        [None, Some(3.25), None],
-        "{ctx} precursor_apex_intensity"
-    );
+    assert!(problems.is_empty(), "{ctx}: {problems:#?}");
+    used
 }
 
 fn mask_build_time(text: &str) -> String {
@@ -261,7 +298,9 @@ fn json_keys(text: &str) -> BTreeSet<String> {
 
 /// Every file the Release writer produced for `case` exists in `dir` and
 /// agrees with it; `dir` holds no other file.
-fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) {
+/// Returns the [`STALE`] entries applied.
+fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) -> BTreeSet<usize> {
+    let mut used = BTreeSet::new();
     let files = Path::new(DATA).join("files");
     let entries = of(all, "F", case);
     assert!(!entries.is_empty(), "no files for {case}");
@@ -274,7 +313,7 @@ fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) {
         let want = files.join(&r[3]);
         assert!(got.exists(), "{ctx}: missing");
         if rel.ends_with(".parquet") {
-            assert_tables_equal(&ctx, &got, &want);
+            used.extend(assert_tables_equal(&ctx, rel, &got, &want));
         } else if rel.ends_with(".idx.json") {
             let g = std::fs::read_to_string(&got).unwrap();
             let w = std::fs::read_to_string(&want).unwrap();
@@ -304,6 +343,12 @@ fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) {
         }
     }
     assert_eq!(got_names, want_names, "{case}: file set");
+    used
+}
+
+/// Every [`STALE`] entry applies to a container holding the rich run 42.
+fn assert_all_stale(case: &str, used: BTreeSet<usize>) {
+    assert_eq!(used, (0..STALE.len()).collect(), "{case}: stale entries");
 }
 
 // ------------------------------------------------------------------ inputs
@@ -896,7 +941,7 @@ fn oracle_writer_class_and_rich_directories() {
             false,
         )
         .unwrap();
-    assert_container_matches(&all, "w_class", &dir);
+    assert!(assert_container_matches(&all, "w_class", &dir).is_empty());
 
     let rich = rich_library();
     let dir = tmp.path().join("w_rich_dir.oswpq");
@@ -914,13 +959,19 @@ fn oracle_writer_class_and_rich_directories() {
         )
         .unwrap();
     assert!(warnings.is_empty());
-    assert_container_matches(&all, "w_rich_dir", &dir);
+    assert_all_stale(
+        "w_rich_dir",
+        assert_container_matches(&all, "w_rich_dir", &dir),
+    );
 
     assert_eq!(outcome(&all, "w_rich_dir_append")[0], "OK");
     writer
         .write(&dir, &rich, &second_run_features(), 7, "second.mzML", false)
         .unwrap();
-    assert_container_matches(&all, "w_rich_dir_append", &dir);
+    assert_all_stale(
+        "w_rich_dir_append",
+        assert_container_matches(&all, "w_rich_dir_append", &dir),
+    );
 
     let err = writer
         .write(&dir, &rich, &second_run_features(), 7, "again.mzML", false)
@@ -932,7 +983,7 @@ fn oracle_writer_class_and_rich_directories() {
     writer
         .write(&dir, &rich, &FeatureMap::default(), 1, "", false)
         .unwrap();
-    assert_container_matches(&all, "w_empty_fmap", &dir);
+    assert!(assert_container_matches(&all, "w_empty_fmap", &dir).is_empty());
 }
 
 fn unzip(tmp: &Path, zip: &Path, name: &str) -> PathBuf {
@@ -972,7 +1023,8 @@ fn oracle_writer_archives() {
         .unwrap();
     let entries: BTreeSet<String> = ZipArchiveFile::list_entries(&zip).into_iter().collect();
     assert_eq!(entries, zip_entries(&all, "w_rich_zip"));
-    assert_container_matches(&all, "w_rich_zip", &unzip(tmp.path(), &zip, "first"));
+    let used = assert_container_matches(&all, "w_rich_zip", &unzip(tmp.path(), &zip, "first"));
+    assert_all_stale("w_rich_zip", used);
 
     let mut preserving = OpenSwathOSWParquetWriter::new();
     preserving.set_preserve_existing(true);
@@ -987,22 +1039,24 @@ fn oracle_writer_archives() {
     );
     let entries: BTreeSet<String> = ZipArchiveFile::list_entries(&zip).into_iter().collect();
     assert_eq!(entries, zip_entries(&all, "w_rich_zip_preserve"));
-    assert_container_matches(
+    let used = assert_container_matches(
         &all,
         "w_rich_zip_preserve",
         &unzip(tmp.path(), &zip, "preserved"),
     );
+    assert_all_stale("w_rich_zip_preserve", used);
 
     OpenSwathOSWParquetWriter::new()
         .write(&zip, &rich, &second_run_features(), 8, "third.mzML", false)
         .unwrap();
     let entries: BTreeSet<String> = ZipArchiveFile::list_entries(&zip).into_iter().collect();
     assert_eq!(entries, zip_entries(&all, "w_rich_zip_replace"));
-    assert_container_matches(
+    let used = assert_container_matches(
         &all,
         "w_rich_zip_replace",
         &unzip(tmp.path(), &zip, "replaced"),
     );
+    assert!(used.is_empty());
 }
 
 #[test]
@@ -1204,7 +1258,11 @@ fn check_reader(all: &[Vec<String>], case: &str, path: &Path) {
             assert_values(&ctx, &r.ms2_values, i, &w[11]);
             assert_values(&ctx, &r.ms1_values, i, &w[12]);
         }
-        let missing = main_score == "no_such_score" && !r.ms2_columns.is_empty();
+        // The source warns (OPENMS_LOG_WARN) when a requested main score is
+        // not among the discovered MS2 columns, and only when there are any.
+        let missing = !main_score.is_empty()
+            && !r.ms2_columns.is_empty()
+            && !r.ms2_columns.iter().any(|x| x == main_score);
         assert_eq!(r.warnings.len(), usize::from(missing), "{c}");
     }
 
