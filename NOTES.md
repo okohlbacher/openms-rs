@@ -31,8 +31,13 @@ Prereq merge: worktree-wf_ee239125-5be-1 fast-forwarded f0990c0 -> 9fcb962 (no m
   set_experiment_label("") now a no-op (source); tests/identification.rs assertion corrected with oracle evidence.
 - Doc-coverage floor (docs/doc-coverage.json) is lead's: report "run check_doc_coverage --write".
 
+## Restart 3 (2026-09-29, worktree wf_cd066dab-0a7-39)
+- Merged -35 (my earlier run, fast-forward to 9a4e4f6) and -1 (already up to date).
+- PeptideIdentification commit 9a4e4f6 exists (code, docs, tests, provenance). Gate status of that commit unknown:
+  re-run the file gate. Scratch dir $SCRATCH/B8b was wiped -> recreate helper scripts there.
+- Ledger fragment wave4/B8b.json does NOT exist yet; lane report not written yet.
+
 ## Next step
-1. Finish PeptideIdentification: gate green, provenance manifest tests/data/peptide_identification_provenance.json,
-   docs (IDENTIFICATION_SUPPORT.md section + new docs/USI_SUPPORT.md), ledger entries (PeptideIdentification.h, USI.h), commit.
+1. Re-gate PeptideIdentification tests on dax (tests/peptide_identification*.rs, tests/identification.rs).
 2. ModificationsDB members; ProteaseDB writeTSV (+oracle for both writeTSV outputs).
 3. IDFilter: countHits, getBestHit, filterGroupsByScore, regex, keepBestPerPeptide*, digestion filter.
