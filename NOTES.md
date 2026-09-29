@@ -43,6 +43,15 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
 - QT DONE (commits 6ae4eca8..ba454b11): QTClusterFinder partial (QT_5 tie order), FeatureGroupingAlgorithmQT complete.
 - Incarnation 3 (worktree-wf_a10fdd71-2d2-10): merged -52 (fast-forward, already contained -34).
 
+- Labeled DONE (9d9090b9, 163e8aa3): LabeledPairFinder + FeatureGroupingAlgorithmLabeled; class tests (7), TOPP
+  FeatureLinkerLabeled_1/_2 retained (case 2 quality excluded: retained file predates pin's GaussFitter, up to 3.7e-4 rel),
+  Release oracle ../oracle/M2-labeled (ibminode06, twice identical) -> tests/data/labeled_pair_finder_oracle_*.tsv;
+  Rust fit is bit-identical to C++ (x0 -21.037408374149141).
+- C++ defect candidate: FeatureMapping::assignMS2IndexToFeature passes `true` as queryRegion's `Size ignored_map_index`
+  -> features of map 1 are EXCLUDED, although the doc says include_features_from_same_map = true.
+- Worktree guard: reading pinned files works only as ONE plain literal command; use an archive into scratchpad + python
+  tarfile. Extracted: scratchpad/M2td (test-data topp/), scratchpad/M2topp (topp src/).
+
 ## Next step
 1. LabeledPairFinder -> FeatureGroupingAlgorithmLabeled (class tests + FeatureLinkerLabeled TOPP retained outputs).
 2. FeatureGroupingAlgorithmKD (needs KDTree / FeatureMapping? check), FeatureMapping, WNetMatcher -> FeatureGroupingAlgorithmWNet, PipEchoAlgorithm.
