@@ -15,13 +15,15 @@
 //! operation for operation, because the order of those operations fixes the
 //! last bits of every coefficient and every consumer — RANSAC, the RT
 //! normalizer — compares them against thresholds. The Student's t quantile
-//! comes from `statrs` in place of Boost.Math; it feeds only
+//! comes from `statrs` (polished by Newton steps) in place of Boost.Math; it
+//! is within `1e-13` relative of Boost on the oracle cases, not bit-identical,
+//! and feeds only
 //! [`LinearRegression::t_value`], [`LinearRegression::lower`] and
 //! [`LinearRegression::upper`].
 
 use crate::math::statistic_functions::{covariance, mean, variance_with_mean};
 use crate::{Error, Result};
-use statrs::distribution::{ContinuousCDF, StudentsT};
+use statrs::distribution::{Continuous, ContinuousCDF, StudentsT};
 
 /// A straight-line fit and its goodness-of-fit statistics.
 ///
@@ -406,16 +408,58 @@ impl LinearRegression {
     }
 }
 
-/// Boost's `quantile(students_t(df), p)` through `statrs`.
+/// Boost's `quantile(students_t(df), p)`, for `p` in `(0, 1)`.
 ///
-/// `statrs` inverts the regularised incomplete beta function (AS 64/109)
-/// rather than using Boost's Hill/Shaw inversion, so the result is not claimed
-/// bit-identical; `docs/RANSAC_SUPPORT.md` records the measured agreement.
+/// Boost evaluates the quantile in `long double` (Hill's approximation, then
+/// one Halley step on the incomplete beta function) and narrows the result.
+/// This port starts from `statrs`'s inversion of the regularised incomplete
+/// beta function (AS 64/109), which alone was measured up to `2.4e-13`
+/// relative from Boost, and polishes it with Newton steps on the upper-tail
+/// probability `P(T > t) = I_{df/(df+t^2)}(df/2, 1/2) / 2`, evaluated by
+/// `statrs`'s `beta_reg`. The result is not claimed bit-identical;
+/// `docs/RANSAC_SUPPORT.md` records the measured agreement.
 fn students_t_quantile(degrees_of_freedom: f64, p: f64) -> Result<f64> {
+    if p == 0.5 {
+        // Boost returns exactly zero here.
+        return Ok(0.0);
+    }
     let distribution = StudentsT::new(0.0, 1.0, degrees_of_freedom)
         .map_err(|error| Error::InvalidValue(format!("Student's t distribution: {error}")))?;
-    // p is in (0, 1) here, which statrs requires (it asserts [0, 1]).
-    Ok(distribution.inverse_cdf(p))
+    // The upper-tail probability of |t|; `1 - p` is exact for p in [0.5, 1).
+    let (tail, sign) = if p > 0.5 { (1.0 - p, 1.0) } else { (p, -1.0) };
+    // `tail` is in (0, 0.5) here, inside statrs's asserted domain [0, 1].
+    let mut t = distribution.inverse_cdf(1.0 - tail).abs();
+    for _ in 0..4 {
+        if !(t.is_finite() && t > 0.0) {
+            break;
+        }
+        let x = degrees_of_freedom / (degrees_of_freedom + t * t);
+        let upper = match statrs::function::beta::checked_beta_reg(degrees_of_freedom / 2.0, 0.5, x)
+        {
+            Ok(value) => 0.5 * value,
+            Err(_) => break,
+        };
+        let density = distribution.pdf(t);
+        if !(density.is_finite() && density > 0.0) {
+            break;
+        }
+        // d/dt P(T > t) = -pdf(t).
+        let step = (upper - tail) / density;
+        let next = t + step;
+        if !next.is_finite() || next == t {
+            break;
+        }
+        t = next;
+        if step.abs() <= t * f64::EPSILON {
+            break;
+        }
+    }
+    if !t.is_finite() {
+        return Err(Error::InvalidValue(format!(
+            "Student's t quantile of {p} with {degrees_of_freedom} degrees of freedom is not finite"
+        )));
+    }
+    Ok(sign * t)
 }
 
 #[cfg(test)]

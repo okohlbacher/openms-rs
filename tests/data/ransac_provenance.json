@@ -1,0 +1,197 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "group": "ransac",
+ "work_package": "O4b (wave 4)",
+ "method": "Port of ML/REGRESSION (LinearRegression, LinearRegressionWithoutIntercept, QuadraticRegression), ML/RANSAC (RANSACModel, RANSACModelLinear, RANSACModelQuadratic, RANSAC) and ANALYSIS/OPENSWATH/MRMRTNormalizer, with the RandomShuffler class of MATH/MathFunctions.h that RANSAC draws through. The GTE fits (ApprHeightLine2, LinearSystem 2x2/3x3 inverses) are transcribed operation for operation. Every class-test literal is transcribed; an executed differential against the Linux x86_64 Release install covers every public member.",
+ "evidence_tier": "tier 1 (executed differential: 128 cases, 2110 records, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06) for every public member of the eight headers, bit for bit except LinearRegression getTValue/getLower/getUpper (relative 1e-12); tier 3 (class-test literals of six class tests); tier 4 (published t table, hand-derived binned coverage, a synthetic RANSAC acceptance case, Rust-only preconditions)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ML/REGRESSION/LinearRegression.h",
+   "sha256": "dcf09d254686377968df4515eb4f3379445a661de6cb2541c7e885a48d978951"
+  },
+  {
+   "path": "src/openms/source/ML/REGRESSION/LinearRegression.cpp",
+   "sha256": "199632767d2254d1d1c10835726ba7de929a38b54d53065f5ca33e617544ba12"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h",
+   "sha256": "343729fc163c54358ac1dd8c77747d1498de56ad7544d470907ec7778a05a845"
+  },
+  {
+   "path": "src/openms/source/ML/REGRESSION/LinearRegressionWithoutIntercept.cpp",
+   "sha256": "a155bdcc71d41c4a81196ba42d999f2dee517a1dcb141949b5c37864edb384e7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/REGRESSION/QuadraticRegression.h",
+   "sha256": "46c147112e3260c2951001e522447807d51ab2ebe8584f8b33ac2250b29a82c6"
+  },
+  {
+   "path": "src/openms/source/ML/REGRESSION/QuadraticRegression.cpp",
+   "sha256": "df8030018ccac395a429e28fcf4e18f7b4983682f87129f361cac26340623ee1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/RANSAC/RANSACModel.h",
+   "sha256": "78b91b01eb43da89a8b8297c62b82b6d5769551605f8d3878d33de107e6bfad5"
+  },
+  {
+   "path": "src/openms/source/ML/RANSAC/RANSACModel.cpp",
+   "sha256": "6ab695c61965efc2c9a779d3676d83737c46f95fb002d299847c316fec9fe897"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/RANSAC/RANSACModelLinear.h",
+   "sha256": "a1f91f58477a944fdfe00bd347ca0ed30820b39569584c22c79793523e046d31"
+  },
+  {
+   "path": "src/openms/source/ML/RANSAC/RANSACModelLinear.cpp",
+   "sha256": "1c5c0f44db214a1be041d1ebeceecc372a9760d44fbaa6870ef2f65b73d80927"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/RANSAC/RANSACModelQuadratic.h",
+   "sha256": "ea7050b1ba59d845301dd4a4bd22ac94af09e678f1ce5a1650f11b276c61db4b"
+  },
+  {
+   "path": "src/openms/source/ML/RANSAC/RANSACModelQuadratic.cpp",
+   "sha256": "c5004e2ac1991083f9dbfc0aa7c3a8d47a93f78cac747f46afe7efd3f503f81d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/RANSAC/RANSAC.h",
+   "sha256": "ddbfe797f504c07b243152006746df5278937836d9f816487ea600b80268db28"
+  },
+  {
+   "path": "src/openms/source/ML/RANSAC/RANSAC.cpp",
+   "sha256": "697631acb5ebd4d2e866140806d3933b14d9aeb579b425da7adcc9c26ebb3e5e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h",
+   "sha256": "2fa64d8b3d97ae2e62fe191d51934a7bcdb3132c944b881f893c2f181deadfa2"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMRTNormalizer.cpp",
+   "sha256": "9989274ba7da0b5215f4c2d03698e69c2851ffd6be9a71b4b58223d5b40be3a6"
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/ApprHeightLine2.h",
+   "sha256": "c5a0908afa4c9dd6dcd637273bc8d3c8c0c3ae849a7f503edd71a1cb664b5237"
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/LinearSystem.h",
+   "sha256": "acef200163ee20238addda68c9f909f4dfebda778fe2f9b52f5de5c387a9ae63"
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/Matrix2x2.h",
+   "sha256": "498c6f4eb2b2a817baf9b1a38475dd7c1e2341800604186bdeab348c02d9582c"
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/Matrix3x3.h",
+   "sha256": "cad88d7210da339abf397cde43189e12538eccfa739064a419ed2b4c4f2bba9a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LinearRegression_test.cpp",
+   "sha256": "fda805c67d381ab6cedf18ac77183f0290357c0405c905cf2e6dfa11caf13cdf"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LinearRegressionWithoutIntercept_test.cpp",
+   "sha256": "5d8a47a47d837d2312fd767ee7323bc05d99c48f7f4d6df436d14f93a73a6f5f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/QuadraticRegression_test.cpp",
+   "sha256": "048e3ee9328159d64425df8add25492dbed5207b3b1f7125713331d5c561d6c4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RANSAC_test.cpp",
+   "sha256": "0005a0fcd15f85f888322c6e5ce4d3af27531fec7a1cffc36205aee53d1ae088"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RANSACModel_test.cpp",
+   "sha256": "73ee09cdc0da2aeb27035e54b1d8a58c6a22ca43b8bda17f7c4438cb7c5d4635"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RANSACModelLinear_test.cpp",
+   "sha256": "7cb4ac333d9f917c0a96b3831d9baa07c73215ab4e3bf382f55ee19cae3b36ef"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RANSACModelQuadratic_test.cpp",
+   "sha256": "0c55fb0f70f747ccdf82ea3246e4cbed7198191c097dbb439990c05cd7cc3694"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MRMRTNormalizer_test.cpp",
+   "sha256": "2271be52f0b486e18adb9d5a27dcfe8ae2f64cb7a9a39edbe183d8cd5bf4f02c"
+  }
+ ],
+ "native_implementation": [
+  "src/math/random_shuffler.rs",
+  "src/math/ml/linear_regression.rs",
+  "src/math/ml/linear_regression_without_intercept.rs",
+  "src/math/ml/quadratic_regression.rs",
+  "src/math/ml/ransac.rs",
+  "src/analysis/openswath/mrm_rt_normalizer.rs"
+ ],
+ "native_tests": [
+  "tests/ransac.rs",
+  "tests/mrm_rt_normalizer.rs",
+  "tests/ransac_oracle.rs"
+ ],
+ "support_document": "docs/RANSAC_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/ransac_oracle_datasets.tsv",
+   "sha256": "13a08509ccc356135904b8ab1d5eb3fc3aa86968bf12d8ea7e02068b12351715",
+   "bytes": 12883,
+   "rows": 22,
+   "kind": "oracle input (shared by driver and test)",
+   "role": "Input datasets, written by ../oracle/O4b-ransac/gen_data.py; read by both the C++ driver and tests/ransac_oracle.rs"
+  },
+  {
+   "path": "tests/data/ransac_oracle_cases.tsv",
+   "sha256": "cbcbf073e7bdbc87b7b0f5159b08fd2d59701ade4d6b1bf0d67585f16b46a88f",
+   "bytes": 6802,
+   "rows": 129,
+   "kind": "oracle input (shared by driver and test)",
+   "role": "The 128 cases (operation and arguments), written by gen_data.py; read by both sides"
+  },
+  {
+   "path": "tests/data/ransac_oracle_expected.tsv",
+   "sha256": "4a41e108bb2670e7a6a5882f6fe809603402c6f700f9191309a791e635451b12",
+   "bytes": 142016,
+   "rows": 2110,
+   "kind": "oracle-generated (tier 1 executed differential)",
+   "role": "Records of ../oracle/O4b-ransac/driver.cpp (results/oracle.tsv), byte-identical across two runs"
+  }
+ ],
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "sdk": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0, flags -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "host": "ibminode06",
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<run>/home OPENMS_HOME_PATH=<run>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<install>/share/OpenMS/4.0.0",
+  "reproduction": "remote_run.sh runs the driver twice in fresh processes; records, stdout, stderr and exit code were byte-identical (results/differ.txt empty).",
+  "time_interposition": "The driver defines time() with default visibility and links with -rdynamic; results/time_export.txt shows it in the dynamic symbol table, and each removeOutliersRANSAC case that reaches RANSAC records exactly one call (time_calls 1), so the RANSAC that libOpenMS constructs reads the case's value.",
+  "comparison": "Every double as its IEEE-754 bit pattern, integers and booleans exactly, exceptions as 'the port also fails'. LinearRegression t_value, lower and upper within 1e-12 relative (bound fixed before the first measurement): Boost evaluates the quantile in long double, the port polishes statrs's AS 64/109 inversion with Newton steps in f64.",
+  "measured": "All records bit-identical except the t-quantile records: at most 5.6e-14 relative for t_value and 5.7e-13 for lower/upper (linregw:quad_noisy). statrs's unpolished inverse_cdf was 2.4e-13 relative from Boost on t_value and 3.2e-12 on lower, which failed the bound and led to the Newton polish."
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/O4b-ransac/driver.cpp",
+   "sha256": "77e56c5ce52988378e4d3aa1551fe29e1178224ce8f7ffbca721ee38fdcc805b",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4b-ransac/gen_data.py",
+   "sha256": "30d57bdfff61af619fa33f2d4740550de943c284f5a3ff23fe1897bb0df00f05",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4b-ransac/remote_run.sh",
+   "sha256": "7a1eeeccc7df62594a61099f9a5468821e350319efe6ff8026a7f07658b85fa9",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4b-ransac/results/hashes.txt",
+   "sha256": "678b172f652f53ed825155880f26ffc28301532aa5979337463691eecdbe7647",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The C++ driver, the dataset generator and the run script live outside this repository under ../oracle/O4b-ransac so that no C++ is committed here. results/hashes.txt records the sha256 of the driver, the inputs, the built driver, libOpenMS.so and the oracle output as they were on ibminode06."
+}
