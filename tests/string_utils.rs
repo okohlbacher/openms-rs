@@ -744,6 +744,9 @@ fn string_test_integer_to_str() {
 }
 
 #[test]
+// The float literals are the class test's own spellings (17.0123456f,
+// 50254.199219f), which carry more digits than an f32 holds.
+#[allow(clippy::excessive_precision)]
 fn string_test_float_to_str() {
     // String_test.cpp:126-140.
     assert_eq!(to_str_f32(17.012_345_6), "17.012346");

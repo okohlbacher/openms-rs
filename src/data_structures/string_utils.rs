@@ -22,74 +22,74 @@
 //! differences are confined to text a C++ `char` cannot address: a `char`
 //! argument that is not ASCII is refused where the source's `char` is one byte
 //! of the text (quotes, fill characters, splitters), and a byte count that
-//! would cut a multi-byte character is refused ([`prefix`], [`suffix`],
-//! [`substr`], [`chop`]), because the source's result there is not UTF-8.
-//! [`reverse`] refuses non-ASCII text for the same reason.
+//! would cut a multi-byte character is refused ([`prefix`](crate::data_structures::string_utils::prefix), [`suffix`](crate::data_structures::string_utils::suffix),
+//! [`substr`](crate::data_structures::string_utils::substr), [`chop`](crate::data_structures::string_utils::chop)), because the source's result there is not UTF-8.
+//! [`reverse`](crate::data_structures::string_utils::reverse) refuses non-ASCII text for the same reason.
 //!
 //! # API mapping
 //!
 //! | Source member | Rust | Notes |
 //! |---|---|---|
-//! | `enum class QuotingMethod { NONE, ESCAPE, DOUBLE }` | [`QuotingMethod`] | `ESCAPE`, the source default argument, is [`QuotingMethod::default`] |
-//! | `StringUtilsHelper::toInt32`, `StringUtils::toInt32` | [`to_int32`] | |
-//! | `StringUtilsHelper::toInt64`, `StringUtils::toInt64` | [`to_int64`] | |
-//! | `StringUtilsHelper::toFloat`, `StringUtils::toFloat` | [`to_float`] | |
-//! | `StringUtilsHelper::toDouble`, `StringUtils::toDouble` | [`to_double`] | |
-//! | `extractDouble` (`const char*` and both `std::string` iterator overloads) | [`extract_double`] | returns the value and the bytes consumed |
-//! | `extractInt` (the same three overloads) | [`extract_int`] | |
+//! | `enum class QuotingMethod { NONE, ESCAPE, DOUBLE }` | [`QuotingMethod`](crate::data_structures::string_utils::QuotingMethod) | `ESCAPE`, the source default argument, is [`QuotingMethod::default`](crate::data_structures::string_utils::QuotingMethod::default) |
+//! | `StringUtilsHelper::toInt32`, `StringUtils::toInt32` | [`to_int32`](crate::data_structures::string_utils::to_int32) | |
+//! | `StringUtilsHelper::toInt64`, `StringUtils::toInt64` | [`to_int64`](crate::data_structures::string_utils::to_int64) | |
+//! | `StringUtilsHelper::toFloat`, `StringUtils::toFloat` | [`to_float`](crate::data_structures::string_utils::to_float) | |
+//! | `StringUtilsHelper::toDouble`, `StringUtils::toDouble` | [`to_double`](crate::data_structures::string_utils::to_double) | |
+//! | `extractDouble` (`const char*` and both `std::string` iterator overloads) | [`extract_double`](crate::data_structures::string_utils::extract_double) | returns the value and the bytes consumed |
+//! | `extractInt` (the same three overloads) | [`extract_int`](crate::data_structures::string_utils::extract_int) | |
 //! | `StringUtilsHelper()` / `~StringUtilsHelper()` | not needed | a class of static functions; Rust has free functions |
-//! | `appendToStr(int / unsigned / short / unsigned short / long / unsigned long / long long / unsigned long long, std::string&)` | [`ToStr::append_to_str`] | |
-//! | `toStr` of the same eight integer types | [`ToStr::to_str_text`] | decimal |
-//! | `appendToStr(float, std::string&)`, `toStr(float, true)` | [`ToStr`] for `f32`, [`to_str_f32`] | |
-//! | `appendToStr(double, std::string&)`, `toStr(double, true)` | [`ToStr`] for `f64`, [`to_str`] | |
-//! | `appendToStrLowP(float, std::string&)`, `toStr(float, false)` | [`append_to_str_low_p_f32`], [`to_str_f32_low_p`] | |
-//! | `appendToStrLowP(double, std::string&)`, `toStr(double, false)` | [`append_to_str_low_p`], [`to_str_low_p`] | |
+//! | `appendToStr(int / unsigned / short / unsigned short / long / unsigned long / long long / unsigned long long, std::string&)` | [`ToStr::append_to_str`](crate::data_structures::string_utils::ToStr::append_to_str) | |
+//! | `toStr` of the same eight integer types | [`ToStr::to_str_text`](crate::data_structures::string_utils::ToStr::to_str_text) | decimal |
+//! | `appendToStr(float, std::string&)`, `toStr(float, true)` | [`ToStr`](crate::data_structures::string_utils::ToStr) for `f32`, [`to_str_f32`](crate::data_structures::string_utils::to_str_f32) | |
+//! | `appendToStr(double, std::string&)`, `toStr(double, true)` | [`ToStr`](crate::data_structures::string_utils::ToStr) for `f64`, [`to_str`](crate::data_structures::string_utils::to_str) | |
+//! | `appendToStrLowP(float, std::string&)`, `toStr(float, false)` | [`append_to_str_low_p_f32`](crate::data_structures::string_utils::append_to_str_low_p_f32), [`to_str_f32_low_p`](crate::data_structures::string_utils::to_str_f32_low_p) | |
+//! | `appendToStrLowP(double, std::string&)`, `toStr(double, false)` | [`append_to_str_low_p`](crate::data_structures::string_utils::append_to_str_low_p), [`to_str_low_p`](crate::data_structures::string_utils::to_str_low_p) | |
 //! | `appendToStr(long double, ...)`, `appendToStrLowP(long double, ...)`, `toStr(long double, bool)` | not portable | Rust has no extended-precision type; the `f64` functions cover every value a Rust caller can hold |
-//! | `toStr(char)` | [`ToStr`] for `char` | one character |
-//! | `toStr(const std::string&)`, `toStr(const char*)`, `toStr(std::string_view)` | [`ToStr`] for `str` and `String` | copied unchanged |
+//! | `toStr(char)` | [`ToStr`](crate::data_structures::string_utils::ToStr) for `char` | one character |
+//! | `toStr(const std::string&)`, `toStr(const char*)`, `toStr(std::string_view)` | [`ToStr`](crate::data_structures::string_utils::ToStr) for `str` and `String` | copied unchanged |
 //! | `appendToStr(const DataValue&, bool, std::string&)`, `toStr(const DataValue&, bool)` | `MetaValue::to_text` | lives beside the value type, which the `metadata` module owns (a link would name that module, which depends on this one) |
 //! | `toStr(const ParamValue&, bool)` | [`ParamValue::to_text`](crate::param::ParamValue::to_text) | |
-//! | `skipWhitespace(const char*, const char*)`, `skipWhitespace(const std::string_view&)` | [`skip_whitespace`] | a byte count |
-//! | `skipNonWhitespace` (both overloads) | [`skip_non_whitespace`] | |
-//! | `number(double, UInt)` | [`number`], [`number_truncated`] | strict and source-compatible |
-//! | `numberLength(double, UInt)` | [`number_length`] | |
-//! | `random(UInt)` | [`random`], [`random_with`] | |
+//! | `skipWhitespace(const char*, const char*)`, `skipWhitespace(const std::string_view&)` | [`skip_whitespace`](crate::data_structures::string_utils::skip_whitespace) | a byte count |
+//! | `skipNonWhitespace` (both overloads) | [`skip_non_whitespace`](crate::data_structures::string_utils::skip_non_whitespace) | |
+//! | `number(double, UInt)` | [`number`](crate::data_structures::string_utils::number), [`number_truncated`](crate::data_structures::string_utils::number_truncated) | strict and source-compatible |
+//! | `numberLength(double, UInt)` | [`number_length`](crate::data_structures::string_utils::number_length) | |
+//! | `random(UInt)` | [`random`](crate::data_structures::string_utils::random), [`random_with`](crate::data_structures::string_utils::random_with) | |
 //! | `hasPrefix` (`std::string`, `char` and `string_view` overloads) | [`str::starts_with`] | the byte test is the same test on UTF-8 |
 //! | `hasSuffix` (three overloads) | [`str::ends_with`] | |
 //! | `hasSubstring` (three overloads) | [`str::contains`] | |
 //! | `has(const std::string&, Byte)`, `has(const std::string&, char)` | `text.as_bytes().contains(&byte)`, [`str::contains`] | |
-//! | `prefix(s, size_t)`, `suffix(s, size_t)` | [`prefix`], [`suffix`] | |
-//! | `prefix(s, Int)`, `suffix(s, Int)` | [`prefix_signed`], [`suffix_signed`] | |
-//! | `prefix(s, char)`, `suffix(s, char)` | [`prefix_until`], [`suffix_after`] | |
-//! | `substr` (`std::string` and `string_view` overloads) | [`substr`] | `npos` is `None` |
-//! | `chop(s, Size)` | [`chop`] | |
-//! | `trim(std::string&)`, `trimmed(std::string)` | [`trim`], [`trimmed`] | |
-//! | `toUpper`, `toLower`, `toUppered`, `toLowered` | [`to_upper`], [`to_lower`], [`to_uppered`], [`to_lowered`] | the classic `"C"` locale: ASCII letters only |
-//! | `firstToUpper` | [`first_to_upper`] | |
-//! | `reverse` | [`reverse`] | |
-//! | `simplify` | [`simplify`] | |
-//! | `fillLeft`, `fillRight` (lvalue and rvalue overloads) | [`fill_left`], [`fill_right`] | an owned `String` is filled in place |
-//! | `substitute(s, char, char)`, `substituted(s, char, char)` | [`substitute_char`], [`substituted_char`] | |
-//! | `substitute(s, string, string)`, `substituted(s, string, string)` | [`substitute`], [`substituted`] | |
-//! | `remove(s, char)` | [`remove`] | |
-//! | `ensureLastChar` (lvalue and rvalue overloads) | [`ensure_last_char`] | |
-//! | `removeWhitespaces` | [`remove_whitespaces`] | |
-//! | `isQuoted`, `quote`, `unquote` | [`is_quoted`], [`quote`], [`unquote`] | |
-//! | `split(s, char, vector&, bool quote_protect)` | [`split`] | returns [`Split`] |
-//! | `split(s, const std::string&, vector&)` | [`split_str`] | |
-//! | `split_quoted` | [`split_quoted`] | |
-//! | `concatenate` (target, iterator and container overloads) | [`concatenate`] | |
+//! | `prefix(s, size_t)`, `suffix(s, size_t)` | [`prefix`](crate::data_structures::string_utils::prefix), [`suffix`](crate::data_structures::string_utils::suffix) | |
+//! | `prefix(s, Int)`, `suffix(s, Int)` | [`prefix_signed`](crate::data_structures::string_utils::prefix_signed), [`suffix_signed`](crate::data_structures::string_utils::suffix_signed) | |
+//! | `prefix(s, char)`, `suffix(s, char)` | [`prefix_until`](crate::data_structures::string_utils::prefix_until), [`suffix_after`](crate::data_structures::string_utils::suffix_after) | |
+//! | `substr` (`std::string` and `string_view` overloads) | [`substr`](crate::data_structures::string_utils::substr) | `npos` is `None` |
+//! | `chop(s, Size)` | [`chop`](crate::data_structures::string_utils::chop) | |
+//! | `trim(std::string&)`, `trimmed(std::string)` | [`trim`](crate::data_structures::string_utils::trim), [`trimmed`](crate::data_structures::string_utils::trimmed) | |
+//! | `toUpper`, `toLower`, `toUppered`, `toLowered` | [`to_upper`](crate::data_structures::string_utils::to_upper), [`to_lower`](crate::data_structures::string_utils::to_lower), [`to_uppered`](crate::data_structures::string_utils::to_uppered), [`to_lowered`](crate::data_structures::string_utils::to_lowered) | the classic `"C"` locale: ASCII letters only |
+//! | `firstToUpper` | [`first_to_upper`](crate::data_structures::string_utils::first_to_upper) | |
+//! | `reverse` | [`reverse`](crate::data_structures::string_utils::reverse) | |
+//! | `simplify` | [`simplify`](crate::data_structures::string_utils::simplify) | |
+//! | `fillLeft`, `fillRight` (lvalue and rvalue overloads) | [`fill_left`](crate::data_structures::string_utils::fill_left), [`fill_right`](crate::data_structures::string_utils::fill_right) | an owned `String` is filled in place |
+//! | `substitute(s, char, char)`, `substituted(s, char, char)` | [`substitute_char`](crate::data_structures::string_utils::substitute_char), [`substituted_char`](crate::data_structures::string_utils::substituted_char) | |
+//! | `substitute(s, string, string)`, `substituted(s, string, string)` | [`substitute`](crate::data_structures::string_utils::substitute), [`substituted`](crate::data_structures::string_utils::substituted) | |
+//! | `remove(s, char)` | [`remove`](crate::data_structures::string_utils::remove) | |
+//! | `ensureLastChar` (lvalue and rvalue overloads) | [`ensure_last_char`](crate::data_structures::string_utils::ensure_last_char) | |
+//! | `removeWhitespaces` | [`remove_whitespaces`](crate::data_structures::string_utils::remove_whitespaces) | |
+//! | `isQuoted`, `quote`, `unquote` | [`is_quoted`](crate::data_structures::string_utils::is_quoted), [`quote`](crate::data_structures::string_utils::quote), [`unquote`](crate::data_structures::string_utils::unquote) | |
+//! | `split(s, char, vector&, bool quote_protect)` | [`split`](crate::data_structures::string_utils::split) | returns [`Split`](crate::data_structures::string_utils::Split) |
+//! | `split(s, const std::string&, vector&)` | [`split_str`](crate::data_structures::string_utils::split_str) | |
+//! | `split_quoted` | [`split_quoted`](crate::data_structures::string_utils::split_quoted) | |
+//! | `concatenate` (target, iterator and container overloads) | [`concatenate`](crate::data_structures::string_utils::concatenate) | |
 //! | `StringConversions::append`, `appendLowP`, `toString`, `toStringLowP` | the functions above | a forwarding namespace |
-//! | global `std::string& operator+=(std::string&, number)` | [`ToStr::append_to_str`] | |
-//! | global `std::string operator+(std::string, number)` | [`ToStr::append_to_str`] on an owned `String` | |
+//! | global `std::string& operator+=(std::string&, number)` | [`ToStr::append_to_str`](crate::data_structures::string_utils::ToStr::append_to_str) | |
+//! | global `std::string operator+(std::string, number)` | [`ToStr::append_to_str`](crate::data_structures::string_utils::ToStr::append_to_str) on an owned `String` | |
 //!
 //! # Checked boundaries
 //!
-//! Functions whose result can outgrow their input ([`fill_left`],
-//! [`fill_right`], [`substitute`], [`quote`], [`concatenate`], [`random`])
-//! refuse a result above [`MAX_TEXT_BYTES`] before allocating and reserve
+//! Functions whose result can outgrow their input ([`fill_left`](crate::data_structures::string_utils::fill_left),
+//! [`fill_right`](crate::data_structures::string_utils::fill_right), [`substitute`](crate::data_structures::string_utils::substitute), [`quote`](crate::data_structures::string_utils::quote), [`concatenate`](crate::data_structures::string_utils::concatenate), [`random`](crate::data_structures::string_utils::random))
+//! refuse a result above [`MAX_TEXT_BYTES`](crate::data_structures::string_utils::MAX_TEXT_BYTES) before allocating and reserve
 //! fallibly; the source has no ceiling. Splitting refuses more than
-//! [`MAX_SPLIT_PARTS`] parts. Every refusal leaves the input unchanged.
+//! [`MAX_SPLIT_PARTS`](crate::data_structures::string_utils::MAX_SPLIT_PARTS) parts. Every refusal leaves the input unchanged.
 //!
 //! # Evidence
 //!

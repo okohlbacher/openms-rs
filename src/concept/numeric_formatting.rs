@@ -5,12 +5,12 @@
 //! Locale-independent floating-point text: `CONCEPT/Detail/NumericFormatting.h`
 //! and the C library conversions the source's text relies on.
 //!
-//! [`append_numeric_f64`] and [`append_numeric_f32`] port
+//! [`append_numeric_f64`](crate::concept::numeric_formatting::append_numeric_f64) and [`append_numeric_f32`](crate::concept::numeric_formatting::append_numeric_f32) port
 //! `Internal::NumericFormatting::appendNumeric<T>`, the one routine behind every
 //! `StringUtils::toStr` of a floating-point value, both precisions
 //! (`toStr(x, true)` and `toStr(x, false)`, `appendToStr` and
 //! `appendToStrLowP`), and therefore behind `DataValue` and `ParamValue` text
-//! and every XML writer that stores a number through them. [`ostream_g`] is the
+//! and every XML writer that stores a number through them. [`ostream_g`](crate::concept::numeric_formatting::ostream_g) is the
 //! C++ default-stream insertion of a `double` (`printf("%.*g")`), which
 //! `StringUtils::numberLength` and FileInfo's statistics use.
 //!
@@ -22,17 +22,17 @@
 //! Sources at core revision `bc9cc12`:
 //! `src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h` (141 lines,
 //! header-only) and the standard-library behaviour it calls: `std::to_chars`
-//! (`<charconv>`) and, for [`ostream_g`], `std::ostream::operator<<(double)`.
+//! (`<charconv>`) and, for [`ostream_g`](crate::concept::numeric_formatting::ostream_g), `std::ostream::operator<<(double)`.
 //! The support document is `docs/STRING_UTILS_SUPPORT.md`.
 //!
 //! # API mapping
 //!
 //! | Source | Rust | Notes |
 //! |---|---|---|
-//! | `appendNumeric<double>(T, std::string&, int precision, bool fixed_format)` | [`append_numeric_f64`] | `precision` is a `u32`; the source only passes 3, 6, 15 and 18 |
-//! | `appendNumeric<float>(...)` | [`append_numeric_f32`] | formats the `float` itself, not a promoted `double` |
+//! | `appendNumeric<double>(T, std::string&, int precision, bool fixed_format)` | [`append_numeric_f64`](crate::concept::numeric_formatting::append_numeric_f64) | `precision` is a `u32`; the source only passes 3, 6, 15 and 18 |
+//! | `appendNumeric<float>(...)` | [`append_numeric_f32`](crate::concept::numeric_formatting::append_numeric_f32) | formats the `float` itself, not a promoted `double` |
 //! | `appendNumeric<long double>(...)` | not ported | Rust has no extended-precision type; see the support document |
-//! | `std::ostream << double` after `precision(p)` | [`ostream_g`] | C `%.*g`, glibc spelling of NaN |
+//! | `std::ostream << double` after `precision(p)` | [`ostream_g`](crate::concept::numeric_formatting::ostream_g) | C `%.*g`, glibc spelling of NaN |
 //!
 //! # The `appendNumeric` rules
 //!
@@ -83,6 +83,8 @@ const OMITTED_PRECISION: usize = 6;
 macro_rules! append_numeric {
     ($(#[$doc:meta])* $name:ident, $float:ty) => {
         $(#[$doc])*
+        ///
+        /// Ports `NumericFormatting::appendNumeric<T>` (`CONCEPT/Detail/NumericFormatting.h`).
         pub fn $name(value: $float, target: &mut String, precision: u32, fixed_format: bool) {
             if value.is_nan() {
                 target.push_str("NaN");
