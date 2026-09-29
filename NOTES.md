@@ -60,6 +60,11 @@ Worktree branch: worktree-wf_a10fdd71-2d2-12, base f0990c0.
   Remote tree == HEAD code (only NOTES/NATIVE_EQUIVALENTS differ). Resumed lines 47-54 with
   scratchpad/integ-A/resume.sh -> resume.out.
 
+- SWEEP2 DONE: lines 1-46 (first run) + 47-54 (resume) all PASS, 0 fail (resume.out).
+- NEW: oracle ../oracle/integ-A-pi0 (ibminode06 Release, invocation 1 done, differ empty): pi0Est with
+  smooth_log_pi0 and a zero pi0_lambda -> source takes the fallback (pi0 0, pi0_smooth 0), same as the port.
+  Adding tests/multiple_testing.rs test + fixture tests/data/multiple_testing_pi0_release/ + provenance.
+
 ## Next step
 1. When resume.out shows EXIT= (lines 47-54) (monitor scratchpad/integ-A/pollsweep.sh): replace SWEEP_RESULT in the report, recopy.
 2. Delete NOTES.md in the final commit.
