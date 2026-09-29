@@ -47,3 +47,7 @@ Branch: worktree-wf_cd066dab-0a7-19 (retry; merged -14 notes).
 - e66a3c4c MzData isSemanticallyValid + MzDataValidator (tier 1, ../oracle/F7c-mzdata-semantic; 13 inputs).
 - Sweep F7c-sweep running -> scratchpad/sweep1. Next: ConsensusXML (ZIP input, passive PeakFileOptions), MGF review/param shape, TrafoXML member check vs M1.
 - CI slices to report: mzxml_transform_progress (mzml, 4 tests); mzdata semantic test needs mzml+semantic-validation (64 tests; 63 without).
+- WARNING: the scratchpad is SHARED with other lanes; use scratchpad/F7c/ for logs (logs/ and sweep1/ collide with F7b etc.).
+- f644bceb ConsensusXML from_peak_options/DocId/VERSION/API table; 1a0557f6 MGF tier-1 store bytes + param contract.
+- Other branches touching my files: INTEG-A (0a7-53) refactors mascot_generic SpectrumNativeIDParser + docs row (no overlap with my hunks);
+  B7 adds dta2d::read_with_progress (additive). M1 (0a7-36) owns transformation_xml.rs; its TRANSFORMATION_XML_SUPPORT.md still says b_spline refused (stale).
