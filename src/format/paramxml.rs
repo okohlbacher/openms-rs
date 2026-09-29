@@ -82,8 +82,8 @@ pub fn read_into(input: impl Read, target: &mut Param, limits: Limits) -> Result
     *target = draft;
     Ok(())
 }
-/// Load an owned parameter tree from a file; gzip and bzip2 are recognised by
-/// content.
+/// Load an owned parameter tree from a file; gzip, bzip2 and a one-entry ZIP
+/// archive are recognised by content, as `XMLFile::parse_` recognises them.
 ///
 /// # Errors
 ///
@@ -91,7 +91,8 @@ pub fn read_into(input: impl Read, target: &mut Param, limits: Limits) -> Result
 pub fn load(path: impl AsRef<Path>) -> Result<Param> {
     load_with_limits(path, Limits::default())
 }
-/// Path input recognizes gzip and bzip2 by content; limits apply after decoding.
+/// Path input recognizes gzip, bzip2 and one-entry ZIP input by content; limits
+/// apply after decoding.
 pub fn load_with_limits(path: impl AsRef<Path>, limits: Limits) -> Result<Param> {
     read_with_limits(super::path_io::open(path.as_ref())?, limits)
 }

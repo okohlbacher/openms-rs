@@ -1,0 +1,11 @@
+advanced_deflate.zip	OK 7 entries
+param_bzip2.zip	OK 15 entries
+param_deflate.zip	OK 15 entries
+param_empty.zip	ERR:FileEmpty:the file 'ZIP archive contains no file entries' is empty
+param_stored.zip	OK 15 entries
+param_two_entries.zip	ERR:Parse Error:ZIP archive contains 2 file entries; expected exactly 1: ParamXMLFile_test_writeXMLToStream.xml Param_advanced_no_required.ini in: 
+param_with_directory.zip	OK 15 entries
+pre16_deflate.zip	OK 8 entries
+Param_advanced_no_required.ini	OK 7 entries
+Param_pre16_update.ini	OK 8 entries
+ParamXMLFile_test_writeXMLToStream.xml	OK 15 entries
