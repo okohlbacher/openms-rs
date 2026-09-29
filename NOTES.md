@@ -12,5 +12,16 @@ Worktree branch: worktree-wf_a10fdd71-2d2-12, base f0990c0.
 - A5a worktree-wf_cd066dab-0a7-3  (fad3f5fa)  chem/enzymes/unimod, feature unimod-xml
 - A5b worktree-wf_cd066dab-0a7-4  (865a19f8)  IdentificationData etc.
 
+## State
+- ALL 8 lanes merged (HEAD 0da9ad40). A1 is built on B0 (worktree-wf_ee239125-5be-1 = 9fcb962a,
+  Phase-B integration), so integ-A carries B0 too; integ-B (worktree-wf_a10fdd71-2d2-11) also merges B0.
+- Conflicts: LOG_STREAM_SUPPORT.md (kept B0 text + A5a Colorizer pointer); 4 module roots keep-both.
+- check_module_cycles: 4 new acyclic edges need --write (docs/module-cycles.json is not a lead file).
+- A2a.md, A2b.md, A4.md reports are missing (worktree copies deleted); summaries are in the brief.
+- Logs: scratchpad/logs/ (build1.log = test --no-run on dax slot integ-A)
+
 ## Next step
-1. Merge branches in order A1, A2a, A2b, A3b, A4, A3a, A5a, A5b.
+1. Wait build1; fix compile errors.
+2. Full sweep: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=96 ~/.local/bin/openms-ci-sweep.sh integ-A <scratch>/sweep1
+3. Attack complete claims (A5a, A5b, A2a, A2b, A3a StatisticFunctions).
+4. Cross-group dup check vs integ-B (numeric_formatting, string_conversion, USI).
