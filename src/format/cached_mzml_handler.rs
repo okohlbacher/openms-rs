@@ -710,8 +710,9 @@ impl CachedMzMLHandler {
         Ok(())
     }
 
-    /// The source's `writeSpectrum_`.
-    fn write_spectrum(spectrum: &MSSpectrum, writer: &mut impl Write) -> Result<()> {
+    /// The source's protected `writeSpectrum_`, which
+    /// [`crate::format::ms_data_cached_consumer`] shares.
+    pub(crate) fn write_spectrum(spectrum: &MSSpectrum, writer: &mut impl Write) -> Result<()> {
         writer.write_all(&(spectrum.peaks.len() as u64).to_le_bytes())?;
         let arrays = spectrum.float_data_arrays.len() + spectrum.integer_data_arrays.len();
         writer.write_all(&(arrays as u64).to_le_bytes())?;
@@ -731,8 +732,12 @@ impl CachedMzMLHandler {
         )
     }
 
-    /// The source's `writeChromatogram_`.
-    fn write_chromatogram(chromatogram: &MSChromatogram, writer: &mut impl Write) -> Result<()> {
+    /// The source's protected `writeChromatogram_`, which
+    /// [`crate::format::ms_data_cached_consumer`] shares.
+    pub(crate) fn write_chromatogram(
+        chromatogram: &MSChromatogram,
+        writer: &mut impl Write,
+    ) -> Result<()> {
         writer.write_all(&(chromatogram.peaks.len() as u64).to_le_bytes())?;
         let arrays = chromatogram.float_data_arrays.len() + chromatogram.integer_data_arrays.len();
         writer.write_all(&(arrays as u64).to_le_bytes())?;

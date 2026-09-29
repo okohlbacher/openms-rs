@@ -86,6 +86,18 @@
     {
       "path": "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h",
       "sha256": "513bd99bffa60b542ab3ae892eafead238c4714c1ca748f08bcaa7569b54ea9a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
+      "sha256": "fdebd319ab6d5de1c2bd1ef7893e0281ddb36227abe093f388c98aeb75bbad39"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataCachedConsumer.cpp",
+      "sha256": "3957c06ac446865484a7977d2ff87971da379942f05a7f8fbcd1b0f1bea2e9f6"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSDataCachedConsumer_test.cpp",
+      "sha256": "169fb1ab42be1a18e323c8a61970ab916898acef6ac999784c4af84a6a4b3eae"
     }
   ],
   "reused_fixtures": [
@@ -100,6 +112,14 @@
     {
       "path": "tests/data/mzml_sqlite_handler/MzMLSqliteHandler_1.mzML",
       "sha256": "c57ce081bc065a5e00193ee939ee1336f2b7dc5a2a1cbf29dee840432a4dc4a7"
+    },
+    {
+      "path": "tests/data/f4_progress/MzMLFile_1.cached",
+      "sha256": "c1b794e55efdfa16ea7b03267aa853a886fea73918dc9b18534661a0d026a003"
+    },
+    {
+      "path": "tests/data/f4_progress/empty.cached",
+      "sha256": "c4a0040963db01ee1ac3783b88c772d63a7383b43617f15ecb9d761f0123452c"
     }
   ],
   "native_implementation": [
@@ -110,12 +130,14 @@
     "src/format/ms_data_aggregating_consumer.rs",
     "src/format/ms_data_sql_consumer.rs",
     "src/format/indexed_mzml_file_loader.rs",
-    "src/format/ms_data_writing_consumer.rs (set_peak_file_options, for IndexedMzMLFileLoader::store_on_disc)"
+    "src/format/ms_data_writing_consumer.rs (set_peak_file_options, for IndexedMzMLFileLoader::store_on_disc)",
+    "src/format/ms_data_cached_consumer.rs"
   ],
   "native_tests": [
     "tests/ms_data_consumers.rs",
     "tests/ms_data_sql_consumer.rs",
-    "tests/indexed_mzml_file_loader.rs"
+    "tests/indexed_mzml_file_loader.rs",
+    "tests/ms_data_cached_consumer.rs"
   ],
   "support": [
     "docs/MS_DATA_CONSUMERS_SUPPORT.md",
@@ -128,11 +150,11 @@
   "evidence": [
     "Every START_SECTION of NoopMSDataConsumer_test.cpp, MSDataStoringConsumer_test.cpp, MSDataTransformingConsumer_test.cpp, MSDataChainingConsumer_test.cpp, MSDataAggregatingConsumer_test.cpp and IndexedMzMLFileLoader_test.cpp is transcribed with its line numbers (source review, tier 3). No C++ was executed.",
     "MSDataSqlConsumer has no upstream class test; tests/ms_data_sql_consumer.rs derives every expectation from MSDataSqlConsumer.cpp, the central one being that streamed records read back identically to MzMLSqliteHandler::write_experiment of the same experiment (tier 4).",
-    "IndexedMzMLFileLoader_test.cpp's VALIDATE_TMP_FILES step runs under the mzml-schema feature (libxml2 XSD validation of both written files)."
+    "IndexedMzMLFileLoader_test.cpp's VALIDATE_TMP_FILES step runs under the mzml-schema feature (libxml2 XSD validation of both written files).",
+    "MSDataCachedConsumer (ported at wave-4 integration, INTEG-F, once lane F4's CachedMzMLHandler and lane F7a's consumers met): every START_SECTION of MSDataCachedConsumer_test.cpp is transcribed in tests/ms_data_cached_consumer.rs (tier 3). release_build_bytes streams MzMLFile_1.mzML through the consumer and requires the bytes of tests/data/f4_progress/MzMLFile_1.cached and empty.cached, which CachedMzMLHandler::writeMemdump wrote on the Linux x86_64 Release build (../oracle/F4-progress, ibminode06, openms4-release-bc9cc12-c19e494-174b576, two runs with the same sha256; see tests/data/f4_progress_provenance.json): writeMemdump (CachedMzMLHandler.cpp:33-58) and the consumer's constructor, consumeSpectrum, consumeChromatogram and destructor (MSDataCachedConsumer.cpp:18-75) write the same identifier, records and counts (tier 1 bytes, tier 4 equivalence)."
   ],
   "gaps": [
     "MSDataAggregatingConsumer merges with a caller-supplied function: the source's SpectrumAddition::addUpSpectra(s_list, -1, true) (ANALYSIS/OPENSWATH/SpectrumAddition.h) is unported, and format may not depend on analysis. Its class test's 17/120/230 run with a merge double that adds intensities on the shared m/z grid.",
-    "MSDataCachedConsumer is not ported: it needs CachedMzMLHandler's writeSpectrum_/writeChromatogram_ (FORMAT/HANDLERS/CachedMzMLHandler.h, unported).",
     "No tier 1 differential: no C++ oracle was run for these consumers.",
     "This manifest is not listed in SOURCE_PROVENANCE.json; registering it is the integrator's step."
   ]

@@ -127,6 +127,8 @@ pub mod indexed_mzml_file_loader;
 pub mod indexed_mzml_handler;
 /// Consumer merging spectra that share a retention time (`MSDataAggregatingConsumer.h`).
 pub mod ms_data_aggregating_consumer;
+/// Consumer writing records into a cached-mzML binary file (`MSDataCachedConsumer.h`).
+pub mod ms_data_cached_consumer;
 /// Consumer passing records through a sequence of consumers (`MSDataChainingConsumer.h`).
 pub mod ms_data_chaining_consumer;
 /// Consumer buffering records into an sqMass SQLite file (`MSDataSqlConsumer.h`).

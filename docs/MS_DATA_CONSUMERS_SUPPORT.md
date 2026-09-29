@@ -1,6 +1,6 @@
 # MS data consumers of `FORMAT/DATAACCESS`
 
-Source pin: core `bc9cc12`. This increment ports six of the eight consumer
+Source pin: core `bc9cc12`. This increment ports seven of the eight consumer
 headers of `FORMAT/DATAACCESS` onto the crate's consumer trait
 [`MSDataConsumer`](../src/interfaces.rs) (the source's
 `Interfaces::IMSDataConsumer`):
@@ -13,7 +13,7 @@ headers of `FORMAT/DATAACCESS` onto the crate's consumer trait
 | `MSDataTransformingConsumer.h` | `src/format/ms_data_transforming_consumer.rs` | none | complete |
 | `MSDataAggregatingConsumer.h` | `src/format/ms_data_aggregating_consumer.rs` | none | partial: the merge is caller-supplied until `ANALYSIS/OPENSWATH/SpectrumAddition.h` is ported |
 | `MSDataSqlConsumer.h` | `src/format/ms_data_sql_consumer.rs` | `sqmass` | complete |
-| `MSDataCachedConsumer.h` | — | — | not started: needs `FORMAT/HANDLERS/CachedMzMLHandler.h` (`writeSpectrum_`/`writeChromatogram_`), which is unported |
+| `MSDataCachedConsumer.h` | `src/format/ms_data_cached_consumer.rs` | none | complete (wave-4 integration, on lane F4's `CachedMzMLHandler`) |
 | `MSDataWritingConsumer.h` | `src/format/ms_data_writing_consumer.rs` | `mzml` | partial, see [its own document](MS_DATA_WRITING_CONSUMER_SUPPORT.md) |
 
 ## The trait
@@ -94,6 +94,20 @@ answers `Continue` unless it forwards another consumer's `Break`.
 | protected `filename_`, `handler_`, `flush_after_`, `full_meta_`, `spectra_`, `chromatograms_`, `peak_meta_`, `wrote_any_run_` | `filename()`, `handler()`, `flush_after()`, `full_meta()`, `buffered_spectra()`, `buffered_chromatograms()`, `peak_meta()`, `wrote_any_run()` | Read-only. |
 | *(none)* | `set_loss_policy`, `loss_policy` | The handler's `LossPolicy`. `Reject`, the default, refuses metadata sqMass would drop; `Source` is the source's silent drop. Under full metadata the handler cannot check a batch against a snapshot that is written only at the end, so the consumer writes batches under `Source` and applies the handler's own full-metadata refusals (auxiliary arrays under `Reject`, peptide identifications, empty native IDs) to each record as it arrives, before the record is taken. |
 
+### `MSDataCachedConsumer`
+
+| C++ | Rust | Notes |
+|---|---|---|
+| `MSDataCachedConsumer(filename, clearData = true)` | `new(path)` with the default, `with_clear_data(path, clear_data)` | Creates the file and writes the identifier, as the source does. `Error::Io` when the file cannot be created; the source's `ofstream` fails silently and loses every later write. |
+| `~MSDataCachedConsumer()` | `finish() -> Result<()>`, and the same on drop (warning on failure) | Writes the spectrum and chromatogram counts and closes the file; until then the file is not a valid cache. |
+| `consumeSpectrum` | trait method | Writes the record with the handler's `writeSpectrum_` (`CachedMzMLHandler::write_spectrum`, crate-private), counts it, and with `clearData` calls `clear(false)` on the caller's spectrum. After a chromatogram: `Error::InvalidValue` with the source's message "Cannot write spectra after writing chromatograms." (`Exception::IllegalArgument`), nothing written. |
+| `consumeChromatogram` | trait method | As `consumeSpectrum`, with `writeChromatogram_`; no ordering check, as in the source. |
+| `setExpectedSize`, `setExperimentalSettings` (both `{;}`) | trait methods | Ignored, as in the source. |
+| base `Internal::CachedMzMLHandler` | `handler()`, `handler_mut()` | Composition in place of the source's public inheritance: the handler's reading and indexing members. |
+| protected `ofs_`, `clearData_`, `spectra_written_`, `chromatograms_written_` | `filename()`, `clear_data()`, `spectra_written()`, `chromatograms_written()` | Read-only. |
+| typedefs `SpectrumType`, `ChromatogramType` (private) | `MSSpectrum`, `MSChromatogram` | |
+| `OPENMS_POSTCONDITION`s after clearing | none | The kernel's `clear(false)` empties the peaks and all three data-array families, which is what they assert. |
+
 ## Evidence
 
 - `tests/ms_data_consumers.rs` (feature `mzml`, 29 tests): every section of
@@ -113,6 +127,18 @@ answers `Continue` unless it forwards another consumer's `Break`.
   flush behaviour; the caller's record cleared; `addRun`/`setRunId`; the run
   written once at the end, named after the sqMass file; drop equivalent to
   `finish`; the refusals.
+- `tests/ms_data_cached_consumer.rs` (feature `mzml`, 10 tests): every
+  section of `MSDataCachedConsumer_test.cpp` (tier 3) on the unmodified
+  `MzMLFile_1.mzML`. `release_build_bytes` streams that file through the
+  consumer and requires the bytes the Linux x86_64 Release build's
+  `CachedMzMLHandler::writeMemdump` wrote for it
+  (`tests/data/f4_progress/MzMLFile_1.cached` and `empty.cached`, from
+  `../oracle/F4-progress` on ibminode06): `writeMemdump`
+  (`CachedMzMLHandler.cpp:33-58`) and the consumer's constructor,
+  `consumeSpectrum`, `consumeChromatogram` and destructor
+  (`MSDataCachedConsumer.cpp:18-75`) write the same identifier, records and
+  counts (tier 1 bytes, tier 4 equivalence). Native tests cover the ordering
+  refusal, the cached and cleared data arrays and an uncreatable file.
 
 ## C++ observations
 
@@ -124,3 +150,8 @@ answers `Continue` unless it forwards another consumer's `Break`.
 - `MSDataSqlConsumer`'s `buffer_size` is an `int` stored into `size_t
   flush_after_`: a negative value becomes a huge flush threshold and a huge
   `reserve`.
+- `MSDataCachedConsumer.h` describes a consumer that "is able to transform a
+  spectrum on the fly ... using a function pointer"; the class has no such
+  member (that is `MSDataTransformingConsumer`).
+- `MSDataCachedConsumer` opens its `ofstream` unchecked and never tests the
+  stream: an uncreatable output file, or a full disk, loses the data silently.
