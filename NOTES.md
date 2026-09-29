@@ -73,6 +73,10 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 - facf18ef JSON -0 scanner collapse (param_json tests pass on dax, clippy ok).
 - Report draft updated (items 8, 9; duplicates; table). sweep4 was stopped (pre-refactor tree).
 
+- aa467bff strengthened -0 test (stable 11 pass; 1.85 run pj5). Sweep runs on tree 78b5eb50
+  (= facf18ef code); aa467bf only adds rows to tests/param_json.rs.
+- Ledger ParamJSONFile.h scope amended (INTEG-B -0 sentence).
+
 ## Next step
 1. Final sweep sweep5 (slot integ-B-sweep2, log scratchpad/integB/sweep5) on tree facf18ef.
    If the ssh dies, remote logs stay in /scratch/kohlbach/agents/integ-B-sweep2/.ci-line.N.log
