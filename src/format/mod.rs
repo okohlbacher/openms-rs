@@ -192,10 +192,16 @@ pub mod arrow_io_helpers;
 /// validation (`ArrowSchemaRegistry.h`).
 #[cfg(feature = "arrow")]
 pub mod arrow_schema_registry;
+/// Pull-style bzip2 decompression with `BZ2_bzRead` semantics (`Bzip2Ifstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod bzip2_ifstream;
 /// The features table of a FeatureMap as an Arrow table
 /// (`FeatureMapArrowIO.h`, features half).
 #[cfg(feature = "arrow")]
 pub mod feature_map_arrow_io;
+/// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod gzip_ifstream;
 /// OpenSWATH mobilograms to `.xim` Parquet
 /// (`DATAACCESS/MobilogramParquetConsumer.h`).
 #[cfg(feature = "arrow")]
@@ -221,23 +227,12 @@ pub mod parquet_filter;
 /// (`DATAACCESS/ParquetReaderHelpers.h`, private in the source too).
 #[cfg(feature = "arrow")]
 mod parquet_reader_helpers;
+/// Percolator PSM-level tab-separated output (`PercolatorOutfile.h`).
+pub mod percolator_outfile;
 /// Protein hits, protein groups and search parameters as Arrow tables and
 /// Parquet files (`ProteinIdentificationArrowIO.h`).
 #[cfg(feature = "arrow")]
 pub mod protein_identification_arrow_io;
-/// OpenSWATH chromatogram Parquet files, `.xic` (`XICParquetFile.h`).
-#[cfg(feature = "arrow")]
-pub mod xic_parquet_file;
-/// OpenSWATH mobilogram Parquet files, `.xim` (`XIMParquetFile.h`).
-#[cfg(feature = "arrow")]
-pub mod xim_parquet_file;
-/// Targeted peak maps to `.xipm` Parquet
-/// (`DATAACCESS/XIPMParquetConsumer.h`).
-#[cfg(feature = "arrow")]
-pub mod xipm_parquet_consumer;
-/// Extracted ion peak-map Parquet files, `.xipm` (`XIPMParquetFile.h`).
-#[cfg(feature = "arrow")]
-pub mod xipm_parquet_file;
 /// All-or-nothing writing of a QPX collection (`QPXCollectionExport.h`).
 #[cfg(feature = "arrow")]
 pub mod qpx_collection_export;
@@ -253,19 +248,24 @@ pub mod qpx_identity;
 /// views (`QPXValueValidation.h`).
 #[cfg(feature = "arrow")]
 pub mod qpx_value_validation;
-/// Percolator PSM-level tab-separated output (`PercolatorOutfile.h`).
-pub mod percolator_outfile;
 /// Spectrum meta-data look-up by regular-expression spectrum reference
 /// (`SpectrumLookup.h`, `SpectrumMetaDataLookup.h`).
 pub mod spectrum_meta_data_lookup;
-/// Pull-style bzip2 decompression with `BZ2_bzRead` semantics (`Bzip2Ifstream.h`).
-#[cfg(feature = "file-compression")]
-pub mod bzip2_ifstream;
-/// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
-#[cfg(feature = "file-compression")]
-pub mod gzip_ifstream;
 /// UTF-16 string helpers of the XML handlers (`HANDLERS/StringManager.h`).
 pub mod string_manager;
+/// OpenSWATH chromatogram Parquet files, `.xic` (`XICParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xic_parquet_file;
+/// OpenSWATH mobilogram Parquet files, `.xim` (`XIMParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xim_parquet_file;
+/// Targeted peak maps to `.xipm` Parquet
+/// (`DATAACCESS/XIPMParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod xipm_parquet_consumer;
+/// Extracted ion peak-map Parquet files, `.xipm` (`XIPMParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xipm_parquet_file;
 /// Read-only view over an element's attributes (`HANDLERS/XMLAttributes.h`).
 pub mod xml_attributes;
 /// Create, unpack, list, index and update ZIP archives (`ZipArchiveFile.h`).
@@ -305,55 +305,15 @@ fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
 
-/// Mascot pepXML peptide sequences keyed by spectrum title (`PepXMLFileMascot.h`).
-#[cfg(feature = "idxml")]
-pub mod pepxml_mascot;
-/// ProteinProphet protXML reader (`ProtXMLFile.h`).
-#[cfg(feature = "idxml")]
-pub mod protxml;
-/// xQuest cross-linking result files (`XQuestResultXMLFile.h`,
-/// `HANDLERS/XQuestResultXMLHandler.h`).
-#[cfg(feature = "idxml")]
-pub mod xquest_result_xml;
-/// Inspect input (parameter) files (`InspectInfile.h`).
-#[cfg(feature = "idxml")]
-pub mod inspect_infile;
-/// Inspect result files and trie databases (`InspectOutfile.h`).
-#[cfg(feature = "mzml")]
-pub mod inspect_outfile;
-/// Kroenik (Hardklör sibling) feature files (`KroenikFile.h`).
-pub mod kroenik_file;
-/// msInspect feature files (`MsInspectFile.h`).
-pub mod ms_inspect_file;
-/// OMSSA comma-separated result files (`OMSSACSVFile.h`).
-pub mod omssa_csv_file;
-/// OMSSA XML result files (`OMSSAXMLFile.h`).
-#[cfg(feature = "idxml")]
-pub mod omssa_xml_file;
-/// PepNovo PTM input tables (`PepNovoInfile.h`).
-pub mod pepnovo_infile;
-/// PepNovo de novo sequencing output (`PepNovoOutfile.h`).
-pub mod pepnovo_outfile;
-/// PTMXML modification tables (`PTMXMLFile.h`, `HANDLERS/PTMXMLHandler.h`).
-#[cfg(feature = "idxml")]
-pub mod ptm_xml_file;
-/// Permissive sequence parsing shared by the search-engine adapters.
-pub mod search_engine_text;
-/// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
-#[cfg(feature = "idxml")]
-pub mod search_engine_xml;
-/// Sequest input (`sequest.params`) files (`SequestInfile.h`).
-#[cfg(feature = "idxml")]
-pub mod sequest_infile;
-/// Sequest `.out` result files (`SequestOutfile.h`).
-pub mod sequest_outfile;
-/// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
-pub mod spec_array_file;
-/// X! Tandem input (configuration) files (`XTandemInfile.h`).
-pub mod xtandem_infile;
-/// X! Tandem XML result files (`XTandemXMLFile.h`).
-#[cfg(feature = "idxml")]
-pub mod xtandem_xml_file;
+/// Read-only `acqus` parameters of a Bruker XMass spectrum (`AcqusHandler.h`).
+pub mod acqus_handler;
+/// Bruker timsTOF `.d` (TDF) reader (`BrukerTimsFile.h`): FRAME export and
+/// unaggregated DIA-PASEF export.
+#[cfg(feature = "bruker-tdf")]
+pub mod bruker_tims_file;
+/// Bruker timsTOF MALDI imaging `.d` reader (`BrukerTimsImagingFile.h`).
+#[cfg(all(feature = "bruker-tdf", feature = "mzml"))]
+pub mod bruker_tims_imaging_file;
 /// Random access to a cached mzML pair, metadata plus binary side-car (`CachedMzML.h`).
 #[cfg(feature = "mzml")]
 pub mod cached_mzml;
@@ -363,6 +323,8 @@ pub mod cached_mzml_handler;
 pub mod chromeleon;
 /// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
 pub mod edta;
+/// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
+pub mod fid_handler;
 /// FLASHDeconv feature-level output headers (`FLASHDeconvFeatureFile.h`).
 pub mod flash_deconv_feature_file;
 /// FLASHDeconv spectrum-level output headers (`FLASHDeconvSpectrumFile.h`).
@@ -376,49 +338,76 @@ pub mod gnps_mgf;
 pub mod gnps_quantification;
 /// IBSpectra export of isobaric consensus maps for isobar (`IBSpectraFile.h`).
 pub mod ibspectra;
+/// Inspect input (parameter) files (`InspectInfile.h`).
+#[cfg(feature = "idxml")]
+pub mod inspect_infile;
+/// Inspect result files and trie databases (`InspectOutfile.h`).
+#[cfg(feature = "mzml")]
+pub mod inspect_outfile;
+/// Kroenik (Hardklör sibling) feature files (`KroenikFile.h`).
+pub mod kroenik_file;
 /// Bounded streaming line reading with the source's `TextFile::getLine` line ends.
 pub mod line_reader;
+/// msInspect feature files (`MsInspectFile.h`).
+pub mod ms_inspect_file;
 /// NIST peptide spectral libraries in MSP text: reader and writer (`MSPFile.h`).
 pub mod msp;
 /// Metabolite MSP spectral libraries: reader and writer (`MSPGenericFile.h`).
 pub mod msp_generic;
-/// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).
-#[cfg(feature = "sqmass")]
-pub mod sqmass_file;
-/// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
-pub(crate) mod string_utils;
-/// Read-only `acqus` parameters of a Bruker XMass spectrum (`AcqusHandler.h`).
-pub mod acqus_handler;
-/// Bruker timsTOF `.d` (TDF) reader (`BrukerTimsFile.h`): FRAME export and
-/// unaggregated DIA-PASEF export.
-#[cfg(feature = "bruker-tdf")]
-pub mod bruker_tims_file;
-/// Bruker timsTOF MALDI imaging `.d` reader (`BrukerTimsImagingFile.h`).
-#[cfg(all(feature = "bruker-tdf", feature = "mzml"))]
-pub mod bruker_tims_imaging_file;
-/// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
-pub mod fid_handler;
+/// OMSSA comma-separated result files (`OMSSACSVFile.h`).
+pub mod omssa_csv_file;
+/// OMSSA XML result files (`OMSSAXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod omssa_xml_file;
 /// IM-axis hill centroiding of one TIMS-PASEF frame (`PASEFHillCentroider.h`).
 pub mod pasef_hill_centroider;
-/// TIMS scan-index to 1/K0 conversion: the per-frame rational
-/// `TimsCalibration` model and the linear fallback (`RationalScan2ImConverter.h`).
-pub mod rational_scan2im_converter;
-/// Frame-level access to Bruker timsTOF `.d` data: the opentims layer under
-/// `BrukerTimsFile.h` (`TimsDataHandle`, frame codec, linear calibrations).
-#[cfg(feature = "bruker-tdf")]
-pub mod tims_data_handle;
-/// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
-pub mod xmass_file;
 /// PEFF (PSI Extended FASTA Format) annotated protein databases (`PEFFFile.h`).
 pub mod peff;
+/// PepNovo PTM input tables (`PepNovoInfile.h`).
+pub mod pepnovo_infile;
+/// PepNovo de novo sequencing output (`PepNovoOutfile.h`).
+pub mod pepnovo_outfile;
+/// Mascot pepXML peptide sequences keyed by spectrum title (`PepXMLFileMascot.h`).
+#[cfg(feature = "idxml")]
+pub mod pepxml_mascot;
+/// ProteinProphet protXML reader (`ProtXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod protxml;
 /// PTMXML post-translational modification lists (`PTMXMLFile.h`, `PTMXMLHandler.h`).
 #[cfg(feature = "kb-xml")]
 pub mod ptm_xml;
+/// PTMXML modification tables (`PTMXMLFile.h`, `HANDLERS/PTMXMLHandler.h`).
+#[cfg(feature = "idxml")]
+pub mod ptm_xml_file;
+/// TIMS scan-index to 1/K0 conversion: the per-frame rational
+/// `TimsCalibration` model and the linear fallback (`RationalScan2ImConverter.h`).
+pub mod rational_scan2im_converter;
 /// The Xerces-faithful SAX driver shared by every `XMLHandler` port: the
 /// knowledge-base readers (`kb-xml`) and the identification-XML readers
 /// (`idxml`).
 #[cfg(any(feature = "idxml", feature = "kb-xml"))]
 pub(crate) mod sax_xml;
+/// Permissive sequence parsing shared by the search-engine adapters.
+pub mod search_engine_text;
+/// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
+#[cfg(feature = "idxml")]
+pub mod search_engine_xml;
+/// Sequest input (`sequest.params`) files (`SequestInfile.h`).
+#[cfg(feature = "idxml")]
+pub mod sequest_infile;
+/// Sequest `.out` result files (`SequestOutfile.h`).
+pub mod sequest_outfile;
+/// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
+pub mod spec_array_file;
+/// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).
+#[cfg(feature = "sqmass")]
+pub mod sqmass_file;
+/// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
+pub(crate) mod string_utils;
+/// Frame-level access to Bruker timsTOF `.d` data: the opentims layer under
+/// `BrukerTimsFile.h` (`TimsDataHandle`, frame codec, linear calibrations).
+#[cfg(feature = "bruker-tdf")]
+pub mod tims_data_handle;
 /// Unimod XML modification databases and their registry provider
 /// (`UnimodXMLFile.h`, `UnimodXMLHandler.h`, `UnimodXMLDataProvider.h`).
 #[cfg(feature = "kb-xml")]
@@ -427,3 +416,14 @@ pub mod unimod_xml;
 /// (`UniProtXMLFile.h`, `UniProtXMLHandler.h`).
 #[cfg(feature = "kb-xml")]
 pub mod uniprot_xml;
+/// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
+pub mod xmass_file;
+/// xQuest cross-linking result files (`XQuestResultXMLFile.h`,
+/// `HANDLERS/XQuestResultXMLHandler.h`).
+#[cfg(feature = "idxml")]
+pub mod xquest_result_xml;
+/// X! Tandem input (configuration) files (`XTandemInfile.h`).
+pub mod xtandem_infile;
+/// X! Tandem XML result files (`XTandemXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod xtandem_xml_file;
