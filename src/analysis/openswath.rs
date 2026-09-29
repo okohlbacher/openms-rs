@@ -78,3 +78,9 @@ pub mod transitions;
 /// `TransitionParquetFile`: read and write OpenSWATH Parquet assay libraries (`.oswpq`).
 #[cfg(all(feature = "arrow", feature = "file-compression"))]
 pub mod transition_parquet_file;
+/// `OpenSwathOSWParquetWriter`: write OpenSwathWorkflow results as an OSW Parquet container (`.oswpq`).
+#[cfg(all(feature = "arrow", feature = "file-compression"))]
+pub mod openswath_osw_parquet_writer;
+/// `OpenSwathOSWParquetReader`: read OSW Parquet containers into flat feature, transition and unscored tables.
+#[cfg(all(feature = "arrow", feature = "file-compression"))]
+pub mod openswath_osw_parquet_reader;

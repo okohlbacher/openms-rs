@@ -389,7 +389,10 @@ impl TransitionParquetFile {
             file::remove(&output_zip)?;
         }
         file::rename(&staging_zip, &output_zip, true)?;
-        temp_dir.close()
+        // The source's `TempDir` destructor removes the staging tree and
+        // ignores a failure to do so; dropping the guard does the same.
+        drop(temp_dir);
+        Ok(())
     }
 }
 
