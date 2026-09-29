@@ -10,6 +10,10 @@
 //! `RANSACModelQuadratic_test.cpp`) unless a test says otherwise; see
 //! `docs/RANSAC_SUPPORT.md`.
 
+// The class tests' literals are transcribed verbatim, including digits beyond
+// f64 precision.
+#![allow(clippy::excessive_precision)]
+
 use openms::math::ml::linear_regression::LinearRegression;
 use openms::math::ml::linear_regression_without_intercept::LinearRegressionWithoutIntercept;
 use openms::math::ml::quadratic_regression::QuadraticRegression;

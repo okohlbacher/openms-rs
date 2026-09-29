@@ -252,7 +252,9 @@ fn max_element(values: &[f64]) -> usize {
 /// Otherwise the loop ends.
 ///
 /// Returns the remaining pairs, in input order, when the R-squared limit was
-/// reached.
+/// reached. An R-squared that is NaN — all remaining `y` values equal — also
+/// ends the loop and returns the pairs without an error, because both of the
+/// source's `rsq < rsq_limit` tests are false for it.
 ///
 /// # Source quirk
 ///
@@ -293,22 +295,25 @@ pub fn remove_outliers_iterative(
         let mut regression = LinearRegression::new();
         regression.compute_regression(CONFIDENCE_INTERVAL, &x, &y, true)?;
         rsq = regression.r_squared();
-        if !(rsq < rsq_limit) {
-            break;
-        }
-        let intercept = regression.intercept();
-        let slope = regression.slope();
-        let residuals: Vec<f64> = pairs
-            .iter()
-            .map(|(first, second)| (second - (intercept + first * slope)).abs())
-            .collect();
-        let pos = match method {
-            OutlierMethod::IterJackknife => jackknife_outlier_candidate(&x, &y)?,
-            OutlierMethod::IterResidual => residual_outlier_candidate(&x, &y)?,
-        };
-        if !use_chauvenet || chauvenet(&residuals, pos)? {
-            x.remove(pos);
-            y.remove(pos);
+        // A NaN R-squared fails `rsq < rsq_limit` and ends the loop, as in
+        // the source.
+        if rsq < rsq_limit {
+            let intercept = regression.intercept();
+            let slope = regression.slope();
+            let residuals: Vec<f64> = pairs
+                .iter()
+                .map(|(first, second)| (second - (intercept + first * slope)).abs())
+                .collect();
+            let pos = match method {
+                OutlierMethod::IterJackknife => jackknife_outlier_candidate(&x, &y)?,
+                OutlierMethod::IterResidual => residual_outlier_candidate(&x, &y)?,
+            };
+            if !use_chauvenet || chauvenet(&residuals, pos)? {
+                x.remove(pos);
+                y.remove(pos);
+            } else {
+                break;
+            }
         } else {
             break;
         }
