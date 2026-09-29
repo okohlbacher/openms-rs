@@ -84,3 +84,8 @@ pub mod openswath_osw_parquet_writer;
 /// `OpenSwathOSWParquetReader`: read OSW Parquet containers into flat feature, transition and unscored tables.
 #[cfg(all(feature = "arrow", feature = "file-compression"))]
 pub mod openswath_osw_parquet_reader;
+/// `OpenSwathExportData`: row, table and option types of the OpenSWATH result exports.
+pub mod openswath_export_data;
+/// `OpenSwathParquetExporter`: write scored OpenSWATH feature and transition tables to Parquet.
+#[cfg(feature = "arrow")]
+pub mod openswath_parquet_exporter;
