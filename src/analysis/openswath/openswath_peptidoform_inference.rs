@@ -19,7 +19,7 @@
 //!
 //! # Evaluation order
 //!
-//! [`OpenSwathPeptidoformInference::apply_bm`] multiplies the evidence of
+//! [`OpenSwathPeptidoformInference::apply_bm`](crate::analysis::openswath::openswath_peptidoform_inference::OpenSwathPeptidoformInference::apply_bm) multiplies the evidence of
 //! each feature/hypothesis group in row order after sorting by feature and
 //! hypothesis. The source sorts with the unstable `std::sort`, so the order of
 //! rows *within* a group (and therefore the last bit of a product of three or

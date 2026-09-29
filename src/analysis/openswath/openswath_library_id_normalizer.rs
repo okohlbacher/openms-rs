@@ -18,9 +18,9 @@
 //!
 //! Arbitrary source identifiers (for example from TSV or TraML) are normalised
 //! once at the OpenSWATH library-loading boundary
-//! ([`OpenSwathLibraryIDNormalizer::normalize_source_ids`]). Database-backed
+//! ([`OpenSwathLibraryIDNormalizer::normalize_source_ids`](crate::analysis::openswath::openswath_library_id_normalizer::OpenSwathLibraryIDNormalizer::normalize_source_ids)). Database-backed
 //! inputs (PQP/OSWPQ) already carry persistent numeric ids and are validated
-//! ([`OpenSwathLibraryIDNormalizer::validate_canonical_ids`]) instead of
+//! ([`OpenSwathLibraryIDNormalizer::validate_canonical_ids`](crate::analysis::openswath::openswath_library_id_normalizer::OpenSwathLibraryIDNormalizer::validate_canonical_ids)) instead of
 //! renumbered.
 //!
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_INFERENCE_SUPPORT.md).
