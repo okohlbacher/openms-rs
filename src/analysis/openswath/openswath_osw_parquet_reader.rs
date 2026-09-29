@@ -12,16 +12,16 @@
 //! archive, and returns flat, column-oriented tables for downstream scoring
 //! (PyProphet) or single-table exports:
 //!
-//! - [`OpenSwathOSWParquetReader::load`] and [`OpenSwathOSWParquetReader::rows`]:
-//!   one [`Row`] per feature, with its precursor's charge and decoy flag and
+//! - [`OpenSwathOSWParquetReader::load`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::load) and [`OpenSwathOSWParquetReader::rows`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::rows):
+//!   one [`Row`](crate::analysis::openswath::openswath_osw_parquet_reader::Row) per feature, with its precursor's charge and decoy flag and
 //!   the number of detecting library transitions;
-//! - [`OpenSwathOSWParquetReader::fetch_peak_group_features`]: the feature
+//! - [`OpenSwathOSWParquetReader::fetch_peak_group_features`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::fetch_peak_group_features): the feature
 //!   scores (`var_ms2_*`, `ms2_*`, optionally `var_ms1_*`, `ms1_*`), sorted by
 //!   run, precursor and retention time;
-//! - [`OpenSwathOSWParquetReader::fetch_transition_features`]: the
+//! - [`OpenSwathOSWParquetReader::fetch_transition_features`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::fetch_transition_features): the
 //!   per-transition scores, sorted by run, precursor, retention time and
 //!   transition;
-//! - [`OpenSwathOSWParquetReader::fetch_unscored_data`]: the PyProphet
+//! - [`OpenSwathOSWParquetReader::fetch_unscored_data`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::fetch_unscored_data): the PyProphet
 //!   "unscored" table, in file order.
 //!
 //! Only the columns a function reads must exist; a score column missing from
@@ -39,20 +39,20 @@
 //! - Archive entries are read by extracting them to a temporary file, the
 //!   source's fallback path; its first attempt (`ZipRandomAccessFile`) reads
 //!   the same bytes and is not ported.
-//! - [`OpenSwathOSWParquetReader::load`] leaves [`rows`](OpenSwathOSWParquetReader::rows)
+//! - [`OpenSwathOSWParquetReader::load`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::load) leaves [`rows`](crate::analysis::openswath::openswath_osw_parquet_reader::OpenSwathOSWParquetReader::rows)
 //!   empty when it fails; the source leaves the rows read before the error.
 //! - The warning the source writes to `OPENMS_LOG_WARN` for a `main_score`
 //!   that is not among the score columns is returned in
-//!   [`PeakGroupFeatureScoresResult::warnings`].
+//!   [`PeakGroupFeatureScoresResult::warnings`](crate::analysis::openswath::openswath_osw_parquet_reader::PeakGroupFeatureScoresResult::warnings).
 //! - The C++ result members `RT`, `assay_RT`, `delta_RT`, `Charge`,
 //!   `Intensity`, `aggr_prec_Peak_Area`, `aggr_prec_Peak_Apex`, `leftWidth`,
 //!   `rightWidth`, `EXP_IM`, `IM_leftWidth` and `IM_rightWidth` of
-//!   `UnscoredResult` are snake case here; see [`UnscoredResult`].
+//!   `UnscoredResult` are snake case here; see [`UnscoredResult`](crate::analysis::openswath::openswath_osw_parquet_reader::UnscoredResult).
 
+use crate::format::container_io::{self as file, TempDir};
 use crate::format::parquet_file::ParquetFile;
 use crate::format::zip_archive_file::ZipArchiveFile;
 use crate::math::source_sort::source_sort_permutation;
-use crate::format::container_io::{self as file, TempDir};
 use crate::{Error, Result};
 use arrow_array::{Array, ArrayRef, RecordBatch};
 use std::collections::HashMap;
@@ -375,8 +375,8 @@ impl OpenSwathOSWParquetReader {
     ///   `Exception::FileNotFound`); [`Error::InvalidValue`] for an archive
     ///   or table that cannot be read.
     /// - [`Error::MissingInformation`] for a missing required column or a
-    ///   null required value, and "Unknown precursor_id=<id> for
-    ///   run_id=<id>" for a feature whose precursor the library lacks, as
+    ///   null required value, and "Unknown precursor_id=\<id\> for
+    ///   run_id=\<id\>" for a feature whose precursor the library lacks, as
     ///   the source.
     pub fn load(&mut self, oswpq_dir: impl AsRef<Path>) -> Result<()> {
         let path = oswpq_dir.as_ref();
@@ -586,9 +586,9 @@ impl OpenSwathOSWParquetReader {
     /// # Errors
     ///
     /// As [`load`](Self::load); [`Error::MissingInformation`]
-    /// "feature_transition.parquet references unknown feature_id=<id> for
-    /// run_id=<id>", "Unknown precursor_id=…" and "Unknown
-    /// transition_id=<id> for run_id=<id>", as the source.
+    /// "feature_transition.parquet references unknown feature_id=\<id\> for
+    /// run_id=\<id\>", "Unknown precursor_id=…" and "Unknown
+    /// transition_id=\<id\> for run_id=\<id\>", as the source.
     pub fn fetch_transition_features(
         &self,
         oswpq_dir: impl AsRef<Path>,

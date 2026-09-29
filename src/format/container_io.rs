@@ -10,7 +10,8 @@
 //! tables in a temporary directory, create, copy, rename and remove
 //! directories, and hand archives to
 //! [`ZipArchiveFile`](crate::format::zip_archive_file::ZipArchiveFile),
-//! whose extraction API already owns a [`TempDir`]. This module re-exports
+//! whose extraction API already owns a
+//! [`TempDir`](crate::system::file::TempDir). This module re-exports
 //! the `File.h` operations they use (ported in
 //! [`crate::system::file`]), so that those formats reach the file system
 //! through the format layer, as their source does through `FORMAT`

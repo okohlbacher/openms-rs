@@ -53,7 +53,7 @@
 //! `library_rt` (float64). Optional: `library_drift_time` (float64),
 //! `traml_id` (string), `decoy` (bool), `modified_sequence` (string),
 //! `unmodified_sequence` (string), `protein_accessions` (string or
-//! list<string>).
+//! `list<string>`).
 //!
 //! Required columns of `transitions.parquet` ([`OSWTransitionSchema`]):
 //! `transition_id` (int64), `precursor_id` (int64), `product_mz` (float64),
@@ -118,9 +118,9 @@ use crate::analysis::openswath::transition_experiment::{
 use crate::chemistry::{AASequence, SequenceModification};
 use crate::format::arrow_schema_registry::validation::{self, Mode};
 use crate::format::arrow_schema_registry::{OSWPrecursorSchema, OSWTransitionSchema};
+use crate::format::container_io::{self as file, TempDir};
 use crate::format::parquet_file::ParquetFile;
 use crate::format::zip_archive_file::ZipArchiveFile;
-use crate::format::container_io::{self as file, TempDir};
 use crate::{Error, Result};
 use arrow_array::{
     ArrayRef, BooleanArray, Float64Array, Int32Array, Int64Array, RecordBatch, StringArray,
@@ -345,8 +345,8 @@ impl TransitionParquetFile {
     /// - [`OpenSwathLibraryIDNormalizer::validate_canonical_ids`]'s error when
     ///   the ids are not canonical, before anything is written.
     /// - [`Error::MissingInformation`] "No precursor_mz found for compound
-    ///   '<id>'" for a compound no transition references, and "Transition
-    ///   references unknown peptide_ref '<ref>'", as the source.
+    ///   '\<id\>'" for a compound no transition references, and "Transition
+    ///   references unknown peptide_ref '\<ref\>'", as the source.
     /// - [`Error::InvalidValue`] when a built table fails its strict schema
     ///   validation or cannot be encoded, and the archive errors of
     ///   [`ZipArchiveFile`]; [`Error::Io`] when a file cannot be written (the

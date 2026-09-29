@@ -20,7 +20,7 @@
 //!
 //! # Differences from the source
 //!
-//! Every failure to write is reported as [`Error::Io`], carrying the
+//! Every failure to write is reported as [`Error::Io`](crate::Error::Io), carrying the
 //! underlying reason; the source maps the `false` of `writeTableToParquet` to
 //! `Exception::FileNotWritable` and loses it.
 //!
