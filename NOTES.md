@@ -29,3 +29,13 @@ openswath_{peptide,protein,gene}_inference,openswath_peptidoform_inference,opens
 1. When oracle FETCHED: copy inputs + results/out to tests/data/openswath_inference/, write tests/openswath_inference.rs comparing.
 2. Support doc docs/OPENSWATH_INFERENCE_SUPPORT.md, provenance tests/data/openswath_inference_provenance.json.
 3. Assess PercolatorScoring. Report + ledger fragment.
+
+## Findings (2026-09-29)
+- Oracle rerun FETCHED (212 cases, differ.txt empty, run twice on ibminode06). Data copied to tests/data/openswath_inference
+  via scratchpad copy_oracle.py (5 identical IPF trans dumps deduplicated, sha b3affdb2...).
+- C++ DEFECT: lfdr with a single p-value segfaults (CubicSpline2d::eval via kdeFFTEval) -> lc_single_* exit 139.
+- DIVERGENCE (math layer, not O5b code): protein/gene global fixture = perfect separation, 16 p-values all 1/16, pi0=0.
+  C++ probit(0.0625) = -1.5341205443525465 (probe ../oracle/O5b-inference/probe) -> sd==0 in bwNrd0 -> healthy bw -> lfdr 0.
+  Rust statrs probit presumably 1 ulp off -> sd ~2e-16 -> degenerate KDE grid -> kernel_density NaturalCubicSpline refuses
+  ("cubic spline abscissae must be strictly increasing") -> LevelContextInference Err. Awaiting probe output (tests/o5b_probe_tmp.rs, DELETE before commit).
+- All peptide-level fixture cases (27) matched within 1e-12 before the first protein failure.
