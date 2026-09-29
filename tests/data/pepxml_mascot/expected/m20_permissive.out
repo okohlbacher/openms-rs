@@ -1,0 +1,7 @@
+load m20_permissive.pepXML
+status ok
+peptides 1
+title [q1] 3
+seq [PEPXTIDE] [PEPXTIDE]
+seq [PEPTIDE] [PEPTIDE]
+seq [PEPXTIDEX] [PEPXTIDEX]

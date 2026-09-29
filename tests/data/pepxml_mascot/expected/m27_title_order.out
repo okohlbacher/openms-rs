@@ -1,0 +1,11 @@
+load m27_title_order.pepXML
+status ok
+peptides 4
+title [B] 1
+seq [R] [R]
+title [a10] 1
+seq [G] [G]
+title [a9] 1
+seq [A] [A]
+title [b] 1
+seq [K] [K]

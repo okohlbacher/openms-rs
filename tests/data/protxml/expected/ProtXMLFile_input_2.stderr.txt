@@ -1,0 +1,17 @@
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 I' @7
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 N' @3
+Non-fatal error while loading 'input.protXML': Cannot find modification '161.014999999999986 R' @7
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 I' @11
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 I' @12
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 Q' @20
+Non-fatal error while loading 'input.protXML': Cannot find modification '161.014999999999986 F' @4
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 Y' @14
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 E' @16
+Non-fatal error while loading 'input.protXML': Cannot find modification '161.014999999999986 E' @1
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 V' @6
+Non-fatal error while loading 'input.protXML': Modification '161.014999999999986' is not uniquely defined by the given data. Using 'Methylthio (D)' to represent any of 'Methylthio (D), Methylthio (N-term)'!
+Non-fatal error while loading 'input.protXML': Modification '147.034999999999997' is not uniquely defined by the given data. Using 'Oxidation (M)' to represent any of 'Oxidation (M), oxidation to L-methionine sulfoxide (M), oxidation to L-methionine (R)-sulfoxide (M), oxidation to L-methionine (S)-sulfoxide (M)'!
+Non-fatal error while loading 'input.protXML': Cannot find modification '161.014999999999986 A' @3
+Non-fatal error while loading 'input.protXML': Cannot parse modification 'Xlink:DSSO[104] (Protein N-term)@22'
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 I' @7
+Non-fatal error while loading 'input.protXML': Cannot find modification '147.034999999999997 A' @21

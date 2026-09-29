@@ -1,0 +1,14 @@
+r01_default_no_spectra	MascotXMLFile_test_2.mascotXML	-	<default>
+r02_rt_suffix	MascotXMLFile_test_2.mascotXML	-	_(?<RT>\d+\.\d+)$
+r03_mz_and_integer_rt	MascotXMLFile_test_2.mascotXML	-	^(?<MZ>\d+\.\d+)_(?<RT>\d+)
+r04_scan_lookup	MascotXMLFile_test_3.mascotXML	spectra_scans.tsv	scan=(?<SCAN>\d+)
+r05_default_scan_lookup	MascotXMLFile_test_3.mascotXML	spectra_scans.tsv	<default>
+r06_index0	MascotXMLFile_test_3.mascotXML	spectra_index.tsv	=(?<INDEX0>\d+)
+r07_index1	MascotXMLFile_test_3.mascotXML	spectra_index.tsv	=(?<INDEX1>\d+)
+r08_native_id	MascotXMLFile_test_2.mascotXML	spectra_ids.tsv	^(?<ID>\d+)\.
+r09_rt_lookup	MascotXMLFile_test_2.mascotXML	spectra_ids.tsv	_(?<RT>\d+)\.
+r10_no_named_group	MascotXMLFile_test_2.mascotXML	-	scan=(\d+)
+r11_whitespace	MascotXMLFile_test_2.mascotXML	-	 
+r12_invalid_expression	MascotXMLFile_test_2.mascotXML	-	(?<SCAN>\d+
+r13_unmatched	MascotXMLFile_test_3.mascotXML	spectra_scans.tsv	Spectrum(?<SCAN>\d+)
+r14_scan_no_spectra	MascotXMLFile_test_3.mascotXML	-	scan=(?<SCAN>\d+)

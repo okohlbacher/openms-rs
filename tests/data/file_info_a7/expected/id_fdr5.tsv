@@ -1,0 +1,14 @@
+general: file name	<FIX>/FalseDiscoveryRate_5_input.idXML
+general: file type	idXML
+general: database	
+general: database version	
+general: taxonomy	
+general: search engine	SimpleSearchEngine	(version: 2.0.1)
+general: num. of runs	1
+general: num. of protein hits	994
+general: num. of non-redundant protein hits (only hits that differ in the accession)	994
+general: num. of matched spectra	311
+general: num. of peptide hits	311
+general: num. of modified top-hits	75
+general: num. of non-redundant peptide hits (only hits that differ in sequence and/or modifications): 	292
+meta: document ID	

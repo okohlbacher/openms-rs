@@ -237,6 +237,11 @@ pub mod qpx_identity;
 /// views (`QPXValueValidation.h`).
 #[cfg(feature = "arrow")]
 pub mod qpx_value_validation;
+/// Percolator PSM-level tab-separated output (`PercolatorOutfile.h`).
+pub mod percolator_outfile;
+/// Spectrum meta-data look-up by regular-expression spectrum reference
+/// (`SpectrumLookup.h`, `SpectrumMetaDataLookup.h`).
+pub mod spectrum_meta_data_lookup;
 
 use crate::{Error, Result};
 
@@ -267,3 +272,20 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Mascot pepXML peptide sequences keyed by spectrum title (`PepXMLFileMascot.h`).
+#[cfg(feature = "idxml")]
+pub mod pepxml_mascot;
+/// ProteinProphet protXML reader (`ProtXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod protxml;
+/// The Xerces-faithful SAX driver of every `XMLHandler` port (copied verbatim
+/// from the wave-4 integration branch, which owns it). Its X! Tandem and
+/// knowledge-base callers live on that branch, hence the `dead_code` allowance.
+#[cfg(feature = "idxml")]
+#[allow(dead_code)]
+pub(crate) mod sax_xml;
+/// xQuest cross-linking result files (`XQuestResultXMLFile.h`,
+/// `HANDLERS/XQuestResultXMLHandler.h`).
+#[cfg(feature = "idxml")]
+pub mod xquest_result_xml;

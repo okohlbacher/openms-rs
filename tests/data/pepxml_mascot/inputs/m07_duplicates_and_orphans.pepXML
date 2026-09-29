@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis><msms_run_summary><search_summary>
+<aminoacid_modification variable="Y" description="Oxidation (M)" mass="147.0354"/>
+</search_summary>
+<spectrum_query spectrum="b"><search_result><search_hit hit_rank="1" peptide="PEPTIDE"></search_hit></search_result></spectrum_query>
+<spectrum_query spectrum="a"><search_result><search_hit hit_rank="1" peptide="MPEPTIDE"><modification_info><mod_aminoacid_mass position="1" mass="147.0354"/></modification_info></search_hit></search_result></spectrum_query>
+<spectrum_query spectrum="a"><search_result><search_hit hit_rank="1" peptide="AAAA"></search_hit></search_result></spectrum_query>
+<search_hit hit_rank="1" peptide="GRPHANK"></search_hit>
+<mod_aminoacid_mass position="1" mass="147.0354"/>
+<spectrum_query spectrum="c"><search_result><search_hit hit_rank="1" peptide="MK"></search_hit></search_result></spectrum_query>
+</msms_run_summary></msms_pipeline_analysis>

@@ -1,0 +1,5 @@
+load m25_position_text.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [MPEPTM(Oxidation)IDE] [MPEPTMIDE]

@@ -14,7 +14,7 @@
 //! - tier 1, executed differential: 75 cases of `../oracle/a7-fileinfo` run
 //!   against the **Release** C++ FileInfo of
 //!   `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-//!   ibminode06, twice and reproduced. 55 of them have their `-out` and
+//!   ibminode06, twice and reproduced. 57 of them have their `-out` and
 //!   `-out_tsv` reports compared here byte for byte, with no exemption of any
 //!   kind; only the two lines that embed the input path are normalised,
 //!   `File name: ` and `general: file name`.
@@ -47,10 +47,10 @@
 //!   Release build answers with a segmentation fault or with a silently wrong
 //!   number.
 //!
-//! Two oracle cases have no differential here: `FileFilter_25_input.idXML` and
-//! `FalseDiscoveryRate_5_input.idXML` carry more modified peptide hits than the
-//! shared identification-XML reader's document-wide work budget allows, which
-//! is a limit of that reader and not of this branch.
+//! `FileFilter_25_input.idXML` and `FalseDiscoveryRate_5_input.idXML` had no
+//! differential here until the shared identification-XML reader stopped
+//! charging each modified sequence for the whole modification registry; both
+//! are now compared (`identifications_many_modified_hits_upstream_files`).
 
 #[cfg(any(feature = "consensusxml", feature = "idxml"))]
 use openms::Error;
@@ -1151,6 +1151,33 @@ fn identifications_upstream_files() {
     assert_eq!(several_runs.num_runs, 3);
     assert_eq!(several_runs.protein_hits, 3);
     check("IDFileConverter_10_output.idXML", &all_flags(), "id_conv10");
+}
+
+/// The two upstream identification files the shared idXML reader used to
+/// refuse: `FileFilter_25_input.idXML` holds 1651 peptide hits of which 473
+/// top hits are modified, `FalseDiscoveryRate_5_input.idXML` 994 protein hits
+/// and 75 modified top hits. `AASequence::parse_with_budget` charged each
+/// modified sequence a preflight proportional to the whole modification
+/// registry against the document-wide 50-million work budget, so no idXML with
+/// more than fourteen modified hits could be read; each named annotation now
+/// pays only for the lookups of its own name. Oracle cases `id_ff25` and
+/// `id_fdr5` of `../oracle/a7-fileinfo`, Release build on ibminode06, twice
+/// and reproduced.
+#[cfg(feature = "idxml")]
+#[test]
+fn identifications_many_modified_hits_upstream_files() {
+    let filter = check("FileFilter_25_input.idXML", &all_flags(), "id_ff25")
+        .ident
+        .expect("ident");
+    assert_eq!(filter.peptide_hits, 1651);
+    assert_eq!(filter.modified_tophits, 473);
+    assert_eq!(filter.modification_counts["Oxidation (M)"], 269);
+    assert_eq!(filter.modification_counts["Carbamidomethyl (C)"], 281);
+    let fdr = check("FalseDiscoveryRate_5_input.idXML", &all_flags(), "id_fdr5")
+        .ident
+        .expect("ident");
+    assert_eq!(fdr.protein_hits, 994);
+    assert_eq!(fdr.modified_tophits, 75);
 }
 
 /// One run with no hits and no identifications at all: `proteins[0]` exists, so

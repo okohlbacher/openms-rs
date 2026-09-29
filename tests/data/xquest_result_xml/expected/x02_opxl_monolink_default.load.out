@@ -1,0 +1,67 @@
+Set default mono-link: Xlink:DSS[156] (K)
+status ok
+n_hits 1 min_score 0 max_score 10.5
+protein_ids 1
+prot identifier=[] engine=[xQuest] version=[4.0.0] date=[2018-03-06 11:52:13] score_type=[] higher=1
+ runs 0
+ sp db=[db.fasta] charges=[4,2,3] enzyme=[Trypsin] missed=2 prec_tol=10 prec_ppm=1 frag_tol=0.20000000000000001 frag_ppm=0 mass_type=0 specificity=3
+ fixed [Carbamidomethyl (C)] [Oxidation (M)]
+ variable
+  sp meta cross_link:mass_isoshift double 12.075321000000001
+  sp meta cross_link:mass_mass double 138.0680796
+  sp meta cross_link:mass_monolink doubleList [156.07864430999999,155.094628715]
+  sp meta cross_link:name string NOSUCH
+  sp meta cross_link:residue1 stringList [K|N-term]
+  sp meta cross_link:residue2 stringList [K|N-term]
+  sp meta decoy_prefix int 1
+  sp meta decoy_string string decoy_
+  sp meta fragment:mass_tolerance_xlinks double 0.29999999999999999
+  sp meta input_decoys string decoy.fasta
+  sp meta input_mzML string run.mzML
+  sp meta precursor:max_charge int 4
+  sp meta precursor:min_charge int 2
+ meta SpectrumIdentificationProtocol string MS:1002494
+ hits 2
+ phit [P1] score=0 rank=0
+  meta target_decoy string target
+ phit [decoy_P2] score=0 rank=0
+  meta target_decoy string decoy
+peptide_ids 1
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=100.5 mz=500.25 hits=1
+ meta spectrum_reference string 7,9
+ hit seq=[PEPK(Xlink:DSS[156])TIDE] score=10.5 rank=0 charge=3 evidences=2
+  ev [P1] start=-1 end=-1 before=X after=X
+  ev [decoy_P2] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string X-Y-a1-b1
+  meta OpenPepXL:intsum double 3.5
+  meta OpenPepXL:match-odds double 2.25
+  meta OpenPepXL:percTIC double 0.20000000000000001
+  meta OpenPepXL:score double 10.5
+  meta OpenPepXL:structure string X-Y
+  meta OpenPepXL:wTIC double 0.10000000000000001
+  meta OpenPepXL:xlinkermass double 156.07859999999999
+  meta accessions_beta string -
+  meta delta_score double 0
+  meta matched_linear_alpha int 3
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 1
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 1.5
+  meta prot1 string P1,decoy_P2
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 504.25999999999999
+  meta spec_heavy_RT double 101.25
+  meta spectrum_index int 7
+  meta spectrum_index_heavy int 9
+  meta spectrum_input_file string 
+  meta spectrum_reference int 7
+  meta spectrum_reference_heavy int 9
+  meta target_decoy string decoy
+  meta xl_mass double 156.07859999999999
+  meta xl_pos1 int 3
+  meta xl_pos2 string -
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string decoy
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link

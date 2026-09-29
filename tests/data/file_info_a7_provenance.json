@@ -130,7 +130,7 @@
     },
     "method": "Library-level: FileInfo::run on each input with the flags the oracle passed the tool; text and TSV compared byte for byte with the retained Release C++ reports after replacing the 'File name: ' text line and the 'general: file name' TSV line, which embed the input path. The FASTA duplicate warnings, which the source writes with OPENMS_LOG_WARN rather than into the reports, are compared with the tool's stderr.",
     "evidence_tier": 1,
-    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 75 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 55 of them -- every case with a frozen expectation -- have both reports compared here byte for byte, with NO exception of any kind. That count was 46 until two differences closed. Native difference 5 -- every NaN the FileInfo text layer printed was spelled nan where glibc spells a sign-bit NaN -nan -- is closed as of 2026-09-20, which brought the last nine reports to byte equality: c_zero_intensity_s, c_zero_intensity_all, c_nan_one_s, c_nan_one_all, c_nan_two_s, c_nan_then_finite_s, c_finite_then_nan_s, c_zero_swapped_s and c_zero_swapped_all. It took two steps, because the spelling is only honest once the value is: src/format/file_info/consensus.rs's it_aad += it_ratio, the one place in that module where plain Rust arithmetic can generate a NaN, now goes through crate::math::x86_64::add so the value carries the Release build's sign bit on any host; and text_format::nonfinite now spells a sign-bit NaN -nan, measured by ../oracle/a2-textfmt-linux, which re-ran A2's byte-identical driver against the Linux Release install and differs from the macOS capture on exactly one of 1018 rows. Before that, native difference 6 was closed, because sort_ascending is now the Release build's own std::sort (crate::math::source_sort), so a sample holding both a negative and a positive zero keeps its file order and the four order-statistic lines of c_zero_swapped_s agree; and c_nan_then_finite_s and c_finite_then_nan_s, which were retained as evidence rather than compared because their samples hold a NaN next to a number, are reproduced and compared (7 NaN-spelling lines each, nothing else differing). Those two still hold the same two consensus features in opposite file order and still disagree on four order statistics -- that is the C++ defect CPP-347 and it stands; the port now reproduces both answers instead of refusing them. The rest of the 75 carry refusals, exit codes and the duplicate warnings. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
+    "evidence": "Tier 1 (executed differential): the Release C++ FileInfo of openms4-release-bc9cc12-c19e494-174b576, at all three pins this port follows, ran 75 cases on ibminode06 twice, reproduced (../oracle/a7-fileinfo/manifest.json). 57 of them -- every case with a frozen expectation -- have both reports compared here byte for byte, with NO exception of any kind. That count was 46 until two differences closed, and 55 until the shared identification-XML reader stopped charging every modified sequence for the whole modification registry, which added id_ff25 (FileFilter_25_input.idXML) and id_fdr5 (FalseDiscoveryRate_5_input.idXML). Native difference 5 -- every NaN the FileInfo text layer printed was spelled nan where glibc spells a sign-bit NaN -nan -- is closed as of 2026-09-20, which brought the last nine reports to byte equality: c_zero_intensity_s, c_zero_intensity_all, c_nan_one_s, c_nan_one_all, c_nan_two_s, c_nan_then_finite_s, c_finite_then_nan_s, c_zero_swapped_s and c_zero_swapped_all. It took two steps, because the spelling is only honest once the value is: src/format/file_info/consensus.rs's it_aad += it_ratio, the one place in that module where plain Rust arithmetic can generate a NaN, now goes through crate::math::x86_64::add so the value carries the Release build's sign bit on any host; and text_format::nonfinite now spells a sign-bit NaN -nan, measured by ../oracle/a2-textfmt-linux, which re-ran A2's byte-identical driver against the Linux Release install and differs from the macOS capture on exactly one of 1018 rows. Before that, native difference 6 was closed, because sort_ascending is now the Release build's own std::sort (crate::math::source_sort), so a sample holding both a negative and a positive zero keeps its file order and the four order-statistic lines of c_zero_swapped_s agree; and c_nan_then_finite_s and c_finite_then_nan_s, which were retained as evidence rather than compared because their samples hold a NaN next to a number, are reproduced and compared (7 NaN-spelling lines each, nothing else differing). Those two still hold the same two consensus features in opposite file order and still disagree on four order statistics -- that is the C++ defect CPP-347 and it stands; the port now reproduces both answers instead of refusing them. The rest of the 75 carry refusals, exit codes and the duplicate warnings. One mask only: the \"FileInfo took\" stdout line, which goes into neither -out nor -out_tsv. Tier 1 (retained upstream definition): TOPP_FileInfo_7, _10, _13, _17, _18 and _20 reproduced with their own flags; _14 and _15 pass -v, which is not ported, so their inputs run without it. Tier 1 (executed probe): scripts/probe_std_hash.cpp pins libstdc++'s std::hash<std::string> over the empty string, every tail length, bytes above 0x7f and an embedded NUL, and 28 of its 60 values are asserted in a unit test of src/format/file_info/fasta.rs. Tier 4: the three out-of-bounds std::vector accesses are refused under decision D1, and the ValidationInfo, CorruptionInfo and DetailInfo aggregates these branches never fill stay at their defaults.",
     "known_gaps": [
         {
             "what": "a consensus sub-feature whose map index is at or beyond the column-header count is refused, where the C++ reports",
@@ -153,9 +153,9 @@
             "owner": "this package (documented native difference)"
         },
         {
-            "what": "an idXML with more than 14 modified peptide hits cannot be loaded, so two oracle cases have no differential",
-            "why": "AASequence::parse_with_budget (src/chemistry/sequence.rs:1147-1180) charges a per-modified-sequence preflight proportional to ModificationsDB::len() against the single document-wide XmlLimits::max_work = 50_000_000 (src/format/identification_xml.rs:411-425). Measured: 14 modified hits load, 15 do not, while 800 unmodified hits are fine. FileFilter_25_input.idXML (473 modified hits) and FalseDiscoveryRate_5_input.idXML (75) are therefore refused with \"peptide parent parsing resource limit exceeded\"; the oracle records what the C++ prints for both.",
-            "owner": "the shared identification-XML reader and AASequence parsing budget, not this package"
+            "what": "RESOLVED (F3a, 2026-09-27): an idXML with more than 14 modified peptide hits could not be loaded, so two oracle cases had no differential; both are now compared byte for byte.",
+            "why": "AASequence::parse_with_budget charged every modified sequence a preflight proportional to ModificationsDB::len() -- a registry scan, then records * (longest full ID + 16) * 16 work and records * 128 bytes per annotation -- against the single document-wide XmlLimits::max_work = 50_000_000 (src/format/identification_xml.rs:532-540). Measured before the fix: 14 modified hits loaded, 15 did not, while 800 unmodified hits were fine. The budget now charges each named annotation only for the lookups of its own name (ModificationsDB::name_lookup_work: an ordered-map descent plus the records filed under that name, times the sixteen find-shaped calls one annotation may make), each mass annotation for the two registry passes its lookup really makes, and the chemistry rebuild for the modifications actually resolved (src/chemistry/sequence.rs:1212-1450). FileFilter_25_input.idXML (473 modified top hits) and FalseDiscoveryRate_5_input.idXML (75) are compared by identifications_many_modified_hits_upstream_files against the Release build's reports (cases id_ff25 and id_fdr5 of ../oracle/a7-fileinfo, run1 and run2 identical); a_document_budget_pays_for_hundreds_of_modified_sequences pins that one parse costs the same however many came before.",
+            "owner": "the shared identification-XML reader and AASequence parsing budget; resolved there by lane F3a"
         },
         {
             "what": "the consensusXML -s `qualities` block summarises twice as many values as there are consensus features",
@@ -259,6 +259,20 @@
             "sha256": "8c1f623e2dbde60172cabe9fc27ffe85d4efede59bbbe9270b5bd4624a5001a0",
             "bytes": 68446,
             "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/Epifany_2_input.consensusXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/FalseDiscoveryRate_5_input.idXML",
+            "sha256": "36b49099da758b24d43eb83831f052b035d85e6096bebcde044e78e1ebc2182b",
+            "bytes": 333766,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FalseDiscoveryRate_5_input.idXML",
+            "evidence_label": "retained upstream fixture (tier 1)"
+        },
+        {
+            "path": "tests/data/file_info/inputs/FileFilter_25_input.idXML",
+            "sha256": "e136a86bdce0bb999969ffb5e71b786fa075307a73a77f0936837fba204f4d2e",
+            "bytes": 526556,
+            "kind": "upstream fixture, copied verbatim from OpenMS4-tests packages/test-data 0cb15f2, path topp/FileFilter_25_input.idXML",
             "evidence_label": "retained upstream fixture (tier 1)"
         },
         {
@@ -1219,6 +1233,34 @@
             "path": "tests/data/file_info_a7/expected/id_empty_run.txt",
             "sha256": "2c9bec10a2e2d9c30e5918da1cd7b239ab8d7b405e8fea763abef5ea8f59ab1c",
             "bytes": 703,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/id_fdr5.tsv",
+            "sha256": "b016d5ae32a8b821117e849953804e03f8dd59c73ec06d109bb04207cf7ab083",
+            "bytes": 588,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/id_fdr5.txt",
+            "sha256": "b9d1f94501d43c1bb5f0fd1009852d29c8dd819fd9a49b7f569a639db96533ec",
+            "bytes": 842,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/id_ff25.tsv",
+            "sha256": "84059aed3f07c06be5946b63e95ef22a12a03e7cf60df9d08a532ac3d08c2832",
+            "bytes": 582,
+            "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
+            "evidence_label": "oracle-generated (tier 1 executed differential)"
+        },
+        {
+            "path": "tests/data/file_info_a7/expected/id_ff25.txt",
+            "sha256": "a4a937413197c616d150e9a8d9e20e0b248d88201798a5352be53056c1bf3279",
+            "bytes": 904,
             "kind": "Release C++ FileInfo output retained by ../oracle/a7-fileinfo, path lines normalised",
             "evidence_label": "oracle-generated (tier 1 executed differential)"
         },

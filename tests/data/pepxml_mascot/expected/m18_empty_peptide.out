@@ -1,0 +1,5 @@
+load m18_empty_peptide.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [] []

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis><msms_run_summary><search_summary>
+<aminoacid_modification description="Oxidation (M)" mass="147.0354"/>
+</search_summary>
+<spectrum_query spectrum="q1"><search_result><search_hit hit_rank="1" peptide="PEPTIDE"></search_hit></search_result></spectrum_query>
+</msms_run_summary></msms_pipeline_analysis>

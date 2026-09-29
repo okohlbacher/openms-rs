@@ -1,0 +1,3 @@
+load m03_var_cterm.pepXML
+status exception InvalidValue: the value 'Amidated' was used but is not valid; Modification not found: 
+peptides 0

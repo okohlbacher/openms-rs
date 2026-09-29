@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="f3a.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+	</SearchParameters>
+	<IdentificationRun date="2024-01-01T12:00:00" search_engine="proteinprophet" search_engine_version="Test" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0.0" >
+			<ProteinHit id="PH_0" accession="MODS_A" score="0.99" coverage="10.0" sequence="" >
+			</ProteinHit>
+			<UserParam type="string" name="protein_group_0" value="0.99,PH_0"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.0,PH_0"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0.0" >
+			<PeptideHit score="0.9" sequence="PEPTM(Oxidation)IDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.8" sequence=".(Carbamidomethyl)CPEPTIDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.7" sequence="APEPTIDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.6" sequence="PEPTIDEK.(Amidated)" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.5" sequence="QPEPTIDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.4" sequence="PEPTIDEKR" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+			<PeptideHit score="0.3" sequence=".(Carbamidomethyl)M(Oxidation)CPEPTIDEK" charge="2" protein_refs="PH_0" >
+				<UserParam type="int" name="is_unique" value="1"/>
+				<UserParam type="int" name="is_contributing" value="1"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

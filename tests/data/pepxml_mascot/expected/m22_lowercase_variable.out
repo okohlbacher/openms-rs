@@ -1,0 +1,5 @@
+load m22_lowercase_variable.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [M(Oxidation)PEPM(Oxidation)TIDE] [MPEPMTIDE]
