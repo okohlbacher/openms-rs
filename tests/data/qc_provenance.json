@@ -1,0 +1,105 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/QC/QCBase.h",
+   "sha256": "a088693eaa19c9051ad671a40afb2c46429a5525ff0e9101642af99c1f509edc"
+  },
+  {
+   "path": "src/openms/source/QC/QCBase.cpp",
+   "sha256": "56978c2f7ae6c7e250c921392d6ba3924fd99a4dd119d34f4a562172dbbdd821"
+  },
+  {
+   "path": "src/openms/include/OpenMS/QC/SpectrumCount.h",
+   "sha256": "90b25cd7b876c8ef9fa02cae39977c282ed298192169327a2e2011e1cd7c5faf"
+  },
+  {
+   "path": "src/openms/source/QC/SpectrumCount.cpp",
+   "sha256": "216a4c2d2f110b2fae98146ac2071298a981eb53454edd0ba61ec74e3cedb0a3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/QC/TIC.h",
+   "sha256": "7fc8bdc8424f42f04df0fb0ce5431898a6c76a59113df569a659337fa0ed253b"
+  },
+  {
+   "path": "src/openms/source/QC/TIC.cpp",
+   "sha256": "0faddda22e1d64f49112ff309897a2d200a38213ae2847c349e635552dc9f607"
+  },
+  {
+   "path": "src/openms/include/OpenMS/QC/FeatureSummary.h",
+   "sha256": "e7781a83bf5b59842700d6a079d852caf8b680b334bfbab4f765c6ad2719c227"
+  },
+  {
+   "path": "src/openms/source/QC/FeatureSummary.cpp",
+   "sha256": "d87b17923fd9c8983e86ada8f94a30470716ecd00b4e60f86603745d634869d4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/QC/MissedCleavages.h",
+   "sha256": "cf3a94bfec7d8a2c362951c6cfc956fd8140c0555f8aad7222a6090fcbd64104"
+  },
+  {
+   "path": "src/openms/source/QC/MissedCleavages.cpp",
+   "sha256": "b8965c6a23298e8aac9db46daaf915d8fd27ffa66ede1e60d67b93bcedd549f5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/QC/IdentificationSummary.h",
+   "sha256": "dd1d8e9630297227306b9e384af315a68d25b7176cbcce78c0437b7f52c5d4af"
+  },
+  {
+   "path": "src/openms/source/QC/IdentificationSummary.cpp",
+   "sha256": "b5c352b1e127cf26b2e4ae99fddcb132c057f0d93e904acf3ceff8d169b95b1c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/FlagSet.h",
+   "sha256": "caa50cdd1b1ca6db8e0e1a58c2e0d84df1e2b52181cbe15524d3944a658aa0bb"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FlagSet_test.cpp",
+   "sha256": "1398dbb0e6f3da6c05d9b27ae9e6bd53738edd1641f1240efb576ef2a19a8f62"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/QCBase_test.cpp",
+   "sha256": "3a67e59c9905bd852ff5f8bbeb496d956abf55f47db17eec65798f7d400a72b2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectrumCount_test.cpp",
+   "sha256": "9fc1b3b4ba24a95ca1d0e787459cf994fc4dd78e337e763de1987a7d26f3de9c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TIC_test.cpp",
+   "sha256": "689758010b560c9838041d7a3d18c3a9c473990f809a38a22e01017f327a9d75"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureSummary_test.cpp",
+   "sha256": "33083e3a150807f6ed929217decc0af2fe2dd49b18422ee8be50a9890e79337d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MissedCleavages_test.cpp",
+   "sha256": "398179e3af06dc796c6e7831c2da98794f8b8c4603ceb7fab9ea826968ec6fd6"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IdentificationSummary_test.cpp",
+   "sha256": "3c9606ed8453696a49db054c8325e47fdb9e68862b0f33e1045c2fbf8b000dfc"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/qc.rs",
+  "src/analysis/qc/qc_base.rs",
+  "src/analysis/qc/spectrum_count.rs",
+  "src/analysis/qc/tic.rs",
+  "src/analysis/qc/feature_summary.rs",
+  "src/analysis/qc/missed_cleavages.rs",
+  "src/analysis/qc/identification_summary.rs",
+  "src/data_structures/flag_set.rs"
+ ],
+ "native_tests": [
+  "tests/qc.rs",
+  "tests/mzqc_file.rs"
+ ],
+ "support_document": "docs/QC_SUPPORT.md",
+ "fixtures": [],
+ "method": "Tier 3: every section of the seven class tests with their literals (tests/qc.rs). Tier 1 through tests/mzqc_file.rs: every metric value of TOPP_QCCalculator_2, compared with the retained output and line for line with the Linux Release build's output (see tests/data/mzqc_file_provenance.json).",
+ "evidence_tier": "3 (class-test literals); 1 end to end through MzQCFile"
+}

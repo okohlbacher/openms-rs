@@ -42,3 +42,7 @@ pub use tool_description::{
 /// `DATASTRUCTURES/ToolInfo.h`).
 pub mod tool_info;
 pub use tool_info::ToolInfo;
+
+/// Sets of enum flags stored as bits (source `DATASTRUCTURES/FlagSet.h`).
+pub mod flag_set;
+pub use flag_set::{FlagEnum, FlagSet};

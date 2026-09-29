@@ -120,10 +120,18 @@ impl ProteaseDB {
     pub fn has_enzyme(&self, name: &str) -> bool {
         self.get_enzyme(name).is_ok()
     }
+    /// The enzyme registered under `name`: its name, its name in lower case, or
+    /// one of its synonyms, the three keys source `DigestionEnzymeDB::addEnzyme_`
+    /// (core bc9cc12 `DigestionEnzymeDB.h:181-186`) registers, so `trypsin`
+    /// finds Trypsin as it does in the source (and as idXML files and
+    /// `MissedCleavages_test.cpp` spell it). No two of the pinned enzymes share
+    /// a key, so the first match is the source map's only one.
     pub fn get_enzyme(&self, name: &str) -> Result<&'static DigestionEnzymeProtein> {
         self.enzymes()
             .iter()
-            .find(|e| e.name == name || e.synonyms.contains(&name))
+            .find(|e| {
+                e.name == name || e.name.to_ascii_lowercase() == name || e.synonyms.contains(&name)
+            })
             .ok_or_else(|| invalid(format!("unknown protease {name:?}")))
     }
     pub fn names(&self) -> Vec<&'static str> {

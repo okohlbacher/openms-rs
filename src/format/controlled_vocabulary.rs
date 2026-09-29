@@ -719,6 +719,34 @@ impl ControlledVocabulary {
             Err(message) => Err(Error::InvalidValue(message.clone())),
         }
     }
+
+    /// The pinned PSI-MS vocabulary alone, loaded under the name `PSI-MS`: the
+    /// object the source builds with
+    /// `loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"))`, so its `name`,
+    /// `label`, `version` and `url` identify PSI-MS. [`ControlledVocabulary::psi_ms`]
+    /// holds every embedded vocabulary, and its identity is the one loaded
+    /// last.
+    ///
+    /// # Errors
+    ///
+    /// As [`ControlledVocabulary::psi_ms`].
+    pub fn psi_ms_only() -> Result<&'static Self> {
+        static CV: OnceLock<std::result::Result<ControlledVocabulary, String>> = OnceLock::new();
+        match CV.get_or_init(|| {
+            let (_, data, encoding) = obo::EMBEDDED
+                .iter()
+                .find(|(name, _, _)| *name == "MS")
+                .ok_or_else(|| "the PSI-MS vocabulary is not embedded".to_owned())?;
+            let mut result = Self::new();
+            result
+                .load_obo_encoded("PSI-MS", *data, *encoding)
+                .map_err(|e| e.to_string())?;
+            Ok(result)
+        }) {
+            Ok(cv) => Ok(cv),
+            Err(message) => Err(Error::InvalidValue(message.clone())),
+        }
+    }
 }
 
 /// Source FNV-1a byte hash, explicitly 64-bit on every target.

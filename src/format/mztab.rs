@@ -2990,7 +2990,7 @@ pub fn add_meta_info_to_optional_columns(
 
 /// The source's `DataValue::toString(true)`: full-precision numbers, lists
 /// bracketed and separated by `", "`, and an absent value as empty text.
-fn meta_value_text(value: &MetaValue) -> String {
+pub(crate) fn meta_value_text(value: &MetaValue) -> String {
     fn bracketed<I: Iterator<Item = String>>(parts: I) -> String {
         let joined: Vec<String> = parts.collect();
         format!("[{}]", joined.join(", "))

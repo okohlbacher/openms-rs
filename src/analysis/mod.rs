@@ -32,3 +32,4 @@ pub mod featurefinder;
 pub mod id;
 pub mod mapmatching;
 pub mod openswath;
+pub mod qc;

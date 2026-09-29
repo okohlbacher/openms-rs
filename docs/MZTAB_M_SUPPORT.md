@@ -504,13 +504,11 @@ Each item says what the source does and why this differs.
    `ControlledVocabulary::loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"))`,
    resolving a runtime share directory. This crate embeds its vocabularies, so
    `export_feature_map_with` takes a `&ControlledVocabulary` and
-   `export_feature_map` passes `ControlledVocabulary::psi_ms()`. **That global
-   holds all five pinned vocabularies in one object**, so its `name`, `label`,
-   `version` and `url` identify the one loaded last and the `cv[1]` block it
-   produces is generic. A caller that needs the source's `cv[1]` must load
-   `psi-ms.obo` alone under the name `PSI-MS` and use
-   `export_feature_map_with`; the tests do exactly that, from
-   `resources/cv/psi-ms.obo`. Term lookups are unaffected.
+   `export_feature_map` passes `ControlledVocabulary::psi_ms_only()`: the
+   embedded `psi-ms.obo` alone under the name `PSI-MS`, which is what the
+   source loads, so the `cv[1]` block carries the source's identity.
+   (`ControlledVocabulary::psi_ms()` holds all five pinned vocabularies in one
+   object and identifies the one loaded last; it is not used here.)
 3. **An empty identification graph is an error, not undefined behaviour.** The
    source states `OPENMS_PRECONDITION(!id_data.empty(), …)`, which a release
    build compiles out and then reads an empty graph. This returns
@@ -671,19 +669,28 @@ error.
 | `MzTabM_test.cpp` `START_SECTION(MzTabM())` | 1 | `default_constructor_declares_the_profile_version` | ported |
 | `MzTabM_test.cpp` `START_SECTION(~MzTabM())` | 0 | `destructor_releases_a_populated_document` | ported |
 | `MzTabM_test.cpp` `START_SECTION(Fill data structure)` | 21 | `fill_data_structure` | ported, all 21 macros and every literal the section sets |
-| `MzTabM_test.cpp` `START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap&))` | 6 | `export_feature_map_to_mztab_m` | partial: retained-output counts only; original exporter input is not executed |
+| `MzTabM_test.cpp` `START_SECTION(MzTabM::exportFeatureMapToMzTabM(const FeatureMap&))` | 6 | `export_feature_map_to_mztab_m`, `export_and_store_reproduce_the_retained_output_from_the_oms_input` | ported: the exporter runs on the section's own `MzTabMFile_input_1.oms` (loaded with `OmsFile`) and all six sizes hold |
 | `MzTabMFile_test.cpp` `START_SECTION(MzTabMFile())` | 1 | `file_default_constructor` | ported |
 | `MzTabMFile_test.cpp` `START_SECTION(~MzTabFile())` | 0 | `file_destructor` | ported |
-| `MzTabMFile_test.cpp` `START_SECTION(void store(const std::string&, MzTabM&))` | 1 | `store_writes_the_retained_bytes` | mapped: selected retained rows compared; original full input is not executed |
+| `MzTabMFile_test.cpp` `START_SECTION(void store(const std::string&, MzTabM&))` | 1 | `export_and_store_reproduce_the_retained_output_from_the_oms_input`, `store_writes_the_retained_bytes` | ported: the stored file passes `TEST_FILE_SIMILAR` (relative 1 + 1e-5, absolute 1e-5) against the retained output |
 
-Five sections are ported, one has partial exporter evidence and one maps the
-source store comparison to selected retained rows. These are not seven complete
-upstream test reproductions.
+All seven sections are ported, the two data-carrying ones end to end from
+their own input.
 
-**The `.oms` caveat, stated plainly.** Both of the two sections that carry real
-data load `MzTabMFile_input_1.oms`, an SQLite `.oms` file this crate has no
-reader for (`OMSFile.h` is unported), so neither section's *input* can be fed
-to the port.
+**The `.oms` input.** Both data-carrying sections load `MzTabMFile_input_1.oms`
+(schema version 1: 83 features, 303 compounds, 2 adducts, 312 feature-level
+observation matches). `OmsFile` (`docs/OMS_FILE_SUPPORT.md`) reads it, and
+`export_and_store_reproduce_the_retained_output_from_the_oms_input` runs the
+two sections as written: export with the source options and the PSI-MS
+vocabulary loaded alone under the name `PSI-MS`, the six sizes, then store and
+compare the whole file with `MzTabMFile_output_1.mztab` as `TEST_FILE_SIMILAR`
+compares it. That is tier 1 (retained C++ output of the class test's own
+input). It needed one correction here: compound formulas are written as the
+source's `EmpiricalFormula::toString()` writes them (symbols in text order, so
+isotopes such as `(2)H` precede `C`, and no charge), where the crate's
+`Display` orders by element; see `source_formula_text`.
+
+The earlier, weaker evidence is kept:
 
 * For `exportFeatureMapToMzTabM` the six asserted values — 83, 83, 312, 0, 18,
   6 — are verified against `tests/data/MzTabMFile_output_1.mztab`, which is the
@@ -758,10 +765,9 @@ turns both halves off and reproduces the source's output, corruption included.
 Tests: `a_cell_carrying_a_tab_or_a_line_break_is_refused_by_default`,
 `a_metadata_key_or_value_carrying_a_separator_is_refused_by_default`.
 
-No C++ was built or executed for this package. The `.oms` input cannot be read,
-so the exporter has no end-to-end tier-1 differential; that is the single
-largest gap and the reason this package's ledger status for `MzTabM.h` is
-`partial` rather than `complete`.
+No C++ was built or executed for this package; the end-to-end differential
+is against the retained class-test output from the class test's own `.oms`
+input, which closes the gap that kept `MzTabM.h` partial.
 
 ## Public API for the dependent stages
 
@@ -850,9 +856,6 @@ Three further points, defects of a milder kind:
 
 ## Deferred
 
-* **`OMSFile.h`.** Reading `MzTabMFile_input_1.oms` would close the exporter's
-  tier-1 gap end to end. Until then the exporter's evidence is the metadata
-  section plus behavioural tests.
 * **`MzTabFile.h`.** The proteomics writer, 176 header lines and 2,930
   implementation lines. This package reproduces one of its statics,
   `addOptionalColumnsToSectionRow_`; when `MzTabFile.h` lands, that helper

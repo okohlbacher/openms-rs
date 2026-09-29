@@ -49,7 +49,14 @@ fn complete_registry_metadata_and_source_synonyms() {
         Protease::GlutamylEndopeptidase
     );
     assert!(!db.has_enzyme("Try"));
-    assert!(!db.has_enzyme("trypsin"));
+    // The source registers every enzyme under its lower-case name too
+    // (core bc9cc12 `DigestionEnzymeDB.h:182`,
+    // `enzyme_names_[StringUtils::toLower(name)] = enzyme`), and
+    // `MissedCleavages_test.cpp` looks Trypsin up as "trypsin"; an earlier
+    // version of this line asserted the opposite without a source for it.
+    assert!(db.has_enzyme("trypsin"));
+    assert_eq!(db.get_enzyme("trypsin").unwrap().name(), "Trypsin");
+    assert!(!db.has_enzyme("TRYPSIN"));
     let trypsin = db.get_enzyme("Trypsin").unwrap();
     assert_eq!(trypsin.regex(), "(?<=[KRX])(?!P)");
     assert_eq!(trypsin.n_term_gain(), formula("H"));

@@ -1,0 +1,6 @@
+ibminode06
+Linux ibminode06 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+Model name:                              AMD EPYC 7763 64-Core Processor
+install: /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (Release, core bc9cc12, cli c19e494, topp 174b576)
+x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0
+flags: -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp

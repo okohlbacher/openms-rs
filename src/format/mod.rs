@@ -74,6 +74,9 @@ pub mod mzml_sqlite_handler;
 /// Read-only SWATH/DIA windows and spectrum IDs from sqMass databases.
 #[cfg(feature = "sqlite")]
 pub mod mzml_sqlite_swath_handler;
+/// OMS files: SQLite databases of identification and feature data (`OMSFile.h`).
+#[cfg(feature = "sqlite")]
+pub mod oms_file;
 pub(crate) mod path_io;
 /// SQLite connections and checked table, statement and blob operations.
 #[cfg(feature = "sqlite")]
@@ -134,8 +137,13 @@ pub mod mzml;
 /// Explicit validation against the retained ordinary and indexed mzML schemas.
 #[cfg(feature = "mzml-schema")]
 pub mod mzml_schema;
+/// mzQC quality-control files in JSON (`MzQCFile.h`).
+#[cfg(feature = "mzml")]
+pub mod mzqc_file;
 /// MzTab data model: cell vocabulary, record structs and document (`MzTabBase.h`, `MzTab.h`).
 pub mod mztab;
+/// MzTab exporters: feature maps, consensus maps and identification runs (`MzTab.h` export surface).
+pub mod mztab_export;
 /// MzTab file adapter: reading and writing `.mzTab` documents (`MzTabFile.h`).
 pub mod mztab_file;
 /// MzTab-M metabolomics profile: data model, `FeatureMap` export and writer (`MzTabM.h`, `MzTabMFile.h`).
@@ -143,6 +151,10 @@ pub mod mztab_m;
 /// Legacy mzXML 3.1 adapter: nested scans and paired peak arrays (`MzXMLFile.h`).
 #[cfg(feature = "mzml")]
 pub mod mzxml;
+/// JSON text as the source's `nlohmann::json` writes it, shared by the OMS and
+/// mzQC writers.
+#[cfg(any(feature = "sqlite", feature = "mzml"))]
+pub(crate) mod nlohmann_json;
 /// pepXML search results: load, store and modification resolution (`PepXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod pepxml;
