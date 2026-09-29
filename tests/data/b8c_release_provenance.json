@@ -1,0 +1,34 @@
+{
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "scope": "The B8c lane's checks of the TOPPBase remainder (2026-09-27): ParamXMLFile::store's text of floating-point items, list items and restrictions and of 64-bit integers (tests/data/b8c_release/ini: numbers.ini, specials.ini); ParamEntry::isValid and Param::update on 64-bit integer values, and GaussTraceFitter::setParameters with max_iteration beyond int (width.tsv, trace.tsv); ParamJSONFile::load on 115 JSON documents that take every path of nlohmann::json 3.11.2's scanner and parser a load can meet, with the exception class and what() of each refusal and the values of each success (tests/data/b8c_release/json).",
+ "method": "ParamXMLFile.cpp, Param.cpp, ParamValue.cpp, StringUtils.cpp, NumericFormatting.h, ParamJSONFile.cpp and the vendored nlohmann_json lexer.hpp and parser.hpp read at the core pin with git show. A driver (driver.cpp) built on the node with the Release install's compiler and libOpenMS's own core flags (the recipe of ../oracle/sne-completion/remote_run.sh) runs four modes, each in a clean environment (env -i, a per-run HOME and OPENMS_HOME_PATH, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH pinned): numbers stores two parameter trees with ParamXMLFile; width prints isValid's verdict and message and update's success, stored value and log for eight and four cases; trace sets six max_iteration values on a GaussTraceFitter; json loads each document of json_cases.tsv (written by make_inputs.py) onto a tree with T:1:d, T:1:i, T:1:s, T:1:a:d and T:1:dl and writes the exception's class and what() byte for byte. Everything ran twice (run1, run2); results/differ.txt is empty, every file of the two runs is identical. run1 is retained under tests/data/b8c_release and replayed by tests/topp_write_ini_text.rs (source_number_text_is_the_release_builds), tests/param_int_width.rs and tests/param_json_syntax.rs.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) against the Release build. One documented difference: a byte of nlohmann::json's 'last read' that is not UTF-8 is U+FFFD in this port's message, which is text (the tests compare against the Release bytes read lossily).",
+ "oracle": {
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06",
+  "build_type": "Release",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "driver_binary_sha256": "d0f0362989d0c377d51f7ddc6de668bcd525057690bc6578eb4d404652201d8f"
+ },
+ "external_reference_artifacts": [
+  {"path": "../oracle/B8c-numbers/driver.cpp", "sha256": "29c2309b53a2034411886501615e24da86b0f78842cb83697abcc94215c9b4f0", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B8c-numbers/make_inputs.py", "sha256": "71d2495c82103248881927df5e995fb4ccae2c0c1c072585e3cd93690d4c7ede", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B8c-numbers/remote_run.sh", "sha256": "b25ef7bedf93cd1b21587e8c605f5ba8e64adf7b689df8fb4d2807beeaf45b07", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B8c-numbers/json_cases.tsv", "sha256": "33a891525cd16530da4bc184655a5542ccceec16b008c973ce1e508046cd5d26", "origin_key": "oracle", "role": "input"}
+ ],
+ "retained": [
+  "tests/data/b8c_release/ini",
+  "tests/data/b8c_release/width.tsv",
+  "tests/data/b8c_release/trace.tsv",
+  "tests/data/b8c_release/json",
+  "tests/data/b8c_release/host.txt",
+  "tests/data/b8c_release/compiler.txt",
+  "tests/data/b8c_release/hashes.txt",
+  "tests/data/b8c_release/inputs.sha256"
+ ]
+}

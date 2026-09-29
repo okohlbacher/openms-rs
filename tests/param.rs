@@ -48,15 +48,29 @@ fn source_entry_restrictions_and_file_tag_asymmetry() {
     assert!(p.set_min_int("str", 1).is_err());
     assert!(p.valid_strings("int").is_err());
 }
+/// A 64-bit integer is checked as the source's `int tmp = value`
+/// (`Param.cpp:122`, core `bc9cc12`) checks it: `ParamValue::operator int`
+/// keeps the low 32 bits (`ParamValue.cpp:445-451`). `i64::MAX` is `-1` there
+/// and fails a minimum of 0; `i64::MIN` is `0` and passes it, which is what the
+/// C++ Release build does with a JSON `-ini` value of `1e30` on
+/// PeakPickerHiRes' `missing` (restriction `0:`): the run proceeds past the
+/// strict update to the input check (`tests/data/topp_json_ini/r_pphr_huge`).
 #[test]
-fn sentinel_bounds_nan_and_checked_integer_narrowing() {
+fn sentinel_bounds_nan_and_source_integer_narrowing() {
     let mut e = entry("i", i32::MIN);
     assert_eq!(e.min_int, -i32::MAX);
     assert!(e.is_valid().unwrap());
     e.min_int = 0;
     assert!(!e.is_valid().unwrap());
     e.value = V::Integer(i64::MAX);
-    assert!(e.is_valid().is_err());
+    assert!(!e.is_valid().unwrap());
+    e.value = V::Integer(i64::MIN);
+    assert!(e.is_valid().unwrap());
+    e.value = V::Integer((1_i64 << 32) + 7);
+    e.max_int = 6;
+    assert!(!e.is_valid().unwrap());
+    e.max_int = 7;
+    assert!(e.is_valid().unwrap());
     let mut e = entry("f", f64::INFINITY);
     assert!(e.is_valid().unwrap());
     e.max_float = 4.0;
@@ -421,8 +435,16 @@ fn update_mapping_protected_values_partial_success_and_invalids() {
     assert_eq!(ambiguous.value("old:leaf").unwrap(), &V::Integer(4));
     assert_eq!(ambiguous.value("a:leaf").unwrap(), &V::Integer(1));
 }
+/// An equal value is not validated again, even when it breaks its
+/// restriction. A different 64-bit value is checked as the source's
+/// `ParamEntry::isValid` checks it, through `int tmp = value` (`Param.cpp:122`,
+/// core `bc9cc12`): its low 32 bits. `i64::MAX` is `-1` there, within the
+/// maximum 0, so it is taken whole; `2^32 + 1` is `1`, above it, so the lenient
+/// update ignores it with the restriction's message and keeps the current
+/// value (`Param.cpp:1321-1346`). An update that fails leaves the destination
+/// unchanged (`source_update_requeries_unresolvable_literal_colon_draft_names`).
 #[test]
-fn update_equal_invalid_value_is_not_revalidated_and_errors_are_atomic() {
+fn update_equal_invalid_value_is_not_revalidated_and_wide_integers_are_checked_as_int() {
     let mut current = Param::new();
     set(&mut current, "same", 9);
     current.set_max_int("same", 0).unwrap();
@@ -441,8 +463,13 @@ fn update_equal_invalid_value_is_not_revalidated_and_errors_are_atomic() {
     );
     let mut old = Param::new();
     set(&mut old, "same", i64::MAX);
+    assert!(current.update(&old, false).unwrap().success);
+    assert_eq!(current.value("same").unwrap(), &V::Integer(i64::MAX));
+    set(&mut old, "same", (1_i64 << 32) + 1);
     let before = current.clone();
-    assert!(current.update(&old, false).is_err());
+    let report = current.update(&old, false).unwrap();
+    assert!(report.success);
+    assert_eq!(report.messages.len(), 1, "{:?}", report.messages);
     assert_eq!(current, before);
 }
 #[test]

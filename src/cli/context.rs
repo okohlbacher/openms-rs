@@ -81,7 +81,7 @@ impl ToolContext {
         log: Arc<ToolLog>,
     ) -> Self {
         let int = |key: &str, fallback: i64| match param.value(key) {
-            Ok(ParamValue::Integer(value)) => *value,
+            Ok(ParamValue::Integer(value)) => source_int(*value),
             _ => fallback,
         };
         let flag =
@@ -528,7 +528,9 @@ impl ToolContext {
             _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string"))),
         }
     }
-    /// An integer option, as `getIntOption_`.
+    /// An integer option, as `getIntOption_`: a value beyond 32 bits, which
+    /// only a JSON `-ini` can set, is its low 32 bits, as the source's `Int`
+    /// (the private `source_int`).
     ///
     /// # Errors
     ///
@@ -537,8 +539,9 @@ impl ToolContext {
     pub fn int(&self, name: &str) -> Result<i64> {
         match self.value(name)? {
             ParamValue::Integer(value) => {
+                let value = source_int(*value);
                 self.write_debug(&format!("Value of int option '{name}': {value}"), 1);
-                Ok(*value)
+                Ok(value)
             }
             _ => Err(self.wrong_type(name, format!("parameter '{name}' is not an integer"))),
         }
@@ -992,6 +995,18 @@ fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
         index += 1;
     }
     index
+}
+
+/// The source's `(Int)` cast of an integer `ParamValue`: `operator int`
+/// returns the 64-bit value as an `int` and so keeps its low 32 bits
+/// (`ParamValue.cpp:445-451` at core `bc9cc12`). `getParamAsInt_`
+/// (`TOPPBase.cpp:1741-1756` at cli `c19e494`), and through it
+/// `getIntOption_` and the `-instance`, `-debug` and `-threads` values, read
+/// every integer parameter this way, so a JSON `-ini` value beyond 32 bits
+/// (`1e30`, stored as `-9223372036854775808`) is `0` to the tool, as on the
+/// Release build (`tests/data/topp_json_ini/r_pphr_huge`).
+pub(crate) fn source_int(value: i64) -> i64 {
+    i64::from(value as i32)
 }
 
 /// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`), returning the

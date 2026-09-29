@@ -98,8 +98,8 @@ C++ (the C2 oracle reaches them through a derived probe class).
   "gaussian" whichever model is fitted. `max_iteration <= 0` and an empty
   parameter vector reach that status without an evaluation, as Eigen's
   `minimizeInit` does. On every error the parameter vector is unchanged.
-- `max_iteration` is signed, has no minimum and no maximum, and is read as an
-  integer (through `from_param` only within `i32`; native difference 8);
+- `max_iteration` is signed, has no minimum and no maximum, and is read as a
+  64-bit integer, beyond `i32` too (native difference 8);
   `weighted` is true exactly when it is the string `"true"`.
 - `computeTheoretical` is `trace.theoretical_int * getValue(trace.peaks[k].rt)`.
 - The span checks keep the subclasses' comparisons: `true` reports the
@@ -211,18 +211,16 @@ C++ (the C2 oracle reaches them through a derived probe class).
    Invalid string parameter value 'maybe' for parameter 'weighted' given!
    Valid values are: 'true,false'."); the executed cases in
    `tests/trace_fitter.rs` check the outcome, not the text.
-   **`max_iteration` beyond `i32`:** `to_param` writes any `i64`, but
-   `from_param` refuses a value outside `i32` ("parameter value cannot be
-   converted to i32"), so the round trip fails there. The cause is
-   `crate::param`'s restriction check (`src/param.rs`), which converts
-   every integer entry to `i32`. The source's `ParamEntry::isValid`
-   (`Param.cpp:122`) narrows to `int` without a check, and `updateMembers_`
-   reads the full value. The executed SDK accepts and stores 2^31,
-   3,000,000,000, -2^31 - 1 and `i64::MAX`
-   (`../oracle/gauss-trace-fitter/param-range`). `FeatureFinderAlgorithmPicked`
+   **`max_iteration` beyond `i32`** round-trips as in the source: `to_param`
+   writes any `i64` and `from_param` takes it back unchanged, because
+   `crate::param`'s restriction check narrows an integer to its low 32 bits
+   for the check only, as the source's `ParamEntry::isValid`
+   (`Param.cpp:122`) does, and `updateMembers_` reads the full value. The
+   executed SDK accepts and stores 2^31, 3,000,000,000, -2^31 - 1 and
+   `i64::MAX` (`../oracle/gauss-trace-fitter/param-range`), and so does
+   `to_param_and_from_param_agree_beyond_i32`. `FeatureFinderAlgorithmPicked`
    never reaches the range: the `UInt` it passes stays below 2^31, because the
    minimum of `fit:max_iterations` is checked on the `int`-narrowed value.
-   `to_param_and_from_param_disagree_beyond_i32` records the current boundary.
 9. **Borrowing.** `fit` borrows the traces immutably, and `area`, the span
    checks and `gnuplot_formula` take `&self`; the source declares them
    non-const, but no subclass writes.

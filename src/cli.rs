@@ -89,6 +89,8 @@ pub use tool_handler::{
 use crate::data_structures::ToolInfo;
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::{FileType, type_by_file_name};
+use crate::format::param_cwl::ParamCwlFile;
+use crate::format::param_json::ParamJsonFile;
 use crate::format::{param_json, paramxml};
 use crate::param::{Param, ParamEntry, ParamUpdateOptions, ParamValue};
 use crate::system::file;
@@ -902,7 +904,7 @@ fn prepare<T: Tool>(
     // The command line is the parameter set in force (param_ = param_cmdline_):
     // its -instance, -debug and -log apply from here (TOPPBase.cpp:193-223).
     let cmd_int = |cmd: &Param, key: &str, fallback: i64| match cmd.value(key) {
-        Ok(ParamValue::Integer(value)) => *value,
+        Ok(ParamValue::Integer(value)) => context::source_int(*value),
         _ => fallback,
     };
     session.instance = cmd_int(&cmd, "instance", 1);
@@ -1180,8 +1182,9 @@ pub const TDL_UNAVAILABLE: &str = param_json::TDL_UNAVAILABLE;
 /// through [`ParamCtdFile`]. An empty directory is the current directory.
 ///
 /// `-write_nested_cwl`, `-write_cwl`, `-write_nested_json` and `-write_json`
-/// check the target as the source does and then end with
-/// [`ExitCode::InternalError`] and the Release build's message,
+/// check the target as the source does and then store through
+/// [`ParamCwlFile`] and [`ParamJsonFile`], which refuse as the Release build's
+/// writers do without TDL: [`ExitCode::InternalError`] and
 /// `Unable to initialize or run <tool>: TDL support is not available. …`.
 /// The Release build opens (and so creates or empties) the target before it
 /// fails; this port does not touch it.
@@ -1234,13 +1237,6 @@ fn write_commands<T: Tool>(
             if let Some(code) = output_file_writable(&target, name, err) {
                 return Ok(Some(code));
             }
-            if name != "write_ctd" {
-                log_error(
-                    err,
-                    &format!("Unable to initialize or run {}: {TDL_UNAVAILABLE}", T::NAME),
-                )?;
-                return Ok(Some(ExitCode::InternalError));
-            }
             // The source sets `type` on its command-line parameters and
             // recomputes `getDefaultParameters_()` for each type
             // (`handleWriteCommands_`), so a subsection whose defaults depend
@@ -1269,17 +1265,31 @@ fn write_commands<T: Tool>(
                     .map(str::to_owned)
                     .collect(),
             };
-            if let Err(error) = ParamCtdFile.store(&target, &described, &info) {
-                // The source's store throws std::ios::failure, a
-                // std::exception only the initialisation catch handles;
-                // libstdc++ appends its category text to the message.
+            // `writer.store(write_file, default_params, tool_info)`
+            // (`TOPPBase.cpp:2601`). A failure is a std::exception only
+            // the initialisation catch handles: the CTD writer's
+            // std::ios::failure, to which libstdc++ appends its category
+            // text, or the CWL and JSON writers' std::runtime_error of the
+            // Release build, which has no TDL (`TDL_UNAVAILABLE`).
+            let stored = match name {
+                "write_ctd" => ParamCtdFile
+                    .store(&target, &described, &info)
+                    .map_err(|error| format!("{}: iostream error", error_text(&error))),
+                "write_nested_cwl" | "write_cwl" => ParamCwlFile {
+                    flat_hierarchy: name == "write_cwl",
+                }
+                .store(&target, &described, &info)
+                .map_err(|error| error_text(&error)),
+                _ => ParamJsonFile {
+                    flat_hierarchy: name == "write_json",
+                }
+                .store(&target, &described, &info)
+                .map_err(|error| error_text(&error)),
+            };
+            if let Err(what) = stored {
                 log_error(
                     err,
-                    &format!(
-                        "Unable to initialize or run {}: {}: iostream error",
-                        T::NAME,
-                        error_text(&error)
-                    ),
+                    &format!("Unable to initialize or run {}: {what}", T::NAME),
                 )?;
                 return Ok(Some(ExitCode::InternalError));
             }
@@ -1769,8 +1779,8 @@ fn source_validity_message(entry: &ParamEntry) -> Option<String> {
             entry.name, entry.min_float, entry.max_float
         )
     };
-    let narrow =
-        |value: i64| i32::try_from(value).unwrap_or(if value < 0 { i32::MIN } else { i32::MAX });
+    // `int tmp = value` (Param.cpp:122): the low 32 bits.
+    let narrow = |value: i64| context::source_int(value) as i32;
     match &entry.value {
         ParamValue::String(value)
             if !entry.valid_strings.is_empty()
@@ -1997,7 +2007,7 @@ fn validate(
                 Some(ExitCode::IllegalParameters)
             }
             (ParameterType::Int, ParamValue::Integer(number)) => {
-                int_range(session, entry, *number, out, err)?
+                int_range(session, entry, context::source_int(*number), out, err)?
             }
             (ParameterType::IntList, ParamValue::IntegerList(numbers)) => {
                 let mut code = None;
@@ -2325,12 +2335,31 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
     ExitCode::IllegalParameters
 }
 
+/// The text of an [`Error::Parse`] inside the lifecycle's `Error: Unable to
+/// read file (…)`, as the source's `ParseError::what()`, which is
+/// `<message> in: <expression>` (`Exception.cpp:160-164` at core `bc9cc12`)
+/// and carries no line prefix.
+///
+/// An error without a line (`line` 0) is written as its message alone: the
+/// loaders that reproduce a source `ParseError` put the source's whole
+/// `what()` there, `in: <file>` included (`FileHandler`'s refused type,
+/// `FileHandler.cpp:859-863`; the INI and JSON `-ini` loads), so the line is
+/// the Release build's byte for byte. An error with a line keeps this crate's
+/// `parse error on line <n>: <message>`, the line being the only place it is
+/// reported; no reader that sets one words its message as the source does.
+fn parse_what(error: &Error) -> String {
+    match error {
+        Error::Parse { line: 0, message } => message.clone(),
+        other => other.to_string(),
+    }
+}
+
 /// A failure while the tool runs, mapped as the source's run-phase catch
 /// (`TOPPBase.cpp:430-499`).
 ///
 /// A parse failure is `INPUT_FILE_CORRUPT`, as the source's `ParseError`
-/// (460-465). The other arms are native mappings, because [`Error`] is coarser
-/// than the source's exceptions:
+/// (460-465), with the text [`parse_what`] gives it. The other arms are native
+/// mappings, because [`Error`] is coarser than the source's exceptions:
 ///
 /// * A missing file is `INPUT_FILE_NOT_FOUND`, as `FileNotFound` (436-441).
 /// * A permission failure is `CANNOT_WRITE_OUTPUT_FILE`, as `UnableToCreateFile`
@@ -2346,17 +2375,19 @@ fn initialisation_failure<T: Tool>(error: &Error, err: &mut dyn Write) -> ExitCo
 ///   `UNKNOWN_ERROR` (Release oracle: MapNormalizer's empty intensity range).
 ///   A tool that refuses a parameter where the source returns
 ///   `ILLEGAL_PARAMETERS` says so itself ([`ToolError::invalid_parameter`]).
-/// * Missing information is `MISSING_PARAMETERS`, as
-///   `RequiredParameterNotGiven` (466-474). The source's own
-///   `MissingInformation` exception derives directly from `BaseException` and
-///   would exit `UNKNOWN_ERROR` there.
+/// * Missing information is the source's `MissingInformation` exception,
+///   which derives directly from `BaseException` (`Exception.h:154` at core
+///   `bc9cc12`) and so takes the same arm: `Error: Unexpected internal error
+///   (<what>)` and `UNKNOWN_ERROR`. A missing required parameter never
+///   reaches this function: the lifecycle reports it before the body runs, as
+///   the source's `RequiredParameterNotGiven` arm (466-474) does.
 /// * `Unsupported` and `UnsortedData` are `INCOMPATIBLE_INPUT_DATA`, the code
 ///   the source tools return explicitly for those conditions.
 fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
     let (code, text) = match error {
         Error::Parse { .. } => (
             ExitCode::InputFileCorrupt,
-            format!("Error: Unable to read file ({error})"),
+            format!("Error: Unable to read file ({})", parse_what(error)),
         ),
         Error::Io(e) if e.kind() == std::io::ErrorKind::NotFound => (
             ExitCode::InputFileNotFound,
@@ -2373,11 +2404,10 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
         Error::Unsupported(_) | Error::UnsortedData => {
             (ExitCode::IncompatibleInputData, format!("Error: {error}"))
         }
-        Error::InvalidValue(_) | Error::InvalidRange(_) => (
+        Error::InvalidValue(_) | Error::InvalidRange(_) | Error::MissingInformation(_) => (
             ExitCode::UnknownError,
             format!("Error: Unexpected internal error ({})", error_text(error)),
         ),
-        Error::MissingInformation(_) => (ExitCode::MissingParameters, format!("Error: {error}")),
     };
     let _ = log_error(err, &text);
     code
@@ -2392,7 +2422,7 @@ fn run_failure(error: &Error, err: &mut dyn Write) -> ExitCode {
 /// say which side raised it, and its `Error::Parse` arm is the source's
 /// `ParseError`, which is a *read* failure. A store that fails therefore has to
 /// be mapped where it is known to be a store; otherwise a writer's refusal is
-/// announced as `Error: Unable to read file (parse error on line 0: …)` with
+/// announced as `Error: Unable to read file (…)` with
 /// `INPUT_FILE_CORRUPT`, which is what the featureXML store did before native
 /// difference 16 was closed.
 ///

@@ -157,7 +157,7 @@ requirement* below says why.
 | run | `Error::InvalidValue`, `InvalidRange` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch`; `an_empty_combined_intensity_range_is_refused` (MapNormalizer) | tier 1 (Release build): the source's `InvalidValue` and `InvalidRange` derive from `BaseException` and take its arm, `Error: Unexpected internal error (<what>)`; MapNormalizer's empty intensity range, executed at the pinned Release build. A tool that refuses a parameter value where the source returns `ILLEGAL_PARAMETERS` says so itself with `ToolError::invalid_parameter` (6): SpectraFilterWindowMower's non-finite window size and MapNormalizer's non-positive maximum, both native refusals |
 | run | a tool body reads a parameter it did not register, or with the wrong accessor | 12 | 482-493; `TOPPBase_defs.h:53-75` | `accessor_misuse_ends_as_the_source_catch_blocks_end_it` | tier 2, source-derived (a programming error, unreachable from the command line): `Internal error: Request for unregistered parameter '<name>'` and `Internal error: Request for parameter with wrong type '<name>'`, through `writeLogError_`, no closing line |
 | run | a flag parameter holding neither `true` nor `false` | 6 | 1822-1840, 475-480 | `ToolContext::flag` | tier 2, source-derived; the strict update refuses such a value first, so only a tool body could reach it |
-| run | `Error::MissingInformation` | 7 | 466-474 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `RequiredParameterNotGiven`; the source's `MissingInformation` exception reaches its `BaseException` arm, exit 8 |
+| run | `Error::MissingInformation` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch` | tier 2, source-derived: the source's `MissingInformation` derives directly from `BaseException` (`Exception.h:154`) and takes its arm, `Error: Unexpected internal error (<what>)`; a missing required parameter is the lifecycle's check (7), never this error |
 | run | `Error::Unsupported`, `UnsortedData` | 11 | the tools' own `INCOMPATIBLE_INPUT_DATA` returns | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
 | run | `ToolError::Caught` from a tool body: a source exception whose catch-block text the tool knows | the tool's code | 430-499 | `a_caught_exception_prints_no_closing_line_and_reaches_the_log`; the tools' `release_*` tests | tier 1 (Release build): `fi_out_is_directory_log`, `fd_matched_whitelist_log`, `pphr_centroided_log`, `ffc_profile_noforce_log`, `ffc_ms2_only_log` in `../oracle/topp-exception-exits` |
 | run | `ToolError::Escaped` from a tool body: a `std::exception` | 12 | 510-513 | `an_escaped_exception_prints_no_closing_line_and_stays_out_of_the_log` | tier 1 (Release build): `fd_directory_log` in `../oracle/topp-exception-exits` |
@@ -477,9 +477,12 @@ allowed list (`../oracle/B0-attacks`, cases `unknown_*`, seven tools;
 `tests/topp_b0_release.rs`,
 `an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool`).
 FileInfo, which loads with the forced type alone, goes through the same check.
-The diagnostic still reads `Error: Unable to read file (parse error on line 0:
-<the source's text>)`, the rendering of every `Error::Parse` (open item 3 of
-the TOPPBase ledger entry).
+The diagnostic is the Release build's line byte for byte: an `Error::Parse`
+without a line number is printed as its message alone, which is the source's
+`ParseError::what()`, `<message> in: <file>` (`Exception.cpp:160-164`), for
+every loader that reproduces a source `ParseError`. An `Error::Parse` that
+carries a line keeps `parse error on line <n>: <message>`; no reader that sets
+a line words its message as the source does.
 
 **Input checks on a directory.** On the Linux Release build a directory given
 as an input file whose name no type claims does not warn: `FileHandler::getType`
@@ -496,8 +499,13 @@ reproduction of the same message for its own read (`ToolError::escaped`) is a
 tool-level choice. `setValidFormats_`'s
 `force_OpenMS_format` check of registered format names is not ported.
 
-**`-write_ini`** is compared with the C++ files by number, not by text: this
-writer prints `3` where the source prints `3.0`. The ISO-8859-1 declaration is
+**`-write_ini`** writes the C++ files byte for byte
+(`tests/topp_write_ini_text.rs`, every retained `-write_ini` file of the nine
+ported tools; `tests/topp_json_ini.rs`): the numbers are the source writer's
+(`paramxml::NumberText::Source`), `3.0`, `1.0e20` and `0.0:` for a
+floating-point item or restriction, `%.15g` for a floating-point list item,
+and a 64-bit integer as it is held, although the source's reader, and this
+port's, refuses one beyond 32 bits. The ISO-8859-1 declaration is
 kept consistent with the bytes (`paramxml::OutputEncoding::Latin1`): the source
 copies UTF-8 bytes under that declaration, so its non-ASCII text reads back as
 different characters, while this writer writes ISO-8859-1 bytes and character
@@ -758,8 +766,9 @@ positive), exit 6. For BaselineFilter's element the Release build completes
 with a zero-sample element widened to one (`bf_dp_negative_fraction` of
 `../oracle/B0-attacks`, exit 0) and ends with SIGSEGV on a negative length
 (`bf_dp_negative`, exit 139).
-`Error::MissingInformation` still maps to 7, where the source's exception of
-that name would exit 8.
+`Error::MissingInformation` maps to 8, `Error: Unexpected internal error
+(<what>)`, as the source's exception of that name, which derives directly
+from `BaseException`.
 `parse_range` leaves both bounds unchanged on error. A command line is bounded
 by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing, and parsed in time
 linear in its length: the text left after each option is gathered in reverse and

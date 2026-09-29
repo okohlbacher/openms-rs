@@ -16,11 +16,10 @@
 //! not compared as recorded is named where it is applied, each a difference
 //! `docs/TOPP_CLI_SUPPORT.md` records: the source's debug line that carries a
 //! C++ file and line; at debug level 2, the order of the lifecycle's file
-//! checks and the tool body's `Value of` lines; the text `serde_json` gives a
-//! malformed document, where `nlohmann::json` words the same failure
-//! differently; and the text of a floating-point value in the written INI,
-//! which is the parameter XML writer's (the parameters themselves are
-//! compared whole). Two cases are not replayed at all ([`OPEN`]).
+//! checks and the tool body's `Value of` lines. A malformed document's
+//! message is `nlohmann::json`'s, line, column and last bytes read included,
+//! and the written INI is compared byte for byte, including the integer the
+//! Release build keeps beyond 32 bits (`w_pphr_int_huge`).
 #![cfg(all(feature = "mzml", feature = "paramxml"))]
 
 #[path = "support/release_runs.rs"]
@@ -34,16 +33,6 @@ use openms::system::file::TempDir;
 use release_runs::{RELEASE_PREFIX, masked_log};
 use std::fs;
 use std::path::{Path, PathBuf};
-
-/// Cases whose Release behaviour the port does not reach yet, outside the
-/// command line and the JSON reader: an integer parameter that the JSON
-/// document sets beyond 32 bits (`1e30` becomes `-9223372036854775808`). The
-/// source's `ParamEntry::isValid` and `getIntOption_` cast it to `int`, and
-/// its INI writer writes it; this port's `Param` refuses to cast it
-/// (`src/param.rs`, `ParamEntry::validation_error`) and its parameter XML
-/// writer refuses to write it, so the run ends in the initialisation catch.
-/// The loaded value itself is the Release build's (`tests/param_json.rs`).
-const OPEN: [&str; 2] = ["r_pphr_huge", "w_pphr_int_huge"];
 
 /// Where the Release run kept its case directories.
 const ORACLE_RESULTS: &str = "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2";
@@ -202,29 +191,21 @@ fn release_log(replay: &Replay, case: &str) -> Option<Vec<String>> {
     })
 }
 
-/// The written INI: the same parameters, descriptions, tags and restrictions
-/// (`Param`'s full equality after reading both), and the same text on every
-/// line but those of a floating-point item, whose number the Release build
-/// writes as `4.0`, `1.0e20` and `0.0:` where this port's writer writes `4`,
-/// `100000000000000000000` and `0:` (the parameter XML writer's text, a gap
-/// of `ParamXMLFile`, not of the command line).
+/// The written INI, byte for byte: the floating-point text the Release build
+/// writes (`4.0`, `1.0e20`, `0.0:`) and an integer beyond 32 bits as the
+/// 64-bit value it holds (`w_pphr_int_huge`, `-9223372036854775808`), which
+/// the source's own INI reader refuses and this port's reader refuses too.
+/// Where both files can be read, the trees are compared as well.
 fn assert_ini(case: &str, port: Option<&str>, release: Option<&str>) {
-    let (Some(port), Some(release)) = (port, release) else {
-        assert_eq!(port, release, "{case}: the written INI");
+    assert_eq!(port, release, "{case}: the written INI");
+    let Some(port) = port else {
         return;
     };
-    let read = |text: &str| openms::format::paramxml::read(text.as_bytes()).unwrap();
-    assert_eq!(read(port), read(release), "{case}: the written parameters");
-    let (port_lines, release_lines): (Vec<&str>, Vec<&str>) =
-        (port.lines().collect(), release.lines().collect());
-    assert_eq!(port_lines.len(), release_lines.len(), "{case}: INI lines");
-    for (port_line, release_line) in port_lines.iter().zip(&release_lines) {
-        if port_line != release_line {
-            assert!(
-                port_line.contains("type=\"double\"") && release_line.contains("type=\"double\""),
-                "{case}:\n{port_line}\n{release_line}"
-            );
-        }
+    let read = |text: &str| openms::format::paramxml::read(text.as_bytes());
+    if case == "w_pphr_int_huge" {
+        assert!(read(port).is_err(), "{case}: an integer beyond 32 bits");
+    } else {
+        assert!(read(port).is_ok(), "{case}: the written INI reads back");
     }
 }
 
@@ -314,10 +295,9 @@ fn cases(prefix: &str, tool: &str) -> Vec<String> {
     names
 }
 
-/// The cases whose document `serde_json` refuses with its own words: the
-/// source's `nlohmann::json` names the same failure as
+/// The cases whose document is no JSON: `nlohmann::json`'s
 /// `[json.exception.parse_error.101] parse error at line <l>, column <c>:
-/// syntax error while parsing <context> - <reason>`.
+/// syntax error while parsing <context> - <reason>`, byte for byte.
 const SYNTAX_ERRORS: [&str; 5] = [
     "w_pphr_syntax",
     "w_pphr_trailing_comma",
@@ -325,35 +305,6 @@ const SYNTAX_ERRORS: [&str; 5] = [
     "w_pphr_trailing_garbage",
     "r_pphr_syntax",
 ];
-
-/// Standard error with the text of a syntax error replaced by the port's:
-/// the line keeps the source's frame, `Error: Unable to read file (… in: )`,
-/// and the Release text must be `nlohmann::json`'s parse error 101.
-fn with_serde_wording(port_err: &str) -> impl Fn(String) -> String + '_ {
-    move |release: String| {
-        let frame = |text: &str| -> (usize, usize) {
-            let start = text
-                .find("Error: Unable to read file (")
-                .expect("the frame")
-                + 28;
-            let end = text.rfind(" in: )\n").expect("the frame's end");
-            (start, end)
-        };
-        let (start, end) = frame(&release);
-        assert!(
-            release[start..end]
-                .starts_with("[json.exception.parse_error.101] parse error at line "),
-            "{release}"
-        );
-        let (port_start, port_end) = frame(port_err);
-        format!(
-            "{}{}{}",
-            &release[..start],
-            &port_err[port_start..port_end],
-            &release[end..]
-        )
-    }
-}
 
 /// Every `-write_ini` case of PeakPickerHiRes: the written INI shows each
 /// value the load set, and each failure is the Release build's, exit code,
@@ -369,16 +320,17 @@ fn write_ini_from_a_json_ini_is_the_release_builds() {
     assert_eq!(names.len(), 45);
     let mut syntax = 0;
     for case in &names {
-        if OPEN.contains(&case.as_str()) {
-            continue;
-        }
         if SYNTAX_ERRORS.contains(&case.as_str()) {
-            let replay = replay::<PeakPickerHiRes>(case);
-            assert_case::<PeakPickerHiRes>(case, with_serde_wording(&replay.err));
+            let release = read(case, "stderr.txt").unwrap();
+            assert!(
+                release.contains(
+                    "Error: Unable to read file ([json.exception.parse_error.101] parse error at line "
+                ),
+                "{case}: {release}"
+            );
             syntax += 1;
-        } else {
-            assert_case::<PeakPickerHiRes>(case, |text| text);
         }
+        assert_case::<PeakPickerHiRes>(case, |text| text);
     }
     assert_eq!(syntax, 4);
 }
@@ -406,16 +358,13 @@ fn a_run_with_a_json_ini_is_the_release_builds() {
     let names = cases("r_", "PeakPickerHiRes");
     assert_eq!(names.len(), 9);
     for case in &names {
-        if OPEN.contains(&case.as_str()) {
-            continue;
-        }
-        if SYNTAX_ERRORS.contains(&case.as_str()) {
-            let replay = replay::<PeakPickerHiRes>(case);
-            assert_case::<PeakPickerHiRes>(case, with_serde_wording(&replay.err));
-        } else {
-            assert_case::<PeakPickerHiRes>(case, |text| text);
-        }
+        assert_case::<PeakPickerHiRes>(case, |text| text);
     }
+    assert!(
+        names
+            .iter()
+            .any(|case| SYNTAX_ERRORS.contains(&case.as_str()))
+    );
 }
 
 /// FileInfo run from a JSON `-ini` that names its input as a file object:
@@ -517,8 +466,7 @@ fn a_malformed_ini_reaches_the_log_as_in_the_release_build() {
 
 /// Batch 3: FileInfo with an `-in_type` the file contradicts. The experiment
 /// loader throws `ParseError` (`FileHandler.cpp:859-863`): exit 3 and the
-/// source's text, which this port prints after the `parse error on line 0: `
-/// with which the lifecycle renders every `Error::Parse` (`run_failure`).
+/// source's text, byte for byte.
 #[cfg(feature = "featurexml")]
 #[test]
 fn a_forced_type_the_file_contradicts_is_the_release_builds_parse_error() {
@@ -526,13 +474,7 @@ fn a_forced_type_the_file_contradicts_is_the_release_builds_parse_error() {
         "batch3/fi_forced_dta_on_featurexml",
         "batch3/fi_forced_mzml_on_featurexml",
     ] {
-        assert_case::<openms::cli::tools::FileInfo>(case, |text| {
-            text.replacen(
-                "Error: Unable to read file (",
-                "Error: Unable to read file (parse error on line 0: ",
-                1,
-            )
-        });
+        assert_case::<openms::cli::tools::FileInfo>(case, |text| text);
     }
 }
 

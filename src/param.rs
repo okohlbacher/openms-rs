@@ -247,8 +247,13 @@ impl ParamEntry {
                     }
                 }
             }
-            ParamValue::Integer(_) => {
-                let x = self.value.to_i32()?;
+            ParamValue::Integer(value) => {
+                // The source's `int tmp = value` (Param.cpp:122 at core
+                // bc9cc12): `ParamValue::operator int` returns the 64-bit
+                // value as an `int`, keeping its low 32 bits
+                // (ParamValue.cpp:445-451), so a value beyond 32 bits is
+                // checked as its truncation, never refused.
+                let x = *value as i32;
                 if (self.min_int != -i32::MAX && x < self.min_int)
                     || (self.max_int != i32::MAX && x > self.max_int)
                 {

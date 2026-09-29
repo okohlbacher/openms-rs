@@ -1707,9 +1707,7 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
 
     // Native mappings (tier 4). A std::io::Error does not say whether it read
     // or wrote, and inputs are checked before the body runs, so a denied
-    // permission is taken as a failed write. The source's own
-    // MissingInformation exception would reach its BaseException arm (exit
-    // 8); it follows RequiredParameterNotGiven instead.
+    // permission is taken as a failed write.
     let denied = stream_tool(Err(Error::Io(std::io::Error::from(
         std::io::ErrorKind::PermissionDenied,
     ))));
@@ -1743,10 +1741,21 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
         range.err
     );
 
+    // The source's MissingInformation exception derives directly from
+    // BaseException (Exception.h:154, core bc9cc12) and takes its arm
+    // (TOPPBase.cpp:495-499, cli c19e494): exit 8 and its what(), which is the
+    // message (Exception.cpp:257-260). Tier 2, source-derived.
     let information = stream_tool(Err(Error::MissingInformation("no charge".into())));
     assert_eq!(
         information.code,
-        ExitCode::MissingParameters,
+        ExitCode::UnknownError,
+        "{}",
+        information.err
+    );
+    assert!(
+        information
+            .err
+            .contains("Error: Unexpected internal error (no charge)\n"),
         "{}",
         information.err
     );

@@ -14,7 +14,7 @@
 - Integer and floating restrictions use `min:max`, open endpoints, and the legacy `min-max` fallback. Malformed range *shape* is ignored as in the source; malformed numeric endpoints are errors. Numeric overflow and nonzero values underflowing to zero are checked errors, including the scalar cases where the C++ XML helper logs and substitutes zero. Default minima are `-i32::MAX` and `-f64::MAX`, not `i32::MIN` or negative infinity.
 - String restrictions retain order and empty fields. File supported formats override restrictions. The native reader also retains supported formats for output-prefix values and equivalent legacy file restrictions, correcting cases the C++ reader loses on its own round trip.
 - A bool input becomes a string constrained to `true,false`. Output uses `type="bool"` only for the source flag case: scalar value `false`, valid strings exactly `["true", "false"]`, and no overriding file type.
-- NaN, infinities, signed zero and full finite f64 precision are preserved. NaN is written as `NaN`. Unlike the source's limited decimal stream precision, native numbers use a round-trip representation; byte-identical numeric formatting is not promised in general.
+- NaN, infinities, signed zero and full finite f64 precision are preserved by the default writer. NaN is written as `NaN`. Unlike the source's limited decimal stream precision, the default writer's numbers use a round-trip representation. `WriteOptions::source()` writes the source's numbers instead, byte for byte (see *Writer options*).
 - UTF-8, declared ISO-8859-1 and ASCII, and UTF-16 little/big endian input are supported. Output declares and emits UTF-8 by default; see *Writer options* for the source's ISO-8859-1 declaration. XML 1.0 literal line endings/attribute whitespace are normalized, while character references preserve tabs/newlines/carriage returns.
 
 The source's nonsemantic schema attributes `short_description`, `position`, and scalar `default` are accepted and ignored, as in ParamXMLHandler. No remote schema, external entity or DTD is fetched. The inherited `XMLFile::isValid` is `paramxml::is_valid`, with the optional `xml-schema` feature: real XSD validation against the bundled, unchanged `Param_1_8_0.xsd`, with the four stored parameter sets of `ParamXMLFile_test.cpp:63-243` ported ([XML schema validation](XML_SCHEMA_SUPPORT.md)).
@@ -23,17 +23,25 @@ The source's nonsemantic schema attributes `short_description`, `position`, and 
 
 `write_with_options(output, param, limits, options)` and
 `store_with_options(path, param, options)` take a `WriteOptions`, whose
-`encoding` is an `OutputEncoding`. `write`, `write_with_limits` and `store` use
-the default and are unchanged.
+`encoding` is an `OutputEncoding` and whose `numbers` is a `NumberText`.
+`write`, `write_with_limits` and `store` use the default and are unchanged.
 
 | `OutputEncoding` | Declaration | Bytes |
 | --- | --- | --- |
 | `Utf8` (default) | `encoding="UTF-8"` | every character as UTF-8 |
 | `Latin1` (`WriteOptions::source()`) | `encoding="ISO-8859-1"`, as the source `ParamXMLFile::store` | a character up to U+00FF as its ISO-8859-1 byte, any other as a hexadecimal character reference (`&#x20AC;`) |
 
+| `NumberText` | A floating-point item or restriction | A floating-point list item | An integer item |
+| --- | --- | --- | --- |
+| `RoundTrip` (default) | the shortest text that reads back to the same `f64` (`4`, `100000000000000000000`), `INF`, `-INF`, `NaN` | the same | refused beyond 32 bits, which the source's reader cannot read back |
+| `Source` (`WriteOptions::source()`) | `ParamValue::toString()` / `StringUtils::toStr(double)` (`ParamXMLFile.cpp:110, 251, 256`): 15 fractional digits in `[1e-2, 1e4)` trimmed to one (`4.0`, `99.632000000000005`), the shortest round trip in scientific notation outside it (`1.0e20`, `1.5e-05`), `inf`, `-inf`, `NaN` | `os << value` at precision 15 (`ParamXMLFile.cpp:64, 328`), `%.15g`: `4`, `1e+20`, `0.1`, glibc's `nan`, `-nan`, `inf` | the 64-bit value, `std::to_string` (`ParamXMLFile.cpp:106`), as the source writes one a JSON `-ini` set beyond 32 bits although its reader then refuses it |
+
 With `WriteOptions::source()` the source writer golden
 `ParamXMLFile_test_writeXMLToStream.xml` is reproduced byte for byte, declaration
-included. The TOPP `-write_ini` option uses it (`docs/TOPP_CLI_SUPPORT.md`).
+included, and so is every retained C++ `-write_ini` file of a ported tool
+(`tests/topp_write_ini_text.rs`). The TOPP `-write_ini` option uses it
+(`docs/TOPP_CLI_SUPPORT.md`). `Source` keeps 15 significant digits, as the
+source does, so a value with more is not read back unchanged.
 
 Native difference: the source declares ISO-8859-1 but copies the UTF-8 bytes of
 its strings, so a non-ASCII character it writes reads back as several
@@ -52,7 +60,7 @@ round trip through `read`, `store_with_options` and `load`.
 
 Unknown types/elements/attributes, newer format versions, unsupported encodings, malformed XML and entity declarations return errors rather than silently dropping records. The source schema advertises additional types such as int-pair and input-prefix that its own ParamXMLHandler cannot load; those remain explicit unsupported inputs here.
 
-The writer rejects values that the source representation would silently lose: Empty parameters, singleton empty string restrictions, comma-containing restrictions/tags, empty tags, literal `#br#` in descriptions, invalid XML characters, and scalar integers outside the source reader's i32 range, nondefault restrictions on an inactive value type, and empty/colon-containing/duplicate sibling draft names. Native ParamValue itself still supports i64. Empty sections are retained by the native writer, including trees with no entries; this avoids source iterator-trace corner cases. These checks do not require the current value to satisfy its configured restriction: source parameter files can store defaults or editable values that have not yet passed parameter validation.
+The writer rejects values that the source representation would silently lose: Empty parameters, singleton empty string restrictions, comma-containing restrictions/tags, empty tags, literal `#br#` in descriptions, invalid XML characters, and, with the default `NumberText`, scalar integers outside the source reader's i32 range, nondefault restrictions on an inactive value type, and empty/colon-containing/duplicate sibling draft names. Native ParamValue itself still supports i64. Empty sections are retained by the native writer, including trees with no entries; this avoids source iterator-trace corner cases. These checks do not require the current value to satisfy its configured restriction: source parameter files can store defaults or editable values that have not yet passed parameter validation.
 
 Limits default to 64 MiB raw/decoded/output XML, one million XML elements, one million items per list or comma-separated attribute, 128 XML nesting levels, and 65,536 bytes per fully qualified parameter path. The parameter layer's shared work/allocation ceilings also apply; these can reject a pathological tree before those XML ceilings. Attribute field slots and bytes are checked before splitting. Output escapes strings, tags and description newline markers incrementally within the byte budget. Reads and writes fail before publishing a partially parsed tree or validation-failing output.
 
