@@ -79,3 +79,8 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
   msrv 13+29+11+38, nofeat lib 316. Ledger fragment written (9 entries). Report NOT written. sweep2 died on spock timeout.
 - sweep4 started 19:58 (scratchpad/F7a/sweep4.out). Next: report F7a.md; consider record-level CV promotion
   (validateCV_) to close the writing-consumer validator gap; delete NOTES.md in final commit.
+
+## Incarnation 5 (branch worktree-wf_a10fdd71-2d2-4, 2026-09-29), merged wf_cd066dab-0a7-12 (ff to cf60145)
+- sweep3/sweep4 produced only the header line (spock timeout). Report F7a.md still NOT written.
+- Next: (1) retry sweep (sweep5) in background; (2) write report F7a.md from slice logs; (3) decide on validateCV_
+  record-level CV promotion (optional); (4) delete NOTES.md in final commit.
