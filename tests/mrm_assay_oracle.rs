@@ -454,11 +454,95 @@ fn rebuild(dump: &str) -> TargetedExperiment {
 #[track_caller]
 fn assert_matches(case: &str, actual: &TargetedExperiment) {
     let expected = parse_dump(&data(&format!("{case}.tsv")));
-    let actual = records(actual);
+    let mut actual = records(actual);
     assert_eq!(actual.len(), expected.len(), "{case}: record count differs");
-    for (i, (a, e)) in actual.iter().zip(&expected).enumerate() {
+    for (i, (a, e)) in actual.iter_mut().zip(&expected).enumerate() {
+        reconcile_mz(a, e);
         assert_eq!(a, e, "{case}: record {i} differs");
     }
+}
+
+/// Declared m/z tolerance: four units in the last place, relative.
+///
+/// Justification (a finding, not a budget): the ported `AASequence` residue
+/// masses differ from the Release build's in the last bit for some residues
+/// (the `decoy_masses` case below pins F, D and K among others), because
+/// `Residue::getMonoWeight(Internal)` is the full-residue formula mass,
+/// summed by `EmpiricalFormula::getMonoWeight` in `const Element*` map
+/// order, minus the water mass, while the port sums the internal composition
+/// directly in symbol order. Rounded m/z values (every
+/// transition m/z but the decoy precursor, which is `getMZ` plus a shift)
+/// agree exactly; only the unrounded decoy precursor m/z needs this. Every
+/// other field is compared exactly.
+fn close(a: f64, b: f64) -> bool {
+    a == b || (a - b).abs() <= 4.0 * f64::EPSILON * a.abs().max(b.abs())
+}
+
+fn reconcile_mz(actual: &mut Record, expected: &Record) {
+    if let (
+        Record::Transition {
+            precursor_mz: ap,
+            product_mz: aq,
+            ..
+        },
+        Record::Transition {
+            precursor_mz: ep,
+            product_mz: eq,
+            ..
+        },
+    ) = (actual, expected)
+    {
+        if close(*ap, *ep) {
+            *ap = *ep;
+        }
+        if close(*aq, *eq) {
+            *aq = *eq;
+        }
+    }
+}
+
+// The residue-level cause of the one m/z tolerance above: the decoy peptides
+// of `decoys_pseudo`, their full monoisotopic mass and m/z (within the
+// declared tolerance) and their modified sequences (exactly).
+#[test]
+fn decoy_peptide_masses() {
+    let expected = data("decoy_masses.tsv");
+    let dec = decoys(DecoyMethod::PseudoReverse, 1.0, false);
+    let lines: Vec<&str> = expected.lines().collect();
+    assert_eq!(lines.len(), dec.peptides().len());
+    let mut exact_residues = 0usize;
+    let mut residues = 0usize;
+    for (line, peptide) in lines.iter().zip(dec.peptides()) {
+        let f: Vec<&str> = line.split('\t').collect();
+        assert_eq!(f[1], peptide.id);
+        let sequence =
+            openms::analysis::openswath::targeted_experiment_helper::get_aa_sequence_with(
+                peptide,
+                openms::chemistry::ModificationsDB::global(),
+                UnresolvedModificationPolicy::SourceSkip,
+            )
+            .unwrap()
+            .sequence;
+        assert_eq!(sequence.to_string(), f[2]);
+        let z: i32 = f[3].parse().unwrap();
+        let full = sequence
+            .mono_mass_for(PeptideFragmentType::Full, z)
+            .unwrap();
+        assert!(close(full, num(f[4])), "{}: {full} vs {}", f[1], f[4]);
+        assert!(close(full / f64::from(z), num(f[5])));
+        for (i, text) in f[6..].iter().enumerate() {
+            let internal = sequence
+                .subsequence(i..i + 1)
+                .unwrap()
+                .mono_mass_for(PeptideFragmentType::Internal, 0)
+                .unwrap();
+            assert!(close(internal, num(text)));
+            residues += 1;
+            exact_residues += usize::from(internal == num(text));
+        }
+    }
+    // Not all residue masses are bit-identical; the count documents it.
+    assert!(exact_residues < residues);
 }
 
 fn input(file: &str) -> TargetedExperiment {
