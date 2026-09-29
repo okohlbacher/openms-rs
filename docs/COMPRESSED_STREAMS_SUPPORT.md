@@ -29,6 +29,15 @@ bytes keep a text file that happens to start with "PK" readable. An archive
 with zero or several file entries, an unreadable archive and an entry in an
 unsupported method fail with the errors `ZipIfstream::open` documents.
 
+`tests/zip_input_oracle.rs` replays lane B8a's Release oracle
+(`../oracle/B8a-zip-input`, 52 records): `FeatureXMLFile::load`/`loadSize`
+and `MzMLFile::load`/`loadSize` over stored, deflated, bzip2 and LZMA
+archives, one with a directory entry, one with two entries, an empty and a
+directory-only archive, one with a bad CRC and one with junk after the
+signature. `tests/compressed_streams.rs` loads consensusXML, idXML, paramXML
+and CV-mapping files from a ZIP archive and compares them with the plain
+loads.
+
 ## Semantics kept, and how they were established
 
 Evidence tiers: the upstream class tests (`GzipIfstream_test`,
