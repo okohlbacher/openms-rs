@@ -13,5 +13,19 @@ Lanes to merge (commits ahead of main):
 Constraints: no local cargo (dax gate slot integ-B, sweep slot integ-B-sweep);
 git commands must be plain single commands (worktree isolation guard).
 
+## Done
+- All six merged, no textual conflicts (a29ee5f9 B0, 95ddd81d B7, 4f2bc804 B8a,
+  00c5683a B8b, 86c94e59 B8c, 9747db6a B6).
+- Logs: scratchpad/integB/ (check1.log = cargo check --all-features --all-targets on dax).
+
+## Complete claims to attack
+B0: MSExperiment.h, LogStream.h. B6: NLargest, ThresholdMower, Normalizer, RankScaler,
+SqrtScaler, WindowMower, SNEstimatorMedian, TheoreticalSpectrumGenerator, SpectrumAnnotator,
+NucleicAcidSpectrumGenerator, DefaultParamHandler. B7: TOPPExternalToolBase, INIUpdater,
+TOPPBase_defs. B8a: FeatureXMLFile. B8b: MathFunctions, PeptideIdentification, USI,
+DecoyGenerator. B8c: Param.h.
+Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
+
 ## Next step
-1. Merge B0, then B6, B7, B8a, B8b, B8c; commit each merge.
+1. Wait for check1; fix semantic merge breaks.
+2. Start sweep integ-B-sweep; attack complete claims meanwhile.
