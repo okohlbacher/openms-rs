@@ -723,8 +723,21 @@ fn repo(relative: &str) -> PathBuf {
 }
 
 /// `Debug` of a loaded value with the file path it was loaded from masked.
+///
+/// Identifiers the loader generates per load (`<date>_<pid>_<counter>`)
+/// are masked too: they differ between any two loads of the same file.
 fn masked(value: &impl std::fmt::Debug, path: &Path) -> String {
-    format!("{value:?}").replace(&path.display().to_string(), "<path>")
+    let text = format!("{value:?}").replace(&path.display().to_string(), "<path>");
+    let marker = format!("_{}_", std::process::id());
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text.as_str();
+    while let Some(at) = rest.find(&marker) {
+        out.push_str(&rest[..at + marker.len()]);
+        rest = rest[at + marker.len()..].trim_start_matches(|c: char| c.is_ascii_digit());
+        out.push('#');
+    }
+    out.push_str(rest);
+    out
 }
 
 #[cfg(feature = "consensusxml")]
