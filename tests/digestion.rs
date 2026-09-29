@@ -49,7 +49,12 @@ fn complete_registry_metadata_and_source_synonyms() {
         Protease::GlutamylEndopeptidase
     );
     assert!(!db.has_enzyme("Try"));
-    assert!(!db.has_enzyme("trypsin"));
+    // DigestionEnzymeDB::addEnzyme_ (DigestionEnzymeDB.h at bc9cc12) registers
+    // every enzyme under StringUtils::toLower(name) as well; the executed C++
+    // oracle ../oracle/B8b-dbs (tests/protease_db.rs) resolves "trypsin" to
+    // Trypsin. Only the ASCII lower-cased spelling is added.
+    assert!(db.has_enzyme("trypsin"));
+    assert!(!db.has_enzyme("TRYPSIN"));
     let trypsin = db.get_enzyme("Trypsin").unwrap();
     assert_eq!(trypsin.regex(), "(?<=[KRX])(?!P)");
     assert_eq!(trypsin.n_term_gain(), formula("H"));

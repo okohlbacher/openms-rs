@@ -13,10 +13,16 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::BufRead;
 use std::sync::{Arc, OnceLock};
 
+#[path = "modification_queries.rs"]
+mod modification_queries;
 #[path = "modification_records.rs"]
 mod modification_records;
 #[path = "obo.rs"]
 mod obo;
+
+/// The process-wide registry behind [`ModificationsDB::global`]; its state is
+/// also what [`ModificationsDB::is_instantiated`] reports.
+static GLOBAL_REGISTRY: OnceLock<ModificationsDB> = OnceLock::new();
 pub use obo::{OboLoadReport, OboReadOptions};
 
 /// Where an immutable modification definition originated; not chemical identity.
@@ -90,6 +96,13 @@ fn finite_mass_order(left: f64, right: f64) -> Ordering {
 }
 
 impl NeutralLoss {
+    /// A neutral loss with its formula and monoisotopic and average masses
+    /// (the source's parallel `neutral_loss_diff_formulas_`,
+    /// `neutral_loss_mono_masses_` and `neutral_loss_average_masses_` entries).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a mass is not finite.
     pub fn new(formula: EmpiricalFormula, mono_mass: f64, average_mass: f64) -> Result<Self> {
         if !mono_mass.is_finite() || !average_mass.is_finite() {
             return Err(Error::InvalidValue(
@@ -102,12 +115,15 @@ impl NeutralLoss {
             average_mass,
         })
     }
+    /// The lost formula.
     pub fn formula(&self) -> &EmpiricalFormula {
         &self.formula
     }
+    /// Monoisotopic mass of the loss.
     pub fn mono_mass(&self) -> f64 {
         self.mono_mass
     }
+    /// Average mass of the loss.
     pub fn average_mass(&self) -> f64 {
         self.average_mass
     }
@@ -250,6 +266,17 @@ impl PartialOrd for ResidueModification {
 }
 
 impl ResidueModification {
+    /// Validates and freezes a record.
+    ///
+    /// A terminal record whose origin is `X` stores `None`; an anywhere record
+    /// without origin stores `X`; an empty full ID is derived from name and
+    /// specificity as the source's `setFullId()` does.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite mass, a record with neither
+    /// name nor full ID, control characters in a name, an empty accession or
+    /// synonym, or an origin that is not an uppercase ASCII letter.
     pub fn from_record(mut record: ModificationRecord) -> Result<Self> {
         if [
             record.diff_mono_mass,
@@ -314,36 +341,48 @@ impl ResidueModification {
         })
     }
 
+    /// Where the definition came from (`getProvenance`).
     pub fn provenance(&self) -> ModificationProvenance {
         self.provenance
     }
+    /// The same record with another provenance (`setProvenance`).
     pub fn with_provenance(mut self, provenance: ModificationProvenance) -> Self {
         self.provenance = provenance;
         self
     }
+    /// UniMod record ID (`getUniModRecordId`); the source's `-1` is `None`.
     pub fn record_id(&self) -> Option<u32> {
         self.record_id
     }
+    /// The short identifier (`getId`), e.g. `Phospho`; empty for a
+    /// user-defined modification known only by its full ID.
     pub fn name(&self) -> &str {
         &self.name
     }
+    /// The descriptive name (`getFullName`), e.g. `Phosphorylation`.
     pub fn full_name(&self) -> &str {
         &self.full_name
     }
+    /// Identifier with specificity (`getFullId`), e.g. `Phospho (S)`.
     pub fn full_id(&self) -> &str {
         &self.full_id
     }
+    /// The UniMod accession, else the OBO accession, else an empty string.
     pub fn accession(&self) -> String {
         self.unimod_accession()
             .or_else(|| self.obo_accession.clone())
             .unwrap_or_default()
     }
+    /// `UniMod:<id>` (`getUniModAccession`); the source's empty string is
+    /// `None`.
     pub fn unimod_accession(&self) -> Option<String> {
         self.record_id.map(|id| format!("UniMod:{id}"))
     }
+    /// PSI-MOD or XLMOD accession (`getPSIMODAccession`), if any.
     pub fn obo_accession(&self) -> Option<&str> {
         self.obo_accession.as_deref()
     }
+    /// Synonyms (`getSynonyms`), sorted as the source's `std::set`.
     pub fn synonyms(&self) -> &BTreeSet<String> {
         &self.synonyms
     }
@@ -355,15 +394,20 @@ impl ResidueModification {
     pub fn origin(&self) -> Option<char> {
         self.origin
     }
+    /// Where on a peptide or protein the modification can sit
+    /// (`getTermSpecificity`).
     pub fn term_specificity(&self) -> TermSpecificity {
         self.term
     }
+    /// Formula difference to the unmodified residue (`getDiffFormula`).
     pub fn diff_formula(&self) -> &EmpiricalFormula {
         &self.diff_formula
     }
+    /// Monoisotopic mass difference (`getDiffMonoMass`).
     pub fn diff_mono_mass(&self) -> f64 {
         self.diff_mono_mass
     }
+    /// Average mass difference (`getDiffAverageMass`).
     pub fn diff_average_mass(&self) -> f64 {
         self.diff_average_mass
     }
@@ -373,6 +417,8 @@ impl ResidueModification {
     pub fn mono_mass(&self) -> f64 {
         self.mono_mass
     }
+    /// Declared absolute modified-residue average mass (`getAverageMass`);
+    /// see [`Self::mono_mass`].
     pub fn average_mass(&self) -> f64 {
         self.average_mass
     }
@@ -389,12 +435,15 @@ impl ResidueModification {
         self.average_mass = average_mass;
         Ok(self)
     }
+    /// UniMod's `hidden` flag for the specificity.
     pub fn is_hidden(&self) -> bool {
         self.hidden
     }
+    /// UniMod classification text, e.g. `Post-translational`.
     pub fn classification(&self) -> &str {
         &self.classification
     }
+    /// Declared neutral losses of this specificity.
     pub fn neutral_losses(&self) -> &[NeutralLoss] {
         &self.neutral_losses
     }
@@ -414,10 +463,17 @@ pub struct ModificationsDB {
 }
 
 impl ModificationsDB {
-    /// Shared registry initialized once from validated embedded lookup data.
+    /// Shared registry initialized once from validated embedded lookup data,
+    /// replacing the source's `getInstance()`.
+    ///
+    /// The source singleton loads `unimod.xml`, `custom_mods.xml`,
+    /// `PSI-MOD.obo` and `XLMOD.obo`; this one holds the first two (as the
+    /// generated table) and XLMOD: 3,127 records, which the executed C++
+    /// oracle (`tests/modifications_db.rs`) reproduces record for record from
+    /// the same three providers. PSI-MOD is not bundled
+    /// (`docs/MODIFICATION_REGISTRY_SUPPORT.md`).
     pub fn global() -> &'static Self {
-        static INSTANCE: OnceLock<ModificationsDB> = OnceLock::new();
-        INSTANCE.get_or_init(|| {
+        GLOBAL_REGISTRY.get_or_init(|| {
             let mut db = Self::from_tsv(include_str!(
                 "../../resources/modifications/openms-rust-modifications.tsv"
             ))
@@ -544,12 +600,17 @@ impl ModificationsDB {
         Ok(Self { entries, by_name })
     }
 
+    /// Number of stored records (`getNumberOfModifications`).
     pub fn len(&self) -> usize {
         self.entries.len()
     }
+    /// Whether no record is stored.
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
+    /// All records in provider order; `entries()[index]` is the source's
+    /// `getModification(Size index)`, bounds-checked by the slice rather than
+    /// only in debug builds.
     pub fn entries(&self) -> &[Arc<ResidueModification>] {
         &self.entries
     }
@@ -652,6 +713,11 @@ impl ModificationsDB {
 }
 
 impl ModificationsDB {
+    /// A registry holding `records` in order.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::extend_records`].
     pub fn from_records(records: Vec<ResidueModification>) -> Result<Self> {
         let mut database = Self::default();
         database.extend_records(records)?;
@@ -660,11 +726,21 @@ impl ModificationsDB {
 
     /// Append validated owned records in input order. Existing handles stay valid.
     /// Default OBO limits also bound the complete registry assembled this way.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when a default [`OboReadOptions`] ceiling would
+    /// be exceeded; the registry is then unchanged.
     pub fn extend_records(&mut self, records: Vec<ResidueModification>) -> Result<()> {
         self.extend_loaded(records, &OboReadOptions::default(), false)?;
         Ok(())
     }
 
+    /// A registry loaded from one OBO stream (PSI-MOD or XLMOD).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::extend_obo`].
     pub fn from_obo(reader: impl BufRead, options: &OboReadOptions) -> Result<Self> {
         let mut database = Self::default();
         database.extend_obo(reader, options)?;
@@ -808,6 +884,7 @@ impl ModificationsDB {
         Ok(report)
     }
 
+    /// [`Self::find`] returning shared handles.
     pub fn find_handles(
         &self,
         name: &str,
@@ -834,6 +911,11 @@ impl ModificationsDB {
             .collect()
     }
 
+    /// [`Self::get_modification`] returning a shared handle.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::get_modification`].
     pub fn get_modification_handle(
         &self,
         name: &str,
@@ -845,6 +927,11 @@ impl ModificationsDB {
         Ok(self.find_handles(name, residue, term).remove(0))
     }
 
+    /// [`Self::search_by_mass`] returning shared handles.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::search_by_mass`].
     pub fn search_by_mass_handles(
         &self,
         mass: f64,
@@ -869,6 +956,11 @@ impl ModificationsDB {
             .collect())
     }
 
+    /// [`Self::best_by_mass`] returning a shared handle.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::search_by_mass`].
     pub fn best_by_mass_handle(
         &self,
         mass: f64,
