@@ -402,8 +402,6 @@ pub mod spec_array_file;
 /// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).
 #[cfg(feature = "sqmass")]
 pub mod sqmass_file;
-/// Source `StringUtils::toDouble` / `toInt32` text conversion, shared with the CLI.
-pub(crate) mod string_utils;
 /// Frame-level access to Bruker timsTOF `.d` data: the opentims layer under
 /// `BrukerTimsFile.h` (`TimsDataHandle`, frame codec, linear calibrations).
 #[cfg(feature = "bruker-tdf")]

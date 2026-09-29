@@ -26,10 +26,10 @@
 
 use crate::chemistry::AASequence;
 use crate::concept::constants::PROTON_MASS_U;
+use crate::data_structures::string_utils::{to_double, to_float, to_int32};
 use crate::format::file_info::text_format::ostream_g;
 use crate::format::file_types::{FileType, has_valid_extension};
 use crate::format::line_reader::{LineLimits, LineReader};
-use crate::format::string_utils::{to_double, to_float, to_int32};
 use crate::identification::{PeakAnnotation, PeptideHit, PeptideIdentification};
 use crate::kernel::{MSExperiment, MSSpectrum, Peak1D, Precursor};
 use crate::metadata::MetaValue;

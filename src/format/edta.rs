@@ -41,9 +41,9 @@
 //! difference from the source.
 
 use crate::concept::UniqueIdGenerator;
+use crate::data_structures::string_utils::{to_double, to_int32};
 use crate::format::file_info::text_format::{to_str, to_str_f32};
 use crate::format::file_types::{FileType, has_valid_extension};
-use crate::format::string_utils::{to_double, to_int32};
 use crate::format::text::{self, TextFile};
 use crate::kernel::{
     ColumnHeader, ConsensusFeature, ConsensusMap, Feature, FeatureHandle, FeatureMap,

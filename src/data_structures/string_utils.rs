@@ -9,7 +9,9 @@
 //! acceptance rules are observable: `StringUtilsHelper::toInt32`
 //! (`StringUtils.cpp:136-166`), `StringUtilsHelper::toDouble`
 //! (`StringUtils.cpp:239-276`), the single-character `StringUtils::split`
-//! (`StringUtils.h:596-663`) and `StringUtils::trim` (`StringUtils.h:395-408`).
+//! (`StringUtils.h:596-663`) and `StringUtils::trim` (`StringUtils.h:395-408`),
+//! plus the C library conversions `std::stod` and `std::stoul` that some text
+//! readers (`MSPGenericFile`) call directly instead of `StringUtils`.
 //! A field the source refuses raises `Exception::ConversionError`, which the
 //! text readers (`KroenikFile`, `MsInspectFile`, `SpecArrayFile`,
 //! `OMSSACSVFile`, the Sequest, Inspect and PepNovo adapters) and the command
@@ -236,6 +238,138 @@ pub fn trim(text: &str) -> &str {
     text.trim_matches([' ', '\t', '\n', '\r'])
 }
 
+/// The characters C's `isspace` accepts in the "C" locale, which `strtod` and
+/// `strtoul` skip before a number.
+fn c_space(byte: u8) -> bool {
+    matches!(byte, b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c)
+}
+
+/// `std::stod`: `strtod` on the text, which skips leading C whitespace, reads
+/// the longest numeric prefix and ignores whatever follows it.
+///
+/// The prefix is an optional sign and then a decimal number (digits with an
+/// optional fraction, at least one digit, and an exponent only when it has
+/// digits), `inf`, `infinity` or `nan` (any case), or `nan(...)`.
+///
+/// # Errors
+///
+/// Returns `std::stod`'s `std::invalid_argument` ("no conversion") when no
+/// prefix converts, and `std::out_of_range` when the value overflows to an
+/// infinity or underflows to zero or a subnormal (`ERANGE` in the C library).
+/// A hexadecimal number (`0x...`), which `strtod` also reads, is refused with
+/// its own message rather than read as its leading `0`.
+pub fn stod(text: &str) -> std::result::Result<f64, String> {
+    let bytes = text.as_bytes();
+    let invalid = || format!("stod: no conversion of '{text}'");
+    let mut start = 0;
+    while bytes.get(start).copied().is_some_and(c_space) {
+        start += 1;
+    }
+    let mut cursor = start;
+    let negative = bytes.get(cursor) == Some(&b'-');
+    if matches!(bytes.get(cursor), Some(b'+' | b'-')) {
+        cursor += 1;
+    }
+    if word_at(bytes, cursor, "nan").is_some() {
+        return Ok(f64::NAN);
+    }
+    if word_at(bytes, cursor, "inf").is_some() {
+        return Ok(if negative {
+            f64::NEG_INFINITY
+        } else {
+            f64::INFINITY
+        });
+    }
+    if bytes.get(cursor) == Some(&b'0')
+        && matches!(bytes.get(cursor + 1), Some(b'x' | b'X'))
+        && bytes
+            .get(cursor + 2)
+            .is_some_and(|b| b.is_ascii_hexdigit() || *b == b'.')
+    {
+        return Err(format!(
+            "stod: hexadecimal floating-point text is not supported: '{text}'"
+        ));
+    }
+    let integer_start = cursor;
+    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+        cursor += 1;
+    }
+    let mut digits = cursor - integer_start;
+    if bytes.get(cursor) == Some(&b'.') {
+        let mut end = cursor + 1;
+        while bytes.get(end).is_some_and(u8::is_ascii_digit) {
+            end += 1;
+        }
+        let fraction = end - cursor - 1;
+        if digits > 0 || fraction > 0 {
+            digits += fraction;
+            cursor = end;
+        }
+    }
+    if digits == 0 {
+        return Err(invalid());
+    }
+    if matches!(bytes.get(cursor), Some(b'e' | b'E')) {
+        let mut exponent = cursor + 1;
+        if matches!(bytes.get(exponent), Some(b'+' | b'-')) {
+            exponent += 1;
+        }
+        let digits_start = exponent;
+        while bytes.get(exponent).is_some_and(u8::is_ascii_digit) {
+            exponent += 1;
+        }
+        if exponent > digits_start {
+            cursor = exponent;
+        }
+    }
+    let literal = text.get(start..cursor).ok_or_else(invalid)?;
+    let value: f64 = literal.parse().map_err(|_| invalid())?;
+    let nonzero_digit = text[integer_start..cursor]
+        .bytes()
+        .take_while(|b| !matches!(b, b'e' | b'E'))
+        .any(|b| matches!(b, b'1'..=b'9'));
+    if value.is_infinite() || (nonzero_digit && value.abs() < f64::MIN_POSITIVE) {
+        return Err(format!("stod: '{text}' is out of range"));
+    }
+    Ok(value)
+}
+
+/// `std::stoul` with the 64-bit `unsigned long` of the source platforms:
+/// `strtoul` in base 10, which skips leading C whitespace, accepts one sign,
+/// reads the longest digit prefix and ignores whatever follows. A `-` negates
+/// the value in unsigned arithmetic, as C does (`-1` is `u64::MAX`).
+///
+/// # Errors
+///
+/// Returns `std::invalid_argument` ("no conversion") when no digit follows,
+/// and `std::out_of_range` when the digits exceed `u64`.
+pub fn stoul(text: &str) -> std::result::Result<u64, String> {
+    let bytes = text.as_bytes();
+    let mut cursor = 0;
+    while bytes.get(cursor).copied().is_some_and(c_space) {
+        cursor += 1;
+    }
+    let negative = bytes.get(cursor) == Some(&b'-');
+    if matches!(bytes.get(cursor), Some(b'+' | b'-')) {
+        cursor += 1;
+    }
+    let start = cursor;
+    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+        cursor += 1;
+    }
+    if cursor == start {
+        return Err(format!("stoul: no conversion of '{text}'"));
+    }
+    let value: u64 = text[start..cursor]
+        .parse()
+        .map_err(|_| format!("stoul: '{text}' is out of range"))?;
+    Ok(if negative {
+        value.wrapping_neg()
+    } else {
+        value
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -259,5 +393,32 @@ mod tests {
         assert!(split("", '\t').is_empty());
         assert_eq!(split("a\t\tb", '\t'), ["a", "", "b"]);
         assert_eq!(trim(" \ta b\r\n"), "a b");
+    }
+
+    #[test]
+    fn stod_reads_the_longest_prefix() {
+        assert_eq!(stod(" 12.5 min"), Ok(12.5));
+        assert_eq!(stod("\x0c-3e2x"), Ok(-300.0));
+        assert_eq!(stod("7e"), Ok(7.0));
+        assert_eq!(stod(".5"), Ok(0.5));
+        assert_eq!(stod("5."), Ok(5.0));
+        assert_eq!(stod("-inf"), Ok(f64::NEG_INFINITY));
+        assert!(stod("NaN").unwrap().is_nan());
+        assert!(stod("").is_err());
+        assert!(stod(".").is_err());
+        assert!(stod("abc").is_err());
+        assert!(stod("1e999").is_err());
+        assert!(stod("1e-400").is_err());
+        assert_eq!(stod("0e-400"), Ok(0.0));
+        assert!(stod("0x1p3").is_err());
+    }
+
+    #[test]
+    fn stoul_follows_strtoul() {
+        assert_eq!(stoul("14"), Ok(14));
+        assert_eq!(stoul(" +3x"), Ok(3));
+        assert_eq!(stoul("-1"), Ok(u64::MAX));
+        assert!(stoul("x").is_err());
+        assert!(stoul("99999999999999999999").is_err());
     }
 }

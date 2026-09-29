@@ -20,8 +20,8 @@
 //! caption after it. See `docs/CHROMELEON_FILE_SUPPORT.md`.
 
 use crate::concept::boost_regex::{BoostRegex, RegexOptions};
+use crate::data_structures::string_utils::to_double;
 use crate::format::line_reader::{LineLimits, LineReader};
-use crate::format::string_utils::to_double;
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSExperiment};
 use crate::metadata::MetaValue;
 use crate::{Error, Result};

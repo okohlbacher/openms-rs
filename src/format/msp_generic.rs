@@ -37,8 +37,8 @@ use crate::concept::constants::user_param::{
 };
 use crate::concept::fuzzy_string_comparator::format_g;
 use crate::data_structures::list::ListFormat;
+use crate::data_structures::string_utils::{stod, stoul, to_double};
 use crate::format::line_reader::{LineLimits, LineReader};
-use crate::format::string_utils::{stod, stoul, to_double};
 use crate::kernel::{MSExperiment, MSSpectrum, Peak1D, Precursor};
 use crate::metadata::{MetaValue, MetaValueData};
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
