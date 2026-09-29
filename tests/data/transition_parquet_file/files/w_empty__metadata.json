@@ -1,0 +1,24 @@
+{
+  "openms": {
+    "schema_version": 1,
+    "generator": "TransitionParquetFile",
+    "openms_version": "4.0.0",
+    "build_time": "Sep 14 2026, 20:34:41",
+    "tool": {"name": "OpenSwathWorkflow", "version": "4.0.0"},
+    "counts": {
+      "proteins": {"total": 0, "target": 0, "decoy": 0},
+      "peptides": {"total": 0, "target": 0, "decoy": 0},
+      "precursors": {"total": 0, "target": 0, "decoy": 0},
+      "compounds": {"total": 0, "target": 0, "decoy": 0},
+      "transitions": {"total": 0, "target": 0, "decoy": 0}
+    },
+    "fragment_type_counts": {
+      "target": {"b": 0, "y": 0, "other": 0},
+      "decoy": {"b": 0, "y": 0, "other": 0}
+    },
+    "charge_counts": {
+      "precursor": {"target":{},"decoy":{}},
+      "transition": {"target":{},"decoy":{}}
+    }
+  }
+}

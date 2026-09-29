@@ -377,10 +377,11 @@ impl TransitionParquetFile {
         if file::exists(&staging_zip) {
             file::remove(&staging_zip)?;
         }
-        // The staged tree holds exactly these three files; the source walks it
+        // The staged tree holds exactly these three files. The source walks it
         // with a recursive directory iterator, whose order the file system
-        // decides. Sorted entry names keep the archive deterministic.
-        for entry in [METADATA_ENTRY, PRECURSORS_ENTRY, TRANSITIONS_ENTRY] {
+        // decides; on the Release oracle's ext4 that is creation order, which
+        // is the order used here, so the archive is deterministic.
+        for entry in [PRECURSORS_ENTRY, TRANSITIONS_ENTRY, METADATA_ENTRY] {
             ZipArchiveFile::add_or_replace_from_file(&staging_zip, entry, base_dir.join(entry))?;
         }
         ZipArchiveFile::write_sidecar_index(&staging_zip)?;
