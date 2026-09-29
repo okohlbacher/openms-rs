@@ -19,8 +19,9 @@ serial, so there is no parallelism gap to record here.
 `TransitionType`. Both stay generic in Rust, for different reasons.
 
 - **`T: Transition`.** The source instantiates the template with
-  `ReactionMonitoringTransition` (`ANALYSIS/MRM`), which is **not ported and is
-  out of scope for this work package**. Rather than wait for it, the module
+  `ReactionMonitoringTransition` (`ANALYSIS/MRM`), which lives in the analysis layer
+  above the kernel (ported in `src/analysis/openswath/reaction_monitoring_transition.rs`,
+  see `docs/TARGETED_EXPERIMENT_SUPPORT.md`, and implementing the trait). The module
   declares a `Transition` trait carrying the seven values the group and its
   immediate consumers read — `native_id`, `precursor_mz`, `product_mz`,
   `library_intensity`, `is_detecting`, `is_identifying`, `is_quantifying` —
@@ -290,9 +291,9 @@ written, and `subset_dependent` is covered separately by native tests.
 
 ## Known gaps
 
-- `ReactionMonitoringTransition` (`ANALYSIS/MRM`) is not ported, so no caller can
-  yet build a group from a real assay library. `SimpleTransition` is a stand-in,
-  not a substitute.
+- Closed: `ReactionMonitoringTransition` is ported in the analysis layer and
+  implements `Transition`, so a group can be built from a real assay library
+  (`tests/targeted_experiment.rs`, `rmt_builds_an_mrm_transition_group`).
 - The LDA scoring methods on `OpenSwath_Scores` and the whole
   `OpenSwath_Scores_Usage` switchboard are left to the OpenSWATH analysis port.
 - `MRMTransitionGroupPicker`, the only direct TOPP consumer of these headers, is
