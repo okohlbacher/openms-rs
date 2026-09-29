@@ -42,7 +42,7 @@
 //! quality, visits grid cells in Boost's hash order, and keeps neighbours in
 //! hash maps. Here the heap is a binary heap of (quality, cluster id) entries
 //! whose ties go to the **lower** cluster id, the grid is visited in ascending
-//! cell order ([`HashGrid`]), and neighbours are ordered by map index. Clusters
+//! cell order ([`HashGrid`](crate::math::ml::clustering::hash_grid::HashGrid)), and neighbours are ordered by map index. Clusters
 //! of exactly equal quality that compete for the same features are therefore
 //! resolved deterministically, where the source resolves them by its heap's
 //! internal layout; the mirror-image clusters of a feature pair, the common case
@@ -435,7 +435,7 @@ impl QTClusterFinder {
 
     /// Source `setParameters_`: the per-partition distance and grid sizes.
     fn settings(&self, max_intensity: f64, max_mz: f64) -> Result<RunSettings> {
-        if max_mz < 1e-16 || max_mz > 1e16 || max_intensity > 1e16 {
+        if !(1e-16..=1e16).contains(&max_mz) || max_intensity > 1e16 {
             return Err(bad(format!(
                 "Maximum m/z or intensity out of range (m/z: {max_mz}, intensity: {max_intensity}). Has 'updateRanges' been called on the input maps?"
             )));
@@ -519,7 +519,7 @@ impl QTClusterFinder {
         // `upper_bound(rt)`: the first bin start greater than `rt`.
         let upper = self
             .bin_tolerances
-            .partition_point(|&(start, _)| !(rt < start));
+            .partition_point(|&(start, _)| start <= rt);
         let index = if upper == 0 { 0 } else { upper - 1 };
         dist >= self.bin_tolerances[index].1
     }

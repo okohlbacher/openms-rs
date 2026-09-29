@@ -62,6 +62,30 @@
   {
    "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithmUnlabeled_test.cpp",
    "sha256": "e57a91e54485f997a4d0e533feecbf2afe698e774ce4702a18e84c91b67daa7e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h",
+   "sha256": "584a222c7d694fb80d75e508de4c790467e711cf98decc3becb6b45c6af619c2"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/QTClusterFinder.cpp",
+   "sha256": "dbd3d78a14f4ec6a5ac28e64f6098205fed067b1ab199e7cf7d6d776fdcd7bde"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/QTClusterFinder_test.cpp",
+   "sha256": "4b9945bc1377b70a5c0dc6f037bf124818960910ee91bbe2de8e6fd7caf65dae"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
+   "sha256": "4eeb60ae262ca5ada54b58c8f718b6ba3e31f7c68f2c03f94449d9e35cf8f2a9"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.cpp",
+   "sha256": "1afe60eb4b63532446030ec12bbf6248630b699941e4da0e1d7f037cffe98d74"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithmQT_test.cpp",
+   "sha256": "427f2e2f2f3b166a9d5a42a4c661cc496c964539f6132ddc70ea6e518620d045"
   }
  ],
  "native_implementation": [
@@ -70,11 +94,15 @@
   "src/analysis/mapmatching/base_group_finder.rs",
   "src/analysis/mapmatching/stable_pair_finder.rs",
   "src/analysis/mapmatching/feature_grouping_algorithm.rs",
-  "src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs"
+  "src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs",
+  "src/analysis/mapmatching/qt_cluster_finder.rs",
+  "src/analysis/mapmatching/feature_grouping_algorithm_qt.rs"
  ],
  "native_tests": [
   "tests/mapmatching_feature_grouping.rs",
-  "tests/mapmatching_feature_grouping_topp.rs"
+  "tests/mapmatching_feature_grouping_topp.rs",
+  "tests/mapmatching_qt_cluster_finder.rs",
+  "tests/mapmatching_qt_cluster_finder_topp.rs"
  ],
  "support_document": "docs/FEATURE_GROUPING_SUPPORT.md",
  "fixtures": [
@@ -147,34 +175,100 @@
    "path": "tests/data/feature_linker_unlabeled_3_parameters.ini",
    "sha256": "3c8eabdc57e04ee4ee4c604c3b5090231d1a74fff4ff64be649c13855697bf93",
    "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeled_3_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_1_output.consensusXML",
+   "sha256": "192de46f5f8ca1fc4e7cbdd517daf552a576a1f71b797f64f0e88b4c13f19d54",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledQT_1_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_1_parameters.ini",
+   "sha256": "5b59aab9c4670e237c47b494f5ca6d842a5cb766c0c3c432ee00c080cfe1baef",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeledQT_1_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_3_input1.featureXML",
+   "sha256": "ab3360ea39afac3aa0d2f838efecfb3886de90d2720155e382bd64ea2c9edea8",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledQT_3_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_3_input2.featureXML",
+   "sha256": "5dbce9b51cd31e62b0bd8fbabebbc0ec9f09c0cca92040dfa07b30a6723a2dd8",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledQT_3_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_3_output.consensusXML",
+   "sha256": "349fdccb81c6553aad9a8eb43fb1490d262674c44c7ac3baa648de814eb2f568",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledQT_3_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_3_parameters.ini",
+   "sha256": "db5fd2d8d285f80ea994bdded24cf1668890b3b75dd7903eb04f24b95d840e6a",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeledQT_3_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_4_output.consensusXML",
+   "sha256": "192de46f5f8ca1fc4e7cbdd517daf552a576a1f71b797f64f0e88b4c13f19d54",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledQT_4_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_5_input1.featureXML",
+   "sha256": "c45e0c27924b08a09fcc35afe596edfc43d21692bee64b60016642ee2d3389b5",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledQT_5_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_5_input2.featureXML",
+   "sha256": "23b71bc4046c4d4957b8c905f32f0275f08a98522c81545caf55ba0dc1eedf5f",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledQT_5_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_5_input3.featureXML",
+   "sha256": "52bd5a502a80e3321a663f9aaba0848fccc5dfdea0e4ed81466bdb1e06edadec",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledQT_5_input3.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_qt_6_output.consensusXML",
+   "sha256": "510230a5135b145aac527e4c44d856ad558bc54c29453cc8b974ca13480c7dc0",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledQT_6_output.consensusXML at test-data 0cb15f2, byte-identical copy"
   }
  ],
- "upstream_test_definition": {
-  "package": "test-data",
-  "revision": "0cb15f2",
-  "path": "topp/CMakeLists.txt",
-  "lines": "2879-2887",
-  "tests": [
-   "TOPP_FeatureLinkerUnlabeled_1",
-   "TOPP_FeatureLinkerUnlabeled_2",
-   "TOPP_FeatureLinkerUnlabeled_3"
-  ],
-  "tool": "FeatureLinkerUnlabeled (topp 174b576 src/FeatureLinkerUnlabeled.cpp: setReference, addToGroup, getResultMap, sortByMZ)"
- },
+ "upstream_test_definition": [
+  {
+   "package": "test-data",
+   "revision": "0cb15f2",
+   "path": "topp/CMakeLists.txt",
+   "lines": "2879-2887",
+   "tests": [
+    "TOPP_FeatureLinkerUnlabeled_1",
+    "TOPP_FeatureLinkerUnlabeled_2",
+    "TOPP_FeatureLinkerUnlabeled_3"
+   ],
+   "tool": "FeatureLinkerUnlabeled (topp 174b576 src/FeatureLinkerUnlabeled.cpp: setReference, addToGroup, getResultMap, sortByMZ)"
+  },
+  {
+   "package": "test-data",
+   "revision": "0cb15f2",
+   "path": "topp/CMakeLists.txt",
+   "lines": "2907-2925",
+   "tests": [
+    "TOPP_FeatureLinkerUnlabeledQT_1",
+    "TOPP_FeatureLinkerUnlabeledQT_3",
+    "TOPP_FeatureLinkerUnlabeledQT_4",
+    "TOPP_FeatureLinkerUnlabeledQT_6"
+   ],
+   "not_reproduced": {
+    "TOPP_FeatureLinkerUnlabeledQT_5": "tie order of three equal-quality clusters (named gap)",
+    "TOPP_FeatureLinkerUnlabeledQT_2": "consensusXML input through the tool, not attempted"
+   },
+   "tool": "FeatureLinkerUnlabeledQT (topp 174b576 src/FeatureLinkerBase.cpp: load without hulls/subordinates, clear meta values except dc_charge_adducts/Group, FeatureGroupingAlgorithmQT::group)"
+  }
+ ],
  "evidence_tier": {
-  "tier_1_retained_output": "tests/mapmatching_feature_grouping_topp.rs: the three FeatureLinkerUnlabeled cases; order and handle identities exact, values within the six stored significant digits",
-  "tier_3_class_tests": "tests/mapmatching_feature_grouping.rs: every section of FeatureDistance_test.cpp, StablePairFinder_test.cpp, FeatureGroupingAlgorithm_test.cpp and BaseGroupFinder_test.cpp",
+  "tier_1_retained_output": "tests/mapmatching_feature_grouping_topp.rs: FeatureLinkerUnlabeled_1..3; tests/mapmatching_qt_cluster_finder_topp.rs: FeatureLinkerUnlabeledQT_1, _3, _4, _6; order and handle identities exact, values within the six stored significant digits. The QT_5/QT_6 inputs and the QT_6 output carry date=0000-00-00T00:00:00, which this port's readers refuse; the test replaces it only when refused (documented reader defect).",
+  "tier_3_class_tests": "tests/mapmatching_feature_grouping.rs and tests/mapmatching_qt_cluster_finder.rs: every section of FeatureDistance_test.cpp, StablePairFinder_test.cpp, FeatureGroupingAlgorithm_test.cpp, BaseGroupFinder_test.cpp and QTClusterFinder_test.cpp",
   "tier_4_native": "defaults and restrictions, log-transformed distance, input checks, use_identifications, old_map_index renumbering, group and the incremental path on a hand-built case"
  },
  "not_ported": [
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h",
-   "reason": "backlog: fibonacci-heap tie order and HashGrid iteration order; tier-1 target FeatureLinkerUnlabeledQT_*"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h",
-   "reason": "needs QTClusterFinder"
-  },
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
    "reason": "needs DATASTRUCTURES/KDTree.h"
@@ -205,7 +299,14 @@
   }
  ],
  "target_verification": [
-  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_feature_grouping --test mapmatching_feature_grouping_topp",
-  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_feature_grouping"
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_feature_grouping --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder --test mapmatching_qt_cluster_finder_topp",
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_feature_grouping --test mapmatching_qt_cluster_finder",
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --features featurexml,consensusxml,paramxml --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder_topp"
+ ],
+ "partial": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h",
+   "gap": "order among clusters of exactly equal quality (boost fibonacci_heap and boost::unordered grid order); TOPP_FeatureLinkerUnlabeledQT_5"
+  }
  ]
 }
