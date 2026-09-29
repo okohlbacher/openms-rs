@@ -19,38 +19,76 @@
 //! [`ToolContext::write_info_stream`](super::ToolContext::write_info_stream);
 //! the lifecycle closes it with the closing line. A run that never writes to
 //! it prints the closing line directly, as before.
+//!
+//! The stream is the crate's [`LogStream`] (the port of `LogStreamBuf`, with
+//! its cache and its ceilings), bound to a buffer that each call moves on to
+//! the run's `out`.
 
+use crate::concept::log_stream::{LogSink, LogStream};
 use std::io::{self, Write};
+use std::sync::{Arc, Mutex};
 
-/// One cached line: its text, how often it occurred, and when it was last
-/// seen.
-#[derive(Clone, Debug)]
-struct Cached {
-    text: String,
-    occurrences: u64,
-    last_use: u64,
+fn poisoned() -> io::Error {
+    io::Error::other("the info log stream is poisoned")
 }
 
-/// The pending text and line cache of the run's info stream.
+/// The one destination of the run's [`LogStream`]: a buffer shared with the
+/// [`InfoStream`], which moves every record the stream delivers on to the
+/// run's `out`.
 #[derive(Clone, Debug, Default)]
+struct Records(Arc<Mutex<Vec<u8>>>);
+
+impl Records {
+    fn take(&self) -> io::Result<Vec<u8>> {
+        let mut records = self.0.lock().map_err(|_| poisoned())?;
+        Ok(std::mem::take(&mut *records))
+    }
+}
+
+impl Write for Records {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        self.0
+            .lock()
+            .map_err(|_| poisoned())?
+            .extend_from_slice(bytes);
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+/// The run's info log stream: a [`LogStream`] of level `INFO` without a
+/// prefix, whose records go to the `out` of the call that completes them.
+#[derive(Debug, Default)]
 pub(crate) struct InfoStream {
     used: bool,
-    pending: String,
-    cache: Vec<Cached>,
-    clock: u64,
+    logger: Option<LogStream>,
+    records: Records,
 }
 
 impl InfoStream {
+    /// The stream, bound on first use.
+    fn logger(&mut self) -> io::Result<&mut LogStream> {
+        if self.logger.is_none() {
+            let mut logger = LogStream::new("INFO")?;
+            logger.insert(&LogSink::new(self.records.clone()))?;
+            self.logger = Some(logger);
+        }
+        self.logger
+            .as_mut()
+            .ok_or_else(|| io::Error::other("the info log stream is not bound"))
+    }
+
     /// Append `text`; every line it completes goes through the cache to
     /// `out`.
     pub(crate) fn write(&mut self, out: &mut dyn Write, text: &str) -> io::Result<()> {
         self.used = true;
-        self.pending.push_str(text);
-        while let Some(end) = self.pending.find('\n') {
-            let line: String = self.pending.drain(..=end).collect();
-            self.line(out, &line[..line.len() - 1])?;
-        }
-        Ok(())
+        let logger = self.logger()?;
+        logger.write_all(text.as_bytes())?;
+        logger.flush()?;
+        out.write_all(&self.records.take()?)
     }
 
     /// Whether anything was written to the stream in this run.
@@ -58,60 +96,20 @@ impl InfoStream {
         self.used
     }
 
-    /// One complete line through the cache (`LogStreamBuf::sync` and
-    /// `addToCache_`).
-    fn line(&mut self, out: &mut dyn Write, text: &str) -> io::Result<()> {
-        if text.is_empty() {
-            return writeln!(out);
-        }
-        self.clock += 1;
-        if let Some(entry) = self.cache.iter_mut().find(|entry| entry.text == text) {
-            entry.occurrences += 1;
-            entry.last_use = self.clock;
-            return Ok(());
-        }
-        if self.cache.len() >= 2 {
-            let oldest = (0..self.cache.len())
-                .min_by_key(|&index| self.cache[index].last_use)
-                .unwrap_or(0);
-            let evicted = self.cache.remove(oldest);
-            if evicted.occurrences > 1 {
-                writeln!(
-                    out,
-                    "<{}> occurred {} times",
-                    evicted.text, evicted.occurrences
-                )?;
-            }
-        }
-        writeln!(out, "{text}")?;
-        self.cache.push(Cached {
-            text: text.to_owned(),
-            occurrences: 1,
-            last_use: self.clock,
-        });
-        Ok(())
-    }
-
     /// The end of the run: `closing` (the lifecycle's `<tool> took … .` line,
     /// when the body returned) as the last line written to the stream, then
-    /// the stream's end-of-process output — the repeated cached lines in
-    /// lexicographic order, then unfinished text as a line.
+    /// the stream's end-of-process output ([`LogStream::finish`]): the
+    /// repeated cached lines in lexicographic order, then unfinished text as a
+    /// line.
     pub(crate) fn finish(&mut self, out: &mut dyn Write, closing: Option<&str>) -> io::Result<()> {
         if let Some(closing) = closing {
             self.write(out, closing)?;
             self.write(out, "\n")?;
         }
-        self.cache.sort_by(|a, b| a.text.cmp(&b.text));
-        for entry in std::mem::take(&mut self.cache) {
-            if entry.occurrences > 1 {
-                writeln!(out, "<{}> occurred {} times", entry.text, entry.occurrences)?;
-            }
+        if let Some(logger) = self.logger.as_mut() {
+            logger.finish()?;
         }
-        if !self.pending.is_empty() {
-            let rest = std::mem::take(&mut self.pending);
-            writeln!(out, "{rest}")?;
-        }
-        Ok(())
+        out.write_all(&self.records.take()?)
     }
 }
 
