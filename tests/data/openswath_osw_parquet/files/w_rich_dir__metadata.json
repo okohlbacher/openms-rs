@@ -1,0 +1,18 @@
+{
+  "openms": {
+    "schema_version": 1,
+    "generator": "OpenSwathOSWParquetWriter",
+    "openms_version": "4.0.0",
+    "build_time": "Sep 14 2026, 20:34:41",
+    "tool": {"name": "OpenSwathWorkflow", "version": "4.0.0"},
+    "counts": {
+      "runs": 1,
+      "features": 3,
+      "feature_precursor": 3,
+      "feature_transition": 8
+    }
+  },
+  "runs": [
+    {"id": 42, "filename": "run\t\"one\".mzML", "counts": {"features": 3, "feature_precursor": 3, "feature_transition": 8}}
+  ]
+}
