@@ -41,6 +41,17 @@ directory as `-in`: Linux Release exits 12, port exits 10.
 - Committed: usage-text fixtures + FFC_1 input swapped for Release files; test/doc relabels;
   provenance release_verification blocks. Gate: 4 test files green on dax.
 
+## Incarnation 3 (wf_cd066dab-0a7-41)
+- Merged ee239125-5be-37 (holds incarnation 2's commits faf8168e, bdfd4dd1) and -1 (up to date).
+- Re-audited divergences.json / divergences_lifecycle.json: residuals are only Debug-only warnings,
+  revision line, host paths, FFC last-digit floats (FFC_1 fixture already swapped), 2 FFC debug-only
+  exits (Release 0), PPHR_auto_mode_1 crash both, in_is_directory 10->12. Framework: src/cli.rs
+  input_path `.unwrap_or(FileType::Unknown)` swallows the EISDIR from FileHandler::get_type; Release
+  goes to TOPPBase.cpp:507-512 (cli c19e494) "Unable to initialize or run", exit 12.
+- FOUND mislabel: tests/topp_cli_lifecycle.rs ~1782 calls in_is_directory exit 10 "Release evidence"
+  -> fix to cite fi_notype_log (Release, exit 10 + closing line). Header note on lifecycle rerun.
+
 ## Next step
-1. Write .planning/lane-reports/A1.md and ledger-fragments/wave4/A1.json.
+1. Fix topp_cli_lifecycle.rs mislabel + header; gate topp_cli_lifecycle on dax.
+2. Write .planning/lane-reports/A1.md and ledger-fragments/wave4/A1.json.
 2. Full CI sweep in background; delete NOTES.md in final commit.
