@@ -174,10 +174,23 @@ pub mod feature_map_arrow_io;
 pub mod parquet_file;
 /// Typed filter expressions for Parquet-backed readers (`ParquetFilter.h`).
 pub mod parquet_filter;
+/// Shared Arrow/Parquet reader helpers of the OpenSWATH readers
+/// (`DATAACCESS/ParquetReaderHelpers.h`, private in the source too).
+#[cfg(feature = "arrow")]
+mod parquet_reader_helpers;
 /// Protein hits, protein groups and search parameters as Arrow tables and
 /// Parquet files (`ProteinIdentificationArrowIO.h`).
 #[cfg(feature = "arrow")]
 pub mod protein_identification_arrow_io;
+/// OpenSWATH chromatogram Parquet files, `.xic` (`XICParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xic_parquet_file;
+/// OpenSWATH mobilogram Parquet files, `.xim` (`XIMParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xim_parquet_file;
+/// Extracted ion peak-map Parquet files, `.xipm` (`XIPMParquetFile.h`).
+#[cfg(feature = "arrow")]
+pub mod xipm_parquet_file;
 
 use crate::{Error, Result};
 

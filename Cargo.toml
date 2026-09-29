@@ -82,8 +82,9 @@ network = ["dep:ureq"]
 # (ArrowSchemaRegistry, ArrowIOHelpers, ParquetFile, the *ArrowIO classes) and
 # everything built on it. Kept out of `default` because ZSTD, the source's
 # default Parquet codec, compiles the C zstd library (see
-# docs/THIRD_PARTY_CRATE_DECISIONS.md).
-arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet"]
+# docs/THIRD_PARTY_CRATE_DECISIONS.md). `numpress` because the OpenSWATH
+# Parquet files (.xic/.xim/.xipm) store MS-Numpress + zlib arrays.
+arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet", "numpress"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }

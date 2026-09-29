@@ -254,10 +254,12 @@ impl ParquetFile {
     ) -> Result<RecordBatch> {
         // arrow-rs reports malformed input as errors; a panic that escapes it
         // anyway becomes a typed error rather than taking the process down.
-        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| read_all(reader, limits)))
-            .map_err(|_| {
-                Error::InvalidValue("Parquet reader panicked while decoding the file".into())
-            })?
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            read_all(reader, limits, None)
+        }))
+        .map_err(|_| {
+            Error::InvalidValue("Parquet reader panicked while decoding the file".into())
+        })?
     }
 
     /// A required column by name.
@@ -840,7 +842,73 @@ pub(crate) fn publish(path: &Path, bytes: &[u8]) -> Result<()> {
     })
 }
 
-fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<RecordBatch> {
+/// Read the named columns of a Parquet file into one table.
+///
+/// The crate-private counterpart of `ParquetReaderHelpers::readParquetTableColumns`
+/// for one file: requested names absent from the file are skipped, and the
+/// columns come back in file order. `None` for `columns` reads every column.
+/// The footer is checked against `limits` before anything is decoded, and a
+/// panic escaping arrow-rs becomes a typed error, as for
+/// [`ParquetFile::read_table_from_with_limits`].
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] when the file cannot be opened or decoded or
+/// exceeds `limits`; [`Error::MissingInformation`] when `columns` names no
+/// column the file has.
+pub(crate) fn read_file_columns(
+    path: &Path,
+    columns: Option<&[&str]>,
+    limits: &ReadLimits,
+) -> Result<RecordBatch> {
+    let file = std::fs::File::open(path).map_err(|error| {
+        Error::InvalidValue(format!(
+            "Failed to open parquet file {}: {error}",
+            path.display()
+        ))
+    })?;
+    let projection = columns.map(|names| (names, path));
+    std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        read_all(file, limits, projection)
+    }))
+    .map_err(|_| Error::InvalidValue("Parquet reader panicked while decoding the file".into()))?
+}
+
+/// The Arrow schema a Parquet file declares, without decoding any data.
+///
+/// The counterpart of `ParquetReaderHelpers::readParquetSchema`: the stored
+/// Arrow schema when the file has one, else the one derived from the Parquet
+/// types, with the same `timestamp[s]` to `timestamp[ms]` coercion the table
+/// readers apply.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] "Failed to read parquet schema" when the file
+/// cannot be opened or its footer cannot be decoded.
+pub(crate) fn read_file_schema(path: &Path) -> Result<arrow_schema::SchemaRef> {
+    let failed = |detail: String| {
+        Error::InvalidValue(format!(
+            "Failed to read parquet schema {}: {detail}",
+            path.display()
+        ))
+    };
+    let file = std::fs::File::open(path).map_err(|error| failed(error.to_string()))?;
+    let metadata = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        ArrowReaderMetadata::load(&file, ArrowReaderOptions::new())
+    }))
+    .map_err(|_| failed("the Parquet reader panicked".into()))?
+    .map_err(|error| failed(error.to_string()))?;
+    Ok(match millisecond_schema(metadata.schema()) {
+        Some(schema) => std::sync::Arc::new(schema),
+        None => metadata.schema().clone(),
+    })
+}
+
+fn read_all<R: ChunkReader + 'static>(
+    reader: R,
+    limits: &ReadLimits,
+    projection: Option<(&[&str], &Path)>,
+) -> Result<RecordBatch> {
     let create = |error: parquet::errors::ParquetError| {
         Error::InvalidValue(format!(
             "Failed to create parquet reader from RandomAccessFile: {error}"
@@ -857,7 +925,39 @@ fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<
         )
         .map_err(create)?;
     }
-    let builder = ParquetRecordBatchReaderBuilder::new_with_metadata(reader, metadata);
+    let mut builder = ParquetRecordBatchReaderBuilder::new_with_metadata(reader, metadata);
+    let mut schema = builder.schema().clone();
+    if let Some((names, path)) = projection {
+        // Arrow C++'s Schema::GetFieldIndex: a name found exactly once.
+        let fields = builder.schema().fields();
+        let mut indices: Vec<usize> = names
+            .iter()
+            .filter_map(|name| {
+                let mut matches = fields
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, field)| field.name() == name);
+                match (matches.next(), matches.next()) {
+                    (Some((index, _)), None) => Some(index),
+                    _ => None,
+                }
+            })
+            .collect();
+        if indices.is_empty() {
+            return Err(Error::MissingInformation(format!(
+                "No requested columns found in parquet file '{}'",
+                path.display()
+            )));
+        }
+        // Batches come back in file order, whatever order was requested.
+        indices.sort_unstable();
+        indices.dedup();
+        schema = std::sync::Arc::new(schema.project(&indices).map_err(|error| {
+            Error::InvalidValue(format!("Failed to read parquet table: {error}"))
+        })?);
+        let mask = parquet::arrow::ProjectionMask::roots(builder.parquet_schema(), indices);
+        builder = builder.with_projection(mask);
+    }
     let metadata = builder.metadata().clone();
     let rows = u64::try_from(metadata.file_metadata().num_rows())
         .map_err(|_| Error::InvalidValue("Parquet footer declares a negative row count".into()))?;
@@ -880,7 +980,6 @@ fn read_all<R: ChunkReader + 'static>(reader: R, limits: &ReadLimits) -> Result<
             limits.max_uncompressed_bytes
         )));
     }
-    let schema = builder.schema().clone();
     let batch_size = usize::try_from(rows)
         .unwrap_or(usize::MAX)
         .clamp(1, 1 << 20);
