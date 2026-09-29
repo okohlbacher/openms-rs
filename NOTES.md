@@ -24,3 +24,13 @@ Branch: worktree-wf_cd066dab-0a7-19 (retry; merged -14 notes).
   (would conflict with M1). Only do the member-by-member check vs M1's version and report.
 - Order of work: MzXML truncated-doc ParseError (FileConverter consumer) -> DTA2D numeric text
   -> DocumentIdentifier state -> MzData isSemanticallyValid -> MGF review -> MS2 template -> ConsensusXML zip.
+- MzXML truncated-after-scan: ALREADY FIXED (docs/FILE_INFO_A8_SUPPORT.md s.6, repair F2). Remaining MzXML gap:
+  transform overloads report no progress (needs oracle: extend ../oracle/progress-format-readers driver pattern
+  into ../oracle/F7c-transform-progress/). FileHandler dispatch is B0's, not an MzXMLFile member.
+- DTA2D tier-1 bytes ALREADY RETAINED: ../oracle/progress-format-readers/results/out_1/dta2d_store_cmd.dta2d and
+  dta2d_store_tic_cmd.dta2d (ibminode06 Release, 3 reps identical). C++ store = precisionWrapper -> StringUtils::toStr:
+  RT/mz via text_format::to_str, intensity via to_str_f32. tests/progress_format_readers.rs:634 exempts their sizes
+  (remove exemption once bytes match). Class test DTA2DFile_test.cpp:72-73 + MS2File_test.cpp:49-50 give
+  DocumentIdentifier expectations (loaded path, type name dta2d/ms2).
+- Plan DTA2D: WriteOptions -> struct {limits, discard_unrepresentable}; strict default refuses text that does not
+  read back exactly; source() = C++ behaviour. MS2: record DocumentIdentifier, doc ms2.rs to 100%.
