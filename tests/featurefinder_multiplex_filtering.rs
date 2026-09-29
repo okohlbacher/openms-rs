@@ -157,6 +157,36 @@ fn multiplex_filtering_centroided_class_test() {
     let results = filtering.filter().unwrap();
     let sizes: Vec<usize> = results.iter().map(|r| r.len()).collect();
     assert_eq!(sizes, vec![0, 0, 0, 0, 4, 4, 4, 0]);
+
+    // Tier 4: `writeDebugOutput`'s map has one consensus feature per peak and
+    // one handle per satellite, in maps numbered in satellite order, and every
+    // peak passed the blacklist, so the blacklisted peaks are not empty.
+    let result = &results[4];
+    let mut ids = openms::concept::unique_id::UniqueIdGenerator::from_seed(7);
+    let map = result
+        .debug_consensus_map(filtering.centroided_experiment(), &mut ids)
+        .unwrap();
+    assert_eq!(map.len(), result.len());
+    let mut handles: Vec<usize> = map.features.iter().map(|f| f.handles().len()).collect();
+    let mut satellites: Vec<usize> = result.peaks().iter().map(|p| p.satellite_count()).collect();
+    handles.sort_unstable();
+    satellites.sort_unstable();
+    assert_eq!(handles, satellites);
+    let most = *satellites.last().unwrap();
+    assert_eq!(map.column_headers.len(), most);
+    for (k, header) in &map.column_headers {
+        assert_eq!(header.label, format!("satellite_{k}"));
+        assert_eq!(header.filename, "satellites");
+    }
+    assert_eq!(map.experiment_type, "label-free");
+    assert!(map.features.iter().all(|f| f.unique_id != 0));
+    assert!(
+        filtering
+            .blacklist_experiment()
+            .spectra
+            .iter()
+            .any(|s| !s.peaks.is_empty())
+    );
 }
 
 /// Tier 4: an unknown averagine type fails once the averagine filter first
