@@ -176,6 +176,10 @@ pub mod mobilogram_parquet_consumer;
 /// (`DATAACCESS/MSChromatogramParquetConsumer.h`).
 #[cfg(feature = "arrow")]
 pub mod ms_chromatogram_parquet_consumer;
+/// MSExperiment spectra and chromatograms as Arrow tables and Parquet files
+/// (`MSExperimentArrowExport.h`).
+#[cfg(feature = "arrow")]
+pub mod msexperiment_arrow_export;
 /// Shared writer machinery of the OpenSWATH Parquet consumers.
 #[cfg(feature = "arrow")]
 mod openswath_parquet_writer;
