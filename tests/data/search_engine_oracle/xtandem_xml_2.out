@@ -1,0 +1,74 @@
+protein identifier=XTandem_2026-09-27 engine=XTandem version= score_type=XTandem higher=0
+  params fragment_tol=0 precursor_tol=0 variable=
+  protein_hits 21
+  protein_hit acc=P04264 SWISS-PROT:P04264 Tax_Id=9606 Gene_Symbol=KRT1 Keratin, type II cytoskeletal 1 score=-67.299999999999997
+  protein_hit acc=ENSEMBL:ENSBTAP00000038253 (Bos taurus) 63 kDa protein score=-27.600000000000001
+  protein_hit acc=P35908 SWISS-PROT:P35908 Tax_Id=9606 Gene_Symbol=KRT2 Keratin, type II cytoskeletal 2 epidermal score=-14.699999999999999
+  protein_hit acc=P50446 SWISS-PROT:P50446 Tax_Id=10090 Gene_Symbol=Krt6a Keratin, type II cytoskeletal 6A score=-5.7999999999999998
+  protein_hit acc=Q5XQN5 SWISS-PROT:Q5XQN5 (Bos taurus) Keratin, type II cytoskeletal 5 score=-5.7999999999999998
+  protein_hit acc=Q8BGZ7 TREMBL:Q8BGZ7;Q99MH7 Tax_Id=10090 Gene_Symbol=Krt75 10 days neonate skin cDNA, RIKEN full-length enriched library, clone:4732475I03 product:CYTOKERATIN homolog score=-5.7999999999999998
+  protein_hit acc=Q922U2 SWISS-PROT:Q922U2 Tax_Id=10090 Gene_Symbol=Krt5 Keratin, type II cytoskeletal 5 score=-5.7999999999999998
+  protein_hit acc=Q6IFZ6 SWISS-PROT:Q6IFZ6 Tax_Id=10090 Gene_Symbol=Krt77 Keratin, type II cytoskeletal 1b score=-4.0999999999999996
+  protein_hit acc=Q7Z794 SWISS-PROT:Q7Z794 Tax_Id=9606 Gene_Symbol=KRT77 Keratin 77 score=-4.0999999999999996
+  protein_hit acc=P02538 SWISS-PROT:P02538 Tax_Id=9606 Gene_Symbol=KRT6A Keratin, type II cytoskeletal 6A score=-2.6000000000000001
+  protein_hit acc=P04259 SWISS-PROT:P04259 Tax_Id=9606 Gene_Symbol=KRT6B Keratin, type II cytoskeletal 6B score=-2.6000000000000001
+  protein_hit acc=P48668 SWISS-PROT:P48668 Tax_Id=9606 Gene_Symbol=KRT6C Keratin, type II cytoskeletal 6C score=-2.6000000000000001
+  protein_hit acc=P13647 SWISS-PROT:P13647 Tax_Id=9606 Gene_Symbol=KRT5 Keratin, type II cytoskeletal 5 score=-2.3999999999999999
+  protein_hit acc=Q3TTY5 SWISS-PROT:Q3TTY5 Tax_Id=10090 Gene_Symbol=Krt2 Keratin, type II cytoskeletal 2 epidermal score=-2.2000000000000002
+  protein_hit acc=H-INV:HIT000016045 Tax_Id=9606 Gene_Symbol=- Similar to Keratin, type II cytoskeletal 8 score=0
+  protein_hit acc=O95678 SWISS-PROT:O95678 Tax_Id=9606 Gene_Symbol=KRT75 Keratin, type II cytoskeletal 75 score=0
+  protein_hit acc=P05787 SWISS-PROT:P05787 Tax_Id=9606 Gene_Symbol=KRT8 Keratin, type II cytoskeletal 8 score=0
+  protein_hit acc=P12035 SWISS-PROT:P12035 Tax_Id=9606 Gene_Symbol=KRT3 Keratin, type II cytoskeletal 3 score=0
+  protein_hit acc=Q01546 SWISS-PROT:Q01546 Tax_Id=9606 Gene_Symbol=KRT76 Keratin, type II cytoskeletal 2 oral score=0
+  protein_hit acc=Q8VED5 TREMBL:Q8VED5 Tax_Id=10090 Gene_Symbol=Krt79 Keratin 79 score=0
+  protein_hit acc=gi|330928880|ref|XP_003302439.1|_rev hypothetical protein PTT_14244 [Pyrenophora teres f. teres 0-1] score=0
+peptide_ids 2
+id identifier=XTandem_2026-09-27 score_type=XTandem higher=1 threshold=0 rt=nan mz=nan
+  meta spectrum_reference type=0 value=2013-01-18_093003_proteo227_3148_1_tandem_input_file.mzData scan 2 (charge 2)
+  hits 1
+  hit seq=YEDEINKR score=27.899999999999999 rank=0 charge=2
+    meta E-Value type=2 value=0.12
+    meta b_ions type=1 value=1
+    meta b_score type=2 value=10
+    meta delta type=2 value=0.0028999999999999998
+    meta hyperscore type=2 value=27.899999999999999
+    meta mass type=2 value=1066.5164
+    meta nextscore type=2 value=22.600000000000001
+    meta y_ions type=1 value=7
+    meta y_score type=2 value=12.800000000000001
+    evidence acc=gi|330928880|ref|XP_003302439.1|_rev hypothetical protein PTT_14244 [Pyrenophora teres f. teres 0-1] start=241 end=248 before=75 after=84
+id identifier=XTandem_2026-09-27 score_type=XTandem higher=1 threshold=0 rt=nan mz=nan
+  meta spectrum_reference type=0 value=2013-01-18_093003_proteo227_3148_1_tandem_input_file.mzData scan 39 (charge 2)
+  hits 1
+  hit seq=YEDEINKR score=27.899999999999999 rank=0 charge=2
+    meta E-Value type=2 value=0.12
+    meta b_ions type=1 value=1
+    meta b_score type=2 value=10
+    meta delta type=2 value=0.0028999999999999998
+    meta hyperscore type=2 value=27.899999999999999
+    meta mass type=2 value=1066.5164
+    meta nextscore type=2 value=22.600000000000001
+    meta y_ions type=1 value=7
+    meta y_score type=2 value=12.800000000000001
+    evidence acc=P04264 SWISS-PROT:P04264 Tax_Id=9606 Gene_Symbol=KRT1 Keratin, type II cytoskeletal 1 start=269 end=276 before=75 after=84
+    evidence acc=ENSEMBL:ENSBTAP00000038253 (Bos taurus) 63 kDa protein start=265 end=272 before=75 after=84
+    evidence acc=P35908 SWISS-PROT:P35908 Tax_Id=9606 Gene_Symbol=KRT2 Keratin, type II cytoskeletal 2 epidermal start=273 end=280 before=75 after=84
+    evidence acc=Q5XQN5 SWISS-PROT:Q5XQN5 (Bos taurus) Keratin, type II cytoskeletal 5 start=258 end=265 before=75 after=84
+    evidence acc=P50446 SWISS-PROT:P50446 Tax_Id=10090 Gene_Symbol=Krt6a Keratin, type II cytoskeletal 6A start=241 end=248 before=75 after=84
+    evidence acc=Q922U2 SWISS-PROT:Q922U2 Tax_Id=10090 Gene_Symbol=Krt5 Keratin, type II cytoskeletal 5 start=251 end=258 before=75 after=84
+    evidence acc=Q8BGZ7 TREMBL:Q8BGZ7;Q99MH7 Tax_Id=10090 Gene_Symbol=Krt75 10 days neonate skin cDNA, RIKEN full-length enriched library, clone:4732475I03 product:CYTOKERATIN homolog start=239 end=246 before=82 after=65
+    evidence acc=Q6IFZ6 SWISS-PROT:Q6IFZ6 Tax_Id=10090 Gene_Symbol=Krt77 Keratin, type II cytoskeletal 1b start=256 end=263 before=75 after=84
+    evidence acc=Q7Z794 SWISS-PROT:Q7Z794 Tax_Id=9606 Gene_Symbol=KRT77 Keratin 77 start=253 end=260 before=75 after=84
+    evidence acc=P02538 SWISS-PROT:P02538 Tax_Id=9606 Gene_Symbol=KRT6A Keratin, type II cytoskeletal 6A start=252 end=259 before=75 after=84
+    evidence acc=P48668 SWISS-PROT:P48668 Tax_Id=9606 Gene_Symbol=KRT6C Keratin, type II cytoskeletal 6C start=252 end=259 before=75 after=84
+    evidence acc=P04259 SWISS-PROT:P04259 Tax_Id=9606 Gene_Symbol=KRT6B Keratin, type II cytoskeletal 6B start=252 end=259 before=75 after=84
+    evidence acc=P13647 SWISS-PROT:P13647 Tax_Id=9606 Gene_Symbol=KRT5 Keratin, type II cytoskeletal 5 start=257 end=264 before=75 after=84
+    evidence acc=Q3TTY5 SWISS-PROT:Q3TTY5 Tax_Id=10090 Gene_Symbol=Krt2 Keratin, type II cytoskeletal 2 epidermal start=288 end=295 before=75 after=84
+    evidence acc=Q8VED5 TREMBL:Q8VED5 Tax_Id=10090 Gene_Symbol=Krt79 Keratin 79 start=229 end=236 before=75 after=84
+    evidence acc=P05787 SWISS-PROT:P05787 Tax_Id=9606 Gene_Symbol=KRT8 Keratin, type II cytoskeletal 8 start=178 end=185 before=75 after=84
+    evidence acc=O95678 SWISS-PROT:O95678 Tax_Id=9606 Gene_Symbol=KRT75 Keratin, type II cytoskeletal 75 start=238 end=245 before=82 after=84
+    evidence acc=Q01546 SWISS-PROT:Q01546 Tax_Id=9606 Gene_Symbol=KRT76 Keratin, type II cytoskeletal 2 oral start=272 end=279 before=75 after=84
+    evidence acc=P12035 SWISS-PROT:P12035 Tax_Id=9606 Gene_Symbol=KRT3 Keratin, type II cytoskeletal 3 start=289 end=296 before=75 after=84
+    evidence acc=H-INV:HIT000016045 Tax_Id=9606 Gene_Symbol=- Similar to Keratin, type II cytoskeletal 8 start=11 end=18 before=75 after=84
+fixed
+variable [Carbamidomethyl (C)] [Carboxymethyl (C)] [Oxidation (M)]

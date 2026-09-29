@@ -46,3 +46,6 @@ pub use tool_info::ToolInfo;
 /// Sets of enum flags stored as bits (source `DATASTRUCTURES/FlagSet.h`).
 pub mod flag_set;
 pub use flag_set::{FlagEnum, FlagSet};
+/// Source `StringUtils` number conversions, splitting and trimming with the
+/// source's exact acceptance rules (source `DATASTRUCTURES/StringUtils.h`).
+pub mod string_utils;

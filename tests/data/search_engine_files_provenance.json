@@ -1,0 +1,604 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SequestInfile.h",
+   "sha256": "1bbdc111a4b5f44ee4ca8b47757094f5e328303e21fc914e0bcf2ab8a9e60f1f",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SequestInfile.cpp",
+   "sha256": "3bf5ebe479deaf45eb42bcca254fd47140d1fdcc95f7457a1f40f6412cf943fe",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SequestInfile_test.cpp",
+   "sha256": "acdd2f7283a36dbcbfa9f5fe3f8d48ac4212d93fbf6c77d3c81db4790dc37afb",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SequestOutfile.h",
+   "sha256": "80ca05bc879600f09f0f4ec0a1baf0e124db8c93126b3576ac899a0002910549",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SequestOutfile.cpp",
+   "sha256": "c2d3a2a63850e6ec9aea9a5d06cfcc04e9bf33f44df1412feff2d992c751618c",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SequestOutfile_test.cpp",
+   "sha256": "b18c00c7dcc38265cb4718d2a892bd1d5bb233de903f7bcd9be8ad6a7c50cc20",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/InspectInfile.h",
+   "sha256": "17799c1b93e44c4b8b07d2babff6c68ec7413afc991b366b96d137a7d826ea6e",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/InspectInfile.cpp",
+   "sha256": "083597b7f80a0220013994b9b5dac1ae2cd0abbcc18cd4b1ac54dcb897e53365",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/InspectInfile_test.cpp",
+   "sha256": "d29ba95dde2ae415840d6230cec79945e9f677ba783b28dc7bfb0c511a6ff309",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/InspectOutfile.h",
+   "sha256": "37baa4eca9fca694d919ac60e6b19120353813ab5c02f19ac4ee7452f816fd7f",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/InspectOutfile.cpp",
+   "sha256": "cfc952d957ec427370cc51ddea85c5020be4350dfedb601c5fc43e6c1acd545c",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/InspectOutfile_test.cpp",
+   "sha256": "ddecc0e3a45804369303308e15af105a35039491ce57c559e77e403c1b240541",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PepNovoInfile.h",
+   "sha256": "d23de9efdb5396da686f7c0126b3030a69bef85ffdbf928d9e1526c9b90995ee",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepNovoInfile.cpp",
+   "sha256": "04ffc2392446260b66eb70e3d7ccf6f0009a3f0ba48c1d4f388f694ba6615fd6",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PepNovoInfile_test.cpp",
+   "sha256": "7152b29ee0a6d8c6f36bd13eec420d87d7cf57a770583623f7b603a54a19335c",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PepNovoOutfile.h",
+   "sha256": "faed768e67d424badef14fac795aa592a93fe2443736c267dc20ebf4d7af80e0",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepNovoOutfile.cpp",
+   "sha256": "cfb90efdfc96acff7800c5332ecea1eb7907719a8a1fc28ce1c267ca85f094c0",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PepNovoOutfile_test.cpp",
+   "sha256": "023b7195856fac82809f5c5d7a9a71fe537852286af4b84c381e74157a37fda3",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OMSSAXMLFile.h",
+   "sha256": "31ab0fb8644bbde00f7de16c554ed87ea7027ec4af5d6432830f40a341747c5a",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/OMSSAXMLFile.cpp",
+   "sha256": "a2d494d19ba3f138232bb963990bbc66c88628f5b22edf35c6bf20722edb287c",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/OMSSAXMLFile_test.cpp",
+   "sha256": "6120123a72f7c96a904b4f93e53d25f222a8fd5b44e72f476cca04233b776967",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OMSSACSVFile.h",
+   "sha256": "6fedf4dcd22f19c9b994f64191f785bedbe9e01edbab4fa680a91b95b68ea3b3",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/OMSSACSVFile.cpp",
+   "sha256": "b2dece44638a4e2224c171d5d93411c74bcd3be1b3b7e60e27945f1fbf02c7c5",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/OMSSACSVFile_test.cpp",
+   "sha256": "1407a8f6bbcb8231c56bd8d2893c66b6b9681242040247b0ae833c78663c4b9f",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XTandemXMLFile.h",
+   "sha256": "5e7f07cbd76d744fc95da5b9e5e43135cfb3915e7df8ffb12893fe26b6283c8d",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XTandemXMLFile.cpp",
+   "sha256": "346582c0c9002d13db00fac2984f20e72d06bfd6c936706cd9653c244a566d9c",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XTandemXMLFile_test.cpp",
+   "sha256": "9e8075d84323777a592d207d9e57408f730cb56468831aab1e426c7ed6fdccc4",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XTandemInfile.h",
+   "sha256": "540e58a313d0e2d60d9f5e3b25fc967c87dc06acbf17a96ce919670a10e68e10",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XTandemInfile.cpp",
+   "sha256": "3caeb00300d9a90103ebeeb79bdade5c546c8d3260a8930036376e1188d6d24e",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XTandemInfile_test.cpp",
+   "sha256": "60559da0ecb4a43d9e17416a4afcbf89458b402b7120b753b4d8ead1d4722d34",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/SpecArrayFile.h",
+   "sha256": "80bc07ba2c69a8613a1c474172e11be021923380bb9549388c186b582f8d7904",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/SpecArrayFile.cpp",
+   "sha256": "08f622157f483bc1835e1d08d32577b24d8d0f7c84476bedc87a0b4462d4fe33",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpecArrayFile_test.cpp",
+   "sha256": "26f1e20a6b6ffaa9c194cf5960e0945c43f4cabbadac588d010f65d8853574ec",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MsInspectFile.h",
+   "sha256": "f85eb6bff33a583ce433855960985af8f7ae27d70833e13078cc2d8c0436b954",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MsInspectFile.cpp",
+   "sha256": "14c77333d631264b7e3045a9e8c690ed992f07b1575d1eaadac99a3eaaab650b",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MsInspectFile_test.cpp",
+   "sha256": "f736f7c5e5c2704e5211927277f5fa02a76ba3a61447e37f73f8d87729bb4dc9",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/KroenikFile.h",
+   "sha256": "a9ffc9f3a7a7984a9f983f7b5a0b5a603c162a6f3f04204eb79b6265188c73c4",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/KroenikFile.cpp",
+   "sha256": "c6d174bd4fcf1d15b332c5fc12a6ad45850637b40fb015293bd6d8e0b6b22910",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/KroenikFile_test.cpp",
+   "sha256": "cc0e7078abfdce5246f5ae6274456d72e0bbad10eb58433e29ba41605101fa11",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PTMXMLFile.h",
+   "sha256": "9a0c2fd33a3602977ce99413ef2b53a1b951d3f640e2d7213bfdf66b5768a31a",
+   "role": "ported header"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PTMXMLFile.cpp",
+   "sha256": "172cc7ccaba19796ddab0559b8203d5e367ec1dabdcb49128d0da6419b057e73",
+   "role": "ported implementation"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PTMXMLFile_test.cpp",
+   "sha256": "0d505e56dd668d1c5c552f076fda2f33d250929f6d69d168ebf422b0f712de31",
+   "role": "class test: expected values"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h",
+   "sha256": "417c9949473fea3222389318b82b99ccad11a20f4fe984e6488ed988af471dc0",
+   "role": "ported header (PTMXMLFile handler)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/PTMXMLHandler.cpp",
+   "sha256": "50b8cab04d6db45a12ec925437986b822754ebab1759e23458c365c4798f29fe",
+   "role": "ported implementation (PTMXMLFile handler)"
+  },
+  {
+   "path": "share/OpenMS/CHEMISTRY/OMSSA_modification_mapping",
+   "sha256": "e7b8d09146a656f944a8f119ab147c5b0a2bef8968d8ec00e7f261f0d51cc5fb",
+   "role": "embedded resource, resources/search_engines/OMSSA_modification_mapping"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/Inspect.mzData",
+   "source_path": "src/tests/class_tests/openms/data/Inspect.mzData",
+   "sha256": "3a7ea34706b039b8b05402daefb1aced623056a6d6d36ca677c4445ef2b41254",
+   "bytes": 89165,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/Inspect.mzXML",
+   "sha256": "44c32fe2d282769633ff34c884cbbe37f52b9c993f5c9f982275d2dd02954499",
+   "bytes": 78655,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/InspectInfile_test_template1.txt",
+   "source_path": "src/tests/class_tests/openms/data/InspectInfile_test_template1.txt",
+   "sha256": "3fd91fcda7f3016263007b05d5df111a04a8979aab09cf63bdcfd54d55a6672c",
+   "bytes": 253,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/InspectOutfile_test_1.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/InspectOutfile_test_1.mzXML",
+   "sha256": "556f2dd832e971bcbc69fa86ab59a7aca0410bbb519e0f5e42ef744465a09b86",
+   "bytes": 2522,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/InspectOutfile_test_2.mzXML",
+   "source_path": "src/tests/class_tests/openms/data/InspectOutfile_test_2.mzXML",
+   "sha256": "c2e14dd3ec3d3417f2475068c40118ec43a1c684815fc7d35b6037ca849d176e",
+   "bytes": 3102,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_PTMs.xml",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_PTMs.xml",
+   "sha256": "9abd07b12b72173209fe966f3d9962bbaf66cbed59834c0f1fa841078dc35460",
+   "bytes": 150,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_empty_file.txt",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_empty_file.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test.fasta",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test.fasta",
+   "sha256": "784a161d122af7a5412e77bf3c4aff8310677d15191800123f3cebe6dcdf4572",
+   "bytes": 541,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test.index",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test.index",
+   "sha256": "dbed1107af6882dca49b06501ee7352c37a9b200ef0ba83c6a8de469efdee9d5",
+   "bytes": 184,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test.trie",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test.trie",
+   "sha256": "29cd4dc184f1b5463371915ed4e9582fc3029f458626688b8bd6c9c5667811e1",
+   "bytes": 492,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test1.fasta",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test1.fasta",
+   "sha256": "3f9ce64d8159fdf5688e90809577ea9df7a9775c6100be6de67584ba261e8a51",
+   "bytes": 272,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test2.fasta",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test2.fasta",
+   "sha256": "199a9161d275dafea085b8d114d08500dc998f060fa412694963a3508c666bc5",
+   "bytes": 471,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test2.index",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test2.index",
+   "sha256": "f33d7d094dc5ce45ef214fd1d3b04ca59c8115dc3fd61e8e5e546f46d9837b7b",
+   "bytes": 184,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Inspect_test2.trie",
+   "source_path": "src/tests/class_tests/openms/data/Inspect_test2.trie",
+   "sha256": "f60d693ed1f4ac33a728baed1aa9e0fee02804d8981951424a679901426168a1",
+   "bytes": 345,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/KroenikFile_test_1.krf",
+   "source_path": "src/tests/class_tests/openms/data/KroenikFile_test_1.krf",
+   "sha256": "8f6eb050b00de0d439dddc7400dda9edb41a846fb1a1981cf897272a859636a2",
+   "bytes": 397,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/KroenikFile_test_2.krf",
+   "source_path": "src/tests/class_tests/openms/data/KroenikFile_test_2.krf",
+   "sha256": "8c0e1e6bf476bee1dfa352eb175737722613d267ece1ab3939d4f899c083749a",
+   "bytes": 404,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/MSInspectFile_test_1.msi",
+   "source_path": "src/tests/class_tests/openms/data/MSInspectFile_test_1.msi",
+   "sha256": "6ea9f69b205450c524dc36d9460f99cedf791f1d3a25e583511e17b29ab5e1c8",
+   "bytes": 387,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/OMSSACSVFile_test_1.csv",
+   "source_path": "src/tests/class_tests/openms/data/OMSSACSVFile_test_1.csv",
+   "sha256": "9e0ff85d5828756811a9a59ff290cd947637dad60fa4c1b35f9c5d88858e2346",
+   "bytes": 520,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/OMSSACSVFile_test_unbalanced_quote.csv",
+   "source_path": "src/tests/class_tests/openms/data/OMSSACSVFile_test_unbalanced_quote.csv",
+   "sha256": "6ef95c4c7ec2237acdcb2720a187aed0013be993c0c54704fbabcdf318c7db99",
+   "bytes": 214,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/OMSSAXMLFile_test_1.xml",
+   "source_path": "src/tests/class_tests/openms/data/OMSSAXMLFile_test_1.xml",
+   "sha256": "84a2baa6a3b71fbb404f6c8fb45d0d355cf8f2402e0e5e4dae4586f22ba81333",
+   "bytes": 19226,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/PTMs.xml",
+   "source_path": "src/tests/class_tests/openms/data/PTMs.xml",
+   "sha256": "7bde0cc5292f4b58b6dfa54882621c1c522083bb766084d19a0c962e1c100e9e",
+   "bytes": 139,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/PepNovoInfile_test_template.txt",
+   "source_path": "src/tests/class_tests/openms/data/PepNovoInfile_test_template.txt",
+   "sha256": "00a6bc2c73433faf61b7d0cd9a0f3d82d0b1c99546130038e5e3677533ac32d2",
+   "bytes": 236,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/PepNovoOutfile.out",
+   "source_path": "src/tests/class_tests/openms/data/PepNovoOutfile.out",
+   "sha256": "b0d0ea2faaa1ba75a2bb9d7cf4c67e8ffa94a9e7023a67d7ae4f2a7da3818e17",
+   "bytes": 4827,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/PepNovoOutfile.out1",
+   "source_path": "src/tests/class_tests/openms/data/PepNovoOutfile.out1",
+   "sha256": "70ccb599a8c6d5a0495a20b232caf62d5814963bc5082eb76f409113a2e13bcc",
+   "bytes": 108,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/PepNovoOutfile_version_file.txt",
+   "source_path": "src/tests/class_tests/openms/data/PepNovoOutfile_version_file.txt",
+   "sha256": "2328e222d739200fe686f3623f3145f00b4263504eaea2b0da901a4150cc3657",
+   "bytes": 1550,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Sequest.mzXML.13.1.d.out",
+   "source_path": "src/tests/class_tests/openms/data/Sequest.mzXML.13.1.d.out",
+   "sha256": "236ffcf19dfa06ab187e5dd8d6482a81290c07cfebb6f3fa1583d049527aa54d",
+   "bytes": 6469,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SequestInfile_test_template1.txt",
+   "source_path": "src/tests/class_tests/openms/data/SequestInfile_test_template1.txt",
+   "sha256": "05bc3df26f4918fcb2e51b85d4c678bd4e81359c1c0ca5a81d2b604596f7f27c",
+   "bytes": 3716,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SequestOutfile.out",
+   "source_path": "src/tests/class_tests/openms/data/SequestOutfile.out",
+   "sha256": "61ecc5acfe77f2e9bfe5e5e8d666cb6c5324421df73be1f5477e14ce00eced36",
+   "bytes": 1995,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SequestOutfile.out1",
+   "source_path": "src/tests/class_tests/openms/data/SequestOutfile.out1",
+   "sha256": "c0ec2f6a25dfec33449d3cab17477e3d9e3b8526b5ad3664e0e8bcd15c4f4004",
+   "bytes": 953,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SequestOutfile2.out",
+   "source_path": "src/tests/class_tests/openms/data/SequestOutfile2.out",
+   "sha256": "74352498e226095ca34ddc0b91fcdd87e703db2f0ed00674eea3b7e3d14f973a",
+   "bytes": 771,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SequestOutfile_headerfile.txt",
+   "source_path": "src/tests/class_tests/openms/data/SequestOutfile_headerfile.txt",
+   "sha256": "1e319402079ea2ec51ac9886dedd4704f89c90578c2f5681324bf6d1f196e527",
+   "bytes": 91,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Sequest_PTMs.xml",
+   "source_path": "src/tests/class_tests/openms/data/Sequest_PTMs.xml",
+   "sha256": "9abd07b12b72173209fe966f3d9962bbaf66cbed59834c0f1fa841078dc35460",
+   "bytes": 150,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Sequest_test.fasta",
+   "source_path": "src/tests/class_tests/openms/data/Sequest_test.fasta",
+   "sha256": "784a161d122af7a5412e77bf3c4aff8310677d15191800123f3cebe6dcdf4572",
+   "bytes": 541,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/Sequest_test2.fasta",
+   "source_path": "src/tests/class_tests/openms/data/Sequest_test2.fasta",
+   "sha256": "199a9161d275dafea085b8d114d08500dc998f060fa412694963a3508c666bc5",
+   "bytes": 471,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SpecArrayFile_test_1.peplist",
+   "source_path": "src/tests/class_tests/openms/data/SpecArrayFile_test_1.peplist",
+   "sha256": "8792e77dcd533991869604f8c5ac76aa04b3a72ccc20b4ad34c7aec8a4b2fd3a",
+   "bytes": 82,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/SpecArrayFile_test_2.peplist",
+   "source_path": "src/tests/class_tests/openms/data/SpecArrayFile_test_2.peplist",
+   "sha256": "aedbd65919f0525b0ae5877f35390fdaf43ebd1074f402e1e703050c6d345b78",
+   "bytes": 77,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/XTandemXMLFile_test.xml",
+   "source_path": "src/tests/class_tests/openms/data/XTandemXMLFile_test.xml",
+   "sha256": "558a50fe30ee267ea1aaac5146f28fa18003ca52d5f94014daa9f269324c4e07",
+   "bytes": 1650120,
+   "role": "upstream class-test fixture, copied unmodified"
+  },
+  {
+   "path": "tests/data/XTandemXMLFile_test_2.xml",
+   "source_path": "src/tests/class_tests/openms/data/XTandemXMLFile_test_2.xml",
+   "sha256": "643a0eeb4d132d133a6340c9b9b1fee641fb0c8b73a065297f7625f69c3f5a65",
+   "bytes": 34312,
+   "role": "upstream class-test fixture, copied unmodified"
+  }
+ ],
+ "oracle_outputs": [
+  {
+   "path": "tests/data/search_engine_oracle/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "bytes": 61,
+   "role": "oracle build/run record"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/driver.cpp.txt",
+   "sha256": "22160b15ce61ec29f76b724788240e19d751a054044416672a730b971544453d",
+   "bytes": 14622,
+   "role": "oracle build/run record"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/hashes.txt",
+   "sha256": "7fb98f69890a32c91710dc477ea795d8c6c721ad8890c0ec721cb7c3f628288d",
+   "bytes": 1483,
+   "role": "oracle build/run record"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/host.txt",
+   "sha256": "f9a1ce143b3b6c7e7870b8c4f78158614c9cc5b34ef519900789d653f5b1cb65",
+   "bytes": 213,
+   "role": "oracle build/run record"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/inspect_experiment.out",
+   "sha256": "1aa93e86e20687dbe668bea335094f05c2bcc7ae11955cd1d705392aead31b96",
+   "bytes": 266,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/inspect_infile.out",
+   "sha256": "a566b762624d5e42e7ae6905fc82a5522315908aa641b3b7b023816294d3f96c",
+   "bytes": 412,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/inspect_sequences.out",
+   "sha256": "5d445656901468bec58146ee277615d75924b0c1981e9cdddfe8d6ef827e745e",
+   "bytes": 962,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/inspect_trie.out",
+   "sha256": "9cd2ff604eec92ecd7b2a7f01f907975b3096f505b240b55e2c97f0020be1752",
+   "bytes": 1820,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/omssa_xml.out",
+   "sha256": "1a690687b3c2ce90aa9fe4af8203848c0e1d34850c7e64eb4dc06c564c62bc14",
+   "bytes": 844,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/pepnovo_infile.out",
+   "sha256": "2f90aee72f4e62122401ec2eede3861480c771d139ad236e12a033134b269040",
+   "bytes": 340,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/pepnovo_out_index.out",
+   "sha256": "40e2354c27f00d69b9bae04152ea5624d6fdc7b69dd73ce400e2befb77f7213b",
+   "bytes": 21021,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/pepnovo_out_title.out",
+   "sha256": "97208c0ee720e6ed1cfd3e00d57781b703cf157464d9c844d20cdabc8e7d6d54",
+   "bytes": 21021,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/sequest_infile.out",
+   "sha256": "c0e9790d52485dd79f334461faaa4ac148ecd4dcc6a9f731146823a478d2f7c4",
+   "bytes": 4802,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/sequest_out.out",
+   "sha256": "71b7cbb01f05da1764f86b77ca09da9ba880f8711c8f786aabc634af00bc61e2",
+   "bytes": 3248,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/xtandem_infile.out",
+   "sha256": "c7e8212d509b0e472b1596d6e48a5995c823cbc2f3c0298805bcf27ec9f1262e",
+   "bytes": 5529,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/xtandem_xml_1.out",
+   "sha256": "0e75f911fbc436eb1b0ccaf9fe4546c6360f3fe96dd9b13717d56c0e240549ba",
+   "bytes": 249221,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  },
+  {
+   "path": "tests/data/search_engine_oracle/xtandem_xml_2.out",
+   "sha256": "4eba46513c646acbbc06583c21a68ffb59ba68eddb43a3fd87396e5bc955ae6e",
+   "bytes": 7172,
+   "role": "output of the executed C++ Release build (ibminode06, openms4-release-bc9cc12-c19e494-174b576), see host.txt, compiler.txt, hashes.txt"
+  }
+ ]
+}

@@ -289,3 +289,42 @@ pub(crate) mod sax_xml;
 /// `HANDLERS/XQuestResultXMLHandler.h`).
 #[cfg(feature = "idxml")]
 pub mod xquest_result_xml;
+/// Inspect input (parameter) files (`InspectInfile.h`).
+#[cfg(feature = "idxml")]
+pub mod inspect_infile;
+/// Inspect result files and trie databases (`InspectOutfile.h`).
+#[cfg(feature = "mzml")]
+pub mod inspect_outfile;
+/// Kroenik (Hardklör sibling) feature files (`KroenikFile.h`).
+pub mod kroenik_file;
+/// msInspect feature files (`MsInspectFile.h`).
+pub mod ms_inspect_file;
+/// OMSSA comma-separated result files (`OMSSACSVFile.h`).
+pub mod omssa_csv_file;
+/// OMSSA XML result files (`OMSSAXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod omssa_xml_file;
+/// PepNovo PTM input tables (`PepNovoInfile.h`).
+pub mod pepnovo_infile;
+/// PepNovo de novo sequencing output (`PepNovoOutfile.h`).
+pub mod pepnovo_outfile;
+/// PTMXML modification tables (`PTMXMLFile.h`, `HANDLERS/PTMXMLHandler.h`).
+#[cfg(feature = "idxml")]
+pub mod ptm_xml_file;
+/// Permissive sequence parsing shared by the search-engine adapters.
+pub mod search_engine_text;
+/// Bounded SAX-style driver shared by the X! Tandem and OMSSA XML readers.
+#[cfg(feature = "idxml")]
+pub mod search_engine_xml;
+/// Sequest input (`sequest.params`) files (`SequestInfile.h`).
+#[cfg(feature = "idxml")]
+pub mod sequest_infile;
+/// Sequest `.out` result files (`SequestOutfile.h`).
+pub mod sequest_outfile;
+/// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
+pub mod spec_array_file;
+/// X! Tandem input (configuration) files (`XTandemInfile.h`).
+pub mod xtandem_infile;
+/// X! Tandem XML result files (`XTandemXMLFile.h`).
+#[cfg(feature = "idxml")]
+pub mod xtandem_xml_file;
