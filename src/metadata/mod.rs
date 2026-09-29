@@ -25,3 +25,25 @@ pub use experiment_values::*;
 
 mod experimental_settings;
 pub use experimental_settings::*;
+
+/// Scan numbers from spectrum native IDs (`METADATA/SpectrumNativeIDParser.h`).
+pub mod spectrum_native_id_parser;
+
+/// Universal Spectrum Identifiers (`METADATA/USI.h`).
+pub mod usi;
+
+/// Unique integer indices for metadata names (`METADATA/MetaInfoRegistry.h`).
+pub mod meta_info_registry;
+
+/// The index-keyed `MetaInfo`/`MetaInfoInterface` members over a caller-owned
+/// registry (`METADATA/MetaInfo.h`, `METADATA/MetaInfoInterface.h`).
+pub mod meta_info_indexed;
+
+/// Named meta information with data processing (`METADATA/MetaInfoDescription.h`).
+pub mod meta_info_description;
+/// Looking up spectra by index, retention time, native ID, scan number or
+/// reference (`METADATA/SpectrumLookup.h`).
+pub mod spectrum_lookup;
+/// Spectrum meta data by lookup, and adding it to identifications
+/// (`METADATA/SpectrumMetaDataLookup.h`).
+pub mod spectrum_meta_data_lookup;

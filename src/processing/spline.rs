@@ -39,3 +39,6 @@ pub use b_spline::{BSpline2d, BoundaryCondition};
 pub use bisection::{SplineFunction, spline_bisection};
 pub use cubic::{CubicSpline2d, CubicSpline2dFitter};
 pub use smoothing::BSplineSmoothingSpline;
+/// The smoothing spline `MultipleTesting::pi0Est` constructs, as a
+/// `math::multiple_testing::Pi0Smoother` (`MultipleTesting.h`).
+pub mod pi0_smoother;

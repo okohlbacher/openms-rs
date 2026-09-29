@@ -11,6 +11,17 @@ the `DriftTimeUnit` names and the `-1` unset sentinel.
 Rust: `src/kernel/spectrum_mobility.rs`. Tests: `tests/spectrum_mobility.rs`.
 Manifest: `tests/data/spectrum_mobility_provenance.json`.
 
+`IONMOBILITY/IMDataArrayUtils.h` itself is `src/kernel/im_data_array_utils.rs`
+(tests: `tests/im_data_array_utils.rs`, both class-test sections):
+`setIMUnit` is `ImDataArrayUtils::set_im_unit`, writing
+`mean ion mobility array` (`MS:1002816`) for milliseconds and
+`raw inverse reduced ion mobility array` (`MS:1003008`) for `1/K0`, and refusing
+every other unit with `Error::InvalidValue` as the source throws
+`Exception::InvalidValue`; `getIMUnit` is `ImDataArrayUtils::im_unit`, returning
+`Option<DriftTimeUnit>` over the rule below (the private `array_unit`, now
+`pub(crate)`). The source's `true`-with-`NONE` answer for a CV child without a
+usable unit is unreachable at the pinned CV, as recorded below.
+
 This work package closes the ion-mobility half of the header. The value type
 itself, its container and search operations, `getType`, the record metadata and
 the range manager were ported by earlier waves and live in `src/kernel.rs`,

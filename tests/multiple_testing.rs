@@ -15,19 +15,21 @@
 //!
 //! Where a value can be derived, it is, and the comment says so.
 //!
-//! The smoothing spline that `pi0_est` needs is supplied here, through
-//! `Pi0Smoother`, by the crate's port of `BSplineSmoothingSpline`. That is the
-//! seam `src/math/multiple_testing.rs` describes: `math` may not depend on
-//! `processing`, so the composition happens in this test and in whatever
-//! caller assembles the two. Reproducing the class test's pi0 literals through
-//! it is what shows the seam carries the source's behaviour.
+//! The smoothing spline that `pi0_est` needs is supplied, through
+//! `Pi0Smoother`, by `processing::spline::pi0_smoother::SplinePi0Smoother`, the
+//! library adapter over the crate's port of `BSplineSmoothingSpline`. That is
+//! the seam `src/math/multiple_testing.rs` describes: `math` may not depend on
+//! `processing`, so the composition happens one layer up. Reproducing the class
+//! test's pi0 literals through it, and through `pi0_est_smoothed` with the
+//! source's own argument lists, is what shows the seam carries the source's
+//! behaviour.
 
 use openms::Error;
 use openms::math::multiple_testing::{
-    DEFAULT_SMOOTH_DF, LfdrOptions, LfdrTransform, Pi0Method, Pi0Smoother, compute_model_fdr, lfdr,
-    p_emp, p_norm, pi0_est, q_value,
+    DEFAULT_SMOOTH_DF, LfdrOptions, LfdrTransform, Pi0Method, compute_model_fdr, lfdr, p_emp,
+    p_norm, pi0_est, q_value,
 };
-use openms::processing::spline::smoothing::BSplineSmoothingSpline;
+use openms::processing::spline::pi0_smoother::{SplinePi0Smoother, pi0_est_smoothed};
 use std::path::{Path, PathBuf};
 
 fn data(name: &str) -> PathBuf {
@@ -45,17 +47,10 @@ fn similar(actual: f64, expected: f64) {
     );
 }
 
-/// The source's `BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df)` followed
-/// by `spl.eval(max_lambda)`, with `!spl.ok()` mapped to `None`.
-struct BSplineSmoother;
-
-impl Pi0Smoother for BSplineSmoother {
-    fn smooth_eval(&self, x: &[f64], y: &[f64], smooth_df: i32, at: f64) -> Option<f64> {
-        BSplineSmoothingSpline::with_smoothing(x, y, -1.0, smooth_df)
-            .ok()
-            .and_then(|spline| spline.eval(at).ok())
-    }
-}
+/// The library's `Pi0Smoother`: the source's
+/// `BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df)` followed by
+/// `spl.eval(max_lambda)`, with `!spl.ok()` mapped to `None`.
+const BSPLINE_SMOOTHER: SplinePi0Smoother = SplinePi0Smoother;
 
 fn read_column(path: &Path, column: usize) -> Vec<f64> {
     let text = std::fs::read_to_string(path).unwrap();
@@ -347,7 +342,7 @@ fn section_pi0_est_pyprophet_checks() {
         Pi0Method::Smoother,
         DEFAULT_SMOOTH_DF,
         false,
-        Some(&BSplineSmoother),
+        Some(&BSPLINE_SMOOTHER),
     )
     .unwrap();
     similar(smoothed.pi0, 0.6685638);
@@ -370,7 +365,7 @@ fn section_pi0_est_pyprophet_checks() {
         Pi0Method::Smoother,
         DEFAULT_SMOOTH_DF,
         true,
-        Some(&BSplineSmoother),
+        Some(&BSPLINE_SMOOTHER),
     )
     .unwrap();
     similar(log_smoothed.pi0, 0.6658949);
@@ -425,6 +420,35 @@ fn section_pi0_est_pyprophet_checks() {
             .iter()
             .any(|v| v.min(1.0) == bootstrap.pi0)
     );
+}
+
+// L244-255, the same three calls with the source's own argument lists: the
+// library entry point constructs the spline itself, as `pi0Est` does.
+#[test]
+fn section_pi0_est_pyprophet_checks_through_the_source_signature() {
+    let mut p = read_column(&data("test_lfdr_ref_data.csv"), 0);
+    p.sort_by(f64::total_cmp);
+
+    // `pi0Est(pvec, std::vector<double>{0.4})`
+    let res1 = pi0_est_smoothed(&p, &[0.4], Pi0Method::Smoother, DEFAULT_SMOOTH_DF, false).unwrap();
+    similar(res1.pi0, 0.697161);
+
+    // `pi0Est(pvec)`: every default, which is the call a `None` smoother cannot make.
+    let res2 = pi0_est_smoothed(&p, &[], Pi0Method::Smoother, DEFAULT_SMOOTH_DF, false).unwrap();
+    similar(res2.pi0, 0.6685638);
+    assert!(res2.pi0_smooth);
+
+    // `pi0Est(pvec, lambda_v, "smoother", 3, true)`
+    let mut lambda = Vec::new();
+    let mut l = 0.4;
+    while l < 1.0 - 1e-12 {
+        lambda.push(l);
+        l += 0.05;
+    }
+    let method = Pi0Method::parse("smoother").unwrap();
+    let res3 = pi0_est_smoothed(&p, &lambda, method, 3, true).unwrap();
+    similar(res3.pi0, 0.6658949);
+    assert!(res3.pi0_smooth);
 }
 
 // L248 double bwNrd0(const std::vector<double>&)
@@ -546,7 +570,7 @@ fn section_pi0_est_clipped_to_one() {
         Pi0Method::Smoother,
         DEFAULT_SMOOTH_DF,
         false,
-        Some(&BSplineSmoother),
+        Some(&BSPLINE_SMOOTHER),
     )
     .unwrap();
     assert_eq!(result.pi0, 1.0);

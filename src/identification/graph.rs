@@ -29,6 +29,7 @@ mod converter;
 pub use converter::{IdentificationDataConverter, SequenceRecord};
 mod cleanup;
 pub use cleanup::{CleanupOptions, CleanupReport};
+mod apply;
 
 pub const MAX_GRAPH_RECORDS: usize = 100_000;
 pub const MAX_GRAPH_EDGES: usize = 1_000_000;
@@ -945,9 +946,22 @@ update_result!(
     set_observation_match_meta_value
 );
 
-/// Explicit translation; a missing source ID is always an error.
+/// Old-to-new ID tables returned by [`IdentificationData::merge_from`] and
+/// [`IdentificationData::try_clone_with_translation`] (`RefTranslator`).
+///
+/// A missing source ID is an error, except in the two lookups the source's
+/// `allow_missing` flag governs: with [`allow_missing`](Self::allow_missing)
+/// set, [`molecule`](Self::molecule) and
+/// [`observation_match`](Self::observation_match) return the old ID unchanged
+/// (`IdentificationData.cpp:1387` and `:1396` at core bc9cc12). Every other
+/// table is a plain `std::map` in the source, read with `find` or `at`, so its
+/// lookup stays an error whatever the flag says.
 #[derive(Clone, Debug, Default)]
 pub struct ReferenceTranslator {
+    /// `allow_missing`, default `false`: return an untranslated molecule or
+    /// observation-match ID as it is instead of refusing it. The graph's own
+    /// merge never sets it.
+    pub allow_missing: bool,
     inputs: BTreeMap<InputFileId, InputFileId>,
     scores: BTreeMap<ScoreTypeId, ScoreTypeId>,
     softwares: BTreeMap<ProcessingSoftwareId, ProcessingSoftwareId>,
@@ -976,11 +990,22 @@ translate! {
     steps,ProcessingStepId,processing_step;parents,ParentId,parent;
     peptides,PeptideId,peptide;oligos,OligoId,oligo;
     observations,ObservationId,observation;compounds,CompoundId,compound;
-    adducts,AdductId,adduct;observation_matches,ObservationMatchId,observation_match;
+    adducts,AdductId,adduct;
     parent_group_sets,ParentGroupSetId,parent_group_set;
     observation_match_groups,ObservationMatchGroupId,observation_match_group;
 }
 impl ReferenceTranslator {
+    /// `translate(ObservationMatchRef)`: the new ID of a merged observation
+    /// match. With [`allow_missing`](Self::allow_missing) an unknown ID is
+    /// returned unchanged; otherwise it is an error (the source's
+    /// `MissingInformation`).
+    pub fn observation_match(&self, id: ObservationMatchId) -> Result<ObservationMatchId> {
+        match self.observation_matches.get(&id) {
+            Some(&new) => Ok(new),
+            None if self.allow_missing => Ok(id),
+            None => Err(invalid("no translation for identification graph ID")),
+        }
+    }
     fn result(&self, result: &mut ScoredProcessingResult) -> Result<()> {
         for step in &mut result.steps_and_scores {
             step.processing_step = step
@@ -1535,12 +1560,23 @@ fn observation_match_edges(value: &ObservationMatch) -> Result<usize> {
     )
 }
 impl ReferenceTranslator {
+    /// `translate(IdentifiedMolecule)`: the new ID of a merged peptide,
+    /// compound or oligonucleotide, looked up in the table of its own kind.
+    /// With [`allow_missing`](Self::allow_missing) an unknown ID is returned
+    /// unchanged; otherwise it is an error (the source's `MissingInformation`).
+    /// The source's `InvalidValue` branch for an unknown molecule type has no
+    /// counterpart, because the enum admits only the three kinds.
     pub fn molecule(&self, value: IdentifiedMolecule) -> Result<IdentifiedMolecule> {
-        Ok(match value {
-            IdentifiedMolecule::Peptide(id) => self.peptide(id)?.into(),
-            IdentifiedMolecule::Compound(id) => self.compound(id)?.into(),
-            IdentifiedMolecule::Oligo(id) => self.oligo(id)?.into(),
-        })
+        let found: Option<IdentifiedMolecule> = match value {
+            IdentifiedMolecule::Peptide(id) => self.peptides.get(&id).map(|&new| new.into()),
+            IdentifiedMolecule::Compound(id) => self.compounds.get(&id).map(|&new| new.into()),
+            IdentifiedMolecule::Oligo(id) => self.oligos.get(&id).map(|&new| new.into()),
+        };
+        match found {
+            Some(new) => Ok(new),
+            None if self.allow_missing => Ok(value),
+            None => Err(invalid("no translation for identification graph ID")),
+        }
     }
 }
 impl IdentificationData {

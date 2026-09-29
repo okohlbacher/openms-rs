@@ -269,7 +269,7 @@ pub struct ExperimentRanges {
 }
 
 /// Spectrum representation. No automatic profile/centroid inference is made.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum SpectrumType {
     #[default]
     Unknown,
@@ -1419,3 +1419,6 @@ impl fmt::Display for MSExperiment {
         writeln!(formatter, "-- MSEXPERIMENT END --")
     }
 }
+
+/// Ion-mobility float data array names and units (`IONMOBILITY/IMDataArrayUtils.h`).
+pub mod im_data_array_utils;

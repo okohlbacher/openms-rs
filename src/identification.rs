@@ -1154,3 +1154,7 @@ fn consensus_map_ids(
         .flat_map(|feature| feature.base.peptide_identifications.iter())
         .chain(unassigned)
 }
+
+/// Comparators, hashes and stream output of peptide and protein hits
+/// (`METADATA/PeptideHit.h`, `METADATA/ProteinHit.h`).
+pub mod hits;

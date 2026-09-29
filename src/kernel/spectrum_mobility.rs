@@ -99,7 +99,7 @@ const CV_IM_ARRAYS: [(&str, DriftTimeUnit); 9] = [
 /// exact PSI-MS term first, then the two inverse-reduced `UserParam` prefixes,
 /// then the generic `"Ion Mobility"` prefix whose embedded accession decides
 /// between `1/K0`, CCS and milliseconds.
-fn array_unit(name: &str) -> Option<DriftTimeUnit> {
+pub(crate) fn array_unit(name: &str) -> Option<DriftTimeUnit> {
     if let Some(&(_, unit)) = CV_IM_ARRAYS.iter().find(|(term, _)| *term == name) {
         return Some(unit);
     }

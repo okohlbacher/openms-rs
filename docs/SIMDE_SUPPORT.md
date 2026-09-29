@@ -96,3 +96,20 @@ the SIMDe arch macros. That function, its tests and
 port, which was delivered separately and is unchanged by this package; it
 reports a SIMD level rather than providing SIMD portability, and it is named
 here only so a reader looking for "where did the SIMD level go" finds it.
+
+## The code that includes it
+
+A 2026-09-28 re-read (lane A5b) confirmed the decision above and adds where the
+SIMD the header makes portable is actually used at bc9cc12, so a reader can see
+that none of it leaves a behavioural gap. Each consumer computes something the
+Rust port computes without SIMD, and the result does not depend on the
+instruction set:
+
+| Consumer at bc9cc12 | What its SIMD code does | Where the port does the same work |
+|---|---|---|
+| `FORMAT/Base64.cpp` | 128-bit masks to split and join Base64 sextets | the `base64` crate (`=0.22.1`, behind `numpress`, which `mzml` enables) in the mzML, mzXML, mzData, imzML and numpress codecs |
+| `DATASTRUCTURES/StringUtils.cpp:450-498` | find the first or last byte that is, or is not, space, tab, newline or carriage return, 16 bytes at a time | byte-wise scans in the text parsers |
+| `FORMAT/HANDLERS/StringManager.cpp:147-207` | Xerces UTF-16 helpers: find the terminating zero, test eight units for ASCII, pack them into bytes | nothing to do: there is no UTF-16 layer, `quick-xml` yields UTF-8 |
+
+The ledger question stays open for the lead: the schema has no status for "no
+API to port", so the header remains `evidence_requires_review`.

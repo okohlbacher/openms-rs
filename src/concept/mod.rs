@@ -44,3 +44,6 @@ pub mod unique_id_indexer;
 /// Release version of the library and its parsed form, from
 /// `CONCEPT/VersionInfo.h`.
 pub mod version_info;
+
+/// `StringUtils::toInt32`/`toDouble` for the layers below `cli`.
+pub(crate) mod string_conversion;

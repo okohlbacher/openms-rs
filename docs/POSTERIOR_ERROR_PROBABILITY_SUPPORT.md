@@ -4,15 +4,22 @@
 provides a native equivalent for the **numerical** surface of core SDK
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4`
 `MATH/STATISTICS/PosteriorErrorProbabilityModel.h` and
-`source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp`. **Five public
-members** of the header are not ported here — `extractAndTransformScores`
-(`:72`), `updateScores` (`:95`), `initPlots` (`:216`),
-`plotTargetDecoyEstimation` (`:228`) and `tryGnuplot` (`:237`), the last public
-member before `private:` at `:239` — together with the two private helpers of
-the first pair, `transformScore_` (`:247`) and `getScore_` (`:253`). Each is
-named below with its reason.
+`source/MATH/STATISTICS/PosteriorErrorProbabilityModel.cpp`. The
+identification-facing members `extractAndTransformScores` (`:72`) and
+`updateScores` (`:95`), with their private helpers `transformScore_` (`:247`)
+and `getScore_` (`:253`), are ported in
+[`src/analysis/id/posterior_error_probability_scores.rs`](../src/analysis/id/posterior_error_probability_scores.rs)
+(lane A5b), because `math` may not depend on `identification`. **Three public
+members** are not ported: `initPlots` (`:216`), `plotTargetDecoyEstimation`
+(`:228`) and `tryGnuplot` (`:237`), the last public member before `private:` at
+`:239`. Each is named below with its reason.
 
-Tests: [`tests/posterior_error_probability.rs`](../tests/posterior_error_probability.rs).
+Tests: [`tests/posterior_error_probability.rs`](../tests/posterior_error_probability.rs),
+and for the identification-facing members
+[`tests/posterior_error_probability_scores.rs`](../tests/posterior_error_probability_scores.rs)
+(no class-test section exists for them; expected values are derived from
+`PosteriorErrorProbabilityModel.cpp:874-1164`, or are the invariant that an
+updated score is `computeProbability` of the transformed score).
 Manifest: [`tests/data/math_kde_provenance.json`](../tests/data/math_kde_provenance.json).
 The component fitters are [`DISTRIBUTION_FITTERS_SUPPORT.md`](DISTRIBUTION_FITTERS_SUPPORT.md).
 
@@ -47,16 +54,16 @@ Every public member of the header appears here.
 | `const std::string getBothGnuplotFormula(const GaussFitter::GaussFitResult&, const GaussFitter::GaussFitResult&) const` | `both_gnuplot_formula(GaussFitResult, GaussFitResult) -> String`; reads the negative-formula selector, so it stays a method |
 | `getNegativeGnuplotFormula_` / `getPositiveGnuplotFormula_` member function pointers | `NegativeFormula` plus `negative_formula()`; the positive pointer is always the Gaussian and needs no field |
 | private `void processOutliers_(std::vector<double>&, const std::string&) const` | private `process_outliers`, driven by `OutlierHandling` |
-| `static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(...)` | **not ported**: needs `ProteinIdentification`, `PeptideIdentificationList`, `PeptideHit` from the crate's `metadata` and `identification` modules |
-| `static void updateScores(...)` | **not ported**: same dependencies |
-| private `static double transformScore_(...)`, `static double getScore_(...)` | **not ported**: helpers of the two above |
+| `static std::map<std::string, std::vector<std::vector<double>>> extractAndTransformScores(...)` | `analysis::id::posterior_error_probability_scores::extract_and_transform_scores -> Result<EngineScores>` (`BTreeMap<String, Vec<Vec<f64>>>`, all/target/decoy). The source's engine list is `SEARCH_ENGINES`; `tide-search` and the three ConsensusID names are listed there but have no transformation, so a run of theirs is an error, as the source's `UnableToFit` |
+| `static void updateScores(model, engine, charge, prob_correct, split_charge, protein_ids, peptide_ids, bool& unable_to_fit_data, bool& data_might_not_be_well_fit)` | `update_scores(&model, engine, charge, prob_correct, split_charge, &[ProteinIdentification], &mut [PeptideIdentification]) -> Result<ScoreUpdate>`; the two out-flags are the returned struct. `compute_probability` refuses a non-finite transformed score (an E-value of 0 gives `+inf`), where the source returns the limiting probability: documented divergence |
+| private `static double transformScore_(...)`, `static double getScore_(...)` | public `transform_score`, `get_score` (`UnableToFit` and `ConversionError` become `Error::InvalidValue`; the source's `std::cout` of the score type is folded into the message) |
 | `TextFile initPlots(std::vector<double>&)` | **not ported**: returns `FORMAT/TextFile` and writes a `.txt` beside it |
 | `void plotTargetDecoyEstimation(std::vector<double>&, std::vector<double>&)` | **not ported**: writes two files and shells out |
 | `void tryGnuplot(const std::string&)` | **not ported**: calls `system("gnuplot ...")` |
 | Not in source but added | `MAX_ITEMS`, `SCORE_SHIFT`, `PepParameters`, `IncorrectComponent`, `OutlierHandling`, `NegativeFormula` |
 
-The five unported public members, and the two private helpers that serve them,
-are all identification-, file- or process-facing.
+The identification-facing pair now lives in `analysis::id` (see above). The
+three unported public members are file- or process-facing.
 `tools/check_module_cycles.py` freezes the crate's cross-module edge set and
 `math` reaches no other top-level module today; `extractAndTransformScores` and
 `updateScores` would need `metadata` and `identification`, `initPlots` and

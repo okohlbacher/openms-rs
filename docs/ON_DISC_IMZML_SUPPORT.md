@@ -34,14 +34,13 @@ itself is the header-only template `Internal::extractIonImage` in
 this module reproduces them as `ImagingGeometry`, `ImagingRegion` and
 `IonImage`.
 
-That is **not** a claim on those headers. Their own class tests —
-`MSImagingGeometry_test.cpp`, `MSImagingRegion_test.cpp`, `IonImage_test.cpp` —
-were read, and the behaviours the façade depends on are checked here, but the
-suites were not ported section by section and `IMAGING/MSImagingExperiment.h`,
-the in-memory counterpart that shares the geometry, is entirely unported. A
-later IMAGING work package owns those four headers and may replace these types;
-the mapping tables below record exactly how much of each was reproduced, so it
-knows what it is inheriting.
+Since lane A5b (wave 4) these types **are** the ports of
+`IMAGING/MSImagingGeometry.h`, `IMAGING/MSImagingRegion.h` and `IMAGING/IonImage.h`:
+their class tests are ported section by section, with unchanged literals, in
+[`tests/imaging_types.rs`](../tests/imaging_types.rs), and `ImagingRegion` gained the
+source's public implicit default constructor (`MSImagingRegion r {};`) as `Default`.
+`IMAGING/MSImagingExperiment.h`, the in-memory counterpart that shares the
+geometry, and `IMAGING/IonImageExtraction.h` remain unported.
 
 ## API mapping — `KERNEL/OnDiscImzMLExperiment.h`
 
@@ -458,11 +457,9 @@ accounted for below — 17 ported, 2 partial, 3 not ported. None is unaccounted.
 
 ## Deferred
 
-- **`IMAGING/MSImagingGeometry.h`, `IMAGING/MSImagingRegion.h`,
-  `IMAGING/IonImage.h` and `IMAGING/IonImageExtraction.h`** stay unowned. The
-  tables above record exactly which members were reproduced here and why; their
-  class tests were read but not ported section by section, and the ledger status
-  for them is untouched.
+- **`IMAGING/IonImageExtraction.h`** stays unowned; the tables above record
+  which members were reproduced here. (`MSImagingGeometry.h`,
+  `MSImagingRegion.h` and `IonImage.h` are complete; see the scope section.)
 - **`IMAGING/MSImagingExperiment.h`**, the in-memory counterpart that shares the
   geometry, is unported, as is the `buildImagingGeometry(const MSExperiment&, …)`
   overload that serves it. Porting it should also restore the shared generic
