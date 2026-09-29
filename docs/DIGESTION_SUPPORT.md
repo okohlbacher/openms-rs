@@ -218,6 +218,38 @@ source behaviour.
   with the N-terminal allowance. Explicit range-counting operations reject such
   ranges. No pointer indexing precedes boundary validation.
 
+### Leading cleavage site
+
+Asp-N `(?=[DBX])`, Asp-N_ambic `(?=[DBEZX])` and Lys-N `(?=[KX])` are
+lookahead-only (`share/OpenMS/CHEMISTRY/Enzymes.xml:43`, `:67`, `:135` at core
+`bc9cc12`), so on a protein or peptide that starts with one of those residues
+the expression matches with zero width at position 0. The source's
+`EnzymaticDigestion::tokenize_` (`EnzymaticDigestion.cpp:92-116`) then yields
+position 0 twice. On the Linux Release build
+(`../oracle/integ-B-digest-leading`, ibminode06, two identical runs; retained in
+`tests/data/digestion_leading_site_oracle.tsv`) this has these effects, and the
+port, which keeps each boundary once, differs from the source exactly there:
+
+- `countInternalCleavageSites` counts one more site than
+  `count_internal_cleavage_sites` (`DFPIANGER` under Asp-N_ambic: 2 in the
+  source, 1 here). IDFilter's `PeptideDigestionFilter` reproduces the source's
+  count through a crate-private `Protease::source_token_cleavage_count`.
+- Fully specific `digest` discards one empty product and, with missed cleavages
+  allowed, repeats the first product as a missed-cleavage product (`DFPIANGER`,
+  Asp-N, one missed cleavage: `0-9, 0-9` in the source). The port returns the
+  source's list with the repeats removed, in the source's order.
+- Semi-specific `digest` also loses products the source's own `isValidProduct`
+  accepts (`DFPIANGER`, Asp-N, no missed cleavage: `1-9` ... `8-9` are missing).
+  The port returns exactly the ranges `isValidProduct` accepts, as it does for
+  every other input.
+- `peptideCount` counts the discarded empty product and the repeats.
+
+`isValidProduct` is not affected (it counts only sites strictly inside a
+product), and the port matches all 17,376 of its oracle answers. Without a
+leading site the port matches every oracle record (`countInternalCleavageSites`,
+both digest paths in order, fully specific `peptideCount`).
+`tests/digestion_leading_site.rs` asserts all of this.
+
 ## Resource limits and remaining capabilities
 
 Input sequences are limited to 1,000,000 residues. Defaults permit at most
