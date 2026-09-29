@@ -202,9 +202,9 @@ impl FileHandler {
     ///
     /// Returns [`Error::InvalidValue`] for a non-UTF-8 path, and the I/O error
     /// when content recognition cannot open or read the file, where the source
-    /// throws `Exception::FileNotFound`. A gzip or bzip2 input without the
-    /// `file-compression` feature, or a ZIP container, is
-    /// [`Error::Unsupported`]; the source looks inside all three.
+    /// throws `Exception::FileNotFound`. Gzip, bzip2 and single-file ZIP
+    /// containers are looked inside, as the source does; without the
+    /// `file-compression` feature they are [`Error::Unsupported`].
     pub fn get_type(path: impl AsRef<Path>) -> Result<FileType> {
         let normalized = filename(path.as_ref())?.trim_end_matches(['/', '\\']);
         let kind = type_by_file_name(normalized);
