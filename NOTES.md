@@ -50,3 +50,10 @@ src/analysis/openswath.rs.
   ChromExtractParams/OpenSwathWorkflow, spectrum access) -> untouched.
 - Next: MRMAssay heavy API (src/analysis/openswath/mrm_assay.rs), then docs
   (docs/MRM_ASSAY_SUPPORT.md), provenance, doc coverage, report + ledger.
+- Oracle ../oracle/O1c-assays (ibminode06, Release bc9cc12-c19e494-174b576):
+  fixtures in tests/data/mrm_assay/oracle, test tests/mrm_assay_oracle.rs.
+  All cases match exactly except decoy precursor m/z (1 ulp, unrounded
+  getMZ + shift); added oracle case decoy_masses to pin the residue-level
+  cause. Found C++ defect: static formula-loss cache (now FormulaLossParsing).
+- Remaining: resolve decoy ulp, docs/MRM_ASSAY_SUPPORT.md, provenance json,
+  doc coverage, clippy/doc/MSRV gates, CI slices, report + ledger, delete NOTES.
