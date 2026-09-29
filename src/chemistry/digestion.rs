@@ -194,23 +194,17 @@ impl Protease {
     /// `filterByMissedCleavages` sees it: the number of tokens its
     /// Boost `sregex_token_iterator` split yields, minus one, cast to `Int`.
     ///
-    /// Two source effects make this differ from
-    /// [`Self::count_internal_cleavage_sites`]: a zero-width match at
-    /// position 0 (a lookahead-only rule such as Asp-N or Lys-N on a peptide
-    /// that starts with D or K) produces an empty leading token and counts as
-    /// one more site, and `no cleavage` (expression `()`) is never split, so
-    /// `size() - 1` wraps and becomes -1. A match at the end adds no trailing
-    /// token. The executed C++ oracle behind `tests/id_filter_oracle.rs`
-    /// checks both.
+    /// It differs from [`Self::count_internal_cleavage_sites`] in one case: a
+    /// zero-width match at position 0 (a lookahead-only rule such as Asp-N or
+    /// Lys-N on a peptide that starts with D or K) produces an empty leading
+    /// token and counts as one more site. A match at the end adds no trailing
+    /// token, and `no cleavage` is not split at all (one token, count 0). The
+    /// executed C++ oracle behind `tests/id_filter_oracle.rs` checks this.
     ///
     /// # Errors
     ///
     /// As [`Protease::cleavage_sites`].
     pub(crate) fn source_token_cleavage_count(self, sequence: &str) -> Result<i64> {
-        if self == Self::NoCleavage {
-            validate_sequence(sequence)?;
-            return Ok(-1);
-        }
         let internal = self.count_internal_cleavage_sites(sequence)?;
         let leading = match self.metadata().rule {
             CleavageRule::Boundary {

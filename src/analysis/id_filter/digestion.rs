@@ -47,9 +47,8 @@ impl<'a> PeptideDigestionFilter<'a> {
     ///
     /// This is the source's token count, not
     /// [`ProteaseDigestion::count_internal_cleavage_sites`]: a peptide that
-    /// starts at a lookahead-only site (Asp-N, Lys-N) counts one more, and the
-    /// enzyme `no cleavage` yields -1, so a minimum bound of 0 removes every
-    /// hit under it.
+    /// starts at a lookahead-only site (Asp-N, Lys-N) counts one more missed
+    /// cleavage.
     fn missed_cleavages(&self, sequence: &str) -> Result<i64> {
         self.digestion.enzyme.source_token_cleavage_count(sequence)
     }
@@ -144,6 +143,15 @@ impl<'a> DigestionFilter<'a> {
         }
         let entry = self.accession_resolver.value(evidence)?;
         let protein: AASequence = entry.sequence.parse()?;
+        // Source `isValidProduct_` applies the methionine allowance before its
+        // bounds and emptiness checks, so `start..end` with start <= 2 becomes
+        // `0..end` even when it was empty; the native `is_valid_product`
+        // rejects the empty range first, so the source order is applied here.
+        let start = if self.methionine_cleavage && start <= 2 && protein.as_str().starts_with('M') {
+            0
+        } else {
+            start
+        };
         self.digestion.is_valid_product(
             &protein,
             start..end,
