@@ -1,0 +1,53 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "group": "targeted_spectra_extractor",
+ "work_package": "O4b (wave 4)",
+ "method": "Port of ANALYSIS/OPENSWATH/TargetedSpectraExtractor except searchSpectrum (needs AccurateMassSearchEngine) and storeSpectraMSP (needs the MSP writer; its two preparation steps are ported). The class-test sections that do not need MSP libraries are transcribed with their literals and TEST_REAL_SIMILAR tolerance; the target list is built in the test from the class test's CSV for the fields the class reads.",
+ "evidence_tier": "tier 3 (class-test literals: parameters, pickSpectrum, annotateSpectra both overloads, scoreSpectra both overloads, selectSpectra both overloads, extractSpectra both targeted overloads, mergeFeatures, annotateSpectra with MS1 features, constructTransitionsList, storeSpectraMSP's peak removal); tier 4 (matching with a fixed-score comparator, BinnedSpectrumComparator self-match and option parsing, Rust-only refusals)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h",
+   "sha256": "0b6b87320ac817d1a53272b6e4492af39118c56fd017de3852304580b0c1715f"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.cpp",
+   "sha256": "4741b9888043331b3fc09b4df46753ff55cce2e1378fc4c7acc3fa43afde4cdc"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TargetedSpectraExtractor_test.cpp",
+   "sha256": "c88f0c79c33b626b3805bfcf6de62b908ad021e3bd6d35b6d4b0dd93061881ee"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/openswath/targeted_spectra_extractor.rs"
+ ],
+ "native_tests": [
+  "tests/targeted_spectra_extractor.rs"
+ ],
+ "support_document": "docs/TARGETED_SPECTRA_EXTRACTOR_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/targeted_spectra_extractor/TargetedSpectraExtractor_13C1_spectra0to100.mzML",
+   "sha256": "6dbffeaeb613cd950350d06f53d222dcdffd66a9f5bd0c9720b6dfad285bab21",
+   "bytes": 658015,
+   "kind": "published source fixture",
+   "origin": "src/tests/class_tests/openms/data/TargetedSpectraExtractor_13C1_spectra0to100.mzML",
+   "role": "The class test's experiment (100 spectra)"
+  },
+  {
+   "path": "tests/data/targeted_spectra_extractor/TargetedSpectraExtractor_13CFlux_TraML.csv",
+   "sha256": "e6775661c2227f4290712e66fbb3c254d5d5d4891aa307f3cc092cf2cb8a4114",
+   "bytes": 32655,
+   "kind": "published source fixture",
+   "origin": "src/tests/class_tests/openms/data/TargetedSpectraExtractor_13CFlux_TraML.csv",
+   "role": "The class test's target list; the test builds the equivalent TargetedExperiment from it (TransitionTSVFile is not ported)"
+  }
+ ],
+ "class_test_review": {
+  "path": "src/tests/class_tests/openms/source/TargetedSpectraExtractor_test.cpp",
+  "comparison": "TEST_EQUAL exact; TEST_REAL_SIMILAR as isRealSimilar with absdiff 1e-5 and ratio 1 + 1e-5.",
+  "not_transcribed": "matchSpectrum, targetedMatching, untargetedMatching and the MS1-feature extractSpectra section load MSP files through MSPGenericFile; the searchSpectrum section runs AccurateMassSearchEngine; storeSpectraMSP's file round trip needs MSPGenericFile::store."
+ }
+}
