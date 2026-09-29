@@ -7,18 +7,6 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
-/// `IncludeExcludeTarget`: an inclusion or exclusion target of a targeted experiment.
-pub mod include_exclude_target;
-/// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
-pub mod metabo_targeted_target_decoy;
-/// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
-pub mod mrm_mapping;
-/// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
-pub mod reaction_monitoring_transition;
-/// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).
-pub mod targeted_experiment;
-/// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
-pub mod targeted_experiment_helper;
 /// `TransitionPQPFile`: read and write PQP (SQLite) transition libraries.
 #[cfg(feature = "sqlite")]
 pub mod transition_pqp_file;
