@@ -1564,8 +1564,3 @@ pub(crate) fn string_list_at(array: Option<&dyn Array>, row: usize) -> Result<Ve
         .map(|i| text_at(strings, i).to_owned())
         .collect())
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-}
