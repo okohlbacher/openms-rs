@@ -29,8 +29,13 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
   swap MetaInfo; group() restores caller's column headers. All ConsensusMap sorts are stable_sort.
 - FeatureLinkerUnlabeled_1..3 retained outputs exist (topp CMakeLists 2879-2887) -> tier-1 for Unlabeled.
 
+- DONE + green on spock: FeatureDistance, BaseGroupFinder, StablePairFinder, FeatureGroupingAlgorithm, Unlabeled.
+  tests/mapmatching_feature_grouping.rs (14 pass), tests/mapmatching_feature_grouping_topp.rs (3 pass, tier 1:
+  FeatureLinkerUnlabeled uses the INCREMENTAL path setReference/addToGroup/getResultMap + sortByMZ, not group()).
+- docs/CONSENSUS_MAP_NORMALIZER_SUPPORT.md written.
+
 ## Next step
-1. Test FeatureDistance; write BaseGroupFinder (trait+check_ids), StablePairFinder, FeatureGroupingAlgorithm
-   (transfer_subelements, postprocess), FeatureGroupingAlgorithmUnlabeled; tier-1 via FeatureLinkerUnlabeled fixtures.
-2. Then QTClusterFinder + FeatureGroupingAlgorithmQT; then docs (CONSENSUS_MAP_NORMALIZER_SUPPORT.md,
-   FEATURE_GROUPING_SUPPORT.md), provenance json, lane report, ledger fragment.
+1. docs/FEATURE_GROUPING_SUPPORT.md, tests/data/{consensus_map_normalizer,feature_grouping}_provenance.json.
+2. Gates: clippy all-features, doc, +1.85.0 no-default-features, python tools (check_module_cycles, doc coverage).
+3. QTClusterFinder + FeatureGroupingAlgorithmQT (tier 1: FeatureLinkerUnlabeledQT_* retained outputs).
+4. Lane report + ledger fragment; delete NOTES.md in final commit.

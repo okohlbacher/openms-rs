@@ -13,10 +13,14 @@
 //! through `${DIFF} -whitelist "id=" "href="` (FuzzyDiff, `ratio` 1.01,
 //! `absdiff` 0.01). The tool (`FeatureLinkerBase.cpp` at topp revision 174b576)
 //! loads each input, sets the column headers, passes the `algorithm:` section
-//! of its parameters to `FeatureGroupingAlgorithmUnlabeled` and calls
-//! `group(maps, out_map)`; it then assigns fresh unique IDs and sorts
-//! identifications, neither of which changes the order or the values compared
-//! here. The tool is not ported yet; this test runs the same library calls.
+//! of its parameters to `FeatureGroupingAlgorithmUnlabeled` and, for
+//! featureXML input (`FeatureLinkerUnlabeled.cpp`), links incrementally:
+//! `setReference` with the input holding the most features, `addToGroup` for
+//! every other input in order, `getResultMap`, then `sortByMZ`. It then
+//! assigns fresh unique IDs and sorts identifications, neither of which
+//! changes the order or the values compared here. The tool is not ported yet;
+//! this test runs the same library calls. `group` itself is exercised by the
+//! class-test port.
 //!
 //! Compared: the number and order of consensus features, each one's handles
 //! (map index and unique ID, exactly, plus RT, m/z and intensity) and each
@@ -25,8 +29,8 @@
 //! line, so this is stricter than the upstream test. The retained file stores
 //! numbers with six significant digits: a stored value differs from the value
 //! printed by at most a relative 5e-6, which is the tolerance here, plus
-//! one `f32` rounding unit where the value is a `float`. Qualities near zero
-//! are compared with the upstream `absdiff` of 0.01 scaled down to 1e-6.
+//! one `f32` rounding unit where the value is a `float`, plus an absolute
+//! 1e-6 so that a value printed as `0` compares.
 //!
 //! Case 2 sets `distance_intensity:weight` to 0.5, so its result depends on
 //! the normalising maximum intensity, which the source takes from stale
@@ -34,10 +38,8 @@
 
 #![cfg(all(feature = "featurexml", feature = "consensusxml", feature = "paramxml"))]
 
-use openms::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm;
 use openms::analysis::mapmatching::feature_grouping_algorithm_unlabeled::FeatureGroupingAlgorithmUnlabeled;
 use openms::format::{consensusxml, featurexml, paramxml};
-use openms::kernel::features::{ColumnHeader, ConsensusMap};
 
 fn close(actual: f64, expected: f64, relative: f64, what: &str) {
     let bound = relative * expected.abs() + 1e-6;
@@ -59,29 +61,37 @@ fn run_case(case: usize, inputs: usize) {
     let (mut algorithm, _warnings) =
         FeatureGroupingAlgorithmUnlabeled::from_param_with_warnings(&algorithm_param).unwrap();
 
-    let mut out = ConsensusMap::new();
-    let mut maps = Vec::new();
-    for i in 0..inputs {
-        let mut map = featurexml::load(format!(
-            "{dir}/feature_linker_unlabeled_{case}_input{}.featureXML",
-            i + 1
-        ))
-        .unwrap();
-        out.column_headers.insert(
-            i as u64,
-            ColumnHeader {
-                size: map.len(),
-                unique_id: map.unique_id,
-                ..ColumnHeader::default()
-            },
-        );
-        for feature in &mut map.features {
-            feature.subordinates.clear();
-            feature.convex_hulls.clear();
+    // The tool links incrementally: the map with the most features is the
+    // reference (the first of equal ones), every other map is added in input
+    // order, and the raw result is sorted by m/z (stably).
+    let maps: Vec<_> = (0..inputs)
+        .map(|i| {
+            featurexml::load(format!(
+                "{dir}/feature_linker_unlabeled_{case}_input{}.featureXML",
+                i + 1
+            ))
+            .unwrap()
+        })
+        .collect();
+    let mut reference = 0;
+    let mut max_count = 0;
+    for (i, map) in maps.iter().enumerate() {
+        if map.len() > max_count {
+            max_count = map.len();
+            reference = i;
         }
-        maps.push(map);
     }
-    algorithm.group(&maps, &mut out).unwrap();
+    algorithm
+        .set_reference(reference as u64, &maps[reference])
+        .unwrap();
+    for (i, map) in maps.iter().enumerate() {
+        if i != reference {
+            algorithm.add_to_group(i as u64, map).unwrap();
+        }
+    }
+    let mut out = algorithm.result_map().clone();
+    out.features
+        .sort_by(|a, b| a.mz.partial_cmp(&b.mz).unwrap_or(std::cmp::Ordering::Equal));
 
     let expected = consensusxml::load(format!(
         "{dir}/feature_linker_unlabeled_{case}_output.consensusXML"
