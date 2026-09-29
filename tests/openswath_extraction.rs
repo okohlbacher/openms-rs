@@ -91,10 +91,12 @@ fn access(exp: MSExperiment) -> SpectrumAccessOpenMS {
 }
 
 fn spectrum(rt: f64, peaks: &[(f64, f32)], im: Option<&[f32]>) -> MSSpectrum {
-    let mut s = MSSpectrum::default();
-    s.rt = rt;
-    s.ms_level = 2;
-    s.peaks = peaks.iter().map(|&(mz, i)| Peak1D::new(mz, i)).collect();
+    let mut s = MSSpectrum {
+        rt,
+        ms_level: 2,
+        peaks: peaks.iter().map(|&(mz, i)| Peak1D::new(mz, i)).collect(),
+        ..MSSpectrum::default()
+    };
     if let Some(im) = im {
         s.float_data_arrays
             .push(DataArray::new("Ion Mobility", im.to_vec()));
@@ -1054,10 +1056,11 @@ fn orbitrap_maps() -> Vec<SwathMap> {
     ))
     .unwrap();
     let exp = openms::format::mzml::read(bytes.as_slice()).unwrap();
-    let mut map = SwathMap::default();
-    map.sptr = Some(Arc::new(access(exp)));
-    map.ms1 = true;
-    vec![map]
+    vec![SwathMap {
+        sptr: Some(Arc::new(access(exp))),
+        ms1: true,
+        ..SwathMap::default()
+    }]
 }
 
 /// SwathQC_test.cpp: static `getChargeDistribution` over
@@ -1121,13 +1124,17 @@ fn swath_qc_contract() {
     es.metadata
         .insert("nr_ms1_spectra".into(), MetaValue::from("x"));
     qc.apply_experimental_settings(&es).unwrap();
-    let mut ms2 = MSSpectrum::default();
-    ms2.ms_level = 2;
+    let ms2 = MSSpectrum {
+        ms_level: 2,
+        ..MSSpectrum::default()
+    };
     qc.process_spectrum(&ms2).unwrap();
     assert!(qc.charge_distribution().is_empty());
     assert_eq!(qc.to_json(), "{\n  \"ChargeDistributionMS1\": []\n}\n");
-    let mut ms1 = SwathMap::default();
-    ms1.ms1 = true;
+    let ms1 = SwathMap {
+        ms1: true,
+        ..SwathMap::default()
+    };
     assert!(matches!(
         SwathQC::charge_distribution_of_maps(&[ms1], 1, 0.04),
         Err(Error::MissingInformation(_))
