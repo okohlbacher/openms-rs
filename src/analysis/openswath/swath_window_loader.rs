@@ -29,7 +29,7 @@
 //! unchanged, so it repeats the previous row, or reads uninitialised values
 //! when it is the first row (an empty or header-only file). A row with one
 //! column repeats the previous upper bound. The port refuses all of these with
-//! [`Error::Parse`] instead of inventing a window. Only the first two columns
+//! [`Error::Parse`](crate::Error::Parse) instead of inventing a window. Only the first two columns
 //! are read; further columns are ignored, as in the source.
 
 use super::swath_map::SwathMap;

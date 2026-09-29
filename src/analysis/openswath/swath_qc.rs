@@ -5,16 +5,16 @@
 //! Quality control for OpenSWATH: the MS1 charge-state distribution.
 //!
 //! Ports `ANALYSIS/OPENSWATH/SwathQC.h` with `SwathQC.cpp` (namespace
-//! `OpenSwath`). A [`SwathQC`] collects information while spectra stream past,
+//! `OpenSwath`). A [`SwathQC`](crate::analysis::openswath::swath_qc::SwathQC) collects information while spectra stream past,
 //! as a plugin of a transforming data consumer; when the data are already in
-//! memory, [`SwathQC::charge_distribution_of_maps`] does the same in one call.
+//! memory, [`SwathQC::charge_distribution_of_maps`](crate::analysis::openswath::swath_qc::SwathQC::charge_distribution_of_maps) does the same in one call.
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXTRACTION_SUPPORT.md).
 //!
 //! The source hands out two lambdas that capture `this`
 //! (`getExpSettingsFunc`, `getSpectraProcessingFunc`) for a consumer's
 //! callbacks. Their bodies are the methods
-//! [`SwathQC::apply_experimental_settings`] and [`SwathQC::process_spectrum`];
-//! [`SwathQC::exp_settings_func`] and [`SwathQC::spectra_processing_func`]
+//! [`SwathQC::apply_experimental_settings`](crate::analysis::openswath::swath_qc::SwathQC::apply_experimental_settings) and [`SwathQC::process_spectrum`](crate::analysis::openswath::swath_qc::SwathQC::process_spectrum);
+//! [`SwathQC::exp_settings_func`](crate::analysis::openswath::swath_qc::SwathQC::exp_settings_func) and [`SwathQC::spectra_processing_func`](crate::analysis::openswath::swath_qc::SwathQC::spectra_processing_func)
 //! return closures over them, which borrow the collector mutably for as long
 //! as they live.
 

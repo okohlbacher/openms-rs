@@ -10,13 +10,13 @@
 //! `ChromatogramExtractor.cpp`. The class extracts chromatographic traces
 //! (intensity against retention time) at given m/z, RT and optionally ion
 //! mobility coordinates, for MS1 (precursor) and MS2 (fragment, SWATH/DIA)
-//! extraction. [`prepare_coordinates`] derives the coordinates from a
-//! [`LightTargetedExperiment`]; callers holding a heavyweight
+//! extraction. [`prepare_coordinates`](crate::analysis::openswath::chromatogram_extractor::prepare_coordinates) derives the coordinates from a
+//! [`LightTargetedExperiment`](crate::analysis::openswath::transition_experiment::LightTargetedExperiment); callers holding a heavyweight
 //! `TargetedExperiment` convert it first, as the source's
 //! `OpenSwathDataAccessHelper::convertTargetedExp` does.
-//! [`ChromatogramExtractor::extract_chromatograms`] runs
-//! [`ChromatogramExtractorAlgorithm`], and [`return_chromatogram`] turns the
-//! light results into annotated [`MSChromatogram`]s. See
+//! [`ChromatogramExtractor::extract_chromatograms`](crate::analysis::openswath::chromatogram_extractor::ChromatogramExtractor::extract_chromatograms) runs
+//! [`ChromatogramExtractorAlgorithm`](crate::analysis::openswath::chromatogram_extractor_algorithm::ChromatogramExtractorAlgorithm), and [`return_chromatogram`](crate::analysis::openswath::chromatogram_extractor::return_chromatogram) turns the
+//! light results into annotated [`MSChromatogram`](crate::kernel::MSChromatogram)s. See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXTRACTION_SUPPORT.md).
 //!
 //! Not ported: the `return_chromatogram` instantiation over the heavyweight

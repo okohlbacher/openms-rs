@@ -12,10 +12,10 @@
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXTRACTION_SUPPORT.md).
 //!
 //! Ported: the parameters (`DefaultParamHandler` becomes
-//! [`SwathMapMassCorrection::defaults`], [`SwathMapMassCorrection::from_param`]
-//! and [`SwathMapMassCorrection::to_param`]), the estimated-window accessors,
-//! [`SwathMapMassCorrection::estimate_window`] and
-//! [`SwathMapMassCorrection::find_swath_maps_pasef`].
+//! [`SwathMapMassCorrection::defaults`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::defaults), [`SwathMapMassCorrection::from_param`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::from_param)
+//! and [`SwathMapMassCorrection::to_param`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::to_param)), the estimated-window accessors,
+//! [`SwathMapMassCorrection::estimate_window`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::estimate_window) and
+//! [`SwathMapMassCorrection::find_swath_maps_pasef`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::find_swath_maps_pasef).
 //!
 //! **Not ported:** `correctMZ` and `correctIM`, which need
 //! `OpenSwathScoring::fetchSpectrumSwath`, `DIAHelpers::createMZRangePPM`

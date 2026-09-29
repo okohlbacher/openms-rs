@@ -36,7 +36,7 @@
 //!
 //! One extraction appends one point per matching spectrum and coordinate. The
 //! product of the spectrum count and the coordinate count is checked against
-//! [`MAX_EXTRACTED_POINTS`] before anything is allocated.
+//! [`MAX_EXTRACTED_POINTS`](crate::analysis::openswath::chromatogram_extractor_algorithm::MAX_EXTRACTED_POINTS) before anything is allocated.
 
 use super::data_structures::Chromatogram;
 use super::spectrum_access::SpectrumAccess;

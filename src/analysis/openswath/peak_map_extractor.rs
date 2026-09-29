@@ -10,7 +10,7 @@
 //! it takes extraction coordinates and applies their RT, m/z and optionally
 //! ion-mobility windows. Unlike chromatogram extraction it keeps every matching
 //! raw point instead of integrating one intensity per spectrum. The output is
-//! one [`ExtractedPeakMap`] per coordinate, with parallel m/z, RT, ion-mobility
+//! one [`ExtractedPeakMap`](crate::analysis::openswath::peak_map_extractor::ExtractedPeakMap) per coordinate, with parallel m/z, RT, ion-mobility
 //! and intensity arrays. See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXTRACTION_SUPPORT.md).
 //!
