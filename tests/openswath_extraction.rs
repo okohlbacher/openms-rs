@@ -13,8 +13,10 @@
 //! (tier 1; see `tests/data/openswath_extraction_provenance.json`).
 
 use openms::Error;
+#[cfg(feature = "mzml")]
+use openms::analysis::openswath::chromatogram_extractor::ChromatogramExtractor;
 use openms::analysis::openswath::chromatogram_extractor::{
-    ChromatogramExtractor, prepare_coordinates, return_chromatogram,
+    prepare_coordinates, return_chromatogram,
 };
 use openms::analysis::openswath::chromatogram_extractor_algorithm::{
     ChromatogramExtractorAlgorithm, ExtractionCoordinates, ExtractionFilter,
@@ -27,7 +29,9 @@ use openms::analysis::openswath::swath_map::SwathMap;
 use openms::analysis::openswath::swath_map_mass_correction::{
     MRMTransitionGroupType, SwathMapMassCorrection,
 };
-use openms::analysis::openswath::swath_qc::{ChargeDistribution, SwathQC};
+#[cfg(feature = "mzml")]
+use openms::analysis::openswath::swath_qc::ChargeDistribution;
+use openms::analysis::openswath::swath_qc::SwathQC;
 use openms::analysis::openswath::swath_window_loader::{
     annotate_swath_maps, annotate_swath_maps_from_file, parse_swath_windows, read_swath_windows,
 };
