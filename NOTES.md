@@ -98,3 +98,7 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
   -> Rust promotes to cvParam MS:1000138 (obo name "normalized collision energy"), C++ checkAndGetTermByName fails ->
   userParam. Oracle ../oracle/F7a-record-cv (FileConverter -process_lowmemory + plain, ibminode06, run.sh pull).
   Added test record_metadata_is_promoted_only_where_the_reader_routes_it_back (tests/ms_data_writing_consumer.rs), ungated yet.
+- inc5 DONE: commit 2d01f7f (percent CE fix, tier-1 test, docs, manifests, ledger updated for MzMLHandler+WritingConsumer).
+  gate11 green: ms_data_writing_consumer 40, mzml_precursor_activation 12 (mzml,sqmass). sweep5 killed (stale).
+  sweep6 started (scratchpad/F7a/sweep6.out; remote /scratch/kohlbach/agents/F7a-sweep6/.ci-line.N.log).
+  Next: report F7a.md; MSRV run of the two tests; delete NOTES.md in final commit.
