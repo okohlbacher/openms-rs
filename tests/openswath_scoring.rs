@@ -455,3 +455,35 @@ fn dia_scores_compose_dia_scoring() {
     // an empty compound sequence skips the b/y scores
     assert_eq!(scores.bseries_score, 0.0);
 }
+
+/// Derived: DataAccessHelper.cpp `convertPeptideToAASequence` sets each
+/// modification with a UniMod id as `UniMod:<id>` and skips id -1.
+#[test]
+fn convert_peptide_to_aa_sequence() {
+    use openms::analysis::openswath::data_access_helper::convert_peptide_to_aa_sequence;
+    use openms::analysis::openswath::transition_experiment::LightModification;
+    use openms::chemistry::AASequence;
+    let compound = LightCompound {
+        sequence: "SYVAWDR".into(),
+        modifications: vec![
+            LightModification {
+                location: 1,
+                unimod_id: 21,
+            },
+            LightModification {
+                location: 3,
+                unimod_id: -1,
+            },
+        ],
+        ..LightCompound::default()
+    };
+    let converted = convert_peptide_to_aa_sequence(&compound).unwrap();
+    let mut expected = AASequence::parse("SYVAWDR").unwrap();
+    expected.set_modification(1, "UniMod:21").unwrap();
+    assert_eq!(converted, expected);
+    let metabolite = LightCompound {
+        compound_name: "glucose".into(),
+        ..LightCompound::default()
+    };
+    assert!(convert_peptide_to_aa_sequence(&metabolite).is_err());
+}
