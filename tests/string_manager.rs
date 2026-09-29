@@ -110,7 +110,8 @@ fn utf8_conversion_both_ways() {
     // Round trip, with a surrogate pair.
     let wide = StringManager::convert("M\u{fc}ller \u{1f9ea}");
     assert_eq!(wide, u("M\u{fc}ller \u{1f9ea}"));
-    assert_eq!(wide.len(), 10);
+    // "M\u{fc}ller " is seven units, the test tube a surrogate pair.
+    assert_eq!(wide.len(), 9);
     assert_eq!(
         StringManager::convert_utf16(&wide).unwrap(),
         "M\u{fc}ller \u{1f9ea}"

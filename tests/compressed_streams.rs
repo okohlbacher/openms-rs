@@ -698,3 +698,78 @@ fn sidecar_index_in_archives_and_directories() {
     );
     assert!(ZipArchiveFile::extract_entry_to_temp_file(&source, "../run.zip", &mut None).is_err());
 }
+
+/// Every loader that reads through `path_io::open` reads a single-file ZIP
+/// archive exactly as it reads the plain file (SHARED-02). Invariant: the
+/// archive holds the plain file's bytes, deflated.
+fn zipped(scratch: &Scratch, plain: &Path) -> PathBuf {
+    let name = plain.file_name().unwrap().to_string_lossy().into_owned();
+    let path = scratch.0.join(format!("{name}.zip"));
+    let mut writer = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
+    writer
+        .start_file(
+            name,
+            zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated),
+        )
+        .unwrap();
+    writer.write_all(&std::fs::read(plain).unwrap()).unwrap();
+    writer.finish().unwrap();
+    path
+}
+
+fn repo(relative: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
+}
+
+/// `Debug` of a loaded value with the file path it was loaded from masked.
+fn masked(value: &impl std::fmt::Debug, path: &Path) -> String {
+    format!("{value:?}").replace(&path.display().to_string(), "<path>")
+}
+
+#[cfg(feature = "consensusxml")]
+#[test]
+fn consensusxml_loads_from_zip() {
+    let scratch = Scratch::new("zip-consensus");
+    let plain = repo("tests/data/consensusxml/ConsensusXMLFile_1.consensusXML");
+    let archive = zipped(&scratch, &plain);
+    let a = openms::format::consensusxml::load(&plain).unwrap();
+    let b = openms::format::consensusxml::load(&archive).unwrap();
+    assert!(!a.is_empty());
+    assert_eq!(masked(&a, &plain), masked(&b, &archive));
+}
+
+#[cfg(feature = "idxml")]
+#[test]
+fn idxml_loads_from_zip() {
+    let scratch = Scratch::new("zip-idxml");
+    let plain = repo("tests/data/idxml_upstream_whole.idXML");
+    let archive = zipped(&scratch, &plain);
+    let a = openms::format::idxml::load(&plain).unwrap();
+    assert!(!a.peptide_identifications.is_empty());
+    assert_eq!(a, openms::format::idxml::load(&archive).unwrap());
+}
+
+#[cfg(feature = "paramxml")]
+#[test]
+fn paramxml_loads_from_zip() {
+    let scratch = Scratch::new("zip-paramxml");
+    let plain = repo("tests/data/baseline_filter_edges_benchmark.ini");
+    let archive = zipped(&scratch, &plain);
+    let a = openms::format::paramxml::load(&plain).unwrap();
+    assert_eq!(a, openms::format::paramxml::load(&archive).unwrap());
+}
+
+#[cfg(feature = "cv-mapping")]
+#[test]
+fn cv_mapping_loads_from_zip() {
+    let scratch = Scratch::new("zip-cv-mapping");
+    let plain = repo("tests/data/cv_mapping/ms-mapping.xml");
+    let archive = zipped(&scratch, &plain);
+    let reader = openms::format::cv_mapping::CVMappingFile {
+        options: Default::default(),
+    };
+    let a = reader.load(&plain).unwrap();
+    let b = reader.load(&archive).unwrap();
+    assert_eq!(masked(&a, &plain), masked(&b, &archive));
+}

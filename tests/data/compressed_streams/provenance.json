@@ -181,6 +181,76 @@
       "path": "tests/data/compressed_streams/f7b_oracle/two.bz2",
       "sha256": "fd7515f6a8eb13a966ffd1c0fec212d3820c73f04e92fe9da9e1a2ccc4b134dc",
       "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/directory_only.zip",
+      "sha256": "52e6db1b1ded6c0e9b4d9452f2c331205add1396f33f73dfcfdf113f5996296a",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/empty_archive.zip",
+      "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_bad_crc.zip",
+      "sha256": "6aeccb1d02d4d07fe11375f8dcd3d85eaea9fcac988656ae43b56d875c937d45",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_bzip2.zip",
+      "sha256": "61e3393a656c3135f5636b24c41e70efa319778d89ebbc7d8a0dff843fcb884b",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_deflate.zip",
+      "sha256": "85643d6e14532bd0db6066f3a667835ece9792376247c7595d2c71024880280d",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_lzma.zip",
+      "sha256": "c239b2fc8178ef3646d28ca0ff9c41abcbe7e036c9ee90e314f9cf28de8c8130",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_source_1.featureXML",
+      "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_stored.zip",
+      "sha256": "5260cf1811812c9b630c46bb4c700762a6a51fd4176cfd1e89fb41dd3b452383",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_with_directory.zip",
+      "sha256": "92f2cae484a3291aab9a25b3cc64fff53c05fa2ca1153512df2519069c9563c0",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/junk_local_header.zip",
+      "sha256": "0ee00ad239e5f96dd557614d2bd820bf53e647d35b4490ef37eef6d04f79eed4",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/mzml_deflate.zip",
+      "sha256": "1c1326a54fbe3bef29e9d366c9df18862f65509d35d70373d4d2e9683ea98678",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/mzml_upstream_serum.mzML",
+      "sha256": "8ae288b606b959b532791d36450dc546c72fa6903a5ffe69bd9ec0659eac9cc4",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/records.tsv",
+      "sha256": "fbcb674cb83ab1aee55754ebcb4d3336db1c0f89a630607d9e7d5fb1392a3682",
+      "derivation": "results/records.tsv of ../oracle/B8a-zip-input (lane B8a): driver compiled against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576, run twice on ibminode06 with identical records; unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/two_entries.zip",
+      "sha256": "8035abcfacb3bf093239f6a3fa898ad75a099b4a98af28da7d9ffa08e22096d5",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
     }
   ],
   "reference_sources": [
