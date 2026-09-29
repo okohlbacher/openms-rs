@@ -10,6 +10,8 @@
 //! share [`satellite`]. See `docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md` for the
 //! API mapping and the evidence.
 
+/// The multiplex feature finder (source `FeatureFinderMultiplexAlgorithm.h`).
+pub mod algorithm;
 /// Clustering the filter results (source `MultiplexClustering.h`).
 pub mod clustering;
 /// Mass shift patterns (source `MultiplexDeltaMasses.h`).
@@ -34,6 +36,7 @@ pub mod isotopic_peak_pattern;
 /// and `MultiplexSatelliteProfile.h`).
 pub mod satellite;
 
+pub use algorithm::{FeatureFinderMultiplexAlgorithm, FeatureFinderMultiplexParameters};
 pub use clustering::{MultiplexClustering, MultiplexDistance};
 pub use delta_masses::{DeltaMass, LabelSet, MultiplexDeltaMasses};
 pub use delta_masses_generator::{LabelMassShifts, MultiplexDeltaMassesGenerator};
