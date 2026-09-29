@@ -1,0 +1,4 @@
+mapping	count	2
+mapping	chrom	t1	PEPTIDE	t1
+mapping	chrom	t2	unknown_ref	t2
+mapping	multi	IllegalArgument	Chromatogram c1 with 450.0 -> 300.0 maps to multiple assays! Either decrease your mapping tolerance or set map_multiple_assays to true.

@@ -1,0 +1,21 @@
+summary	three	# Proteins: 0
+# Peptides: 0
+# Compounds: 0
+# Transitions: 3
+Transition Type: 66.667% (target), 33.333% (decoy)
+All internal references valid: yes
+END
+summary	empty	# Proteins: 0
+# Peptides: 0
+# Compounds: 0
+# Transitions: 0
+Transition Type: 
+All internal references valid: yes
+END
+summary	each	# Proteins: 0
+# Peptides: 0
+# Compounds: 0
+# Transitions: 3
+Transition Type: 33.333% (target), 33.333% (decoy), 33.333% (unknown)
+All internal references valid: yes
+END
