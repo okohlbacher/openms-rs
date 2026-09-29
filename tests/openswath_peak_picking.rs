@@ -22,7 +22,7 @@ use openms::analysis::peak_integrator::{
 use openms::concept::unique_id::UniqueIdGenerator;
 use openms::kernel::mrm::{MRMTransitionGroup, SimpleTransition};
 use openms::kernel::{ChromatogramPeak, DataArray, Feature, MSChromatogram, MSSpectrum, Peak1D};
-use openms::metadata::MetaValue;
+use openms::metadata::{MetaValue, MetaValueData};
 use openms::param::{Param, ParamValue};
 use openms::processing::chromatogram::{
     ChromatogramPickingMethod, ChromatogramSmoothing, PEAK_PICKER_CHROMATOGRAM_NAME,
@@ -1361,4 +1361,265 @@ fn group_picker_class_test_remove_overlapping_features() {
         assert_eq!(intensities(&picked[0]), first);
         assert_eq!(intensities(&picked[1]), second);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Tier 1: MRMTransitionGroupPicker against the executed Release build
+// ---------------------------------------------------------------------------
+
+/// A C99 `%a` hex float as glibc prints it (`0x1.8p+1`, `-0x0p+0`, `inf`,
+/// `nan`), parsed exactly.
+fn parse_hex_float(text: &str) -> f64 {
+    let (negative, body) = match text.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, text),
+    };
+    let value = match body {
+        "inf" => f64::INFINITY,
+        "nan" => f64::NAN,
+        _ => {
+            let body = body.strip_prefix("0x").expect("hex float");
+            let (mantissa, exponent) = body.split_once('p').expect("hex exponent");
+            let (int_part, frac_part) = mantissa.split_once('.').unwrap_or((mantissa, ""));
+            let digits = format!("{int_part}{frac_part}");
+            let bits = u64::from_str_radix(&digits, 16).expect("hex mantissa");
+            let exponent: i32 = exponent.parse().expect("decimal exponent");
+            let scale = exponent - 4 * i32::try_from(frac_part.len()).unwrap();
+            // At most 53 significant bits, so the conversion is exact; the
+            // scaling by a power of two is exact for the normal values here.
+            (bits as f64) * 2f64.powi(scale)
+        }
+    };
+    if negative { -value } else { value }
+}
+
+#[derive(Debug)]
+enum Record {
+    Text(String),
+    Float(f64),
+    Hull(Vec<(f64, f64)>),
+}
+
+fn push_feature(out: &mut Vec<(String, Record)>, prefix: &str, feature: &Feature) {
+    let key = |name: &str| format!("{prefix}{name}");
+    out.push((key("rt"), Record::Float(feature.base.rt)));
+    out.push((key("mz"), Record::Float(feature.base.mz)));
+    out.push((
+        key("intensity"),
+        Record::Float(f64::from(feature.base.intensity)),
+    ));
+    out.push((
+        key("quality"),
+        Record::Float(f64::from(feature.base.quality)),
+    ));
+    for (name, value) in &feature.base.metadata {
+        let record = match value.data() {
+            MetaValueData::Float(x) => Record::Float(*x),
+            MetaValueData::Integer(i) => Record::Text(format!("i:{i}")),
+            MetaValueData::String(s) => Record::Text(format!("s:{s}")),
+            other => Record::Text(format!("?:{other:?}")),
+        };
+        out.push((key(&format!("meta.{name}")), record));
+    }
+    out.push((
+        key("hulls"),
+        Record::Text(feature.convex_hulls.len().to_string()),
+    ));
+    for (h, hull) in feature.convex_hulls.iter().enumerate() {
+        out.push((
+            key(&format!("hull{h}")),
+            Record::Hull(hull.hull_points().iter().map(|p| (p.rt, p.mz)).collect()),
+        ));
+    }
+}
+
+fn oracle_group(name: &str) -> Group {
+    let mut group = Group::new();
+    group.set_transition_group_id(name);
+    for row in rows_all(include_str!("data/openswath_peak_picking_groups.tsv")) {
+        if row[0] != name {
+            continue;
+        }
+        let numbers =
+            |csv: &str| -> Vec<f64> { csv.split(',').map(|t| t.parse::<f64>().unwrap()).collect() };
+        let rts = numbers(row[7]);
+        let intensities = numbers(row[8]);
+        let mut chromatogram = srm_chromatogram(row[2], &rts, &intensities);
+        if row[5] != "-" {
+            chromatogram = with_product_mz(chromatogram, row[5].parse().unwrap());
+        }
+        if row[6] != "-" {
+            chromatogram.metadata.insert(
+                "precursor_mz".into(),
+                MetaValue::try_from(row[6].parse::<f64>().unwrap()).unwrap(),
+            );
+        }
+        if row[1] == "fragment" {
+            group.add_chromatogram(chromatogram, row[2]).unwrap();
+            let transition = SimpleTransition {
+                detecting: row[3] == "1",
+                quantifying: row[4] == "1",
+                ..SimpleTransition::new(row[2], -1.0)
+            };
+            group.add_transition(transition, row[2]).unwrap();
+        } else {
+            group
+                .add_precursor_chromatogram(chromatogram, row[2])
+                .unwrap();
+        }
+    }
+    group
+}
+
+/// Every data line of a `#`-commented TSV without a header row.
+fn rows_all(text: &str) -> impl Iterator<Item = Vec<&str>> {
+    text.lines()
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+        .map(|line| line.split('\t').collect())
+}
+
+fn oracle_settings(settings: &str) -> Vec<(String, ParamValue)> {
+    settings
+        .split(';')
+        .filter(|kv| !kv.is_empty())
+        .map(|kv| {
+            let (key, typed) = kv.split_once('=').unwrap();
+            let (kind, value) = typed.split_once(':').unwrap();
+            let value = match kind {
+                "i" => ParamValue::Integer(value.parse().unwrap()),
+                "f" => ParamValue::Float(value.parse().unwrap()),
+                _ => ParamValue::String(value.into()),
+            };
+            (key.to_owned(), value)
+        })
+        .collect()
+}
+
+fn run_oracle_case(group_name: &str, settings: &str) -> Vec<(String, Record)> {
+    let mut group = oracle_group(group_name);
+    let mut param = MRMTransitionGroupPicker::defaults().unwrap();
+    for (key, value) in oracle_settings(settings) {
+        set(&mut param, &key, value);
+    }
+    let picker = MRMTransitionGroupPicker::from_param(&param).unwrap();
+    let mut out = Vec::new();
+    if let Err(error) = picker.pick_transition_group(&mut group, &mut ids()) {
+        out.push(("error".into(), Record::Text(error.to_string())));
+        assert!(group.features().is_empty(), "failed pick changed the group");
+        return out;
+    }
+    out.push((
+        "features".into(),
+        Record::Text(group.features().len().to_string()),
+    ));
+    for (i, feature) in group.features().iter().enumerate() {
+        let prefix = format!("f{i}.");
+        push_feature(&mut out, &prefix, feature);
+        out.push((
+            format!("{prefix}subs"),
+            Record::Text(feature.features().len().to_string()),
+        ));
+        for (k, sub) in feature.features().iter().enumerate() {
+            push_feature(&mut out, &format!("{prefix}s{k}."), sub);
+        }
+        let ids: Vec<&str> = feature.precursor_feature_ids().collect();
+        out.push((
+            format!("{prefix}precs"),
+            Record::Text(ids.len().to_string()),
+        ));
+        for (k, id) in ids.iter().enumerate() {
+            push_feature(
+                &mut out,
+                &format!("{prefix}p{k}."),
+                feature.precursor_feature(id).unwrap(),
+            );
+        }
+    }
+    out
+}
+
+fn same_float(actual: f64, expected: f64) -> bool {
+    actual.to_bits() == expected.to_bits() || (actual.is_nan() && expected.is_nan())
+}
+
+/// Every case of `tests/data/openswath_peak_picking_configs.tsv`, replayed
+/// against the records the Release build wrote on ibminode06
+/// (`tests/data/openswath_peak_picking_oracle.tsv`): the same peak groups,
+/// sub-features, metadata keys and hull points, every floating-point value
+/// bit for bit, and an error wherever the source threw.
+#[test]
+fn group_picker_matches_the_release_build_bit_for_bit() {
+    let oracle = include_str!("data/openswath_peak_picking_oracle.tsv");
+    let mut cases = 0;
+    for config in rows_all(include_str!("data/openswath_peak_picking_configs.tsv")) {
+        let case = config[0];
+        let expected: Vec<(&str, &str)> = oracle
+            .lines()
+            .filter_map(|line| {
+                let mut fields = line.splitn(3, '\t');
+                (fields.next() == Some(case))
+                    .then(|| (fields.next().unwrap(), fields.next().unwrap()))
+            })
+            .collect();
+        assert!(!expected.is_empty(), "{case}: no oracle records");
+        let actual = run_oracle_case(config[1], config.get(2).copied().unwrap_or(""));
+        if expected[0].0 == "error" {
+            assert_eq!(
+                actual.len(),
+                1,
+                "{case}: expected {}, got {actual:?}",
+                expected[0].1
+            );
+            assert_eq!(
+                actual[0].0, "error",
+                "{case}: the source threw {}",
+                expected[0].1
+            );
+            cases += 1;
+            continue;
+        }
+        assert_eq!(
+            actual.iter().map(|(k, _)| k.as_str()).collect::<Vec<_>>(),
+            expected.iter().map(|(k, _)| *k).collect::<Vec<_>>(),
+            "{case}: record keys"
+        );
+        for ((key, record), (_, text)) in actual.iter().zip(&expected) {
+            let ok = match record {
+                Record::Text(value) => value == text,
+                Record::Float(value) => {
+                    let text = text.strip_prefix("f:").unwrap_or(text);
+                    same_float(*value, parse_hex_float(text))
+                }
+                Record::Hull(points) => {
+                    let expected: Vec<(f64, f64)> = if text.is_empty() {
+                        Vec::new()
+                    } else {
+                        text.split(',')
+                            .map(|pair| {
+                                let (x, y) = pair.split_once(':').unwrap();
+                                (parse_hex_float(x), parse_hex_float(y))
+                            })
+                            .collect()
+                    };
+                    points.len() == expected.len()
+                        && points
+                            .iter()
+                            .zip(&expected)
+                            .all(|(a, b)| same_float(a.0, b.0) && same_float(a.1, b.1))
+                }
+            };
+            assert!(ok, "{case}: {key}: Rust {record:?}, Release build {text}");
+        }
+        cases += 1;
+    }
+    assert_eq!(cases, 32);
+}
+
+#[test]
+fn hex_float_parser_reads_glibc_output() {
+    assert_eq!(parse_hex_float("0x1.8p+1"), 3.0);
+    assert_eq!(parse_hex_float("-0x1p-2"), -0.25);
+    assert_eq!(parse_hex_float("0x0p+0"), 0.0);
+    assert_eq!(parse_hex_float("0x1.753527c57eb84p+10"), 1492.8305524575708);
+    assert!(parse_hex_float("nan").is_nan());
 }
