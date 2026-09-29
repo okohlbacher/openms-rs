@@ -2059,10 +2059,15 @@ fn masstrace_correlator_class_test_score_hullpoints() {
 #[cfg(feature = "consensusxml")]
 #[test]
 fn masstrace_correlator_class_test_create_pseudo_spectra() {
-    let mut map = openms::format::consensusxml::read(
-        include_bytes!("data/openswath_peak_picking_masstraces.consensusXML").as_slice(),
-    )
-    .unwrap();
+    // One element of the fixture's 668.5 trace has rt="4the_second_seed202.0".
+    // The source handler's `asDouble_` (`XMLHandler.h:305-317`) reports that as
+    // a non-fatal load error and stores 0.0; the port's consensusXML reader
+    // refuses the file instead. The test applies the source's substitution so
+    // that the class test runs on the map the source loads.
+    let text = include_str!("data/openswath_peak_picking_masstraces.consensusXML");
+    assert_eq!(text.matches("rt=\"4the_second_seed202.0\"").count(), 1);
+    let text = text.replace("rt=\"4the_second_seed202.0\"", "rt=\"0.0\"");
+    let mut map = openms::format::consensusxml::read(text.as_bytes()).unwrap();
     map.sort_by_intensity(true).unwrap();
     let correlator = MasstraceCorrelator::default();
 

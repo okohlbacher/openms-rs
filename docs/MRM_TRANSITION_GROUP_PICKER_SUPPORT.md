@@ -1,4 +1,9 @@
-# MRM transition group picking
+# MRM transition group picking, mobilogram picking and mass trace correlation
+
+This document covers three OpenSWATH headers at OpenMS4-core `bc9cc12`:
+`MRMTransitionGroupPicker.h` (below), `PeakPickerMobilogram.h` (section
+"Mobilogram peak picking") and `MasstraceCorrelator.h` (section "Mass trace
+correlation").
 
 `src/analysis/openswath/mrm_transition_group_picker.rs` ports
 `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h` and `.cpp` at OpenMS4-core
@@ -177,10 +182,118 @@ never reads; the port computes the peak counts alone.
 - **Tier 4**: unit tests of the source-exact raster, the libstdc++ bound
   emulation and the padded range.
 
+## Mobilogram peak picking
+
+`src/analysis/openswath/peak_picker_mobilogram.rs` ports
+`ANALYSIS/OPENSWATH/PeakPickerMobilogram.h` and `.cpp`. The source class is
+`PeakPickerChromatogram` on ion mobility: its smoothing
+(`GaussFilter::filter(Mobilogram&)`, `SavitzkyGolayFilter::filter(Mobilogram&)`),
+seed picking (`PeakPickerHiRes::pick(const Mobilogram&, ...)`), boundary walk,
+overlap split and raw sum are the same template code as for a chromatogram, with
+the S/N gate left out. The port runs `PeakPickerChromatogram` on the
+mobilogram's `(mobility, intensity)` samples with `signal_to_noise` 0 and
+`report_sn` off, and converts the result back.
+
+| Source member | Rust |
+| --- | --- |
+| `PeakPickerMobilogram()`, `~PeakPickerMobilogram()` | `Default`, `Drop` |
+| `getDefaults` / `getParameters` / `setParameters` + `updateMembers_` | `defaults()`, `to_param()`, `from_param()` / `from_param_with_warnings()` |
+| enum `FLOATINDICES` (six) | `PeakPickerMobilogram::IDX_*`, `SIZE_OF_FLOATINDICES` |
+| struct `PeakPositions` | `PeakPositions` |
+| `pickMobilogram(mobilogram, picked)`, `pickMobilogram(mobilogram, picked, smoothed)` | `pick_mobilogram(&Mobilogram) -> MobilogramPickingResult` |
+| public members `integrated_intensities_`, `left_width_`, `right_width_` | `MobilogramPickingResult::{integrated_intensities, left_widths, right_widths}` |
+| `filterTopPeak(picked, vector&, peak_pos&)`, `filterTopPeak(picked, mobilogram&, peak_pos&)` | `filter_top_peak(&picked, &mut [Mobilogram])`, `filter_top_peak_single(&picked, &mut Mobilogram)` |
+| protected `pickMobilogram_`, `integratePeaks_`, `findClosestPeak_`, `removeOverlappingPeaks_` | `PeakPickerChromatogram`'s private equivalents |
+| protected `findHighestPeak_`, `filterPeakIntensities_` (2), `extractFloatValues_`, `extractIntValues_`, `filterTopPeak_` (2) | private `highest_peak`, `filter_peak_intensities`, `float_to_size` |
+| members `sgolay_*`, `gauss_width_`, `use_gauss_`, `peak_width_`, `signal_to_noise_`, `sn_win_len_`, `sn_bin_count_`, `write_sn_log_messages_`, `method_`, `remove_overlapping_` | the public fields of the same meaning |
+| members `pp_`, `sgolay_`, `gauss_` | built per call |
+
+Parameters: `sgolay_frame_length` 9, `sgolay_polynomial_order` 3, `gauss_width`
+0.002, `use_gauss` `false`, `peak_width` -1, `signal_to_noise` 1 (at least 0),
+`sn_win_len` 1 (an integer parameter), `sn_bin_count` 4,
+`write_sn_log_messages` `false`, `remove_overlapping_peaks` `false`, `method`
+`corrected` (valid `legacy`, `corrected`, `crawdad`). `signal_to_noise`,
+`sn_win_len`, `sn_bin_count` and `write_sn_log_messages` are stored and, as in
+the source, change nothing: there is no boundary S/N gate, and the seed picker
+took the constructor's S/N of one.
+
+Source defects, and what the port does:
+
+- `updateMembers_` never assigns `remove_overlapping_`, so `pickMobilogram`
+  reads an uninitialised `bool`. The port assigns it from
+  `remove_overlapping_peaks`, as that parameter's description promises.
+- `method` `crawdad` is accepted and then handled in neither branch, so the
+  per-peak vectors of an earlier call (or none) are read. The port refuses it
+  in `from_param`.
+- `findHighestPeak_` returns the picked peak's index as `apex`, although it
+  documents all three positions as mobilogram indices; the port keeps the
+  source value and says so on `PeakPositions`.
+
+Evidence: tier 3, `PeakPickerMobilogram_test.cpp:67-84` (apex position and
+intensity, integrated intensity and both border mobilities of the 60-point
+class-test mobilogram, through `getParameters`/`setParameters`), plus tier 4
+tests of the defaults, the refusals, the index arrays against the border
+samples and the raw sum, and every branch of the top-peak filters. The
+chromatogram machinery underneath is tier 1 through the
+`MRMTransitionGroupPicker` oracle above; no mobilogram-specific C++ was run.
+
+## Mass trace correlation
+
+`src/analysis/openswath/masstrace_correlator.rs` ports
+`ANALYSIS/OPENSWATH/MasstraceCorrelator.h` and `.cpp`, the algorithm behind
+`ClusterMassTraces` and `ClusterMassTracesByPrecursor`.
+
+| Source member | Rust |
+| --- | --- |
+| `MasstraceCorrelator()`, `~MasstraceCorrelator()` | `Default`, `Drop` |
+| `DefaultParamHandler` base (`getDefaults`, `getParameters`, `setParameters`) | `defaults()`, `to_param()`, `from_param()` / `from_param_with_warnings()` |
+| `ProgressLogger` base | the `_with_progress` methods (`CACHE_PROGRESS_LABEL`, `CORRELATION_PROGRESS_LABEL`) |
+| typedef `MasstracePointsType` | `MasstracePoints` |
+| `createPseudoSpectra(map, pseudo_spectra&, min_peak_nr, min_correlation, max_lag, max_rt_apex_difference)` | `create_pseudo_spectra(...) -> Vec<PseudoSpectrum>` and `create_pseudo_spectra_with_progress` |
+| `scoreHullpoints(h1, h2, lag&, lag_intensity&, pearson_score&, min_corr, max_lag, mindiff = 0.1)` | `score_hullpoints(h1, h2, min_corr, max_lag, mindiff) -> HullpointScores` |
+| `createConsensusMapCache(map, feature_points&, max_intensities&, rt_cache&)` | `create_consensus_map_cache(map) -> ConsensusMapCache` and `create_consensus_map_cache_with_progress` |
+| protected `matchMassTraces_(h1, h2, vec1&, vec2&, mindiff, padEnds = true)` | private `match_mass_traces` (both `pad_ends` modes, unit-tested) |
+
+The three parameters (`sgolay_frame_length` 15, `sgolay_polynomial_order` 3,
+`gauss_width` the integer 50) are declared under the handler name
+`MRMFeatureFinderScoring`, a copy-paste slip the port keeps because warnings
+carry it, and nothing reads them (the class has no `updateMembers_`).
+
+Native differences:
+
+- The source stores each joined trace's `RT_apex`, `RT_diff`, `lag`,
+  `pearson_score` and `lag_intensity` in float arrays on the pseudo-spectrum,
+  one entry per joined trace, so the arrays are one shorter than the peaks. A
+  native spectrum's arrays must match its peaks; the port returns them as
+  `PseudoSpectrum::correlations`, in `f32` as stored.
+- When the Pearson score is not above `min_corr`, the source leaves its `lag`
+  and `lag_intensity` out-parameters as they were; the port returns `None`.
+- A non-finite RT is an error, where the source's matching loop never advances;
+  a seed feature without handles is an error, where the source reads the first
+  point of an empty trace; `max_work` bounds the all-vs-all loop.
+- Equal RTs within a trace keep their handle order (a stable sort); the
+  source's `std::sort` may order them differently for traces longer than 16
+  points.
+
+Evidence: tier 3, every section of `MasstraceCorrelator_test.cpp`: the matching
+cases (`38-209`, on the private function), the cross-correlation and the three
+`scoreHullpoints` calls (`211-283`), and `createPseudoSpectra` with
+`min_peak_nr` 0 and 1 on the retained `Masstraces_Testdata.consensusXML`
+(`285-315`).
+
 Source files at `bc9cc12`:
 
 | Source file | SHA-256 |
 | --- | --- |
 | `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h` | `a4ad5a43d42eaa665bf0f3e69d75a036750b266d9bda31e3fe20b231a3ff86ba` |
-| `src/openms/source/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.cpp` | see `tests/data/openswath_peak_picking_provenance.json` |
-| `src/tests/class_tests/openms/source/MRMTransitionGroupPicker_test.cpp` | see `tests/data/openswath_peak_picking_provenance.json` |
+| `src/openms/source/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.cpp` | `8f88e5dd65b9916c49ba8a7bb4977503441c4a065d401a389f263d6f02303c1b` |
+| `src/tests/class_tests/openms/source/MRMTransitionGroupPicker_test.cpp` | `bb65f0664bfa589d4cd3a7f33e23d3b475434d3d991ea1a09259365d9d0782f2` |
+| `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h` | `e9116b9c00eddf76efd53a75ab7bf01c99729e3992928e7567cf8f89e945a5f7` |
+| `src/openms/source/ANALYSIS/OPENSWATH/PeakPickerMobilogram.cpp` | `e4525f6f0e2a9bfdbb60c824529afac9f5948319edd5439311eb266786318d0d` |
+| `src/tests/class_tests/openms/source/PeakPickerMobilogram_test.cpp` | `794cae20b1350166a5d9c9a873791863f64b9d034f16e9f32a3587485de849f8` |
+| `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h` | `5014897ad693b08963b556fcb93971277ce5d8026d19a09f5fad38c7f325a67e` |
+| `src/openms/source/ANALYSIS/OPENSWATH/MasstraceCorrelator.cpp` | `3cec77ff3750f3b4151dc042e4e61996264f9309e15dca6f29d463a6fc047a7c` |
+| `src/tests/class_tests/openms/source/MasstraceCorrelator_test.cpp` | `3a17dafa044a17d27a6ae702292130f5b32fa1fc047052b3097c8bdf9ffe3b5e` |
+
+Every other source the port reproduces, the fixtures and the oracle artifacts
+are hashed in `tests/data/openswath_peak_picking_provenance.json`.

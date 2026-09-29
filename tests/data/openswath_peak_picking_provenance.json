@@ -5,8 +5,8 @@
  "license": "BSD-3-Clause",
  "group": "openswath_peak_picking",
  "work_package": "O3a (Phase C wave 4): chromatogram peak picking",
- "method": "Port of ANALYSIS/OPENSWATH/MRMTransitionGroupPicker, completion of the DefaultParamHandler surfaces of PeakPickerChromatogram and PeakIntegrator and of PeakIntegrator's six ConstIterator overloads. Every section of the three class tests is transcribed with its literals, TEST_REAL_SIMILAR replayed at its defaults (ClassTest.cpp: absolute 1e-5 or ratio 1 + 1e-5). MRMTransitionGroupPicker is additionally replayed bit for bit against a driver linking the Linux x86_64 Release install (tier 1). Scoring.cpp is listed because standardize_data and calculateCrossCorrelation now add in Eigen 3.4's SSE2 redux order; LinearResamplerAlign.h and MSChromatogram.h/.cpp because the picker reproduces raster(iterators) and sortByIntensity.",
- "evidence_tier": "tier 1 (MRMTransitionGroupPicker: 32 cases, 3,358 records, bit-identical to the executed Release build on ibminode06); tier 3 (transcribed class-test literals: MRMTransitionGroupPicker_test, PeakPickerChromatogram_test through getDefaults/setParameters, PeakIntegrator_test getParameters and the ConstIterator sections); tier 4 (parameter round trips, refusals and unit tests of the raster, bound emulation and Eigen summation order)",
+ "method": "Port of ANALYSIS/OPENSWATH/MRMTransitionGroupPicker, PeakPickerMobilogram and MasstraceCorrelator, completion of the DefaultParamHandler surfaces of PeakPickerChromatogram and PeakIntegrator and of PeakIntegrator's six ConstIterator overloads. Every section of the three class tests is transcribed with its literals, TEST_REAL_SIMILAR replayed at its defaults (ClassTest.cpp: absolute 1e-5 or ratio 1 + 1e-5). MRMTransitionGroupPicker is additionally replayed bit for bit against a driver linking the Linux x86_64 Release install (tier 1). Scoring.cpp is listed because standardize_data and calculateCrossCorrelation now add in Eigen 3.4's SSE2 redux order; LinearResamplerAlign.h and MSChromatogram.h/.cpp because the picker reproduces raster(iterators) and sortByIntensity; GaussFilter.cpp, SavitzkyGolayFilter.h and PeakPickerHiRes.cpp because PeakPickerMobilogram relies on their Mobilogram overloads being the chromatogram template code; ConsensusXMLHandler.cpp and FeatureXMLHandler.cpp because src/format/map_xml.rs now accepts a dataProcessing element without software, as both handlers do (the MasstraceCorrelator class-test fixture has one).",
+ "evidence_tier": "tier 1 (MRMTransitionGroupPicker: 32 cases, 3,358 records, bit-identical to the executed Release build on ibminode06); tier 3 (transcribed class-test literals: MRMTransitionGroupPicker_test, PeakPickerChromatogram_test through getDefaults/setParameters, PeakIntegrator_test getParameters and the ConstIterator sections, PeakPickerMobilogram_test, MasstraceCorrelator_test over the retained Masstraces_Testdata.consensusXML); tier 4 (parameter round trips, refusals and unit tests of the raster, bound emulation and Eigen summation order)",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
@@ -63,6 +63,50 @@
   {
    "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
    "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h",
+   "sha256": "e9116b9c00eddf76efd53a75ab7bf01c99729e3992928e7567cf8f89e945a5f7"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakPickerMobilogram.cpp",
+   "sha256": "e4525f6f0e2a9bfdbb60c824529afac9f5948319edd5439311eb266786318d0d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakPickerMobilogram_test.cpp",
+   "sha256": "794cae20b1350166a5d9c9a873791863f64b9d034f16e9f32a3587485de849f8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
+   "sha256": "5014897ad693b08963b556fcb93971277ce5d8026d19a09f5fad38c7f325a67e"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/MasstraceCorrelator.cpp",
+   "sha256": "3cec77ff3750f3b4151dc042e4e61996264f9309e15dca6f29d463a6fc047a7c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MasstraceCorrelator_test.cpp",
+   "sha256": "3a17dafa044a17d27a6ae702292130f5b32fa1fc047052b3097c8bdf9ffe3b5e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ConsensusXMLHandler.cpp",
+   "sha256": "644fc07a41fb609c1672c8eb0edac89c040a778f5c3ea68cc18a01c106771c7a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
+   "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp",
+   "sha256": "8d6ddcd32c7825f6f1157580f92be0ceb9214017e28ece00d54aa8f667d8f3df"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+   "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+   "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
   }
  ],
  "reused_fixtures": [
@@ -105,6 +149,12 @@
    "sha256": "a3d1a3c0d044ad6cd2bb7727fcb62bcf7825b8698f4cb4e4e889784c763d5d6d",
    "rows": 3358,
    "kind": "executed C++ output: results/records.tsv of the ibminode06 Release-build run, one record per value (doubles as C99 hex floats), copied verbatim"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_masstraces.consensusXML",
+   "sha256": "4ef7837b45db4f2f9b33c449ac91167402b6a16c63c77d40fd1a480600aacd09",
+   "rows": 69,
+   "kind": "pinned upstream class-test input, byte-identical to src/tests/class_tests/openms/data/Masstraces_Testdata.consensusXML at bc9cc12 (MasstraceCorrelator_test.cpp:289)"
   }
  ],
  "external_reference_note": "The oracle driver and its scripts live in ../oracle/O3a-mrm-picker (no C++ in this repository). run.sh push copies them to ibminode06, node.sh builds the driver with libOpenMS's core flags and runs it twice in fresh processes with a clean environment; the two record streams were identical (results/differ.txt empty).",
@@ -146,7 +196,10 @@
   "src/analysis/openswath/mrm_transition_group_picker.rs",
   "src/processing/chromatogram.rs",
   "src/analysis/peak_integrator.rs",
-  "src/analysis/openswath/scoring.rs"
+  "src/analysis/openswath/scoring.rs",
+  "src/analysis/openswath/peak_picker_mobilogram.rs",
+  "src/analysis/openswath/masstrace_correlator.rs",
+  "src/format/map_xml.rs"
  ],
  "native_tests": [
   "tests/openswath_peak_picking.rs"
