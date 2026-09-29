@@ -8,17 +8,17 @@
 //! `PeptideIdentification`s to two table layouts and the import of one of
 //! them. See `docs/QPX_SUPPORT.md` for the API mapping.
 //!
-//! * [`QpxFile::export_to_arrow`] writes the internal
+//! * [`QpxFile::export_to_arrow`](crate::format::qpx_file::QpxFile::export_to_arrow) writes the internal
 //!   [`PSMSchema`](crate::format::arrow_schema_registry::PSMSchema) layout that the
 //!   FeatureMap and ConsensusMap Parquet bundles use for lossless round
-//!   trips, and [`QpxFile::import_from_arrow`] reads it back.
-//! * [`QpxFile::export_psms_to_qpx_arrow`] writes the QPX (Quantitative
+//!   trips, and [`QpxFile::import_from_arrow`](crate::format::qpx_file::QpxFile::import_from_arrow) reads it back.
+//! * [`QpxFile::export_psms_to_qpx_arrow`](crate::format::qpx_file::QpxFile::export_psms_to_qpx_arrow) writes the QPX (Quantitative
 //!   Proteomics eXchange, quantms) psm view,
 //!   [`QPXPSMSchema`](crate::format::arrow_schema_registry::QPXPSMSchema), for cross-tool
-//!   exchange; [`QpxFile::export_to_parquet`],
-//!   [`QpxFile::export_table_to_parquet`] and
-//!   [`QpxFile::export_to_parquet_streaming`] write it as a QPX `psm_file`,
-//!   whose values [`QpxValueValidation`] checks before anything is written.
+//!   exchange; [`QpxFile::export_to_parquet`](crate::format::qpx_file::QpxFile::export_to_parquet),
+//!   [`QpxFile::export_table_to_parquet`](crate::format::qpx_file::QpxFile::export_table_to_parquet) and
+//!   [`QpxFile::export_to_parquet_streaming`](crate::format::qpx_file::QpxFile::export_to_parquet_streaming) write it as a QPX `psm_file`,
+//!   whose values [`QpxValueValidation`](crate::format::qpx_value_validation::QpxValueValidation) checks before anything is written.
 //!
 //! The source marks the class experimental ("may change in future
 //! versions").
@@ -27,17 +27,17 @@
 //! lists all its input files as primary MS run paths and points each
 //! identification at one of them through its `id_merge_index` metadata. Both
 //! exports resolve each identification's file through
-//! [`IdentifierMSRunMapper`] and refuse merged input without a usable index
-//! (see [`QpxFile::require_resolvable_merge_indices`]) rather than labelling
+//! [`IdentifierMSRunMapper`](crate::identification::IdentifierMSRunMapper) and refuse merged input without a usable index
+//! (see [`QpxFile::require_resolvable_merge_indices`](crate::format::qpx_file::QpxFile::require_resolvable_merge_indices)) rather than labelling
 //! every identification with the run's first file. The internal layout keeps
 //! the full path (`reference_file_name`); the QPX view keeps only the file's
 //! stem (`run_file_name`, a primary-key component), preferring a per-hit or
 //! per-identification file reference
-//! ([`qpx_psm_run_file_name`]).
+//! ([`qpx_psm_run_file_name`](crate::format::arrow_io_helpers::qpx_psm_run_file_name)).
 //!
 //! **Model mapping.** The source's `PeptideHit` keeps its rank as the `rank`
 //! metadata value, written only when it is not 0; this crate's
-//! [`PeptideHit`] has a [`rank`](PeptideHit::rank) field, which the export
+//! [`PeptideHit`](crate::identification::PeptideHit) has a [`rank`](crate::identification::PeptideHit::rank) field, which the export
 //! writes as that metadata entry (when not 0) and the import restores. A
 //! spectrum reference is the identification's `spectrum_reference` metadata
 //! in both.
@@ -49,9 +49,9 @@
 //! `spectrum_metavalues` entries of a row, not their content.
 //!
 //! **Warnings.** Where the source logs a warning and continues, the port
-//! returns the warning lines ([`QpxOutput::warnings`] or the `Vec<String>`
+//! returns the warning lines ([`QpxOutput::warnings`](crate::format::qpx_file::QpxOutput::warnings) or the `Vec<String>`
 //! of the import and file writers). The source's `false`/`nullptr` returns
-//! with a logged error are [`Result`] errors here.
+//! with a logged error are [`Result`](crate::Result) errors here.
 //!
 //! **Evidence.** `tests/qpx_file.rs` compares every export cell by cell with
 //! the tables the executed Linux x86_64 Release build produced for the same
@@ -1372,7 +1372,7 @@ impl QpxFile {
     /// a fresh `uuid` and `creation_date`, `compression_format`,
     /// `primary_key`, `identity_composite`), plus `scan_format` when it is
     /// not empty -- a built table no longer carries the native IDs, so the
-    /// caller supplies it ([`qpx_scan_format_of_all`](crate::format::arrow_io_helpers::qpx_scan_format_of_all));
+    /// caller supplies it ([`qpx_scan_format_of_all`]);
     /// when empty the key is omitted rather than guessed. The table is then
     /// written by [`write_table_to_parquet`], which refuses it when it
     /// violates the QPX value contract.

@@ -15,10 +15,10 @@
 //! keep OpenMS's empty-peptidoform representation and are still distinguished
 //! by their remaining key fields.
 //!
-//! A validator retains primary keys between [`QpxValueValidation::validate`]
+//! A validator retains primary keys between [`QpxValueValidation::validate`](crate::format::qpx_value_validation::QpxValueValidation::validate)
 //! calls. Streaming writers can therefore validate consecutive batches with
 //! one instance and detect duplicates that cross a batch boundary. Use
-//! [`QpxValueValidation::reset`] before starting a different output file.
+//! [`QpxValueValidation::reset`](crate::format::qpx_value_validation::QpxValueValidation::reset) before starting a different output file.
 //!
 //! # The contract this validator enforces
 //!

@@ -10,6 +10,9 @@
 //! reference implementation `qpx.core.data.identity` (bigbio/qpx), not by
 //! running the C++, so they are independent of both implementations.
 #![cfg(feature = "arrow")]
+// The float literals are the class test's, verbatim: several are written with
+// more digits than a float holds, which is the point of the narrowing checks.
+#![allow(clippy::excessive_precision, clippy::inconsistent_digit_grouping)]
 
 use openms::format::qpx_identity::{
     FEATURE_COMPOSITE, PG_COMPOSITE, PSM_COMPOSITE, Value, canonical, derive_id, feature_id,
@@ -188,8 +191,7 @@ fn feature_id_matches_qpx() {
         base
     );
     // A double that narrows to the same float32 gives the same id.
-    #[allow(clippy::excessive_precision)]
-    let narrowed = 1534.980_712_890_625_000_01_f64 as f32;
+    let narrowed = 1534.98071289062500001_f64 as f32;
     assert_eq!(
         feature_id("BSA1_F1", "PEPTIDER", 2, Some(narrowed), &[2311], 549.8573),
         base

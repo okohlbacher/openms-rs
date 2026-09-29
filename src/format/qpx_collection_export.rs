@@ -5,7 +5,7 @@
 //! All-or-nothing writing of a QPX collection (`-out_qpx`).
 //!
 //! Ports `QPXCollectionExport` (`FORMAT/QPXCollectionExport.h` and
-//! `QPXCollectionExport.cpp`) in part: its [`Transaction`] scope guard. See
+//! `QPXCollectionExport.cpp`) in part: its [`Transaction`](crate::format::qpx_collection_export::Transaction) scope guard. See
 //! `docs/QPX_SUPPORT.md`.
 //!
 //! A QPX collection is three files written in a fixed order --
@@ -21,7 +21,7 @@
 //!   `requireUnambiguousIdentities` and `requireResolvableIdRuns`,
 //!   `ProteinGroupArrowExport`'s quantification-unit checks) and
 //!   `ExperimentalDesign`, none of which exist here yet.
-//! * [`Transaction`] removes whatever this export created when it does not
+//! * [`Transaction`](crate::format::qpx_collection_export::Transaction) removes whatever this export created when it does not
 //!   run to completion -- a refusal only discovered while building a row, or
 //!   an I/O failure.
 //!
