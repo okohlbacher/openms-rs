@@ -184,16 +184,20 @@ fn kd_tree_feature_node_class_test() {
 // ---------------------------------------------------------------------------
 
 fn ms2(rt: f64, prec_mz: f64, has_prec: bool) -> MSSpectrum {
-    let mut s = MSSpectrum::default();
-    s.ms_level = 2;
-    s.rt = rt;
-    if has_prec {
-        s.precursors = vec![Precursor {
+    let precursors = if has_prec {
+        vec![Precursor {
             mz: prec_mz,
             ..Precursor::default()
-        }];
+        }]
+    } else {
+        Vec::new()
+    };
+    MSSpectrum {
+        ms_level: 2,
+        rt,
+        precursors,
+        ..MSSpectrum::default()
     }
-    s
 }
 
 fn experiment(spectra: Vec<MSSpectrum>) -> MSExperiment {
@@ -223,9 +227,11 @@ fn feature_mapping_assign_ms2_index_to_feature() {
     let (f0, f1) = (0usize, 1usize);
 
     // Basic assignment, MS1 skipped, precursor-less MS2 dropped.
-    let mut ms1 = MSSpectrum::default();
-    ms1.ms_level = 1;
-    ms1.rt = 150.0;
+    let ms1 = MSSpectrum {
+        ms_level: 1,
+        rt: 150.0,
+        ..MSSpectrum::default()
+    };
     let exp = experiment(vec![
         ms2(100.0, 500.0, true),
         ms2(200.0, 600.0, true),

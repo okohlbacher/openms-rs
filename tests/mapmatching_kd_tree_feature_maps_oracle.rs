@@ -85,14 +85,15 @@ fn oracle_kd_tree_query_order() {
 }
 
 fn ms2(rt: f64, mz: f64) -> MSSpectrum {
-    let mut s = MSSpectrum::default();
-    s.ms_level = 2;
-    s.rt = rt;
-    s.precursors = vec![Precursor {
-        mz,
-        ..Precursor::default()
-    }];
-    s
+    MSSpectrum {
+        ms_level: 2,
+        rt,
+        precursors: vec![Precursor {
+            mz,
+            ..Precursor::default()
+        }],
+        ..MSSpectrum::default()
+    }
 }
 
 #[test]

@@ -144,6 +144,10 @@ impl RtPairEstimate {
 /// `m`, left standard deviation `sig1` and right standard deviation `sig2`,
 /// `1 - erf(|x - m| / sig / 0.707106781)`, with the source's truncated
 /// constant.
+#[allow(
+    clippy::approx_constant,
+    reason = "the source's truncated literal 0.707106781, not 1/sqrt(2)"
+)]
 fn p_value(x: f64, m: f64, sig1: f64, sig2: f64) -> f64 {
     if m < x {
         1.0 - libm::erf((x - m) / sig2 / 0.707_106_781)

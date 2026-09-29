@@ -233,9 +233,11 @@ pub struct FeatureGroupingAlgorithmKD {
 
 impl Default for FeatureGroupingAlgorithmKD {
     fn default() -> Self {
-        let mut distance = FeatureDistance::default();
-        distance.intensity_weight = 1.0;
-        distance.log_transform = true;
+        let distance = FeatureDistance {
+            intensity_weight: 1.0,
+            log_transform: true,
+            ..FeatureDistance::default()
+        };
         Self {
             warp_enabled: true,
             warp_rt_tol: 100.0,

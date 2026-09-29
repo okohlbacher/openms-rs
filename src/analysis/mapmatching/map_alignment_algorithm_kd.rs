@@ -495,10 +495,7 @@ impl MapAlignmentAlgorithmKD {
         let mut queue = VecDeque::new();
         let mut search_pos = 0;
         let mut cc_index = 0;
-        loop {
-            let Some(start) = (search_pos..n).find(|&i| !visited[i]) else {
-                break;
-            };
+        while let Some(start) = (search_pos..n).find(|&i| !visited[i]) {
             queue.push_back(start);
             visited[start] = true;
             search_pos = start + 1;

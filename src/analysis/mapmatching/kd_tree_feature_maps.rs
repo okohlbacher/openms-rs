@@ -634,6 +634,7 @@ impl<'a> KDTreeFeatureMaps<'a> {
     ///
     /// As [`Self::feature`] for `index`, and the [`tolerance_window`] errors
     /// for a non-finite window (the source computes it regardless).
+    #[allow(clippy::too_many_arguments, reason = "the source signature")]
     pub fn get_neighborhood(
         &self,
         index: usize,
