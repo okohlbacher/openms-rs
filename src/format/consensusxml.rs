@@ -23,6 +23,14 @@ use std::io::{BufRead, Write};
 use std::ops::Range;
 use std::path::Path;
 
+/// Document version the source constructor registers and the writer emits,
+/// the inherited `XMLFile::getVersion` (`ConsensusXMLFile.cpp:23-26`).
+pub const VERSION: &str = "1.7";
+/// Schema resource the source constructor registers
+/// (`ConsensusXMLFile.cpp:23-26`); `is_valid` validates against a bundled,
+/// unchanged copy with the `xml-schema` feature.
+pub const SCHEMA_FILE: &str = "/SCHEMAS/ConsensusXML_1_7.xsd";
+
 /// The three range options the source handler consumes, plus native resource
 /// ceilings the source does not have.
 #[derive(Clone, Debug)]
@@ -63,6 +71,27 @@ impl Default for ReadOptions {
     }
 }
 impl ReadOptions {
+    /// The reader settings a source `PeakFileOptions` gives
+    /// `ConsensusXMLFile::load`, the counterpart of `getOptions() = options`.
+    ///
+    /// The source handler reads only `hasRTRange`/`getRTRange`,
+    /// `hasMZRange`/`getMZRange` and `hasIntensityRange`/`getIntensityRange`
+    /// (`ConsensusXMLHandler.cpp:75-76`), testing the consensus centroid; each
+    /// range that is set becomes the matching half-open range here. Every
+    /// other field has no consensusXML behaviour in the source, which also
+    /// hands the options to the writer without the writer reading them, and
+    /// is ignored. The native ceilings keep their defaults.
+    pub fn from_peak_options(options: &super::PeakFileOptions) -> Self {
+        let range = |present: bool, range: crate::kernel::NumericRange| {
+            present.then_some(range.min..range.max)
+        };
+        Self {
+            rt_range: range(options.has_rt_range(), options.rt_range()),
+            mz_range: range(options.has_mz_range(), options.mz_range()),
+            intensity_range: range(options.has_intensity_range(), options.intensity_range()),
+            ..Self::default()
+        }
+    }
     fn xml(&self) -> xml::ReadOptions {
         xml::ReadOptions {
             max_xml_bytes: self.max_xml_bytes,
@@ -519,18 +548,19 @@ fn load_reporting(
     progress: &mut ProgressReporter<'_>,
 ) -> Result<ConsensusMap> {
     let path = path.as_ref();
-    let mut map = read_report_reporting(
-        super::path_io::open(path)?,
-        options,
-        ModificationsDB::global(),
-        progress,
-    )?
-    .map;
-    map.loaded_file_path = path
-        .to_str()
-        .ok_or_else(|| bad("loaded filename must be UTF-8"))?
-        .into();
-    map.loaded_file_type = FileType::ConsensusXml;
+    let input = super::path_io::open(path)?;
+    // Source `setLoadedFileType(filename)` and `setLoadedFilePath(filename)`
+    // (`ConsensusXMLFile.cpp:87-88`): the type recognised from the content and
+    // the path with a relative one prefixed by the current directory.
+    let mut document = crate::metadata::DocumentIdentifier::new();
+    document.set_loaded_file_path(
+        path.to_str()
+            .ok_or_else(|| bad("loaded filename must be UTF-8"))?,
+    )?;
+    document.set_loaded_file_type(path)?;
+    let mut map = read_report_reporting(input, options, ModificationsDB::global(), progress)?.map;
+    map.loaded_file_path = document.loaded_file_path;
+    map.loaded_file_type = document.loaded_file_type;
     Ok(map)
 }
 /// Load into `map`, replacing it only on success.
@@ -669,7 +699,7 @@ fn write_node(
     )?;
     let mut registry = xml::clone_registry(registry, &mut work, &mut bytes)?;
     let mut root = Node::new("consensusXML");
-    root.attr("version", "1.7");
+    root.attr("version", VERSION);
     root.attr("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
     root.attr("xsi:noNamespaceSchemaLocation","https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd");
     if !map.identifier.is_empty() {
