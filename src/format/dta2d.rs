@@ -33,7 +33,7 @@ use super::ms2::{
     invalid, loaded_document, parse_intensity, parse_number, push_peak, push_spectrum,
     record_document, trim, unsupported,
 };
-use super::parse_error;
+use super::{PeakFileOptions, parse_error};
 use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::format::file_info::text_format::{to_str, to_str_f32};
 use crate::{MSExperiment, MSSpectrum, Peak1D, Result};
@@ -106,6 +106,26 @@ pub struct ReadOptions {
     pub limits: Limits,
 }
 impl ReadOptions {
+    /// The reader settings a source `PeakFileOptions` gives `DTA2DFile::load`,
+    /// the counterpart of `DTA2DFile::getOptions() = options`.
+    ///
+    /// The source's `load` reads only `hasRTRange`/`getRTRange`,
+    /// `hasMZRange`/`getMZRange` and `hasIntensityRange`/`getIntensityRange`
+    /// (`DTA2DFile.h:211-240`); each range that is set becomes the matching
+    /// half-open range here. Every other field of `options` has no DTA2D
+    /// behaviour in the source and is ignored, as there. `limits` keep their
+    /// defaults.
+    pub fn from_peak_options(options: &PeakFileOptions) -> Self {
+        let range = |present: bool, range: crate::kernel::NumericRange| {
+            present.then_some(range.min..range.max)
+        };
+        Self {
+            rt_range: range(options.has_rt_range(), options.rt_range()),
+            mz_range: range(options.has_mz_range(), options.mz_range()),
+            intensity_range: range(options.has_intensity_range(), options.intensity_range()),
+            limits: Limits::default(),
+        }
+    }
     fn validate(&self) -> Result<()> {
         self.limits.validate()?;
         for range in [&self.rt_range, &self.mz_range, &self.intensity_range]

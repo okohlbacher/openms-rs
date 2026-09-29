@@ -769,3 +769,45 @@ fn dta_lines_split_as_the_source_splits_them() {
         );
     }
 }
+
+/// `DTA2DFile::getOptions() = options`: a source `PeakFileOptions` gives the
+/// reader its three consumed ranges (`DTA2DFile.h:211-240`) and nothing else.
+#[test]
+fn dta2d_read_options_from_peak_file_options() {
+    use openms::format::PeakFileOptions;
+    use openms::kernel::NumericRange;
+    let none = dta2d::ReadOptions::from_peak_options(&PeakFileOptions::default());
+    assert_eq!(none, dta2d::ReadOptions::default());
+    let mut options = PeakFileOptions::default();
+    options.set_rt_range(NumericRange {
+        min: 4711.15,
+        max: 4711.45,
+    });
+    options.set_mz_range(NumericRange {
+        min: 150.,
+        max: 250.,
+    });
+    options.set_intensity_range(NumericRange {
+        min: 50000.,
+        max: 90000.,
+    });
+    options.set_ms_levels(&[2]).unwrap();
+    options.metadata_only = true;
+    let converted = dta2d::ReadOptions::from_peak_options(&options);
+    assert_eq!(
+        converted,
+        dta2d::ReadOptions {
+            rt_range: Some(4711.15..4711.45),
+            mz_range: Some(150.0..250.0),
+            intensity_range: Some(50000.0..90000.0),
+            ..Default::default()
+        }
+    );
+    // The MS-level and metadata-only settings have no DTA2D behaviour.
+    let e = dta2d::read_with_options(DTA[0], &converted).unwrap();
+    assert!(
+        e.spectra
+            .iter()
+            .all(|s| s.ms_level == 1 && !s.peaks.is_empty())
+    );
+}

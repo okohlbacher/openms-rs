@@ -26,7 +26,7 @@ dependency or external converter is involved.
 | `MS2File`'s `ProgressLogger` base | none owed | its only `startProgress` is commented out (`MS2File.h:52`); the Release build makes no call (tier 1, `tests/progress_format_readers.rs`) |
 | (none) | `ms2::write`, `write_with_options`, `store`, `store_with_options` | native extension; the source has no MS2 writer |
 | `DTA2DFile()`, `~DTA2DFile()` | none | the only state is `options_`, passed as an argument |
-| `PeakFileOptions& getOptions()`, `const PeakFileOptions& getOptions() const` | `dta2d::ReadOptions` (read), `dta2d::WriteOptions` (write) | the adapter consumes only `rt_range`, `mz_range`, `intensity_range` of `PeakFileOptions`; see below |
+| `PeakFileOptions& getOptions()`, `const PeakFileOptions& getOptions() const` | `dta2d::ReadOptions` (read), `dta2d::WriteOptions` (write) | the adapter consumes only `rt_range`, `mz_range`, `intensity_range` of `PeakFileOptions`; `ReadOptions::from_peak_options` takes a whole source `PeakFileOptions` and keeps those three, the rest having no DTA2D behaviour; the source's store reads no option |
 | `template <typename MapType> void DTA2DFile::load(filename, map)` | `dta2d::load`, `load_with_options`, `load_with_progress` | stream forms `read`, `read_with_options`, `read_into`, `read_into_with_options` |
 | `template <typename MapType> void DTA2DFile::store(filename, map) const` | `dta2d::store`, `store_with_options`, `store_with_progress` | stream forms `write`, `write_with_options`; `WriteOptions::source()` is the source's behaviour |
 | `template <typename MapType> void DTA2DFile::storeTIC(filename, map) const` | `dta2d::store_tic`, `store_tic_with_options`, `store_tic_with_progress` | stream forms `write_tic`, `write_tic_with_options` |
