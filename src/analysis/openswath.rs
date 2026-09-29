@@ -54,3 +54,9 @@ pub mod reaction_monitoring_transition;
 pub mod targeted_experiment;
 /// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
 pub mod targeted_experiment_helper;
+/// Window integration and averagine helpers for DIA scoring, from `ANALYSIS/OPENSWATH/DIAHelper.h`.
+pub mod dia_helper;
+/// Prescoring of a spectrum against library intensities, from `ANALYSIS/OPENSWATH/DIAPrescoring.h`.
+pub mod dia_prescoring;
+/// Full-spectrum DIA scores (isotopes, mass error, b/y ions), from `ANALYSIS/OPENSWATH/DIAScoring.h`.
+pub mod dia_scoring;
