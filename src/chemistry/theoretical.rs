@@ -883,6 +883,50 @@ fn push_peak(
     Ok(())
 }
 
+/// Neutral-loss formulas of residue `index` of `peptide`, in source order, as
+/// the source `Residue::getLossFormulas` of that residue returns them.
+///
+/// An unmodified residue carries the `ResidueDB.cpp` table: D, E, S and T lose
+/// `H2O`; K, N and Q lose `NH3`; R loses `NH3`, `C1H2N2` (`NHCNH`) and
+/// `C1H2N1O1` (`CONH2`). A modified residue carries only its modification's
+/// declared losses, because `Residue::setModification_` clears the residue's
+/// own list first; a mass-tag annotation therefore has none. Empty loss
+/// formulas are skipped, as `UnimodXMLHandler` never stores one.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] when `index` is out of range.
+pub(crate) fn residue_loss_formulas(
+    peptide: &AASequence,
+    index: usize,
+) -> Result<Vec<EmpiricalFormula>> {
+    let residue = *peptide
+        .as_str()
+        .as_bytes()
+        .get(index)
+        .ok_or_else(|| invalid("residue index out of range"))?;
+    if let Some(modification) = peptide.residue_modification(index)? {
+        // OpenMS replaces the unmodified residue's losses when modified.
+        return Ok(modification
+            .known()
+            .into_iter()
+            .flat_map(|m| m.neutral_losses())
+            .filter(|loss| !loss.formula().is_empty())
+            .map(|loss| loss.formula().clone())
+            .collect());
+    }
+    let formulas: &[&str] = match residue {
+        b'D' | b'E' | b'S' | b'T' => &["H2O"],
+        b'K' | b'N' | b'Q' => &["NH3"],
+        b'R' => &["NH3", "C1H2N2", "C1H2N1O1"],
+        _ => &[],
+    };
+    formulas
+        .iter()
+        .map(|text| EmpiricalFormula::parse(text))
+        .collect()
+}
+
 fn fragment_losses(
     fragment: &AASequence,
     series: TheoreticalIonSeries,
@@ -901,29 +945,9 @@ fn fragment_losses(
         }
         Ok(())
     };
-    for (index, residue) in fragment.as_str().bytes().enumerate().skip(skip) {
-        if let Some(modification) = fragment.residue_modification(index)? {
-            // OpenMS replaces the unmodified residue's losses when modified.
-            for loss in modification
-                .known()
-                .into_iter()
-                .flat_map(|m| m.neutral_losses())
-            {
-                if !loss.formula().is_empty() {
-                    add(loss.formula())?;
-                }
-            }
-        } else {
-            let formulas: &[&str] = match residue {
-                b'D' | b'E' | b'S' | b'T' => &["H2O"],
-                b'K' | b'N' | b'Q' => &["NH3"],
-                b'R' => &["NH3", "C1H2N2", "C1H2N1O1"],
-                _ => &[],
-            };
-            for text in formulas {
-                let formula = EmpiricalFormula::parse(text)?;
-                add(&formula)?;
-            }
+    for index in (0..fragment.len()).skip(skip) {
+        for formula in residue_loss_formulas(fragment, index)? {
+            add(&formula)?;
         }
     }
     if terminal {
