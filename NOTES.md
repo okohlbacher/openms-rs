@@ -24,13 +24,16 @@ Extracted to scratchpad/cpp via `git -C <core> archive -o X.tar bc9cc12 '*Parque
 - OpenSwathParquetExporter needs OpenSwathExportData.h (NOT ported anywhere) -> likely gap.
 
 ## Status
-- src/analysis/openswath/transition_parquet_file.rs written + registered (cfg arrow+file-compression); clippy clean on spock.
-- Oracle ../oracle/O5c-parquet (driver.cpp, node.sh, run.sh push|pull) started on ibminode06:/scratch/kohlbach/O5c-parquet.
-  Records C/T/P/M/Z/E/OK/F (see driver header). Files flat in results/files/<case>__<name>.
+- TransitionParquetFile DONE (commit "[FEATURE,TEST,DOC] O5c: TransitionParquetFile"): module, tests (8 pass on spock,
+  `--features arrow --test transition_parquet_file`), docs/OPENSWATH_PARQUET_SUPPORT.md, provenance json
+  (generator: scratchpad/o5c/prov.py + tpf_spec.json).
+- Oracle ../oracle/O5c-parquet done (ibminode06, identical runs).
 
 ## Next step
-1. `../oracle/O5c-parquet/run.sh pull`; check results/DONE, differ.txt, compile.log.
-2. Copy results into tests/data/transition_parquet_file/ + provenance json; write tests/transition_parquet_file.rs
-   (class-test transcription + oracle replay: Rust reader on C++ files vs C/T/P/M dumps (compound order = row order,
-   compare as sets), Rust writer tables vs C++ tables, metadata.json equal except build_time).
-3. Then OSWParquetWriter/Reader, exporter last (needs OpenSwathExportData, unported).
+1. OpenSwathOSWParquetWriter + Reader: src/analysis/openswath/openswath_osw_parquet_{writer,reader}.rs.
+   Class tests: OpenSwathOSWParquetWriter_test, _Reader_test (uses core fixture
+   src/tests/class_tests/openms/data/OpenSwathWorkflow_tworuns_1_17.output.oswpq, blob 45ede51), RoundTrip_test.
+   Oracle ../oracle/O5c-oswpq: writer with rich FeatureMap meta values (DataValue toString/toDouble precision!),
+   reader fetch* on tworuns fixture + writer outputs.
+2. OpenSwathParquetExporter: needs OpenSwathExportData.h (unported) -> likely gap.
+3. Report + ledger fragment.
