@@ -264,7 +264,7 @@ fn feature_distance_log_transform() {
 struct TestPairFinder;
 
 impl BaseGroupFinder for TestPairFinder {
-    fn run(&self, _input: &[ConsensusMap], _result: &mut ConsensusMap) -> openms::Result<()> {
+    fn run(&mut self, _input: &[ConsensusMap], _result: &mut ConsensusMap) -> openms::Result<()> {
         Ok(())
     }
 }
@@ -318,7 +318,7 @@ fn stable_pair_finder_run() {
     for f in [&feat4, &feat5, &feat6] {
         input[1].features.push(cons(1, f));
     }
-    let spf = StablePairFinder::from_param(&StablePairFinder::defaults().unwrap()).unwrap();
+    let mut spf = StablePairFinder::from_param(&StablePairFinder::defaults().unwrap()).unwrap();
     let mut result = ConsensusMap::new();
     spf.run(&input, &mut result).unwrap();
     assert_eq!(result.len(), 3);
@@ -340,7 +340,7 @@ fn stable_pair_finder_quality() {
     float(&mut param, "distance_RT:max_difference", 1000.0);
     float(&mut param, "distance_MZ:max_difference", 1000.0);
     float(&mut param, "second_nearest_gap", 2.0);
-    let spf = StablePairFinder::from_param(&param).unwrap();
+    let mut spf = StablePairFinder::from_param(&param).unwrap();
     let mut result = ConsensusMap::new();
 
     // best case:
@@ -400,7 +400,7 @@ fn stable_pair_finder_quality() {
 /// are refused (source `Exception::IllegalArgument`).
 #[test]
 fn stable_pair_finder_input_checks() {
-    let spf = StablePairFinder::default();
+    let mut spf = StablePairFinder::default();
     let mut result = ConsensusMap::new();
     assert!(spf.run(&[ConsensusMap::new()], &mut result).is_err());
     let mut a = ConsensusMap::new();
@@ -424,7 +424,7 @@ fn stable_pair_finder_identifications() {
     };
     let mut param = StablePairFinder::defaults().unwrap();
     string(&mut param, "use_identifications", "true");
-    let spf = StablePairFinder::from_param(&param).unwrap();
+    let mut spf = StablePairFinder::from_param(&param).unwrap();
     let mut result = ConsensusMap::new();
     let mut input = vec![ConsensusMap::new(), ConsensusMap::new()];
     input[0].features.push(identified(1, 0, "PEPTIDE"));

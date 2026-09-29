@@ -34,8 +34,13 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
   FeatureLinkerUnlabeled uses the INCREMENTAL path setReference/addToGroup/getResultMap + sortByMZ, not group()).
 - docs/CONSENSUS_MAP_NORMALIZER_SUPPORT.md written.
 
+- Committed: support docs, provenance manifests; clippy clean; ledger fragment written (.planning/ledger-fragments/wave4/M2.json, 8 complete).
+- BaseGroupFinder::run now &mut self (QTClusterFinder keeps bin_tolerances_ across runs, as the source member does).
+- QT design: heap = BinaryHeap of (quality, lower-id-first, version) entries, stale versions skipped; element mapping keyed
+  by (map_index, feature_index); Math::quantile(vector) = MathFunctions.h variant (id=max(0,n*q-1)), private helper;
+  Adduct::toAdductString not ported -> private helper via element_table()+count (Unsupported for isotopes).
+
 ## Next step
-1. docs/FEATURE_GROUPING_SUPPORT.md, tests/data/{consensus_map_normalizer,feature_grouping}_provenance.json.
-2. Gates: clippy all-features, doc, +1.85.0 no-default-features, python tools (check_module_cycles, doc coverage).
-3. QTClusterFinder + FeatureGroupingAlgorithmQT (tier 1: FeatureLinkerUnlabeledQT_* retained outputs).
-4. Lane report + ledger fragment; delete NOTES.md in final commit.
+1. Write src/analysis/mapmatching/qt_cluster_finder.rs + feature_grouping_algorithm_qt.rs, tests (QTClusterFinder_test,
+   FeatureGroupingAlgorithmQT_test) + tier 1 FeatureLinkerUnlabeledQT_* (CMakeLists lines TBD).
+2. Lane report at .planning/lane-reports/M2.md (write with Bash cat heredoc); delete NOTES.md in the final commit.

@@ -33,7 +33,7 @@ pub trait BaseGroupFinder {
     ///
     /// Returns [`Error::InvalidValue`] when the input is not valid (source
     /// `Exception::IllegalArgument`).
-    fn run(&self, input: &[ConsensusMap], result: &mut ConsensusMap) -> Result<()>;
+    fn run(&mut self, input: &[ConsensusMap], result: &mut ConsensusMap) -> Result<()>;
 }
 
 /// Check that the column headers of all `maps` use disjoint map identifiers

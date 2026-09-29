@@ -355,7 +355,7 @@ impl BaseGroupFinder for StablePairFinder {
     /// `Exception::IllegalArgument`), when `|map 0| * |map 1|` exceeds
     /// [`MAX_COMPARISONS`], and the [`FeatureDistance::distance`] and
     /// consensus-computation errors. On error `result` is unchanged.
-    fn run(&self, input: &[ConsensusMap], result: &mut ConsensusMap) -> Result<()> {
+    fn run(&mut self, input: &[ConsensusMap], result: &mut ConsensusMap) -> Result<()> {
         let refs: Vec<&ConsensusMap> = input.iter().take(2).collect();
         let max_intensity = Self::max_intensity(&refs)?;
         self.run_with_max_intensity(input, result, max_intensity)
