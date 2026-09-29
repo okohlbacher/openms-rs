@@ -58,3 +58,10 @@ No earlier incarnation notes.
 1. Gate on spock: nextest default + features touched (paramxml, json?), clippy -D warnings,
    doc, MSRV +1.85.0, then CI sweep (openms-ci-sweep.sh B8c-sweep <logdir>).
 2. Count tests per slice for the new test files; write report + ledger; delete NOTES.md.
+## Incarnation 3 results
+- fmt fix committed (a0c94d43). Focus nextest (mzml,paramxml + defaults): 150/150 pass.
+- Slice counts (no-default): paramxml: param_cwl 1, param_int_width 3, param_json_syntax 1,
+  topp_write_ini_text 3; mzml,paramxml: topp_json_ini 6, topp_write_ini_text 4, param_int_width 3;
+  mzml,paramxml,featurexml: topp_write_ini_text 5; none: param_int_width 3, trace_fitter 22.
+- Ledger fragment written: .planning/ledger-fragments/wave4/B8c.json (5 headers).
+- Sweep: scratchpad sweep1 running (started before fmt fix; fmt line will read red).
