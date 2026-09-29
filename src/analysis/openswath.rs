@@ -64,3 +64,5 @@ pub mod dia_scoring;
 pub mod mrm_scoring;
 /// `OpenSwath_Scores_Usage` and the LDA scoring methods of `OpenSwath_Scores`, from `ANALYSIS/OPENSWATH/OpenSwathScores.h`.
 pub mod openswath_scores;
+/// Ion mobility scoring of fragment and precursor mobilograms, from `ANALYSIS/OPENSWATH/IonMobilityScoring.h`.
+pub mod ion_mobility_scoring;
