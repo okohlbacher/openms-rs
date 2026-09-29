@@ -13,6 +13,12 @@ Branch: worktree-wf_cd066dab-0a7-18 (incarnation 2 merged -13), base f0990c0. Sl
 - Error enum: InvalidValue, Parse{line,message}, Unsupported, Io, InvalidRange, MissingInformation. TempDir at src/system/file.rs:1440 (TempDir::new(keep), .path()).
 - StringManager: pure UTF-16 helpers (convert both ways, strLength, parseInt (Xerces), isASCII, appendASCII, compress64_). XMLAttributes: view over Xerces Attributes: value(u16 qname)/value(narrow)/index (neg if absent)/valueByIndex/handle.
 
+## Incarnation 3 findings
+- Git: run git as a plain single command (no cd, no &&) or the sandbox refuses it.
+- Gzip read error throws ParseError (header says ConversionError); after close() it calls gzerror(nullptr) -> NULL -> "unknown error (code: <gzerror_>)" and gzerror_ is UNINITIALISED in the filename ctor (defect candidate). Bzip2 BZ2_bzReadOpen failure -> ConversionError.
+- ZipIfstream_test [EXTRA]: corrupt (text) zip -> FileNotReadable; FileHandler getTypeByFileName strips .zip (sample.mzML.zip -> MZML); end-to-end loadExperiment(Deisotoper_input1.mzML.zip) == plain (sizes, ms levels).
+- ZipArchiveFile: zipDirectory (store-only, recursive, rel generic paths, removes existing), unzipDirectory (dir -> returned unchanged; !readable -> FileNotFound; TempDir/parquet_unpacked; abs path / escape -> InvalidValue), addOrReplaceFromFile (ZIP_CREATE; stored), listEntries (empty on failure), writeSidecarIndex (dir -> <path>.idx.json external; zip -> entry '<basename>.idx.json', JSON `{\n  "name": size,\n...\n}\n`, stored), extractEntryToTempFile (dir layout -> path, missing -> FileNotFound).
+
 ## Next step
 1. Add zip dep; new module src/format/compressed_ifstream.rs (GzipIfstream, Bzip2Ifstream, ZipIfstream); wire ZIP into path_io::open.
 2. Copy class-test data into tests/data (provenance manifest), port the 3 class tests.
