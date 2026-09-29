@@ -1451,6 +1451,7 @@ fn oracle_tophat() {
     );
 }
 
+#[cfg(feature = "mzml")]
 fn check_chroms(records: &[(String, String, String)], name: &str, out: &[Chromatogram]) {
     for (k, c) in out.iter().enumerate() {
         let rt = g17_list(&oracle_get(records, "xic", &format!("{name}#{k}.rt")));
