@@ -24,6 +24,9 @@ pub mod feature_distance;
 /// The interface of feature grouping algorithms and their shared
 /// post-processing (source `FeatureGroupingAlgorithm.h`).
 pub mod feature_grouping_algorithm;
+/// Labeled feature grouping with two labels (source
+/// `FeatureGroupingAlgorithmLabeled.h`).
+pub mod feature_grouping_algorithm_labeled;
 /// QT feature grouping (source `FeatureGroupingAlgorithmQT.h`).
 pub mod feature_grouping_algorithm_qt;
 /// Unlabeled feature grouping by stepwise pairing (source
@@ -32,6 +35,9 @@ pub mod feature_grouping_algorithm_unlabeled;
 /// A feature as QT feature grouping stores it (source
 /// `DATASTRUCTURES/GridFeature.h`).
 pub mod grid_feature;
+/// Pair finding for isotope-labeled features within one map (source
+/// `LabeledPairFinder.h`).
+pub mod labeled_pair_finder;
 /// Parameter-tree helpers shared by the feature-grouping ports.
 pub(crate) mod params;
 /// A quality-threshold cluster for QT feature grouping (source
