@@ -1,0 +1,51 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PTMXMLFile.h",
+   "sha256": "9a0c2fd33a3602977ce99413ef2b53a1b951d3f640e2d7213bfdf66b5768a31a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PTMXMLFile.cpp",
+   "sha256": "172cc7ccaba19796ddab0559b8203d5e367ec1dabdcb49128d0da6419b057e73"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/PTMXMLHandler.h",
+   "sha256": "417c9949473fea3222389318b82b99ccad11a20f4fe984e6488ed988af471dc0"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/PTMXMLHandler.cpp",
+   "sha256": "50b8cab04d6db45a12ec925437986b822754ebab1759e23458c365c4798f29fe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PTMXMLFile_test.cpp",
+   "sha256": "0d505e56dd668d1c5c552f076fda2f33d250929f6d69d168ebf422b0f712de31"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/PTMXMLFile_PTMs.xml",
+   "sha256": "7bde0cc5292f4b58b6dfa54882621c1c522083bb766084d19a0c962e1c100e9e",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PTMs.xml"
+  }
+ ],
+ "native_implementation": [
+  "src/format/ptm_xml.rs",
+  "src/format/sax_xml.rs"
+ ],
+ "native_tests": [
+  "tests/ptm_xml.rs"
+ ],
+ "support_document": "docs/PTM_XML_SUPPORT.md",
+ "method": "Expected values are PTMXMLFile_test.cpp literals at the pin (tier 3); the multi-entry writer layout is derived from PTMXMLHandler.cpp:29-38 (tier 4). Escaping, compression, bounds and malformed-input refusals are native policy checks (tier 4).",
+ "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

@@ -1,0 +1,63 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/UnimodXMLFile.h",
+   "sha256": "bb36c067776f6e800620600b465b1bdbdbadb80ea7b3a7e60bf27b10e9eaa84f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/UnimodXMLFile.cpp",
+   "sha256": "af22a83a17fb6af2aa53f86fa219ba26283634581102447905ae0f91f18b07d1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h",
+   "sha256": "0c38c9a801959286330d22b92eead65297fecb981db2e68b74b215221a4621b9"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/UnimodXMLHandler.cpp",
+   "sha256": "a3039be959495b5287bdb0048398ccac0f93a4627e7ff4ffe6fa1efba076a317"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/UnimodXMLDataProvider.h",
+   "sha256": "7b1faf6250bc4d40dce6b55deff2ccf57c0b372754e942cebb04c173f1573b28"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/UnimodXMLDataProvider.cpp",
+   "sha256": "9a69f0237624595b3a6451ee7cd8a77855c88c7de53ba9cc9f79445ffba2cae7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/UnimodXMLFile_test.cpp",
+   "sha256": "6c5e5d1e66d2fc66d7ae6e4fa1ae6e4aed89ee1ff29e90c10e23dc782ce2b010"
+  },
+  {
+   "path": "share/OpenMS/CHEMISTRY/unimod.xml",
+   "sha256": "22231d3289f2330895cee8bc119c1f9bc52b0006447b3f28a196e778e4591091"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "resources/modifications/unimod.xml",
+   "sha256": "22231d3289f2330895cee8bc119c1f9bc52b0006447b3f28a196e778e4591091",
+   "kind": "pinned share/OpenMS/CHEMISTRY/unimod.xml, byte-identical",
+   "upstream_path": "share/OpenMS/CHEMISTRY/unimod.xml"
+  }
+ ],
+ "native_implementation": [
+  "src/format/unimod_xml.rs",
+  "src/format/sax_xml.rs"
+ ],
+ "native_tests": [
+  "tests/unimod_xml.rs"
+ ],
+ "support_document": "docs/UNIMOD_XML_SUPPORT.md",
+ "method": "Expected values are UnimodXMLFile_test.cpp literals and invariants at the pin (tier 3) over the pinned unimod.xml. The whole-file comparison is against ModificationsDB::global(), which tools/generate_modifications.py derives offline from the same files by an independent Python code path (tier 4 cross-check). No Rust output is used as an expected value.",
+ "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

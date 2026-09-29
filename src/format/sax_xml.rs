@@ -347,7 +347,7 @@ fn skip_bom(input: &mut impl BufRead) -> Result<()> {
 /// # Errors
 ///
 /// See [`parse_with`].
-#[allow(dead_code)] // its kb-xml callers live on the wave-4 integration branch
+#[cfg_attr(not(feature = "kb-xml"), allow(dead_code))]
 pub(crate) fn parse(
     input: impl BufRead,
     limits: &SaxLimits,

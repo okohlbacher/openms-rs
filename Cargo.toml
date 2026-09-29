@@ -88,6 +88,11 @@ network = ["dep:ureq"]
 # docs/THIRD_PARTY_CRATE_DECISIONS.md). `numpress` because the OpenSWATH
 # Parquet files (.xic/.xim/.xipm) store MS-Numpress + zlib arrays.
 arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet", "numpress", "dep:blake2"]
+# Knowledge-base XML readers: PTMXML, Unimod XML (a runtime reader for the
+# modification data the default build flattens offline) and UniProtKB XML
+# (plain or gzip/bzip2). quick-xml is already a dependency of the default
+# formats; this only gathers the three dialects behind one switch.
+kb-xml = ["dep:quick-xml", "file-compression"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }

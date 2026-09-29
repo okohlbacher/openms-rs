@@ -279,12 +279,6 @@ pub mod pepxml_mascot;
 /// ProteinProphet protXML reader (`ProtXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod protxml;
-/// The Xerces-faithful SAX driver of every `XMLHandler` port (copied verbatim
-/// from the wave-4 integration branch, which owns it). Its X! Tandem and
-/// knowledge-base callers live on that branch, hence the `dead_code` allowance.
-#[cfg(feature = "idxml")]
-#[allow(dead_code)]
-pub(crate) mod sax_xml;
 /// xQuest cross-linking result files (`XQuestResultXMLFile.h`,
 /// `HANDLERS/XQuestResultXMLHandler.h`).
 #[cfg(feature = "idxml")]
@@ -383,3 +377,21 @@ pub mod rational_scan2im_converter;
 pub mod tims_data_handle;
 /// Bruker XMass Analysis (`fid`) spectra: load and settings import (`XMassFile.h`).
 pub mod xmass_file;
+/// PEFF (PSI Extended FASTA Format) annotated protein databases (`PEFFFile.h`).
+pub mod peff;
+/// PTMXML post-translational modification lists (`PTMXMLFile.h`, `PTMXMLHandler.h`).
+#[cfg(feature = "kb-xml")]
+pub mod ptm_xml;
+/// The Xerces-faithful SAX driver shared by every `XMLHandler` port: the
+/// knowledge-base readers (`kb-xml`) and the identification-XML readers
+/// (`idxml`).
+#[cfg(any(feature = "idxml", feature = "kb-xml"))]
+pub(crate) mod sax_xml;
+/// Unimod XML modification databases and their registry provider
+/// (`UnimodXMLFile.h`, `UnimodXMLHandler.h`, `UnimodXMLDataProvider.h`).
+#[cfg(feature = "kb-xml")]
+pub mod unimod_xml;
+/// UniProtKB XML protein entries for PEFF conversion
+/// (`UniProtXMLFile.h`, `UniProtXMLHandler.h`).
+#[cfg(feature = "kb-xml")]
+pub mod uniprot_xml;

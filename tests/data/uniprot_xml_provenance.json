@@ -1,0 +1,51 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/UniProtXMLFile.h",
+   "sha256": "44cf93c0bc5e7e3fb7c153fba6d461580b68f3f29739bfe8ff0a7055f39669f5"
+  },
+  {
+   "path": "src/openms/source/FORMAT/UniProtXMLFile.cpp",
+   "sha256": "dc201aadda40a9969d69814284428cdae85fbd6cd3db235ffe7c041e19c7cb8d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/UniProtXMLHandler.h",
+   "sha256": "d9b28e7957fb9c009759a9620222357c095ced40d76215f421811c1eb4e91f12"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/UniProtXMLHandler.cpp",
+   "sha256": "3db5b5c7bc6ec51765ff1943b0b8a75f98136afbd6cd9d5508ec22b3cb677bc9"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/UniProtXMLFile_test.cpp",
+   "sha256": "33bd074b950f40f8a9dc60e2763768dca2c327991a65f99cd0628a088ebecae3"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/UniProtXMLFile_test.xml",
+   "sha256": "5109f0eeac93e704efc527daa07b81280d865982dfb1f1d1858cea7724da13cc",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/UniProtXMLFile_test.xml"
+  }
+ ],
+ "native_implementation": [
+  "src/format/uniprot_xml.rs",
+  "src/format/sax_xml.rs"
+ ],
+ "native_tests": [
+  "tests/uniprot_xml.rs"
+ ],
+ "support_document": "docs/UNIPROT_XML_SUPPORT.md",
+ "method": "Expected values are UniProtXMLFile_test.cpp literals at the pin (tier 3). Gzip input is checked by compressing the fixture in the test and comparing with the plain read (tier 4).",
+ "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
