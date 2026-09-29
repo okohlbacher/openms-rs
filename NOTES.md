@@ -74,3 +74,6 @@ Branch: worktree-wf_ee239125-5be-15, base f0990c0. C++ pin: `git -C /Users/kohlb
 - Merged 5be-15 + 0a7-10 (HEAD 9aa6b1f7). Ledger wave4/F5.json exists (17:25). Report F5.md NOT written.
 - gate10: doc --all-features EXIT 0; doc bruker-tdf,mzml fails only on src/format/file_info links (not F5 code, feature-subset only); doctests bruker-tdf,mzml 0; sweep 23/23 PASS until MSRV step where spock timed out (SWEEP EXIT 255).
 - Next: 1. re-run full sweep as gate11 (scratch F5/sweep11); 2. write F5.md; 3. refresh ledger; 4. delete NOTES.md.
+
+## Incarnation 10 (branch worktree-wf_a10fdd71-2d2-3, ff-merged 0a7-16 @ a17b5d95)
+- Next: 1. full sweep gate11 (scratch F5/sweep11); 2. F5.md; 3. ledger refresh; 4. delete NOTES.md.
