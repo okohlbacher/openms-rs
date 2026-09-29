@@ -52,23 +52,25 @@
 //!   `median_of_sorted` (and so [`median`](crate::math::statistic_functions::median), [`median_sorted`](crate::math::statistic_functions::median_sorted),
 //!   [`quantile1st`](crate::math::statistic_functions::quantile1st), [`quantile3rd`](crate::math::statistic_functions::quantile3rd) and their `_sorted` forms, which reduce
 //!   to it) and the linear blend in [`quantile`](crate::math::statistic_functions::quantile).
+//! - **Rebuilt**, because they divide by a denominator that can be zero:
+//!   [`pearson_correlation_coefficient`](crate::math::statistic_functions::pearson_correlation_coefficient) and the final division of
+//!   [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient). Both perform the source's division, as the
+//!   source does: an all-equal range (Pearson) or a one-sided prediction
+//!   (Matthews) is `0 / 0`, the default NaN `0xfff8000000000000`, and a Pearson
+//!   denominator that underflows to zero from non-zero deviations gives the
+//!   source's signed infinity. Until the group-A integration both returned an
+//!   explicit, host-shaped `f64::NAN` there, and the picked feature finder kept
+//!   a private bit-faithful copy of Pearson; that copy is now this function.
+//!   Every such value is compared bit for bit with the Linux x86_64 Release
+//!   build in `tests/statistic_functions.rs` (oracle
+//!   `../oracle/integ-A-correlation`).
 //! - **Not rebuilt**, because no NaN can be generated:
-//!   [`classification_rate`](crate::math::statistic_functions::classification_rate) and [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient) count
+//!   [`classification_rate`](crate::math::statistic_functions::classification_rate) and the counting of [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient) count
 //!   with comparisons; `compute_rank` averages small integers; and
 //!   [`tukey_upper_fence`](crate::math::statistic_functions::tukey_upper_fence), [`tail_fraction_above`](crate::math::statistic_functions::tail_fraction_above), [`winsorized_quantile`](crate::math::statistic_functions::winsorized_quantile)
 //!   and [`adaptive_quantile`](crate::math::statistic_functions::adaptive_quantile) drop every non-finite value before they compute
 //!   anything, as the source's `std::isfinite` filter does, so no infinity
 //!   reaches their arithmetic at all.
-//! - **Not rebuilt, and a known gap**: [`pearson_correlation_coefficient`](crate::math::statistic_functions::pearson_correlation_coefficient) and
-//!   [`matthews_correlation_coefficient`](crate::math::statistic_functions::matthews_correlation_coefficient) substitute an explicit `f64::NAN` for
-//!   a division the source actually performs — a divergence that predates this
-//!   work and is documented at each item. Making only their *other* operations
-//!   bit-faithful would leave that substituted NaN as the single host-shaped
-//!   value in the result and would be more misleading than the present state.
-//!   The crate's bit-faithful Pearson is
-//!   `analysis::feature_finder_picked::scoring::source_pearson`, which the
-//!   picked feature finder measured against the Release build; converging the
-//!   two needs an oracle row of its own.
 //!
 //! The *spelling* of a NaN is a separate layer and is not decided here:
 //! `format::file_info::text_format` writes every NaN as `nan`, where glibc
@@ -1232,10 +1234,12 @@ pub fn classification_rate(a: &[f64], b: &[f64]) -> Result<f64> {
 /// when it is `>= 0`. With the four counts of the confusion matrix,
 /// `(tp*tn - fp*fn) / sqrt((tp+fp) * (tp+fn) * (tn+fp) * (tn+fn))`.
 ///
-/// A zero denominator yields NaN. That is not a substitution: a zero factor
-/// forces two of the four counts to zero, which makes the numerator exactly
-/// zero as well, so the source's unchecked `0 / 0` is NaN in every case. The
-/// port returns it explicitly rather than dividing.
+/// A zero denominator yields NaN: a zero factor forces two of the four counts
+/// to zero, which makes the numerator exactly zero as well, so the source's
+/// unchecked `0 / 0` is the default NaN `0xfff8000000000000` in every case.
+/// The port performs the same division with SSE2's NaN rule
+/// (`crate::math::x86_64`), so the bits are the Linux x86_64 Release build's
+/// on any host (`matthews_one_sided` of `../oracle/integ-A-correlation`).
 ///
 /// A NaN on either side of a pair fails all four comparisons, so that pair
 /// increments none of the counts and is silently excluded from the confusion
@@ -1269,11 +1273,12 @@ pub fn matthews_correlation_coefficient(a: &[f64], b: &[f64]) -> Result<f64> {
             fp += 1.0;
         }
     }
-    let denominator = ((tp + fp) * (tp + fn_) * (tn + fp) * (tn + fn_)).sqrt();
-    if denominator == 0.0 {
-        return Ok(f64::NAN);
-    }
-    Ok((tp * tn - fp * fn_) / denominator)
+    // StatisticFunctions.h:767. The counts are small integers, so every
+    // product and sum is exact; only the division can generate a NaN.
+    Ok(x86_64::div(
+        tp * tn - fp * fn_,
+        x86_64::sqrt((tp + fp) * (tp + fn_) * (tn + fp) * (tn + fn_)),
+    ))
 }
 
 /// Pearson (linear) correlation coefficient of two equally long ranges.
@@ -1282,13 +1287,21 @@ pub fn matthews_correlation_coefficient(a: &[f64], b: &[f64]) -> Result<f64> {
 /// accumulate together in one pass, in slice order — the source's arrangement,
 /// kept because a two-pass or fused rewrite rounds differently.
 ///
-/// A range whose values are all equal makes its denominator zero and the result
-/// NaN; the source documents exactly that and its class test pins it. As in
-/// [`matthews_correlation_coefficient`] a zero denominator also forces a zero
-/// numerator, so the NaN is returned explicitly instead of dividing. The one
-/// case this treats differently from the source is a denominator that underflows
-/// to zero from non-zero deviations, where the source yields an infinity; NaN
-/// is the port's answer there.
+/// Every step is the Linux x86_64 Release build's instruction with SSE2's NaN
+/// rule (`crate::math::x86_64`; `libOpenMS.so` `0x18d5240`): both means as left
+/// folds divided by the length, one pass accumulating `numerator += temp_a *
+/// temp_b` and the two squared sums, then `numerator / sqrt(denominator_a *
+/// denominator_b)`. The zero denominator is divided by, as in the source: a
+/// range whose values are all equal gives `0 / 0`, the default NaN
+/// `0xfff8000000000000` (the source documents the NaN and its class test pins
+/// it), and a denominator that underflows to zero from non-zero deviations
+/// gives the source's signed infinity. A NaN input propagates with its quieted
+/// payload. All three are compared bit for bit with the Release build
+/// (`../oracle/integ-A-correlation`).
+///
+/// This is also the picked feature finder's correlation (its isotope, crop and
+/// quality scores), which kept a private copy of this arithmetic until the
+/// group-A integration collapsed the two.
 ///
 /// # Errors
 ///
@@ -1300,23 +1313,22 @@ pub fn pearson_correlation_coefficient(a: &[f64], b: &[f64]) -> Result<f64> {
         return Err(empty("Pearson ranges must have the same length"));
     }
     let dist = a.len() as f64;
-    let avg_a = sum(a) / dist;
-    let avg_b = sum(b) / dist;
+    let avg_a = x86_64::div(sum(a), dist);
+    let avg_b = x86_64::div(sum(b), dist);
     let mut numerator = 0.0;
     let mut denominator_a = 0.0;
     let mut denominator_b = 0.0;
     for (&value_a, &value_b) in a.iter().zip(b.iter()) {
-        let temp_a = value_a - avg_a;
-        let temp_b = value_b - avg_b;
-        numerator += temp_a * temp_b;
-        denominator_a += temp_a * temp_a;
-        denominator_b += temp_b * temp_b;
+        let temp_a = x86_64::sub(value_a, avg_a);
+        let temp_b = x86_64::sub(value_b, avg_b);
+        numerator = x86_64::add(numerator, x86_64::mul(temp_a, temp_b));
+        denominator_a = x86_64::add(denominator_a, x86_64::mul(temp_a, temp_a));
+        denominator_b = x86_64::add(denominator_b, x86_64::mul(temp_b, temp_b));
     }
-    let denominator = (denominator_a * denominator_b).sqrt();
-    if denominator == 0.0 {
-        return Ok(f64::NAN);
-    }
-    Ok(numerator / denominator)
+    Ok(x86_64::div(
+        numerator,
+        x86_64::sqrt(x86_64::mul(denominator_a, denominator_b)),
+    ))
 }
 
 /// Relative tolerance of the source's `computeRank` tie test.

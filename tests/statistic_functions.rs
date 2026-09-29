@@ -1832,3 +1832,100 @@ fn collect_mzml(directory: &std::path::Path, into: &mut Vec<std::path::PathBuf>)
         }
     }
 }
+
+// Tier 1: `Math::pearsonCorrelationCoefficient` (StatisticFunctions.h:811) and
+// `Math::matthewsCorrelationCoefficient` (:767) divide by their denominator even
+// when it is zero. Every expected value is the result's 64 bits as the Linux
+// x86_64 Release build printed them (oracle `../oracle/integ-A-correlation`,
+// ibminode06, install openms4-release-bc9cc12-c19e494-174b576, two runs in each
+// of two invocations, identical;
+// tests/data/statistic_correlation_release_provenance.json). The inputs are the
+// driver's, case by case.
+#[test]
+fn pearson_and_matthews_divide_as_the_release_build_does() {
+    let text = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/statistic_correlation_release/oracle.tsv"),
+    )
+    .unwrap();
+    let oracle: std::collections::BTreeMap<&str, u64> = text
+        .lines()
+        .map(|line| {
+            let (name, bits) = line.split_once('\t').unwrap();
+            (
+                name,
+                u64::from_str_radix(bits.trim_start_matches("0x"), 16).unwrap(),
+            )
+        })
+        .collect();
+    let bits = f64::from_bits;
+    let five = [1.0, 2.0, 3.0, 4.0, 5.0];
+    let ones = [1.0; 5];
+    let neg = [-1.0, -2.0, -3.0, -4.0, -5.0];
+    let mut n1 = [1.5; 20];
+    let mut n2 = [1.3; 20];
+    for (i, (x, y)) in [(0.1, 0.5), (0.2, 0.7), (0.01, 0.03), (1.7, 1.0), (3.2, 4.0)]
+        .into_iter()
+        .enumerate()
+    {
+        n1[i] = x;
+        n2[i] = y;
+    }
+    let tiny = [1e-170, -1e-170];
+    let nan_a = [bits(0x7ff8_0000_0000_0123), 2.0, 3.0];
+    let snan_a = [1.0, bits(0x7ff0_0000_0000_0456), 3.0];
+    let three = [1.0, 2.0, 3.0];
+    let pa = [1.0, 1.0, -1.0, -1.0];
+    let pearson = pearson_correlation_coefficient;
+    let matthews = matthews_correlation_coefficient;
+    let cases: Vec<(&str, f64)> = vec![
+        ("pearson_class_test", pearson(&n1, &n2).unwrap()),
+        ("pearson_constant_a", pearson(&ones, &five).unwrap()),
+        ("pearson_constant_b", pearson(&five, &ones).unwrap()),
+        ("pearson_both_constant", pearson(&ones, &ones).unwrap()),
+        ("pearson_self", pearson(&five, &five).unwrap()),
+        ("pearson_negated", pearson(&five, &neg).unwrap()),
+        (
+            "pearson_underflow_pos",
+            pearson(&tiny, &[1.0, -1.0]).unwrap(),
+        ),
+        (
+            "pearson_underflow_neg",
+            pearson(&tiny, &[-1.0, 1.0]).unwrap(),
+        ),
+        ("pearson_qnan_payload_a", pearson(&nan_a, &three).unwrap()),
+        ("pearson_snan_payload_a", pearson(&snan_a, &three).unwrap()),
+        ("pearson_qnan_payload_b", pearson(&three, &nan_a).unwrap()),
+        (
+            "matthews_one_sided",
+            matthews(&[1.0, 1.0], &[1.0, 1.0]).unwrap(),
+        ),
+        (
+            "matthews_one_sided_negative",
+            matthews(&[-1.0, -1.0], &[-1.0, -1.0]).unwrap(),
+        ),
+        (
+            "matthews_mixed",
+            matthews(&[1.0, 1.0, 1.0, -1.0], &[1.0, 1.0, -1.0, -1.0]).unwrap(),
+        ),
+        ("matthews_perfect", matthews(&pa, &pa).unwrap()),
+        (
+            "matthews_inverted",
+            matthews(&pa, &[-1.0, -1.0, 1.0, 1.0]).unwrap(),
+        ),
+        (
+            "matthews_nan_uncounted",
+            matthews(&[bits(0x7ff8_0000_0000_0123), 1.0], &[1.0, 1.0]).unwrap(),
+        ),
+    ];
+    assert_eq!(cases.len(), oracle.len(), "every oracle row is compared");
+    for (name, actual) in cases {
+        let expected = oracle[name];
+        assert_eq!(
+            actual.to_bits(),
+            expected,
+            "{name}: {:#018x} != {expected:#018x}",
+            actual.to_bits()
+        );
+    }
+}

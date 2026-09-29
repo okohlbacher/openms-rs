@@ -35,12 +35,12 @@ use crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter
 use crate::analysis::feature_finder_picked::helper_structs::{
     IsotopePattern, MassTrace, MassTraces,
 };
-use crate::analysis::feature_finder_picked::scoring::source_pearson;
 use crate::analysis::feature_finder_picked::seeds::IsotopeWindows;
 use crate::analysis::feature_finder_picked::trace_fitter::{TraceFitter, TraceFitterParams};
 use crate::concept::constants::PROTON_MASS_U;
 use crate::concept::constants::user_param::NUM_OF_DATAPOINTS;
 use crate::kernel::Feature;
+use crate::math::statistic_functions::pearson_correlation_coefficient;
 use crate::math::x86_64;
 use crate::metadata::MetaValue;
 use crate::{Error, Result};
@@ -290,7 +290,7 @@ pub(crate) fn crop_feature_logged<L: LogSink>(
             // `libOpenMS.so` `0x18d8a8d`-`0x18d8ad4`: the operands in the
             // order of the executed SSE instructions.
             fit_score = x86_64::div(deviation, new_trace.peaks.len() as f64);
-            correlation = max0(source_pearson(&theoretical, &real)?);
+            correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
             final_score = x86_64::sqrt(x86_64::mul(max0(x86_64::sub(1.0, fit_score)), correlation));
         }
         if log.enabled() {
@@ -441,7 +441,7 @@ pub(crate) fn check_feature_quality_logged<L: LogSink>(
         1.0,
         x86_64::div(deviation, traces.peak_count() as f64),
     ));
-    let correlation = max0(source_pearson(&theoretical, &real)?);
+    let correlation = max0(pearson_correlation_coefficient(&theoretical, &real)?);
     let final_score = x86_64::sqrt(x86_64::mul(correlation, fit_score));
     if log.enabled() {
         put_all(log, &["Quality estimation:\n"]);

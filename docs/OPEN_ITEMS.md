@@ -12,6 +12,10 @@ open-item inventory, re-checked against the tree and given exactly one verdict.
   the lane is named; its branch is evidence of intent, not of closure.
 - **What "checked" means:** every cited site was opened again in the current
   tree. A line number in this document is the current one, not the inventory's.
+- **Updated at the group-A integration (INTEG-A, 2026-09-29):** with lanes A3a
+  and A4 merged and the two Pearsons collapsed, OI-01, OI-05, OI-07, OI-08 and
+  the seven stale refusals B1-B7 (section 3.1) are **resolved**; the counts
+  below include them. Every other verdict is A3b's, against `f0990c0`.
 
 ## Verdicts
 
@@ -43,7 +47,7 @@ Series B.
 
 | | resolved | scheduled | deferred | decision owed | total |
 |---|---:|---:|---:|---:|---:|
-| Open items OI-01..OI-116 | 10 | 60 | 23 | 23 | 116 |
+| Open items OI-01..OI-116 | 14 | 56 | 23 | 23 | 116 |
 | Lead decisions DEC-1..DEC-18 | 2 | 1 | 0 | 15 | 18 |
 | New decisions found here (DEC-19..DEC-21) | | | | 3 | 3 |
 
@@ -61,14 +65,14 @@ and the item row points to it.
 
 | # | Item | Verdict | Evidence in the tree today | Next |
 |---|---|---|---|---|
-| OI-01 | `compute_rank` / `rank_correlation_coefficient` refuse a NaN on two grounds | **scheduled** A · DEBT-04, lane A3a | Still refused: `src/math/statistic_functions.rs:1378`, `:1441`. Ground (a), "the ranking sorts", is the argument D16 overturned; ground (b), the relative tie test, is ordinary defined `f64` arithmetic. | A3a ports both legs and measures the tie branch in its `../oracle/A3a-source-order` driver (mode `rank`). |
+| OI-01 | `compute_rank` / `rank_correlation_coefficient` refuse a NaN on two grounds | **resolved** by lane A3a, merged in the group-A integration (INTEG-A) | Was refused at f0990c0 (`src/math/statistic_functions.rs:1378`, `:1441`); A3a ports both legs, 17 `computeRank` and 2 `rankCorrelationCoefficient` rows of `../oracle/A3a-source-order` in `tests/a3a_source_order.rs`. Ground (a), "the ranking sorts", is the argument D16 overturned; ground (b), the relative tie test, is ordinary defined `f64` arithmetic. | A3a ports both legs and measures the tie branch in its `../oracle/A3a-source-order` driver (mode `rank`). |
 | OI-02 | The `_sorted` entry points return `UnsortedData` for a NaN | **decision owed** → DEC-19 | `statistic_functions.rs:511-516`, `:670-675`, `:728`. The C++ does not verify a caller's "already sorted"; it reads positions. | |
 | OI-03 | `covariance`'s `mulsd` operand order is assumed, not measured | **scheduled** E · CORE-18 (MATH) | `statistic_functions.rs:1128-1147` still reads "not measured … No oracle row measures it". Lane A2b's EVID-02 re-audit moves `MATH/StatisticFunctions.h` from `native_equivalent` to `partial`; this is one of its named gaps. | One Release-build call on ibminode06 with two NaN payloads, read back as bits. |
 | OI-04 | `median_of_sorted`'s `addsd` operand order, same hazard | **scheduled** E · CORE-18 (MATH) | `statistic_functions.rs:524-528`. | The same oracle row as OI-03. |
-| OI-05 | Two Pearsons coexist; `pearson_correlation_coefficient` / `matthews_correlation_coefficient` substitute `f64::NAN` | **scheduled** E · CORE-18 (MATH) | `statistic_functions.rs:62-71` still "a known gap"; the bit-faithful one is `analysis::feature_finder_picked::scoring::source_pearson`. | Converge on `source_pearson` behind its own oracle row; the duplication rule decides the direction. |
+| OI-05 | Two Pearsons coexist; `pearson_correlation_coefficient` / `matthews_correlation_coefficient` substitute `f64::NAN` | **resolved** in the group-A integration (INTEG-A) | Both now divide as the source does (x86_64 NaN rule); `scoring::source_pearson` was collapsed into `pearson_correlation_coefficient`. 17 rows of `../oracle/integ-A-correlation` (Linux x86_64 Release, ibminode06) in `tests/statistic_functions.rs::pearson_and_matthews_divide_as_the_release_build_does`. | |
 | OI-06 | `consensus.rs`'s `it_aad` NaN was host-shaped | **resolved** `6aed3c3` | Routed through `math::x86_64::add`. `docs/VALIDATION.md` was corrected in `3942b51`; the work-packages bullet in `b6dee21` (this lane). | — |
-| OI-07 | `range_utils.rs` sorts with `f64::total_cmp`, without D17's guard | **scheduled** A · DEBT-04, lane A3a | `src/kernel/range_utils.rs:721`. Same site as stale refusal B1. | A3a: `source_sort_by` + the ported `lower_bound`. |
-| OI-08 | `feature_overlap_filter.rs` emulates `std::stable_sort` with a library `sort_by` | **scheduled** A · DEBT-04, lane A3a | `src/processing/feature_overlap_filter.rs:1105`. A `sort_by` with a comparator that is not a total order may also panic on Rust >= 1.81. | A3a: `source_stable_sort_permutation`. |
+| OI-07 | `range_utils.rs` sorts with `f64::total_cmp`, without D17's guard | **resolved** by lane A3a, merged in INTEG-A | Now `source_sort_by` and the ported `lower_bound` (`src/kernel/range_utils.rs:734`, `:756`); was `:721` at f0990c0. Same site as stale refusal B1. | A3a: `source_sort_by` + the ported `lower_bound`. |
+| OI-08 | `feature_overlap_filter.rs` emulates `std::stable_sort` with a library `sort_by` | **resolved** by lane A3a, merged in INTEG-A | Now `source_stable_sort_permutation` (`src/processing/feature_overlap_filter.rs:1110`); was `:1105` at f0990c0. A `sort_by` with a comparator that is not a total order may also panic on Rust >= 1.81. | A3a: `source_stable_sort_permutation`. |
 
 ### 1.2 FileInfo and the mzML reader
 
@@ -250,7 +254,7 @@ and the item row points to it.
 
 ### 3.1 The seven stale refusals (inventory section 3B) — A · DEBT-04, lane A3a
 
-All seven are **scheduled** under DEBT-04 and are lane A3a's brief: B1
+All seven were **scheduled** under DEBT-04 as lane A3a's brief, and all seven are **resolved** now that A3a is merged in the group-A integration (INTEG-A; `tests/a3a_source_order.rs`, 11 tests against 82 Release cases): B1
 `range_utils.rs` (with OI-07), B2 `spectrum_mobility.rs` (`is_sorted_by_im`
 and `sort_by_ion_mobility`), B3 the `std::stable_sort` leg in `iterative.rs`,
 B4 `compute_rank` (OI-01), B5 `faims_helper.rs` (A3a models the source's
