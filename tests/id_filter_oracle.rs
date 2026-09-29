@@ -492,13 +492,15 @@ fn unassigned_proteins_are_moved_out_in_source_order() {
         }],
         ..PeptideIdentification::default()
     };
-    let mut map = ConsensusMap::default();
-    map.protein_identifications = vec![
-        run("run1", &["A", "B", "C", "D", "E"]),
-        run("run2", &["F", "G"]),
-        run("run1", &["H", "A", "C", "I"]),
-        run("run3", &["J"]),
-    ];
+    let mut map = ConsensusMap {
+        protein_identifications: vec![
+            run("run1", &["A", "B", "C", "D", "E"]),
+            run("run2", &["F", "G"]),
+            run("run1", &["H", "A", "C", "I"]),
+            run("run3", &["J"]),
+        ],
+        ..ConsensusMap::default()
+    };
     let mut f0 = ConsensusFeature::default();
     f0.peptide_identifications = vec![peptide("run1", &["A", "C"])];
     let mut f1 = ConsensusFeature::default();
