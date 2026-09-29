@@ -20,6 +20,8 @@
 //! and loads into a map from the modification name to its composition and
 //! the one-letter codes of the residues it may modify, [`PtmInformation`].
 //! See `docs/PTM_XML_SUPPORT.md` for the member mapping and the evidence.
+//!
+//! [`PtmInformation`]: crate::format::ptm_xml::PtmInformation
 
 use super::sax_xml::{SaxEvent, SaxLimits, parse};
 use crate::{Error, Result};
@@ -33,7 +35,7 @@ use std::path::Path;
 ///
 /// Source `std::map<std::string, std::pair<std::string, std::string>>`; a
 /// [`BTreeMap`] keeps the byte order `std::map` iterates in, which is also the
-/// order [`write`] emits.
+/// order [`write()`] emits.
 pub type PtmInformation = BTreeMap<String, (String, String)>;
 
 /// Resource bounds for reading one PTMXML document. Exceeding any of them is
@@ -297,7 +299,7 @@ fn document(ptm_informations: &PtmInformation) -> Result<String> {
 ///
 /// # Errors
 ///
-/// As [`write`]; [`Error::Io`] when the file cannot be created, which is the
+/// As [`write()`]; [`Error::Io`] when the file cannot be created, which is the
 /// source's `Exception::UnableToCreateFile`.
 pub fn store(path: impl AsRef<Path>, ptm_informations: &PtmInformation) -> Result<()> {
     let text = document(ptm_informations)?;

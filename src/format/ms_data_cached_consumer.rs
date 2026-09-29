@@ -7,7 +7,8 @@
 //! Ports `FORMAT/DATAACCESS/MSDataCachedConsumer.h` and its `.cpp`. The file
 //! it writes is the binary half of a cached mzML pair, laid out as
 //! [`crate::format::cached_mzml_handler`] describes and read back by
-//! [`CachedMzMLHandler`] and [`crate::format::cached_mzml`]. See
+//! [`CachedMzMLHandler`](crate::format::cached_mzml_handler::CachedMzMLHandler)
+//! and [`crate::format::cached_mzml`]. See
 //! `docs/MS_DATA_CONSUMERS_SUPPORT.md` for the API mapping and the evidence.
 
 use crate::format::cached_mzml_handler::{CACHED_MZML_FILE_IDENTIFIER, CachedMzMLHandler};

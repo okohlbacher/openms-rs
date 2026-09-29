@@ -20,6 +20,7 @@
 //! `docs/UNIMOD_XML_SUPPORT.md` for the member mapping and evidence.
 //!
 //! [`ModificationsDB::from_records`]: crate::chemistry::ModificationsDB::from_records
+//! [`ResidueModification`]: crate::chemistry::ResidueModification
 
 use super::sax_xml::{SaxAttributes, SaxEvent, SaxLimits, parse};
 use crate::chemistry::{

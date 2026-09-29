@@ -40,6 +40,24 @@
 //! `OPENMS_LOG_WARN`; the port returns those lines, verbatim and in order, as
 //! warnings (see [`PEFFFile::warnings`]). See `docs/PEFF_SUPPORT.md` for the
 //! member mapping, the native differences and the evidence.
+//!
+//! [`BufRead`]: std::io::BufRead
+//! [`PEFFEntry`]: crate::format::peff::PEFFEntry
+//! [`PEFFEntry::aa_sequence`]: crate::format::peff::PEFFEntry::aa_sequence
+//! [`PEFFEntry::digest_with_variants`]: crate::format::peff::PEFFEntry::digest_with_variants
+//! [`PEFFEntry::generate_peptides`]: crate::format::peff::PEFFEntry::generate_peptides
+//! [`PEFFEntry::modified_sequence`]: crate::format::peff::PEFFEntry::modified_sequence
+//! [`PEFFEntry::processed_sequence`]: crate::format::peff::PEFFEntry::processed_sequence
+//! [`PEFFEntry::variant_sequences`]: crate::format::peff::PEFFEntry::variant_sequences
+//! [`PEFFFile::load`]: crate::format::peff::PEFFFile::load
+//! [`PEFFFile::read_next`]: crate::format::peff::PEFFFile::read_next
+//! [`PEFFFile::read_start`]: crate::format::peff::PEFFFile::read_start
+//! [`PEFFFile::store`]: crate::format::peff::PEFFFile::store
+//! [`PEFFFile::warnings`]: crate::format::peff::PEFFFile::warnings
+//! [`PEFFFile::write_end`]: crate::format::peff::PEFFFile::write_end
+//! [`PEFFFile::write_next`]: crate::format::peff::PEFFFile::write_next
+//! [`PEFFFile::write_start`]: crate::format::peff::PEFFFile::write_start
+//! [`PEFFReader`]: crate::format::peff::PEFFReader
 
 use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::format::fasta::FASTAEntry;
