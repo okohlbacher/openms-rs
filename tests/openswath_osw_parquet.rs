@@ -194,19 +194,22 @@ fn container(all: &[Vec<String>], tmp: &Path, source: &str, name: &str) -> PathB
 /// null pattern (the extraction's success) is right. The port writes the
 /// cell's own value.
 ///
-/// `STALE` lists the successful extractions of the only feature that has
-/// any, the driver's feature A (`rich_features()`), in the source's order:
-/// `(file, column, row, extracted value)`. Extractions that fail (a list, an
-/// empty or unparseable text) are not in it: they leave `value` alone. The
+/// `STALE` lists the successful extractions of the features that have any,
+/// in the source's order: feature A of `rich_features()` (run 42) and the
+/// feature of `second_run_features()` (runs 7 and 8), as
+/// `(file, column, row, extracted value, first extraction of its feature)`.
+/// Extractions that fail (a list, an empty or unparseable text) are not in
+/// it: they leave `value` alone. The
 /// Release cell is `finite(previous)` and the port's `finite(own)`; the cells
 /// where they differ must be exactly the differences between the two files.
-const STALE: &[(&str, &str, usize, f64)] = &[
+const STALE: &[(&str, &str, usize, f64, bool)] = &[
     // ms1_area_intensity
     (
         "runs/run_id=42/features.parquet",
         "ms1_area_intensity",
         0,
         123456.78901234567,
+        true,
     ),
     // ms1_apex_intensity
     (
@@ -214,17 +217,31 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "ms1_apex_intensity",
         0,
         1e-300,
+        false,
     ),
     // im_ms1_drift
-    ("runs/run_id=42/features.parquet", "ms1_exp_im", 0, 5e-324),
+    (
+        "runs/run_id=42/features.parquet",
+        "ms1_exp_im",
+        0,
+        5e-324,
+        false,
+    ),
     // im_ms1_delta
-    ("runs/run_id=42/features.parquet", "ms1_delta_im", 0, 1e308),
+    (
+        "runs/run_id=42/features.parquet",
+        "ms1_delta_im",
+        0,
+        1e308,
+        false,
+    ),
     // var_ms1_ppm_diff
     (
         "runs/run_id=42/features.parquet",
         "var_ms1_massdev_score",
         0,
         1.5,
+        false,
     ),
     // var_im_ms1_delta_score
     (
@@ -232,6 +249,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms1_im_ms1_delta_score",
         0,
         42.0,
+        false,
     ),
     // var_ms1_mi_score "nan"
     (
@@ -239,6 +257,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms1_mi_score",
         0,
         f64::NAN,
+        false,
     ),
     // var_ms1_mi_contrast_score "inf"
     (
@@ -246,6 +265,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms1_mi_contrast_score",
         0,
         f64::INFINITY,
+        false,
     ),
     // var_ms1_mi_combined_score "+2.5e3"
     (
@@ -253,6 +273,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms1_mi_combined_score",
         0,
         2500.0,
+        false,
     ),
     // var_ms1_xcorr_coelution
     (
@@ -260,6 +281,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms1_xcorr_coelution",
         0,
         0.3,
+        false,
     ),
     // var_ms1_xcorr_shape
     (
@@ -267,6 +289,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms1_xcorr_shape",
         0,
         2.675,
+        false,
     ),
     // total_xic
     (
@@ -274,6 +297,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "ms2_total_area_intensity",
         0,
         1234567890123.0,
+        false,
     ),
     // peak_apices_sum
     (
@@ -281,15 +305,23 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "ms2_apex_intensity",
         0,
         9007199254740992.0,
+        false,
     ),
     // im_drift
-    ("runs/run_id=42/features.parquet", "ms2_exp_im", 0, 0.1),
+    (
+        "runs/run_id=42/features.parquet",
+        "ms2_exp_im",
+        0,
+        0.1,
+        false,
+    ),
     // im_drift_left " 7 "
     (
         "runs/run_id=42/features.parquet",
         "ms2_exp_im_leftwidth",
         0,
         7.0,
+        false,
     ),
     // var_bseries_score
     (
@@ -297,6 +329,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms2_bseries_score",
         0,
         3.0,
+        false,
     ),
     // var_library_corr
     (
@@ -304,6 +337,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms2_library_corr",
         0,
         0.987654321987654,
+        false,
     ),
     // var_manhatt_score
     (
@@ -311,6 +345,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms2_manhattan_score",
         0,
         12.0,
+        false,
     ),
     // var_xcorr_shape
     (
@@ -318,6 +353,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms2_xcorr_shape",
         0,
         0.8,
+        false,
     ),
     // var_xcorr_shape_weighted
     (
@@ -325,6 +361,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms2_xcorr_shape_weighted",
         0,
         0.3,
+        false,
     ),
     // im_log_intensity
     (
@@ -332,6 +369,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "var_ms2_im_log_intensity",
         0,
         7.25,
+        false,
     ),
     // s1 total_xic
     (
@@ -339,6 +377,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "total_area_intensity",
         0,
         20.0,
+        false,
     ),
     // s1 peak_apex_int
     (
@@ -346,6 +385,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "apex_intensity",
         0,
         5.0,
+        false,
     ),
     // s1 peak_apex_position
     (
@@ -353,6 +393,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "apex_rt",
         0,
         100.3,
+        false,
     ),
     // s1 width_at_50
     (
@@ -360,6 +401,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "rt_fwhm",
         0,
         2.2,
+        false,
     ),
     // s1 total_mi
     (
@@ -367,6 +409,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "total_mi",
         0,
         0.7,
+        false,
     ),
     // s1 start_position_at_5
     (
@@ -374,6 +417,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "start_position_at_5",
         0,
         99.0,
+        false,
     ),
     // s1 end_position_at_5
     (
@@ -381,6 +425,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "end_position_at_5",
         0,
         101.0,
+        false,
     ),
     // s1 tailing_factor "1.25"
     (
@@ -388,6 +433,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "tailing_factor",
         0,
         1.25,
+        false,
     ),
     // s1 points_across_half_height
     (
@@ -395,6 +441,7 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "points_across_half_height",
         0,
         7.0,
+        false,
     ),
     // s_iso peak_apex_int
     (
@@ -402,6 +449,23 @@ const STALE: &[(&str, &str, usize, f64)] = &[
         "precursor_apex_intensity",
         1,
         3.25,
+        false,
+    ),
+    // second_run_features(): its feature's only extraction, written as run 7
+    // (appended) and as run 8 (the replaced archive).
+    (
+        "runs/run_id=7/features.parquet",
+        "var_ms2_xcorr_shape",
+        0,
+        0.5,
+        true,
+    ),
+    (
+        "runs/run_id=8/features.parquet",
+        "var_ms2_xcorr_shape",
+        0,
+        0.5,
+        true,
     ),
 ];
 
@@ -411,7 +475,7 @@ fn finite(v: f64) -> Option<f64> {
 
 /// The Release and port cells of `STALE[k]`.
 fn stale_pair(k: usize) -> (Option<f64>, Option<f64>) {
-    let previous = if k == 0 { 0.0 } else { STALE[k - 1].3 };
+    let previous = if STALE[k].4 { 0.0 } else { STALE[k - 1].3 };
     (finite(previous), finite(STALE[k].3))
 }
 
@@ -423,12 +487,15 @@ fn same_cell(a: Option<f64>, b: Option<f64>) -> bool {
     }
 }
 
-/// The indices of `STALE` whose Release and port cells differ.
-fn stale_differences() -> BTreeSet<usize> {
+/// The indices of `STALE` in the given runs whose Release and port cells
+/// differ.
+fn stale_differences(runs: &[i64]) -> BTreeSet<usize> {
     (0..STALE.len())
         .filter(|&k| {
             let (release, port) = stale_pair(k);
-            !same_cell(release, port)
+            runs.iter()
+                .any(|r| STALE[k].0.starts_with(&format!("runs/run_id={r}/")))
+                && !same_cell(release, port)
         })
         .collect()
 }
@@ -478,7 +545,7 @@ fn assert_tables_equal(
                 continue;
             }
             let stale = (0..STALE.len()).find(|&k| {
-                let (file, column, r, _) = STALE[k];
+                let (file, column, r, _, _) = STALE[k];
                 let (release, port) = stale_pair(k);
                 file == rel
                     && column == field.name()
@@ -572,9 +639,9 @@ fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) -> BTre
     used
 }
 
-/// Every [`STALE`] entry applies to a container holding the rich run 42.
-fn assert_all_stale(case: &str, used: BTreeSet<usize>) {
-    assert_eq!(used, stale_differences(), "{case}: stale entries");
+/// Exactly the [`STALE`] differences of `runs` were applied.
+fn assert_all_stale(case: &str, used: BTreeSet<usize>, runs: &[i64]) {
+    assert_eq!(used, stale_differences(runs), "{case}: stale entries");
 }
 
 // ------------------------------------------------------------------ inputs
@@ -1188,6 +1255,7 @@ fn oracle_writer_class_and_rich_directories() {
     assert_all_stale(
         "w_rich_dir",
         assert_container_matches(&all, "w_rich_dir", &dir),
+        &[42],
     );
 
     assert_eq!(outcome(&all, "w_rich_dir_append")[0], "OK");
@@ -1197,6 +1265,7 @@ fn oracle_writer_class_and_rich_directories() {
     assert_all_stale(
         "w_rich_dir_append",
         assert_container_matches(&all, "w_rich_dir_append", &dir),
+        &[42, 7],
     );
 
     let err = writer
@@ -1250,7 +1319,7 @@ fn oracle_writer_archives() {
     let entries: BTreeSet<String> = ZipArchiveFile::list_entries(&zip).into_iter().collect();
     assert_eq!(entries, zip_entries(&all, "w_rich_zip"));
     let used = assert_container_matches(&all, "w_rich_zip", &unzip(tmp.path(), &zip, "first"));
-    assert_all_stale("w_rich_zip", used);
+    assert_all_stale("w_rich_zip", used, &[42]);
 
     let mut preserving = OpenSwathOSWParquetWriter::new();
     preserving.set_preserve_existing(true);
@@ -1270,7 +1339,7 @@ fn oracle_writer_archives() {
         "w_rich_zip_preserve",
         &unzip(tmp.path(), &zip, "preserved"),
     );
-    assert_all_stale("w_rich_zip_preserve", used);
+    assert_all_stale("w_rich_zip_preserve", used, &[42, 7]);
 
     OpenSwathOSWParquetWriter::new()
         .write(&zip, &rich, &second_run_features(), 8, "third.mzML", false)
@@ -1282,7 +1351,7 @@ fn oracle_writer_archives() {
         "w_rich_zip_replace",
         &unzip(tmp.path(), &zip, "replaced"),
     );
-    assert!(used.is_empty());
+    assert_all_stale("w_rich_zip_replace", used, &[8]);
 }
 
 #[test]
@@ -1619,7 +1688,9 @@ fn oracle_reader_on_release_containers() {
 /// case `r_rich_dir` (the Release writer's runs 42 and 7 of the same library
 /// and features), whose Release load, peak-group and transition dumps it
 /// matches. Starting from the Release run 42 keeps the Release writer's
-/// stale values (see [`STALE`]) on both sides.
+/// stale values (see [`STALE`]) on both sides; run 7 is the port's, and its
+/// one stale cell (`var_ms2_xcorr_shape`, its `STALE` entry) is checked
+/// as modelled.
 #[test]
 fn oracle_reader_preserved_archive_divergence() {
     let all = records();
@@ -1650,11 +1721,33 @@ fn oracle_reader_preserved_archive_divergence() {
         .unwrap();
     let want = of(&all, "PG", "r_rich_dir/pg_ms1ms2");
     assert_eq!(pg.feature_id.len(), want.len());
+    let stale_column = pg
+        .ms2_columns
+        .iter()
+        .position(|c| c == "var_ms2_xcorr_shape")
+        .unwrap();
+    let run7 = STALE
+        .iter()
+        .position(|e| e.0 == "runs/run_id=7/features.parquet")
+        .unwrap();
+    let (release, port) = stale_pair(run7);
+    let mut stale_rows = 0;
     for (i, w) in want.iter().enumerate() {
         assert_eq!(pg.group_id[i], w[10]);
-        assert_values("preserved pg", &pg.ms2_values, i, &w[11]);
         assert_values("preserved pg", &pg.ms1_values, i, &w[12]);
+        let texts: Vec<&str> = w[11].split('|').collect();
+        assert_eq!(pg.ms2_values.len(), texts.len());
+        for (c, text) in texts.iter().enumerate() {
+            if pg.run_id[i] == 7 && c == stale_column {
+                stale_rows += 1;
+                assert_same("preserved pg Release", release.unwrap(), text);
+                assert_eq!(Some(pg.ms2_values[c][i]), port);
+            } else {
+                assert_same("preserved pg", pg.ms2_values[c][i], text);
+            }
+        }
     }
+    assert_eq!(stale_rows, 1);
     let tf = reader.fetch_transition_features(&zip).unwrap();
     let want = of(&all, "TF", "r_rich_dir/tf");
     assert_eq!(tf.feature_id.len(), want.len());
