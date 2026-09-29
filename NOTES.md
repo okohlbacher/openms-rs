@@ -28,6 +28,14 @@ DIAHelper -> DIAScoring, DIAPrescoring -> MRMScoring -> IonMobilityScoring -> Op
   MobilogramParquetConsumer -> MobilogramSink trait; driftIdScoring takes detection transitions slice.
 - Test files: tests/openswath_{dia_scoring,mrm_scoring,ion_mobility_scoring}.rs (default features).
 
+## State (late)
+- All 7 headers ported; IonMobilityScoring + OpenSwathScoring partial (PeakPickerMobilogram gap).
+- Oracle ../oracle/O2-scoring ran on ibminode06 (Release), fixture tests/data/openswath_scoring/oracle_all.*,
+  test tests/openswath_scoring_oracle.rs passes (exact + 3 declared 1e-12 classes: Eigen xcorr/StatsHelpers, TSG m/z).
+- Provenance tests/data/openswath_scoring_provenance.json, support docs/OPENSWATH_SCORING_SUPPORT.md.
+- MSRV 1.85 green: dia 24, im 6, mrm 21, scoring 7, oracle 5, data_access 26.
+- core_sdk_coverage.py / check_doc_coverage.py want --write (lead files) -> report.
+- DON'T run tools/check_schema_feature_graph.py locally (it runs cargo).
+
 ## Next step
-1. Confirm gate4 (3 test files). 2. OpenSwathScoring (339+832). 3. Support doc docs/OPENSWATH_SCORING_SUPPORT.md,
-provenance tests/data/openswath_scoring_provenance.json, doc coverage, clippy/fmt/doc/MSRV/sweep, report+ledger.
+1. Wait for sweep (scratchpad sweep1.log). 2. Write report + ledger fragment. 3. Delete NOTES.md, final commit.
