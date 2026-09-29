@@ -1,6 +1,6 @@
 {
  "revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
- "method": "Exact pinned fixture copies and source inspection; no C++ execution or differential-build output. Derived boundary cases are independent literals in the Rust test.",
+ "method": "Exact pinned fixture copies and source inspection; for the DTA2D store bytes, output retained from the executed Release build (tier 1). Derived boundary cases are independent literals in the Rust test.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/FORMAT/MS2File.h",
@@ -105,6 +105,22 @@
    "bytes": 292,
    "nonempty_lines": 18,
    "peak_rows": 8
+  },
+  {
+   "path": "tests/data/text_peak_lists/dta2d_store_release.dta2d",
+   "source": "../oracle/progress-format-readers/results/out_1/dta2d_store_cmd.dta2d",
+   "sha256": "b01b9771c4fc161d9c1cc4b1ee597155872b07d7d577b620951560231b7058a7",
+   "bytes": 579,
+   "origin": "written by the OpenMS4 Release build's DTA2DFile::store (core bc9cc12) on ibminode06 from DTA2DFile_test_1.dta2d; three repetitions and both logger modes byte-identical (outputs_1/2/3.sha256)",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/text_peak_lists/dta2d_store_tic_release.dta2d",
+   "source": "../oracle/progress-format-readers/results/out_1/dta2d_store_tic_cmd.dta2d",
+   "sha256": "5eeb6e9c587ae84995bac0df60522fa523f3b1a9b8547f215f5553a4d4b62e9e",
+   "bytes": 313,
+   "origin": "written by the OpenMS4 Release build's DTA2DFile::storeTIC (core bc9cc12) on ibminode06 from DTA2DFile_test_1.dta2d; three repetitions and both logger modes byte-identical",
+   "evidence_tier": 1
   }
  ],
  "reference_test": "tests/text_peak_lists.rs",
@@ -155,10 +171,11 @@
  "native_differences": [
   "Malformed short DTA2D headers return checked errors instead of indexing beyond source vector.",
   "Nonfinite/underflow numeric inputs and nonfinite minute/TIC results are rejected.",
-  "Writers use shortest round-trippable Rust float spelling rather than C++ PrecisionWrapper formatting.",
   "Strict full-store preflight prevents known annotation loss and DTA2D scan merging; source store silently projects these away.",
   "MS2 writer is a native extension; pinned source only loads.",
-  "Path wrappers do not invent loaded-file metadata in MSExperiment."
+  "DTA2D writers spell numbers as the source's precisionWrapper does (StringUtils::toStr); by default a number whose text would not read back exactly is refused, and WriteOptions::source() writes it as the source does.",
+  "Strict full-store preflight is the default; WriteOptions::source() writes every spectrum as the source store does, dropping what DTA2D cannot carry.",
+  "Path loaders record the source's DocumentIdentifier state (loaded file path and content-detected type), DTA2DFile_test.cpp:72-73 and MS2File_test.cpp:49-50."
  ],
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
@@ -173,5 +190,43 @@
     "review": "Adds extended-long-double libc++ formatting and removes equivalent redundant branches. Native f32/f64 formatting rules are unchanged; extended long double remains outside the native value surface. The 54a232f-to-82ce5b3 update moves appendNumeric into the shared private NumericFormatting.h and qualifies the six callers. The complete function body is identical after indentation normalization; native f32/f64 formatting rules and parsing are unchanged. The earlier extended-long-double boundary remains outside the native API."
    }
   ]
- }
+ },
+ "release_oracle": {
+  "reference_build": "Linux x86_64 Release /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12)",
+  "host": "ibminode06 (Ubuntu 24.04.4 LTS, AMD EPYC 7763), conda-forge g++ 14.4.0 -O2; see results/build_info.txt",
+  "driver": "../oracle/progress-format-readers/driver.cpp, cases dta2d_store and dta2d_store_tic (DTA2DFile.h:258-287, :297-320)",
+  "reused_from": "tests/data/progress_format_readers_provenance.json (the same oracle run; the store outputs were retained there but not compared until F7c)",
+  "comparison": "byte equality of the default and source-mode writers' output with the Release files (tests/text_peak_lists.rs::dta2d_store_writes_the_release_build_bytes)"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/progress-format-readers/driver.cpp",
+   "sha256": "aeabb4db14f85c5b1f2476ead1778c52d1b962ca0ea7b9281bd79b5c10a76eae",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "executed driver source"
+  },
+  {
+   "path": "../oracle/progress-format-readers/remote_run.sh",
+   "sha256": "a5f15d6a3279273ac9d1858e9f3c3ef3259e97d19479ebc07e4d451aa8d75c92",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "node build/run script"
+  },
+  {
+   "path": "../oracle/progress-format-readers/results/build_info.txt",
+   "sha256": "6bb6c59099d36456353b02f4fc4508b1159962cf6fb1190f2f75b0464d11ae95",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "host, compiler and input hashes of the run"
+  },
+  {
+   "path": "../oracle/progress-format-readers/results/outputs_1.sha256",
+   "sha256": "a556c6fc5f8086a1c577d6c7aded26b612877970c24bdce478385631d6780f8d",
+   "location": "outside this repository",
+   "origin_key": "fixtures",
+   "role": "hashes of the Release store outputs, repetition 1 (2 and 3 identical)"
+  }
+ ],
+ "external_reference_note": "The two DTA2D Release outputs come from the progress-format-readers oracle run; its driver and scripts live outside this repository, recorded here by sha256."
 }

@@ -3,14 +3,41 @@
 `format::ms2` and `format::dta2d` provide buffered `read`, `read_with_options`,
 atomic `read_into`/`read_into_with_options`, `load`/`load_with_options`, and
 `write`/`write_with_options`/`store`/`store_with_options`. The path wrappers delegate
-to the same adapters. They do not add loaded-file path/type metadata: the native
-experiment does not have OpenMS's separate DocumentIdentifier state.
+to the same adapters and, as the source's `load` does, record the document's
+identity in `settings.document`: `loaded_file_path` is the path as given (a
+relative path prefixed with the current directory) and `loaded_file_type` the
+type recognised from the file's content (`DTA2DFile.h:97-98`, `MS2File.h:66-67`;
+`DTA2DFile_test.cpp:72-73` and `MS2File_test.cpp:49-50` are
+`path_loads_record_the_loaded_file_path_and_type`). A stream read records
+neither, since a stream has no name.
 
 The pinned [MS2File header](https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/MS2File.h)
 is an **input-only** adapter. Its Rust writer is an explicit native extension.
 [DTA2DFile](https://github.com/okohlbacher/OpenMS4-core/blob/6bfc0e4711105f4eda2fea86812a83af7c7e791f/src/openms/include/OpenMS/FORMAT/DTA2DFile.h)
-has source load, store and TIC-store operations, all represented here. No C++
-execution, native dependency or external converter is involved.
+has source load, store and TIC-store operations, all represented here. No native
+dependency or external converter is involved.
+
+## API mapping
+
+| Source member | Rust | Notes |
+|---|---|---|
+| `MS2File()`, `~MS2File()` | none | the class has no state; its operations are free functions in `format::ms2` |
+| `template <typename MapType> void MS2File::load(filename, exp)` | `ms2::load`, `ms2::load_with_options` | `MapType` is `MSExperiment`, see below; stream forms `read`, `read_with_options`, `read_into`, `read_into_with_options` |
+| `MS2File`'s `ProgressLogger` base | none owed | its only `startProgress` is commented out (`MS2File.h:52`); the Release build makes no call (tier 1, `tests/progress_format_readers.rs`) |
+| (none) | `ms2::write`, `write_with_options`, `store`, `store_with_options` | native extension; the source has no MS2 writer |
+| `DTA2DFile()`, `~DTA2DFile()` | none | the only state is `options_`, passed as an argument |
+| `PeakFileOptions& getOptions()`, `const PeakFileOptions& getOptions() const` | `dta2d::ReadOptions` (read), `dta2d::WriteOptions` (write) | the adapter consumes only `rt_range`, `mz_range`, `intensity_range` of `PeakFileOptions`; see below |
+| `template <typename MapType> void DTA2DFile::load(filename, map)` | `dta2d::load`, `load_with_options`, `load_with_progress` | stream forms `read`, `read_with_options`, `read_into`, `read_into_with_options` |
+| `template <typename MapType> void DTA2DFile::store(filename, map) const` | `dta2d::store`, `store_with_options`, `store_with_progress` | stream forms `write`, `write_with_options`; `WriteOptions::source()` is the source's behaviour |
+| `template <typename MapType> void DTA2DFile::storeTIC(filename, map) const` | `dta2d::store_tic`, `store_tic_with_options`, `store_tic_with_progress` | stream forms `write_tic`, `write_tic_with_options` |
+| `DTA2DFile`'s `ProgressLogger` base | the three `*_with_progress` functions | see Progress |
+
+**`MapType`.** All four templates are documented as taking "a MSExperiment or
+[a type with] the same interface". Every instantiation in the pinned source is
+`PeakMap`, i.e. `MSExperiment` (`FileHandler.cpp:877-883`, `:931-937` and
+`:1159-1165`, and both class tests), and this crate has one experiment type,
+so the port fixes `MapType` to `MSExperiment` rather than inventing a trait
+with one implementor.
 
 ## MS2 conventions
 
@@ -62,12 +89,35 @@ are errors. These are the only PeakFileOptions fields consumed by the C++
 adapter. Generic MS-level, metadata-only, compression and precision flags have
 no DTA2D behavior and are not presented as working filters.
 
-Full storage emits `#SEC\tMZ\tINT` and round-trippable decimal rows. It requires
-nonempty MS1 spectra without precursors and the same metadata restrictions as
-MS2. Adjacent spectra within the grouping tolerance, or a first RT that would
-be changed by the -1 sentinel, are rejected. Empty experiments are valid and
-produce the header. Output uses Rust's shortest round-trip float spelling;
-scientific values are preserved, rather than C++ formatter byte identity.
+Full storage emits `#SEC\tMZ\tINT` and one row per peak. Every number is spelled
+as the source spells it: `DTA2DFile::store` writes
+`precisionWrapper(rt)`, `precisionWrapper(mz)` and `precisionWrapper(intensity)`,
+and `PrecisionWrapper`'s `operator<<` is `StringUtils::toStr(value, true)`
+(`CONCEPT/PrecisionWrapper.h`). For a double that is 15 *fraction* digits in
+`[0.01, 10000)` and the shortest round-trip scientific text elsewhere
+(`4711.100000000000364`, `230.02000000000001`); for the float intensity 6
+fraction digits in that range and the shortest float scientific text elsewhere
+(`318.519989`, `4.721889e04`). The port reuses
+`format::file_info::text_format::{to_str, to_str_f32}`, which FileInfo already
+proved against the Release build. The stored file of `DTA2DFile_test_1.dta2d`,
+and its TIC, are byte-identical to the Release build's
+(`dta2d_store_writes_the_release_build_bytes`, tier 1).
+
+That text is not always exact: a double below about 8, or a float in
+`[0.01, 1)` with more than 6 significant fraction digits, reads back as a
+different value. **By default the writers refuse such a number** with
+`Error::Unsupported`, before any byte is written, so a stored file always reads
+back as the experiment it came from. They also require nonempty MS1 spectra
+without precursors and the same metadata restrictions as MS2, and reject
+adjacent spectra within the grouping tolerance or a first RT that would be
+changed by the -1 sentinel. Empty experiments are valid and produce the header.
+
+`dta2d::WriteOptions::source()` sets `discard_unrepresentable` and writes what
+the source writes: every spectrum's peaks under its retention time whatever its
+MS level, precursors or metadata, an empty spectrum contributing no row, and
+every number in the source text even where it rounds. Nonfinite values and the
+output ceilings are refused in both modes; the source would write `NaN` or
+`inf` text.
 
 ## TIC projection
 
@@ -77,7 +127,9 @@ intensity accumulation in peak order, include zero-intensity points for empty
 MS1 spectra, and preserve scan order and duplicate RTs. They do not resample or
 use stored chromatograms. Higher MS levels and unrelated metadata are
 unconsumed, as in `calculateTIC()` with source defaults. Duplicate-RT rows can
-be grouped if the resulting file is read as DTA2D spectra.
+be grouped if the resulting file is read as DTA2D spectra. The retention time and
+the summed intensity are spelled as in full storage, the m/z as the literal `0`,
+and the same number-text check applies unless `discard_unrepresentable` is set.
 
 ## Progress
 
@@ -117,8 +169,26 @@ output; this is not a transactional filesystem writer.
 
 [Tests](../tests/text_peak_lists.rs) cover four exact source fixtures, source
 filter results, scientific rounding, malformed inputs, atomic replacement,
-limits, metadata-loss guards and flush failures. The
+limits, metadata-loss guards, the source text and its refusal, the source mode,
+the recorded document identity and flush failures. The
 [provenance manifest](../tests/data/text_peak_lists_provenance.json) records
-14 source hashes, four fixture hashes and derived versus literal expectations.
+14 source hashes, six fixture hashes (two of them Release build output) and
+derived versus literal expectations.
+
+## Evidence
+
+- **Tier 1, retained Release output.** `dta2d_store_release.dta2d` and
+  `dta2d_store_tic_release.dta2d` are what the OpenMS4 Release build
+  (`openms4-release-bc9cc12-c19e494-174b576`, ibminode06, conda-forge g++ 14.4.0)
+  wrote from `DTA2DFile_test_1.dta2d` in `../oracle/progress-format-readers`,
+  three repetitions and both logger modes byte-identical. The port writes them
+  byte for byte; `tests/progress_format_readers.rs` now also compares the
+  output sizes it used to exempt. The progress calls of all three operations
+  are tier 1 as described under Progress.
+- **Tier 3, class tests.** `DTA2DFile_test.cpp` and `MS2File_test.cpp`
+  literals: spectrum counts, native IDs, values, filters and the recorded
+  document identity.
+- **Tier 4.** The limits, the refusal of inexact text and the source mode's
+  handling of unrepresentable spectra are independently derived.
 The first fixture TIC is exactly f32 `141649.671875`; the source class test's
 short printed expectation is `141650`.

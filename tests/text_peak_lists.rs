@@ -327,10 +327,10 @@ fn writers_reject_unrepresentable_data_before_output() {
         dta2d::write_with_options(
             &mut bytes,
             &e,
-            &ms2::Limits {
+            &dta2d::WriteOptions::from(ms2::Limits {
                 max_output_bytes: 2,
                 ..Default::default()
-            }
+            })
         )
         .is_err()
     );
@@ -411,4 +411,182 @@ fn flush_errors_and_existing_file_preservation() {
     let mut cursor = Cursor::new(Vec::new());
     ms2::write(&mut cursor, &ms2::read(MS2).unwrap()).unwrap();
     assert!(!cursor.into_inner().is_empty());
+}
+
+fn data_path(name: &str) -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/data/text_peak_lists")
+        .join(name)
+}
+
+/// Tier 1: the Release build's `DTA2DFile::store` and `storeTIC` output for
+/// `DTA2DFile_test_1.dta2d`, retained by `../oracle/progress-format-readers`
+/// (ibminode06, three identical repetitions). Both the default writer and the
+/// source mode write those bytes: every number of this input reads back.
+#[test]
+fn dta2d_store_writes_the_release_build_bytes() {
+    let e = dta2d::load(data_path("DTA2DFile_test_1.dta2d")).unwrap();
+    let store = std::fs::read(data_path("dta2d_store_release.dta2d")).unwrap();
+    let tic = std::fs::read(data_path("dta2d_store_tic_release.dta2d")).unwrap();
+    for options in [
+        dta2d::WriteOptions::default(),
+        dta2d::WriteOptions::source(),
+    ] {
+        let mut bytes = Vec::new();
+        dta2d::write_with_options(&mut bytes, &e, &options).unwrap();
+        assert_eq!(
+            String::from_utf8(bytes).unwrap(),
+            String::from_utf8(store.clone()).unwrap()
+        );
+        let mut bytes = Vec::new();
+        dta2d::write_tic_with_options(&mut bytes, &e, &options).unwrap();
+        assert_eq!(
+            String::from_utf8(bytes).unwrap(),
+            String::from_utf8(tic.clone()).unwrap()
+        );
+    }
+    // The source text reads back as the loaded values.
+    assert_eq!(dta2d::read(store.as_slice()).unwrap(), e);
+    // Three literal lines of the Release file, for a reader of this test:
+    // 15 fraction digits for a double, 6 fraction digits or the shortest
+    // scientific text for a float.
+    let text = String::from_utf8(store).unwrap();
+    assert!(
+        text.starts_with("#SEC\tMZ\tINT\n4711.100000000000364\t230.02000000000001\t4.721889e04\n")
+    );
+    assert!(text.contains("\n4711.300000000000182\t139.419999999999987\t318.519989\n"));
+    assert!(
+        String::from_utf8(tic)
+            .unwrap()
+            .contains("\n4711.100000000000364\t0\t1.4164967e05\n")
+    );
+}
+
+/// The source text keeps 15 fraction digits of a double and 6 of a float in
+/// `[0.01, 10000)`. The default writer refuses a value that text would change;
+/// the source mode writes it as the source does.
+#[test]
+fn dta2d_numbers_the_source_text_would_change_are_refused_by_default() {
+    let mut small_mz = peak_spectrum(1.);
+    small_mz.peaks[0].mz = 1.234_567_890_123_456_7;
+    let mut small_intensity = peak_spectrum(1.);
+    small_intensity.peaks[0].intensity = 0.123_456_79;
+    let mut rt = peak_spectrum(0.123_456_789_012_345_67);
+    rt.peaks[0].mz = 100.;
+    for (e, line) in [
+        (experiment(small_mz), "1.0\t1.234567890123457\t42.25\n"),
+        (
+            experiment(small_intensity),
+            "1.0\t123.456789012344998\t0.123457\n",
+        ),
+        (experiment(rt), "0.123456789012346\t100.0\t42.25\n"),
+    ] {
+        let mut bytes = vec![9];
+        let error = dta2d::write(&mut bytes, &e).unwrap_err();
+        assert!(matches!(error, openms::Error::Unsupported(_)), "{error:?}");
+        assert_eq!(bytes, [9]);
+        let mut bytes = Vec::new();
+        dta2d::write_with_options(&mut bytes, &e, &dta2d::WriteOptions::source()).unwrap();
+        assert_eq!(
+            String::from_utf8(bytes).unwrap(),
+            format!("#SEC\tMZ\tINT\n{line}")
+        );
+    }
+    // The TIC applies the same check to its retention times and sums.
+    let mut s = peak_spectrum(1.);
+    s.peaks[0].intensity = 0.123_456_79;
+    let mut bytes = Vec::new();
+    assert!(dta2d::write_tic(&mut bytes, &experiment(s.clone())).is_err());
+    assert!(bytes.is_empty());
+    dta2d::write_tic_with_options(&mut bytes, &experiment(s), &dta2d::WriteOptions::source())
+        .unwrap();
+    assert_eq!(bytes, b"#SEC\tMZ\tINT\n1.0\t0\t0.123457\n");
+}
+
+/// Source `DTA2DFile::store` writes every spectrum's peaks under its retention
+/// time, whatever it carries; an empty spectrum writes nothing. The source mode
+/// does the same, where the default refuses each of these.
+#[test]
+fn dta2d_source_mode_writes_what_the_source_store_writes() {
+    let mut ms2_spectrum = peak_spectrum(2.);
+    ms2_spectrum.ms_level = 2;
+    ms2_spectrum.precursors.push(Precursor::new(500., 2));
+    ms2_spectrum.native_id = "scan=7".into();
+    ms2_spectrum.name = "named".into();
+    let e = MSExperiment {
+        spectra: vec![
+            peak_spectrum(1.),
+            MSSpectrum {
+                rt: 1.5,
+                ..Default::default()
+            },
+            ms2_spectrum,
+            peak_spectrum(2.00001),
+        ],
+        ..Default::default()
+    };
+    let mut bytes = Vec::new();
+    assert!(dta2d::write(&mut bytes, &e).is_err());
+    assert!(bytes.is_empty());
+    dta2d::write_with_options(&mut bytes, &e, &dta2d::WriteOptions::source()).unwrap();
+    assert_eq!(
+        String::from_utf8(bytes).unwrap(),
+        "#SEC\tMZ\tINT\n\
+         1.0\t123.456789012344998\t42.25\n\
+         2.0\t123.456789012344998\t42.25\n\
+         2.00001\t123.456789012344998\t42.25\n"
+    );
+    // Nonfinite values and the ceilings are refused in both modes.
+    let mut nan = peak_spectrum(1.);
+    nan.peaks[0].intensity = f32::NAN;
+    let mut bytes = Vec::new();
+    assert!(
+        dta2d::write_with_options(&mut bytes, &experiment(nan), &dta2d::WriteOptions::source())
+            .is_err()
+    );
+    let limited = dta2d::WriteOptions {
+        limits: ms2::Limits {
+            max_output_bytes: 20,
+            ..Default::default()
+        },
+        ..dta2d::WriteOptions::source()
+    };
+    assert!(dta2d::write_with_options(&mut bytes, &e, &limited).is_err());
+    assert!(bytes.is_empty());
+}
+
+/// `DTA2DFile_test.cpp:72-73` and `MS2File_test.cpp:49-50`: a path load
+/// records the document's path and its content-detected type; a stream read
+/// records neither.
+#[test]
+fn path_loads_record_the_loaded_file_path_and_type() {
+    let path = data_path("DTA2DFile_test_1.dta2d");
+    for e in [
+        dta2d::load(&path).unwrap(),
+        dta2d::load_with_options(&path, &Default::default()).unwrap(),
+    ] {
+        assert_eq!(e.settings.document.loaded_file_path, path.to_str().unwrap());
+        assert_eq!(e.settings.document.loaded_file_type.name(), "dta2d");
+        assert_eq!(e.len(), 9);
+    }
+    let path = data_path("MS2File_test_spectra.ms2");
+    for e in [
+        ms2::load(&path).unwrap(),
+        ms2::load_with_options(&path, &Default::default()).unwrap(),
+    ] {
+        assert_eq!(e.settings.document.loaded_file_path, path.to_str().unwrap());
+        assert_eq!(e.settings.document.loaded_file_type.name(), "ms2");
+        assert_eq!(e.len(), 2);
+    }
+    let read = dta2d::read(DTA[0]).unwrap();
+    assert!(read.settings.document.loaded_file_path.is_empty());
+    let read = ms2::read(MS2).unwrap();
+    assert!(read.settings.document.loaded_file_path.is_empty());
+    // A file that cannot be opened is an I/O error, the source's FileNotFound.
+    let missing = data_path("missing.dta2d");
+    assert!(matches!(dta2d::load(&missing), Err(openms::Error::Io(_))));
+    assert!(matches!(
+        ms2::load(data_path("missing.ms2")),
+        Err(openms::Error::Io(_))
+    ));
 }

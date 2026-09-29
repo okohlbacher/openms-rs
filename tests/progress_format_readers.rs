@@ -630,8 +630,10 @@ fn check_outcome(
 /// are comparable: a store case's output size is the port's own document.
 fn expected_fields(case: &str, source: &[String]) -> Option<Vec<String>> {
     match case {
-        // The file sizes of the source's documents.
-        "dta2d_store" | "dta2d_store_tic" | "mgf_store" => None,
+        // The file size of the source's document. The DTA2D stores are
+        // compared: since F7c they write the Release build's bytes
+        // (tests/text_peak_lists.rs::dta2d_store_writes_the_release_build_bytes).
+        "mgf_store" => None,
         // The mzIdentML document is the port's own type; nothing to count.
         "mzid_load" | "mzid_store" => None,
         "mzml_store" => Some(source[..2].to_vec()),
