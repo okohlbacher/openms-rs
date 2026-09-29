@@ -38,3 +38,12 @@ Prereqs merged: 0a7-27, 0a7-30 (commit "[MERGE] O4b prerequisites").
    Test data at .reference/openms4-core-bc9cc12/src/tests/class_tests/openms/data/TargetedSpectraExtractor_*.
 2. docs/TARGETED_SPECTRA_EXTRACTOR_SUPPORT.md + provenance; CalibrationWorkflow assessment (likely untouched).
 3. Report + ledger fragment; delete NOTES.md.
+
+## Incarnation 3 (restart after lead stopped wave)
+- Merged 0a7-50 (own earlier work incl. TSE class tests 12 pass, executed differential 2682 records bit-identical, support doc). 27/30 already in.
+- Ledger fragment wave4/O4b.json already exists (05:43) — review, amend.
+- Lane report O4b.md does NOT exist yet.
+## Next step (incarnation 3)
+1. Verify TSE gaps (searchSpectrum/AMSE, storeSpectraMSP) still open; CalibrationWorkflow assessment.
+2. Re-run gates on spock for the merged tree (clippy, tests, +1.85, doc) and record pass counts per slice.
+3. Write report, check ledger, delete NOTES.md, final commit.
