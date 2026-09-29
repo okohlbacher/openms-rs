@@ -1,0 +1,126 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "method": "Executed differential (evidence tier 1) for every IDFilter member added in wave 4: ../oracle/B8b-idfilter/driver.cpp compiled with libOpenMS's Release flags against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 and run twice on ibminode06, each case in a fresh process, both runs byte-identical; a second build and run of the extended driver reproduced every earlier line. The earlier members keep their tier-3 evidence (transcribed IDFilter_test.cpp values in tests/id_filter.rs).",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/ID/IDFilter.h",
+   "sha256": "27193274e1e5869200cc37dadd61291d3c009027f11f81b3cfbd5f9ef1f8e16d",
+   "role": "The ported header: predicate functors, higher-order filters, template filters, best-per-peptide family, digestion predicates."
+  },
+  {
+   "path": "src/openms/source/PROCESSING/ID/IDFilter.cpp",
+   "sha256": "2ee82a0096aaa2534ec498987d3490209371f11637d6ba706cae8bca6662cb90",
+   "role": "The non-template members, the peptide-only predicates, extractUnassignedProteins, filterGroupsByScore, filterPeptidesByRTPredictPValue, removePeptidesWithMatchingRegEx and the IdentificationData filters."
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+   "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b",
+   "role": "Read for tokenize_, countInternalCleavageSites, filterByMissedCleavages and isValidProduct_ (the methionine allowance before the bounds checks)."
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DataValue.cpp",
+   "sha256": "ab04af951f41dc9b767f73287557d3c5a3f7b7edcacc6611fefffe3f02a2d89b",
+   "role": "Read for operator== (type, unit, doubles within 1e-6) and operator double (the union read for non-numeric types)."
+  },
+  {
+   "path": "src/openms/source/METADATA/PeptideEvidence.cpp",
+   "sha256": "7c580274b885535f5237d74821cde3a03e71917a977ae632b753f3b7a4c3dddc",
+   "role": "Read for hasValidLimits and the position constants."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IDFilter_test.cpp",
+   "sha256": "4f6ca12077ea296b41673add2d9b03ac3d7979051b95ed4f14ae506bb6715912",
+   "role": "Class-test literals (tier 3) and the PeptideDigestionFilter sequences reused by the oracle."
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/IDFilter_test.idXML",
+   "sha256": "817ee36275346c0de30afd9e714f7c54cb4028a0c060bfb9ee5e371cc9c3d4fb",
+   "role": "Oracle and test input, copied to tests/data."
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/IDFilter_test2.idXML",
+   "sha256": "59c4a50e1d87041a5b43d83f3dfbbce4e02bb26a4e083cdb0d562ba5f1fce399",
+   "role": "Oracle and test input (RT p-values), copied to tests/data."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/id_filter_oracle.tsv",
+   "kind": "executed C++ output: stdout of the 16 oracle cases, each line prefixed with its case name",
+   "derivation": "cases count_best, groups, rtp, regex, best_per_peptide, meta_predicates, unassigned, digestion_peptide, digestion_evidence, idd_initial, idd_best_sc, idd_best_low, idd_cutoff_sc_10, idd_cutoff_sc_5, idd_cutoff_low_2, idd_decoys in that order, run 1; run 2 identical",
+   "evidence_tier": 1,
+   "host": "ibminode06 (Linux 6.8.0-124-generic x86_64)",
+   "build": "Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c; driver compiled with conda-forge g++ 14.4.0 and -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+   "sha256": "e8a35363a7eb8f417afde4dbc5a98d8dcd0959b3fe26e4297bcb64dcf8baa5ae",
+   "rows": 1443
+  },
+  {
+   "path": "tests/data/IDFilter_test.idXML",
+   "kind": "driver and test input, copied unchanged from src/tests/class_tests/openms/data/IDFilter_test.idXML at bc9cc12",
+   "license": "BSD-3-Clause",
+   "sha256": "817ee36275346c0de30afd9e714f7c54cb4028a0c060bfb9ee5e371cc9c3d4fb",
+   "rows": 41
+  },
+  {
+   "path": "tests/data/IDFilter_test2.idXML",
+   "kind": "driver and test input, copied unchanged from src/tests/class_tests/openms/data/IDFilter_test2.idXML at bc9cc12",
+   "license": "BSD-3-Clause",
+   "sha256": "59c4a50e1d87041a5b43d83f3dfbbce4e02bb26a4e083cdb0d562ba5f1fce399",
+   "rows": 37
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/id_filter.rs",
+  "src/analysis/id_filter/predicates.rs",
+  "src/analysis/id_filter/selection.rs",
+  "src/analysis/id_filter/digestion.rs",
+  "src/analysis/id_filter/identification_data.rs",
+  "src/chemistry/digestion.rs"
+ ],
+ "native_tests": [
+  "tests/id_filter_oracle.rs",
+  "tests/id_filter.rs"
+ ],
+ "support_document": "docs/ID_FILTER_SUPPORT.md",
+ "support_documents": [
+  "docs/ID_FILTER_SUPPORT.md"
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B8b-idfilter/driver.cpp",
+   "sha256": "33e2c6c751e9db9325b72fa96fe7a76687304c02e08bb02d49aa1730ed3ba451",
+   "origin_key": "fixtures",
+   "note": "oracle driver; built binary sha256 3497a12f05ba787ee50f983f65a240c3acbdecdbfad52b702564f07f52e2ec5a"
+  },
+  {
+   "path": "../oracle/B8b-idfilter/cases.txt",
+   "sha256": "04497769ecb03022fa0bbe63e74adf2f57dcd0e84f599dce6554a41adced200d",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-idfilter/run.sh",
+   "sha256": "adaf3cf2a37854db1fca668c5ca043bf3f0d799e43970b10249754f3f778a2d2",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-idfilter/remote_run.sh",
+   "sha256": "65acdfec34cae0c815b1a5e6c8a47c5fe75f30db360551672b298f9b8f10f0f5",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8b-idfilter/results/hashes.txt",
+   "sha256": "64a1cdbaeef9ec07d65af45d6b8c660f57c1abbf1dd62aa9d8ac1557d9d69887",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "No C++ is committed to this repository. The oracle driver and its scripts live in ../oracle/B8b-idfilter/; they ran on ibminode06 against the Linux x86_64 Release install, and results/hashes.txt there records the driver, input, binary and libOpenMS.so hashes.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
