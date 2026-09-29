@@ -46,6 +46,10 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 - sweep1 slot integ-B-sweep (merged tree before fixes); sweep2 slot integ-B-sweep2 (final tree);
   new_lines2 at final tree (slot integ-B).
 
+- e76f1ce1 zip_input multi-entry ParseError message = full what() (" in: " tail).
+- Report draft: scratchpad/integB/INTEG-B.md (fill SWEEP_RESULT), copy to .planning/lane-reports/INTEG-B.md.
+- sweep1 (merged, pre-fix): test-job lines 1-23 all pass (5901 all-features); stopped at 24 to free dax.
+- sweep3 = final sweep, slot integ-B-sweep2, log dir scratchpad/integB/sweep3.
+
 ## Next step
-1. Wait sweep1/sweep2/new_lines2; fix any failure.
-2. Write .planning/lane-reports/INTEG-B.md (bash heredoc); delete NOTES.md in final commit.
+1. Wait sweep3; fix failures; fill report; cp report; delete NOTES.md in final commit.
