@@ -29,7 +29,7 @@ output=['// Copyright (c) 2002-present, OpenMS Inc.', '// SPDX-License-Identifie
 for v in variants:
  if v=='Trypsin':output.append('    #[default]')
  output.append('    '+v+',')
-output+=['}', '', 'impl Protease {', '    pub const ALL: [Self; 33] = [']+['        Self::'+v+',' for v in variants]+['    ];','}', '', 'pub(super) static ENZYMES: [DigestionEnzymeProtein; 33] = [']
+output+=['}', '', 'impl Protease {', '    /// Every table entry, in the pinned `Enzymes.xml` order.', '    pub const ALL: [Self; 33] = [']+['        Self::'+v+',' for v in variants]+['    ];','}', '', 'pub(super) static ENZYMES: [DigestionEnzymeProtein; 33] = [']
 goldens=['# Python re matching of exact pinned enzyme regex; FNV-1a64 of every A-Z context', '# Context order: all 2-residue strings at bond1, then all 3-residue strings at bond2.', '# name\tcleaving_context_count\tfnv1a64']
 for variant,node in zip(variants,records):
  row={i.attrib['name']:i.attrib['value'] for i in node.findall('ITEM')}

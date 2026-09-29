@@ -1300,24 +1300,6 @@ fn filtered_filename(filename: &str) -> String {
     stem.chars().filter(char::is_ascii_alphanumeric).collect()
 }
 
-/// Every UniMod-backed modification identifier, as
-/// `ModificationsDB::getAllSearchModifications` returns it: the full IDs of
-/// records carrying a UniMod record ID, sorted case-insensitively with the
-/// shorter of two otherwise-equal names first.
-fn all_search_modifications(database: &ModificationsDB) -> Vec<String> {
-    let mut names: Vec<String> = database
-        .entries()
-        .iter()
-        .filter(|record| record.record_id().is_some_and(|id| id > 0))
-        .map(|record| record.full_id().to_owned())
-        .collect();
-    // The source comparator lower-cases character by character and falls back
-    // to the shorter string; this key is the same order and a total one, which
-    // Rust's sort requires.
-    names.sort_by_cached_key(|name| (name.to_lowercase(), name.len()));
-    names
-}
-
 /// `updateMembers_`: expand `special_modifications` into the per-residue map.
 fn special_modification_groups(parameters: &Param) -> Result<BTreeMap<String, String>> {
     let special = match parameters.value("special_modifications")? {
@@ -2051,7 +2033,7 @@ impl MascotGenericFile {
 /// The source constructor's `defaults_`, including the `internal:` section that
 /// is deliberately not shown to TOPP users.
 fn defaults(database: &ModificationsDB) -> Result<Param> {
-    let modifications = all_search_modifications(database);
+    let modifications = database.all_search_modifications();
     let advanced = [String::from("advanced")];
     let none: [String; 0] = [];
     let mut param = Param::new();

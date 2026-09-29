@@ -1,7 +1,7 @@
 # Licenses for OpenMS for Rust
 
 The OpenMS-derived implementation is BSD-3-Clause, as reproduced below.
-The private decoy random helper's bounded-integer mapping additionally retains the Boost Software License
+The `Math::RandomShuffler` port's bounded-integer mapping additionally retains the Boost Software License
 1.0 and its original author notices; its component terms are reproduced below.
 The picked feature finder's `powf`, `exp` and `log` (`src/analysis/feature_finder_picked/glibc_powf.rs` and `glibc_libm.rs`) are ported from Arm's optimized-routines, whose code is licensed MIT OR Apache-2.0 WITH LLVM-exception and used here under MIT; its notice is reproduced below and in the files.
 
@@ -270,9 +270,9 @@ POSSIBILITY OF SUCH DAMAGE.
 END OF TERMS AND CONDITIONS
 
 
-## Private decoy random helper: Boost Software License 1.0
+## RandomShuffler bounded-integer mapping: Boost Software License 1.0
 
-The bounded-integer mapping in `src/chemistry/decoy_random.rs` is derived from
+The bounded-integer mapping in `src/concept/math_functions/random_shuffler.rs` (formerly `src/chemistry/decoy_random.rs`) is derived from
 the inspected Boost 1.90 `random/uniform_int_distribution.hpp`. The MT19937-64
 engine it draws from, which unique ID generation also uses, is the `rand_mt`
 6.0.3 dependency (MIT OR Apache-2.0); no code derived from

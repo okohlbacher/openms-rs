@@ -15,18 +15,20 @@ the MATH domain. The two families those consumers reach for are the ppm/Dalton
 tolerance conversions and the decimal rounding helpers, and both are where the
 port is most conservative.
 
-Rust files covering the header: `src/concept/math_functions.rs` (one module).
-Tests: `tests/math_functions.rs` plus three private unit tests in the module.
+Rust files covering the header: `src/concept/math_functions.rs` and its
+submodule `src/concept/math_functions/random_shuffler.rs` (`RandomShuffler`).
+Tests: `tests/math_functions.rs`, three private unit tests in
+`math_functions.rs` and nine in `random_shuffler.rs`.
 
 ## Why `concept` and not `math`
 
 The header's own Doxygen puts the `Math` namespace in `@ingroup Concept`, and
-`src/math/` does not exist in this crate. Creating it would mean adding a
-top-level `pub mod math;` to `src/lib.rs`, which this work package may not edit;
-`src/concept/` is the closest existing home and the one the source's own grouping
-names. The module reaches for nothing but `crate::{Error, Result}`, so
-`tools/check_module_cycles.py` reports the same 57 edges and 14 mutually
-dependent pairs as before.
+`src/math/` did not exist in this crate when the module was written;
+`src/concept/` is the home the source's own grouping names. The module reaches
+for nothing inside the crate but `crate::{Error, Result}` (plus the `rand_mt`
+dependency for `RandomShuffler`), so it adds no module edge, and
+`chemistry::decoy_generator`'s import of `RandomShuffler` points into the
+`concept` sink.
 
 ## API mapping
 
@@ -57,13 +59,15 @@ Every public member of the header appears below.
 | `template<T> T ppmToMassAbs(T ppm, T mz_ref)` | `ppm_to_mass_abs(f64, f64) -> Result<f64>` | Its C++ comment block opens with `/*`, so this member is absent from the generated Doxygen; its content is carried into the rustdoc anyway. |
 | `pair<double,double> getTolWindow(double val, double tol, bool ppm)` | `tolerance_window(f64, f64, bool) -> Result<(f64, f64)>` | The asymmetric ppm window is reproduced exactly; `tol == 1e6` is checked instead of dividing by zero. |
 | `template<T1> T1::value_type quantile(const T1& x, double q)` | `quantile(&[f64], f64) -> Result<f64>` | `f64` samples only. `Exception::InvalidParameter` on empty becomes `Error::InvalidValue`; sortedness is now checked (`Error::UnsortedData`). |
-| `class RandomShuffler` | **not ported here**: `chemistry::decoy_random::DecoyRandom` already implements exactly these semantics (the `boost::mt19937_64` word stream, taken from `rand_mt::Mt64`; Boost `uniform_int` bucket mapping; descending Fisher-Yates) but is `pub(crate)` inside another group's module and specialised to `&mut [u8]`. See "Deferred: RandomShuffler" below. |
-| `RandomShuffler::RandomShuffler(int seed)` | not ported here; `DecoyRandom::seeded(u64)` | |
-| `RandomShuffler::RandomShuffler(const boost::mt19937_64&)` | not ported: constructing from a foreign engine value has no Rust meaning without that engine type. | |
-| `RandomShuffler::RandomShuffler()` / `~RandomShuffler()` | not ported: a default engine state and a trivial destructor have no counterpart. | |
-| `RandomShuffler::rng_` (public member) | not ported: the engine state stays private. Exposing a mutable engine field is exactly the "global mutable singleton" shape the port avoids. | |
-| `template<RandomAccessIterator> void RandomShuffler::portable_random_shuffle(first, last)` | not ported here; `DecoyRandom::shuffle(&mut [u8], &mut usize)` | The generic element type is the part that is missing. |
-| `void RandomShuffler::seed(uint64_t val)` | not ported here; `DecoyRandom::reseed(u64)` | |
+| `class RandomShuffler` | `RandomShuffler` (`src/concept/math_functions/random_shuffler.rs`, re-exported here) | The `boost::mt19937_64` word stream comes from `rand_mt::Mt64` (re-exported as `math_functions::Mt64`); Boost `uniform_int`'s bucket-division-with-rejection mapping and the *descending* Fisher-Yates loop are ported. `Clone`, `Debug`, `PartialEq`/`Eq` compare engine state. |
+| `explicit RandomShuffler(int seed)` | `RandomShuffler::new(i32)` | The `int` is sign-extended to the 64-bit seed exactly as the C++ conversion does, so `new(-1) == with_seed(u64::MAX)`; asserted against the executed `int -1` and `seed(2^64-1)` records. |
+| (none) | `RandomShuffler::with_seed(u64)` | Native: the full 64-bit seed range that `seed(uint64_t)` accepts, available at construction. |
+| `explicit RandomShuffler(const boost::mt19937_64& mt_rng)` | `RandomShuffler::from_engine(Mt64)` | Adopts the engine in its current state; the caller's copy is untouched, as with the source's copy. |
+| `RandomShuffler() = default` | `impl Default` | Seed 5489 (`RandomShuffler::DEFAULT_SEED`), the engine's default seed. |
+| `~RandomShuffler() = default` | `Drop` (implicit) | Trivial. |
+| `boost::mt19937_64 rng_` (public member) | `engine()`, `engine_mut()`, `into_engine()`, `next_u64()` | Accessors instead of a public field, so the type keeps its invariants; `engine_mut()` draws from the same stream the shuffle uses, as direct `rng_` access does. |
+| `template<RandomAccessIterator> void portable_random_shuffle(first, last)` | `portable_random_shuffle<T>(&mut [T])` | Any element type; the permutation depends only on the seed and the length. A crate-private `shuffle_limited` adds a cumulative raw-draw allowance for the decoy generator's work accounting. |
+| `void seed(uint64_t val)` | `RandomShuffler::seed(u64)` | Restarts the stream; the result equals `with_seed(val)`. |
 | `double log_binomial_coef(unsigned n, unsigned k)` | `log_binomial_coef(u32, u32) -> Result<f64>` | Both shortcuts and the `k > n/2` integer-division swap kept. `boost::math::lgamma` becomes `libm::lgamma`. |
 | `double log_sum_exp(double x, double y)` | `log_sum_exp(f64, f64) -> f64` | Total, as in the source; `std::max` semantics reproduced rather than `f64::max`. |
 | `double binomial_cdf_complement(unsigned N, unsigned n, double p)` | `binomial_cdf_complement(u32, u32, f64) -> Result<f64>` | All four shortcuts kept; the tail itself uses a different algorithm, stated below. |
@@ -189,33 +193,24 @@ Every divergence, and why.
 11. **No OpenMP.** The header has no `#pragma omp`, so there is no parallelism
     gap to record for this file.
 
-## Deferred: RandomShuffler
+## RandomShuffler: promoted from the decoy generator
 
-`Math::RandomShuffler` is the only public member of the header without a
-counterpart in this module, and the reason is placement rather than difficulty.
-Its exact semantics are already implemented, with an independent oracle, in
-`src/chemistry/decoy_random.rs` as `DecoyRandom`. The `boost::mt19937_64` word
-stream comes from the `rand_mt::Mt64` dependency; Boost `uniform_int`'s
-bucket-division-with-rejection mapping and the *descending* Fisher-Yates loop
-are ported beside it. `Mt64` omits Boost's seed-time state normalization, which
-changes no output word; `DECOY_REFERENCE_REVIEW.md` gives the reason and the
-executed comparison against the hand-written engine it replaced. That type is
-`pub(crate)`, its `shuffle` is `pub(super)`, and it shuffles `&mut [u8]`.
+`Math::RandomShuffler` was the last public member of the header without a
+counterpart here. Its exact semantics already existed, with an independent
+oracle, as the crate-private `DecoyRandom` in `src/chemistry/decoy_random.rs`.
+That file moved to `src/concept/math_functions/random_shuffler.rs` (with its
+history), was generalised from `&mut [u8]` to any element type and became the
+public `RandomShuffler`; `chemistry::decoy_generator` now imports it from here
+and draws through the crate-private `shuffle_limited`, so there is one copy of
+the bit-exactness-critical mapping and loop in the crate. `concept` is a sink
+for `chemistry`, so the move adds no module edge in the wrong direction.
 
-Publishing a generic shuffler from `concept::math_functions` would mean one of
-two things, and neither belongs in this work package:
-
-* duplicating the Boost range mapping and the Fisher-Yates loop, which would put
-  two copies of bit-exactness-critical code in the crate (the engine is a shared
-  dependency and needs no copy), or
-* widening the visibility of another group's private module and generalising its
-  element type, which changes `DECOY_SUPPORT`'s documented surface and its
-  ledger scope.
-
-So it is reported as a deferral for the integrator, with the recommendation to
-promote `DecoyRandom` into a shared module in a package that owns both files.
-Until then, `chemistry::decoy_generator` is the only consumer, and it is the only
-consumer upstream too apart from `DecoyDatabase`.
+The engine is `rand_mt::Mt64`. It omits Boost's seed-time state
+normalization, which changes no output word; `DECOY_REFERENCE_REVIEW.md` gives
+the reason and the executed comparison against the hand-written engine it
+replaced. The public shuffle has no draw ceiling: its cost is one raw draw per
+position plus rejections, and a rejection needs a raw word in the final partial
+bucket, probability below `(i + 1) / 2^64` per draw.
 
 ## Checked boundaries and evidence
 
@@ -241,9 +236,10 @@ the table below cites the Rust test and one concrete value it reproduces.
 | `getTolWindow` | `tolerance_window_is_asymmetric_in_ppm_mode_and_symmetric_in_dalton_mode` | `tolerance_window(500, 5, true).1 == 500.0025000125` |
 | `binomial_cdf_complement` | `binomial_cdf_complement_matches_source_values_and_an_exact_rational_oracle` | `binomial_cdf_complement(100, 60, 0.5) == 0.02844` |
 
-Seven public members have **no** upstream section: `extendRange`, `contains`,
+Ten public members have **no** upstream section: `extendRange`, `contains`,
 `zoomIn`, `createBins`, both `gcd` overloads, `ppmToMass`, `ppmToMassAbs`,
-`quantile` and `RandomShuffler`. Their tests
+`quantile` and `RandomShuffler`. `RandomShuffler` is covered by executed C++
+output instead (below). The others' tests
 (`extend_range_and_contains_follow_the_source_comparison_order`,
 `zoom_in_round_trips_and_keeps_the_single_precision_subtraction`,
 `create_bins_partitions_overlaps_and_never_extends_the_outer_borders`,
@@ -254,8 +250,27 @@ independently derived from the header's documented behaviour, its inline bodies
 and its own `@code` examples - which is tier 4 evidence, stronger than a
 transcribed literal, but it means upstream has no assertion for any of them.
 
-Evidence tier for the transcribed expected values is **3 (source review)**: no
-C++ was built or executed, and none of the ten prebuilt reference outputs this
+**`RandomShuffler` is tier 1 (executed differential).**
+`../oracle/B8b-random-shuffler/driver.cpp` was compiled with libOpenMS's own
+Release flags (`-O3 -DNDEBUG -std=gnu++23 ... -ffp-contract=off`, conda-forge
+g++ 14.4.0) against the Linux x86_64 Release install
+`openms4-release-bc9cc12-c19e494-174b576` and run **twice on ibminode06**, each
+case in a fresh process; both runs agreed byte for byte. Its stdout is
+`tests/data/random_shuffler_oracle.tsv` (134 records, sha256 in
+`tests/data/math_functions_provenance.json`), and seven tests in
+`tests/math_functions.rs` replay every record: consecutive shuffles of
+`0..n` for n in {0, 1, 2, 3, 5, 10, 20, 100} and the next raw word, for the
+`int` constructor at seeds 0, 1, -1, 42, 4711, `INT_MAX` and `INT_MIN`; the
+default constructor; `seed(u64)` after earlier draws at 0, 4711, 2^63, 2^64-1
+and 5489; adoption of an engine advanced by three words; a `std::string` and a
+`std::vector<std::string>` (element-type independence); and two
+100,000-element shuffles by FNV digest, end elements and next word. The two
+20-letter string permutations are the same values the decoy generator's
+private tests derived independently, so those derived references are now
+confirmed by executed C++ too.
+
+For the free functions, evidence tier for the transcribed expected values is
+**3 (source review)**: no C++ was built or executed for them, and none of the ten prebuilt reference outputs this
 repository retains exercises `MathFunctions.h` directly. Where a value could be
 derived independently it was, and the test says so inline:
 

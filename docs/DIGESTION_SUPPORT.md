@@ -10,7 +10,7 @@ available from `openms::chemistry`.
 | API | Behavior |
 | --- | --- |
 | `Protease` | Typed enzyme selection, name/synonym parsing, metadata, cleavage positions and internal-site counts |
-| `ProteaseDB` | Immutable registry, exact name/synonym lookup, exact registered-expression lookup, and search-engine ID availability lists |
+| `ProteaseDB` | Immutable registry with the source's name index (name, lower-cased name, synonyms), expression index, name listings and `writeTSV`; see [ProteaseDB](#proteasedb) |
 | `DigestionEnzymeProtein` | Name, expression, description, synonyms, terminal gains, PSI/X!Tandem IDs and optional Comet/MS-GF+/OMSSA IDs |
 | `ProteaseDigestion::digest` | Modified `AASequence` peptides with original protein ranges and actual missed-cleavage counts |
 | `digest_ranges` | Range products without constructing peptide strings; endpoints are always zero-based start and exclusive end |
@@ -92,7 +92,8 @@ The registry contains these exact names:
 | no cleavage | `NoCleavage` |
 | unspecific cleavage | `UnspecificCleavage` |
 
-Names and declared synonyms are case-sensitive. Examples include `Clostripain`
+Names are found as written and ASCII lower-cased (`trypsin`), synonyms as
+declared; the lookup is otherwise case-sensitive. Examples include `Clostripain`
 for Arg-C, `Glu-C` for glutamyl endopeptidase, `no_cut` for no cleavage and
 `nonspecific` for unspecific cleavage. Identical cleavage expressions can belong
 to multiple distinct entries, so `enzymes_by_regex` returns all matching names.
@@ -112,6 +113,80 @@ do not require calculable chemistry. String operations reject modifications, spa
 separators, lowercase letters and non-ASCII text. Sequence termini are always
 cleavage boundaries; duplicate endpoint cuts and empty peptides are not emitted.
 An empty input has the boundary list `[0]`, zero internal sites and zero products.
+
+## ProteaseDB
+
+`src/chemistry/digestion/protease_db.rs` ports `CHEMISTRY/ProteaseDB.h` and the
+lookup half of its header-only base `CHEMISTRY/DigestionEnzymeDB.h` at core
+`bc9cc12`. The source singleton loads the compiled-in
+`BuiltInProteaseDataProvider`, then `share/OpenMS/CHEMISTRY/Enzymes.xml` when it
+is found, whose definitions replace the built-in ones by name. At the pin both
+carry the same 33 definitions in the same order, so the port replays both
+registration passes (`DigestionEnzymeDB::addEnzyme_`, including its
+remove-by-found-key rule) over the one compiled table to build the same name and
+expression indices.
+
+### API mapping
+
+| Source member | Rust |
+| --- | --- |
+| `getInstance()` | `ProteaseDB::global()` |
+| `ProteaseDB(std::vector<std::unique_ptr<DigestionEnzymeDataProvider<DigestionEnzymeProtein>>>)` | **not ported**: needs owned user-defined enzymes with an executable cleavage expression; the compiled `DigestionEnzymeProtein` has neither (see below) |
+| `getEnzyme(name)` | `get_enzyme(name) -> Result<&'static DigestionEnzymeProtein>` |
+| `getEnzymeByRegEx(regex)` | `get_enzyme_by_regex(regex)`; `enzymes_by_regex` (native) returns every enzyme with the expression |
+| `getAllNames(names)` | `names()` |
+| `hasEnzyme(const std::string&)` | `has_enzyme(name)` |
+| `hasRegEx(regex)` | `has_regex(regex)` |
+| `hasEnzyme(const DigestionEnzymeProtein*)` | `contains(&enzyme)`, by address as the source compares pointers |
+| `beginEnzyme()` / `endEnzyme()` | `iter()`; `enzymes()` is the compiled table |
+| `getAllXTandemNames` / `getAllCometNames` / `getAllOMSSANames` / `getAllMSGFNames` | `xtandem_names()` / `comet_names()` / `omssa_names()` / `msgf_names()` |
+| `writeTSV(filename)` | `write_tsv(&mut impl Write)`, `write_tsv_file(path)` |
+| `ConstEnzymeIterator`, `EnzymeIterator` typedefs | the `iter()` iterator |
+| protected `addEnzyme_`, `loadFromProviders_`, the three index members | private `RegistryIndex` |
+
+### Preserved source conventions
+
+- Every enzyme is found under its name, `StringUtils::toLower(name)` (ASCII) and
+  each synonym. When two enzymes claim one key the later registration wins.
+- `getEnzymeByRegEx` returns the one enzyme the expression index keeps, the last
+  registered: `(?<=[MX])` is `cyanogen-bromide`, not `CNBr`. An empty expression
+  is never indexed.
+- `writeTSV` writes the header `OpenMS_AllowedEnzymes` and one name per line.
+- An enzyme without an engine identifier (`-1` in the source) is left out of that
+  engine's listing; MS-GF+ identifier 0 counts.
+
+### Native differences
+
+- **Listing order.** The source keeps its enzymes in a
+  `std::set<const DigestionEnzymeProtein*>`, so `getAllNames`, the engine
+  listings, `beginEnzyme()` and `writeTSV` follow heap address order. On the
+  Linux Release build that order starts `Arg-C/P, Asp-N, ..., Trypsin, Arg-C`:
+  an allocator artefact that differs between platforms and allocators. The port
+  lists in registration order (the `Enzymes.xml` order). The members are the
+  same; the executed oracle checks them.
+- `get_enzyme` and `get_enzyme_by_regex` return `Error::InvalidValue` where the
+  source throws `ElementNotFound` and `IllegalArgument`.
+- `write_tsv_file` reports a file that cannot be written; the source's unchecked
+  `std::ofstream` writes nothing and reports nothing.
+- `Protease::from_name` and `ProteaseDigestion::set_enzyme` resolve through the
+  same index, so they accept a lower-cased name as source
+  `ProteaseDigestion::setEnzyme` does.
+
+### Checked boundaries and evidence
+
+`tests/protease_db.rs` replays the executed C++ oracle `../oracle/B8b-dbs`
+(Linux x86_64 Release install `bc9cc12-c19e494-174b576`, run twice on
+ibminode06, byte-identical): all 33 definitions field by field, 125 name keys
+(every name, lower- and upper-cased name, synonym, and unknown keys) through
+`hasEnzyme` and `getEnzyme`, all 31 registered expressions plus two unknown ones
+through `hasRegEx` and `getEnzymeByRegEx`, pointer membership, the five listings
+(as sets, and in registration order natively) and the `writeTSV` file (the same
+lines). `tests/data/protease_db_provenance.json` records the hashes. The
+class-test literals of `ProteaseDB_test.cpp` are transcribed (tier 3).
+`tests/digestion.rs` previously asserted that `trypsin` is unknown; the source
+registers it and the oracle resolves it, so that assertion now states the
+source behaviour.
+
 
 ## Ordering and compatibility choices
 
@@ -153,8 +228,8 @@ limits the total copied residues to 10,000,000, checked before any peptide outpu
 is constructed. Range and borrowed-slice APIs avoid those sequence copies.
 Counts obey the same work/product limits as range generation.
 
-Custom runtime enzyme insertion, provider/XML overrides, arbitrary regular
-expressions, `no-cterm`/`no-nterm` specificity modes and the C++ discarded-by-length
+Custom runtime enzyme insertion, provider/XML overrides (the public
+`ProteaseDB(providers)` constructor), arbitrary regular expressions, `no-cterm`/`no-nterm` specificity modes and the C++ discarded-by-length
 counter are not exposed. Registry gains and search-engine IDs are read-only;
 empty gain formulas and absent IDs remain empty/`None` exactly as declared.
 The library performs no runtime XML or filesystem lookup.

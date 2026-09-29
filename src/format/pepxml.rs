@@ -2930,18 +2930,10 @@ fn date_time(date: &DateTime) -> Option<String> {
 /// Enzyme lookup with the source's dual-key index.
 ///
 /// `DigestionEnzymeDB` registers every enzyme under its name, its lower-cased
-/// name and each synonym, so `name="trypsin"` resolves to `Trypsin`. The Rust
-/// [`ProteaseDB`] matches names and synonyms exactly, so the lower-cased key is
-/// applied here.
+/// name and each synonym, so `name="trypsin"` resolves to `Trypsin`;
+/// [`ProteaseDB::get_enzyme`] keeps the same index.
 fn find_enzyme(name: &str) -> Option<&'static crate::chemistry::DigestionEnzymeProtein> {
-    let database = ProteaseDB::global();
-    if let Ok(enzyme) = database.get_enzyme(name) {
-        return Some(enzyme);
-    }
-    database
-        .enzymes()
-        .iter()
-        .find(|enzyme| enzyme.name().to_ascii_lowercase() == name)
+    ProteaseDB::global().get_enzyme(name).ok()
 }
 
 /// Remove a known file extension, as `FileHandler::stripExtension`.

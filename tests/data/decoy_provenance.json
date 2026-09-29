@@ -114,7 +114,7 @@
       "license": "BSD-3-Clause"
     },
     "native_tests": {
-      "path": "src/chemistry/decoy_random.rs",
+      "path": "src/concept/math_functions/random_shuffler.rs",
       "unit_test_count": 9,
       "checkpoint_constant": "tests::REFERENCES",
       "coverage": [
@@ -224,7 +224,7 @@
     },
     "artifact_policy": "The Rust test constants and generator output retain all checkpoint values; no duplicate JSON fixture is required. Per-seed raw words, checksums, and shuffle permutations are derived references, distinct from the literal standard and OpenMS class-test assertions.",
     "implementation_attribution": {
-      "path": "src/chemistry/decoy_random.rs",
+      "path": "src/concept/math_functions/random_shuffler.rs",
       "license_expression": "BSD-3-Clause AND BSL-1.0",
       "derived_from": "Boost.Random 1.90 random/uniform_int_distribution.hpp, bounded-integer mapping only; no engine code is derived from mersenne_twister.hpp.",
       "notices": [

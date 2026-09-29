@@ -12,9 +12,15 @@ use std::ops::Range;
 use std::str::FromStr;
 
 mod enzymes;
+mod protease_db;
 pub use enzymes::Protease;
+pub use protease_db::ProteaseDB;
 
+/// Longest protein sequence, in residues, that digestion and cleavage-site
+/// scans accept; the source has no ceiling.
 pub const MAX_DIGESTION_SEQUENCE_LENGTH: usize = 1_000_000;
+/// Ceiling on the summed length of the peptides [`ProteaseDigestion::digest`]
+/// materialises in one call; the source has no ceiling.
 pub const MAX_DIGESTED_RESIDUES: usize = 10_000_000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -67,9 +73,11 @@ pub struct DigestionEnzymeProtein {
     rule: CleavageRule,
 }
 impl DigestionEnzymeProtein {
+    /// The compiled table entry this definition belongs to.
     pub fn protease(&self) -> Protease {
         self.protease
     }
+    /// The enzyme name (`getName`).
     pub fn name(&self) -> &'static str {
         self.name
     }
@@ -77,118 +85,76 @@ impl DigestionEnzymeProtein {
     pub fn regex(&self) -> &'static str {
         self.regex
     }
+    /// Prose description of the cleavage rule (`getRegExDescription`).
     pub fn description(&self) -> &'static str {
         self.description
     }
+    /// Alternative names the enzyme is registered under (`getSynonyms`),
+    /// in the source set's sorted order.
     pub fn synonyms(&self) -> &'static [&'static str] {
         self.synonyms
     }
+    /// Formula gained by the N-terminus of a cleavage product
+    /// (`getNTermGain`); empty when the source declares none.
     pub fn n_term_gain(&self) -> EmpiricalFormula {
         EmpiricalFormula::parse(self.n_term_gain).expect("validated pinned enzyme formula")
     }
+    /// Formula gained by the C-terminus of a cleavage product
+    /// (`getCTermGain`); empty when the source declares none.
     pub fn c_term_gain(&self) -> EmpiricalFormula {
         EmpiricalFormula::parse(self.c_term_gain).expect("validated pinned enzyme formula")
     }
+    /// PSI-MS controlled-vocabulary accession (`getPSIID`), empty when none.
     pub fn psi_id(&self) -> &'static str {
         self.psi_id
     }
+    /// X! Tandem cleavage notation (`getXTandemID`), empty when none.
     pub fn xtandem_id(&self) -> &'static str {
         self.xtandem_id
     }
+    /// Comet enzyme number (`getCometID`); the source's `-1` is `None`.
     pub fn comet_id(&self) -> Option<i32> {
         self.comet_id
     }
+    /// MS-GF+ enzyme number (`getMSGFID`), counted from 0; the source's `-1`
+    /// is `None`.
     pub fn msgf_id(&self) -> Option<i32> {
         self.msgf_id
     }
+    /// OMSSA enzyme number (`getOMSSAID`); the source's `-1` is `None`.
     pub fn omssa_id(&self) -> Option<i32> {
         self.omssa_id
     }
 }
 
-/// Immutable registry. Names and declared synonyms are matched case-sensitively.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct ProteaseDB;
-impl ProteaseDB {
-    pub fn global() -> &'static Self {
-        &Self
-    }
-    /// Stable pinned table order, including named entries with identical rules.
-    pub fn enzymes(&self) -> &'static [DigestionEnzymeProtein] {
-        &enzymes::ENZYMES
-    }
-    pub fn has_enzyme(&self, name: &str) -> bool {
-        self.get_enzyme(name).is_ok()
-    }
-    pub fn get_enzyme(&self, name: &str) -> Result<&'static DigestionEnzymeProtein> {
-        self.enzymes()
-            .iter()
-            .find(|e| e.name == name || e.synonyms.contains(&name))
-            .ok_or_else(|| invalid(format!("unknown protease {name:?}")))
-    }
-    pub fn names(&self) -> Vec<&'static str> {
-        self.enzymes().iter().map(|e| e.name).collect()
-    }
-    pub fn has_regex(&self, regex: &str) -> bool {
-        self.enzymes().iter().any(|e| e.regex == regex)
-    }
-    /// Lookup of exact pinned expressions, not an arbitrary regex compiler.
-    /// Multiple names can share a rule, so all matching entries are returned.
-    pub fn enzymes_by_regex(&self, regex: &str) -> Result<Vec<&'static DigestionEnzymeProtein>> {
-        let matches: Vec<_> = self.enzymes().iter().filter(|e| e.regex == regex).collect();
-        if matches.is_empty() {
-            Err(Error::Unsupported(
-                "only cleavage expressions present in the pinned enzyme registry are supported"
-                    .into(),
-            ))
-        } else {
-            Ok(matches)
-        }
-    }
-    pub fn xtandem_names(&self) -> Vec<&'static str> {
-        self.enzymes()
-            .iter()
-            .filter(|e| !e.xtandem_id.is_empty())
-            .map(|e| e.name)
-            .collect()
-    }
-    pub fn comet_names(&self) -> Vec<&'static str> {
-        self.enzymes()
-            .iter()
-            .filter(|e| e.comet_id.is_some())
-            .map(|e| e.name)
-            .collect()
-    }
-    pub fn msgf_names(&self) -> Vec<&'static str> {
-        self.enzymes()
-            .iter()
-            .filter(|e| e.msgf_id.is_some())
-            .map(|e| e.name)
-            .collect()
-    }
-    pub fn omssa_names(&self) -> Vec<&'static str> {
-        self.enzymes()
-            .iter()
-            .filter(|e| e.omssa_id.is_some())
-            .map(|e| e.name)
-            .collect()
-    }
-}
 impl Protease {
+    /// Resolves a name, lower-cased name or synonym through
+    /// [`ProteaseDB::get_enzyme`].
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a name no enzyme is registered under.
     pub fn from_name(name: &str) -> Result<Self> {
         Ok(ProteaseDB::global().get_enzyme(name)?.protease)
     }
+    /// The full pinned definition of this enzyme.
     pub fn metadata(self) -> &'static DigestionEnzymeProtein {
         enzymes::ENZYMES
             .iter()
             .find(|e| e.protease == self)
             .expect("every protease has a pinned definition")
     }
+    /// The enzyme name, as [`DigestionEnzymeProtein::name`].
     pub fn name(self) -> &'static str {
         self.metadata().name
     }
     /// All internal cleavage positions plus protein boundaries 0 and len, without
     /// duplicate boundaries. Empty input returns `[0]`. Accepts uppercase A-Z.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for text that is not uppercase A-Z or exceeds
+    /// [`MAX_DIGESTION_SEQUENCE_LENGTH`].
     pub fn cleavage_sites(self, sequence: &str) -> Result<Vec<usize>> {
         validate_sequence(sequence)?;
         let mut cuts = vec![0];
@@ -204,6 +170,10 @@ impl Protease {
         Ok(cuts)
     }
     /// Protein termini are valid sites for every enzyme, including no cleavage.
+    ///
+    /// # Errors
+    ///
+    /// As [`Protease::cleavage_sites`].
     pub fn is_cleavage_site(self, sequence: &str, position: usize) -> Result<bool> {
         validate_sequence(sequence)?;
         Ok(position <= sequence.len()
@@ -211,8 +181,48 @@ impl Protease {
                 || position == sequence.len()
                 || self.metadata().rule.matches(sequence.as_bytes(), position)))
     }
+    /// Number of cleavage sites strictly inside `sequence`, protein termini
+    /// excluded.
+    ///
+    /// # Errors
+    ///
+    /// As [`Protease::cleavage_sites`].
     pub fn count_internal_cleavage_sites(self, sequence: &str) -> Result<usize> {
         Ok(self.cleavage_sites(sequence)?.len().saturating_sub(2))
+    }
+    /// The source's `EnzymaticDigestion::countInternalCleavageSites` as
+    /// `filterByMissedCleavages` sees it: the number of tokens its
+    /// Boost `sregex_token_iterator` split yields, minus one, cast to `Int`.
+    ///
+    /// It differs from [`Self::count_internal_cleavage_sites`] in one case: a
+    /// zero-width match at position 0 (a lookahead-only rule such as Asp-N or
+    /// Lys-N on a peptide that starts with D or K) produces an empty leading
+    /// token and counts as one more site. A match at the end adds no trailing
+    /// token, and `no cleavage` is not split at all (one token, count 0). The
+    /// executed C++ oracle behind `tests/id_filter_oracle.rs` checks this.
+    ///
+    /// # Errors
+    ///
+    /// As [`Protease::cleavage_sites`].
+    pub(crate) fn source_token_cleavage_count(self, sequence: &str) -> Result<i64> {
+        let internal = self.count_internal_cleavage_sites(sequence)?;
+        let leading = match self.metadata().rule {
+            CleavageRule::Boundary {
+                previous,
+                previous_two,
+                next,
+                forbidden_next,
+            } => {
+                let bytes = sequence.as_bytes();
+                previous.is_empty()
+                    && previous_two.is_empty()
+                    && bytes.first().is_some_and(|first| {
+                        (next.is_empty() || next.contains(first)) && !forbidden_next.contains(first)
+                    })
+            }
+            CleavageRule::Never => false,
+        };
+        Ok(i64::try_from(internal).unwrap_or(i64::MAX) + i64::from(leading))
     }
 }
 impl FromStr for Protease {
@@ -227,6 +237,8 @@ impl fmt::Display for Protease {
     }
 }
 
+/// How many termini of a product must be enzymatic cleavage sites
+/// (`EnzymaticDigestion::Specificity`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum DigestionSpecificity {
     /// Both termini must be protein boundaries or cleavage sites.
@@ -238,6 +250,7 @@ pub enum DigestionSpecificity {
     None,
 }
 impl DigestionSpecificity {
+    /// The source's parameter spelling: `full`, `semi` or `none`.
     pub fn name(self) -> &'static str {
         match self {
             Self::Full => "full",
@@ -268,6 +281,8 @@ impl fmt::Display for DigestionSpecificity {
 /// Validation-only allowances. Defaults match ProteaseDigestion::isValidProduct.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ProductValidation {
+    /// Accept a product regardless of its missed cleavages (the source's
+    /// `ignore_missed_cleavages`, default `true`).
     pub ignore_missed_cleavages: bool,
     /// Treat start 1 or 2 as start 0 when the protein begins with M. Counts then
     /// include any enzyme sites in the restored prefix, matching the source.
@@ -288,10 +303,15 @@ impl Default for ProductValidation {
 /// Digestion settings. Defaults preserve the original native trypsin API.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProteaseDigestion {
+    /// The digesting enzyme (default trypsin).
     pub enzyme: Protease,
+    /// Maximum number of missed cleavages in a product (default 0).
     pub missed_cleavages: usize,
+    /// Shortest product, in residues (default 1; must be at least 1).
     pub min_length: usize,
+    /// Longest product, in residues; `None` is unbounded.
     pub max_length: Option<usize>,
+    /// Required terminal specificity (default full).
     pub specificity: DigestionSpecificity,
     /// Maximum accepted products for a ranges/count/digest operation.
     pub max_products: usize,
@@ -312,36 +332,50 @@ impl Default for ProteaseDigestion {
     }
 }
 
+/// One digestion product as a residue range of the input protein.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct DigestionProduct {
+    /// Zero-based inclusive start.
     pub start: usize,
+    /// Zero-based exclusive end.
     pub end: usize,
     /// Actual internal enzyme sites, including in unrestricted products.
     pub missed_cleavages: usize,
 }
 impl DigestionProduct {
+    /// The product as a `start..end` range.
     pub fn range(self) -> Range<usize> {
         self.start..self.end
     }
+    /// Product length in residues.
     pub fn len(self) -> usize {
         self.end.saturating_sub(self.start)
     }
+    /// Whether the range holds no residue.
     pub fn is_empty(self) -> bool {
         self.start >= self.end
     }
 }
 
+/// One digestion product with its peptide sequence.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DigestedPeptide {
+    /// The product sequence, with the modifications of the covered residues.
     pub sequence: AASequence,
     /// Zero-based inclusive start in the input protein.
     pub start: usize,
     /// Zero-based exclusive end in the input protein.
     pub end: usize,
+    /// Internal enzyme sites inside the product.
     pub missed_cleavages: usize,
 }
 
 impl ProteaseDigestion {
+    /// Selects the enzyme by name, lower-cased name or synonym (`setEnzyme`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for an unknown name; the setting is unchanged.
     pub fn set_enzyme(&mut self, name: &str) -> Result<()> {
         self.enzyme = Protease::from_name(name)?;
         Ok(())
@@ -362,6 +396,12 @@ impl ProteaseDigestion {
     /// semi-specific variants follow in the source's alternating-end order.
     /// Unrestricted products are ordered by start then length. Modified residues
     /// and original terminal modifications survive applicable subsequences.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for invalid settings, a sequence outside the
+    /// accepted alphabet or length, or an exceeded product, work or
+    /// [`MAX_DIGESTED_RESIDUES`] ceiling.
     pub fn digest(&self, protein: &AASequence) -> Result<Vec<DigestedPeptide>> {
         let ranges = self.digest_ranges(protein.as_str())?;
         let mut residue_count = 0_usize;
@@ -389,11 +429,20 @@ impl ProteaseDigestion {
     }
     /// Uppercase A-Z text accepts ambiguous residue codes without assigning them
     /// masses. No modifications, whitespace or separators are accepted here.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::digest`], without the residue ceiling.
     pub fn digest_ranges(&self, sequence: &str) -> Result<Vec<DigestionProduct>> {
         let mut products = Vec::new();
         self.enumerate(sequence, |p| products.push(p))?;
         Ok(products)
     }
+    /// Digests unmodified one-letter text into borrowed product slices.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::digest_ranges`].
     pub fn digest_unmodified<'a>(&self, sequence: &'a str) -> Result<Vec<&'a str>> {
         Ok(self
             .digest_ranges(sequence)?
@@ -403,17 +452,35 @@ impl ProteaseDigestion {
     }
     /// Counts products using the same specificity and length filters as digest.
     /// Does not allocate peptide strings or ranges, but observes work/product limits.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::digest_ranges`].
     pub fn peptide_count(&self, protein: &AASequence) -> Result<usize> {
         self.peptide_count_unmodified(protein.as_str())
     }
+    /// [`Self::peptide_count`] over unmodified one-letter text.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::digest_ranges`].
     pub fn peptide_count_unmodified(&self, sequence: &str) -> Result<usize> {
         self.enumerate(sequence, |_| {})
     }
+    /// Number of internal cleavage sites of the configured enzyme.
+    ///
+    /// # Errors
+    ///
+    /// As [`Protease::cleavage_sites`].
     pub fn count_internal_cleavage_sites(&self, sequence: &str) -> Result<usize> {
         self.enzyme.count_internal_cleavage_sites(sequence)
     }
     /// Counts sites strictly within the supplied protein range, in full context.
     /// Empty/out-of-bounds/reversed ranges are invalid.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for such a range or an invalid sequence.
     pub fn count_missed_cleavages(&self, sequence: &str, range: Range<usize>) -> Result<usize> {
         validate_sequence(sequence)?;
         if range.start >= range.end || range.end > sequence.len() {
@@ -429,6 +496,10 @@ impl ProteaseDigestion {
     }
     /// Check termini and optional missed cleavages; length filters are not part
     /// of validity, as in OpenMS. Invalid/empty ranges return false safely.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for invalid settings or sequence text.
     pub fn is_valid_product(
         &self,
         protein: &AASequence,
@@ -437,6 +508,11 @@ impl ProteaseDigestion {
     ) -> Result<bool> {
         self.is_valid_product_unmodified(protein.as_str(), range, options)
     }
+    /// [`Self::is_valid_product`] over unmodified one-letter text.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::is_valid_product`].
     pub fn is_valid_product_unmodified(
         &self,
         sequence: &str,

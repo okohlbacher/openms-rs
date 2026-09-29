@@ -46,6 +46,7 @@ pub enum Protease {
 }
 
 impl Protease {
+    /// Every table entry, in the pinned `Enzymes.xml` order.
     pub const ALL: [Self; 33] = [
         Self::Trypsin,
         Self::ArgC,
