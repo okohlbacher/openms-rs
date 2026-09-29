@@ -3,6 +3,7 @@
   "analysis": [
    "chemistry",
    "concept",
+   "data_structures",
    "format",
    "identification",
    "kernel",
@@ -31,6 +32,7 @@
    "system"
   ],
   "data_structures": [
+   "concept",
    "param"
   ],
   "format": [
@@ -55,6 +57,7 @@
   ],
   "kernel": [
    "concept",
+   "data_structures",
    "format",
    "identification",
    "math",
@@ -79,6 +82,7 @@
    "param"
   ],
   "system": [
+   "concept",
    "format",
    "param"
   ]
