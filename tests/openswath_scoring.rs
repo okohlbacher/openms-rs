@@ -38,8 +38,10 @@ fn real_similar(a: f64, b: f64) {
 }
 
 fn access(spectra: Vec<MSSpectrum>) -> SpectrumAccessPtr {
-    let mut exp = MSExperiment::default();
-    exp.spectra = spectra;
+    let exp = MSExperiment {
+        spectra,
+        ..MSExperiment::default()
+    };
     SimpleOpenMSSpectraFactory::spectrum_access_openms_ptr(Arc::new(exp)).unwrap()
 }
 
