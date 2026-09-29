@@ -66,6 +66,13 @@
    "sha256": "f4501242e6ef27dca90e11fde93bc76b7a2dfdff6530ec76dcb83fbb5f0ff2b3",
    "bytes": 1153,
    "role": "Unmodified upstream GNPS library spectrum: PEPMASS=981.54, CHARGE=1 with no sign, SPECTRUMID and COMPOUND_NAME, a SMILES string, SCANS=1, MSLEVEL=2 and 43 peaks. Its ADDUCT= and ION_MODE= lines match no source prefix and are silently dropped, which is what makes it the fixture that pins that behaviour."
+  },
+  {
+   "path": "tests/data/mascot_generic_store_release.mgf",
+   "source_path": "../oracle/progress-format-readers/results/out_1/mgf_store_cmd.mgf",
+   "sha256": "1ace77e2945696d9efdf2815f342eb138d2822d9295cb5a823cdc072e8e03a27",
+   "bytes": 437,
+   "role": "Tier 1: what the OpenMS4 Release build's MascotGenericFile::store (core bc9cc12, ibminode06, conda-forge g++ 14.4.0) wrote for tests/data/progress_format_readers/mgf_two_blocks.mgf loaded by its own load; three repetitions and both logger modes byte-identical (outputs_1/2/3.sha256). tests/mascot_generic.rs::store_writes_the_release_build_bytes compares the port's store and store_to output byte for byte."
   }
  ],
  "native_implementation": [
@@ -286,5 +293,29 @@
  "integration": "The combined format wave registers this module in the reviewed API ledger, refreshes generated coverage and documentation floors, and wires its tests into the minimum-rust CI job.",
  "cpp_issue_log_entries": [
   "CPP-166"
- ]
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/progress-format-readers/driver.cpp",
+   "sha256": "aeabb4db14f85c5b1f2476ead1778c52d1b962ca0ea7b9281bd79b5c10a76eae",
+   "location": "outside this repository",
+   "origin_key": "fixtures",
+   "role": "executed driver source (case mgf_store)"
+  },
+  {
+   "path": "../oracle/progress-format-readers/results/build_info.txt",
+   "sha256": "6bb6c59099d36456353b02f4fc4508b1159962cf6fb1190f2f75b0464d11ae95",
+   "location": "outside this repository",
+   "origin_key": "fixtures",
+   "role": "host, compiler and input hashes of the run"
+  },
+  {
+   "path": "../oracle/progress-format-readers/results/outputs_1.sha256",
+   "sha256": "a556c6fc5f8086a1c577d6c7aded26b612877970c24bdce478385631d6780f8d",
+   "location": "outside this repository",
+   "origin_key": "fixtures",
+   "role": "hashes of the Release store outputs, repetition 1 (2 and 3 identical)"
+  }
+ ],
+ "external_reference_note": "The Release store output comes from the progress-format-readers oracle run (tests/data/progress_format_readers_provenance.json); its driver and captures live outside this repository, recorded here by sha256."
 }

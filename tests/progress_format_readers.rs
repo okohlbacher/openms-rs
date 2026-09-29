@@ -163,7 +163,15 @@ fn run_case(case: &str, out: &Path, logger: &mut ProgressLogger) -> Result<Vec<S
             logger,
         )?)),
         "mgf_store" => {
-            let map = mascot_generic::load(data("mgf_two_blocks.mgf"))?;
+            // The driver's input map came from the source's own load, which
+            // carries the first block's charge into the second.
+            let map = mascot_generic::load_with_options(
+                data("mgf_two_blocks.mgf"),
+                &mascot_generic::ReadOptions {
+                    carry_over: mascot_generic::CarryOver::Source,
+                    ..Default::default()
+                },
+            )?;
             let path = out.join("mgf_store.mgf");
             mascot_generic::MascotGenericFile::new()?.store_with_progress(
                 &path,
@@ -630,10 +638,10 @@ fn check_outcome(
 /// are comparable: a store case's output size is the port's own document.
 fn expected_fields(case: &str, source: &[String]) -> Option<Vec<String>> {
     match case {
-        // The file size of the source's document. The DTA2D stores are
-        // compared: since F7c they write the Release build's bytes
-        // (tests/text_peak_lists.rs::dta2d_store_writes_the_release_build_bytes).
-        "mgf_store" => None,
+        // The DTA2D and MGF stores are compared: since F7c they write the
+        // Release build's bytes (tests/text_peak_lists.rs::
+        // dta2d_store_writes_the_release_build_bytes, tests/mascot_generic.rs::
+        // store_writes_the_release_build_bytes).
         // The mzIdentML document is the port's own type; nothing to count.
         "mzid_load" | "mzid_store" => None,
         "mzml_store" => Some(source[..2].to_vec()),

@@ -38,7 +38,7 @@ Every member the header declares, public and protected.
 |---|---|
 | `class MascotGenericFile` | `MascotGenericFile` |
 | base `ProgressLogger`, as `load` and `store` use it | `load_with_progress`, `MascotGenericFile::load_with_progress`, `MascotGenericFile::store_with_progress`, `MascotGenericFile::store_to_with_progress`: the caller's logger receives the Release build's calls, call for call (tier 1, `tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`). The load's range is the file size, and its value after each block is the source's `is.tellg()`, -1 after a last `END IONS` with no newline. The other entry points run the same code and report nothing |
-| base `DefaultParamHandler` | `crate::param::DefaultParamHandler`, held as a private field and surfaced through `parameters`, `defaults` and `set_parameters` |
+| base `DefaultParamHandler` | `crate::param::DefaultParamHandler`, held as a private field. The parameter contract is `MascotGenericFile::from_param` (construction, `setParameters`, `updateMembers_`), `from_param_with_warnings` (plus the unknown-key warnings the source logs) and `to_param` (`getParameters`), with `parameters`, `set_parameters` and `defaults` besides. `defaults` is an instance method, not the contract's associated function, because the modification valid-string lists come from the registry the file was built with (`with_modifications`); adopting lane B6's `DefaultParamHandling` trait therefore needs a rename there |
 | `MascotGenericFile()` | `MascotGenericFile::new` (uses the shared `ModificationsDB`) and `MascotGenericFile::with_modifications` (caller-owned registry). Fallible, because the parameter tree is resource-checked |
 | `~MascotGenericFile()` | `Drop`, implicit |
 | `void updateMembers_()` | folded into `set_parameters` / `with_modifications`, which rebuild the specificity-group map atomically with the new parameters; the result is readable through `special_modification_groups` |
@@ -275,12 +275,23 @@ Every one of these is reproduced, and each is covered by a named test in
 
 ## Checked boundaries and evidence
 
-**Evidence tier 3 (source review).** Every expectation comes from the pinned
-`MascotGenericFile_test.cpp` literals or from reading
-`MascotGenericFile.cpp`/`.h`; no C++ was built or executed and no C++ output was
-retained for MGF, so this is not a tier-1 differential. The upstream suite has
-no retained MGF output: its `store` sections compare substrings of an
-in-memory stream, and both transcribed fixtures are inputs.
+**Evidence tier 1 (executed Release output).** The progress calls of `load`
+and `store` are the Release build's, call for call (see the API table).
+`tests/data/mascot_generic_store_release.mgf` is what the Release build's
+`store` wrote for `mgf_two_blocks.mgf` loaded by its own `load`
+(`../oracle/progress-format-readers`, ibminode06, three identical repetitions;
+`tests/data/mascot_generic_provenance.json`): the default parameter header and
+two blocks, the second carrying the first block's charge as the source's load
+leaves it. Loaded with `CarryOver::Source` and stored with the defaults, the
+port writes that file byte for byte, through `store` and `store_to`
+(`store_writes_the_release_build_bytes`); `tests/progress_format_readers.rs`
+also compares the output size it used to exempt.
+
+**Evidence tier 3 (source review).** Every other expectation comes from the
+pinned `MascotGenericFile_test.cpp` literals or from reading
+`MascotGenericFile.cpp`/`.h`. The upstream suite has no retained MGF output:
+its `store` sections compare substrings of an in-memory stream, and both
+transcribed fixtures are inputs.
 
 Transcribed literals, all reproduced: one spectrum with nine peaks from
 `MascotInfile_test.mascot_in`; the written block

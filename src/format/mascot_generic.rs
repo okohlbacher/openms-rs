@@ -1361,8 +1361,18 @@ fn special_modification_groups(parameters: &Param) -> Result<BTreeMap<String, St
 /// # Notes
 ///
 /// The source class also derives from `ProgressLogger` and reports progress
-/// while loading and storing. Progress reporting is not threaded through this
-/// port; see `docs/MASCOT_GENERIC_SUPPORT.md`.
+/// while loading and storing. Here the caller passes a logger to
+/// [`Self::load_with_progress`], [`Self::store_with_progress`] and
+/// [`Self::store_to_with_progress`], which make the source's calls; the other
+/// members report nothing. See `docs/MASCOT_GENERIC_SUPPORT.md`.
+///
+/// The `DefaultParamHandler` base is the crate's parameter contract:
+/// [`Self::from_param`], [`Self::from_param_with_warnings`] and
+/// [`Self::to_param`]. The defaults are an instance method, [`Self::defaults`],
+/// rather than an associated function, because their modification
+/// valid-string lists come from the registry the file was built with
+/// ([`Self::with_modifications`]); for [`Self::new`] that is the shared
+/// [`ModificationsDB`].
 #[derive(Clone, Debug)]
 pub struct MascotGenericFile {
     handler: DefaultParamHandler,
@@ -1407,6 +1417,41 @@ impl MascotGenericFile {
     /// Current parameters.
     pub fn parameters(&self) -> &Param {
         self.handler.parameters()
+    }
+
+    /// A file built from `parameters` over the shared [`ModificationsDB`], as
+    /// source construction followed by `setParameters` and the
+    /// `updateMembers_` override. Missing parameters keep their defaults;
+    /// unknown ones are ignored, as the source only warns (see
+    /// [`Self::from_param_with_warnings`]).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::new`] and [`Self::set_parameters`].
+    pub fn from_param(parameters: &Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`Self::from_param`], also returning the unknown-parameter warnings
+    /// the source logs.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::from_param`].
+    pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let mut file = Self::new()?;
+        let warnings = file.set_parameters(parameters)?;
+        Ok((file, warnings))
+    }
+
+    /// The current parameters, source `getParameters`, in the layout of
+    /// [`Self::defaults`].
+    ///
+    /// # Errors
+    ///
+    /// None at present; the `Result` is the parameter contract's shape.
+    pub fn to_param(&self) -> Result<Param> {
+        Ok(self.parameters().clone())
     }
 
     /// The source defaults, as `DefaultParamHandler::getDefaults` returns them.
