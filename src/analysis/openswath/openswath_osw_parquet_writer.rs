@@ -60,16 +60,22 @@
 //!   existing archive is returned to the caller instead.
 //! - `metadata.json`'s `build_time` is written as `""`, as in
 //!   [`TransitionParquetFile`](crate::analysis::openswath::transition_parquet_file::TransitionParquetFile).
-//! - `feature_precursor.parquet`'s `precursor_apex_intensity` is the MS1
-//!   subordinate's own `peak_apex_int`. The source writes
-//!   `appendOptionalFloat_(b, extractMetaDouble_(sub, "peak_apex_int", value), value, ..)`
-//!   with `value` passed by value, and C++ leaves the order in which the
-//!   arguments are evaluated unspecified: the executed Linux Release build
-//!   (GCC 14.4, `-O2`) copies `value` before the extraction runs and writes
-//!   the double extracted before it on the same feature (measured: `7.0`, a
-//!   preceding transition's `points_across_half_height`, where the
-//!   subordinate carries `3.25`). The null pattern agrees. Every other
-//!   column written the same way agrees with the Release build.
+//! - Every score read from a meta value is the value of that meta value.
+//!   The source writes each as
+//!   `appendOptionalFloat_(b, extractMetaDouble_(x, key, value), value, ..)`
+//!   with `value` (one `double value = 0.0;` per feature) passed by value,
+//!   and C++ leaves the order in which arguments are evaluated unspecified.
+//!   The executed Linux Release build (GCC 14.4, `-O2`) copies `value`
+//!   before the extraction runs, so every such cell of `features.parquet`,
+//!   `feature_transition.parquet` and `feature_precursor.parquet` holds the
+//!   value of the previous successful extraction on the same feature (`0.0`
+//!   for the first), measured column by column on a feature with 31 set
+//!   scores (e.g. `total_area_intensity` 7.25, the feature's
+//!   `im_log_intensity`, where the transition's `total_xic` is 20). The
+//!   null pattern agrees, and so does every value not read through
+//!   `extractMetaDouble_` (retention time, intensities, the
+//!   identification-transition lists). A compiler that evaluates the
+//!   arguments left to right writes what the port writes.
 //!
 //! Reproduced source behaviour worth knowing: an error raised while the
 //! features are converted (a missing `PeptideRef`, an unknown transition)

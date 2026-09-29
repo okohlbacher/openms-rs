@@ -184,32 +184,254 @@ fn container(all: &[Vec<String>], tmp: &Path, source: &str, name: &str) -> PathB
 // ------------------------------------------------------------------ file comparison
 
 /// Documented divergence (writer module docs, "Differences from the
-/// source"): at some `appendOptionalFloat_(b, extractMetaDouble_(x, key,
-/// value), value, ..)` call sites the Release build copies `value` before the
-/// extraction runs (C++ leaves the evaluation order of arguments
-/// unspecified), so it writes the double extracted before, where the port
-/// writes the subordinate's own value. Every entry is
-/// `(file, column, row, Release value, port value)`; the values come from the
-/// driver's `richFeatures()` (`tests/openswath_osw_parquet.rs::rich_features`)
-/// and the Release files. The null pattern always agrees.
-const STALE: &[(&str, &str, usize, f64, f64)] = &[
-    // s_iso's peak_apex_int is 3.25; 7.0 is s1's points_across_half_height.
+/// source"). The source writes every extracted score as
+/// `appendOptionalFloat_(b, extractMetaDouble_(x, key, value), value, ..)`
+/// with `value` (declared `double value = 0.0;` once per feature) passed by
+/// value, and C++ leaves the order in which arguments are evaluated
+/// unspecified. The executed Release build (GCC 14.4) copies `value` before
+/// the extraction runs, so each such cell carries the value of the previous
+/// successful extraction on the same feature (0.0 for the first), while the
+/// null pattern (the extraction's success) is right. The port writes the
+/// cell's own value.
+///
+/// `STALE` lists the successful extractions of the only feature that has
+/// any, the driver's feature A (`rich_features()`), in the source's order:
+/// `(file, column, row, extracted value)`. Extractions that fail (a list, an
+/// empty or unparseable text) are not in it: they leave `value` alone. The
+/// Release cell is `finite(previous)` and the port's `finite(own)`; the cells
+/// where they differ must be exactly the differences between the two files.
+const STALE: &[(&str, &str, usize, f64)] = &[
+    // ms1_area_intensity
     (
-        "runs/run_id=42/feature_precursor.parquet",
-        "precursor_apex_intensity",
-        1,
-        7.0,
-        3.25,
+        "runs/run_id=42/features.parquet",
+        "ms1_area_intensity",
+        0,
+        123456.78901234567,
     ),
-    // s1's total_xic is 20.0; 7.25 is feature A's im_log_intensity.
+    // ms1_apex_intensity
+    (
+        "runs/run_id=42/features.parquet",
+        "ms1_apex_intensity",
+        0,
+        1e-300,
+    ),
+    // im_ms1_drift
+    ("runs/run_id=42/features.parquet", "ms1_exp_im", 0, 5e-324),
+    // im_ms1_delta
+    ("runs/run_id=42/features.parquet", "ms1_delta_im", 0, 1e308),
+    // var_ms1_ppm_diff
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_massdev_score",
+        0,
+        1.5,
+    ),
+    // var_im_ms1_delta_score
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_im_ms1_delta_score",
+        0,
+        42.0,
+    ),
+    // var_ms1_mi_score "nan"
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_mi_score",
+        0,
+        f64::NAN,
+    ),
+    // var_ms1_mi_contrast_score "inf"
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_mi_contrast_score",
+        0,
+        f64::INFINITY,
+    ),
+    // var_ms1_mi_combined_score "+2.5e3"
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_mi_combined_score",
+        0,
+        2500.0,
+    ),
+    // var_ms1_xcorr_coelution
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_xcorr_coelution",
+        0,
+        0.3,
+    ),
+    // var_ms1_xcorr_shape
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms1_xcorr_shape",
+        0,
+        2.675,
+    ),
+    // total_xic
+    (
+        "runs/run_id=42/features.parquet",
+        "ms2_total_area_intensity",
+        0,
+        1234567890123.0,
+    ),
+    // peak_apices_sum
+    (
+        "runs/run_id=42/features.parquet",
+        "ms2_apex_intensity",
+        0,
+        9007199254740992.0,
+    ),
+    // im_drift
+    ("runs/run_id=42/features.parquet", "ms2_exp_im", 0, 0.1),
+    // im_drift_left " 7 "
+    (
+        "runs/run_id=42/features.parquet",
+        "ms2_exp_im_leftwidth",
+        0,
+        7.0,
+    ),
+    // var_bseries_score
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms2_bseries_score",
+        0,
+        3.0,
+    ),
+    // var_library_corr
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms2_library_corr",
+        0,
+        0.987654321987654,
+    ),
+    // var_manhatt_score
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms2_manhattan_score",
+        0,
+        12.0,
+    ),
+    // var_xcorr_shape
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms2_xcorr_shape",
+        0,
+        0.8,
+    ),
+    // var_xcorr_shape_weighted
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms2_xcorr_shape_weighted",
+        0,
+        0.3,
+    ),
+    // im_log_intensity
+    (
+        "runs/run_id=42/features.parquet",
+        "var_ms2_im_log_intensity",
+        0,
+        7.25,
+    ),
+    // s1 total_xic
     (
         "runs/run_id=42/feature_transition.parquet",
         "total_area_intensity",
         0,
-        7.25,
         20.0,
     ),
+    // s1 peak_apex_int
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "apex_intensity",
+        0,
+        5.0,
+    ),
+    // s1 peak_apex_position
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "apex_rt",
+        0,
+        100.3,
+    ),
+    // s1 width_at_50
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "rt_fwhm",
+        0,
+        2.2,
+    ),
+    // s1 total_mi
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "total_mi",
+        0,
+        0.7,
+    ),
+    // s1 start_position_at_5
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "start_position_at_5",
+        0,
+        99.0,
+    ),
+    // s1 end_position_at_5
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "end_position_at_5",
+        0,
+        101.0,
+    ),
+    // s1 tailing_factor "1.25"
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "tailing_factor",
+        0,
+        1.25,
+    ),
+    // s1 points_across_half_height
+    (
+        "runs/run_id=42/feature_transition.parquet",
+        "points_across_half_height",
+        0,
+        7.0,
+    ),
+    // s_iso peak_apex_int
+    (
+        "runs/run_id=42/feature_precursor.parquet",
+        "precursor_apex_intensity",
+        1,
+        3.25,
+    ),
 ];
+
+fn finite(v: f64) -> Option<f64> {
+    v.is_finite().then_some(v)
+}
+
+/// The Release and port cells of `STALE[k]`.
+fn stale_pair(k: usize) -> (Option<f64>, Option<f64>) {
+    let previous = if k == 0 { 0.0 } else { STALE[k - 1].3 };
+    (finite(previous), finite(STALE[k].3))
+}
+
+fn same_cell(a: Option<f64>, b: Option<f64>) -> bool {
+    match (a, b) {
+        (Some(x), Some(y)) => x.to_bits() == y.to_bits(),
+        (None, None) => true,
+        _ => false,
+    }
+}
+
+/// The indices of `STALE` whose Release and port cells differ.
+fn stale_differences() -> BTreeSet<usize> {
+    (0..STALE.len())
+        .filter(|&k| {
+            let (release, port) = stale_pair(k);
+            !same_cell(release, port)
+        })
+        .collect()
+}
 
 fn float_at(a: &ArrayRef, row: usize) -> Option<f64> {
     let a = a.as_any().downcast_ref::<Float64Array>()?;
@@ -251,20 +473,18 @@ fn assert_tables_equal(
         }
         for row in 0..wc.len() {
             let (gv, wv) = (float_at(gc, row), float_at(wc, row));
-            let equal = match (gv, wv) {
-                (Some(x), Some(y)) => x.to_bits() == y.to_bits(),
-                (None, None) => true,
-                _ => false,
-            };
+            let equal = same_cell(gv, wv);
             if equal {
                 continue;
             }
-            let stale = STALE.iter().position(|&(file, column, r, release, port)| {
+            let stale = (0..STALE.len()).find(|&k| {
+                let (file, column, r, _) = STALE[k];
+                let (release, port) = stale_pair(k);
                 file == rel
                     && column == field.name()
                     && r == row
-                    && wv == Some(release)
-                    && gv == Some(port)
+                    && same_cell(wv, release)
+                    && same_cell(gv, port)
             });
             match stale {
                 Some(k) => {
@@ -354,7 +574,7 @@ fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) -> BTre
 
 /// Every [`STALE`] entry applies to a container holding the rich run 42.
 fn assert_all_stale(case: &str, used: BTreeSet<usize>) {
-    assert_eq!(used, (0..STALE.len()).collect(), "{case}: stale entries");
+    assert_eq!(used, stale_differences(), "{case}: stale entries");
 }
 
 // ------------------------------------------------------------------ inputs
@@ -1393,9 +1613,13 @@ fn oracle_reader_on_release_containers() {
 /// replaced entry deflated, and `ZipRandomAccessFile` opens a deflated entry
 /// and then fails to seek in it, "Failed to create parquet reader from
 /// RandomAccessFile", instead of falling back to extraction). The port
-/// extracts entries and reads the archive; its runs are those of the
-/// directory case `r_rich_dir` (the same library ids and features, runs 42
-/// and 7), whose Release load, peak-group and transition dumps it matches.
+/// extracts entries and reads the archive. The archive here starts as the
+/// Release writer's first archive (`w_rich_zip`, run 42) and the port's
+/// writer extends it with run 7; its runs are then those of the directory
+/// case `r_rich_dir` (the Release writer's runs 42 and 7 of the same library
+/// and features), whose Release load, peak-group and transition dumps it
+/// matches. Starting from the Release run 42 keeps the Release writer's
+/// stale values (see [`STALE`]) on both sides.
 #[test]
 fn oracle_reader_preserved_archive_divergence() {
     let all = records();
@@ -1406,10 +1630,9 @@ fn oracle_reader_preserved_archive_divergence() {
     }
     let tmp = tmp();
     let rich = rich_library();
+    let first = container(&all, tmp.path(), "w_rich_zip", "release_first");
     let zip = tmp.path().join("w_rich.oswpq");
-    OpenSwathOSWParquetWriter::new()
-        .write(&zip, &rich, &rich_features(), 42, "zip.mzML", true)
-        .unwrap();
+    ZipArchiveFile::zip_directory(&first, &zip).unwrap();
     let mut preserving = OpenSwathOSWParquetWriter::new();
     preserving.set_preserve_existing(true);
     preserving

@@ -554,3 +554,157 @@ pub struct OpenSwathQuantMatrix {
     /// Sample values, one vector per row.
     pub values: Vec<Vec<Option<f64>>>,
 }
+
+#[cfg(test)]
+mod tests {
+    //! Expected values are the member initialisers and `toString` bodies of
+    //! `OpenSwathExportData.h` at core `bc9cc12` (the header has no class
+    //! test of its own; `OpenSwathParquetExporter_test.cpp` uses it).
+    use super::*;
+
+    #[test]
+    fn to_string_matches_the_header() {
+        use OpenSwathExportFileFormat as F;
+        use OpenSwathIPFExportMode as I;
+        use OpenSwathMatrixLevel as L;
+        use OpenSwathMatrixNormalization as N;
+        assert_eq!([F::Tsv.as_str(), F::Parquet.as_str()], ["tsv", "parquet"]);
+        assert_eq!(
+            [I::Peptidoform, I::Augmented, I::Disable].map(|x| x.as_str()),
+            ["peptidoform", "augmented", "disable"]
+        );
+        assert_eq!(
+            [L::Precursor, L::Peptide, L::Protein, L::Gene].map(|x| x.as_str()),
+            ["precursor", "peptide", "protein", "gene"]
+        );
+        assert_eq!(
+            [N::None, N::Median, N::MedianMedian].map(|x| x.as_str()),
+            ["none", "median", "medianmedian"]
+        );
+        assert_eq!(F::Parquet.to_string(), "parquet");
+        assert_eq!(N::MedianMedian.to_string(), "medianmedian");
+        // A value-initialised `enum class` is its first enumerator.
+        assert_eq!(F::default(), F::Tsv);
+        assert_eq!(I::default(), I::Peptidoform);
+        assert_eq!(L::default(), L::Precursor);
+        assert_eq!(N::default(), N::None);
+    }
+
+    #[test]
+    fn export_row_defaults_match_the_header() {
+        let r = OpenSwathExportRow::default();
+        assert_eq!(
+            (r.run_id, r.feature_id, r.peptide_id, r.precursor_id),
+            (-1, -1, -1, -1)
+        );
+        assert!(!r.decoy && !r.from_alignment);
+        assert_eq!((r.charge, r.peak_group_rank), (0, 0));
+        for v in [
+            r.mz,
+            r.rt,
+            r.assay_rt,
+            r.delta_rt,
+            r.irt,
+            r.assay_irt,
+            r.delta_irt,
+            r.intensity,
+            r.left_width,
+            r.right_width,
+            r.d_score,
+            r.m_score,
+        ] {
+            assert_eq!(v.to_bits(), 0.0f64.to_bits());
+        }
+        for s in [
+            &r.filename,
+            &r.run_name,
+            &r.transition_group_id,
+            &r.sequence,
+            &r.full_peptide_name,
+            &r.protein_name,
+            &r.gene_name,
+            &r.aggr_peak_area,
+            &r.aggr_peak_apex,
+            &r.aggr_fragment_annotation,
+            &r.ipf_full_peptide_name,
+        ] {
+            assert!(s.is_empty());
+        }
+        for o in [
+            r.aggr_prec_peak_area,
+            r.aggr_prec_peak_apex,
+            r.exp_im,
+            r.im_left_width,
+            r.im_right_width,
+            r.ms1_pep,
+            r.ms2_pep,
+            r.precursor_pep,
+            r.ipf_pep,
+            r.pep,
+            r.ms2_m_score,
+            r.peptide_run_specific_qvalue,
+            r.peptide_experiment_wide_qvalue,
+            r.peptide_global_qvalue,
+            r.protein_run_specific_qvalue,
+            r.protein_experiment_wide_qvalue,
+            r.protein_global_qvalue,
+            r.gene_run_specific_qvalue,
+            r.gene_experiment_wide_qvalue,
+            r.gene_global_qvalue,
+            r.alignment_reference_rt,
+            r.alignment_pep,
+            r.alignment_qvalue,
+            r.ipf_precursor_peakgroup_pep,
+            r.ipf_peptidoform_pep,
+            r.ipf_peptidoform_m_score,
+        ] {
+            assert!(o.is_none());
+        }
+        assert!(r.alignment_group_id.is_none() && r.alignment_reference_feature_id.is_none());
+    }
+
+    #[test]
+    fn score_row_defaults_match_the_header() {
+        let r = OpenSwathFeatureScoreRow::default();
+        assert_eq!(
+            (
+                r.protein_id,
+                r.peptide_id,
+                r.precursor_id,
+                r.run_id,
+                r.feature_id
+            ),
+            (-1, -1, -1, -1, -1)
+        );
+        assert_eq!(r.precursor_charge, 0);
+        for v in [
+            r.precursor_mz,
+            r.exp_rt,
+            r.norm_rt,
+            r.delta_rt,
+            r.left_width,
+            r.right_width,
+        ] {
+            assert_eq!(v.to_bits(), 0.0f64.to_bits());
+        }
+        assert!(!r.protein_decoy && !r.peptide_decoy && !r.precursor_decoy && !r.from_alignment);
+        assert!(r.ipf_peptide_id.is_none() && r.gene_id.is_none() && r.gene_decoy.is_none());
+        assert!(r.score_ms1_rank.is_none() && r.score_ms2_peak_group_rank.is_none());
+        assert!(r.score_ms2_score.is_none() && r.score_gene_run_specific_pep.is_none());
+        assert!(r.alignment_group_id.is_none() && r.alignment_qvalue.is_none());
+        assert!(r.feature_ms1_values.is_empty() && r.feature_ms2_values.is_empty());
+        assert!(r.protein_accession.is_empty() && r.filename.is_empty());
+
+        let t = OpenSwathTransitionScoreRow::default();
+        assert_eq!((t.precursor_id, t.transition_id), (-1, -1));
+        assert_eq!((t.transition_charge, t.transition_ordinal), (0, 0));
+        assert_eq!(t.product_mz.to_bits(), 0.0f64.to_bits());
+        assert!(!t.transition_detecting && !t.transition_decoy);
+        assert!(t.run_id.is_none() && t.ipf_peptide_id.is_none() && t.feature_id.is_none());
+        assert!(t.transition_library_intensity.is_none() && t.score_transition_rank.is_none());
+        assert!(t.feature_transition_values.is_empty());
+
+        let m = OpenSwathQuantMatrix::default();
+        assert!(m.identifier_column_names.is_empty() && m.values.is_empty());
+    }
+}
