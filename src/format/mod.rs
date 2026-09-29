@@ -258,6 +258,22 @@ pub mod percolator_outfile;
 /// Spectrum meta-data look-up by regular-expression spectrum reference
 /// (`SpectrumLookup.h`, `SpectrumMetaDataLookup.h`).
 pub mod spectrum_meta_data_lookup;
+/// Pull-style bzip2 decompression with `BZ2_bzRead` semantics (`Bzip2Ifstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod bzip2_ifstream;
+/// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod gzip_ifstream;
+/// UTF-16 string helpers of the XML handlers (`HANDLERS/StringManager.h`).
+pub mod string_manager;
+/// Read-only view over an element's attributes (`HANDLERS/XMLAttributes.h`).
+pub mod xml_attributes;
+/// Create, unpack, list, index and update ZIP archives (`ZipArchiveFile.h`).
+#[cfg(feature = "file-compression")]
+pub mod zip_archive_file;
+/// Streaming reader for the single file inside a ZIP archive (`ZipIfstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod zip_ifstream;
 
 use crate::{Error, Result};
 
