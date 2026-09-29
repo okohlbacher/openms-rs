@@ -72,12 +72,29 @@ fn oracle() -> BTreeMap<String, String> {
         .collect()
 }
 
-/// Keys whose C++ value comes from an accumulation in a different order
-/// (Eigen's blocked `sum()` / `dot()`), compared with relative tolerance
-/// 1e-12 instead of exactly; see the support document.
+/// Keys whose C++ value comes from an accumulation in a different order,
+/// compared with relative tolerance 1e-12 instead of exactly (see
+/// `docs/OPENSWATH_SCORING_SUPPORT.md`, "Tolerance"):
+///
+/// - cross-correlation apex values (every `shape` score): `Scoring.cpp`
+///   reduces with Eigen, whose vectorised `dot`/`sum` add in blocks; the port
+///   adds left to right (as `analysis::openswath::scoring` documents);
+/// - `StatsHelpers.cpp` `dotProd`, `norm`, `manhattanDist` and the sums of
+///   `dotprodScoring`/`manhattanScoring`, likewise Eigen: the prescore
+///   (`prescore*`, `with_iso*`, `*dotprod_score_dia`, `*manhatt_score_dia`) and
+///   library (`lib.dot`, `lib.man`) scores;
+/// - `by2.*`, fragment m/z at charge 2 from the chemistry port's
+///   `TheoreticalSpectrumGenerator`, which adds the protons after the residues
+///   where the source starts from `PROTON_MASS_U * charge` and adds residues
+///   (`TheoreticalSpectrumGenerator.cpp:724-794`); outside this port's scope and
+///   reported to the chemistry owner.
 fn reordered(key: &str) -> bool {
-    const PREFIXES: &[&str] = &[];
-    PREFIXES.iter().any(|p| key.starts_with(p))
+    key.contains("shape")
+        || key.contains("dotprod_score_dia")
+        || key.contains("manhatt_score_dia")
+        || ["prescore", "with_iso", "lib.dot", "lib.man", "by2."]
+            .iter()
+            .any(|p| key.starts_with(p))
 }
 
 fn compare(port: &Rec, prefix: &str) {
@@ -286,8 +303,11 @@ fn oracle_dia_scoring() {
         .unwrap()
         .formula_for(PeptideFragmentType::Full, 2)
         .unwrap();
+    // The source's EmpiricalFormula::toString omits the charge; getFormula(Full,
+    // charge) sets it as metadata without adding hydrogens, as the port does.
+    assert_eq!(pep.charge(), 2);
     assert_eq!(
-        pep.to_string(),
+        pep.clone().with_charge(0).to_string(),
         oracle()["pep_formula"],
         "peptide formula differs from the oracle"
     );
