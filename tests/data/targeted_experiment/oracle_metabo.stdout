@@ -1,0 +1,43 @@
+construct	mapping	1	cmpA_[M+H]+	cmpA_decoy_[M+H]+	100,150	100.0005,120
+construct	mapping	2	cmpB_[M+Na]+		200,250	
+resolve_ppm	compound	cmpA_[M+H]+	0	A	1
+resolve_ppm	compound	cmpA_decoy_[M+H]+	1	A_decoy	1
+resolve_ppm	compound	cmpB_[M+Na]+	0	B	2
+resolve_ppm	transition	tA1_[M+H]+_0	cmpA_[M+H]+	100	1	
+resolve_ppm	transition	tA2_[M+H]+_1	cmpA_[M+H]+	150	1	
+resolve_ppm	transition	dA1_[M+H]+_0	cmpA_decoy_[M+H]+	114.0162	2	
+resolve_ppm	transition	dA2_[M+H]+_1	cmpA_decoy_[M+H]+	120	2	
+resolve_ppm	transition	tB1_[M+Na]+_0	cmpB_[M+Na]+	200	1	
+resolve_ppm	transition	tB2_[M+Na]+_1	cmpB_[M+Na]+	250	1	
+resolve_ppm4	compound	cmpA_[M+H]+	0	A	1
+resolve_ppm4	compound	cmpA_decoy_[M+H]+	1	A_decoy	1
+resolve_ppm4	compound	cmpB_[M+Na]+	0	B	2
+resolve_ppm4	transition	tA1_[M+H]+_0	cmpA_[M+H]+	100	1	
+resolve_ppm4	transition	tA2_[M+H]+_1	cmpA_[M+H]+	150	1	
+resolve_ppm4	transition	dA1_[M+H]+_0	cmpA_decoy_[M+H]+	100.0005	2	
+resolve_ppm4	transition	dA2_[M+H]+_1	cmpA_decoy_[M+H]+	120	2	
+resolve_ppm4	transition	tB1_[M+Na]+_0	cmpB_[M+Na]+	200	1	
+resolve_ppm4	transition	tB2_[M+Na]+_1	cmpB_[M+Na]+	250	1	
+resolve_da20	compound	cmpA_[M+H]+	0	A	1
+resolve_da20	compound	cmpA_decoy_[M+H]+	1	A_decoy	1
+resolve_da20	compound	cmpB_[M+Na]+	0	B	2
+resolve_da20	transition	tA1_[M+H]+_0	cmpA_[M+H]+	100	1	
+resolve_da20	transition	tA2_[M+H]+_1	cmpA_[M+H]+	150	1	
+resolve_da20	transition	dA1_[M+H]+_0	cmpA_decoy_[M+H]+	114.0162	2	
+resolve_da20	transition	dA2_[M+H]+_1	cmpA_decoy_[M+H]+	134.01570000000001	2	
+resolve_da20	transition	tB1_[M+Na]+_0	cmpB_[M+Na]+	200	1	
+resolve_da20	transition	tB2_[M+Na]+_1	cmpB_[M+Na]+	250	1	
+generate	mapping	1	cmpA_[M+H]+	cmpA_decoy_[M+H]+	100,150	100.0005,120
+generate	mapping	2	cmpB_[M+Na]+	cmpB_decoy_[M+Na]+	200,250	214.01570000000001,264.01569999999998
+generate	compound	cmpA_[M+H]+	0	A	1
+generate	compound	cmpA_decoy_[M+H]+	1	A_decoy	1
+generate	compound	cmpB_[M+Na]+	0	B	2
+generate	compound	cmpB_decoy_[M+Na]+	1	B_decoy	2
+generate	transition	tA1_[M+H]+_0	cmpA_[M+H]+	100	1	
+generate	transition	tA2_[M+H]+_1	cmpA_[M+H]+	150	1	
+generate	transition	dA1_[M+H]+_0	cmpA_decoy_[M+H]+	114.0162	2	
+generate	transition	dA2_[M+H]+_1	cmpA_decoy_[M+H]+	120	2	
+generate	transition	tB1_[M+Na]+_0	cmpB_[M+Na]+	200	1	
+generate	transition	tB2_[M+Na]+_1	cmpB_[M+Na]+	250	1	
+generate	transition	tB1_decoy_[M+Na]+_0	cmpB_decoy_[M+Na]+	214.01570000000001	2	NA
+generate	transition	tB2_decoy_[M+Na]+_1	cmpB_decoy_[M+Na]+	264.01569999999998	2	NA
