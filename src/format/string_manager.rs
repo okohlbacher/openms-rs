@@ -183,7 +183,10 @@ fn compress64(units: &[u16]) -> [u8; 8] {
 }
 
 /// `XMLString::parseInt` up to its final `(int)` cast.
-fn parse_long(units: &[u16]) -> Result<i64> {
+///
+/// Shared with the SAX driver's `xerces_parse_int` (`format::sax_xml`), which
+/// applies the same `XMLString::parseInt` to attribute text.
+pub(crate) fn parse_long(units: &[u16]) -> Result<i64> {
     let units = &units[..StringManager::str_length(units)];
     let xml_space = |unit: &u16| matches!(*unit, 0x20 | 0x09 | 0x0A | 0x0D);
     let start = units

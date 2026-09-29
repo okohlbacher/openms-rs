@@ -639,7 +639,10 @@ fn run(
 /// consume all of it; `ERANGE` (outside a 64-bit `long`) and unconsumed
 /// characters are `NumberFormatException`s, which end the parse. Xerces then
 /// casts the `long` to `int`, which wraps a value outside the 32-bit range;
-/// that is refused here instead.
+/// that is refused here instead. The trimming and `strtol` rules are
+/// `StringManager`'s (`format::string_manager`), which lane F7b replayed
+/// against the Release build (`strtol` also skips a leading vertical tab or
+/// form feed after the XML white-space trim).
 ///
 /// # Errors
 ///
@@ -647,21 +650,18 @@ fn run(
 /// `long`; [`Error::InvalidValue`] when it fits a `long` but not an `i32`.
 #[cfg_attr(not(feature = "idxml"), allow(dead_code))]
 pub(crate) fn xerces_parse_int(text: &str) -> Result<i32> {
-    let trimmed = text.trim_matches([' ', '\t', '\r', '\n']);
-    let digits = trimmed.strip_prefix(['+', '-']).unwrap_or(trimmed);
-    if digits.is_empty() || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
-        return Err(parse_error(format!(
+    let units = crate::format::string_manager::StringManager::convert(text);
+    match crate::format::string_manager::parse_long(&units) {
+        Ok(wide) => i32::try_from(wide).map_err(|_| {
+            Error::InvalidValue(format!(
+                "'{text}' is outside the 32-bit range the source casts it to"
+            ))
+        }),
+        Err(Error::InvalidRange(_)) => Err(parse_error(format!("'{text}' overflows a long"))),
+        Err(_) => Err(parse_error(format!(
             "Could not convert '{text}' to an integer"
-        )));
+        ))),
     }
-    let wide: i64 = trimmed
-        .parse()
-        .map_err(|_| parse_error(format!("'{text}' overflows a long")))?;
-    i32::try_from(wide).map_err(|_| {
-        Error::InvalidValue(format!(
-            "'{text}' is outside the 32-bit range the source casts it to"
-        ))
-    })
 }
 
 #[cfg(test)]
