@@ -73,3 +73,6 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
 2. CI sweep (openms-ci-sweep.sh M2-sweep <logdir>) for pass counts per slice.
 3. Optional: PipEchoAlgorithm (large), WNet (external lib: leave).
 4. Delete NOTES.md in the final commit.
+
+- Incarnation 4 (12:05): prereqs -52/-34 verified ancestors. Ledger M2.json already written (18 entries, 10:20).
+  Sweep running -> scratchpad/sweep1; proposed slices measured -> scratchpad/slice{1..4}.out. Report M2.md NOT yet written.
