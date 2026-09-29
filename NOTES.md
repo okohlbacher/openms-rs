@@ -56,8 +56,17 @@ Prereq merge: worktree-wf_ee239125-5be-1 fast-forwarded f0990c0 -> 9fcb962 (no m
 - Helpers in $SCRATCH/B8b: make_manifest.py (spec json -> manifest), undoc.py (list undocumented items),
   specs/*.json. Heredocs writing into scratch are REFUSED: use Write tool for scratch files.
 
+## Done (restart 3, cont.)
+- IDFilter wave-4 members in src/analysis/id_filter/{predicates,selection,digestion,identification_data}.rs,
+  oracle ../oracle/B8b-idfilter (16 cases, ran twice incl. rebuild), tests/id_filter_oracle.rs 10 tests GREEN.
+  Remaining IDFilter gaps: ScoreType overload (IDScoreSwitcherAlgorithm), 3 AnnotatedMSRun overloads,
+  *WithData + 3 typedefs (pointer index). Docs/manifest done. identification.rs now 100% rustdoc.
+- Findings for report: C++ DigestionFilter end-start off-by-one; DataValue double() union read; ProteaseDB
+  & IdentificationData address-ordered iteration; filterGroupsByScore asymmetry; ProteaseDigestion
+  count_internal_cleavage_sites vs source tokenizer (leading lookahead cut) and is_valid_product
+  methionine-before-empty order (both in digestion.rs, not changed, worked around in IDFilter).
+
 ## Next step
-1. IDFilter: countHits, getBestHit, filterGroupsByScore, RTPredictPValue, regex, best-per-peptide annotate/keep,
-   extractUnassignedProteins, generic predicates, digestion filters; oracle ../oracle/B8b-idfilter.
-2. Clippy + CI slices for protease_db/modifications_db (features: none needed? check), MSRV 1.85.
-3. Ledger fragment + lane report.
+1. Gates: clippy all-targets, doc -D warnings, MSRV 1.85 on new tests, no-default-features, CI sweep.
+2. Ledger fragment wave4/B8b.json + lane report .planning/lane-reports/B8b.md.
+3. Optional: ProteaseDB provider constructor.
