@@ -18,10 +18,18 @@
 //! # Summation order
 //!
 //! As in [`stats_helpers`](crate::analysis::openswath::stats_helpers), the source's Eigen
-//! reductions add in blocks and the port adds left to right; results agree to
-//! rounding and are identical on every machine. The upstream class test pins
-//! the source's own Eigen cross-correlation against a left-to-right reference
-//! loop with a relative tolerance, which is exactly the port's loop.
+//! reductions add in blocks and most of the port adds left to right; results
+//! agree to rounding and are identical on every machine. The upstream class
+//! test pins the source's own Eigen cross-correlation against a left-to-right
+//! reference loop with a relative tolerance.
+//!
+//! [`standardize_data`] and [`calculate_cross_correlation`] (and so
+//! [`normalized_cross_correlation`]) add in Eigen's own order instead: the
+//! vectorised `redux` of Eigen 3.4 with two-lane SSE2 `double` packets, as the
+//! Linux x86-64 Release build compiles it. `MRMTransitionGroupPicker`'s peak
+//! quality is built from them and is compared with that build bit for bit
+//! (`tests/openswath_peak_picking.rs`); a left-to-right sum moved it by one
+//! unit in the last place.
 
 use crate::{Error, Result};
 
@@ -152,19 +160,68 @@ pub fn spectral_angle(x: &[f64], y: &[f64]) -> Result<f64> {
     Ok(theta.clamp(-1.0, 1.0).acos())
 }
 
+/// Sum `value(0) .. value(n - 1)` in the order of Eigen 3.4's vectorised
+/// `redux` (`LinearVectorizedTraversal`, no unrolling) with two-lane SSE2
+/// `double` packets and a first aligned index of zero.
+///
+/// The first aligned index is zero for every expression the source sums
+/// here: a `Map` over `std::vector` storage, which glibc's allocator aligns to
+/// 16 bytes, and element-wise expressions, for which Eigen always starts at
+/// zero. Two packet accumulators take alternating pairs of values, are added,
+/// take one more pair when one is left, and are reduced lane 0 plus lane 1; an
+/// odd last value is added after that. A single value is returned as it is,
+/// and an empty sum is zero.
+fn eigen_sum(n: usize, value: impl Fn(usize) -> f64) -> f64 {
+    if n == 0 {
+        return 0.0;
+    }
+    let aligned_size = n / 2 * 2;
+    if aligned_size == 0 {
+        return value(0);
+    }
+    let aligned_size2 = n / 4 * 4;
+    let mut first = [value(0), value(1)];
+    if aligned_size > 2 {
+        let mut second = [value(2), value(3)];
+        let mut index = 4;
+        while index < aligned_size2 {
+            first[0] += value(index);
+            first[1] += value(index + 1);
+            second[0] += value(index + 2);
+            second[1] += value(index + 3);
+            index += 4;
+        }
+        first = [first[0] + second[0], first[1] + second[1]];
+        if aligned_size > aligned_size2 {
+            first[0] += value(aligned_size2);
+            first[1] += value(aligned_size2 + 1);
+        }
+    }
+    let mut sum = first[0] + first[1];
+    for index in aligned_size..n {
+        sum += value(index);
+    }
+    sum
+}
+
 /// Standardise a vector in place: subtract the mean and divide by the
 /// population standard deviation (divisor `N`).
 ///
 /// An empty vector and an all-zero vector are left unchanged; a constant
 /// non-zero vector (standard deviation 0) is divided by 1 instead, so it
-/// becomes all zeros.
+/// becomes all zeros. Both sums are added in Eigen's order (see the module
+/// documentation).
 pub fn standardize_data(data: &mut [f64]) {
     if data.is_empty() {
         return;
     }
     let n = data.len() as f64;
-    let mean = data.iter().sum::<f64>() / n;
-    let mut stdev = (data.iter().map(|v| (v - mean) * (v - mean)).sum::<f64>() / n).sqrt();
+    let mean = eigen_sum(data.len(), |i| data[i]) / n;
+    let mut stdev = (eigen_sum(data.len(), |i| {
+        let centred = data[i] - mean;
+        centred * centred
+    }) / n)
+        .sqrt();
     if mean == 0.0 && stdev == 0.0 {
         return;
     }
@@ -200,7 +257,8 @@ fn xcorr_entries(maxdelay: i32, lag: i32) -> Result<usize> {
 /// For every delay `d` from `-maxdelay` to `maxdelay` in steps of `lag`, the
 /// entry is `(d, sum_i data1[i] * data2[i + d])` over the indices where both
 /// exist; a delay with no overlap yields 0. A negative `maxdelay` yields an
-/// empty array.
+/// empty array. Each dot product is added in Eigen's order (see the module
+/// documentation).
 ///
 /// # Errors
 ///
@@ -234,11 +292,7 @@ pub fn calculate_cross_correlation(
             // Both bounds lie in [0, size], so the conversions cannot fail.
             let (s, e) = (start as usize, end as usize);
             let shifted = (start + delay) as usize;
-            sxy = data1[s..e]
-                .iter()
-                .zip(&data2[shifted..shifted + (e - s)])
-                .map(|(a, b)| a * b)
-                .sum();
+            sxy = eigen_sum(e - s, |i| data1[s + i] * data2[shifted + i]);
         }
         // |delay| <= maxdelay, which fits i32.
         result.data.push((delay as i32, sxy));
@@ -446,4 +500,26 @@ pub fn ranked_mutual_information(
     mutual_information += n.ln();
     mutual_information /= 2.0f64.ln();
     Ok(mutual_information)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::eigen_sum;
+
+    #[test]
+    fn eigen_sum_follows_the_two_packet_order() {
+        // Left to right, 1e16 + 1 rounds back to 1e16 and the sum is 2; Eigen
+        // pairs lane 0 (1e16, -1e16) and lane 1 (1, 1) first and gets 3.
+        let values = [1e16, 1.0, -1e16, 1.0, 1.0];
+        assert_eq!(eigen_sum(values.len(), |i| values[i]), 3.0);
+        assert_eq!(values.iter().sum::<f64>(), 2.0);
+        assert_eq!(eigen_sum(0, |_| unreachable!()), 0.0);
+        assert_eq!(eigen_sum(1, |_| 7.5), 7.5);
+        // Six values: the two accumulators, then one more pair, then lanes.
+        let six = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+        assert_eq!(
+            eigen_sum(6, |i| six[i]),
+            ((1.0 + 3.0) + 5.0) + ((2.0 + 4.0) + 6.0)
+        );
+    }
 }

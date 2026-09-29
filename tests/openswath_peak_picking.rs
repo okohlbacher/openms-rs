@@ -1551,6 +1551,7 @@ fn same_float(actual: f64, expected: f64) -> bool {
 fn group_picker_matches_the_release_build_bit_for_bit() {
     let oracle = include_str!("data/openswath_peak_picking_oracle.tsv");
     let mut cases = 0;
+    let mut mismatches = Vec::new();
     for config in rows_all(include_str!("data/openswath_peak_picking_configs.tsv")) {
         let case = config[0];
         let expected: Vec<(&str, &str)> = oracle
@@ -1578,11 +1579,15 @@ fn group_picker_matches_the_release_build_bit_for_bit() {
             cases += 1;
             continue;
         }
-        assert_eq!(
-            actual.iter().map(|(k, _)| k.as_str()).collect::<Vec<_>>(),
-            expected.iter().map(|(k, _)| *k).collect::<Vec<_>>(),
-            "{case}: record keys"
-        );
+        let actual_keys: Vec<_> = actual.iter().map(|(k, _)| k.as_str()).collect();
+        let expected_keys: Vec<_> = expected.iter().map(|(k, _)| *k).collect();
+        if actual_keys != expected_keys {
+            mismatches.push(format!(
+                "{case}: record keys differ: Rust {actual:?}, Release build {expected:?}"
+            ));
+            cases += 1;
+            continue;
+        }
         for ((key, record), (_, text)) in actual.iter().zip(&expected) {
             let ok = match record {
                 Record::Text(value) => value == text,
@@ -1608,11 +1613,16 @@ fn group_picker_matches_the_release_build_bit_for_bit() {
                             .all(|(a, b)| same_float(a.0, b.0) && same_float(a.1, b.1))
                 }
             };
-            assert!(ok, "{case}: {key}: Rust {record:?}, Release build {text}");
+            if !ok {
+                mismatches.push(format!(
+                    "{case}: {key}: Rust {record:?}, Release build {text}"
+                ));
+            }
         }
         cases += 1;
     }
     assert_eq!(cases, 32);
+    assert!(mismatches.is_empty(), "{}", mismatches.join("\n"));
 }
 
 #[test]
