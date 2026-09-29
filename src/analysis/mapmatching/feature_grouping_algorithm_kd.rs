@@ -13,13 +13,13 @@
 //! partitions at gaps wider than the larger of the warp and link m/z
 //! tolerances (about `nr_partitions` of them), so that no cluster can reach
 //! across a boundary. With `warp:enabled`, a
-//! [`MapAlignmentAlgorithmKD`] collects RT fit data from every partition and
+//! [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::map_alignment_algorithm_kd::MapAlignmentAlgorithmKD) collects RT fit data from every partition and
 //! fits one LOWESS transformation per map; the linking then runs on the
 //! warped retention times (reported RTs stay the original ones).
 //!
 //! Linking is greedy: every feature is the centre of a potential cluster that
 //! takes, from each map, the compatible unassigned feature closest to the
-//! centre by [`FeatureDistance`] (RT and m/z within `link:rt_tol` and
+//! centre by [`FeatureDistance`](crate::analysis::mapmatching::feature_distance::FeatureDistance) (RT and m/z within `link:rt_tol` and
 //! `link:mz_tol` of the centre, charges and adducts compatible per
 //! `link:charge_merging` and `link:adduct_merging`). The largest cluster with
 //! the smallest average distance (then the highest centre index) becomes a
@@ -35,7 +35,7 @@
 //! - A candidate whose distance to the centre is not a number cannot be
 //!   chosen (the source then records the index `numeric_limits<Size>::max()`
 //!   and dereferences it); this port returns an error.
-//! - The warp inherits the [`MapAlignmentAlgorithmKD`] limitations: no
+//! - The warp inherits the [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::map_alignment_algorithm_kd::MapAlignmentAlgorithmKD) limitations: no
 //!   automatic LOWESS span selection and no `akima` interpolation.
 //!
 //! The consensus feature's `best ion` annotation reproduces a source quirk:

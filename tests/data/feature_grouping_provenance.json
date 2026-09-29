@@ -86,6 +86,102 @@
   {
    "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithmQT_test.cpp",
    "sha256": "427f2e2f2f3b166a9d5a42a4c661cc496c964539f6132ddc70ea6e518620d045"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h",
+   "sha256": "7fd67e80155751ee1b9236e494cb44d92b225d45795e160e71a7696e4578dd7a"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/LabeledPairFinder.cpp",
+   "sha256": "cc148a031db7d828835b78d8ad20e81712e63bdc2c1b720099655e2d476c9613"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LabeledPairFinder_test.cpp",
+   "sha256": "bdf103dcdcd4ea443f2de697468e4999b6246d4748ad46728b0c7b21e697fe62"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/LabeledPairFinder.featureXML",
+   "sha256": "2f50feeee7c17aa679dc3b8dd58cdae4da2a6d65826ee0ce418e014cabdfa93d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h",
+   "sha256": "e11fba27d5fdac8beb4a596ccf802f312dfbb0676debf36098d85371fe22b994"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.cpp",
+   "sha256": "66790ee24436e5b4b129f0317fa99629ecee2a120e1101016bb24e1476538e5b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithmLabeled_test.cpp",
+   "sha256": "fcdf5e4b9b7cbc5cfd059417e0fd4fd3e8bb3d1035a543b2ed69f1610b64a4f7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
+   "sha256": "e392b89a282680f4014cd1cd2a74ff852b222ca1c379e8ae39d4d0e17f805341"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.cpp",
+   "sha256": "3dd7006ebe5e57182b15b751288c14c29241c6a41eba9740c3486cc5e7e41a3d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/KDTreeFeatureMaps_test.cpp",
+   "sha256": "a9267ddb156696dddd2d6008eed6ac030b1672fa4526bf320a64db5041b26234"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureNode.h",
+   "sha256": "b90bd189e69b75f46ee2ee1f64c8ad849f69e885674f438f47473937784968c1"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/QUANTITATION/KDTreeFeatureNode.cpp",
+   "sha256": "d52ee444d8ea7c2a3de8afd2eda320f92f3f6d47fe7e897d0edc683aa1dbab19"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/KDTreeFeatureNode_test.cpp",
+   "sha256": "e735370440f2ae31898ee98ffc5b8ab5e73750f122782a3fc7d790e13975c226"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/KDTree.h",
+   "sha256": "07aca59a00912a69078b5f9cf08d0816f556d361fa07b92cd9fcb5d6b23a1596"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h",
+   "sha256": "0dd0c7f583a33ea91a8256147c04745fd81584459e33d46e260b5408e473028c"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureMapping.cpp",
+   "sha256": "dd345d59904d017a8a2a85cc01d8487b358aed1cf1dae0622db742ebdafb595b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureMapping_test.cpp",
+   "sha256": "b37d320c16b20f457fafe19f4c93fd33db20c90427636f7d236a4b0016901972"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
+   "sha256": "c5de00010fc2ec93aed9ed97dfb2e1d29c89ffb472e3eae01c0b5f03b6c41927"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.cpp",
+   "sha256": "07665844d8e03d4081da1a855da2fd377254aadff2f64fdc314b9107ff2912e0"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureGroupingAlgorithmKD_test.cpp",
+   "sha256": "1ad1a6666424f585240fa46bdcc574a8b0dc5575ea0cbb5605b28f6f59f17221"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h",
+   "sha256": "e83d09a78b65661b9b8d024e4339c5d85f53452ee9fb5319bf6fc808c935ad64"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.cpp",
+   "sha256": "fcd204196dfdbc309a2caa01927a7c9cec57ab5f8f80675c6d396a3fe5f53675"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmKD_test.cpp",
+   "sha256": "3888005333029030a6950d0c7e6b5a7ece7dfe859831bdb0214fea7bc5a6c7a5"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLowess.cpp",
+   "sha256": "6f40557b1d92f325777ee47a6b6a751331d47ec88b7569a47fb2f63634e9d003"
   }
  ],
  "native_implementation": [
@@ -96,13 +192,27 @@
   "src/analysis/mapmatching/feature_grouping_algorithm.rs",
   "src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs",
   "src/analysis/mapmatching/qt_cluster_finder.rs",
-  "src/analysis/mapmatching/feature_grouping_algorithm_qt.rs"
+  "src/analysis/mapmatching/feature_grouping_algorithm_qt.rs",
+  "src/analysis/mapmatching/labeled_pair_finder.rs",
+  "src/analysis/mapmatching/feature_grouping_algorithm_labeled.rs",
+  "src/analysis/mapmatching/kd_tree_feature_maps.rs",
+  "src/analysis/mapmatching/feature_mapping.rs",
+  "src/analysis/mapmatching/map_alignment_algorithm_kd.rs",
+  "src/analysis/mapmatching/feature_grouping_algorithm_kd.rs"
  ],
  "native_tests": [
   "tests/mapmatching_feature_grouping.rs",
   "tests/mapmatching_feature_grouping_topp.rs",
   "tests/mapmatching_qt_cluster_finder.rs",
-  "tests/mapmatching_qt_cluster_finder_topp.rs"
+  "tests/mapmatching_qt_cluster_finder_topp.rs",
+  "tests/mapmatching_labeled_grouping.rs",
+  "tests/mapmatching_labeled_grouping_topp.rs",
+  "tests/mapmatching_labeled_grouping_oracle.rs",
+  "tests/mapmatching_kd_tree_feature_maps.rs",
+  "tests/mapmatching_kd_tree_feature_maps_oracle.rs",
+  "tests/mapmatching_kd_grouping.rs",
+  "tests/mapmatching_kd_grouping_oracle.rs",
+  "tests/mapmatching_kd_grouping_topp.rs"
  ],
  "support_document": "docs/FEATURE_GROUPING_SUPPORT.md",
  "fixtures": [
@@ -230,6 +340,196 @@
    "path": "tests/data/feature_linker_unlabeled_qt_6_output.consensusXML",
    "sha256": "510230a5135b145aac527e4c44d856ad558bc54c29453cc8b974ca13480c7dc0",
    "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledQT_6_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_labeled_1_input.featureXML",
+   "sha256": "7f31e728a3e31a47a2f2bdb8886c83fc97837ae22d6514b207e067048645ddad",
+   "kind": "retained upstream TOPP input FeatureLinkerLabeled_1_input.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_labeled_1_output.consensusXML",
+   "sha256": "c90ab4f43feafe2eb5b899c49cf42fd295a13ee11a9304897d68f7a1b3083afe",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerLabeled_1_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_labeled_1_parameters.ini",
+   "sha256": "70e9c53acc723be66140f6f026db71dd8b92b92eb7537739c5e3bdfd3081ba90",
+   "kind": "retained upstream TOPP parameters FeatureLinkerLabeled_1_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_labeled_2_input.featureXML",
+   "sha256": "edc01e33f40459dc6b7d778f7240a25073246fa8bec76c5fe3a597d6eada5e71",
+   "kind": "retained upstream TOPP input FeatureLinkerLabeled_2_input.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_labeled_2_output.consensusXML",
+   "sha256": "185db5b56b53f2b23254881648a5d484122105d455fcb9515a1fd282973a2f73",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerLabeled_2_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_labeled_2_parameters.ini",
+   "sha256": "0a14a80c8f6db74d44a133c062253e16798f4d4dac62467e174863fc2cbc2304",
+   "kind": "retained upstream TOPP parameters FeatureLinkerLabeled_2_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_1_output.consensusXML",
+   "sha256": "1c8da9d093eda13272c894ed49d92911663a91b7c896c829493139985cd7b9c2",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_1_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_1_parameters.ini",
+   "sha256": "00cfd23138319fe4a9fc08b811e4513a39dcfee8583f30f457f56138f6f60682",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeledKD_1_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_2_output.consensusXML",
+   "sha256": "1caede87ad81f4110a0637680aaff75fbdfdffe2297cf12b48fd909a48df8f69",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_2_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_2_parameters.ini",
+   "sha256": "539a131c073d203be5b575ab826c690ee6e136377931034aa7bf027dfa2a15f6",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeledKD_2_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_3_output.consensusXML",
+   "sha256": "7d5d70e627660cdd0296106cfbd22cdbc9ec09412217f59133800051c32292a7",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_3_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_3_parameters.ini",
+   "sha256": "646fadbeff02b4691113f21b90c91fafc4f047d8044302f2fec8959c5670876a",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeledKD_3_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_4_output.consensusXML",
+   "sha256": "d7ec2b93c9444775786c8519b94e8c71e96b4f083bab1e34e50379a7bac2acc0",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_4_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_4_parameters.ini",
+   "sha256": "79b06db4b39458df38c6b112536c07217a90cff3858efb3e950b2aa511f5b3e3",
+   "kind": "retained upstream TOPP parameters FeatureLinkerUnlabeledKD_4_parameters.ini at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_5_output.consensusXML",
+   "sha256": "ba8f919840ba966f3c1e37b8bb787742b07688cd5e2d50ecbd8cee5ef2ba6a7b",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_5_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_6_output.consensusXML",
+   "sha256": "4a9ddc5bc83abbde8d64c94f3b252c6e18b702b072dbe6f94a9f1d2d55a980a2",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_6_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_7_output.consensusXML",
+   "sha256": "87c5ee4d013b535da4dd05309d6b222710ff2afc257ee4d709ac09974697e6b6",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_7_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_8_output.consensusXML",
+   "sha256": "1a78f669c6f04aebb81a73a7f5029b79c82d14768a7a4b025aacd6206551dfb5",
+   "kind": "retained upstream TOPP expected output (C++) FeatureLinkerUnlabeledKD_8_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_charge_any_input1.featureXML",
+   "sha256": "63f9b0bda0ac1941eac33fb35987409ec1458dc166f8c7606d95a64f0c72c71d",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledKD_charge_any_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_charge_any_input2.featureXML",
+   "sha256": "3720371360142aaf435a3c2b3fce4d912dc8ea852d485fd519289aee4b019b7a",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledKD_charge_any_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_dc_input1.featureXML",
+   "sha256": "a4ee0a9c9e56fcf04c0657fa50d125520f0b0338e9e35e3a6781263196528c8f",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledKD_dc_input1.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_dc_input2.featureXML",
+   "sha256": "e14ec0a3f91e71a8a48edf564fe427417211ffa4dc1de4ab835c787949afa801",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledKD_dc_input2.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/feature_linker_unlabeled_kd_dc_input3.featureXML",
+   "sha256": "37847c4eef6b9d7fb6592cca89ae26347eeed18469516c860ab66cafc6050d02",
+   "kind": "retained upstream TOPP input FeatureLinkerUnlabeledKD_dc_input3.featureXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_defaults.ini",
+   "sha256": "58e58fd93e39751ac785f7a77240c2f518a264e67782e90b8a5188ead11b4a5f",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd1.tsv",
+   "sha256": "8ce0541fa55afd0a264ef0241bc503b5bbf4de2caaad4a87392dca2c3738c202",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd2.tsv",
+   "sha256": "4342b789951802291c964620390dbe6290827cb40ac46dd9e65f8acc79e49b11",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd3.tsv",
+   "sha256": "ce476c587bdc7de071acc76d8b5236a7f2f047db485182eed32b4b1dec29bc72",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd4.tsv",
+   "sha256": "b25186e74e75708248cd1f0700e5d4e9b4604932fa6becf8a794dd88d163980a",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd5.tsv",
+   "sha256": "b4edf8b37d312b8ad7167f2c587b9302e815bdcb046c9e70d0808222084d10e7",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd6.tsv",
+   "sha256": "4118cbec4999d6492d3a43fe18f62190d38d7c26e1b88168b8a3eafa72227e3f",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd7.tsv",
+   "sha256": "c84cd43655a03cb048a6ba870b41102f59534c62140fdbb18c421f4319cc3fc0",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_grouping_oracle_kd8.tsv",
+   "sha256": "e2ab36616fe70866fadf7c7bc40a0ce103517f5bdb58ea18bf65b8ca8e4b8c9d",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_tree_feature_maps_oracle_featuremapping.tsv",
+   "sha256": "145df9e5388de7ac3fae3986adb67c4139e1bd42763722ae62ce7a9c1022e01f",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/kd_tree_feature_maps_oracle_kdorder.tsv",
+   "sha256": "0353984161e01367ad458753c2519142f15867b8cff3bc684e49b6ef07b04bbb",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/labeled_pair_finder.featureXML",
+   "sha256": "2f50feeee7c17aa679dc3b8dd58cdae4da2a6d65826ee0ce418e014cabdfa93d",
+   "kind": "upstream class-test data LabeledPairFinder.featureXML at core bc9cc12 (src/tests/class_tests/openms/data), byte-identical copy"
+  },
+  {
+   "path": "tests/data/labeled_pair_finder_oracle_labeled1.tsv",
+   "sha256": "1f6ac04abe9f68eb722740ee3e7328c5f41fd98e40bd61264bc738b9bd70f8f6",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/labeled_pair_finder_oracle_labeled2.tsv",
+   "sha256": "ca8400c6b496ab66b25d034f85027f7f91ad57f374e0639c7e12f5dd74f8b250",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
+  },
+  {
+   "path": "tests/data/labeled_pair_finder_oracle_lpf250.tsv",
+   "sha256": "d11644e7bf6394cd946c61d7bba5aa52b15ecac5ce72b89a22e52a336de26a30",
+   "kind": "C++ Release oracle M2-labeled output (oracle/M2-labeled/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical), verbatim"
   }
  ],
  "upstream_test_definition": [
@@ -261,52 +561,104 @@
     "TOPP_FeatureLinkerUnlabeledQT_2": "consensusXML input through the tool, not attempted"
    },
    "tool": "FeatureLinkerUnlabeledQT (topp 174b576 src/FeatureLinkerBase.cpp: load without hulls/subordinates, clear meta values except dc_charge_adducts/Group, FeatureGroupingAlgorithmQT::group)"
+  },
+  {
+   "package": "test-data",
+   "revision": "0cb15f2",
+   "path": "topp/CMakeLists.txt",
+   "lines": "2872-2877",
+   "tests": [
+    "TOPP_FeatureLinkerLabeled_1",
+    "TOPP_FeatureLinkerLabeled_2"
+   ],
+   "tool": "FeatureLinkerLabeled (topp 174b576 src/FeatureLinkerLabeled.cpp + FeatureLinkerBase.cpp labeled=true: headers 0 light / 1 heavy, FeatureGroupingAlgorithmLabeled::group)",
+   "note": "TOPP_FeatureLinkerLabeled_2 retained qualities predate the pin (up to 3.7e-4 relative from the pinned Release build); qualities compared with the Release oracle instead"
+  },
+  {
+   "package": "test-data",
+   "revision": "0cb15f2",
+   "path": "topp/CMakeLists.txt",
+   "lines": "2927-2950",
+   "tests": [
+    "TOPP_FeatureLinkerUnlabeledKD_1",
+    "TOPP_FeatureLinkerUnlabeledKD_2",
+    "TOPP_FeatureLinkerUnlabeledKD_3",
+    "TOPP_FeatureLinkerUnlabeledKD_4",
+    "TOPP_FeatureLinkerUnlabeledKD_5",
+    "TOPP_FeatureLinkerUnlabeledKD_6",
+    "TOPP_FeatureLinkerUnlabeledKD_7",
+    "TOPP_FeatureLinkerUnlabeledKD_8"
+   ],
+   "tool": "FeatureLinkerUnlabeledKD (topp 174b576 src/FeatureLinkerBase.cpp: load without hulls/subordinates, clear meta values except dc_charge_adducts/Group, FeatureGroupingAlgorithmKD::group; case 2 keep_subelements: old_map_index, transferSubelements)"
   }
  ],
  "evidence_tier": {
-  "tier_1_retained_output": "tests/mapmatching_feature_grouping_topp.rs: FeatureLinkerUnlabeled_1..3; tests/mapmatching_qt_cluster_finder_topp.rs: FeatureLinkerUnlabeledQT_1, _3, _4, _6; order and handle identities exact, values within the six stored significant digits. The QT_5/QT_6 inputs and the QT_6 output carry date=0000-00-00T00:00:00, which this port's readers refuse; the test replaces it only when refused (documented reader defect).",
-  "tier_3_class_tests": "tests/mapmatching_feature_grouping.rs and tests/mapmatching_qt_cluster_finder.rs: every section of FeatureDistance_test.cpp, StablePairFinder_test.cpp, FeatureGroupingAlgorithm_test.cpp, BaseGroupFinder_test.cpp and QTClusterFinder_test.cpp",
-  "tier_4_native": "defaults and restrictions, log-transformed distance, input checks, use_identifications, old_map_index renumbering, group and the incremental path on a hand-built case"
+  "tier_1_retained_output": "tests/mapmatching_feature_grouping_topp.rs: FeatureLinkerUnlabeled_1..3; tests/mapmatching_qt_cluster_finder_topp.rs: FeatureLinkerUnlabeledQT_1, _3, _4, _6; order and handle identities exact, values within the six stored significant digits. The QT_5/QT_6 inputs and the QT_6 output carry date=0000-00-00T00:00:00, which this port's readers refuse; the test replaces it only when refused (documented reader defect). tests/mapmatching_labeled_grouping_topp.rs: FeatureLinkerLabeled_1, _2 (case 2 without qualities); tests/mapmatching_kd_grouping_topp.rs: FeatureLinkerUnlabeledKD_1..8. All TOPP differentials also compare peptide identifications (map index, first-hit sequence).",
+  "tier_3_class_tests": "tests/mapmatching_feature_grouping.rs and tests/mapmatching_qt_cluster_finder.rs: every section of FeatureDistance_test.cpp, StablePairFinder_test.cpp, FeatureGroupingAlgorithm_test.cpp, BaseGroupFinder_test.cpp and QTClusterFinder_test.cpp; tests/mapmatching_labeled_grouping.rs (LabeledPairFinder_test.cpp, FeatureGroupingAlgorithmLabeled_test.cpp), tests/mapmatching_kd_tree_feature_maps.rs (KDTreeFeatureMaps_test.cpp, KDTreeFeatureNode_test.cpp, FeatureMapping_test.cpp), tests/mapmatching_kd_grouping.rs (FeatureGroupingAlgorithmKD_test.cpp, MapAlignmentAlgorithmKD_test.cpp)",
+  "tier_4_native": "defaults and restrictions, log-transformed distance, input checks, use_identifications, old_map_index renumbering, group and the incremental path on a hand-built case",
+  "tier_1_release_oracle": "tests/mapmatching_labeled_grouping_oracle.rs (FeatureLinkerLabeled_1/_2 path, LabeledPairFinder_test estimation input), tests/mapmatching_kd_tree_feature_maps_oracle.rs (kd-tree query order, FeatureMapping map-1 exclusion), tests/mapmatching_kd_grouping_oracle.rs (KD defaults, FeatureLinkerUnlabeledKD_1..8 path incl. LOWESS warp and adducts): handles exact, RT/m/z 1e-12 relative, float values one f32 unit"
  },
  "not_ported": [
   {
-   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
-   "reason": "needs DATASTRUCTURES/KDTree.h"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h",
-   "reason": "not started"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h",
-   "reason": "needs LabeledPairFinder"
-  },
-  {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/WNetMatcher.h",
-   "reason": "not started"
+   "reason": "needs the external wnetalign library (WNetAligner network-flow solver, vcpkg overlay port wnetalign); no crate or port yet"
   },
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h",
    "reason": "needs WNetMatcher"
   },
   {
-   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h",
-   "reason": "not started"
-  },
-  {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/PipEchoAlgorithm.h",
-   "reason": "not started"
+   "reason": "not started (about 3000 lines in source/ANALYSIS/MAPMATCHING/PIPECHO)"
   }
  ],
  "target_verification": [
   "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_feature_grouping --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder --test mapmatching_qt_cluster_finder_topp",
   "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_feature_grouping --test mapmatching_qt_cluster_finder",
-  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --features featurexml,consensusxml,paramxml --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder_topp"
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --features featurexml,consensusxml,paramxml --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder_topp",
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --features featurexml,consensusxml,paramxml --test mapmatching_labeled_grouping --test mapmatching_labeled_grouping_topp --test mapmatching_labeled_grouping_oracle --test mapmatching_kd_tree_feature_maps --test mapmatching_kd_tree_feature_maps_oracle --test mapmatching_kd_grouping --test mapmatching_kd_grouping_oracle --test mapmatching_kd_grouping_topp"
  ],
  "partial": [
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h",
    "gap": "order among clusters of exactly equal quality (boost fibonacci_heap and boost::unordered grid order); TOPP_FeatureLinkerUnlabeledQT_5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h",
+   "gap": "LOWESS fit through LowessModel; TransformationModelLowess auto_span (cross-validation), akima interpolation and more than 64 iterations are Error::Unsupported"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
+   "gap": "inherits the MapAlignmentAlgorithmKD LOWESS gap when warp:enabled"
+  }
+ ],
+ "external_oracles": [
+  {
+   "name": "M2-labeled",
+   "location": "oracle/M2-labeled (outside the repository)",
+   "host": "ibminode06 (Linux x86_64)",
+   "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+   "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+   "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+   "driver_sha256": "38a8d018d5581524aa9f15d9565d89028922587a3be94f8304124cfd085e237b",
+   "cases": [
+    "labeled1",
+    "labeled2",
+    "lpf250",
+    "lpf250est",
+    "kdorder",
+    "featuremapping",
+    "kddefaults",
+    "kd1",
+    "kd2",
+    "kd3",
+    "kd4",
+    "kd5",
+    "kd6",
+    "kd7",
+    "kd8"
+   ],
+   "runs": "two, fresh processes, identical stdout/stderr/exit/out"
   }
  ]
 }

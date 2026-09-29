@@ -8,10 +8,10 @@
 //! `docs/FEATURE_GROUPING_SUPPORT.md`.
 //!
 //! The source class is a namespace holding two record types and one static
-//! algorithm: [`FeatureMappingInfo`] (the feature maps and a
-//! [`KDTreeFeatureMaps`] over them), [`FeatureToMs2Indices`] (the spectra
+//! algorithm: [`FeatureMappingInfo`](crate::analysis::mapmatching::feature_mapping::FeatureMappingInfo) (the feature maps and a
+//! [`KDTreeFeatureMaps`](crate::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps) over them), [`FeatureToMs2Indices`](crate::analysis::mapmatching::feature_mapping::FeatureToMs2Indices) (the spectra
 //! grouped by feature, and the unassigned ones) and
-//! [`assign_ms2_index_to_feature`]. A typical caller builds the info once and
+//! [`assign_ms2_index_to_feature`](crate::analysis::mapmatching::feature_mapping::assign_ms2_index_to_feature). A typical caller builds the info once and
 //! assigns per MS run; workflows that use this include SIRIUS export and other
 //! "annotate MS2 with quantified feature" pipelines.
 //!

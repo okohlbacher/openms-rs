@@ -13,7 +13,7 @@
 //! pointers; the lifetime `'a` states the source's "the wrapped features must
 //! outlive this object"), remembers each feature's map of origin, and keeps
 //! its own copy of the retention times so that an alignment transformation
-//! can be applied with [`KDTreeFeatureMaps::apply_transformations`] without
+//! can be applied with [`KDTreeFeatureMaps::apply_transformations`](crate::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps::apply_transformations) without
 //! modifying the features. m/z, intensity and charge are always read through
 //! the borrowed feature. Typical consumers are KD-tree based map alignment and
 //! feature grouping, and the MS2-to-feature mapping of
@@ -33,7 +33,7 @@
 //! libstdc++'s introselect `nth_element`, and queries walk the tree in
 //! pre-order with libkdtree++'s pruning. The coordinates are read live, as the
 //! source's node accessor reads them, so a query after
-//! [`KDTreeFeatureMaps::apply_transformations`] searches a tree built on the
+//! [`KDTreeFeatureMaps::apply_transformations`](crate::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps::apply_transformations) searches a tree built on the
 //! old retention times with the new ones, exactly as the source does.
 //!
 //! The source's class is a `DefaultParamHandler` without defaults whose

@@ -10,7 +10,7 @@
 //! `docs/FEATURE_GROUPING_SUPPORT.md`.
 //!
 //! The algorithm computes connected components (CCs) of a compatibility graph
-//! on the features of a [`KDTreeFeatureMaps`]: two features of different maps
+//! on the features of a [`KDTreeFeatureMaps`](crate::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps): two features of different maps
 //! are connected when each lies in the other's RT and m/z tolerance window
 //! (and, optionally, their intensities differ by at most a log10 fold
 //! change). CCs of sufficient size without too many features from the same
@@ -25,8 +25,8 @@
 //!   reject a CC with two charges only continues the inner loop, so the check
 //!   has no effect. The port reproduces that: charges are not checked.
 //! - The LOWESS fit is `TransformationModelLowess`, which this port does not
-//!   provide yet; [`LowessParameters`] reads its parameter section and fits
-//!   with [`LowessModel`] (the same `FastLowessSmoothing` and interpolated
+//!   provide yet; [`LowessParameters`](crate::analysis::mapmatching::map_alignment_algorithm_kd::LowessParameters) reads its parameter section and fits
+//!   with [`LowessModel`](crate::analysis::transformations::LowessModel) (the same `FastLowessSmoothing` and interpolated
 //!   model). Its automatic span selection by cross-validation (`auto_span`),
 //!   `akima` interpolation, and more than 64 robustifying iterations are
 //!   refused with [`Error::Unsupported`](crate::error::Error::Unsupported).
