@@ -12,9 +12,9 @@ optional `arrow` feature (see the `arrow-rs` row of
 | `FORMAT/ArrowSchemaRegistry.h` | `src/format/arrow_schema_registry.rs` | complete |
 | `FORMAT/ParquetFile.h` | `src/format/parquet_file.rs` | complete |
 | `FORMAT/ParquetFilter.h` | `src/format/parquet_filter.rs` | complete |
-| `FORMAT/ArrowIOHelpers.h` (+ `ParquetWriteConfig` of `MSExperimentArrowExport.h`) | `src/format/arrow_io_helpers.rs` | partial: QPX value validation |
+| `FORMAT/ArrowIOHelpers.h` (+ `ParquetWriteConfig` of `MSExperimentArrowExport.h`) | `src/format/arrow_io_helpers.rs` | complete (QPX value validation by lane F1c, see [QPX_SUPPORT](QPX_SUPPORT.md)) |
 | `FORMAT/ProteinIdentificationArrowIO.h` | `src/format/protein_identification_arrow_io.rs` | complete |
-| `FORMAT/PSMArrowIO.h` | — | not ported: needs `QPXFile` |
+| `FORMAT/PSMArrowIO.h` | — | not ported (`QPXFile`, which it builds on, is ported: [QPX_SUPPORT](QPX_SUPPORT.md)) |
 | `FORMAT/FeatureMapArrowIO.h` | `src/format/feature_map_arrow_io.rs` | partial: features table; PSM table and bundle need `QPXFile` |
 | `FORMAT/ConsensusMapArrowIO.h` | — | not ported: needs `QPXFile`, ProForma parsing of peptidoforms |
 
@@ -213,16 +213,18 @@ optional `arrow` feature (see the `arrow-rs` row of
 
 ## Gaps (named dependencies)
 
-* `writeTableToParquet` refuses a QPX `psm_file`, `feature_file` or
-  `pg_file` table (`Error::Unsupported`): the source validates their values
-  with `QPXValueValidation` (`FORMAT/QPXValueValidation.h`), not ported.
+* (Closed by lane F1c.) `writeTableToParquet` validates a QPX `psm_file`,
+  `feature_file` or `pg_file` table with `QPXValueValidation` and refuses one
+  that violates the QPX value contract (`Error::InvalidValue`), as the source
+  does.
 * `PSMArrowIO`, the PSM and bundle half of `FeatureMapArrowIO`, and
   `ConsensusMapArrowIO` build and read
   their PSM tables through `QPXFile::exportToArrow`/`importFromArrow`
-  (`FORMAT/QPXFile.h`), reconstruct peptidoforms with ProForma, and store
-  `DataProcessing` as JSON; their feature and consensus-feature tables need
-  the kernel metadata JSON helpers of those files. They are backlog items
-  behind `QPXFile`.
+  (`FORMAT/QPXFile.h`, now `QpxFile::export_to_arrow`/`import_from_arrow`),
+  reconstruct peptidoforms with ProForma, and store `DataProcessing` as JSON;
+  their feature and consensus-feature tables need the kernel metadata JSON
+  helpers of those files. They are backlog items; `QPXFile` no longer blocks
+  them.
 
 ## Evidence
 

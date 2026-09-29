@@ -84,7 +84,7 @@ network = ["dep:ureq"]
 # default Parquet codec, compiles the C zstd library (see
 # docs/THIRD_PARTY_CRATE_DECISIONS.md). `numpress` because the OpenSWATH
 # Parquet files (.xic/.xim/.xipm) store MS-Numpress + zlib arrays.
-arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet", "numpress"]
+arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet", "numpress", "dep:blake2"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }
@@ -137,6 +137,11 @@ arrow-schema = { version = "=59.3.0", optional = true }
 arrow-buffer = { version = "=59.3.0", optional = true }
 arrow-select = { version = "=59.3.0", optional = true }
 parquet = { version = "=59.3.0", default-features = false, features = ["arrow", "snap", "flate2-rust_backend", "lz4", "zstd", "brotli"], optional = true }
+# BLAKE2b with an 8-byte digest for the QPX row identities (QPXIdentity), which
+# the source vendors from RFC 7693. RustCrypto, pure Rust, MSRV 1.41; its
+# digest/crypto-common/block-buffer/subtle dependencies are already locked
+# through sha1. Enabled by `arrow`, the only feature that writes QPX.
+blake2 = { version = "=0.10.6", default-features = false, optional = true }
 
 [dev-dependencies]
 # Eigen's NonLinearOptimization Levenberg-Marquardt. Measured against the Eigen

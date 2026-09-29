@@ -210,6 +210,21 @@ pub mod xipm_parquet_consumer;
 /// Extracted ion peak-map Parquet files, `.xipm` (`XIPMParquetFile.h`).
 #[cfg(feature = "arrow")]
 pub mod xipm_parquet_file;
+/// All-or-nothing writing of a QPX collection (`QPXCollectionExport.h`).
+#[cfg(feature = "arrow")]
+pub mod qpx_collection_export;
+/// Peptide-spectrum matches as Arrow tables and QPX psm Parquet files
+/// (`QPXFile.h`).
+#[cfg(feature = "arrow")]
+pub mod qpx_file;
+/// Opaque QPX row identities: BLAKE2b-64 over canonical JSON composites
+/// (`QPXIdentity.h`).
+#[cfg(feature = "arrow")]
+pub mod qpx_identity;
+/// Write-time value and primary-key checks of the QPX psm, feature and pg
+/// views (`QPXValueValidation.h`).
+#[cfg(feature = "arrow")]
+pub mod qpx_value_validation;
 
 use crate::{Error, Result};
 

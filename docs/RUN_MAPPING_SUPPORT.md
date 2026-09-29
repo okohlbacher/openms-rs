@@ -27,8 +27,14 @@ existing formatting limits.
 `validate_merge_index()` is a separate operation. Only runs containing two or more
 files require an explicit, integer, nonnegative index inside the list. Unknown,
 empty and single-file runs are exempt, including stale or wrongly typed index
-metadata. Bounded native diagnostics include the PSM number and file count;
-they do not reproduce the source exception text verbatim.
+metadata. The refusals are `Error::MissingInformation` with the source's three
+`Exception::MissingInformation` messages, verbatim (missing, non-integer and
+out-of-range index; each names the PSM number, the run identifier and the file
+count), and the duplicate-path error of `create()` carries the source's
+`Exception::InvalidValue` text. Lane F1c aligned both, because `QPXFile`
+surfaces them to users; the executed Release oracle `F1c-qpx` confirms them
+(`tests/qpx_file.rs`, `refusals_match_the_release_build` and
+`warnings_match_the_release_build`).
 
 Paths retain exact spelling, order, duplicates and Unicode. The mapper performs
 no filesystem access or normalization. It consumes the native dedicated

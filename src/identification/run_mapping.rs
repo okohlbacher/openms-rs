@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
+//! Identification-run to MS-run-path mapping (`METADATA/IdentifierMSRunMapper.h`).
+
 use super::{PeptideIdentification, ProteinIdentification, bad};
 use crate::concept::constants::user_param::{BASE_NAME, ID_MERGE_INDEX};
 use crate::data_structures::list::ListFormat;
@@ -24,9 +26,16 @@ impl IdentifierMSRunMapper {
     /// Conservative cumulative owned payload/node allocation per create call.
     pub const MAX_BYTES: usize = 64 * 1024 * 1024;
 
+    /// An empty mapping (the source's default constructor).
     pub fn new() -> Self {
         Self::default()
     }
+    /// A mapping built by [`create`](Self::create); the source's constructor
+    /// from identification runs.
+    ///
+    /// # Errors
+    ///
+    /// As [`create`](Self::create).
     pub fn from_runs(runs: &[ProteinIdentification]) -> Result<Self> {
         let mut mapping = Self::default();
         mapping.create(runs)?;
@@ -41,6 +50,13 @@ impl IdentifierMSRunMapper {
     ///
     /// Resource errors occur before copying and leave the old mapping unchanged.
     /// Paths are exact, ordered strings: no sorting or filesystem normalization.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a resource limit, and for a repeated path
+    /// list with the source's message: `the value '<paths joined by ','>'
+    /// was used but is not valid; Multiple protein identifications with the
+    /// same ms-run-path. Check input!`.
     pub fn create(&mut self, runs: &[ProteinIdentification]) -> Result<()> {
         preflight(runs)?;
         let mut next = Self::default();
@@ -51,9 +67,13 @@ impl IdentifierMSRunMapper {
         for run in runs {
             if next.reverse.contains_key(&run.primary_ms_run_paths) {
                 *self = next;
-                return Err(bad(
-                    "multiple protein identifications have the same MS run path list",
-                ));
+                // The source's Exception::InvalidValue message, with the
+                // offending path list joined by ',' as its value.
+                return Err(bad(&format!(
+                    "the value '{}' was used but is not valid; Multiple protein \
+                     identifications with the same ms-run-path. Check input!",
+                    run.primary_ms_run_paths.join(",")
+                )));
             }
             next.reverse
                 .insert(run.primary_ms_run_paths.clone(), run.identifier.clone());
@@ -61,12 +81,15 @@ impl IdentifierMSRunMapper {
         *self = next;
         Ok(())
     }
+    /// Whether no run is mapped (the source's `empty()`).
     pub fn is_empty(&self) -> bool {
         self.forward.is_empty()
     }
+    /// Number of mapped run identifiers (the source's `size()`).
     pub fn len(&self) -> usize {
         self.forward.len()
     }
+    /// Whether a run with `identifier` is mapped.
     pub fn has_identifier(&self, identifier: &str) -> bool {
         self.forward.contains_key(identifier)
     }
@@ -81,6 +104,7 @@ impl IdentifierMSRunMapper {
     pub fn identifiers(&self) -> impl ExactSizeIterator<Item = &str> {
         self.forward.keys().map(String::as_str)
     }
+    /// Whether a run with exactly these primary MS run paths is mapped.
     pub fn has_run_path(&self, paths: &[String]) -> bool {
         self.reverse.contains_key(paths)
     }
@@ -88,6 +112,12 @@ impl IdentifierMSRunMapper {
     pub fn try_identifier(&self, paths: &[String]) -> Option<&str> {
         self.reverse.get(paths).map(String::as_str)
     }
+    /// The identifier of the run with exactly these paths.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when no run has them (the source's
+    /// `Exception::ElementNotFound`).
     pub fn identifier(&self, paths: &[String]) -> Result<&str> {
         self.try_identifier(paths)
             .ok_or_else(|| bad("MS run paths not found in mapping"))
@@ -124,6 +154,20 @@ impl IdentifierMSRunMapper {
     /// Require an unambiguous integer index only for runs with multiple files.
     /// Zero/one-path and unknown runs are exempt, including stale/wrong-type
     /// indices. This is an explicit check, not implicit in path lookup.
+    ///
+    /// Ports `validateMergeIndex(pep_id, psm_index)`, whose messages these
+    /// are, word for word, where `<where>` is `PSM #<psm_index> of
+    /// identification run '<identifier>' (<n> files in the run)`:
+    ///
+    /// * `Multiple files in a run, but no 'id_merge_index' in
+    ///   PeptideIdentification found: <where>.`
+    /// * `'id_merge_index' is not an integer: <where>.`
+    /// * `'id_merge_index' = <value> is out of range: <where>.`
+    ///
+    /// # Errors
+    ///
+    /// [`Error::MissingInformation`], as the source's
+    /// `Exception::MissingInformation`, for each of the three.
     pub fn validate_merge_index(
         &self,
         peptide: &PeptideIdentification,
@@ -133,24 +177,27 @@ impl IdentifierMSRunMapper {
         if paths.len() < 2 {
             return Ok(());
         }
-        let diagnostic = |reason: &str| {
-            bad(&format!(
-                "PSM #{psm_index} in a {}-file run: {reason}",
-                paths.len()
+        let place = format!(
+            "PSM #{psm_index} of identification run '{}' ({} files in the run)",
+            peptide.identifier,
+            paths.len()
+        );
+        let value = peptide.metadata.get(ID_MERGE_INDEX).ok_or_else(|| {
+            Error::MissingInformation(format!(
+                "Multiple files in a run, but no '{ID_MERGE_INDEX}' in PeptideIdentification \
+                 found: {place}."
             ))
-        };
-        let value = peptide
-            .metadata
-            .get(ID_MERGE_INDEX)
-            .ok_or_else(|| diagnostic("missing id_merge_index"))?;
-        let index = value
-            .as_i64()
-            .map_err(|_| diagnostic("id_merge_index is not an integer"))?;
+        })?;
+        let index = value.as_i64().map_err(|_| {
+            Error::MissingInformation(format!("'{ID_MERGE_INDEX}' is not an integer: {place}."))
+        })?;
         if usize::try_from(index)
             .ok()
             .is_none_or(|index| index >= paths.len())
         {
-            return Err(diagnostic("id_merge_index is out of range"));
+            return Err(Error::MissingInformation(format!(
+                "'{ID_MERGE_INDEX}' = {index} is out of range: {place}."
+            )));
         }
         Ok(())
     }
