@@ -47,3 +47,7 @@ Prereqs merged: 0a7-27, 0a7-30 (commit "[MERGE] O4b prerequisites").
 1. Verify TSE gaps (searchSpectrum/AMSE, storeSpectraMSP) still open; CalibrationWorkflow assessment.
 2. Re-run gates on spock for the merged tree (clippy, tests, +1.85, doc) and record pass counts per slice.
 3. Write report, check ledger, delete NOTES.md, final commit.
+- CalibrationWorkflow: UNTOUCHED. Even defaults() inserts TransitionListEvidenceFilter defaults (auto_irt:prefilter:), unported;
+  all entry points need MRMFeatureFinderScoring, SwathMapMassCorrection, ChromatogramExtractor/ChromExtractParams (OpenSwathWorkflow.h),
+  TransitionPQPFile, IChromatogramHandler (all unported).
+- Sweep running: scratchpad/sweep (slot O4b-sweep); lane tests: scratchpad/lane_tests_mzml.out.
