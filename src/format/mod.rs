@@ -230,3 +230,6 @@ pub mod traml;
 /// The TraML reader and writer (`HANDLERS/TraMLHandler.h`).
 #[cfg(feature = "traml")]
 pub mod traml_handler;
+/// File-system operations for directory-or-archive containers, re-exported
+/// from `system::file` for the OpenSWATH Parquet formats.
+pub mod container_io;

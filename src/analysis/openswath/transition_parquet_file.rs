@@ -120,7 +120,7 @@ use crate::format::arrow_schema_registry::validation::{self, Mode};
 use crate::format::arrow_schema_registry::{OSWPrecursorSchema, OSWTransitionSchema};
 use crate::format::parquet_file::ParquetFile;
 use crate::format::zip_archive_file::ZipArchiveFile;
-use crate::system::file::{self, TempDir};
+use crate::format::container_io::{self as file, TempDir};
 use crate::{Error, Result};
 use arrow_array::{
     ArrayRef, BooleanArray, Float64Array, Int32Array, Int64Array, RecordBatch, StringArray,

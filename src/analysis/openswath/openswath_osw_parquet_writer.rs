@@ -99,7 +99,7 @@ use crate::format::zip_archive_file::ZipArchiveFile;
 use crate::kernel::{Feature, FeatureMap};
 use crate::metadata::{MetaInfo, MetaValueData};
 use crate::param::value::format_float;
-use crate::system::file::{self, CopyOptions, TempDir};
+use crate::format::container_io::{self as file, CopyOptions, TempDir};
 use crate::{Error, Result};
 use arrow_array::{ArrayRef, Float64Array, Int32Array, Int64Array, RecordBatch, StringArray};
 use arrow_schema::{DataType, SchemaRef};

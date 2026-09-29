@@ -52,7 +52,7 @@
 use crate::format::parquet_file::ParquetFile;
 use crate::format::zip_archive_file::ZipArchiveFile;
 use crate::math::source_sort::source_sort_permutation;
-use crate::system::file::{self, TempDir};
+use crate::format::container_io::{self as file, TempDir};
 use crate::{Error, Result};
 use arrow_array::{Array, ArrayRef, RecordBatch};
 use std::collections::HashMap;
