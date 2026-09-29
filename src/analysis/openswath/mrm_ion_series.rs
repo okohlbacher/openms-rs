@@ -616,6 +616,13 @@ fn annotation_to_interpretation(annotation: &str) -> Result<Interpretation> {
     Ok(interpretation)
 }
 
+/// An `int` charge passed to a `size_t` parameter, as C++ converts it: a
+/// negative charge wraps to a huge value (so no fragment charge exceeds it).
+#[allow(clippy::cast_sign_loss)]
+pub(crate) fn source_size(charge: i32) -> usize {
+    charge as isize as usize
+}
+
 /// Source `AASequence::getMZ(charge, type)`: the typed monoisotopic ion mass
 /// including `charge` protons, divided by the charge.
 pub(crate) fn typed_mz(
@@ -757,7 +764,7 @@ fn annotate_transition_into(
         let mut series_options = options.clone();
         // Source: getIonSeries is called without round_decPow here.
         series_options.round_dec_pow = -4;
-        let precursor = usize::try_from(precursor_charge).unwrap_or(0);
+        let precursor = source_size(precursor_charge);
         let ionseries = MRMIonSeries::get_ion_series(&sequence, precursor, &series_options)?;
         let (annotation, mz) =
             MRMIonSeries::annotate_ion(&ionseries, tr.product_mz(), product_mz_threshold);
