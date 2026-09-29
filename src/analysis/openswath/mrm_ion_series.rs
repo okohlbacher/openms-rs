@@ -48,6 +48,7 @@ use crate::metadata::{CVTerm, MetaValue, MetaValueData};
 use crate::param::value::format_float;
 use crate::{Error, Result};
 use std::collections::BTreeMap;
+use std::sync::{Arc, Mutex};
 
 /// An MRM ion series, mapping an annotation (`"y5^2"`, `"b3-H2O1^1"`) to its
 /// fragment m/z. The source `IonSeries` is a `std::map`; a [`BTreeMap`] keeps
@@ -95,6 +96,67 @@ pub struct IonSeriesOptions {
     /// Native ceiling on generated ion-series entries, see
     /// [`DEFAULT_MAX_ION_SERIES_ENTRIES`].
     pub max_ion_series_entries: usize,
+    /// How formula-style neutral losses in annotations become masses; see
+    /// [`FormulaLossParsing`].
+    pub formula_loss: FormulaLossParsing,
+}
+
+/// How a formula-style neutral loss in an annotation (`y5-H2O1^2`) becomes the
+/// mass of its [`FRAGMENT_NEUTRAL_LOSS`] term.
+///
+/// The source parses the formula into a function-local `static const`
+/// (`MRMIonSeries.cpp`, `annotationToCVTermList_`), which C++ initialises only
+/// once per process: the first formula loss a process parses fixes the mass
+/// reported for every later formula loss, whatever its text. The executed
+/// Release build shows it: with `H3N1` parsed first, `y7-H2O1^2` is reported
+/// with the ammonia mass -17.0265490957.
+#[derive(Clone, Debug, Default)]
+pub enum FormulaLossParsing {
+    /// Parse every loss formula (native default).
+    #[default]
+    Parse,
+    /// Reproduce the source's `static`: the first formula loss parsed through
+    /// this cache fixes the mass of every later one, and later texts are not
+    /// parsed (so an invalid one is not an error). A failed first parse leaves
+    /// the cache empty, as a throwing `static` initialiser does. Clones share
+    /// the cache; use one cache for the scope a source process would span.
+    SourceStatic(Arc<Mutex<Option<f64>>>),
+}
+
+impl FormulaLossParsing {
+    /// A fresh, empty [`FormulaLossParsing::SourceStatic`] cache.
+    pub fn source_static() -> Self {
+        Self::SourceStatic(Arc::new(Mutex::new(None)))
+    }
+
+    /// The loss mass (positive) of the formula `text` under this mode.
+    fn mass(&self, text: &str) -> Result<f64> {
+        match self {
+            Self::Parse => Ok(EmpiricalFormula::parse(text)?.mono_mass()),
+            Self::SourceStatic(cache) => {
+                let mut guard = cache.lock().unwrap_or_else(|e| e.into_inner());
+                match *guard {
+                    Some(mass) => Ok(mass),
+                    None => {
+                        let mass = EmpiricalFormula::parse(text)?.mono_mass();
+                        *guard = Some(mass);
+                        Ok(mass)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Two parse modes are equal when both parse, or both share one cache.
+impl PartialEq for FormulaLossParsing {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Parse, Self::Parse) => true,
+            (Self::SourceStatic(a), Self::SourceStatic(b)) => Arc::ptr_eq(a, b),
+            _ => false,
+        }
+    }
 }
 
 impl IonSeriesOptions {
@@ -113,6 +175,7 @@ impl IonSeriesOptions {
             round_dec_pow: -4,
             unresolved_modifications: UnresolvedModificationPolicy::Reject,
             max_ion_series_entries: DEFAULT_MAX_ION_SERIES_ENTRIES,
+            formula_loss: FormulaLossParsing::Parse,
         }
     }
 
@@ -213,14 +276,32 @@ impl MRMIonSeries {
     ///
     /// The source parses a formula loss into a function-local `static`, so a
     /// process caches the *first* formula loss it ever sees and reports that
-    /// mass for every later one; this port parses each loss.
+    /// mass for every later one; this function parses each loss, and
+    /// [`annotate_transition_cv_with`](Self::annotate_transition_cv_with)
+    /// selects the source behaviour.
     pub fn annotate_transition_cv(
         tr: &mut ReactionMonitoringTransition,
         annotation: &str,
     ) -> Result<()> {
+        Self::annotate_transition_cv_with(tr, annotation, &FormulaLossParsing::Parse)
+    }
+
+    /// [`annotate_transition_cv`](Self::annotate_transition_cv) with an
+    /// explicit [`FormulaLossParsing`] mode.
+    ///
+    /// # Errors
+    ///
+    /// As [`annotate_transition_cv`](Self::annotate_transition_cv); under
+    /// [`FormulaLossParsing::SourceStatic`] with a filled cache an invalid
+    /// loss formula is not an error. On error `tr` is unchanged.
+    pub fn annotate_transition_cv_with(
+        tr: &mut ReactionMonitoringTransition,
+        annotation: &str,
+        formula_loss: &FormulaLossParsing,
+    ) -> Result<()> {
         let mut next = tr.clone();
         set_annotation(&mut next, annotation);
-        annotation_to_cv(&mut next)?;
+        annotation_to_cv(&mut next, formula_loss)?;
         *tr = next;
         Ok(())
     }
@@ -540,7 +621,10 @@ fn annotation_of(tr: &ReactionMonitoringTransition) -> String {
 
 /// Source `annotationToCV_`: parse the `annotation` meta value into the
 /// product charge and a single interpretation.
-fn annotation_to_cv(tr: &mut ReactionMonitoringTransition) -> Result<()> {
+fn annotation_to_cv(
+    tr: &mut ReactionMonitoringTransition,
+    formula_loss: &FormulaLossParsing,
+) -> Result<()> {
     let text = annotation_of(tr);
     let first = text.split('/').next().unwrap_or_default();
     let mut product = tr.product().clone();
@@ -556,7 +640,7 @@ fn annotation_to_cv(tr: &mut ReactionMonitoringTransition) -> Result<()> {
             first
         }
     };
-    let interpretation = annotation_to_interpretation(annotation)?;
+    let interpretation = annotation_to_interpretation(annotation, formula_loss)?;
     product.reset_interpretations();
     product.add_interpretation(interpretation);
     tr.set_product(product);
@@ -564,7 +648,10 @@ fn annotation_to_cv(tr: &mut ReactionMonitoringTransition) -> Result<()> {
 }
 
 /// Source `annotationToCVTermList_`.
-fn annotation_to_interpretation(annotation: &str) -> Result<Interpretation> {
+fn annotation_to_interpretation(
+    annotation: &str,
+    formula_loss: &FormulaLossParsing,
+) -> Result<Interpretation> {
     let mut interpretation = Interpretation::default();
     let first = annotation.split('/').next().unwrap_or_default();
     if first == "Precursor_i0" || first == "MS2_Precursor_i0" {
@@ -579,7 +666,7 @@ fn annotation_to_interpretation(annotation: &str) -> Result<Interpretation> {
         // text), else a formula.
         fragment_loss = match loss.parse::<i32>() {
             Ok(nl) => -f64::from(nl),
-            Err(_) => -EmpiricalFormula::parse(loss)?.mono_mass(),
+            Err(_) => -formula_loss.mass(loss)?,
         };
         ion
     } else if first.contains('+') {
@@ -777,7 +864,7 @@ fn annotate_transition_into(
         if ionstring == UNANNOTATED {
             unannotated = true;
         } else {
-            annotation_to_cv(tr)?;
+            annotation_to_cv(tr, &options.formula_loss)?;
             interpretation = tr
                 .product()
                 .interpretation_list()
@@ -810,7 +897,7 @@ fn annotate_transition_into(
         set_annotation(tr, UNANNOTATED);
     } else {
         set_annotation(tr, &ionstring);
-        annotation_to_cv(tr)?;
+        annotation_to_cv(tr, &options.formula_loss)?;
     }
     let mut product = tr.product().clone();
     product.reset_interpretations();

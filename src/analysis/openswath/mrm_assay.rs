@@ -423,7 +423,11 @@ impl MRMAssay {
                 let mut tr = tr.clone();
                 tr.set_precursor_mz(precursor_mz);
                 tr.set_product_mz(mz);
-                MRMIonSeries::annotate_transition_cv(&mut tr, &annotation)?;
+                MRMIonSeries::annotate_transition_cv_with(
+                    &mut tr,
+                    &annotation,
+                    &options.formula_loss,
+                )?;
                 tr.set_peptide_ref(peptide.id.clone());
                 transitions.push(tr);
             }
@@ -1069,6 +1073,7 @@ fn uis_transition(
     peptide: &Peptide,
     annotation: &str,
     decoy: bool,
+    formula_loss: &crate::analysis::openswath::mrm_ion_series::FormulaLossParsing,
 ) -> Result<ReactionMonitoringTransition> {
     let mut trn = ReactionMonitoringTransition::new();
     if decoy {
@@ -1081,7 +1086,7 @@ fn uis_transition(
     trn.set_precursor_mz(precursor_mz);
     trn.set_product_mz(product_mz);
     trn.set_peptide_ref(peptide.id.clone());
-    MRMIonSeries::annotate_transition_cv(&mut trn, annotation)?;
+    MRMIonSeries::annotate_transition_cv_with(&mut trn, annotation, formula_loss)?;
     trn.set_identifying_transition(true);
     trn.set_quantifying_transition(false);
     let joined = isoforms.join("|");
@@ -1127,6 +1132,7 @@ fn generate_target_assays(
                     peptide,
                     annotation,
                     false,
+                    &options.ion_series.formula_loss,
                 )?;
                 push_uis(transitions, trn)?;
             }
@@ -1171,6 +1177,7 @@ fn generate_decoy_assays(
                     &decoy_peptide,
                     annotation,
                     true,
+                    &options.ion_series.formula_loss,
                 )?;
                 let overlap =
                     MRMAssay::matching_peptidoforms(*mz, target_ion_list, options.mz_threshold);
