@@ -29,7 +29,7 @@ use openms::data_structures::dposition::DPosition;
 use openms::format::mzml;
 use openms::kernel::MSExperiment;
 use openms::processing::peak_picking::PeakBoundary;
-use openms::processing::peak_picking::PeakPickerHiRes;
+use openms::processing::peak_picking::{PeakPickerHiRes, PickingCompatibility};
 
 fn data(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -46,6 +46,8 @@ fn load_and_pick(path: PathBuf) -> (MSExperiment, MSExperiment, Vec<Vec<PeakBoun
     let picker = PeakPickerHiRes {
         ms_levels: vec![1],
         signal_to_noise: 0.0,
+        // the C++ picker's behaviour on any input
+        compatibility: PickingCompatibility::source(),
         ..PeakPickerHiRes::default()
     };
     let picked = picker.pick_experiment(&exp).unwrap();

@@ -33,7 +33,7 @@ use crate::math::ml::clustering::grid_based_cluster::GridBasedCluster;
 use crate::math::source_sort::source_sort_by;
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
-use crate::processing::peak_picking::{PeakBoundary, PeakPickerHiRes};
+use crate::processing::peak_picking::{PeakBoundary, PeakPickerHiRes, PickingCompatibility};
 use crate::processing::spline::spline_package::SplinePackage;
 use crate::{Error, Result};
 
@@ -717,7 +717,9 @@ impl FeatureFinderMultiplexAlgorithm {
     ///    `automatic` asks the first spectrum ([`crate::kernel::MSSpectrum::get_type`]
     ///    with data query) and treats anything but centroid as profile.
     /// 4. Picks profile input with [`PeakPickerHiRes`] on MS level 1 with
-    ///    `signal_to_noise` 0.
+    ///    `signal_to_noise` 0, in the picker's source-compatible mode
+    ///    ([`PickingCompatibility::source`]), since the source picker accepts
+    ///    input (equal m/z among others) that the native default refuses.
     /// 5. Builds the mass shift patterns ([`MultiplexDeltaMassesGenerator`],
     ///    with knock-outs when `algorithm:knock_out` is true) and the isotopic
     ///    peak patterns for every charge, sorted by likelihood.
@@ -795,9 +797,13 @@ impl FeatureFinderMultiplexAlgorithm {
 
         let mut boundaries_exp_s: Vec<Vec<PeakBoundary>> = Vec::new();
         if !self.centroided {
+            // The source picks whatever the data holds; the port's picker
+            // refuses some inputs (equal m/z, for one) unless it is asked to
+            // reproduce the source.
             let picker = PeakPickerHiRes {
                 ms_levels: vec![1],
                 signal_to_noise: 0.0,
+                compatibility: PickingCompatibility::source(),
                 ..PeakPickerHiRes::default()
             };
             let picked = picker.pick_experiment(&self.exp_profile)?;
