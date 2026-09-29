@@ -12,6 +12,14 @@
 //!   line from its output; the case name quoted in each comment is the one in
 //!   the oracle's `manifest.json`. Evidence: oracle-generated (tier 1 executed
 //!   differential). None of these cases reaches a Debug-only precondition.
+//!   The `run.sh` and `cli2` cases were re-executed twice on the Linux x86_64
+//!   Release build at the pins on ibminode06 (`../oracle/A1-release-rerun`,
+//!   `lifecycle/`): every exit code is the same, and the streams and files
+//!   differ only by the revision on the usage text's version line, the
+//!   terminal probe, host paths and the Debug build's extra warnings on
+//!   standard error (`Update ranges was called …`), which no case here
+//!   asserts. The `ini_read_failures` cases were not
+//!   re-run and remain Debug product-SDK evidence.
 //! * **Upstream class-test cases** transcribe the `TOPPBase_test.cpp` sections
 //!   (cli c19e494) that apply to the native API, with their literals unchanged
 //!   (tier 3 source review). Sections that cannot apply are named in
@@ -1778,9 +1786,13 @@ fn run_phase_errors_map_like_the_source_inner_catch() {
 /// code, and no closing `<tool> took …` line, because the source's exception
 /// unwinds past it (`TOPPBase.cpp:413-499`). A body that returns the same
 /// exit code after writing the same line itself is a returned `main_`, and
-/// the closing line follows (Release evidence for both: `FileInfo` oracles
-/// `out_is_directory`, exit 8 without the line, and `in_is_directory`, exit
-/// 10 with it, `tests/topp_file_info.rs`).
+/// the closing line follows (Linux Release evidence for both, retained in
+/// `tests/data/topp_exception_exits` and replayed by `tests/topp_file_info.rs`:
+/// `FileInfo` cases `fi_out_is_directory_log`, exit 8 without the line, and
+/// `fi_notype_log`, exit 10 with it). The `FileInfo` oracle `in_is_directory`,
+/// once quoted here for the second, ran on the macOS Debug product SDK; the
+/// Release build ends that case with exit 12 from the initialisation catch
+/// instead (`../oracle/A1-release-rerun`).
 #[test]
 fn a_caught_exception_prints_no_closing_line_and_reaches_the_log() {
     let dir = Workdir::new("caught");
