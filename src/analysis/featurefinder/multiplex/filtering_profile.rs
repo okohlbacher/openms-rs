@@ -332,7 +332,7 @@ fn scan_profile(
             .get_mut(idx_rt)
             .ok_or_else(out_of_range)?
             .next_pos(mz_profile)?;
-        if !(next > mz_profile) && next < boundary.max {
+        if next <= mz_profile && next < boundary.max {
             return Err(Error::InvalidValue(
                 "MultiplexFilteringProfile: the profile scan does not advance (the source loops forever)".into(),
             ));

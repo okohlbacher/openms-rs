@@ -9,9 +9,7 @@
 
 use super::filtered_peak::MultiplexFilteredPeak;
 use crate::concept::unique_id::UniqueIdGenerator;
-use crate::kernel::{
-    BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, FeatureHandle, MSExperiment,
-};
+use crate::kernel::{BaseFeature, ConsensusFeature, ConsensusMap, FeatureHandle, MSExperiment};
 use crate::{Error, Result};
 
 /// The peaks (and optionally their raw data points) of an experiment that
@@ -120,10 +118,7 @@ impl MultiplexFilteredMSExperiment {
                 })?;
                 let map_index = count as u64;
                 consensus.insert(FeatureHandle::new(map_index, &handle_base))?;
-                let header = map
-                    .column_headers
-                    .entry(map_index)
-                    .or_insert_with(ColumnHeader::default);
+                let header = map.column_headers.entry(map_index).or_default();
                 header.size += 1;
                 header.label = format!("satellite_{count}");
                 header.filename = "satellites".into();

@@ -994,7 +994,7 @@ impl FeatureFinderMultiplexAlgorithm {
                 let rt_max = s1.pos_max().max(s2.pos_max());
                 let step = 0.7 * s1.pos_step_width().min(s2.pos_step_width());
                 let steps = (rt_max - rt_min) / step;
-                if !(steps <= MAX_RATIO_SCAN_STEPS as f64) {
+                if steps.is_nan() || steps > MAX_RATIO_SCAN_STEPS as f64 {
                     return Err(Error::InvalidRange(format!(
                         "intensity correction: more than {MAX_RATIO_SCAN_STEPS} scan steps"
                     )));
@@ -1223,14 +1223,17 @@ impl FeatureFinderMultiplexAlgorithm {
     /// `trace(peptide, isotope, box, weighted)` visits one mass trace. A
     /// peptide whose weight sum is not positive is skipped when
     /// `skip_without_weight` (centroided input only).
+    #[allow(clippy::too_many_arguments)]
     fn add_multiplet(
-        &mut self,
+        feature_map: &mut FeatureMap,
+        consensus_map: &mut ConsensusMap,
+        ipp_max: usize,
+        rt_min: f64,
         pattern: &MultiplexIsotopicPeakPattern,
         peptide_intensities: &[f64],
         skip_without_weight: bool,
         mut trace: impl FnMut(usize, &mut TraceBox, &mut (f64, f64, f64)) -> Result<()>,
     ) -> Result<()> {
-        let ipp_max = self.isotopes_per_peptide_max;
         let mut features = Vec::new();
         let mut consensus = ConsensusFeature::new();
         let mut abort = false;
@@ -1276,7 +1279,7 @@ impl FeatureFinderMultiplexAlgorithm {
                     bad("a peptide without a mono-isotopic mass trace (undefined in the source)")
                 })?;
             // the RT extent of the mono-isotopic trace (source `maxX() - minX()`)
-            if bounding_box.width() < self.parameters.rt_min {
+            if bounding_box.width() < rt_min {
                 abort = true;
                 break;
             }
@@ -1291,15 +1294,15 @@ impl FeatureFinderMultiplexAlgorithm {
             let mut handle_base = BaseFeature::new(rt, mz, intensity as f32);
             handle_base.charge = pattern.charge();
             consensus.insert(FeatureHandle::new(peptide as u64, &handle_base))?;
-            self.consensus_map
+            consensus_map
                 .column_headers
                 .entry(peptide as u64)
                 .or_default()
                 .size += 1;
         }
         if !abort {
-            self.consensus_map.features.push(consensus);
-            self.feature_map.features.extend(features);
+            consensus_map.features.push(consensus);
+            feature_map.features.extend(features);
         }
         Ok(())
     }
@@ -1360,8 +1363,12 @@ impl FeatureFinderMultiplexAlgorithm {
                 if peptide_intensities.contains(&-1.0) {
                     continue;
                 }
-                let exp = self.exp_centroid.clone();
-                self.add_multiplet(
+                let exp = &self.exp_centroid;
+                Self::add_multiplet(
+                    &mut self.feature_map,
+                    &mut self.consensus_map,
+                    self.isotopes_per_peptide_max,
+                    self.parameters.rt_min,
                     pattern,
                     &peptide_intensities,
                     true,
@@ -1435,7 +1442,11 @@ impl FeatureFinderMultiplexAlgorithm {
                 if peptide_intensities.contains(&-1.0) {
                     continue;
                 }
-                self.add_multiplet(
+                Self::add_multiplet(
+                    &mut self.feature_map,
+                    &mut self.consensus_map,
+                    self.isotopes_per_peptide_max,
+                    self.parameters.rt_min,
                     pattern,
                     &peptide_intensities,
                     false,

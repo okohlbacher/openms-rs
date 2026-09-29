@@ -97,7 +97,7 @@ fn grid(min: f64, max: f64, mut step: impl FnMut(f64) -> Result<f64>) -> Result<
         }
         lines.push(value);
         let next = step(value)?;
-        if !(next > value) {
+        if next.is_nan() || next <= value {
             return Err(Error::InvalidValue(
                 "MultiplexClustering: the grid spacing is not positive (the source loops forever)"
                     .into(),

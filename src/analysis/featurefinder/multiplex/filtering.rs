@@ -112,7 +112,8 @@ pub(crate) fn rt_begin(spectra: &[MSSpectrum], rt: f64) -> usize {
 /// Source `MSExperiment::RTEnd(rt)` on RT-sorted spectra: the first spectrum
 /// whose RT is greater than `rt`.
 pub(crate) fn rt_end(spectra: &[MSSpectrum], rt: f64) -> usize {
-    spectra.partition_point(|s| !(rt < s.rt))
+    // `!(rt < s.rt)` for finite spectrum RTs, a NaN query included.
+    spectra.partition_point(|s| rt.is_nan() || s.rt <= rt)
 }
 
 /// The pattern's m/z shift at `i`, or an error where the source reads past the
