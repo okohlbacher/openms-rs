@@ -2111,3 +2111,335 @@ fn masstrace_correlator_class_test_create_pseudo_spectra() {
     };
     assert!(starved.create_pseudo_spectra(&map, 0, 0.7, 1, 3.0).is_err());
 }
+
+// ---------------------------------------------------------------------------
+// Tier 1: PeakPickerMobilogram and MasstraceCorrelator against the Release build
+// ---------------------------------------------------------------------------
+
+#[derive(Debug)]
+enum Value {
+    Text(String),
+    Floats(Vec<f64>),
+    Pairs(Vec<(f64, f64)>),
+}
+
+fn parse_floats(text: &str) -> Vec<f64> {
+    if text.is_empty() {
+        return Vec::new();
+    }
+    text.split(',').map(parse_hex_float).collect()
+}
+
+fn parse_pairs(text: &str) -> Vec<(f64, f64)> {
+    if text.is_empty() {
+        return Vec::new();
+    }
+    text.split(',')
+        .map(|pair| {
+            let (a, b) = pair.split_once(':').unwrap();
+            (parse_hex_float(a), parse_hex_float(b))
+        })
+        .collect()
+}
+
+fn value_matches(value: &Value, text: &str) -> bool {
+    match value {
+        Value::Text(v) => v == text,
+        Value::Floats(v) => {
+            let expected = parse_floats(text);
+            v.len() == expected.len() && v.iter().zip(&expected).all(|(a, b)| same_float(*a, *b))
+        }
+        Value::Pairs(v) => {
+            let expected = parse_pairs(text);
+            v.len() == expected.len()
+                && v.iter()
+                    .zip(&expected)
+                    .all(|(a, b)| same_float(a.0, b.0) && same_float(a.1, b.1))
+        }
+    }
+}
+
+fn mobilogram_pairs(m: &Mobilogram) -> Value {
+    Value::Pairs(
+        m.peaks
+            .iter()
+            .map(|p| (p.mobility, f64::from(p.intensity)))
+            .collect(),
+    )
+}
+
+fn oracle2_mobilogram(name: &str) -> Mobilogram {
+    let row = rows_all(include_str!("data/openswath_peak_picking_mobilograms.tsv"))
+        .find(|row| row[0] == name)
+        .unwrap();
+    let xs: Vec<f64> = row[1].split(',').map(|t| t.parse().unwrap()).collect();
+    let ys: Vec<f64> = row[2].split(',').map(|t| t.parse().unwrap()).collect();
+    Mobilogram::from_peaks(
+        xs.iter()
+            .zip(&ys)
+            .map(|(&x, &y)| MobilityPeak1D::new(x, y as f32))
+            .collect(),
+    )
+}
+
+fn mobilogram_case(name: &str, settings: &str) -> Vec<(String, Value)> {
+    let input = oracle2_mobilogram(name);
+    let mut param = PeakPickerMobilogram::defaults().unwrap();
+    for (key, value) in oracle_settings(settings) {
+        set(&mut param, &key, value);
+    }
+    let picker = PeakPickerMobilogram::from_param(&param).unwrap();
+    let mut out = Vec::new();
+    let result = match picker.pick_mobilogram(&input) {
+        Ok(result) => result,
+        Err(error) => {
+            out.push(("error".to_owned(), Value::Text(error.to_string())));
+            return out;
+        }
+    };
+    let picked = &result.picked;
+    let text = |s: String| Value::Text(s);
+    out.push(("picked.n".into(), text(picked.len().to_string())));
+    out.push(("picked.rt".into(), Value::Floats(vec![picked.rt])));
+    out.push(("picked.peaks".into(), mobilogram_pairs(picked)));
+    out.push((
+        "arrays".into(),
+        text(picked.float_data_arrays.len().to_string()),
+    ));
+    for (a, array) in picked.float_data_arrays.iter().enumerate() {
+        out.push((
+            format!("array.{a}.{}", array.name),
+            Value::Floats(array.data.iter().map(|&v| f64::from(v)).collect()),
+        ));
+    }
+    out.push((
+        "integrated".into(),
+        Value::Floats(result.integrated_intensities.clone()),
+    ));
+    let join = |v: &[usize]| {
+        v.iter()
+            .map(|i| i.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    };
+    out.push(("left_width".into(), text(join(&result.left_widths))));
+    out.push(("right_width".into(), text(join(&result.right_widths))));
+    out.push(("smoothed".into(), mobilogram_pairs(&result.smoothed)));
+    let mut copies = vec![input.clone(), input.clone()];
+    let top = PeakPickerMobilogram::filter_top_peak(picked, &mut copies).unwrap();
+    out.push((
+        "top".into(),
+        text(format!("{},{},{}", top.left, top.apex, top.right)),
+    ));
+    out.push((
+        "top.lens".into(),
+        text(format!("{},{}", copies[0].len(), copies[1].len())),
+    ));
+    out.push(("top.first".into(), mobilogram_pairs(&copies[0])));
+    let mut single = input.clone();
+    let top = PeakPickerMobilogram::filter_top_peak_single(picked, &mut single).unwrap();
+    out.push((
+        "top1".into(),
+        text(format!("{},{},{}", top.left, top.apex, top.right)),
+    ));
+    out.push(("top1.len".into(), text(single.len().to_string())));
+    out
+}
+
+#[cfg(feature = "consensusxml")]
+fn oracle2_map(name: &str) -> openms::kernel::ConsensusMap {
+    use openms::kernel::{ConsensusFeature, ConsensusMap, FeatureHandle};
+    let mut map = if name == "classtest" {
+        // As `masstrace_correlator_class_test_create_pseudo_spectra`: the
+        // source stores 0.0 for the one malformed RT.
+        let text = include_str!("data/openswath_peak_picking_masstraces.consensusXML")
+            .replace("rt=\"4the_second_seed202.0\"", "rt=\"0.0\"");
+        openms::format::consensusxml::read(text.as_bytes()).unwrap()
+    } else {
+        let mut map = ConsensusMap::default();
+        for row in rows_all(include_str!("data/openswath_peak_picking_maps.tsv")) {
+            if row[0] != name {
+                continue;
+            }
+            let mut feature = ConsensusFeature::new();
+            feature.base.rt = row[2].parse().unwrap();
+            feature.base.mz = row[3].parse().unwrap();
+            feature.base.intensity = row[4].parse::<f64>().unwrap() as f32;
+            for (k, handle) in row[5].split('|').enumerate() {
+                let v: Vec<f64> = handle.split(':').map(|t| t.parse().unwrap()).collect();
+                feature
+                    .insert(FeatureHandle {
+                        map_index: 0,
+                        unique_id: k as u64 + 1,
+                        rt: v[0],
+                        mz: v[1],
+                        intensity: v[2] as f32,
+                        ..FeatureHandle::default()
+                    })
+                    .unwrap();
+            }
+            map.features.push(feature);
+        }
+        map
+    };
+    map.sort_by_intensity(true).unwrap();
+    map
+}
+
+#[cfg(feature = "consensusxml")]
+fn correlation_case(config: &[&str]) -> Vec<(String, Value)> {
+    let map = oracle2_map(config[1]);
+    let spectra = MasstraceCorrelator::default()
+        .create_pseudo_spectra(
+            &map,
+            config[2].parse().unwrap(),
+            config[3].parse().unwrap(),
+            config[4].parse().unwrap(),
+            config[5].parse().unwrap(),
+        )
+        .unwrap();
+    let mut out = vec![("spectra".to_owned(), Value::Text(spectra.len().to_string()))];
+    for (s, pseudo) in spectra.iter().enumerate() {
+        let p = format!("s{s}.");
+        out.push((format!("{p}rt"), Value::Floats(vec![pseudo.spectrum.rt])));
+        out.push((
+            format!("{p}ms_level"),
+            Value::Text(pseudo.spectrum.ms_level.to_string()),
+        ));
+        out.push((
+            format!("{p}peaks"),
+            Value::Pairs(
+                pseudo
+                    .spectrum
+                    .peaks
+                    .iter()
+                    .map(|q| (q.mz, f64::from(q.intensity)))
+                    .collect(),
+            ),
+        ));
+        let column =
+            |f: fn(&openms::analysis::openswath::masstrace_correlator::TraceCorrelation) -> f32| {
+                Value::Floats(
+                    pseudo
+                        .correlations
+                        .iter()
+                        .map(|c| f64::from(f(c)))
+                        .collect(),
+                )
+            };
+        out.push((format!("{p}array.RT_apex"), column(|c| c.rt_apex)));
+        out.push((format!("{p}array.RT_diff"), column(|c| c.rt_diff)));
+        out.push((format!("{p}array.lag"), column(|c| c.lag)));
+        out.push((
+            format!("{p}array.pearson_score"),
+            column(|c| c.pearson_score),
+        ));
+        out.push((
+            format!("{p}array.lag_intensity"),
+            column(|c| c.lag_intensity),
+        ));
+    }
+    out
+}
+
+fn pair_case(row: &[&str]) -> Vec<(String, Value)> {
+    let trace = |text: &str| -> Vec<(f64, f64)> {
+        text.split('|')
+            .map(|p| {
+                let (a, b) = p.split_once(':').unwrap();
+                (a.parse().unwrap(), b.parse().unwrap())
+            })
+            .collect()
+    };
+    let scores = MasstraceCorrelator::default()
+        .score_hullpoints(
+            &trace(row[1]),
+            &trace(row[2]),
+            row[3].parse().unwrap(),
+            0,
+            row[4].parse().unwrap(),
+        )
+        .unwrap();
+    // The driver starts its out-parameters at -999; the source leaves `lag`
+    // and `lag_intensity` untouched when the Pearson score is too low.
+    let (lag, lag_intensity) = scores.lag.unwrap_or((-999, -999.0));
+    vec![
+        ("pearson".into(), Value::Floats(vec![scores.pearson_score])),
+        ("lag".into(), Value::Text(lag.to_string())),
+        ("lag_intensity".into(), Value::Floats(vec![lag_intensity])),
+    ]
+}
+
+/// Compare replayed cases against the records of
+/// `tests/data/openswath_peak_picking_oracle2.tsv`, the Release build's output
+/// on ibminode06 (`../oracle/O3a-mobilogram-masstrace`); every floating-point
+/// value bit for bit. Returns the mismatches.
+fn compare_with_oracle2(cases: &[(String, Vec<(String, Value)>)]) -> Vec<String> {
+    let oracle = include_str!("data/openswath_peak_picking_oracle2.tsv");
+    let mut mismatches = Vec::new();
+    for (case, actual) in cases {
+        let expected: Vec<(&str, &str)> = oracle
+            .lines()
+            .filter_map(|line| {
+                let mut fields = line.splitn(3, '\t');
+                (fields.next() == Some(case.as_str()))
+                    .then(|| (fields.next().unwrap(), fields.next().unwrap_or("")))
+            })
+            .collect();
+        assert!(!expected.is_empty(), "{case}: no oracle records");
+        let actual_keys: Vec<_> = actual.iter().map(|(k, _)| k.as_str()).collect();
+        let expected_keys: Vec<_> = expected.iter().map(|(k, _)| *k).collect();
+        if actual_keys != expected_keys {
+            mismatches.push(format!(
+                "{case}: keys differ: Rust {actual:?}, Release build {expected:?}"
+            ));
+            continue;
+        }
+        for ((key, value), (_, text)) in actual.iter().zip(&expected) {
+            if !value_matches(value, text) {
+                mismatches.push(format!(
+                    "{case}: {key}: Rust {value:?}, Release build {text}"
+                ));
+            }
+        }
+    }
+    mismatches
+}
+
+/// Tier 1: the eight mobilogram cases of
+/// `tests/data/openswath_peak_picking_mob_configs.tsv` (picked and smoothed
+/// mobilograms, all six arrays, the public per-peak vectors, both top-peak
+/// filters) and the six hull-point pairs of
+/// `tests/data/openswath_peak_picking_pairs.tsv`, bit for bit against the
+/// Release build.
+#[test]
+fn mobilogram_and_hull_scores_match_the_release_build_bit_for_bit() {
+    let mut cases = Vec::new();
+    for row in rows_all(include_str!("data/openswath_peak_picking_mob_configs.tsv")) {
+        cases.push((
+            row[0].to_owned(),
+            mobilogram_case(row[1], row.get(2).copied().unwrap_or("")),
+        ));
+    }
+    for row in rows_all(include_str!("data/openswath_peak_picking_pairs.tsv")) {
+        cases.push((row[0].to_owned(), pair_case(&row)));
+    }
+    assert_eq!(cases.len(), 14);
+    let mismatches = compare_with_oracle2(&cases);
+    assert!(mismatches.is_empty(), "{}", mismatches.join("\n"));
+}
+
+/// Tier 1: the five `createPseudoSpectra` cases of
+/// `tests/data/openswath_peak_picking_corr_configs.tsv` (the class-test
+/// consensusXML and a synthetic 14-feature map), every pseudo-spectrum with
+/// its five score arrays, bit for bit against the Release build.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn pseudo_spectra_match_the_release_build_bit_for_bit() {
+    let cases: Vec<_> = rows_all(include_str!("data/openswath_peak_picking_corr_configs.tsv"))
+        .map(|row| (row[0].to_owned(), correlation_case(&row)))
+        .collect();
+    assert_eq!(cases.len(), 5);
+    let mismatches = compare_with_oracle2(&cases);
+    assert!(mismatches.is_empty(), "{}", mismatches.join("\n"));
+}
