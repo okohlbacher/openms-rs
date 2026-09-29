@@ -32,7 +32,9 @@
 
 #![cfg(all(feature = "featurexml", feature = "consensusxml", feature = "paramxml"))]
 
-use openms::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm;
+use openms::analysis::mapmatching::feature_grouping_algorithm::{
+    FeatureGroupingAlgorithm, transfer_subelements,
+};
 use openms::analysis::mapmatching::feature_grouping_algorithm_kd::FeatureGroupingAlgorithmKD;
 use openms::format::{consensusxml, featurexml, paramxml};
 use openms::kernel::features::{ConsensusFeature, ConsensusMap, FeatureMap};
@@ -188,16 +190,37 @@ fn topp_feature_linker_unlabeled_kd_1() {
     );
 }
 
+/// Case 2 sets `keep_subelements`: the tool copies every peptide
+/// identification's `map_index` to `old_map_index` (assigned and unassigned,
+/// `applyFunctionOnPeptideIDs(..., true)`), groups, and then replaces the
+/// handles by the grouped consensus features' own handles with
+/// `transferSubelements`.
 #[test]
 fn topp_feature_linker_unlabeled_kd_2() {
     let mut a = algorithm(Some("feature_linker_unlabeled_kd_2_parameters.ini"), &[]);
-    let input = consensusxml::load(format!(
+    let mut input = consensusxml::load(format!(
         "{DIR}/feature_linker_unlabeled_kd_1_output.consensusXML"
     ))
     .unwrap();
+    let save_old_map_index = |id: &mut openms::identification::PeptideIdentification| {
+        if let Some(value) = id.metadata.get("map_index").cloned() {
+            id.metadata.insert("old_map_index".into(), value);
+        }
+    };
+    for feature in &mut input.features {
+        feature
+            .peptide_identifications
+            .iter_mut()
+            .for_each(save_old_map_index);
+    }
+    input
+        .unassigned_peptide_identifications
+        .iter_mut()
+        .for_each(save_old_map_index);
     let maps = vec![input.clone(), input];
     let mut out = ConsensusMap::new();
     a.group_consensus(&maps, &mut out).unwrap();
+    transfer_subelements(&maps, &mut out).unwrap();
     compare(&out, 2);
 }
 

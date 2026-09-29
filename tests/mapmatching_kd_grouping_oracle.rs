@@ -196,10 +196,20 @@ const DC: [&str; 5] = [
     "feature_linker_unlabeled_kd_dc_input2.featureXML",
 ];
 
+/// `ParamXMLFile` stores a double with 15 significant digits
+/// (`LOWESS:span`, 2/3, is stored as `0.666666666666667`); every other
+/// default is exactly representable in that form. The produced tree is
+/// compared after the same rounding of that one value, and the unrounded
+/// value is checked against the source literal `2/3.0`.
 #[test]
 fn oracle_kd_defaults() {
     let expected = paramxml::load(format!("{DIR}/kd_grouping_oracle_defaults.ini")).unwrap();
-    assert_eq!(FeatureGroupingAlgorithmKD::defaults().unwrap(), expected);
+    let mut produced = FeatureGroupingAlgorithmKD::defaults().unwrap();
+    let span = produced.value("LOWESS:span").unwrap().to_f64().unwrap();
+    assert_eq!(span, 2.0 / 3.0);
+    let stored: f64 = format!("{span:.14e}").parse().unwrap();
+    set(&mut produced, "LOWESS:span", ParamValue::Float(stored));
+    assert_eq!(produced, expected);
 }
 
 #[test]
