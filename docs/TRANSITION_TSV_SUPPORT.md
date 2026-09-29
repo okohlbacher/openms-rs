@@ -50,6 +50,10 @@ OpenMS4-core `bc9cc12`. Rust: `src/analysis/openswath/transition_tsv_file.rs`
 
 - An unreadable file is `Error::Io`; the source reads it as empty and fails
   on the header.
+- A missing `PrecursorMz` column is refused. The source reads it through
+  `header_dict["PrecursorMz"]`, whose `operator[]` inserts index 0, so it
+  parses the first column and then fails the next line's field count
+  (`TransitionTSVFile.cpp:267`).
 - Fragment number outside 0..=255 is refused; the source wraps it into the
   `unsigned char` ordinal.
 - A mass-tag modification without a registry average mass
