@@ -29,6 +29,8 @@ pub mod mean_noise;
 /// The signal-to-noise estimator base and the random-scan noise estimate
 /// (`SignalToNoiseEstimator.h`).
 pub mod noise_estimation;
+/// The `DefaultParamHandler` contracts of the filters defined in this module.
+mod parameters;
 /// High-resolution centroiding (`PeakPickerHiRes.h`) and median noise
 /// estimation (`SignalToNoiseEstimatorMedian.h`).
 pub mod peak_picking;
@@ -122,6 +124,11 @@ pub enum NormalizationMethod {
 }
 
 /// Spectrum-wise maximum or total-ion-current normalization.
+///
+/// Filtering borrows the normalizer shared (`&self`), as the source's
+/// `filterPeakSpectrum`/`filterPeakMap` are `const`: one `Normalizer` can serve
+/// several threads at once. The source's `method` parameter maps through
+/// [`DefaultParamHandling`](crate::param::DefaultParamHandling).
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Normalizer {
     /// Select maximum or TIC normalization.

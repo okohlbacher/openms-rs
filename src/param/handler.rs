@@ -47,6 +47,323 @@ pub trait ParameterMetaSink: Default {
     fn absorb(&mut self, staged: &mut Self);
 }
 
+/// The parameter contract of a type whose source class derives from
+/// `DefaultParamHandler`.
+///
+/// The source keeps two parameter trees in every such object (`defaults_` and
+/// `param_`) and re-derives its typed members from `param_` in the virtual hook
+/// `updateMembers_`, which `setParameters` calls after checking the new tree.
+/// A Rust port keeps only the typed members: the defaults are a function, the
+/// current tree is rebuilt from the members on demand, and `updateMembers_` is a
+/// constructor from a complete, checked tree. The [`DefaultParamHandler`] value
+/// that the source object would hold stays available through
+/// [`DefaultParamHandling::from_param_with_handler`].
+///
+/// | Source | Rust |
+/// |---|---|
+/// | `DefaultParamHandler(name)`, `error_name_`, `getName()` | [`NAME`](Self::NAME) |
+/// | `subsections_` | [`SUBSECTIONS`](Self::SUBSECTIONS) |
+/// | `check_defaults_`, `warn_empty_defaults_` | [`CHECK_DEFAULTS`](Self::CHECK_DEFAULTS), [`WARN_EMPTY_DEFAULTS`](Self::WARN_EMPTY_DEFAULTS) |
+/// | `defaults_`, `getDefaults()` | [`defaults`](Self::defaults) |
+/// | `param_`, `getParameters()` | [`to_param`](Self::to_param) |
+/// | `updateMembers_()` | [`update_members`](Self::update_members) |
+/// | `setParameters(p)` on a new object | [`from_param`](Self::from_param), [`from_param_with_warnings`](Self::from_param_with_warnings), [`from_param_with_handler`](Self::from_param_with_handler) |
+/// | `setParameters(p)` on an existing object | [`set_parameters`](Self::set_parameters) |
+/// | `defaultsToParam_()` in the constructor | `Default`, whose [`to_param`](Self::to_param) equals [`defaults`](Self::defaults) |
+///
+/// # Adopting the trait
+///
+/// A type written in the established shape - inherent `defaults()`,
+/// `to_param(&self)`, `from_param`, `from_param_with_warnings` and a private
+/// `from_complete_param(&Param) -> Result<Self>` that builds the typed members
+/// from a tree holding every default (`PeakPickerHiRes` in
+/// `src/processing/peak_picking.rs` is the reference) - adopts the trait with
+/// four delegating lines; its inherent `from_param*` can then delegate to the
+/// provided methods so that the handler is set up in one place:
+///
+/// ```
+/// use openms::Result;
+/// use openms::param::{DefaultParamHandling, Param, ParamValue};
+///
+/// #[derive(Debug, Default, PartialEq)]
+/// struct Mower {
+///     threshold: f64,
+/// }
+///
+/// impl Mower {
+///     fn from_complete_param(param: &Param) -> Result<Self> {
+///         Ok(Self { threshold: param.value("threshold")?.to_f64()? })
+///     }
+/// }
+///
+/// impl DefaultParamHandling for Mower {
+///     const NAME: &'static str = "Mower";
+///     fn defaults() -> Result<Param> {
+///         Self::default().to_param()
+///     }
+///     fn to_param(&self) -> Result<Param> {
+///         let mut param = Param::new();
+///         param.set_value("threshold", ParamValue::Float(self.threshold), "Cut-off", &[])?;
+///         Ok(param)
+///     }
+///     fn update_members(param: &Param) -> Result<Self> {
+///         Self::from_complete_param(param)
+///     }
+/// }
+///
+/// let mut changed = Param::new();
+/// changed.set_value("threshold", ParamValue::Float(0.5), "", &[])?;
+/// changed.set_value("typo", ParamValue::Float(1.0), "", &[])?;
+/// let (mower, warnings) = Mower::from_param_with_warnings(&changed)?;
+/// assert_eq!(mower.threshold, 0.5);
+/// assert_eq!(warnings.len(), 1); // the unknown `typo`
+/// assert_eq!(Mower::default().to_param()?, Mower::defaults()?);
+/// # Ok::<(), openms::Error>(())
+/// ```
+///
+/// # Invariants an implementation keeps
+///
+/// - `Self::default().to_param()` equals `Self::defaults()` when the type is
+///   `Default`: the source constructor ends in `defaultsToParam_()`.
+/// - `Self::from_param(&p)?.to_param()` holds the values of `p` merged with
+///   the defaults for every `p` that passes the check, in the defaults' order,
+///   with the defaults' descriptions and restrictions. The source's
+///   `getParameters()` after `setParameters(p)` differs in keeping each entry
+///   of `p` as given - its (often empty) description, no restriction - and any
+///   unknown key; the handler that
+///   [`from_param_with_handler`](Self::from_param_with_handler) returns holds
+///   exactly that tree (checked against the Release build in
+///   `tests/default_param_handling.rs`).
+///
+/// # Native differences
+///
+/// - Atomic: the source assigns `param_` before `checkDefaults` can throw, so a
+///   refused tree is left in `param_` while the typed members keep their old
+///   values; here a refused tree changes nothing.
+/// - The source writes its warnings to `OPENMS_LOG_WARN`; here they are
+///   returned, in the wording of [`DefaultParamHandler::set_parameters`].
+/// - An `updateMembers_` that throws (`SavitzkyGolayFilter` does) leaves the
+///   source object with the new `param_` and partially updated members; here
+///   [`update_members`](Self::update_members) returns the error and nothing is
+///   changed.
+pub trait DefaultParamHandling: Sized {
+    /// The class name the source passes to the `DefaultParamHandler`
+    /// constructor, used in every parameter diagnostic (source `error_name_`,
+    /// `getName()`).
+    const NAME: &'static str;
+
+    /// Subsections whose parameters are handed on to other classes and so are
+    /// not checked against [`defaults`](Self::defaults), without the trailing
+    /// colon (source `subsections_`, whose `@note` asks for exactly that).
+    const SUBSECTIONS: &'static [&'static str] = &[];
+
+    /// Whether `set_parameters` checks the given tree against the defaults
+    /// (source `check_defaults_`, `true` unless a class turns it off).
+    const CHECK_DEFAULTS: bool = true;
+
+    /// Whether an empty [`defaults`](Self::defaults) tree produces the source
+    /// warning "No default parameters for DefaultParameterHandler ..." (source
+    /// `warn_empty_defaults_`, `true` unless a class turns it off).
+    const WARN_EMPTY_DEFAULTS: bool = true;
+
+    /// The source parameter defaults: every name, value, value type,
+    /// description, restriction and tag, in declaration order (source
+    /// `getDefaults()`, the member `defaults_` that the constructor fills).
+    ///
+    /// # Errors
+    ///
+    /// Only a parameter-tree resource failure.
+    fn defaults() -> Result<Param>;
+
+    /// The parameters of this value in the layout of
+    /// [`defaults`](Self::defaults), carrying the current values (source
+    /// `getParameters()`, the member `param_`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`](crate::Error::InvalidValue) when a typed member
+    /// has no representation as the source parameter (a count beyond the source's
+    /// 32-bit integer, for example).
+    fn to_param(&self) -> Result<Param>;
+
+    /// The typed members of a value configured by `param` (source
+    /// `updateMembers_`, the hook `setParameters` and `defaultsToParam_` call
+    /// last).
+    ///
+    /// `param` already holds every default and has passed the restriction
+    /// check, so an implementation reads every key it needs without fallbacks.
+    /// Members that are not parameters take their `Default` values; see
+    /// [`keep_native_members`](Self::keep_native_members).
+    ///
+    /// # Errors
+    ///
+    /// Whatever the source's `updateMembers_` throws, and an
+    /// [`Error::InvalidValue`](crate::Error::InvalidValue) for a value the typed
+    /// member cannot hold.
+    fn update_members(param: &Param) -> Result<Self>;
+
+    /// `updated` with the members that are not parameters - native resource
+    /// ceilings, compatibility profiles, attached databases - taken from `self`,
+    /// as [`set_parameters`](Self::set_parameters) must leave them. The default
+    /// returns `updated` unchanged, for types whose members are all parameters.
+    fn keep_native_members(&self, updated: Self) -> Self {
+        updated
+    }
+
+    /// A [`DefaultParamHandler`] set up as the source constructor sets up its
+    /// base: named [`NAME`](Self::NAME), with [`defaults`](Self::defaults),
+    /// [`SUBSECTIONS`](Self::SUBSECTIONS) and both check flags, and no current
+    /// parameters yet.
+    ///
+    /// # Errors
+    ///
+    /// As [`defaults`](Self::defaults), and a resource failure of the handler.
+    fn handler() -> Result<DefaultParamHandler> {
+        let mut handler = DefaultParamHandler::new(Self::NAME)?;
+        handler.set_defaults(Self::defaults()?)?;
+        if !Self::SUBSECTIONS.is_empty() {
+            let subsections: Vec<String> = Self::SUBSECTIONS
+                .iter()
+                .map(|name| (*name).to_owned())
+                .collect();
+            handler.set_subsections(&subsections)?;
+        }
+        handler.set_check_defaults(Self::CHECK_DEFAULTS);
+        handler.set_warn_empty_defaults(Self::WARN_EMPTY_DEFAULTS);
+        Ok(handler)
+    }
+
+    /// A value configured by `parameters`, as a default-constructed source
+    /// object after `setParameters(parameters)`.
+    ///
+    /// Missing parameters take their defaults. Unknown parameters are ignored,
+    /// as the source only warns about them; see
+    /// [`from_param_with_warnings`](Self::from_param_with_warnings).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`](crate::Error::InvalidValue) when a parameter has
+    /// the wrong value type or breaks its restriction (the source's
+    /// `Exception::InvalidParameter`), and whatever
+    /// [`update_members`](Self::update_members) returns.
+    fn from_param(parameters: &Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`from_param`](Self::from_param), also returning the warnings the
+    /// source logs: unknown parameters, and empty defaults when
+    /// [`WARN_EMPTY_DEFAULTS`](Self::WARN_EMPTY_DEFAULTS) is set.
+    ///
+    /// # Errors
+    ///
+    /// As [`from_param`](Self::from_param).
+    fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let (value, _, warnings) = Self::from_param_with_handler(parameters)?;
+        Ok((value, warnings))
+    }
+
+    /// As [`from_param_with_warnings`](Self::from_param_with_warnings), also
+    /// returning the [`DefaultParamHandler`] the source object would hold: its
+    /// [`parameters`](DefaultParamHandler::parameters) are `parameters` merged
+    /// with the defaults, including unknown keys, exactly as the source's
+    /// `getParameters()` returns them after `setParameters`.
+    ///
+    /// # Errors
+    ///
+    /// As [`from_param`](Self::from_param).
+    fn from_param_with_handler(
+        parameters: &Param,
+    ) -> Result<(Self, DefaultParamHandler, Vec<String>)> {
+        let mut handler = Self::handler()?;
+        let (value, warnings) = handler.set_parameters_with(parameters, Self::update_members)?;
+        Ok((value, handler, warnings))
+    }
+
+    /// Replace the parameter values of this value, as source `setParameters`
+    /// on an existing object, and return the warnings.
+    ///
+    /// As in the source, a parameter missing from `parameters` returns to its
+    /// default rather than keeping its current value. Members that are not
+    /// parameters are kept (see
+    /// [`keep_native_members`](Self::keep_native_members)). On error `self` is
+    /// unchanged.
+    ///
+    /// # Errors
+    ///
+    /// As [`from_param`](Self::from_param).
+    fn set_parameters(&mut self, parameters: &Param) -> Result<Vec<String>> {
+        let (updated, warnings) = Self::from_param_with_warnings(parameters)?;
+        let updated = self.keep_native_members(updated);
+        *self = updated;
+        Ok(warnings)
+    }
+}
+
+/// A count member as the source reads it, `(UInt)param_.getValue(key)`.
+///
+/// The source's `ParamValue::operator unsigned int` throws
+/// `Exception::ConversionError` for a negative value, which becomes
+/// [`Error::InvalidValue`](crate::Error::InvalidValue); a value beyond
+/// `u32::MAX`, which the source truncates, is refused as well.
+///
+/// # Errors
+///
+/// As above, and when `key` is missing or not an integer.
+pub fn unsigned_parameter(param: &Param, key: &str) -> Result<u32> {
+    let value = param.value(key)?.to_i64()?;
+    if value < 0 {
+        return Err(invalid(format!(
+            "parameter '{key}': Could not convert negative integer ParamValue to unsigned int"
+        )));
+    }
+    u32::try_from(value).map_err(|_| {
+        invalid(format!(
+            "parameter '{key}' = {value} does not fit the source's unsigned int"
+        ))
+    })
+}
+
+/// A count member written back as the source's 32-bit `int` parameter.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`](crate::Error::InvalidValue) when `value` exceeds
+/// `i32::MAX`.
+pub fn int_parameter(value: usize, key: &str) -> Result<ParamValue> {
+    i32::try_from(value)
+        .map(|value| ParamValue::Integer(i64::from(value)))
+        .map_err(|_| {
+            invalid(format!(
+                "'{key}' = {value} does not fit the source 32-bit parameter"
+            ))
+        })
+}
+
+/// The source's boolean parameter value: the string `true` or `false`, which
+/// `ParamValue::toBool()` reads back.
+pub fn flag_parameter(value: bool) -> ParamValue {
+    ParamValue::String(if value { "true" } else { "false" }.into())
+}
+
+/// `setValue(key, "true" or "false", description, tags)` followed by
+/// `setValidStrings(key, {"true", "false"})`, the source's spelling of a
+/// boolean parameter (`DefaultParamHandler.h`: "Flags (boolean parameters)
+/// are not supported directly").
+///
+/// # Errors
+///
+/// As [`Param::set_value`] and [`Param::set_valid_strings`].
+pub fn set_flag(
+    param: &mut Param,
+    key: &str,
+    value: bool,
+    description: &str,
+    tags: &[String],
+) -> Result<()> {
+    param.set_value(key, flag_parameter(value), description, tags)?;
+    param.set_valid_strings(key, &["true".into(), "false".into()])
+}
+
 /// Current/default parameter trees and validation policy. For derived typed
 /// settings, use a `_with` update that returns newly constructed member state.
 #[derive(Clone, Debug, PartialEq)]
@@ -59,6 +376,13 @@ pub struct DefaultParamHandler {
     warn_empty_defaults: bool,
 }
 impl DefaultParamHandler {
+    /// A handler with the name displayed in error messages, empty current and
+    /// default trees, no subsections and both checks enabled (source
+    /// `DefaultParamHandler(const String& name)`).
+    ///
+    /// # Errors
+    ///
+    /// A resource failure copying `name`.
     pub fn new(name: &str) -> Result<Self> {
         Ok(Self {
             parameters: Param::new(),
@@ -69,30 +393,48 @@ impl DefaultParamHandler {
             warn_empty_defaults: true,
         })
     }
+    /// The current parameters (source `getParameters()`).
     pub fn parameters(&self) -> &Param {
         &self.parameters
     }
+    /// The default parameters (source `getDefaults()`).
     pub fn defaults(&self) -> &Param {
         &self.defaults
     }
+    /// The name displayed in error messages (source `getName()`).
     pub fn name(&self) -> &str {
         &self.name
     }
+    /// The subsections excluded from the defaults check (source
+    /// `getSubsections()`).
     pub fn subsections(&self) -> &[String] {
         &self.subsections
     }
+    /// Whether parameters are checked against the defaults (source
+    /// `check_defaults_`).
     pub fn check_defaults(&self) -> bool {
         self.check_defaults
     }
+    /// Whether empty defaults produce a warning (source
+    /// `warn_empty_defaults_`).
     pub fn warn_empty_defaults(&self) -> bool {
         self.warn_empty_defaults
     }
+    /// Turn the defaults check on or off (the source's protected
+    /// `check_defaults_`, which derived classes assign).
     pub fn set_check_defaults(&mut self, enabled: bool) {
         self.check_defaults = enabled;
     }
+    /// Turn the empty-defaults warning on or off (the source's protected
+    /// `warn_empty_defaults_`).
     pub fn set_warn_empty_defaults(&mut self, enabled: bool) {
         self.warn_empty_defaults = enabled;
     }
+    /// Replace the name displayed in error messages (source `setName`).
+    ///
+    /// # Errors
+    ///
+    /// A resource failure copying `name`.
     pub fn set_name(&mut self, name: &str) -> Result<()> {
         self.name = ParamWork::default().text(name)?;
         Ok(())
@@ -122,6 +464,12 @@ impl DefaultParamHandler {
         self.subsections = replacement;
         Ok(())
     }
+    /// A copy made under the parameter resource limits (source copy
+    /// constructor).
+    ///
+    /// # Errors
+    ///
+    /// When the copy would exceed the work or allocation ceilings.
     pub fn checked_clone(&self) -> Result<Self> {
         let mut work = ParamWork::default();
         let bytes = self.measure(&mut work)?;
@@ -195,6 +543,14 @@ impl DefaultParamHandler {
         self.defaults_to_parameters_with(|_| Ok(()))
             .map(|(_, warnings)| warnings)
     }
+    /// As [`defaults_to_parameters`](Self::defaults_to_parameters), building
+    /// the typed members from the completed tree before committing it (source
+    /// `defaultsToParam_()`, which ends by calling `updateMembers_()`).
+    ///
+    /// # Errors
+    ///
+    /// A resource failure, or whatever `update_members` returns; either leaves
+    /// the handler unchanged.
     pub fn defaults_to_parameters_with<T>(
         &mut self,
         update_members: impl FnOnce(&Param) -> Result<T>,

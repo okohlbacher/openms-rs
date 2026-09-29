@@ -7,6 +7,8 @@
 //! quotas and the explicit computational-work accounting convention.
 
 use super::SpectrumFilter;
+use crate::param::handler::{int_parameter, unsigned_parameter};
+use crate::param::{DefaultParamHandling, Param, ParamValue};
 use crate::{Error, MSExperiment, MSSpectrum, Result};
 use std::cmp::Ordering;
 use std::str::FromStr;
@@ -86,6 +88,86 @@ impl Default for WindowMower {
             max_points: 1_000_000,
             max_work: 50_000_000,
             work_per_point: 32_768,
+        }
+    }
+}
+
+/// Source `WindowMower`'s `DefaultParamHandler` base (`WindowMower.cpp:16-24`):
+/// `windowsize` (50.0), `peakcount` (2) and `movetype` (`slide`, valid
+/// strings `slide` and `jump`), none with a numeric restriction. The source
+/// has no `updateMembers_`: each filter call re-reads `windowsize_` and
+/// `peakcount_` (`WindowMower.h:52-53`, `:117-118`) and `filterPeakSpectrum`
+/// and `filterPeakMap` re-read `movetype`, so the typed fields are the values a
+/// source call would read.
+impl DefaultParamHandling for WindowMower {
+    const NAME: &'static str = "WindowMower";
+
+    fn defaults() -> Result<Param> {
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "windowsize",
+            ParamValue::Float(50.0),
+            "The size of the sliding window along the m/z axis.",
+            &[],
+        )?;
+        defaults.set_value(
+            "peakcount",
+            ParamValue::Integer(2),
+            "The number of peaks that should be kept.",
+            &[],
+        )?;
+        defaults.set_value(
+            "movetype",
+            ParamValue::String("slide".into()),
+            "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.",
+            &[],
+        )?;
+        defaults.set_valid_strings("movetype", &["slide".into(), "jump".into()])?;
+        Ok(defaults)
+    }
+
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when [`WindowMower::peak_count`] exceeds the
+    /// source's 32-bit `int` parameter.
+    fn to_param(&self) -> Result<Param> {
+        let mut param = Self::defaults()?;
+        param.replace_value("windowsize", ParamValue::Float(self.window_size))?;
+        param.replace_value("peakcount", int_parameter(self.peak_count, "peakcount")?)?;
+        let movetype = match self.method {
+            WindowMowerMethod::Sliding => "slide",
+            WindowMowerMethod::Jumping => "jump",
+        };
+        param.replace_value("movetype", ParamValue::String(movetype.into()))?;
+        Ok(param)
+    }
+
+    /// `(double)param_.getValue("windowsize")`,
+    /// `(UInt)param_.getValue("peakcount")` and `movetype == "slide"`. A
+    /// window size that is not finite and positive is accepted here, as by the
+    /// source, and refused by the filter.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a negative `peakcount`, where the source's
+    /// conversion throws `Exception::ConversionError` at the next filter call.
+    fn update_members(param: &Param) -> Result<Self> {
+        Ok(Self {
+            window_size: param.value("windowsize")?.to_f64()?,
+            peak_count: unsigned_parameter(param, "peakcount")? as usize,
+            method: WindowMowerMethod::from_str(param.value("movetype")?.as_str()?)?,
+            ..Self::default()
+        })
+    }
+
+    /// Keeps the native ceilings [`WindowMower::max_points`],
+    /// [`WindowMower::max_work`] and [`WindowMower::work_per_point`].
+    fn keep_native_members(&self, updated: Self) -> Self {
+        Self {
+            max_points: self.max_points,
+            max_work: self.max_work,
+            work_per_point: self.work_per_point,
+            ..updated
         }
     }
 }

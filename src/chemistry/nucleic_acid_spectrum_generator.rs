@@ -11,13 +11,22 @@ use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
 use std::mem::size_of;
 
+#[path = "nucleic_acid_spectrum_generator_parameters.rs"]
+mod parameters;
+
+/// Ceiling on the residues of an oligonucleotide a generation call accepts.
 pub const MAX_RNA_SPECTRUM_RESIDUES: usize = 1_000_000;
 /// Combined old/new single-spectrum peaks, or sum across all returned spectra.
 pub const MAX_RNA_SPECTRUM_PEAKS: usize = 100_000;
+/// Ceiling on the charge keys of a multiple-spectra call.
 pub const MAX_RNA_SPECTRUM_KEYS: usize = 4_096;
+/// Ceiling on the data arrays a spectrum may carry into an append.
 pub const MAX_RNA_SPECTRUM_ARRAYS: usize = 1_024;
+/// Cumulative work units of one generation call.
 pub const MAX_RNA_SPECTRUM_WORK: usize = 50_000_000;
+/// Cumulative allocation payload of one generation call.
 pub const MAX_RNA_SPECTRUM_BYTES: usize = 256 * 1024 * 1024;
+/// Cumulative ion-name bytes of one generation call.
 pub const MAX_RNA_SPECTRUM_LABEL_BYTES: usize = 16 * 1024 * 1024;
 const ION_NAMES: &str = "IonNames";
 const CHARGES: &str = "Charges";
@@ -25,6 +34,8 @@ const CHARGES: &str = "Charges";
 /// All source settings. Only b/y ions default on; all intensities default to one.
 /// Intensities stay f64 until each emitted peak is narrowed to f32. Unused
 /// intensity settings are not validated; finite signed output is supported.
+/// Every field is a source parameter; the source's `DefaultParamHandler`
+/// contract maps through [`DefaultParamHandling`](crate::param::DefaultParamHandling).
 #[derive(Clone, Debug, PartialEq)]
 pub struct NucleicAcidSpectrumGenerator {
     pub add_metainfo: bool,

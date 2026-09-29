@@ -25,7 +25,8 @@ let spectrum = generator.generate(&peptide, 1, 2, Some(3))?;
 | `TheoreticalIonSeries` | a, b, c, x, y, z, z. (`ZPlusOne`) and z' (`ZPlusTwo`) terminal fragments |
 | `generate` | Creates a centroid MS2 spectrum; inclusive positive fragment charge range; precursor metadata charge supplied explicitly or inferred as maximum fragment charge plus one |
 | `add_first_prefix_ion` | Includes a1/b1/c1; otherwise prefix fragments start at ordinal 2. Suffix fragments always start at ordinal 1. Full-length fragments are excluded |
-| `TheoreticalIonIntensities` | Configurable a/b/c/x/y/z intensities (z variants share z), plus independent intact/H2O/NH3 precursor intensities |
+| `TheoreticalIonIntensities` | Configurable a/b/c/x/y/z intensities (z variants share z), plus independent intact/H2O/NH3 precursor intensities; `f64`, as the source's `double` members are |
+| `DefaultParamHandling` | The source's thirty parameters with their names, defaults, descriptions and restrictions, and `updateMembers_`; see [DEFAULT_PARAM_HANDLING_SUPPORT.md](DEFAULT_PARAM_HANDLING_SUPPORT.md) |
 | `add_losses` | One peak per distinct residue loss formula present within a retained fragment; no combinations or repeated losses |
 | `add_terminal_losses` | Adds water loss to prefix fragments and water/ammonia loss to suffix fragments; requires `add_losses` and no isotope envelopes |
 | `TheoreticalIsotopeModel::Coarse` | Normalized low-mass isotope envelopes for intact fragments, neutral losses and precursors, with the configured maximum number of bins |
@@ -92,7 +93,10 @@ probabilities, which are rounded to f32 before selection/output. Coverage sums
 those widened f32 values in f64. The retained intensity therefore follows the
 selected probability mass, not a forced sum of one. Both modes multiply the
 configured intensity, relative loss factor when applicable, and isotope weight
-in f64 before final f32 storage; there is no intermediate f32 loss-factor product.
+in f64 before final f32 storage; there is no intermediate f32 loss-factor product,
+and the configured intensities themselves are `f64`, so a value such as 0.7 is
+not rounded to `f32` on the way in (checked bit for bit against the Release build
+in `tests/theoretical_parameter_intensities.rs`).
 Monoisotopic fragment names include charge markers, such as `b2++`. The source's
 isotope intact names omit charge markers (`b2`); the separate charge array provides
 the charge. Loss names include a canonical formula and charge markers, such as

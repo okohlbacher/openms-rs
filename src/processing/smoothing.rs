@@ -9,6 +9,8 @@
 use super::{SpectrumFilter, checked_intensity};
 use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
 use crate::kernel::{MSChromatogram, MSExperiment, MSSpectrum, SpectrumType};
+use crate::param::handler::{int_parameter, set_flag, unsigned_parameter};
+use crate::param::{DefaultParamHandling, Param, ParamValue};
 use crate::{Error, Result};
 
 /// The progress label of source `filterExperiment` in both `GaussFilter`
@@ -252,7 +254,19 @@ impl GaussFilterAlgorithm {
 /// OpenMS Gaussian wrapper, including its all-zero-result preservation rule.
 #[derive(Clone, Copy, Debug)]
 pub struct GaussFilter {
+    /// The algorithm the wrapper runs, with the active width (source
+    /// `gaussian_width`, or `ppm_tolerance` when `use_ppm_tolerance` is set).
     pub algorithm: GaussFilterAlgorithm,
+    /// The width parameter the active mode does not use - `ppm_tolerance` for
+    /// an absolute width, `gaussian_width` for a ppm width - kept so that
+    /// [`DefaultParamHandling::to_param`] returns the parameters the filter was
+    /// configured with. Filtering never reads it.
+    pub inactive_width: f64,
+    /// Source `write_log_messages`: warn when no signal was found. Stored for
+    /// the parameter contract only; the warning itself is not emitted, and
+    /// callers of [`GaussFilterAlgorithm::filter`] see its `found_signal`
+    /// flag instead.
+    pub write_log_messages: bool,
 }
 impl Default for GaussFilter {
     fn default() -> Self {
@@ -261,6 +275,8 @@ impl Default for GaussFilter {
                 width: GaussianWidth::Absolute(0.2),
                 ..Default::default()
             },
+            inactive_width: 10.0,
+            write_log_messages: false,
         }
     }
 }
@@ -272,9 +288,18 @@ impl GaussFilter {
     /// # Errors
     ///
     /// [`Error::InvalidValue`] unless the width is finite and positive.
+    ///
+    /// The other width parameter and `write_log_messages` keep their source
+    /// defaults (`ppm_tolerance` 10, `gaussian_width` 0.2, `false`).
     pub fn new(width: GaussianWidth) -> Result<Self> {
+        let inactive_width = match width {
+            GaussianWidth::Absolute(_) => 10.0,
+            GaussianWidth::Ppm(_) => 0.2,
+        };
         Ok(Self {
-            algorithm: GaussFilterAlgorithm::new(width, 0.01)?,
+            algorithm: GaussFilterAlgorithm::new(width, GAUSS_FILTER_SPACING)?,
+            inactive_width,
+            write_log_messages: false,
         })
     }
 
@@ -396,6 +421,10 @@ fn convert(values: Vec<f64>) -> Result<Vec<f32>> {
 #[derive(Clone, Debug)]
 pub struct SavitzkyGolayFilter {
     frame_length: usize,
+    /// The frame length as given, before an even one is incremented: the
+    /// source keeps it in `param_` (`frame_length`) while `frame_size_` holds
+    /// the odd length, so `getParameters()` returns it.
+    frame_parameter: usize,
     polynomial_order: usize,
     coefficients: Vec<Vec<f64>>,
 }
@@ -409,6 +438,7 @@ impl SavitzkyGolayFilter {
     /// Frames above 1023 or degrees above 32 are rejected to bound coefficient
     /// generation and avoid pretending ill-conditioned fits are reliable.
     pub fn new(frame_length: usize, polynomial_order: usize) -> Result<Self> {
+        let frame_parameter = frame_length;
         let frame_length = if frame_length % 2 == 0 {
             frame_length
                 .checked_add(1)
@@ -463,6 +493,7 @@ impl SavitzkyGolayFilter {
             .collect();
         Ok(Self {
             frame_length,
+            frame_parameter,
             polynomial_order,
             coefficients,
         })
@@ -599,4 +630,174 @@ impl SpectrumFilter for SavitzkyGolayFilter {
             |chromatogram| self.filter_chromatogram(chromatogram),
         )
     }
+}
+
+/// Source `GaussFilter`'s `DefaultParamHandler` base (`GaussFilter.cpp:20-48`):
+/// `gaussian_width` (0.2, minimum 0.0), `ppm_tolerance` (10.0, minimum 0.0),
+/// and the flags `use_ppm_tolerance` and `write_log_messages` (both `false`).
+///
+/// `updateMembers_` initialises the algorithm with the active width over the
+/// fixed lookup spacing 0.01 (`spacing_`) and reads `write_log_messages_`;
+/// [`GaussFilter::algorithm`], [`GaussFilter::inactive_width`] and
+/// [`GaussFilter::write_log_messages`] hold the same four values.
+impl DefaultParamHandling for GaussFilter {
+    const NAME: &'static str = "GaussFilter";
+
+    fn defaults() -> Result<Param> {
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "gaussian_width",
+            ParamValue::Float(0.2),
+            "Use a gaussian filter width which has approximately the same width as your mass peaks (FWHM in m/z).",
+            &[],
+        )?;
+        defaults.set_min_float("gaussian_width", 0.0)?;
+        defaults.set_value(
+            "ppm_tolerance",
+            ParamValue::Float(10.0),
+            "Gaussian width, depending on the m/z position.\nThe higher the value, the wider the peak and therefore the wider the gaussian.",
+            &[],
+        )?;
+        defaults.set_min_float("ppm_tolerance", 0.0)?;
+        set_flag(
+            &mut defaults,
+            "use_ppm_tolerance",
+            false,
+            "If true, instead of the gaussian_width value, the ppm_tolerance is used. The gaussian is calculated in each step anew, so this is much slower.",
+            &[],
+        )?;
+        set_flag(
+            &mut defaults,
+            "write_log_messages",
+            false,
+            "true: Warn if no signal was found by the Gauss filter algorithm.",
+            &[],
+        )?;
+        Ok(defaults)
+    }
+
+    fn to_param(&self) -> Result<Param> {
+        let (gaussian_width, ppm_tolerance, use_ppm) = match self.algorithm.width {
+            GaussianWidth::Absolute(width) => (width, self.inactive_width, false),
+            GaussianWidth::Ppm(ppm) => (self.inactive_width, ppm, true),
+        };
+        let mut param = Self::defaults()?;
+        param.replace_value("gaussian_width", ParamValue::Float(gaussian_width))?;
+        param.replace_value("ppm_tolerance", ParamValue::Float(ppm_tolerance))?;
+        param.replace_value("use_ppm_tolerance", flag_value(use_ppm))?;
+        param.replace_value("write_log_messages", flag_value(self.write_log_messages))?;
+        Ok(param)
+    }
+
+    /// `gauss_algo_.initialize(gaussian_width, spacing_, ppm_tolerance,
+    /// use_ppm_tolerance)` and `write_log_messages_`.
+    ///
+    /// A width of zero, which the restriction admits, is accepted here as by
+    /// the source; filtering refuses it (the source divides by it). The
+    /// algorithm's lookup spacing is the source's fixed 0.01.
+    fn update_members(param: &Param) -> Result<Self> {
+        let gaussian_width = param.value("gaussian_width")?.to_f64()?;
+        let ppm_tolerance = param.value("ppm_tolerance")?.to_f64()?;
+        let use_ppm = param.value("use_ppm_tolerance")?.to_bool()?;
+        let (width, inactive_width) = if use_ppm {
+            (GaussianWidth::Ppm(ppm_tolerance), gaussian_width)
+        } else {
+            (GaussianWidth::Absolute(gaussian_width), ppm_tolerance)
+        };
+        Ok(Self {
+            algorithm: GaussFilterAlgorithm {
+                width,
+                kernel_spacing: GAUSS_FILTER_SPACING,
+                ..GaussFilterAlgorithm::default()
+            },
+            inactive_width,
+            write_log_messages: param.value("write_log_messages")?.to_bool()?,
+        })
+    }
+
+    /// Keeps the algorithm's lookup spacing and coefficient ceiling, which are
+    /// not parameters (the source's protected `spacing_` is fixed at 0.01).
+    fn keep_native_members(&self, updated: Self) -> Self {
+        Self {
+            algorithm: GaussFilterAlgorithm {
+                kernel_spacing: self.algorithm.kernel_spacing,
+                max_coefficients: self.algorithm.max_coefficients,
+                ..updated.algorithm
+            },
+            ..updated
+        }
+    }
+}
+
+/// Source `SavitzkyGolayFilter`'s `DefaultParamHandler` base
+/// (`SavitzkyGolayFilter.cpp:17-26`): `frame_length` (11) and
+/// `polynomial_order` (4), both without restriction. `updateMembers_`
+/// (`SavitzkyGolayFilter.cpp:30-70`) reads both as unsigned, increments an even
+/// frame length, refuses a degree that is not below it and recomputes the
+/// coefficients, which [`SavitzkyGolayFilter::new`] does here.
+impl DefaultParamHandling for SavitzkyGolayFilter {
+    const NAME: &'static str = "SavitzkyGolayFilter";
+
+    fn defaults() -> Result<Param> {
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "frame_length",
+            ParamValue::Integer(11),
+            "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.",
+            &[],
+        )?;
+        defaults.set_value(
+            "polynomial_order",
+            ParamValue::Integer(4),
+            "Order or the polynomial that is fitted.",
+            &[],
+        )?;
+        Ok(defaults)
+    }
+
+    /// `frame_length` is the value given, even or not, as the source's
+    /// `getParameters()` returns it; [`SavitzkyGolayFilter::frame_length`] is
+    /// the odd length in use.
+    fn to_param(&self) -> Result<Param> {
+        let mut param = Self::defaults()?;
+        param.replace_value(
+            "frame_length",
+            int_parameter(self.frame_parameter, "frame_length")?,
+        )?;
+        param.replace_value(
+            "polynomial_order",
+            int_parameter(self.polynomial_order, "polynomial_order")?,
+        )?;
+        Ok(param)
+    }
+
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a negative value (the source's unsigned
+    /// conversion throws `Exception::ConversionError`); with the source's
+    /// message "The degree of the polynomial has to be less than the frame
+    /// length." when the degree is not below the odd frame length (source
+    /// `Exception::InvalidValue`, `SavitzkyGolayFilter.cpp:40-43`); and for the
+    /// native refusals of [`SavitzkyGolayFilter::new`] (a frame above 1023, a
+    /// degree above 32, a numerically rank-deficient fit), which the source
+    /// does not have.
+    fn update_members(param: &Param) -> Result<Self> {
+        let frame = unsigned_parameter(param, "frame_length")? as usize;
+        let order = unsigned_parameter(param, "polynomial_order")? as usize;
+        let odd = if frame % 2 == 0 { frame + 1 } else { frame };
+        if odd <= order {
+            return Err(Error::InvalidValue(format!(
+                "the value '{order}' was used but is not valid; The degree of the polynomial has to be less than the frame length."
+            )));
+        }
+        Self::new(frame, order)
+    }
+}
+
+/// The source's fixed lookup spacing of the Gaussian kernel, `spacing_(0.01)`
+/// in the `GaussFilter` constructor.
+const GAUSS_FILTER_SPACING: f64 = 0.01;
+
+fn flag_value(value: bool) -> ParamValue {
+    crate::param::handler::flag_parameter(value)
 }

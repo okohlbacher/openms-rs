@@ -14,12 +14,19 @@ use crate::metadata::{MetaInfo, MetaValue};
 use crate::{Error, Result};
 use std::mem::size_of;
 
+#[path = "spectrum_annotator_parameters.rs"]
+mod parameters;
 #[path = "spectrum_annotation_statistics.rs"]
 mod statistics;
 
+/// Ceiling on the measured peaks of an annotated spectrum.
 pub const MAX_ANNOTATION_PEAKS: usize = 1_000_000;
+/// Ceiling on the peptide hits of one identification.
 pub const MAX_ANNOTATION_HITS: usize = 1_000;
+/// Ceiling on `topNmatch_fragmenterrors`
+/// ([`SpectrumAnnotator::top_n_fragment_errors`]).
 pub const MAX_ANNOTATION_TOP_N: usize = 1_000_000;
+/// Ceiling on the spectrum's precursors when `precursor_statistics` is set.
 pub const MAX_ANNOTATION_PRECURSORS: usize = 100_000;
 /// Cumulative visits/comparisons for the annotation/statistics stages.
 pub const MAX_ANNOTATION_WORK: usize = 50_000_000;
@@ -30,19 +37,31 @@ pub const MAX_ANNOTATION_LABEL_BYTES: usize = 64 * 1024 * 1024;
 pub const MAX_ANNOTATION_BYTES: usize = 128 * 1024 * 1024;
 
 /// Options corresponding to all eight SpectrumAnnotator source parameters.
+///
+/// The source's `DefaultParamHandler` contract maps through
+/// [`DefaultParamHandling`](crate::param::DefaultParamHandling).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SpectrumAnnotator {
+    /// Add peak_number, sum_intensity, matched_ion_number, matched_intensity
+    /// (source `basic_statistics`).
     pub basic_statistics: bool,
     /// Stored source option with no effect: basic_statistics controls matched_ions.
     pub list_of_ions_matched: bool,
+    /// Add max_series_type and max_series_size (source `max_series`).
     pub max_series: bool,
+    /// Add sn_by_matched_intensity and sn_by_median_intensity (source
+    /// `S/N_statistics`).
     pub sn_statistics: bool,
+    /// Add precursor_in_ms2 (source `precursor_statistics`).
     pub precursor_statistics: bool,
     /// Zero disables ALL five error statistics; short matched lists are padded
     /// with zeros to exactly this length. A nonempty list with N=1 errors.
+    /// Source `topNmatch_fragmenterrors`, an unsigned default 7.
     pub top_n_fragment_errors: usize,
     /// Stored source option with no effect: top_n_fragment_errors controls this block.
     pub fragment_error_statistics: bool,
+    /// Add NTermIonCurrentRatio and CTermIonCurrentRatio (source
+    /// `terminal_series_match_ratio`).
     pub terminal_series_match_ratio: bool,
 }
 impl Default for SpectrumAnnotator {
