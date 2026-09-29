@@ -31,13 +31,13 @@ pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;
 
-/// Parameter values from a JSON document onto a known tree (`ParamJSONFile`).
-#[cfg(feature = "paramxml")]
-pub mod param_json;
 /// The Common Workflow Language writer (`ParamCWLFile`), as the Release build
 /// (without TDL) has it.
 #[cfg(feature = "paramxml")]
 pub mod param_cwl;
+/// Parameter values from a JSON document onto a known tree (`ParamJSONFile`).
+#[cfg(feature = "paramxml")]
+pub mod param_json;
 /// OpenMS parameter trees in INI XML format.
 #[cfg(feature = "paramxml")]
 pub mod paramxml;
