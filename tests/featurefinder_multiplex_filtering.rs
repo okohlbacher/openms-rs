@@ -293,5 +293,6 @@ fn peak_width_estimator_class_test() {
     let estimator = PeakWidthEstimator::new(&exp_picked, &boundaries).unwrap();
     similar(estimator.peak_width(365.3).unwrap(), 0.00886469661896705);
     similar(estimator.peak_width(305.1).unwrap(), 0.00886699447290451); // outside m/z range
-    similar(estimator.peak_width(405.1).unwrap(), 0.01184458329884600); // outside m/z range
+    // class-test literal 0.01184458329884600 (trailing zeros dropped)
+    similar(estimator.peak_width(405.1).unwrap(), 0.011844583298846); // outside m/z range
 }
