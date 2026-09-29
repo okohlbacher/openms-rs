@@ -11,6 +11,7 @@
 //! independently derived invariant or a native guard (tier 4).
 
 use openms::Error;
+use openms::analysis::openswath::data_structures::SpectrumPtr;
 use openms::analysis::openswath::data_structures::{BinaryDataArray, Spectrum};
 use openms::analysis::openswath::dia_helper::{
     self, IntegratedWindows, adjust_extraction_window, integrate_window, integrate_window_sequence,
@@ -19,7 +20,6 @@ use openms::analysis::openswath::dia_helper::{
 use openms::analysis::openswath::dia_prescoring::DiaPrescore;
 use openms::analysis::openswath::dia_scoring::DiaScoring;
 use openms::analysis::openswath::mock_objects::{MockFeature, MockMRMFeature};
-use openms::analysis::openswath::spectrum_access::SpectrumPtr;
 use openms::analysis::openswath::transition_experiment::LightTransition;
 use openms::chemistry::{AASequence, TheoreticalSpectrumGenerator};
 use openms::kernel::ranges::RangeBase;

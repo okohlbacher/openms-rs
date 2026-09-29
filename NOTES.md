@@ -15,5 +15,14 @@ Branch: worktree-wf_cd066dab-0a7-47. Prereqs 0a7-27 (OA) and 0a7-30 (O1a) merged
 ## Dependency order
 DIAHelper -> DIAScoring, DIAPrescoring -> MRMScoring -> IonMobilityScoring -> OpenSwathScores -> OpenSwathScoring.
 
+## Done (WIP commit dcdf630f)
+- dia_helper.rs, dia_prescoring.rs, dia_scoring.rs + tests/openswath_dia_scoring.rs (class-test literals).
+- Gate: `OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local/bin/openms-kim-gate.sh O2 test --locked --test openswath_dia_scoring`
+  (run_in_background; log in scratchpad). NOTE test-name filters do not include the file name.
+- DIAScoring.cpp uses its own global C13C12 = 1.0033548 (not Constants' 1.0033548378); DIAPrescoring uses Constants.
+- Averagine: SourceSingle precision (C++ Peak1D float intensities).
+
 ## Next step
-1. Read DIAHelper.h/.cpp + tests; port to src/analysis/openswath/dia_helper.rs.
+1. DONE: DIA trio gate green (24 tests, default features, dax).
+2. MRMScoring (304+836) -> mrm_scoring.rs, uses OA scoring.rs (xcorr, MI).
+3. OpenSwathScores, IonMobilityScoring, OpenSwathScoring.

@@ -21,11 +21,12 @@
 use std::collections::BTreeMap;
 
 use super::data_frame_writer::DataFrameWriter;
+use super::data_structures::SpectrumPtr;
 use super::dia_helper::{
     add_preisotope_weights_single, add_single_peak_isotopes_to_spec, extract_first, extract_second,
     integrate_windows_sequence, sort_by_first,
 };
-use super::spectrum_access::{SpectrumAccess, SpectrumPtr};
+use super::spectrum_access::SpectrumAccess;
 use super::stats_helpers::{dot_prod, manhattan_dist, norm};
 use super::transition_experiment::{LightTargetedExperiment, LightTransition};
 use super::transition_helper;

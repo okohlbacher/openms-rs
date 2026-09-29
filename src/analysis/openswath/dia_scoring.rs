@@ -36,12 +36,12 @@
 //!
 //! See `docs/OPENSWATH_SCORING_SUPPORT.md`.
 
+use super::data_structures::SpectrumPtr;
 use super::dia_helper::{
     WindowIntegral, by_series, create_mz_range_ppm, integrate_window_sequence,
 };
 use super::dia_prescoring::{DiaPrescore, PrescoreResult};
 use super::itransition::MRMFeatureAccess;
-use super::spectrum_access::SpectrumPtr;
 use super::transition_experiment::LightTransition;
 use crate::chemistry::isotopes::ProbabilityPrecision;
 use crate::chemistry::{

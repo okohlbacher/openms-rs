@@ -21,7 +21,7 @@
 //! See `docs/OPENSWATH_SCORING_SUPPORT.md`.
 
 use super::data_structures::Spectrum;
-use super::spectrum_access::SpectrumPtr;
+use super::data_structures::SpectrumPtr;
 use crate::chemistry::isotopes::ProbabilityPrecision;
 use crate::chemistry::{
     AASequence, CoarseIsotopePatternGenerator, CoarseMassMode, TheoreticalSpectrumGenerator,
