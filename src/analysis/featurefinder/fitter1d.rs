@@ -10,14 +10,14 @@
 //! `docs/FEATUREFINDER_MODELS_SUPPORT.md`.
 //!
 //! - Source `Fitter1D`, an instantiable `DefaultParamHandler` whose `fit1d`
-//!   throws `Exception::NotImplemented`, is the trait [`Fitter1D`], its shared
-//!   parameters [`Fitter1DCore`], and the base type [`BaseFitter1D`].
+//!   throws `Exception::NotImplemented`, is the trait [`Fitter1D`](crate::analysis::featurefinder::fitter1d::Fitter1D), its shared
+//!   parameters [`Fitter1DCore`](crate::analysis::featurefinder::fitter1d::Fitter1DCore), and the base type [`BaseFitter1D`](crate::analysis::featurefinder::fitter1d::BaseFitter1D).
 //! - Source `LevMarqFitter1D` contributes the parameter `max_iteration` and the
-//!   protected `optimize_`, which is [`lev_marq_optimize`]. Its
+//!   protected `optimize_`, which is [`lev_marq_optimize`](crate::analysis::featurefinder::fitter1d::lev_marq_optimize). Its
 //!   `GenericFunctor` (raw-pointer residual and Jacobian callbacks) becomes the
 //!   two closures that function takes.
 //! - Source `MaxLikeliFitter1D` contributes the protected `fitOffset_`, which
-//!   is [`max_likeli_fit_offset`].
+//!   is [`max_likeli_fit_offset`](crate::analysis::featurefinder::fitter1d::max_likeli_fit_offset).
 //!
 //! A fit's quality is the source's `Feature::QualityType`, a `float`: every
 //! correlation is narrowed to `f32` where the source assigns it, and

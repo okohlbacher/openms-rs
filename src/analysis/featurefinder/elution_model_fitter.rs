@@ -11,7 +11,7 @@
 //! `docs/FEATUREFINDER_MODELS_SUPPORT.md`.
 //!
 //! The trace fitters are the picked feature finder's
-//! [`GaussTraceFitter`] and [`EGHTraceFitter`]; the imputation line is
+//! [`GaussTraceFitter`](crate::analysis::feature_finder_picked::gauss_trace_fitter::GaussTraceFitter) and [`EGHTraceFitter`](crate::analysis::feature_finder_picked::egh_trace_fitter::EGHTraceFitter); the imputation line is
 //! [`crate::analysis::transformations::LinearModel`], the port of
 //! `TransformationModelLinear`.
 

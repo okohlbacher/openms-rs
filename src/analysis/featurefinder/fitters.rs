@@ -18,7 +18,7 @@
 //! at the model default 0.1. The isotope fitters likewise pass the
 //! `isotope_model:` subsection of their parameters to the model and then
 //! replace it. Both are reproduced; the fitter's `interpolation_step` still
-//! sets the offset scan step of [`max_likeli_fit_offset`].
+//! sets the offset scan step of [`max_likeli_fit_offset`](crate::analysis::featurefinder::fitter1d::max_likeli_fit_offset).
 
 use crate::Result;
 use crate::analysis::feature_finder_picked::glibc_libm;

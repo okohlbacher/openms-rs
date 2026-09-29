@@ -8,7 +8,7 @@
 //! a header-only template (`template <typename Key = double, typename Value =
 //! Key>`) with no translation unit. The library instantiates it only as
 //! `<double, double>` (through `InterpolationModel`), so
-//! [`LinearInterpolation`] is not generic: key and value are `f64`. The class
+//! [`LinearInterpolation`](crate::math::ml::linear_interpolation::LinearInterpolation) is not generic: key and value are `f64`. The class
 //! test also runs a `<float, double>` instantiation; its sections are ported
 //! with `f64` keys, which changes nothing for its dyadic sample positions. See
 //! `docs/FEATUREFINDER_MODELS_SUPPORT.md`.

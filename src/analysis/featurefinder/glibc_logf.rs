@@ -65,7 +65,10 @@ pub(crate) fn logf(x: f32) -> f32 {
             return x;
         }
         if ix & 0x8000_0000 != 0 || ix.wrapping_mul(2) >= 0xff00_0000 {
-            return (x - x) / (x - x);
+            // Source `(x - x) / (x - x)`: the invalid-operation NaN.
+            #[allow(clippy::eq_op)]
+            let nan = (x - x) / (x - x);
+            return nan;
         }
         // Subnormal: normalise.
         ix = (x * f32::from_bits(0x4b00_0000)).to_bits();

@@ -5,7 +5,7 @@
 //! The feature finder algorithm interface and its shared definitions.
 //!
 //! Ports `FEATUREFINDER/FeatureFinderAlgorithm.h` (header only: the fitting
-//! [`Summary`] and the abstract [`FeatureFinderAlgorithm`]) and
+//! [`Summary`](crate::analysis::featurefinder::feature_finder_algorithm::Summary) and the abstract [`FeatureFinderAlgorithm`](crate::analysis::featurefinder::feature_finder_algorithm::FeatureFinderAlgorithm)) and
 //! `FEATUREFINDER/FeatureFinderDefs.h` (header only). See
 //! `docs/FEATUREFINDER_MODELS_SUPPORT.md`.
 //!
@@ -13,7 +13,7 @@
 //! `FeatureFinderAlgorithmPicked.h` also declares; that declaration is already
 //! ported as [`crate::analysis::feature_finder_picked::defs`], and the two
 //! source headers cannot even be included together (a redefinition). The
-//! module [`defs`] re-exports that port under this header's name rather than
+//! module [`defs`](crate::analysis::featurefinder::feature_finder_algorithm::defs) re-exports that port under this header's name rather than
 //! duplicating it.
 
 use crate::Result;

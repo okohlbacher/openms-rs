@@ -11,12 +11,12 @@
 //!
 //! The source's class hierarchy (`DefaultParamHandler` <- `BaseModel` <-
 //! `InterpolationModel` <- five concrete models) becomes two traits,
-//! [`BaseModel`] and [`InterpolationModel`], the shared state
-//! [`InterpolationCore`], and the closed set [`Model1D`] that the fitters
+//! [`BaseModel`](crate::analysis::featurefinder::base_model::BaseModel) and [`InterpolationModel`](crate::analysis::featurefinder::base_model::InterpolationModel), the shared state
+//! [`InterpolationCore`](crate::analysis::featurefinder::base_model::InterpolationCore), and the closed set [`Model1D`](crate::analysis::featurefinder::base_model::Model1D) that the fitters
 //! return in place of `std::unique_ptr<InterpolationModel>`.
 //!
 //! `BaseModel_impl.h` only includes the five derived model headers so that a
-//! caller can name them all through one include; [`Model1D`] is its
+//! caller can name them all through one include; [`Model1D`](crate::analysis::featurefinder::base_model::Model1D) is its
 //! counterpart. It declares nothing else.
 
 use crate::Result;

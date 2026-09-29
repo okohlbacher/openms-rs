@@ -11,12 +11,12 @@
 //! Both models build an averagine formula from a mass, take its coarse isotope
 //! distribution, trim and renormalize it, "stretch" it onto the interpolation
 //! grid (isotope `i` moves to grid index `i * distance / step / charge`,
-//! rounded), and fold a peak shape - a Gaussian, or for [`IsotopeModel`] also a
+//! rounded), and fold a peak shape - a Gaussian, or for [`IsotopeModel`](crate::analysis::featurefinder::isotope_model::IsotopeModel) also a
 //! Lorentzian - onto every isotope. They model raw (profile) data; the bare
 //! distribution is `CoarseIsotopePatternGenerator`'s.
 //!
 //! The isotope distribution is computed in the source's binary32 `Peak1D`
-//! arithmetic ([`ProbabilityPrecision::SourceSingle`]), because every weight
+//! arithmetic ([`ProbabilityPrecision::SourceSingle`](crate::chemistry::isotopes::ProbabilityPrecision::SourceSingle)), because every weight
 //! the models use is a `float` intensity there.
 
 use crate::Result;
