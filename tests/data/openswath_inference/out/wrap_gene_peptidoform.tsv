@@ -1,0 +1,1 @@
+ERROR	Precondition	OpenSwathGeneInference requires config.level = InferenceLevel::Gene.

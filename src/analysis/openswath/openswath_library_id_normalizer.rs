@@ -94,9 +94,13 @@ fn validate_canonical_id_format(text: &str, entity: &str) -> Result<()> {
     Ok(())
 }
 
-/// The source's `Exception::InvalidValue(message, value)`.
+/// The source's `Exception::InvalidValue(message, value)`, with the text its
+/// `getMessage()` reports: `the value '<value>' was used but is not valid;
+/// <message>`.
 fn invalid_id(message: &str, value: &str) -> Error {
-    Error::InvalidValue(format!("{message}: '{value}'"))
+    Error::InvalidValue(format!(
+        "the value '{value}' was used but is not valid; {message}"
+    ))
 }
 
 impl OpenSwathLibraryIDNormalizer {
