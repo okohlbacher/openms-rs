@@ -366,9 +366,11 @@ fn annotate_spectra_with_ms1_features() {
     let mut ms1 = FeatureMap::new();
     ms1.features.push(f1);
 
-    let mut spectrum = MSSpectrum::default();
-    spectrum.ms_level = 2;
-    spectrum.rt = 100.0;
+    let spectrum = MSSpectrum {
+        ms_level: 2,
+        rt: 100.0,
+        ..MSSpectrum::default()
+    };
 
     let tse = TargetedSpectraExtractor::new().unwrap();
     let (annotated, ms2) = tse
@@ -431,10 +433,12 @@ fn construct_transitions_list() {
 fn store_spectra_msp_preparation_removes_peaks() {
     // storeSpectraMSP's class test: the in-place peak removal before writing.
     // (The MSP writer itself is not ported; see the support document.)
-    let mut spectrum = MSSpectrum::default();
-    spectrum.ms_level = 2;
-    spectrum.rt = 100.0;
-    spectrum.name = "spectr1".into();
+    let mut spectrum = MSSpectrum {
+        ms_level: 2,
+        rt: 100.0,
+        name: "spectr1".into(),
+        ..MSSpectrum::default()
+    };
     spectrum.precursors = vec![Precursor {
         mz: 100.0,
         ..Precursor::default()
@@ -455,9 +459,11 @@ fn store_spectra_msp_preparation_removes_peaks() {
 
     // Native: an MS2 spectrum without a precursor is refused, unchanged.
     let mut no_precursor = MSExperiment::default();
-    let mut ms2 = MSSpectrum::default();
-    ms2.ms_level = 2;
-    ms2.peaks.push(Peak1D::new(5.0, 5.0));
+    let ms2 = MSSpectrum {
+        ms_level: 2,
+        peaks: vec![Peak1D::new(5.0, 5.0)],
+        ..MSSpectrum::default()
+    };
     no_precursor.spectra.push(ms2);
     let before = no_precursor.clone();
     assert!(tse.remove_ms2_spectra_peaks(&mut no_precursor).is_err());
@@ -501,10 +507,9 @@ impl Comparator for FixedScores {
 
 #[test]
 fn matching_orders_filters_and_annotates() {
-    let named = |name: &str| {
-        let mut s = MSSpectrum::default();
-        s.name = name.into();
-        s
+    let named = |name: &str| MSSpectrum {
+        name: name.into(),
+        ..MSSpectrum::default()
     };
     let mut library = vec![named("a"), named("b"), named("c"), named("d")];
     library[2]
