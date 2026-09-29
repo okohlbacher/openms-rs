@@ -12,8 +12,11 @@ MRMFile_test (36), TargetedDataFileLoader_test (39). Test data: ToyExample1.traM
 MRMFile / TargetedDataFileLoader need OpenSwath::SwathMap, SwathFile, SimpleOpenMSSpectraFactory,
 MRMChromHandler -> check whether ported; probably blocked (name the deps).
 
+## Status
+- DONE: TraMLHandler + TraMLFile (src/format/traml.rs, traml_handler.rs), tests/traml.rs 13/13 pass on dax
+  (`test --features semantic-validation --test traml`). CVTermList::add_source added (metadata/value.rs, gated traml).
+
 ## Next step
-1. Port TraMLHandler + TraMLFile to src/format/traml*.rs (load/store TargetedExperiment).
 2. TransitionTSVFile -> src/analysis/openswath/transition_tsv_file.rs
 3. TransitionPQPFile (rusqlite) -> src/analysis/openswath/transition_pqp_file.rs
 4. MRMFile / TargetedDataFileLoader if deps exist.
