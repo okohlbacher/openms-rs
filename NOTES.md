@@ -92,3 +92,9 @@ Lane: XML handlers + MS data consumers. Worktree branch: worktree-wf_ee239125-5b
   (mzml.rs:3309). C++ paths: 5374 spec, 5389 scanList, 5443 scan, 5462/5491 window, 4736 precursor, 4755 product, 5930 chrom.
   Fix docs + ledger wording. B8a already did ZIP input (don't duplicate). F4 did CachedMzMLHandler (7bfad445, not in
   base) -> MSDataCachedConsumer unblocked next wave. sweep5 running (task b62uh81ma).
+- inc5: record promotion is REVERSIBLE-ONLY (spectrum SPECTRUM_CV, precursor ACTIVATION_METADATA, header owners);
+  non-reversible source promotions (scan->spectrum meta, chromatogram title->name, scanList/scanWindow/isolationWindow
+  dropped as Unhandled cvParam) deliberately not done. SUSPECTED PORT DIVERGENCE: precursor "percent collision energy"
+  -> Rust promotes to cvParam MS:1000138 (obo name "normalized collision energy"), C++ checkAndGetTermByName fails ->
+  userParam. Oracle ../oracle/F7a-record-cv (FileConverter -process_lowmemory + plain, ibminode06, run.sh pull).
+  Added test record_metadata_is_promoted_only_where_the_reader_routes_it_back (tests/ms_data_writing_consumer.rs), ungated yet.

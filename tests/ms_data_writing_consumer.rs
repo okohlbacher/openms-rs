@@ -26,7 +26,8 @@ use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
 use openms::metadata::{
-    DataProcessing, ExperimentalSettings, ProcessingAction, Software, SourceFile,
+    Acquisition, DataProcessing, ExperimentalSettings, MetaValue, ProcessingAction, Software,
+    SourceFile,
 };
 use openms::system::file::TempDir;
 use std::sync::Arc;
@@ -1344,4 +1345,73 @@ fn peak_file_options_are_fixed_once_the_header_is_written() {
     let text = written(consumer);
     assert!(text.contains("<indexListOffset>"));
     assert!(text.contains("MS:1000574"));
+}
+
+// ---------------------------------------------------------------------------
+// protected Internal::MzMLValidator* validator_
+// The validator's one effect is inside MzMLHandler::writeUserParam_: a
+// metadata key naming a PSI-MS term is written as a cvParam when validateCV_
+// finds the term allowed at the element's mapping path (MzMLHandler.cpp:3637,
+// :3669). This consumer renders each record through the whole-document
+// writer, so it inherits that writer's rule: a record-level key is promoted
+// only where the reader routes the cvParam back to the same key on the same
+// owner (`metadata` in src/format/mzml_header/xml.rs). Tier 4: the invariant
+// is the round trip, plus the reader's own route for a scan cvParam (the
+// source's, MzMLHandler.cpp:2271-2277) for why a scan-level key is not
+// promoted.
+// ---------------------------------------------------------------------------
+#[test]
+fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
+    let mut record = spectrum("scan=1", 1.0, 100.0);
+    record.metadata.insert(
+        "total ion current".into(),
+        MetaValue::try_from(30.0).unwrap(),
+    );
+    let mut scan = Acquisition::default();
+    scan.metadata
+        .insert("dwell time".into(), MetaValue::try_from(2.5).unwrap());
+    record.acquisition_info.acquisitions.push(scan);
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    consumer.set_expected_size(1, 0).unwrap();
+    consumer.consume_spectrum(&mut record.clone()).unwrap();
+    let text = written(consumer);
+
+    // The spectrum-level key is a source read route (MS:1000285 under
+    // <spectrum>), so it is written as the cvParam the source writes.
+    assert!(
+        text.contains("accession=\"MS:1000285\" name=\"total ion current\""),
+        "{text}"
+    );
+    assert!(!text.contains("userParam name=\"total ion current\""), "{text}");
+    // The scan-level key stays a userParam.
+    let user = "<userParam name=\"dwell time\" type=\"xsd:double\" value=\"2.5\"/>";
+    assert!(text.contains(user), "{text}");
+
+    // Both keys come back on the owner they were written from.
+    let loaded = mzml::read(text.as_bytes()).unwrap();
+    assert_eq!(loaded.spectra[0].metadata, record.metadata);
+    assert_eq!(loaded.spectra[0].acquisition_info, record.acquisition_info);
+
+    // What promoting it would have produced: the same value as a cvParam under
+    // <scan> is read into the SPECTRUM's metadata, as the source reader routes
+    // it, so the value would change owner on the next read.
+    let promoted = text.replace(
+        user,
+        "<cvParam cvRef=\"MS\" accession=\"MS:1000502\" name=\"dwell time\" value=\"2.5\"/>",
+    );
+    let moved = mzml::read(promoted.as_bytes()).unwrap();
+    assert_eq!(moved.spectra[0].metadata["dwell time"].as_f64().unwrap(), 2.5);
+    assert!(
+        moved.spectra[0].acquisition_info.acquisitions[0]
+            .metadata
+            .is_empty()
+    );
+
+    // And the stream is still the whole-document writer's output.
+    let mut experiment = MSExperiment::new();
+    experiment.spectra.push(record);
+    let mut whole = Vec::new();
+    mzml::write(&mut whole, &experiment).unwrap();
+    assert_eq!(text, String::from_utf8(whole).unwrap());
 }
