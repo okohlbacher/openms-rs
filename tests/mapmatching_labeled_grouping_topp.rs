@@ -24,6 +24,16 @@
 //! Case 1 uses the manual RT window; case 2 estimates it with the Gaussian
 //! fit (`rt_estimate` true).
 //!
+//! Case 2's retained qualities are not those of the pinned C++: the Release
+//! build at bc9cc12 (oracle `M2-labeled`, ibminode06) reproduces the retained
+//! pairs, positions and intensities, but its qualities differ from the
+//! retained ones by up to a relative 3.7e-4 (first pair: 0.633799374 against
+//! the retained 0.633831564), which the upstream FuzzyDiff (`ratio` 1.01)
+//! accepts. The retained file predates the pin's `GaussFitter`. Case 2's
+//! qualities are therefore compared with that Release oracle, bit for bit
+//! up to one `f32` unit, in `tests/mapmatching_labeled_grouping_oracle.rs`,
+//! and not here.
+//!
 //! Compared: the number and order of consensus features, each one's handles
 //! (map index and unique ID exactly, plus RT, m/z and intensity), its RT,
 //! m/z, intensity, charge and quality, and its peptide identifications (map
@@ -49,7 +59,7 @@ fn close(actual: f64, expected: f64, relative: f64, what: &str) {
     );
 }
 
-fn run_case(case: usize) {
+fn run_case(case: usize, compare_quality: bool) {
     let dir = "tests/data";
     let ini = paramxml::load(format!(
         "{dir}/feature_linker_labeled_{case}_parameters.ini"
@@ -137,12 +147,14 @@ fn run_case(case: usize) {
             float_rel,
             &format!("{at} intensity"),
         );
-        close(
-            f64::from(produced.quality),
-            f64::from(retained.quality),
-            float_rel,
-            &format!("{at} quality"),
-        );
+        if compare_quality {
+            close(
+                f64::from(produced.quality),
+                f64::from(retained.quality),
+                float_rel,
+                &format!("{at} quality"),
+            );
+        }
         assert_eq!(produced.charge, retained.charge, "{at}: charge");
         let ids = |f: &openms::kernel::features::ConsensusFeature| -> Vec<(Option<i64>, String)> {
             f.peptide_identifications
@@ -168,10 +180,11 @@ fn run_case(case: usize) {
 
 #[test]
 fn topp_feature_linker_labeled_1() {
-    run_case(1);
+    run_case(1, true);
 }
 
 #[test]
 fn topp_feature_linker_labeled_2() {
-    run_case(2);
+    // Qualities: see the module documentation.
+    run_case(2, false);
 }
