@@ -40,10 +40,18 @@ Consequences, and why this line and not another:
   `DATASTRUCTURES/MapUtilities.h` stays `native_equivalent`: a CRTP mixin of
   four pure traversal templates, no state, no crate.
 
-**The 90 entries that predate this decision have not been re-audited against
-it.** That audit is open work, not a claim this document makes; until it is
-done, the `native_equivalent` count should be read as an upper bound on how
-much is genuinely owed nothing. It does not promise C++ symbol names, binary layout,
+**The entries that predate this decision were re-audited against it in
+EVID-02** (wave 4: lane A2a for A-L, lane A2b for M-Z, merged in the group-A
+integration). The ledger held 91 such entries, not 90. Each header was read
+member by member at `bc9cc12`: 73 are now `complete` (a hand-written port or a
+crate discharges them), 12 `partial` with their gaps named in the ledger, and
+6 stay `native_equivalent` - `DATASTRUCTURES/ExposedVector.h`,
+`DATASTRUCTURES/TypeAliases.h`, `DATASTRUCTURES/Utils/MapUtilities.h`,
+`KERNEL/DPeak.h`, `KERNEL/StandardTypes.h` and
+`METADATA/PeptideIdentificationList.h`. The per-header result is the ledger
+(`docs/core-sdk-coverage.json`, from the wave-4 fragments); the table below is
+the 2026-09-21 review of the original seven and is not updated row by row. The
+tier does not promise C++ symbol names, binary layout,
 allocator behavior, template inheritance, invalid iterator behavior, or identical
 observability of moved-from objects. It also does not certify the complete APIs
 of the domain classes stored in those containers.
