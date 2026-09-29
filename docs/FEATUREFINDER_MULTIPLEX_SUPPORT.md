@@ -157,7 +157,7 @@ kernel, and join the other spline ports in `src/processing/spline/`.
 |---|---|
 | constructor, `DefaultParamHandler` | `new`, `Default`, `with_parameters`, `defaults`, `to_param`, `from_param`, `from_param_with_warnings`; typed `FeatureFinderMultiplexParameters` |
 | `run(MSExperiment&, bool)` | `run(&mut MSExperiment, bool)`, `run_with_progress` |
-| `getFeatureMap`, `getConsensusMap`, `getBlacklist` | `feature_map`, `consensus_map`, `blacklist` |
+| `getFeatureMap`, `getConsensusMap`, `getBlacklist` | `feature_map`, `consensus_map`, `blacklist`, and `feature_map_mut`, `consensus_map_mut`, `blacklist_mut` for the non-const references the tool edits in place |
 | protected `generatePeakPatterns_` | `generate_peak_patterns` (method and free function) |
 | protected `correctPeptideIntensities_` | `correct_peptide_intensities` |
 | protected `determinePeptideIntensitiesCentroided_`, `...Profile_` | `determine_peptide_intensities_centroided`, `determine_peptide_intensities_profile` |
