@@ -160,6 +160,9 @@ fn iontype_name(t: PeptideFragmentType) -> String {
     }
 }
 
+/// Ordinal, rank, ion type and CV terms of one interpretation.
+type InterpretationRecord = (i32, i32, String, Vec<(String, Value)>);
+
 /// One comparable record, with numbers kept as numbers.
 #[derive(Debug, PartialEq)]
 enum Record {
@@ -184,7 +187,7 @@ enum Record {
         decoy: i32,
         flags: String,
         product_charge: Option<i32>,
-        interpretations: Vec<(i32, i32, String, Vec<(String, Value)>)>,
+        interpretations: Vec<InterpretationRecord>,
         metas: Vec<(String, Value)>,
     },
 }

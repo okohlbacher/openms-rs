@@ -56,6 +56,7 @@ use crate::chemistry::{ModificationsDB, PeptideFragmentType};
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
 use crate::{Error, Result};
 use rand_mt::Mt;
+use std::collections::hash_map::Entry;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -699,7 +700,7 @@ impl MRMDecoy {
                 "Decoy fraction needs to be less than one (values larger than one currently not supported).".into(),
             ));
         }
-        if !(fraction >= 0.0) {
+        if fraction.is_nan() || fraction < 0.0 {
             return Err(Error::InvalidValue(
                 "decoy fraction must not be negative or NaN".into(),
             ));
@@ -781,10 +782,13 @@ impl MRMDecoy {
                 DecoyMethod::Shift => {}
             }
             let key = precursor_key(&peptide);
-            if all_sequences.contains_key(&key) {
-                exclusion.insert(peptide.id.clone());
-            } else {
-                all_sequences.insert(key, peptide.id.clone());
+            match all_sequences.entry(key) {
+                Entry::Occupied(_) => {
+                    exclusion.insert(peptide.id.clone());
+                }
+                Entry::Vacant(slot) => {
+                    slot.insert(peptide.id.clone());
+                }
             }
             for protein_ref in &mut peptide.protein_refs {
                 *protein_ref = format!("{tag}{protein_ref}");

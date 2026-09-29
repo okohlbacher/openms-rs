@@ -27,7 +27,9 @@ mod presets;
 #[path = "theoretical_proforma_budget.rs"]
 mod proforma_budget;
 
+/// Native ceiling on the peaks one generated spectrum may hold.
 pub const MAX_THEORETICAL_PEAKS: usize = 100_000;
+/// Native ceiling on the residues of a peptide a spectrum is generated for.
 pub const MAX_THEORETICAL_RESIDUES: usize = 4096;
 const MAX_RESIDUE_WORK: usize = 10_000_000;
 
@@ -106,6 +108,8 @@ pub enum TheoreticalIonSeries {
 }
 
 impl TheoreticalIonSeries {
+    /// The series letter as the source annotates peaks (`z.` and `z'` for
+    /// the radical variants).
     pub fn label(self) -> &'static str {
         match self {
             Self::A => "a",
@@ -118,6 +122,7 @@ impl TheoreticalIonSeries {
             Self::ZPlusTwo => "z'",
         }
     }
+    /// Whether the series holds N-terminal (prefix) fragments: a, b and c.
     pub fn is_prefix(self) -> bool {
         matches!(self, Self::A | Self::B | Self::C)
     }
@@ -137,8 +142,10 @@ impl TheoreticalIonSeries {
     }
 }
 
+/// Isotope peaks added per fragment ion.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum TheoreticalIsotopeModel {
+    /// Monoisotopic peaks only (the default).
     #[default]
     None,
     /// Number of low-mass isotope bins, normalized within each envelope.

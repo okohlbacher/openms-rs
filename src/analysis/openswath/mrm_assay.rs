@@ -57,6 +57,7 @@ use crate::concept::math_functions::round_decimal;
 use crate::metadata::MetaValue;
 use crate::param::value::format_float;
 use crate::{Error, Result};
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 /// A fragment sequence map: `(fragment m/z, modified sequence)` pairs (source
@@ -162,7 +163,8 @@ impl MRMAssay {
     /// `swathes` must be sorted by lower bound. Bounds are inclusive; in an
     /// overlap the later (upper) swath wins.
     pub fn swath_index(swathes: &[(f64, f64)], precursor_mz: f64) -> i32 {
-        let upper = swathes.partition_point(|(lower, _)| !(precursor_mz < *lower));
+        let upper = swathes
+            .partition_point(|(lower, _)| precursor_mz.partial_cmp(lower) != Some(Ordering::Less));
         let contains = |i: usize| {
             swathes
                 .get(i)

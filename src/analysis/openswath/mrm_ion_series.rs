@@ -375,8 +375,9 @@ impl MRMIonSeries {
     ///
     /// For every fragment type and every charge not above `precursor_charge`,
     /// the ions of ordinals `1..len` are keyed `"<type><ordinal>^<charge>"` with
-    /// m/z `(internal residue masses + terminal modification + charge * proton
-    /// + ion-type adjustment) / charge`, rounded to `options.round_dec_pow`.
+    /// m/z `(internal residue masses + terminal modification +
+    /// charge * proton + ion-type adjustment) / charge`, rounded to
+    /// `options.round_dec_pow`.
     /// Prefix ions (`a`, `b`, `c`) carry the N-terminal modification, suffix
     /// ions (`x`, `y`, `z`) the C-terminal one. For every declared residue loss
     /// in the fragment (see the loss table of the support document) an entry
@@ -799,7 +800,7 @@ fn annotate_transition_into(
         } else {
             unannotated = true;
         }
-        if !options.fragment_types.iter().any(|t| *t == ionstring) {
+        if !options.fragment_types.contains(&ionstring) {
             unannotated = true;
         }
         if interpretation.ordinal > 0 {
