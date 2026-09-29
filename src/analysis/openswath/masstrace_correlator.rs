@@ -430,7 +430,7 @@ impl MasstraceCorrelator {
                     cache.max_intensities[i].1 as f32,
                 ));
                 let mut correlations = Vec::new();
-                for j in i + 1..map.features.len() {
+                for (j, joined) in used.iter_mut().enumerate().skip(i + 1) {
                     let rt = cache.rt_cache[j];
                     if (rt - current_rt).abs() > max_rt_apex_difference {
                         continue;
@@ -450,7 +450,7 @@ impl MasstraceCorrelator {
                         continue;
                     };
                     if scores.pearson_score > min_correlation && lag >= -max_lag && lag <= max_lag {
-                        used[j] = true;
+                        *joined = true;
                         spectrum.peaks.push(Peak1D::new(
                             cache.max_intensities[j].0,
                             cache.max_intensities[j].1 as f32,
