@@ -13,10 +13,14 @@
 //! shared chromatogram literals are the exact-bit TSVs of
 //! `tests/data/chromatogram_processing_*`.
 
+use openms::analysis::openswath::masstrace_correlator::{
+    MASSTRACE_CORRELATOR_NAME, MasstraceCorrelator,
+};
 use openms::analysis::openswath::mrm_transition_group_picker::{
     BackgroundSubtraction, BoundarySelection, MRMTransitionGroupPicker, PeakIntegrationSignal,
 };
 use openms::analysis::openswath::peak_picker_mobilogram::{PeakPickerMobilogram, PeakPositions};
+use openms::analysis::openswath::scoring::{calculate_cross_correlation, standardize_data};
 use openms::analysis::peak_integrator::{
     BaselineType, IntegrationMethod, PEAK_INTEGRATOR_NAME, PeakIntegrator,
 };
@@ -1921,4 +1925,184 @@ fn mobilogram_top_peak_filters() {
         PeakPickerMobilogram::filter_top_peak(&result.picked, &mut []).unwrap(),
         PeakPositions::default()
     );
+}
+
+// ---------------------------------------------------------------------------
+// MasstraceCorrelator
+// ---------------------------------------------------------------------------
+
+/// `MasstraceCorrelator.cpp:34-45`: three stored-only parameters under the
+/// source's (misnamed) handler.
+#[test]
+fn masstrace_correlator_parameters() {
+    let defaults = MasstraceCorrelator::defaults().unwrap();
+    assert_eq!(
+        defaults.value("sgolay_frame_length").unwrap(),
+        &ParamValue::Integer(15)
+    );
+    assert_eq!(
+        defaults.value("sgolay_polynomial_order").unwrap(),
+        &ParamValue::Integer(3)
+    );
+    // `defaults_.setValue("gauss_width", 50, ...)`: an integer parameter.
+    assert_eq!(
+        defaults.value("gauss_width").unwrap(),
+        &ParamValue::Integer(50)
+    );
+    assert_eq!(
+        defaults.description("sgolay_polynomial_order").unwrap(),
+        "Order or the polynomial that is fitted."
+    );
+    let mut param = defaults;
+    set(&mut param, "gauss_width", ParamValue::Integer(7));
+    set(&mut param, "unknown", ParamValue::Integer(1));
+    let (correlator, warnings) = MasstraceCorrelator::from_param_with_warnings(&param).unwrap();
+    assert_eq!(correlator.gauss_width, 7);
+    assert_eq!(warnings.len(), 1);
+    assert!(
+        warnings[0].contains(MASSTRACE_CORRELATOR_NAME),
+        "{warnings:?}"
+    );
+    assert_eq!(MASSTRACE_CORRELATOR_NAME, "MRMFeatureFinderScoring");
+}
+
+fn traces(rts: &[f64], values: &[f64]) -> Vec<(f64, f64)> {
+    rts.iter().copied().zip(values.iter().copied()).collect()
+}
+
+/// `MasstraceCorrelator_test.cpp:211-283`.
+#[test]
+fn masstrace_correlator_class_test_score_hullpoints() {
+    let mut data1 = vec![0.0, 1.0, 3.0, 5.0, 2.0, 0.0];
+    let mut data2 = vec![1.0, 3.0, 5.0, 2.0, 0.0, 0.0];
+    let rt1 = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+    let rt2 = [0.0, 1.0, 2.0, 4.0, 5.0, 6.0];
+    standardize_data(&mut data1);
+    standardize_data(&mut data2);
+    let mut result = calculate_cross_correlation(&data1, &data2, 2, 1).unwrap();
+    for entry in result.iter_mut() {
+        entry.1 /= 6.0;
+    }
+    let lags: Vec<i32> = result.iter().map(|e| e.0).collect();
+    assert_eq!(lags, [-2, -1, 0, 1, 2]);
+    for (index, expected) in [
+        (4, -0.7374631),
+        (3, -0.567846),
+        (2, 0.4159292),
+        (1, 0.8215339),
+        (0, 0.15634218),
+    ] {
+        real_similar(result.data[index].1, expected);
+    }
+
+    let correlator = MasstraceCorrelator::default();
+    let min_pearson_score = -1.1;
+    let max_lag = 6;
+    let same_rt = correlator
+        .score_hullpoints(
+            &traces(&rt1, &data1),
+            &traces(&rt1, &data2),
+            min_pearson_score,
+            max_lag,
+            0.1,
+        )
+        .unwrap();
+    let (lag, lag_intensity) = same_rt.lag.unwrap();
+    assert_eq!(lag, -1);
+    real_similar(lag_intensity, 0.821534);
+    real_similar(same_rt.pearson_score, 0.41593);
+
+    let wide = correlator
+        .score_hullpoints(
+            &traces(&rt1, &data1),
+            &traces(&rt2, &data2),
+            min_pearson_score,
+            max_lag,
+            1.5,
+        )
+        .unwrap();
+    let (lag, lag_intensity) = wide.lag.unwrap();
+    assert_eq!(lag, -1);
+    real_similar(lag_intensity, 0.821534);
+    real_similar(wide.pearson_score, 0.41593);
+
+    let narrow = correlator
+        .score_hullpoints(
+            &traces(&rt1, &data1),
+            &traces(&rt2, &data2),
+            min_pearson_score,
+            max_lag,
+            0.1,
+        )
+        .unwrap();
+    let (lag, lag_intensity) = narrow.lag.unwrap();
+    assert_eq!(lag, -1);
+    real_similar(lag_intensity, 0.625368);
+    real_similar(narrow.pearson_score, 0.405604);
+
+    // Below the minimum Pearson score the lag is not computed.
+    let skipped = correlator
+        .score_hullpoints(
+            &traces(&rt1, &data1),
+            &traces(&rt1, &data2),
+            0.9,
+            max_lag,
+            0.1,
+        )
+        .unwrap();
+    assert_eq!(skipped.lag, None);
+    assert!(correlator.score_hullpoints(&[], &[], 0.0, 1, 0.1).is_err());
+}
+
+/// `MasstraceCorrelator_test.cpp:285-315`, on the retained
+/// `Masstraces_Testdata.consensusXML`, sorted by descending intensity.
+#[cfg(feature = "consensusxml")]
+#[test]
+fn masstrace_correlator_class_test_create_pseudo_spectra() {
+    let mut map = openms::format::consensusxml::read(
+        include_bytes!("data/openswath_peak_picking_masstraces.consensusXML").as_slice(),
+    )
+    .unwrap();
+    map.sort_by_intensity(true).unwrap();
+    let correlator = MasstraceCorrelator::default();
+
+    let spectra = correlator
+        .create_pseudo_spectra(&map, 0, 0.7, 1, 3.0)
+        .unwrap();
+    assert_eq!(spectra.len(), 3);
+    assert_eq!(spectra[1].spectrum.peaks.len(), 1);
+    real_similar(spectra[1].spectrum.rt, 4203.0);
+    real_similar(spectra[1].spectrum.peaks[0].mz, 668.5);
+    for spectrum in &spectra {
+        assert_eq!(spectrum.spectrum.ms_level, 2);
+        assert_eq!(
+            spectrum.correlations.len(),
+            spectrum.spectrum.peaks.len() - 1
+        );
+    }
+
+    let spectra = correlator
+        .create_pseudo_spectra(&map, 1, 0.7, 1, 3.0)
+        .unwrap();
+    assert_eq!(spectra.len(), 2);
+    assert_eq!(spectra[0].spectrum.peaks.len(), 2);
+    assert_eq!(spectra[1].spectrum.peaks.len(), 2);
+    real_similar(spectra[0].spectrum.rt, 5201.0);
+    real_similar(spectra[0].spectrum.peaks[0].mz, 568.5);
+    real_similar(spectra[1].spectrum.rt, 5203.0);
+    real_similar(spectra[1].spectrum.peaks[0].mz, 768.5);
+
+    // The cache: one RT-sorted trace, maximum and RT per feature.
+    let cache = correlator.create_consensus_map_cache(&map).unwrap();
+    assert_eq!(cache.feature_points.len(), map.features.len());
+    for (points, feature) in cache.feature_points.iter().zip(&map.features) {
+        assert_eq!(points.len(), feature.handles().len());
+        assert!(points.windows(2).all(|w| w[0].0 <= w[1].0));
+    }
+    // A work budget that cannot cover one pair is refused.
+    let starved = MasstraceCorrelator {
+        max_work: 1,
+        ..MasstraceCorrelator::default()
+    };
+    assert!(starved.create_pseudo_spectra(&map, 0, 0.7, 1, 3.0).is_err());
 }

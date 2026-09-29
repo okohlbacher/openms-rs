@@ -17,6 +17,8 @@ pub mod data_structures;
 pub mod include_exclude_target;
 /// Feature, peak-group, transition-group and S/N access traits, from `OPENSWATHALGO/DATAACCESS/ITransition.h`.
 pub mod itransition;
+/// Correlation of mass traces into pseudo-spectra, from `ANALYSIS/OPENSWATH/MasstraceCorrelator.h`.
+pub mod masstrace_correlator;
 /// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
 pub mod metabo_targeted_target_decoy;
 /// Test doubles for the access traits, from `OPENSWATHALGO/DATAACCESS/MockObjects.h`.
