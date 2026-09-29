@@ -411,6 +411,7 @@ pub(super) struct TextInput<R> {
     bytes: usize,
 }
 impl<R: BufRead> TextInput<R> {
+    /// A line reader over `reader` charging `options`; invalid limits are refused.
     pub fn new(reader: R, options: &Limits) -> Result<Self> {
         options.validate()?;
         Ok(Self {
@@ -420,6 +421,7 @@ impl<R: BufRead> TextInput<R> {
             bytes: 0,
         })
     }
+    /// Read the next line into `line`; `false` at the end of input.
     pub fn next_line(&mut self, line: &mut String) -> Result<bool> {
         line.clear();
         let allowance = self.options.max_bytes - self.bytes;
