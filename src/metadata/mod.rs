@@ -25,3 +25,6 @@ pub use experiment_values::*;
 
 mod experimental_settings;
 pub use experimental_settings::*;
+
+/// `DataValue::toString(bool)`: the source text of a `MetaValue`.
+mod value_text;

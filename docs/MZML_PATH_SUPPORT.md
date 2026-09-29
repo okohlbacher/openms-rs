@@ -14,10 +14,10 @@ use the new mzML path API explicitly. This does not add scientific options to
 the other FileHandler formats.
 
 Input compression is detected from bytes, even with an unknown or misleading
-suffix. Plain, gzip and bzip2 input are supported; limits count decompressed XML
+suffix. Plain, gzip, bzip2 and single-entry ZIP input are supported; limits count decompressed XML
 and decoded binary arrays. Invalid options fail before opening the input, and
 corrupt compressed streams fail rather than returning a partial experiment.
-ZIP input remains unsupported. `load_into` and `load_into_with_options` parse an
+A one-entry ZIP archive is read as the source reads it (`src/format/zip_input.rs`, see `docs/FEATUREXML_SUPPORT.md`). `load_into` and `load_into_with_options` parse an
 owned replacement before changing the destination, so every reported error leaves
 the previous value intact. Source `MzMLFile::load` resets its destination first;
 atomic failure is a deliberate native correction.

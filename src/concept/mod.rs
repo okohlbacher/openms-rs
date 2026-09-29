@@ -20,3 +20,6 @@ pub mod parallel;
 pub mod progress_logger;
 pub mod unique_id;
 pub use unique_id::{HasUniqueId, UniqueId, UniqueIdGenerator};
+/// `CONCEPT/Detail/NumericFormatting.h`: locale-independent floating-point text
+/// behind `StringUtils::toStr`, and the C stream conversion `%g`.
+pub mod numeric_formatting;

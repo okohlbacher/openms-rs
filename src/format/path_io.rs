@@ -33,9 +33,17 @@ pub(crate) fn open(path: &Path) -> Result<Box<dyn BufRead>> {
             "compressed input requires the file-compression feature".into(),
         ));
     }
-    if magic.starts_with(b"PK\x03\x04") {
+    // XMLFile::parse_ (XMLFile.cpp:141-165) sends any file starting with the two
+    // bytes "PK" to libzip, which streams the archive's single file entry.
+    if magic.starts_with(b"PK") {
+        #[cfg(feature = "file-compression")]
+        {
+            let name = path.display().to_string();
+            return super::zip_input::open_single_entry(reader.into_inner(), &name);
+        }
+        #[cfg(not(feature = "file-compression"))]
         return Err(Error::Unsupported(
-            "ZIP input is not a single scientific stream".into(),
+            "ZIP input requires the file-compression feature".into(),
         ));
     }
     Ok(Box::new(reader))

@@ -60,7 +60,9 @@ use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, Precursor,
     SpectrumType,
 };
-use crate::metadata::{DriftTimeUnit, MetaValue, MetaValueData, Product, Unit};
+use crate::metadata::{
+    DriftTimeUnit, IonMobilityPeakType, MetaValue, MetaValueData, Product, Unit,
+};
 use crate::{Error, Result};
 pub use load::LoadOptions;
 #[path = "mzml_acquisition.rs"]
@@ -279,6 +281,45 @@ pub struct ReadOptions {
     /// matching writer. Not part of [`ReadOptions::source`], so the tools that
     /// use that preset keep refusing such values at load time.
     pub source_nonfinite_float_arrays: bool,
+    /// Copy a selected ion's ion mobility onto its spectrum, as source
+    /// `MzMLHandler` does.
+    ///
+    /// The source stores a `selectedIon` drift time (`MS:1002476`), inverse
+    /// reduced mobility (`MS:1002815`), FAIMS compensation voltage
+    /// (`MS:1001581`) or collisional cross section (`MS:1002954`) on the
+    /// precursor **and** on the spectrum, "in case a client only checks
+    /// there" (`MzMLHandler.cpp:1840-1877`): the spectrum's drift time and unit
+    /// become the last such value in document order, overwriting a scan-level
+    /// value read before it. A chromatogram precursor's mobility stays on the
+    /// precursor (`:1878-1882`). `MzMLFile_test.cpp:418-421` expects this.
+    ///
+    /// `false`, the default, keeps the precursor value on the precursor only,
+    /// so a spectrum built with a precursor mobility and no spectrum mobility
+    /// reads back as it was written. `true` selects the source behaviour and is
+    /// part of [`ReadOptions::source`]. The writer is unaffected: it writes the
+    /// spectrum value in the scan and the precursor value in the selected ion,
+    /// so a file read either way writes back to a file that reads back the same
+    /// way.
+    pub source_selected_ion_drift_time: bool,
+    /// Drop the spectrum term `MS:1003441` (ion mobility centroid frame), as
+    /// the executed source does.
+    ///
+    /// `MzMLHandler` has a branch that reads the term as `IM_CENTROIDED`
+    /// (`MzMLHandler.cpp:1646-1649`), and its writer emits the term for such a
+    /// spectrum (`:5290-5294`), but the pinned psi-ms CV (data-version
+    /// 4.1.155, byte-identical to `resources/cv/psi-ms.obo`) has no
+    /// `MS:1003441`. `XMLHandler::cvParamToValue` answers an unknown accession
+    /// with `DataValue::EMPTY` and `handleCVParam_` returns before any branch
+    /// (`:1537-1539`), so the Release build never reaches the one that sets
+    /// the type: a spectrum it wrote as centroided reads back as `IM_PROFILE`
+    /// when it has ion-mobility data and as `UNKNOWN` otherwise (executed on
+    /// ibminode06, `../oracle/B8a-mzml-im`).
+    ///
+    /// `false`, the default, reads the term as
+    /// [`IonMobilityPeakType::Centroid`], so what the writer records survives
+    /// a round trip. `true` selects the source behaviour and is part of
+    /// [`ReadOptions::source`].
+    pub source_im_centroid_frame: bool,
 }
 impl Default for ReadOptions {
     fn default() -> Self {
@@ -299,24 +340,31 @@ impl Default for ReadOptions {
             source_dangling_references: false,
             source_time_array_precision: false,
             source_nonfinite_float_arrays: false,
+            source_selected_ion_drift_time: false,
+            source_im_centroid_frame: false,
         }
     }
 }
 impl ReadOptions {
     /// The default limits with every source-compatibility switch enabled.
     ///
-    /// Sets [`ReadOptions::source_dangling_references`] and
-    /// [`ReadOptions::source_time_array_precision`] on top of the default
+    /// Sets [`ReadOptions::source_dangling_references`],
+    /// [`ReadOptions::source_time_array_precision`],
+    /// [`ReadOptions::source_selected_ion_drift_time`] and
+    /// [`ReadOptions::source_im_centroid_frame`] on top of the default
     /// [`ReadOptions::source_invalid_timestamps`], so a document reads as
     /// source `MzMLHandler` reads it wherever this port otherwise refuses a
-    /// loss or keeps precision the source drops. Limits and acquisition
-    /// normalization stay at their defaults. This is what a TOPP tool that
-    /// reproduces source loading passes.
+    /// loss, keeps precision the source drops or keeps a value where the
+    /// source copies it. Limits and acquisition normalization stay at their
+    /// defaults. This is what a TOPP tool that reproduces source loading
+    /// passes.
     pub fn source() -> Self {
         Self {
             source_dangling_references: true,
             source_invalid_timestamps: true,
             source_time_array_precision: true,
+            source_selected_ion_drift_time: true,
+            source_im_centroid_frame: true,
             ..Self::default()
         }
     }
@@ -1057,6 +1105,10 @@ struct Record {
     raw_float_arrays: Vec<DataArray<f64>>,
     /// [`ReadOptions::source_nonfinite_float_arrays`].
     nonfinite_float_arrays: bool,
+    /// [`ReadOptions::source_selected_ion_drift_time`].
+    selected_ion_drift_time: bool,
+    /// [`ReadOptions::source_im_centroid_frame`].
+    drop_im_centroid_frame: bool,
     primary_metadata: [crate::metadata::MetaInfo; 2],
     intensity_first: bool,
     wavelength: Option<(usize, usize)>,
@@ -1234,6 +1286,19 @@ impl Record {
                 attrs,
                 self.selected_mz && self.precursor_mz_selected_ion,
             )? {
+                // MzMLHandler.cpp:1871-1877; see
+                // ReadOptions::source_selected_ion_drift_time.
+                if self.selected_ion_drift_time
+                    && parent == "selectedIon"
+                    && precursor_metadata::mobility_term(accession).is_some()
+                {
+                    if let (Some(spectrum), Some(drift_time)) =
+                        (self.spectrum.as_mut(), p.drift_time)
+                    {
+                        spectrum.drift_time = drift_time;
+                        spectrum.drift_time_unit = p.drift_time_unit;
+                    }
+                }
                 if parent == "isolationWindow"
                     && accession == "MS:1000827"
                     && !self.precursor_mz_selected_ion
@@ -1321,6 +1386,18 @@ impl Record {
                     .ok_or_else(|| invalid("spectrum representation outside spectrum"))?
                     .spectrum_type = SpectrumType::Unknown
             }
+            ("spectrum", "MS:1003441") => {
+                // MzMLHandler.cpp:1646-1649: ion mobility centroid frame; the
+                // executed source never gets here (see
+                // ReadOptions::source_im_centroid_frame).
+                let spectrum = self
+                    .spectrum
+                    .as_mut()
+                    .ok_or_else(|| invalid("ion mobility centroid frame outside spectrum"))?;
+                if !self.drop_im_centroid_frame {
+                    spectrum.im_peak_type = IonMobilityPeakType::Centroid;
+                }
+            }
             ("spectrum", "MS:1001581")
             | ("scan", "MS:1002476" | "MS:1002815" | "MS:1001581" | "MS:1002954") => {
                 self.spectrum_mobility(accession, value, attrs)?
@@ -1384,6 +1461,16 @@ impl Record {
                 peaks.push(Peak1D::new(mz, intensity(i)?));
             }
             spectrum.peaks = peaks;
+            // MzMLHandler.cpp:248-256: once the arrays are materialised, a
+            // spectrum with ion-mobility data and no peak type is a profile
+            // frame. The source's arrays exist only when it fills data, so a
+            // fill_data=false read leaves the type as the document gave it.
+            if fill_data
+                && spectrum.im_peak_type == IonMobilityPeakType::Unknown
+                && spectrum.contains_im_data()
+            {
+                spectrum.im_peak_type = IonMobilityPeakType::Profile;
+            }
             // Every peak value of this record is already known finite, so the
             // per-peak loop of `MSSpectrum::validate` cannot fail here and is
             // skipped; everything else that `validate` checks still runs. The
@@ -2476,6 +2563,8 @@ fn read_engine(
                             precursor_outside: false,
                             raw_float_arrays: Vec::new(),
                             nonfinite_float_arrays: options.source_nonfinite_float_arrays,
+                            selected_ion_drift_time: options.source_selected_ion_drift_time,
+                            drop_im_centroid_frame: options.source_im_centroid_frame,
                             primary_metadata: Default::default(),
                             wavelength: None,
                             intensity_first: false,
@@ -4007,6 +4096,11 @@ fn write_document<W: Write>(
                 SpectrumType::Centroid => cv(&mut w, "MS:1000127", "centroid spectrum", "", "")?,
                 SpectrumType::Profile => cv(&mut w, "MS:1000128", "profile spectrum", "", "")?,
                 SpectrumType::Unknown => {}
+            }
+            // MzMLHandler.cpp:5290-5294: only a centroided ion-mobility frame
+            // is annotated; a profile frame is what the reader assumes.
+            if spectrum.im_peak_type == IonMobilityPeakType::Centroid {
+                cv(&mut w, "MS:1003441", "ion mobility centroid frame", "", "")?;
             }
             settings_metadata::write_spectrum(&mut w, spectrum)?;
             w.write_all(header.spectrum_metadata[i].as_bytes())?;
