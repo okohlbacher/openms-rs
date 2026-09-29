@@ -815,13 +815,12 @@ fn xipm_writer_and_reader_match_release() {
 
 /// The driver's `testExperiment()`.
 fn arrow_experiment() -> MSExperiment {
-    let spectrum = |rt: f64, level: u32, id: &str, peaks: &[(f64, f32)]| {
-        let mut s = MSSpectrum::default();
-        s.rt = rt;
-        s.ms_level = level;
-        s.native_id = id.into();
-        s.peaks = peaks.iter().map(|&(mz, i)| Peak1D::new(mz, i)).collect();
-        s
+    let spectrum = |rt: f64, level: u32, id: &str, peaks: &[(f64, f32)]| MSSpectrum {
+        rt,
+        ms_level: level,
+        native_id: id.into(),
+        peaks: peaks.iter().map(|&(mz, i)| Peak1D::new(mz, i)).collect(),
+        ..MSSpectrum::default()
     };
     let mut exp = MSExperiment::default();
     exp.spectra.push(spectrum(

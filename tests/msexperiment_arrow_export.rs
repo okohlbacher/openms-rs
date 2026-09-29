@@ -31,12 +31,13 @@ fn scratch(test: &str) -> PathBuf {
 }
 
 fn spectrum(rt: f64, level: u32, native_id: &str, peaks: &[(f64, f32)]) -> MSSpectrum {
-    let mut spectrum = MSSpectrum::default();
-    spectrum.rt = rt;
-    spectrum.ms_level = level;
-    spectrum.native_id = native_id.into();
-    spectrum.peaks = peaks.iter().map(|&(mz, i)| Peak1D::new(mz, i)).collect();
-    spectrum
+    MSSpectrum {
+        rt,
+        ms_level: level,
+        native_id: native_id.into(),
+        peaks: peaks.iter().map(|&(mz, i)| Peak1D::new(mz, i)).collect(),
+        ..MSSpectrum::default()
+    }
 }
 
 /// `createTestExperiment()`.
