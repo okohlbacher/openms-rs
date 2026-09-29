@@ -38,6 +38,14 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 - Proposed CI: scratchpad/integB/jobs_patch.py, new_lines.tsv, run_lines.sh (slot integ-B).
 - DefaultParamHandler unknown-key warning wording differs from Release (lead decision).
 
+- 5c39075b InfoStream (B7) now wraps concept::log_stream::LogStream (dup cache removed).
+- c-manifest: tests/data/topp_cli_base_classes_provenance.json (B7 had none).
+- Ledger written: .planning/ledger-fragments/wave4/INTEG-B.json (56 entries) by
+  scratchpad/integB/make_ledger.py; validate_ledger.py runs core_sdk_coverage.build (ok, complete 132->148).
+- new_lines1 (merged tree): 13 proposed slice lines all PASS, counts in new_lines1.out.
+- sweep1 slot integ-B-sweep (merged tree before fixes); sweep2 slot integ-B-sweep2 (final tree);
+  new_lines2 at final tree (slot integ-B).
+
 ## Next step
-1. Poll sweep1 (slot integ-B-sweep) and new_lines1.out; fix failures.
-2. Re-sweep after fixes; write INTEG-B.json + INTEG-B.md.
+1. Wait sweep1/sweep2/new_lines2; fix any failure.
+2. Write .planning/lane-reports/INTEG-B.md (bash heredoc); delete NOTES.md in final commit.
