@@ -11,7 +11,7 @@
   {
    "path": "src/openms/source/FORMAT/VALIDATORS/MzDataValidator.cpp",
    "sha256": "3c1c02608dce2ed02fc5f8edf224aaf424db753982ebb5bbc45f449e36f3cc62",
-   "lines": "17-21 setCheckUnits(true); 25-151 handleTerm_: rules, units, normalised name comparison"
+   "lines": "20-24 setCheckUnits(true); 29-153 handleTerm_: rules, units, normalised name comparison"
   },
   {
    "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",

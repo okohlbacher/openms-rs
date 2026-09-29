@@ -125,7 +125,7 @@ checked by `MzDataValidator`. The inherited `SemanticValidator::startElement`
 runs first (`SemanticValidator.cpp:111-139`): an unknown term draws
 `Unknown CV term: '<acc> - <name>' at element '<path>'` and is not handled
 further; an obsolete one draws `Obsolete CV term: ...`. The override
-(`MzDataValidator.cpp:25-151`) then checks the mapping rules, the units (unit
+(`MzDataValidator.cpp:29-153`) then checks the mapping rules, the units (unit
 checking is on) and the name, which is compared with whitespace removed and
 ASCII case folded; the message quotes both names normalised, e.g.
 `Name of CV term not correct: 'PSI:1000011 - resolution' should be

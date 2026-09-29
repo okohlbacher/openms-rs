@@ -1137,7 +1137,7 @@ fn run_transform(
     };
     let parsed = {
         let mut run = Run::new(&read_options, Detail::Full, &mut report.read);
-        run.progress = ProgressReporter::new(logger.as_deref_mut());
+        run.progress = ProgressReporter::new(logger);
         run.parse(path_io::open(path)?, Some(&mut sink))?
     };
     report.delivered = sink.delivered;

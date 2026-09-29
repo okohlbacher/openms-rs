@@ -5,7 +5,7 @@
 //! `FORMAT/VALIDATORS/MzDataValidator.h`.
 //!
 //! The source specialises `SemanticValidator` by replacing its whole
-//! `handleTerm_` (`MzDataValidator.cpp:25-151`). In addition to the generic
+//! `handleTerm_` (`MzDataValidator.cpp:29-153`). In addition to the generic
 //! mapping-rule checks, for each CV term encountered the recorded unit
 //! accession, if any, must be one of the term's allowed units or a child of
 //! one, and the term's name must match the name the vocabulary registers with
@@ -222,7 +222,7 @@ fn normalised_name(name: &str) -> String {
         .collect()
 }
 
-/// Source `MzDataValidator::handleTerm_` (`MzDataValidator.cpp:25-151`).
+/// Source `MzDataValidator::handleTerm_` (`MzDataValidator.cpp:29-153`).
 #[allow(clippy::too_many_arguments)] // One private source callback carries its borrowed operation context.
 fn handle_mzdata(
     index: &mut Index<'_>,

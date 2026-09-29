@@ -2881,3 +2881,29 @@ fn the_two_round_trip_losses_that_are_the_sources_own() {
     assert_eq!(reloaded.spectra.len(), 1);
     assert!(reloaded.spectra[0].peaks.is_empty());
 }
+
+/// `MzDataValidator_test.cpp`: construction from an empty mapping and an
+/// empty vocabulary, and destruction. With nothing loaded, every term of a
+/// document is unknown to the vocabulary, so the inherited `startElement`
+/// warns about each and handles none of them, and no rule can fail.
+#[cfg(feature = "semantic-validation")]
+#[test]
+fn mzdata_validator_constructor_and_destructor() {
+    use openms::data_structures::CVMappings;
+    use openms::format::controlled_vocabulary::ControlledVocabulary;
+    use openms::format::semantic_validator::mzdata::MzDataValidator;
+    let (mapping, cv) = (CVMappings::default(), ControlledVocabulary::new());
+    let validator = MzDataValidator::new(&mapping, &cv);
+    assert!(validator.options.check_units);
+    let report = validator.validate(data("MzDataFile_1.mzData")).unwrap();
+    assert!(report.is_valid());
+    assert_eq!(report.warnings.len(), 72);
+    assert!(
+        report
+            .warnings
+            .iter()
+            .all(|w| w.starts_with("Unknown CV term: ")),
+        "{report:?}"
+    );
+    drop(validator);
+}
