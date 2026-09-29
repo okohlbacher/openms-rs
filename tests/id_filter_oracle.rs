@@ -23,6 +23,10 @@ use openms::analysis::id_filter::{
 use openms::chemistry::{AASequence, DigestionSpecificity, Protease, ProteaseDigestion};
 use openms::format::fasta::FASTAEntry;
 use openms::format::idxml;
+use openms::identification::graph::{
+    IdentificationData, IdentifiedMolecule, IdentifiedPeptide, InputFile, Observation,
+    ObservationMatch, ParentId, ParentMatch, ParentSequence, ScoreType, ScoreTypeId,
+};
 use openms::identification::{
     PeptideEvidence, PeptideHit, PeptideIdentification, ProteinGroup, ProteinHit,
     ProteinIdentification,
@@ -643,4 +647,131 @@ fn digestion_filter_checks_evidence_limits_as_the_source() {
     assert_eq!(peptide.len(), 17);
     let evidence = PeptideEvidence::new("P1", 2..=18).unwrap();
     assert!(!filter.matches(&evidence).unwrap());
+}
+
+/// The driver's `idd_*` graph: three spectra, four peptides (one target, two
+/// decoy, one shared parent), seven matches scored under `sc` (higher better)
+/// and `low` (lower better), some unscored.
+fn identification_graph() -> (IdentificationData, ScoreTypeId, ScoreTypeId) {
+    let mut data = IdentificationData::new().unwrap();
+    let file = data.register_input_file(InputFile::new("file")).unwrap();
+    let mut observation = |id: &str| {
+        data.register_observation(Observation::new(id, file))
+            .unwrap()
+    };
+    let s1 = observation("spectrum_1");
+    let s2 = observation("spectrum_2");
+    let s3 = observation("spectrum_3");
+    let sc = data
+        .register_score_type(ScoreType::new("sc", true))
+        .unwrap();
+    let low = data
+        .register_score_type(ScoreType::new("low", false))
+        .unwrap();
+    let pt = data
+        .register_parent_sequence(ParentSequence::new("PT"))
+        .unwrap();
+    let mut decoy = ParentSequence::new("PD");
+    decoy.is_decoy = true;
+    let pd = data.register_parent_sequence(decoy).unwrap();
+    let mut peptide = |sequence: &str, parents: &[ParentId]| {
+        let mut value = IdentifiedPeptide::new(sequence.parse().unwrap());
+        for &parent in parents {
+            value
+                .parent_matches
+                .entry(parent)
+                .or_default()
+                .insert(ParentMatch::new(Some(0), Some(sequence.len() - 1)));
+        }
+        data.register_identified_peptide(value).unwrap()
+    };
+    let ra = peptide("PEPTIDEK", &[pt]);
+    let rb = peptide("AAAK", &[pd]);
+    let rc = peptide("PEPTIDE", &[pt, pd]);
+    let rd = peptide("GGGR", &[pd]);
+    let matches = [
+        (ra, s1, Some(10.0), Some(3.0)),
+        (rb, s1, Some(12.0), Some(1.0)),
+        (rc, s1, None, None),
+        (ra, s2, Some(5.0), None),
+        (rb, s2, Some(5.0), Some(2.0)),
+        (rc, s3, None, None),
+        (rd, s3, None, None),
+    ];
+    for (molecule, observation, sc_value, low_value) in matches {
+        let mut value = ObservationMatch::new(molecule, observation);
+        if let Some(v) = sc_value {
+            value.result.add_score(sc, v, None).unwrap();
+        }
+        if let Some(v) = low_value {
+            value.result.add_score(low, v, None).unwrap();
+        }
+        data.register_observation_match(value).unwrap();
+    }
+    (data, sc, low)
+}
+
+/// The driver's dump, sorted: the source iterates its graph containers in
+/// the heap-address order of the referenced records (the oracle lists
+/// spectrum_3 before spectrum_1), an allocator artefact the port does not
+/// reproduce; the records must be the same.
+fn graph_dump(data: &IdentificationData, sc: ScoreTypeId, low: ScoreTypeId) -> Vec<String> {
+    let score = |value: Option<f64>| value.map_or("-".to_owned(), |v| format!("{v}"));
+    let mut lines = Vec::new();
+    for (_, value) in data.observation_matches() {
+        let IdentifiedMolecule::Peptide(peptide) = value.identified_molecule else {
+            panic!("peptide matches only");
+        };
+        lines.push(format!(
+            "match\t{}\t{}\t{}\t{}",
+            data.observation(value.observation).unwrap().data_id,
+            data.peptide(peptide).unwrap().sequence,
+            score(value.result.score(sc)),
+            score(value.result.score(low)),
+        ));
+    }
+    for (_, parent) in data.parents() {
+        lines.push(format!("parent\t{}", parent.accession));
+    }
+    for (_, peptide) in data.peptides() {
+        lines.push(format!("peptide\t{}", peptide.sequence));
+    }
+    for (_, observation) in data.observations() {
+        lines.push(format!("observation\t{}", observation.data_id));
+    }
+    lines.sort();
+    lines
+}
+
+#[test]
+fn identification_data_filters_match_the_source() {
+    for name in [
+        "idd_initial",
+        "idd_best_sc",
+        "idd_best_low",
+        "idd_cutoff_sc_10",
+        "idd_cutoff_sc_5",
+        "idd_cutoff_low_2",
+        "idd_decoys",
+    ] {
+        let mut expected: Vec<String> = case(name).iter().map(|row| row.join("\t")).collect();
+        expected.sort();
+        let (mut data, sc, low) = identification_graph();
+        match name {
+            "idd_best_sc" => id_filter::keep_best_match_per_observation(&mut data, sc).unwrap(),
+            "idd_best_low" => id_filter::keep_best_match_per_observation(&mut data, low).unwrap(),
+            "idd_cutoff_sc_10" => {
+                id_filter::filter_observation_matches_by_score(&mut data, sc, 10.0).unwrap()
+            }
+            "idd_cutoff_sc_5" => {
+                id_filter::filter_observation_matches_by_score(&mut data, sc, 5.0).unwrap()
+            }
+            "idd_cutoff_low_2" => {
+                id_filter::filter_observation_matches_by_score(&mut data, low, 2.0).unwrap()
+            }
+            "idd_decoys" => id_filter::remove_decoys(&mut data).unwrap(),
+            _ => {}
+        }
+        assert_eq!(graph_dump(&data, sc, low), expected, "{name}");
+    }
 }

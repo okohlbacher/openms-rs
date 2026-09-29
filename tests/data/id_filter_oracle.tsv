@@ -1378,3 +1378,66 @@ digestion_evidence	digest_ev	1	0	full	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	1	
 digestion_evidence	digest_ev	1	0	semi	1	1	1	0	1	1	1	1	0	0	0	1	0	0	1	1	0	1	1	1	1	1	1	0
 digestion_evidence	digest_ev	1	1	full	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	1	1	1	1	0
 digestion_evidence	digest_ev	1	1	semi	1	1	1	1	1	1	1	1	0	1	1	1	0	0	1	1	0	1	1	1	1	1	1	0
+idd_initial	match	spectrum_3	GGGR	-	-
+idd_initial	match	spectrum_3	PEPTIDE	-	-
+idd_initial	match	spectrum_2	PEPTIDEK	5	-
+idd_initial	match	spectrum_2	AAAK	5	2
+idd_initial	match	spectrum_1	PEPTIDEK	10	3
+idd_initial	match	spectrum_1	AAAK	12	1
+idd_initial	match	spectrum_1	PEPTIDE	-	-
+idd_initial	parent	PD
+idd_initial	parent	PT
+idd_initial	peptide	AAAK
+idd_initial	peptide	GGGR
+idd_initial	peptide	PEPTIDE
+idd_initial	peptide	PEPTIDEK
+idd_initial	observation	spectrum_1
+idd_initial	observation	spectrum_2
+idd_initial	observation	spectrum_3
+idd_best_sc	match	spectrum_2	PEPTIDEK	5	-
+idd_best_sc	match	spectrum_1	AAAK	12	1
+idd_best_sc	parent	PD
+idd_best_sc	parent	PT
+idd_best_sc	peptide	AAAK
+idd_best_sc	peptide	PEPTIDEK
+idd_best_sc	observation	spectrum_1
+idd_best_sc	observation	spectrum_2
+idd_best_low	match	spectrum_2	AAAK	5	2
+idd_best_low	match	spectrum_1	AAAK	12	1
+idd_best_low	parent	PD
+idd_best_low	peptide	AAAK
+idd_best_low	observation	spectrum_1
+idd_best_low	observation	spectrum_2
+idd_cutoff_sc_10	match	spectrum_1	PEPTIDEK	10	3
+idd_cutoff_sc_10	match	spectrum_1	AAAK	12	1
+idd_cutoff_sc_10	parent	PD
+idd_cutoff_sc_10	parent	PT
+idd_cutoff_sc_10	peptide	AAAK
+idd_cutoff_sc_10	peptide	PEPTIDEK
+idd_cutoff_sc_10	observation	spectrum_1
+idd_cutoff_sc_5	match	spectrum_2	PEPTIDEK	5	-
+idd_cutoff_sc_5	match	spectrum_2	AAAK	5	2
+idd_cutoff_sc_5	match	spectrum_1	PEPTIDEK	10	3
+idd_cutoff_sc_5	match	spectrum_1	AAAK	12	1
+idd_cutoff_sc_5	parent	PD
+idd_cutoff_sc_5	parent	PT
+idd_cutoff_sc_5	peptide	AAAK
+idd_cutoff_sc_5	peptide	PEPTIDEK
+idd_cutoff_sc_5	observation	spectrum_1
+idd_cutoff_sc_5	observation	spectrum_2
+idd_cutoff_low_2	match	spectrum_2	AAAK	5	2
+idd_cutoff_low_2	match	spectrum_1	AAAK	12	1
+idd_cutoff_low_2	parent	PD
+idd_cutoff_low_2	peptide	AAAK
+idd_cutoff_low_2	observation	spectrum_1
+idd_cutoff_low_2	observation	spectrum_2
+idd_decoys	match	spectrum_3	PEPTIDE	-	-
+idd_decoys	match	spectrum_2	PEPTIDEK	5	-
+idd_decoys	match	spectrum_1	PEPTIDEK	10	3
+idd_decoys	match	spectrum_1	PEPTIDE	-	-
+idd_decoys	parent	PT
+idd_decoys	peptide	PEPTIDE
+idd_decoys	peptide	PEPTIDEK
+idd_decoys	observation	spectrum_1
+idd_decoys	observation	spectrum_2
+idd_decoys	observation	spectrum_3
