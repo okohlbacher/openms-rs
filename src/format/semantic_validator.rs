@@ -3,6 +3,9 @@
 // $Maintainer: OpenMS Rust contributors $
 //! General source CV mapping validation with operation-local XML and rule state.
 
+/// The mzData specialisation, source `MzDataValidator`.
+#[path = "mzdata_validator.rs"]
+pub mod mzdata;
 #[cfg(feature = "mzml-validation")]
 #[path = "mzml_validator.rs"]
 pub mod mzml;

@@ -1129,16 +1129,96 @@ const EMPTY_DOCUMENT: &str = concat!(
 
 /// `MzDataFile_test.cpp:849-854` is `NOT_TESTABLE`, with the comment that the
 /// feature "is not officially supported - the mapping file was hand-crafted".
-/// Neither `mzdata-mapping.xml` nor `psi-mzdata.obo` ships with this crate, so
-/// the method reports that rather than pretending to validate.
+/// The expected reports are therefore the Release build's own
+/// (`tests/data/mzdata_semantic/release_reports.tsv`, written by
+/// `../oracle/F7c-mzdata-semantic` on ibminode06, two identical runs): every
+/// error and warning, in order, or the exception, for the unmodified class-test
+/// fixtures, five documents that each break one rule, a truncated document and
+/// a missing file (`tests/data/mzdata_semantic_provenance.json`).
+#[cfg(feature = "semantic-validation")]
 #[test]
-fn semantic_validation_is_unsupported() {
+fn semantic_validation_matches_the_release_build() {
+    const REPORTS: &str = include_str!("data/mzdata_semantic/release_reports.tsv");
+    #[derive(Default)]
+    struct Case {
+        valid: Option<bool>,
+        errors: Vec<String>,
+        warnings: Vec<String>,
+        exception: Option<(String, String)>,
+    }
+    let mut cases: Vec<(String, Case)> = Vec::new();
+    for line in REPORTS.lines() {
+        let fields: Vec<&str> = line.splitn(3, '\t').collect();
+        match fields[0] {
+            "CASE" => cases.push((fields[1].to_string(), Case::default())),
+            "R" => cases.last_mut().unwrap().1.valid = Some(fields[1] == "1"),
+            "E" => cases
+                .last_mut()
+                .unwrap()
+                .1
+                .errors
+                .push(fields[2].to_string()),
+            "W" => cases
+                .last_mut()
+                .unwrap()
+                .1
+                .warnings
+                .push(fields[2].to_string()),
+            "X" => {
+                cases.last_mut().unwrap().1.exception =
+                    Some((fields[1].to_string(), fields[2].to_string()))
+            }
+            other => panic!("unknown record {other:?}"),
+        }
+    }
+    assert_eq!(cases.len(), 13);
     let file = MzDataFile::new();
-    let error = file.is_semantically_valid(data(FIXTURE_1)).unwrap_err();
-    assert!(
-        matches!(&error, Error::Unsupported(message) if message.contains("mzdata-mapping.xml")),
-        "{error}"
+    for (name, case) in &cases {
+        let path = if name.starts_with("sv_") {
+            data(&format!("mzdata_semantic/{name}"))
+        } else if name == "truncated.mzData" {
+            data("progress_format_readers/truncated.mzData")
+        } else {
+            data(name)
+        };
+        let outcome = file.is_semantically_valid(&path);
+        match (&case.exception, outcome) {
+            (None, Ok(report)) => {
+                assert_eq!(report.errors, case.errors, "{name}: errors");
+                assert_eq!(report.warnings, case.warnings, "{name}: warnings");
+                assert_eq!(Some(report.is_valid()), case.valid, "{name}");
+            }
+            (Some((kind, message)), Err(error)) => match kind.as_str() {
+                "FileNotFound" => assert!(
+                    matches!(&error, Error::Io(e) if e.kind() == std::io::ErrorKind::NotFound),
+                    "{name}: {error}"
+                ),
+                "Parse Error" => {
+                    assert!(
+                        message.contains("input ended before all started tags were ended"),
+                        "{name}"
+                    );
+                    assert!(matches!(error, Error::Parse { .. }), "{name}: {error}");
+                }
+                other => panic!("{name}: no mapping for {other}"),
+            },
+            (expected, actual) => panic!("{name}: expected {expected:?}, got {actual:?}"),
+        }
+    }
+    // The generic validator over the same mapping and vocabulary differs: it
+    // compares names with only the ends trimmed, so the mzData specialisation
+    // is what the source's member runs.
+    use openms::format::semantic_validator::{SemanticValidator, mzdata};
+    let mut generic = SemanticValidator::new(
+        mzdata::default_mappings().unwrap(),
+        mzdata::default_vocabulary().unwrap(),
     );
+    generic.options.check_units = true;
+    let generic = generic.validate(data("MzDataFile_1.mzData")).unwrap();
+    let special = file
+        .is_semantically_valid(data("MzDataFile_1.mzData"))
+        .unwrap();
+    assert_ne!(generic.errors, special.errors);
 }
 
 // ===========================================================================

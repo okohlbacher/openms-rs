@@ -35,3 +35,13 @@ source SDK license hashes are recorded in [its provenance manifest](../../tests/
 The source OpenMS copyright and BSD-3-Clause license are retained in the root
 [license notices](../../LICENSES.md); this attribution does not alter the
 separate ontology terms described above.
+
+## mzData mapping and vocabulary
+
+`mzdata-mapping.xml` and `psi-mzdata.obo` are unchanged copies of
+`share/OpenMS/MAPPING/mzdata-mapping.xml` and `share/OpenMS/CV/psi-mzdata.obo`
+from OpenMS4-core revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`, used by
+the mzData semantic validator. `psi-mzdata.obo` is the 2006 PSI mzData
+vocabulary (saved by `whetzel`, OBO-Edit 1.000) and carries no embedded license
+statement; the mapping was written for OpenMS and falls under its BSD-3-Clause
+license. Hashes are in [the provenance manifest](../../tests/data/mzdata_semantic_provenance.json).
