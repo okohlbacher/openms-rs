@@ -23,10 +23,12 @@
 //! options-carrying adapter shape.
 //!
 //! The source file derives from `ProgressLogger` and hands itself to its
-//! handler; [`load_with_progress`](crate::format::mzxml::load_with_progress)
-//! and [`store_with_progress`](crate::format::mzxml::store_with_progress) make
-//! the handler's calls on a caller's logger, and every other entry point runs
-//! the same code and reports nothing.
+//! handler; [`load_with_progress`](crate::format::mzxml::load_with_progress),
+//! [`store_with_progress`](crate::format::mzxml::store_with_progress),
+//! [`transform_with_progress`](crate::format::mzxml::transform_with_progress)
+//! and [`transform_into_with_progress`](crate::format::mzxml::transform_into_with_progress)
+//! make the handler's calls on a caller's logger, and every other entry point
+//! runs the same code and reports nothing.
 
 use super::PeakFileOptions;
 use super::path_io;
@@ -526,8 +528,10 @@ pub struct TransformReport {
 /// `file.getOptions().addMSLevel(1)`. Writer settings are a separate field
 /// because this port's writer has lossless defaults the source does not.
 ///
-/// The source also derives from `ProgressLogger`; progress reporting is not
-/// ported (see `docs/MZXML_SUPPORT.md`).
+/// The source also derives from `ProgressLogger` and hands itself to its
+/// handler. Here the caller passes the logger to the `*_with_progress`
+/// members, which make the source's calls on it; the other members report
+/// nothing (see `docs/MZXML_SUPPORT.md`).
 #[derive(Clone, Debug, Default)]
 pub struct MzXMLFile {
     /// Loading options, the source `options_` member.
@@ -658,6 +662,29 @@ impl MzXMLFile {
             },
         )
     }
+    /// [`MzXMLFile::transform`], reporting progress to `logger` as the
+    /// source's `transform` does; see the free [`transform_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`transform_with_progress`].
+    pub fn transform_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        consumer: &mut dyn MSDataConsumer,
+        skip_full_count: bool,
+        logger: &mut ProgressLogger,
+    ) -> Result<TransformReport> {
+        transform_with_progress(
+            path,
+            consumer,
+            &TransformOptions {
+                skip_full_count,
+                read: self.options.clone(),
+            },
+            logger,
+        )
+    }
     /// Transform a file while loading and also store the result, the source
     /// `MzXMLFile::transform` overload that takes a map
     /// (`MzXMLFile.cpp:74-89`).
@@ -684,6 +711,32 @@ impl MzXMLFile {
                 skip_full_count,
                 read: self.options.clone(),
             },
+        )
+    }
+    /// [`MzXMLFile::transform_into`], reporting progress to `logger` as the
+    /// source's map overload of `transform` does; see the free
+    /// [`transform_into_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// As [`transform_into_with_progress`].
+    pub fn transform_into_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        consumer: &mut dyn MSDataConsumer,
+        destination: &mut MSExperiment,
+        skip_full_count: bool,
+        logger: &mut ProgressLogger,
+    ) -> Result<TransformReport> {
+        transform_into_with_progress(
+            path,
+            consumer,
+            destination,
+            &TransformOptions {
+                skip_full_count,
+                read: self.options.clone(),
+            },
+            logger,
         )
     }
 }
@@ -965,7 +1018,41 @@ pub fn transform_with_options(
     consumer: &mut dyn MSDataConsumer,
     options: &TransformOptions,
 ) -> Result<TransformReport> {
-    run_transform(path.as_ref(), consumer, None, options)
+    run_transform(path.as_ref(), consumer, None, options, None)
+}
+
+/// Transform a file while loading, storing nothing, and report progress to
+/// `logger` as source `MzXMLFile::transform` does (`MzXMLFile.cpp:59-72`).
+///
+/// Both passes run a handler whose logger is the file, so each makes the
+/// calls [`load_with_progress`] documents: `startProgress(0, scanCount,
+/// "loading mzXML file")` at `<msRun>`, `setProgress(n)` as the `n`-th
+/// `<scan>` begins, and `endProgress()` at `</mzXML>`. The consumer's
+/// `set_expected_size` and `set_experimental_settings` come between the two
+/// passes, and in the second pass its `consume_spectrum` calls come before the
+/// end, when the buffered spectra are flushed.
+///
+/// With `skip_full_count` the first pass is the metadata-only one, which stops
+/// at the first `<scan>` without ending its section, as the source's
+/// `EndParsingSoftly` bypasses `endProgress`. The second pass's start is then
+/// nested one level deeper, and on a command backend it is refused
+/// ([`Error::InvalidValue`], "progress timer is already running"), after the
+/// consumer received its expected size and settings: the Release build throws
+/// `Exception::Precondition` ("StopWatch is already started!") there, so a
+/// command-line `transform` with `skip_full_count` never completes in the
+/// source either. The result is otherwise the one
+/// [`transform_with_options`] returns, and so is every error.
+///
+/// # Errors
+///
+/// As [`MzXMLFile::transform`], plus the errors of the progress calls.
+pub fn transform_with_progress(
+    path: impl AsRef<Path>,
+    consumer: &mut dyn MSDataConsumer,
+    options: &TransformOptions,
+    logger: &mut ProgressLogger,
+) -> Result<TransformReport> {
+    run_transform(path.as_ref(), consumer, None, options, Some(logger))
 }
 
 /// Transform a file while loading and put every consumed spectrum into
@@ -984,7 +1071,31 @@ pub fn transform_into_with_options(
     destination: &mut MSExperiment,
     options: &TransformOptions,
 ) -> Result<TransformReport> {
-    run_transform(path.as_ref(), consumer, Some(destination), options)
+    run_transform(path.as_ref(), consumer, Some(destination), options, None)
+}
+
+/// [`transform_into_with_options`], reporting progress to `logger` as the
+/// source's map overload of `MzXMLFile::transform` does
+/// (`MzXMLFile.cpp:74-89`); the calls are those of
+/// [`transform_with_progress`].
+///
+/// # Errors
+///
+/// As [`transform_with_progress`]. The destination is untouched on failure.
+pub fn transform_into_with_progress(
+    path: impl AsRef<Path>,
+    consumer: &mut dyn MSDataConsumer,
+    destination: &mut MSExperiment,
+    options: &TransformOptions,
+    logger: &mut ProgressLogger,
+) -> Result<TransformReport> {
+    run_transform(
+        path.as_ref(),
+        consumer,
+        Some(destination),
+        options,
+        Some(logger),
+    )
 }
 
 fn run_transform(
@@ -992,6 +1103,7 @@ fn run_transform(
     consumer: &mut dyn MSDataConsumer,
     destination: Option<&mut MSExperiment>,
     options: &TransformOptions,
+    mut logger: Option<&mut ProgressLogger>,
 ) -> Result<TransformReport> {
     let mut report = TransformReport::default();
     // First pass: source transformFirstPass_ (MzXMLFile.cpp:91-109).
@@ -1004,6 +1116,7 @@ fn run_transform(
         let mut first = ReadReport::default();
         let settings = {
             let mut run = Run::new(&options.read, detail, &mut first);
+            run.progress = ProgressReporter::new(logger.as_deref_mut());
             run.parse(path_io::open(path)?, None)?.settings
         };
         report.expected_spectra = first.scan_count;
@@ -1024,6 +1137,7 @@ fn run_transform(
     };
     let parsed = {
         let mut run = Run::new(&read_options, Detail::Full, &mut report.read);
+        run.progress = ProgressReporter::new(logger.as_deref_mut());
         run.parse(path_io::open(path)?, Some(&mut sink))?
     };
     report.delivered = sink.delivered;

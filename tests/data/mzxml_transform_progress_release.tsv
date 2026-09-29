@@ -1,0 +1,230 @@
+# OpenMS4 Release (core bc9cc12, ibminode06) progress and consumer calls of MzXMLFile::transform;
+# produced by ../oracle/F7c-transform-progress (driver.cpp, extract.py). Columns: case, mode, record, fields.
+mzxml_transform	rec	S	0	4	loading mzXML file	0
+mzxml_transform	rec	V	0	1
+mzxml_transform	rec	V	1	1
+mzxml_transform	rec	V	2	1
+mzxml_transform	rec	V	3	1
+mzxml_transform	rec	E	0	0
+mzxml_transform	rec	C	expected	4	0
+mzxml_transform	rec	C	settings
+mzxml_transform	rec	S	0	4	loading mzXML file	0
+mzxml_transform	rec	V	0	1
+mzxml_transform	rec	V	1	1
+mzxml_transform	rec	V	2	1
+mzxml_transform	rec	V	3	1
+mzxml_transform	rec	C	spectrum	scan=10	1
+mzxml_transform	rec	C	spectrum	scan=11	3
+mzxml_transform	rec	C	spectrum	scan=12	5
+mzxml_transform	rec	C	spectrum	scan=13	5
+mzxml_transform	rec	E	0	0
+mzxml_transform	rec	R	4
+mzxml_transform	rec	D	0
+mzxml_transform	cmd	C	expected	4	0
+mzxml_transform	cmd	C	settings
+mzxml_transform	cmd	C	spectrum	scan=10	1
+mzxml_transform	cmd	C	spectrum	scan=11	3
+mzxml_transform	cmd	C	spectrum	scan=12	5
+mzxml_transform	cmd	C	spectrum	scan=13	5
+mzxml_transform	cmd	R	4
+mzxml_transform	cmd	D	0
+mzxml_transform	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \nProgress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzxml_transform_map	rec	S	0	4	loading mzXML file	0
+mzxml_transform_map	rec	V	0	1
+mzxml_transform_map	rec	V	1	1
+mzxml_transform_map	rec	V	2	1
+mzxml_transform_map	rec	V	3	1
+mzxml_transform_map	rec	E	0	0
+mzxml_transform_map	rec	C	expected	4	0
+mzxml_transform_map	rec	C	settings
+mzxml_transform_map	rec	S	0	4	loading mzXML file	0
+mzxml_transform_map	rec	V	0	1
+mzxml_transform_map	rec	V	1	1
+mzxml_transform_map	rec	V	2	1
+mzxml_transform_map	rec	V	3	1
+mzxml_transform_map	rec	C	spectrum	scan=10	1
+mzxml_transform_map	rec	C	spectrum	scan=11	3
+mzxml_transform_map	rec	C	spectrum	scan=12	5
+mzxml_transform_map	rec	C	spectrum	scan=13	5
+mzxml_transform_map	rec	E	0	0
+mzxml_transform_map	rec	R	4	4
+mzxml_transform_map	rec	D	0
+mzxml_transform_map	cmd	C	expected	4	0
+mzxml_transform_map	cmd	C	settings
+mzxml_transform_map	cmd	C	spectrum	scan=10	1
+mzxml_transform_map	cmd	C	spectrum	scan=11	3
+mzxml_transform_map	cmd	C	spectrum	scan=12	5
+mzxml_transform_map	cmd	C	spectrum	scan=13	5
+mzxml_transform_map	cmd	R	4	4
+mzxml_transform_map	cmd	D	0
+mzxml_transform_map	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \nProgress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzxml_transform_truncated	rec	S	0	4	loading mzXML file	0
+mzxml_transform_truncated	rec	V	0	1
+mzxml_transform_truncated	rec	V	1	1
+mzxml_transform_truncated	rec	X	Parse Error	While loading '<W>/inputs/truncated.mzXML': input ended before all started tags were ended; last tag started is 'msRun'( in line 38 column 1) in: <W>/inputs/truncated.mzXML
+mzxml_transform_truncated	rec	D	1
+mzxml_transform_truncated	cmd	X	Parse Error	While loading '<W>/inputs/truncated.mzXML': input ended before all started tags were ended; last tag started is 'msRun'( in line 38 column 1) in: <W>/inputs/truncated.mzXML
+mzxml_transform_truncated	cmd	D	1
+mzxml_transform_truncated	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               
+mzxml_transform_twice	rec	S	0	4	loading mzXML file	0
+mzxml_transform_twice	rec	V	0	1
+mzxml_transform_twice	rec	V	1	1
+mzxml_transform_twice	rec	V	2	1
+mzxml_transform_twice	rec	V	3	1
+mzxml_transform_twice	rec	E	0	0
+mzxml_transform_twice	rec	C	expected	4	0
+mzxml_transform_twice	rec	C	settings
+mzxml_transform_twice	rec	S	0	4	loading mzXML file	0
+mzxml_transform_twice	rec	V	0	1
+mzxml_transform_twice	rec	V	1	1
+mzxml_transform_twice	rec	V	2	1
+mzxml_transform_twice	rec	V	3	1
+mzxml_transform_twice	rec	C	spectrum	scan=10	1
+mzxml_transform_twice	rec	C	spectrum	scan=11	3
+mzxml_transform_twice	rec	C	spectrum	scan=12	5
+mzxml_transform_twice	rec	C	spectrum	scan=13	5
+mzxml_transform_twice	rec	E	0	0
+mzxml_transform_twice	rec	S	0	4	loading mzXML file	0
+mzxml_transform_twice	rec	V	0	1
+mzxml_transform_twice	rec	V	1	1
+mzxml_transform_twice	rec	V	2	1
+mzxml_transform_twice	rec	V	3	1
+mzxml_transform_twice	rec	E	0	0
+mzxml_transform_twice	rec	C	expected	4	0
+mzxml_transform_twice	rec	C	settings
+mzxml_transform_twice	rec	S	0	4	loading mzXML file	0
+mzxml_transform_twice	rec	V	0	1
+mzxml_transform_twice	rec	V	1	1
+mzxml_transform_twice	rec	V	2	1
+mzxml_transform_twice	rec	V	3	1
+mzxml_transform_twice	rec	C	spectrum	scan=10	1
+mzxml_transform_twice	rec	C	spectrum	scan=11	3
+mzxml_transform_twice	rec	C	spectrum	scan=12	5
+mzxml_transform_twice	rec	C	spectrum	scan=13	5
+mzxml_transform_twice	rec	E	0	0
+mzxml_transform_twice	rec	R	4	4
+mzxml_transform_twice	rec	D	0
+mzxml_transform_twice	cmd	C	expected	4	0
+mzxml_transform_twice	cmd	C	settings
+mzxml_transform_twice	cmd	C	spectrum	scan=10	1
+mzxml_transform_twice	cmd	C	spectrum	scan=11	3
+mzxml_transform_twice	cmd	C	spectrum	scan=12	5
+mzxml_transform_twice	cmd	C	spectrum	scan=13	5
+mzxml_transform_twice	cmd	C	expected	4	0
+mzxml_transform_twice	cmd	C	settings
+mzxml_transform_twice	cmd	C	spectrum	scan=10	1
+mzxml_transform_twice	cmd	C	spectrum	scan=11	3
+mzxml_transform_twice	cmd	C	spectrum	scan=12	5
+mzxml_transform_twice	cmd	C	spectrum	scan=13	5
+mzxml_transform_twice	cmd	R	4	4
+mzxml_transform_twice	cmd	D	0
+mzxml_transform_twice	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \nProgress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \nProgress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \nProgress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
+mzxml_transform_skip	rec	S	0	4	loading mzXML file	0
+mzxml_transform_skip	rec	C	expected	0	0
+mzxml_transform_skip	rec	C	settings
+mzxml_transform_skip	rec	S	0	4	loading mzXML file	1
+mzxml_transform_skip	rec	V	0	2
+mzxml_transform_skip	rec	V	1	2
+mzxml_transform_skip	rec	V	2	2
+mzxml_transform_skip	rec	V	3	2
+mzxml_transform_skip	rec	C	spectrum	scan=10	1
+mzxml_transform_skip	rec	C	spectrum	scan=11	3
+mzxml_transform_skip	rec	C	spectrum	scan=12	5
+mzxml_transform_skip	rec	C	spectrum	scan=13	5
+mzxml_transform_skip	rec	E	1	0
+mzxml_transform_skip	rec	R	4
+mzxml_transform_skip	rec	D	1
+mzxml_transform_skip	cmd	C	expected	0	0
+mzxml_transform_skip	cmd	C	settings
+mzxml_transform_skip	cmd	X	Precondition failed	StopWatch is already started!
+mzxml_transform_skip	cmd	D	1
+mzxml_transform_skip	cmd	B	Progress of 'loading mzXML file':\n  Progress of 'loading mzXML file':\n
+mzxml_transform_map_skip	rec	S	0	4	loading mzXML file	0
+mzxml_transform_map_skip	rec	C	expected	0	0
+mzxml_transform_map_skip	rec	C	settings
+mzxml_transform_map_skip	rec	S	0	4	loading mzXML file	1
+mzxml_transform_map_skip	rec	V	0	2
+mzxml_transform_map_skip	rec	V	1	2
+mzxml_transform_map_skip	rec	V	2	2
+mzxml_transform_map_skip	rec	V	3	2
+mzxml_transform_map_skip	rec	C	spectrum	scan=10	1
+mzxml_transform_map_skip	rec	C	spectrum	scan=11	3
+mzxml_transform_map_skip	rec	C	spectrum	scan=12	5
+mzxml_transform_map_skip	rec	C	spectrum	scan=13	5
+mzxml_transform_map_skip	rec	E	1	0
+mzxml_transform_map_skip	rec	R	4	4
+mzxml_transform_map_skip	rec	D	1
+mzxml_transform_map_skip	cmd	C	expected	0	0
+mzxml_transform_map_skip	cmd	C	settings
+mzxml_transform_map_skip	cmd	X	Precondition failed	StopWatch is already started!
+mzxml_transform_map_skip	cmd	D	1
+mzxml_transform_map_skip	cmd	B	Progress of 'loading mzXML file':\n  Progress of 'loading mzXML file':\n
+mzxml_transform_truncated_skip	rec	S	0	4	loading mzXML file	0
+mzxml_transform_truncated_skip	rec	C	expected	0	0
+mzxml_transform_truncated_skip	rec	C	settings
+mzxml_transform_truncated_skip	rec	S	0	4	loading mzXML file	1
+mzxml_transform_truncated_skip	rec	V	0	2
+mzxml_transform_truncated_skip	rec	V	1	2
+mzxml_transform_truncated_skip	rec	X	Parse Error	While loading '<W>/inputs/truncated.mzXML': input ended before all started tags were ended; last tag started is 'msRun'( in line 38 column 1) in: <W>/inputs/truncated.mzXML
+mzxml_transform_truncated_skip	rec	D	2
+mzxml_transform_truncated_skip	cmd	C	expected	0	0
+mzxml_transform_truncated_skip	cmd	C	settings
+mzxml_transform_truncated_skip	cmd	X	Precondition failed	StopWatch is already started!
+mzxml_transform_truncated_skip	cmd	D	1
+mzxml_transform_truncated_skip	cmd	B	Progress of 'loading mzXML file':\n  Progress of 'loading mzXML file':\n
+mzxml_transform_twice_skip	rec	S	0	4	loading mzXML file	0
+mzxml_transform_twice_skip	rec	C	expected	0	0
+mzxml_transform_twice_skip	rec	C	settings
+mzxml_transform_twice_skip	rec	S	0	4	loading mzXML file	1
+mzxml_transform_twice_skip	rec	V	0	2
+mzxml_transform_twice_skip	rec	V	1	2
+mzxml_transform_twice_skip	rec	V	2	2
+mzxml_transform_twice_skip	rec	V	3	2
+mzxml_transform_twice_skip	rec	C	spectrum	scan=10	1
+mzxml_transform_twice_skip	rec	C	spectrum	scan=11	3
+mzxml_transform_twice_skip	rec	C	spectrum	scan=12	5
+mzxml_transform_twice_skip	rec	C	spectrum	scan=13	5
+mzxml_transform_twice_skip	rec	E	1	0
+mzxml_transform_twice_skip	rec	S	0	4	loading mzXML file	1
+mzxml_transform_twice_skip	rec	C	expected	0	0
+mzxml_transform_twice_skip	rec	C	settings
+mzxml_transform_twice_skip	rec	S	0	4	loading mzXML file	2
+mzxml_transform_twice_skip	rec	V	0	3
+mzxml_transform_twice_skip	rec	V	1	3
+mzxml_transform_twice_skip	rec	V	2	3
+mzxml_transform_twice_skip	rec	V	3	3
+mzxml_transform_twice_skip	rec	C	spectrum	scan=10	1
+mzxml_transform_twice_skip	rec	C	spectrum	scan=11	3
+mzxml_transform_twice_skip	rec	C	spectrum	scan=12	5
+mzxml_transform_twice_skip	rec	C	spectrum	scan=13	5
+mzxml_transform_twice_skip	rec	E	2	0
+mzxml_transform_twice_skip	rec	R	4	4
+mzxml_transform_twice_skip	rec	D	2
+mzxml_transform_twice_skip	cmd	C	expected	0	0
+mzxml_transform_twice_skip	cmd	C	settings
+mzxml_transform_twice_skip	cmd	X	Precondition failed	StopWatch is already started!
+mzxml_transform_twice_skip	cmd	D	1
+mzxml_transform_twice_skip	cmd	B	Progress of 'loading mzXML file':\n  Progress of 'loading mzXML file':\n
+mzxml_transform_filtered	rec	S	0	4	loading mzXML file	0
+mzxml_transform_filtered	rec	V	0	1
+mzxml_transform_filtered	rec	V	1	1
+mzxml_transform_filtered	rec	V	2	1
+mzxml_transform_filtered	rec	V	3	1
+mzxml_transform_filtered	rec	E	0	0
+mzxml_transform_filtered	rec	C	expected	4	0
+mzxml_transform_filtered	rec	C	settings
+mzxml_transform_filtered	rec	S	0	4	loading mzXML file	0
+mzxml_transform_filtered	rec	V	0	1
+mzxml_transform_filtered	rec	V	1	1
+mzxml_transform_filtered	rec	V	2	1
+mzxml_transform_filtered	rec	V	3	1
+mzxml_transform_filtered	rec	C	spectrum	scan=13	5
+mzxml_transform_filtered	rec	E	0	0
+mzxml_transform_filtered	rec	R	1
+mzxml_transform_filtered	rec	D	0
+mzxml_transform_filtered	cmd	C	expected	4	0
+mzxml_transform_filtered	cmd	C	settings
+mzxml_transform_filtered	cmd	C	spectrum	scan=13	5
+mzxml_transform_filtered	cmd	R	1
+mzxml_transform_filtered	cmd	D	0
+mzxml_transform_filtered	cmd	B	Progress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \nProgress of 'loading mzXML file':\n\r  0.00 %               \r  25.00 %               \r  50.00 %               \r  75.00 %               \r-- done [took <TIME> (CPU), <TIME> (Wall)] -- \n
