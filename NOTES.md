@@ -56,7 +56,14 @@ Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils
   arrow_parquet_provenance psm_arrow_io_note, ledger.py entry). Gates g9-g11 (clippy, doc, 1.85) running -> commit.
 - sweep2 = pre-fix snapshot: its clippy + doc lines WILL fail (fixed since). Needs sweep3 on final tree.
 
+## 12:57
+- 84a9860e PSMArrowIO committed. Oracle ../oracle/integ-F-psmarrowio ran OK (ibminode06, twice identical);
+  tests/data/psm_arrow_io/ (records, stderr, export_* bundles); 2 new differential tests pass (16 total) after
+  mapping rank meta<->field and documenting B/Z/X m/z warning native difference.
+- Report: harness refuses report .md files (Write) -> full report goes into the FINAL MESSAGE (brief fallback).
+  INTEG-F-lead-files.patch saved in .planning/lane-reports (regenerate at end).
+
 ## Next step
-1. g9-g11 green -> commit PSMArrowIO.
-2. When sweep2 done: collect per-line counts (ssh read .ci-line.N.log + lines.tsv). Start sweep3 on final tree.
-3. Write INTEG-F.md; final: revert rust.yml/ci_matrix/baseline (keep copy in scratch ci_proposed2.patch), delete NOTES.md.
+1. g14 (clippy) g15 (1.85) green -> commit differential. trial_register again (arrow manifest changed).
+2. sweep2 done -> sweep3 (same slot) on final tree; counts.sh integ-F-sweep sweep3/lines.tsv.
+3. Revert lead files, regenerate patch, delete NOTES.md, final commit, final message = report.
