@@ -22,3 +22,8 @@ pub mod grid_feature;
 /// A quality-threshold cluster for QT feature grouping (source
 /// `DATASTRUCTURES/QTCluster.h`).
 pub mod qt_cluster;
+/// Parameter-tree helpers shared by the feature-grouping ports.
+pub(crate) mod params;
+/// The distance between two features that feature grouping minimises (source
+/// `FeatureDistance.h`).
+pub mod feature_distance;
