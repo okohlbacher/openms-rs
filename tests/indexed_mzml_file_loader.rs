@@ -226,6 +226,9 @@ fn numpress(compression: NumpressCompression) -> NumpressConfig {
     }
 }
 
+/// A labelled edit of the default writer options.
+type OptionVariant = (&'static str, fn(&mut PeakFileOptions));
+
 #[test]
 fn native_both_stores_write_the_same_bytes_under_every_encoding() {
     // The source's two stores reach the same `MzMLHandler` writer with the
@@ -233,7 +236,7 @@ fn native_both_stores_write_the_same_bytes_under_every_encoding() {
     // a time or the whole map at once. Here the streamed on-disc store and the
     // whole-document in-memory store of the same records must agree byte for
     // byte, under every writer flag the loader forwards.
-    let variants: [(&str, fn(&mut PeakFileOptions)); 9] = [
+    let variants: [OptionVariant; 9] = [
         ("defaults", |_| {}),
         ("zlib", |o| o.zlib_compression = true),
         ("32-bit m/z", |o| o.mz_32_bit = true),

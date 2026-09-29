@@ -186,7 +186,7 @@ impl IndexedMzMLFileLoader {
     /// # Errors
     ///
     /// Every error of
-    /// [`mzml::store_with_peak_options`](crate::format::mzml::store_with_peak_options).
+    /// [`mzml::store_with_peak_options`].
     /// In particular an experiment with neither spectra nor chromatograms is
     /// refused with [`Error::InvalidValue`], because an indexed mzML needs a
     /// record to index; the source writes an index with a dummy `-1` offset

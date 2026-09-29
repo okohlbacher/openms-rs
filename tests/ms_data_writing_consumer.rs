@@ -1248,6 +1248,9 @@ fn the_noop_consumer_accepts_everything_and_touches_no_file() {
 }
 
 /// Streams `experiment` through a consumer carrying `options`.
+/// A labelled edit of the default writer options.
+type OptionVariant = (&'static str, fn(&mut PeakFileOptions));
+
 fn streamed_with(experiment: &MSExperiment, options: &PeakFileOptions) -> Vec<u8> {
     let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
         .with_peak_file_options(options.clone())
@@ -1291,7 +1294,7 @@ fn peak_file_options_encode_every_record_as_the_whole_document_writer_does() {
         compression: NumpressCompression::Linear,
         ..NumpressConfig::default()
     };
-    let variants: [(&str, fn(&mut PeakFileOptions)); 6] = [
+    let variants: [OptionVariant; 6] = [
         ("defaults", |_| {}),
         ("plain", |o| o.write_index = false),
         ("zlib", |o| o.zlib_compression = true),

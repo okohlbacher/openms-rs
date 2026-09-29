@@ -630,15 +630,17 @@ fn aggregating_full_spectra() {
     let mut storage = MSDataStoringConsumer::new();
     {
         let mut agg = MSDataAggregatingConsumer::new(&mut storage, add_up_on_grid);
-        let mut s = MSSpectrum::default();
-        s.name = "spec1".into();
+        let mut s = MSSpectrum {
+            name: "spec1".into(),
+            rt: 5.0,
+            peaks: vec![
+                Peak1D::new(5.0, 7.0),
+                Peak1D::new(10.0, 20.0),
+                Peak1D::new(15.0, 30.0),
+            ],
+            ..Default::default()
+        };
         set_comment(&mut s, "comm1");
-        s.rt = 5.0;
-        s.peaks = vec![
-            Peak1D::new(5.0, 7.0),
-            Peak1D::new(10.0, 20.0),
-            Peak1D::new(15.0, 30.0),
-        ];
         continued(agg.consume_spectrum(&mut s));
         s.clear(true);
         s.name = "spec2".into();

@@ -11,7 +11,7 @@
 //! true)` from `ANALYSIS/OPENSWATH/SpectrumAddition.h`. That header is not
 //! ported yet, and `format` may not depend on `analysis` in any case, so the
 //! merge is a function the caller supplies; see
-//! [`MSDataAggregatingConsumer::new`].
+//! [`MSDataAggregatingConsumer::new`](crate::format::ms_data_aggregating_consumer::MSDataAggregatingConsumer::new).
 
 use crate::Result;
 use crate::interfaces::MSDataConsumer;
