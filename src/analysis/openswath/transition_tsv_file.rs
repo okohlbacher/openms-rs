@@ -990,11 +990,9 @@ impl TransitionTSVFile {
 
     /// A peptide from a line (`createPeptide_`).
     fn create_peptide(&self, t: &TsvTransition, warnings: &mut Vec<String>) -> Result<Peptide> {
-        let mut peptide = Peptide {
-            sequence: t.peptide_sequence.clone(),
-            ..Peptide::default()
-        };
+        let mut peptide = Peptide::default();
         peptide.id = t.group_id.clone();
+        peptide.sequence = t.peptide_sequence.clone();
         let meta = &mut peptide.base.cv_terms.metadata;
         meta.insert(
             "full_peptide_name".into(),
