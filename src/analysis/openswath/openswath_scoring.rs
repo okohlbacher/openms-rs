@@ -445,12 +445,12 @@ impl OpenSwathScoring {
                 let left = feature.meta_value("leftWidth")?;
                 let right = feature.meta_value("rightWidth")?;
                 let n = ((right - left) * self.merge_spectra_by_peak_width_fraction).ceil();
-                if !(n <= f64::from(i32::MAX)) {
+                if n.is_nan() || n > f64::from(i32::MAX) {
                     return Err(Error::InvalidValue(
                         "the number of spectra to merge does not fit an int".into(),
                     ));
                 }
-                // n is below i32::MAX; a negative or NaN value becomes 1 below.
+                // n is at most i32::MAX; a value below 1 becomes 1, as the source's max.
                 Ok(if n >= 1.0 { n as i32 } else { 1 })
             }
         }

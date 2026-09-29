@@ -227,8 +227,8 @@ fn weighted_triangular_sum<T: Copy + Into<f64>>(mat: &ScoreMatrix<T>, w: &[f64])
     for i in 0..w.len() {
         let wi = w[i];
         sum += wi * wi * (*mat.at(i, i)).into();
-        for j in (i + 1)..w.len() {
-            sum += 2.0 * wi * w[j] * (*mat.at(i, j)).into();
+        for (j, &wj) in w.iter().enumerate().skip(i + 1) {
+            sum += 2.0 * wi * wj * (*mat.at(i, j)).into();
         }
     }
     Ok(sum)

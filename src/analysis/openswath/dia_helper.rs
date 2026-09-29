@@ -53,6 +53,11 @@ pub struct WindowIntegral {
     pub intensity: f64,
 }
 
+/// A simulated spectrum: the first-isotope fragment masses and the
+/// `(m/z, relative intensity)` isotope peaks of all of them, as
+/// [`simulate_spectrum_from_sequence`] returns it.
+pub type SimulatedSpectrum = (Vec<f64>, Vec<(f64, f64)>);
+
 /// The unnormalised sums [`integrate_window_sums`] accumulates.
 ///
 /// Source `integrateWindow_` accumulates into three caller-initialised
@@ -519,7 +524,7 @@ pub fn simulate_spectrum_from_sequence(
     sequence: &AASequence,
     generator: &TheoreticalSpectrumGenerator,
     charge: i32,
-) -> Result<(Vec<f64>, Vec<(f64, f64)>)> {
+) -> Result<SimulatedSpectrum> {
     let first = theoretical_masses(sequence, generator, charge)?;
     let mut isotopes = Vec::new();
     for &mass in &first {
