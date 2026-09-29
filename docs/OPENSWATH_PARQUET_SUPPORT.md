@@ -1,14 +1,23 @@
 # OpenSWATH Parquet support
 
 Ports the OpenSWATH Parquet I/O of `ANALYSIS/OPENSWATH` at OpenMS4-core
-`bc9cc12`: the `.oswpq` assay library (`TransitionParquetFile.h`). All of it
-sits behind the `arrow` feature (Arrow/Parquet, lane F1a) together with
-`file-compression` (the ZIP archive layer, `ZipArchiveFile`, lane F7b), which
-the default feature set already enables.
+`bc9cc12`: the `.oswpq` assay library (`TransitionParquetFile.h`), the OSW
+results container written by OpenSwathWorkflow and read by PyProphet-style
+consumers (`OpenSwathOSWParquetWriter.h`, `OpenSwathOSWParquetReader.h`), and
+the flat scored-table exports (`OpenSwathParquetExporter.h` with the row and
+table types of `OpenSwathExportData.h`). The container code sits behind the
+`arrow` feature (Arrow/Parquet, lane F1a) together with `file-compression`
+(the ZIP archive layer, `ZipArchiveFile`, lane F7b), which the default feature
+set already enables; the exporter needs `arrow` only, and the export data
+types need no feature.
 
 | Header | Rust | Status |
 |---|---|---|
 | `TransitionParquetFile.h` | `src/analysis/openswath/transition_parquet_file.rs` | complete |
+| `OpenSwathOSWParquetWriter.h` | `src/analysis/openswath/openswath_osw_parquet_writer.rs` | complete |
+| `OpenSwathOSWParquetReader.h` | `src/analysis/openswath/openswath_osw_parquet_reader.rs` | complete |
+| `OpenSwathExportData.h` | `src/analysis/openswath/openswath_export_data.rs` | complete |
+| `OpenSwathParquetExporter.h` | `src/analysis/openswath/openswath_parquet_exporter.rs` | complete |
 
 ## The `.oswpq` container
 
@@ -16,10 +25,17 @@ A directory, or a store-only ZIP archive of one:
 
 ```text
 <name>.oswpq
-└── library/
-    ├── precursors.parquet     OSWPrecursorSchema
-    ├── transitions.parquet    OSWTransitionSchema
-    └── metadata.json          QC counts
+├── metadata.json              container summary (results containers only)
+├── library/
+│   ├── precursors.parquet     OSWPrecursorSchema
+│   ├── transitions.parquet    OSWTransitionSchema
+│   └── metadata.json          QC counts
+└── runs/                      results containers only
+    ├── runs.parquet
+    └── run_id=<id>/
+        ├── features.parquet
+        ├── feature_precursor.parquet
+        └── feature_transition.parquet
 ```
 
 A zipped container written by `TransitionParquetFile` also carries a JSON size
@@ -103,6 +119,69 @@ Release build, and reproduced).
   `NotFound`; `InvalidValue` and `MissingInformation` map to the variants of
   the same name, their message and offending value in one string.
 
+## OSW results container: API mapping
+
+| C++ member | Rust | Notes |
+|---|---|---|
+| `OpenSwathOSWParquetWriter()` | `OpenSwathOSWParquetWriter::new()`, `Default` | |
+| `write(output_path, assay_library, feature_map, run_id, input_filename, enable_uis_scoring)` | `write(path, &library, &features, run_id, input_filename, uis) -> Result<Vec<String>>` | the returned strings are the source's `OPENMS_LOG_WARN` lines |
+| `write(..., source_ids*)` | `write_with_source_ids(..., Option<&SourceIDMapping>)` | `nullptr` is `None` |
+| `setPreserveExisting(bool)` | `set_preserve_existing(bool)`, getter `preserve_existing()` | |
+| `OpenSwathOSWParquetReader()`, `(oswpq_dir)` | `new()`, `from_path(path) -> Result<Self>` | |
+| `load`, `oswpqPath`, `rows` | `load`, `oswpq_path`, `rows` | |
+| `fetchPeakGroupFeatures(dir, level, main_score)` | `fetch_peak_group_features` | the main-score warning is returned in `warnings` |
+| `fetchTransitionFeatures`, `fetchUnscoredData` | `fetch_transition_features`, `fetch_unscored_data` | `UnscoredResult` members in snake case |
+| `Row`, `PeakGroupFeatureScoresResult`, `TransitionFeaturesResult`, `UnscoredResult` | same names | |
+
+## Scored-table exports: API mapping
+
+| C++ member | Rust | Notes |
+|---|---|---|
+| `OpenSwathParquetExporter::writeFeatureScores(filename, table)` | `write_feature_scores(path, &table) -> Result<()>` | |
+| `OpenSwathParquetExporter::writeTransitionScores(filename, table)` | `write_transition_scores(path, &table) -> Result<()>` | |
+| enums `OpenSwathExportFileFormat`, `OpenSwathIPFExportMode`, `OpenSwathMatrixLevel`, `OpenSwathMatrixNormalization` and their `toString` | same enums (`TSV` is `Tsv`), `as_str()` and `Display` | `Default` is the first enumerator (a value-initialised `enum class`) |
+| `OpenSwathExportRow`, `OpenSwathFeatureScoreRow`, `OpenSwathFeatureScoreTable`, `OpenSwathTransitionScoreRow`, `OpenSwathTransitionScoreTable`, `OpenSwathQuantMatrix` | same structs, `Default` = member initialisers | `std::optional` is `Option` |
+
+## OSW results container: native differences
+
+- **Scores read from meta values (C++ defect candidate).** The source writes
+  every score it reads from a meta value as
+  `appendOptionalFloat_(b, extractMetaDouble_(x, key, value), value, ..)`
+  with `value` (one `double value = 0.0;` per feature) passed by value. C++
+  leaves the evaluation order of function arguments unspecified, and the
+  executed Linux Release build (GCC 14.4, `-O2`) copies `value` before the
+  extraction runs: every such cell of `features.parquet`,
+  `feature_transition.parquet` and `feature_precursor.parquet` holds the
+  previous successful extraction on the same feature (`0.0` for the first),
+  while its null flag is right. Measured on a feature with 31 successful
+  extractions, all 31 cells shifted by one (for example the first
+  transition's `total_area_intensity` is 7.25, the feature's
+  `im_log_intensity`, where its `total_xic` is 20). The port writes each
+  cell's own value, which is what a compiler evaluating left to right
+  produces. `tests/openswath_osw_parquet.rs` carries the chain (`STALE`) and
+  requires the Release and port files to differ in exactly those cells.
+- **Preserved archives.** The Release reader cannot read the archive its own
+  writer extended with `preserve_existing` (libzip rewrites the replaced
+  entries deflated, and `ZipRandomAccessFile` then fails to seek:
+  "Failed to create parquet reader from RandomAccessFile", with no fallback);
+  the port reads entries by extraction and reads that archive.
+- Archive entries are written in sorted path order (the source follows the
+  file system's `recursive_directory_iterator` order); the three run tables
+  are written one after another (the source uses `std::async`); `runs.parquet`
+  is read through the type-checking accessors (the source's
+  `static_pointer_cast` is undefined for another type); `build_time` is `""`.
+- Reproduced: an error raised while the features are converted leaves the
+  created run directory behind, and the same `run_id` is then refused.
+- Reader: both sorts replay the Release `std::sort` comparison by
+  comparison, so ties keep the Release order; a failed `load` leaves `rows`
+  empty (the source keeps the rows read before the error).
+
+## Scored-table exports: native differences
+
+- A failure to write is `Error::Io` carrying the reason; the source maps the
+  `false` of `ArrowIOHelpers::writeTableToParquet` to
+  `Exception::FileNotWritable` and loses it.
+
 ## Checked boundaries and evidence
 
 Tier 1, executed differential: `../oracle/O5c-parquet` runs a driver against
@@ -128,3 +207,40 @@ streams and files. `tests/transition_parquet_file.rs` replays it:
 - Both sections of `TransitionParquetFile_test.cpp` transcribed.
 
 Provenance: `tests/data/transition_parquet_file_provenance.json`.
+
+Tier 1, executed differential for the results container:
+`../oracle/O5c-oswpq` (same host, install and flags, twice, identical records
+and files). `tests/openswath_osw_parquet.rs` replays it:
+
+- Writer: the class-test inputs and a rich feature map (tricky numbers,
+  NaN/inf texts, lists, subordinates by name and by number, MS1 isotopes,
+  UIS target and decoy identification transitions, 64-bit unique and run
+  ids, source-id mapping), written to a directory, appended as a second
+  run, rejected as a duplicate run, to an empty feature map, to an archive,
+  extended with `preserve_existing`, and replaced; every table compared
+  cell by cell (schema, nulls, bits) with the Release files, except the
+  documented stale cells, which must differ exactly as modelled;
+  `metadata.json` byte for byte except `build_time`; archive entry sets and
+  index keys; 10 writer error cases by kind and message, and which run
+  directories stay behind.
+- Reader: `load`, four peak-group variants (MS2, MS1+MS2, a main score, a
+  missing main score), transition features and unscored data on the
+  upstream fixture `OpenSwathWorkflow_tworuns_1_17.output.oswpq` (verbatim
+  from core `bc9cc12` class-test data) and on every Release-written
+  container, as directories and as archives, including sort ties and the
+  unknown-reference errors; every returned column compared value by value.
+- `OpenSwathOSWParquetWriter_test.cpp`, `OpenSwathOSWParquetReader_test.cpp`
+  and `OpenSwathOSWParquetRoundTrip_test.cpp` transcribed.
+
+Tier 1 for the exports: `../oracle/O5c-export` (same host, install and
+flags, twice, identical). `tests/openswath_parquet_exporter.rs` writes the
+class-test tables, empty tables, a table using every optional member with
+dynamic columns and value vectors shorter and longer than the column lists
+(NaN, infinity, -0.0, 1e-300, wrapping-sized ordinals), and a column-only
+table, and compares every column (name, type, nullability, values, nulls)
+with the Release file; the unwritable destination; both class-test sections
+transcribed. `OpenSwathExportData.h` defaults and `toString` are unit tests
+in `openswath_export_data.rs`.
+
+Provenance: `tests/data/openswath_osw_parquet_provenance.json`,
+`tests/data/openswath_parquet_exporter_provenance.json`.
