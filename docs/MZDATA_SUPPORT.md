@@ -45,7 +45,7 @@ mix both byte orders. `tests/mzdata.rs::big_endian_arrays_are_honoured` and
 | `void setOptions(const PeakFileOptions&)` | `MzDataFile::set_options` |
 | `void load(const std::string&, MapType&)` | `MzDataFile::load` (returns the experiment), `MzDataFile::load_into` (replaces a destination), `MzDataFile::load_report` (also returns `LoadReport`). Free forms: `load`, `load_with_options`, `load_into`, `read`, `read_with_options` |
 | `void store(const std::string&, const MapType&) const` | `MzDataFile::store`, `MzDataFile::store_report`. Free forms: `store`, `store_with_options`, `store_report_with_options`, `write`, `write_with_options` |
-| `bool isSemanticallyValid(const std::string&, StringList& errors, StringList& warnings)` | **not ported**: `MzDataFile::is_semantically_valid` returns `Error::Unsupported`. It needs `/MAPPING/mzdata-mapping.xml` and `/CV/psi-mzdata.obo`, the mapping is retained at `tests/data/cv_mapping/mzdata-mapping.xml`, but the vocabulary and mzData validator integration are not bundled, and `MzDataFile_test.cpp:849-854` marks its own section `NOT_TESTABLE` because "the mapping file was hand-crafted by Marc Sturm". The generic machinery is `crate::format::semantic_validator` behind the `semantic-validation` feature |
+| `bool isSemanticallyValid(const std::string&, StringList& errors, StringList& warnings)` | `MzDataFile::is_semantically_valid`, with the `semantic-validation` feature, returning a `ValidationReport` whose `errors` and `warnings` are the source's two lists and whose `is_valid()` is its `bool`. It runs `semantic_validator::mzdata::MzDataValidator` (the source `MzDataValidator`, `FORMAT/VALIDATORS/MzDataValidator.h`) over unchanged bundled copies of `share/OpenMS/MAPPING/mzdata-mapping.xml` and `share/OpenMS/CV/psi-mzdata.obo` (`resources/cv/`). `MzDataFile_test.cpp:849-854` marks the member `NOT_TESTABLE`; the port is instead checked message for message against the Release build (tier 1, see *Semantic validation* below) |
 | `PeakFileOptions options_` (private) | private `MzDataFile::options` field |
 | inherited `Internal::XMLFile::isValid(filename, os)` | `MzDataFile::is_valid`, with the optional `xml-schema` feature: XSD validation against the bundled, unchanged `mzData_1_05.xsd` ([XML schema validation](XML_SCHEMA_SUPPORT.md)) |
 | inherited `Internal::XMLFile::getVersion()` | `MzDataFile::version`, and the `SCHEMA_VERSION` constant |
@@ -115,6 +115,36 @@ the table like any other member.
 | `MzDataFile::limits` / `set_limits` / `discards_unrepresentable` / `set_discard_unrepresentable` / `write_options` | plumbing for the two above |
 
 ---
+
+
+## Semantic validation
+
+`MzDataFile::is_semantically_valid` is source `isSemanticallyValid`
+(`MzDataFile.cpp:40-55`): the mzData mapping rules and the `PSI` vocabulary,
+checked by `MzDataValidator`. The inherited `SemanticValidator::startElement`
+runs first (`SemanticValidator.cpp:111-139`): an unknown term draws
+`Unknown CV term: '<acc> - <name>' at element '<path>'` and is not handled
+further; an obsolete one draws `Obsolete CV term: ...`. The override
+(`MzDataValidator.cpp:29-153`) then checks the mapping rules, the units (unit
+checking is on) and the name, which is compared with whitespace removed and
+ASCII case folded; the message quotes both names normalised, e.g.
+`Name of CV term not correct: 'PSI:1000011 - resolution' should be
+'massresolution'`. Unlike the generic handler it checks no value type. The
+end-of-element rule checks (MUST/MAY, AND/OR/XOR, repeats) are the generic
+ones. A document declaring ISO-8859-1 is transcoded exactly first, as the
+mzData reader does and Xerces does; the shared validator input otherwise
+refuses a non-ASCII Latin-1 document.
+
+**Evidence, tier 1.** `../oracle/F7c-mzdata-semantic` ran the Release build
+(`openms4-release-bc9cc12-c19e494-174b576`, ibminode06, g++ 14.4.0, two
+identical runs) on 13 inputs: six unmodified fixtures, five single-defect
+mutations of `MzDataFile_1.mzData` (term names, an unknown accession, a term in
+the wrong element, unit attributes, a removed and a repeated term), a truncated
+document and a missing file. `tests/mzdata.rs::semantic_validation_matches_the_release_build`
+compares every error and warning, in order, and the outcome
+(`tests/data/mzdata_semantic_provenance.json`). The class-test data itself is
+not valid: `MzDataFile_1.mzData` draws nine name errors and ten warnings in
+both builds, which is why the source calls the mapping "hand-crafted".
 
 ## Preserved source conventions
 
@@ -436,7 +466,7 @@ asserted value they reproduce.
 | 12 | `store(...)` (650-667, 3) | ported | `store_round_trip_equals_the_loaded_experiment` | `e2.getIdentifier() == "lsid"` and `e1 == e2` after restoring the software comment |
 | 13 | `[EXTRA] storing / loading of meta data arrays` (669-828, 69) | ported | `store_and_load_annotation_arrays` | array counts 1/0/2, names `MDA1`/`MDA2`, values 1.1…1.5 and −2.1…−2.5, and 1.3/1.4/1.5 after the [2.5, 7.0) filter |
 | 14 | `[EXTRA] static bool isValid(...)` (830-847, 2) | ported | `tests/xml_schema_formats.rs::mzdata_stored_experiments_are_valid` (`xml-schema`), and `stored_documents_are_wellformed` for the byte layout | a stored empty experiment and a stored loaded fixture both validate against `mzData_1_05.xsd` |
-| 15 | `bool isSemanticallyValid(...)` (849-854, 0) | **mapped** | `semantic_validation_is_unsupported` | `NOT_TESTABLE` — the section asserts nothing, and the method reports that mzData semantic validation is unavailable |
+| 15 | `bool isSemanticallyValid(...)` (849-854, 0) | **mapped** | `semantic_validation_matches_the_release_build` (`semantic-validation`) | `NOT_TESTABLE` — the section asserts nothing; the port is checked against the Release build's reports instead (tier 1, *Semantic validation*) |
 
 **Sections ported: 14. Mapped with a cited asserted value: 1. Unaccounted: 0.**
 
@@ -474,10 +504,9 @@ empty-experiment document, which is transcribed from
   `MzDataFile::is_valid` behind the optional `xml-schema` feature; without it,
   the reader's structural and entity boundaries listed above are not an XSD
   conformance validator.
-* **Semantic validation** (`MzDataFile::isSemanticallyValid`) is not ported:
-  `mzdata-mapping.xml` is retained as a mapping-parser fixture, but
-  `psi-mzdata.obo` and the mzData semantic-validation integration do not ship.
-  The upstream section is `NOT_TESTABLE` by its own admission.
+* **Semantic validation** (`MzDataFile::isSemanticallyValid`) needs the
+  optional `semantic-validation` feature, as XSD validation needs
+  `xml-schema`; the source always has it.
 * **`MzDataFile_2_long.mzData`** (10.6 MB, 997530 peaks) is not copied into
   `tests/data`: the original work package omitted it to limit fixture size. Its sha256 is
   recorded in the manifest and `load_special_cases` writes and reads an
@@ -488,10 +517,12 @@ empty-experiment document, which is transcribed from
 * **`FileHandler` is not wired to mzData.** `FileType::MzData` already exists
   and `type_by_content` already recognises `<mzData`
   (`src/format/file_handler.rs:355`), but `FileHandler`'s load and store
-  dispatch does not call this module. `src/format/file_handler.rs` is outside
-  this package's scope.
-* **`FORMAT/VALIDATORS/MzDataValidator.h`** is a separate header with its own
-  class test and is unported.
+  dispatch does not call this module. That is a gap of `FileHandler.h`
+  (lane B0), not of an `MzDataFile` member.
+* **`FORMAT/VALIDATORS/MzDataValidator.h`** is ported as
+  `semantic_validator::mzdata::MzDataValidator` (constructor, destructor as
+  `Drop`, the `handleTerm_` override); its class test only constructs and
+  destroys one.
 * **The spectrum comment** has no `MSSpectrum` field in this crate and is kept
   as metadata; see native difference 11.
 

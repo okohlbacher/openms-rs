@@ -2,7 +2,22 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 //! Source MS2 peak-list reader and a native writer for its representable subset.
-//! H/I/Z/D records are intentionally ignored, as in OpenMS MS2File::load.
+//!
+//! Port of `FORMAT/MS2File.h`, an input-only adapter for the MS2 format of
+//! McDonald et al. (Rapid Commun. Mass Spectrom. 2004;18(18):2162-8, PMID
+//! 15317041). H/I/Z/D records are intentionally ignored, as in OpenMS
+//! `MS2File::load`. See `docs/TEXT_PEAK_LIST_SUPPORT.md` for the API mapping,
+//! the preserved source conventions and the native differences.
+//!
+//! The source class has no state: its constructor, destructor and the one
+//! `load` template are free functions here. `MS2File` derives from
+//! `ProgressLogger` but makes no progress call (its only `startProgress` is
+//! commented out, `MS2File.h:52`), so there is no `load_with_progress`.
+//!
+//! `load` is a template over `MapType`, documented as "a MSExperiment or have
+//! the same interface"; every instantiation in the pinned source is `PeakMap`
+//! (`FileHandler.cpp:931-937` and the class test), and this crate has one
+//! experiment type, so `MapType` is [`MSExperiment`](crate::MSExperiment) here.
 
 use super::{number, parse_error};
 use crate::{Error, MSExperiment, MSSpectrum, Peak1D, Precursor, Result};
@@ -15,11 +30,18 @@ use std::path::Path;
 /// counted before writing or creating a destination file.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Limits {
+    /// Maximum input bytes read, 256 MiB at most.
     pub max_bytes: usize,
+    /// Maximum bytes in one input line, 1 MiB at most.
     pub max_line_bytes: usize,
+    /// Maximum input lines, blank and ignored lines included; 20 million at most.
     pub max_lines: usize,
+    /// Maximum spectra (MS2 `S` records, DTA2D retention-time groups), filtered
+    /// ones included; 100,000 at most.
     pub max_spectra: usize,
+    /// Maximum peak lines, discarded and filtered ones included; 10 million at most.
     pub max_peaks: usize,
+    /// Maximum bytes a writer produces, counted before the first byte; 512 MiB at most.
     pub max_output_bytes: usize,
 }
 impl Default for Limits {
@@ -49,12 +71,32 @@ impl Limits {
         Ok(())
     }
 }
+/// Reader ceilings; the source reader has none.
 pub type ReadOptions = Limits;
+/// Writer ceilings of the native writer.
 pub type WriteOptions = Limits;
 
+/// Read an MS2 stream with default ceilings.
+///
+/// # Errors
+///
+/// As [`read_with_options`].
 pub fn read(reader: impl BufRead) -> Result<MSExperiment> {
     read_with_options(reader, &ReadOptions::default())
 }
+/// Read an MS2 stream, the body of source `MS2File::load` (`MS2File.h:49-166`).
+///
+/// No loaded-file path or type is recorded, since a stream has no name; the
+/// path entry points [`load`] and [`load_with_options`] record both.
+///
+/// # Errors
+///
+/// [`Parse`](crate::Error::Parse) for an `S` line without exactly four fields,
+/// a peak line without exactly two fields, or a field that is not a finite
+/// number, where the source throws `Exception::ParseError` (and, for a bad
+/// precursor m/z, `Exception::ConversionError`), and
+/// [`InvalidValue`](crate::Error::InvalidValue) for invalid or exceeded
+/// [`Limits`], which the source does not have.
 pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<MSExperiment> {
     let mut input = TextInput::new(reader, options)?;
     let mut result = MSExperiment::default();
@@ -107,11 +149,23 @@ pub fn read_with_options(reader: impl BufRead, options: &ReadOptions) -> Result<
     }
     Ok(result)
 }
-/// Replacement is atomic on parse, resource or stream failure.
+/// Read into `destination`, replacing it only after a successful read.
+///
+/// Replacement is atomic on parse, resource or stream failure, where the
+/// source's `exp.reset()` has already emptied the map.
+///
+/// # Errors
+///
+/// As [`read_with_options`]; `destination` is then unchanged.
 pub fn read_into(reader: impl BufRead, destination: &mut MSExperiment) -> Result<()> {
     *destination = read(reader)?;
     Ok(())
 }
+/// [`read_into`] under explicit ceilings.
+///
+/// # Errors
+///
+/// As [`read_with_options`]; `destination` is then unchanged.
 pub fn read_into_with_options(
     reader: impl BufRead,
     destination: &mut MSExperiment,
@@ -120,18 +174,85 @@ pub fn read_into_with_options(
     *destination = read_with_options(reader, options)?;
     Ok(())
 }
+/// Load an MS2 file with default ceilings, source `MS2File::load`.
+///
+/// # Errors
+///
+/// As [`load_with_options`].
 pub fn load(path: impl AsRef<Path>) -> Result<MSExperiment> {
-    read(BufReader::new(File::open(path)?))
+    load_with_options(path, &ReadOptions::default())
 }
+/// Load an MS2 file, source `MS2File::load` (`MS2File.h:49-166`).
+///
+/// As in the source, the result records the document's identity:
+/// `settings.document.loaded_file_path` is the path as given (a relative path
+/// prefixed with the current directory) and `loaded_file_type` is the type
+/// recognised from the file's content, the source's
+/// `setLoadedFileType(filename)` and `setLoadedFilePath(filename)`
+/// (`MS2File.h:66-67`), so `MS2File_test.cpp:49-50` holds.
+///
+/// # Errors
+///
+/// [`Io`](crate::Error::Io) when the file cannot be opened, where the source
+/// throws `Exception::FileNotFound` or `Exception::FileNotReadable`;
+/// [`InvalidValue`](crate::Error::InvalidValue) for a path that is not UTF-8;
+/// otherwise as [`read_with_options`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<MSExperiment> {
-    read_with_options(BufReader::new(File::open(path)?), options)
+    let path = path.as_ref();
+    let input = BufReader::new(File::open(path)?);
+    let document = loaded_document(path, "MS2")?;
+    let mut experiment = read_with_options(input, options)?;
+    record_document(&mut experiment, document);
+    Ok(experiment)
 }
 
-/// Native extension: emits S and peak records. Unsupported metadata is rejected
-/// before any bytes; the source MS2 adapter itself has no store method.
+/// The source's `setLoadedFileType(filename)` and `setLoadedFilePath(filename)`
+/// pair, as the settings' document identifier with nothing else set.
+pub(super) fn loaded_document(
+    path: &Path,
+    format: &str,
+) -> Result<crate::metadata::DocumentIdentifier> {
+    let text = path
+        .to_str()
+        .ok_or_else(|| Error::InvalidValue(format!("{format} filename is not UTF-8")))?;
+    let mut document = crate::metadata::DocumentIdentifier::new();
+    document.set_loaded_file_path(text)?;
+    document.set_loaded_file_type(path)?;
+    Ok(document)
+}
+/// Move the loaded path and type of `document` into `experiment`.
+pub(super) fn record_document(
+    experiment: &mut MSExperiment,
+    document: crate::metadata::DocumentIdentifier,
+) {
+    experiment.settings.document.loaded_file_path = document.loaded_file_path;
+    experiment.settings.document.loaded_file_type = document.loaded_file_type;
+}
+
+/// Write `experiment` as MS2 with default ceilings.
+///
+/// Native extension: emits `S` and peak records. Unsupported metadata is
+/// rejected before any bytes; the source MS2 adapter itself has no store
+/// method.
+///
+/// # Errors
+///
+/// As [`write_with_options`].
 pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
     write_with_options(writer, experiment, &WriteOptions::default())
 }
+/// Write `experiment` as MS2; everything is checked before the first byte.
+///
+/// Every spectrum must be what the reader produces: MS level 2, RT -1, exactly
+/// one precursor with unknown charge, zero intensity and no acquisition
+/// metadata, and no name, spectrum type, annotation, identification or
+/// data array. The experiment may hold no chromatograms or metadata.
+///
+/// # Errors
+///
+/// [`Unsupported`](crate::Error::Unsupported) for data MS2 cannot hold,
+/// [`InvalidValue`](crate::Error::InvalidValue) for a nonfinite value or an
+/// exceeded ceiling, and [`Io`](crate::Error::Io) for a write failure.
 pub fn write_with_options(
     mut writer: impl Write,
     experiment: &MSExperiment,
@@ -142,9 +263,21 @@ pub fn write_with_options(
     writer.flush()?;
     Ok(())
 }
+/// Store `experiment` as an MS2 file with default ceilings.
+///
+/// # Errors
+///
+/// As [`store_with_options`].
 pub fn store(path: impl AsRef<Path>, experiment: &MSExperiment) -> Result<()> {
     store_with_options(path, experiment, &WriteOptions::default())
 }
+/// Store `experiment` as an MS2 file; the path is created only after the
+/// whole experiment passed the checks of [`write_with_options`].
+///
+/// # Errors
+///
+/// As [`write_with_options`], plus [`Io`](crate::Error::Io) when the file
+/// cannot be created.
 pub fn store_with_options(
     path: impl AsRef<Path>,
     experiment: &MSExperiment,
@@ -278,6 +411,7 @@ pub(super) struct TextInput<R> {
     bytes: usize,
 }
 impl<R: BufRead> TextInput<R> {
+    /// A line reader over `reader` charging `options`; invalid limits are refused.
     pub fn new(reader: R, options: &Limits) -> Result<Self> {
         options.validate()?;
         Ok(Self {
@@ -287,6 +421,7 @@ impl<R: BufRead> TextInput<R> {
             bytes: 0,
         })
     }
+    /// Read the next line into `line`; `false` at the end of input.
     pub fn next_line(&mut self, line: &mut String) -> Result<bool> {
         line.clear();
         let allowance = self.options.max_bytes - self.bytes;

@@ -1,0 +1,115 @@
+{
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzXMLFile.h",
+   "sha256": "c169e1f74e42e83c7500b8cbff4e6f4f8d2bd41259cbb97c150c9d798e19da6c",
+   "lines": "the two transform overloads and transformFirstPass_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzXMLFile.cpp",
+   "sha256": "34a3b2c400f1afa27f4bf41563d04c5de6faf47a73abda57df5c08e007643fba",
+   "lines": "59-72 transform, 74-89 transform with a map (always_append_data), 91-109 transformFirstPass_ (metadata-only when skip_full_count, LD_RAWCOUNTS)"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp",
+   "sha256": "a11d6fb0fe7c9559923891258003de4c444d9952e2a44f2a6d8d88e823fe8393",
+   "lines": "135 startProgress at <msRun>; 242-245 EndParsingSoftly on the first <scan> of a metadata-only pass; 281-282 setProgress per <scan>; 524-531 flush then endProgress at </mzXML>"
+  }
+ ],
+ "evidence": "Executed Release differential: every progress backend call (arguments and nesting depth) and every consumer call, in order, the command backend's stdout bytes (timing texts masked), the outcome and the static depth afterwards, for MzXMLFile::transform and its map overload, with and without skip_full_count, on MzXMLFile_1.mzXML and on a copy cut after scan 11, run twice on one file object, and with an MS-level filter.",
+ "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
+ "fixtures": [
+  {
+   "path": "tests/data/mzxml_transform_progress_release.tsv",
+   "sha256": "16ff0f5e37d82f5a992a2af1d8f13c3ecbc58152b0f62cffe113fceada7a3931",
+   "origin": "masked per-run table written by ../oracle/F7c-transform-progress/extract.py from two identical Release runs"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/MzXMLFile_1.mzXML",
+   "sha256": "fc6a96d8b35c05ee3d9b62996b09cddfb52c19fa3c6c1eb0f6550a9e7d6c08e7",
+   "origin": "src/tests/class_tests/openms/data/MzXMLFile_1.mzXML at bc9cc12; the driver read a byte-identical copy"
+  },
+  {
+   "path": "tests/data/progress_format_readers/truncated.mzXML",
+   "sha256": "98796279d1634c0845925b9d78ea7c805eee89032cca4229b72b483dadcdf811",
+   "origin": "MzXMLFile_1.mzXML cut after scan 11's </scan> (../oracle/progress-format-readers/make_inputs.py); the driver read a byte-identical copy"
+  }
+ ],
+ "native_implementation": [
+  "src/format/mzxml.rs (transform_with_progress, transform_into_with_progress, MzXMLFile::transform_with_progress, MzXMLFile::transform_into_with_progress)"
+ ],
+ "native_tests": [
+  "tests/mzxml_transform_progress.rs"
+ ],
+ "support_document": "docs/MZXML_SUPPORT.md",
+ "release_oracle": {
+  "reference_build": "Linux x86_64 Release, the reference behaviour of the port",
+  "install_prefix": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "install_manifest_sha256": "2efe7501c5c7e3f6dd3feef78628ae6f1158e762b7fc04154de21cfd095b293a",
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "installed_config_h_sha256": "13c7a065862db9f20eaf89140b8aeefcf68df80beb71dc80ac42c039ca4e8729",
+  "debug_checks_absent": "The op log's first line records 'OPENMS_ASSERTIONS not defined'.",
+  "host": "ibminode06 (Ubuntu 24.04.4 LTS, AMD EPYC 7763), work dir /scratch/kohlbach/F7c-transform-progress, run 2026-09-29",
+  "compiler": "conda-forge x86_64-conda-linux-gnu-g++ 14.4.0 from the install's deps/, -O2 -std=c++20 -rdynamic, -lOpenMS with rpath to the install",
+  "driver_sha256": "25d867db333c18d06f2ac88a27b3afdc9d6296aa3ef7b05d9d65b06ff8f16c9c",
+  "driver_binary_sha256": "f264b092ad1bfe1731057c1ad2e82d7a863421a2b08190dac9d7bca1587f7ef8",
+  "method": "The recorder, the time() interposition and the op-log rows are those of ../oracle/progress-format-readers/driver.cpp; the driver adds a consumer that records its calls into the same event stream. Two repetitions; oplog_1.tsv and oplog_2.tsv are byte-identical and the masked stdout slices agree."
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F7c-transform-progress/driver.cpp",
+   "sha256": "25d867db333c18d06f2ac88a27b3afdc9d6296aa3ef7b05d9d65b06ff8f16c9c",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "executed driver source"
+  },
+  {
+   "path": "../oracle/F7c-transform-progress/remote_run.sh",
+   "sha256": "9c7adcc63cbdb787f2af3a00f63cec05129d13efa8b5a59e4667e0bf1e0376b2",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "node build/run script (refuses every host but ibminode06)"
+  },
+  {
+   "path": "../oracle/F7c-transform-progress/run.sh",
+   "sha256": "71b2258f7af4a135b133f922235ccc4f1a210919d8a16dda155ce22ed778c1ac",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "Mac-side stage/launch/fetch script"
+  },
+  {
+   "path": "../oracle/F7c-transform-progress/extract.py",
+   "sha256": "2c160154919feb14eeab291b6fa59247fcb344873c7748d55b94a280ba52ea57",
+   "location": "outside this repository",
+   "origin_key": "fixtures",
+   "role": "masks and writes the fixture"
+  },
+  {
+   "path": "../oracle/F7c-transform-progress/results/build_info.txt",
+   "sha256": "f2d7a58d4d2e50b3a8b40975ba3a6024bc26faf3fd5c27a13d2b72bb61b14d85",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "host, compiler, hashes of the driver, libOpenMS.so, config.h, BUILD_MANIFEST.json and the inputs"
+  },
+  {
+   "path": "../oracle/F7c-transform-progress/results/oplog_1.tsv",
+   "sha256": "c0822dcb744754db2fbf8c2674be27e11e5b9c7c6cc84327953630c3ee66ff7e",
+   "location": "outside this repository",
+   "origin_key": "release_oracle",
+   "role": "raw op log, repetition 1 (repetition 2 byte-identical)"
+  },
+  {
+   "path": "../oracle/F7c-transform-progress/results/summary.txt",
+   "sha256": "71769d87518aefe8b1179a3fa0908d3a163f3263c2161dc7d1c1c61e01a38189",
+   "location": "outside this repository",
+   "origin_key": "fixtures",
+   "role": "raw capture hashes and the fixture hash"
+  }
+ ],
+ "external_reference_note": "The Release oracle driver, its scripts, the extractor and the raw captures live under ../oracle/F7c-transform-progress/ so that no C++ is committed here; these sha256 values are the evidence chain from the Release install to the fixture."
+}

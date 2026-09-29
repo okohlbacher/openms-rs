@@ -50,3 +50,13 @@ Attribution 4.0 International (checked 2026-09-28 through the GitHub license
 API). The creator remarks in the file header (Bielow, Uszkoreit, Eisenacher,
 Walzer) are retained verbatim. The provenance manifest is
 [`tests/data/mzqc_file_provenance.json`](../../tests/data/mzqc_file_provenance.json).
+
+## mzData mapping and vocabulary
+
+`mzdata-mapping.xml` and `psi-mzdata.obo` are unchanged copies of
+`share/OpenMS/MAPPING/mzdata-mapping.xml` and `share/OpenMS/CV/psi-mzdata.obo`
+from OpenMS4-core revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`, used by
+the mzData semantic validator. `psi-mzdata.obo` is the 2006 PSI mzData
+vocabulary (saved by `whetzel`, OBO-Edit 1.000) and carries no embedded license
+statement; the mapping was written for OpenMS and falls under its BSD-3-Clause
+license. Hashes are in [the provenance manifest](../../tests/data/mzdata_semantic_provenance.json).

@@ -1551,3 +1551,88 @@ fn the_output_byte_ceiling_is_checked_before_the_file_is_created() {
     );
     assert!(!path.exists());
 }
+
+/// Tier 1: the Release build's `MascotGenericFile::store` output for
+/// `mgf_two_blocks.mgf` loaded by its own `load`, retained by
+/// `../oracle/progress-format-readers` (ibminode06, three repetitions and both
+/// logger modes byte-identical). The source's load carries the first block's
+/// charge into the second (`CarryOver::Source`), so the second block is
+/// written with `CHARGE=2+`; stored with the source defaults it is the Release
+/// file byte for byte.
+#[test]
+fn store_writes_the_release_build_bytes() {
+    let input = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/data/progress_format_readers/mgf_two_blocks.mgf");
+    let expected = std::fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/mascot_generic_store_release.mgf"),
+    )
+    .unwrap();
+    let options = ReadOptions {
+        carry_over: CarryOver::Source,
+        ..Default::default()
+    };
+    let map = mgf::load_with_options(&input, &options).unwrap();
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let path = temp.path().join("stored.mgf");
+    MascotGenericFile::new()
+        .unwrap()
+        .store(&path, &map, false)
+        .unwrap();
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), expected);
+    // The stream form writes the same bytes.
+    let mut bytes = Vec::new();
+    MascotGenericFile::new()
+        .unwrap()
+        .store_to(&mut bytes, "stored.mgf", &map, false)
+        .unwrap();
+    assert_eq!(String::from_utf8(bytes).unwrap(), expected);
+}
+
+/// The `DefaultParamHandler` contract: `from_param` is construction plus
+/// `setParameters` and `updateMembers_`, `to_param` is `getParameters`, and
+/// unknown keys are warnings, not errors.
+#[test]
+fn parameter_contract_from_param_and_to_param() {
+    let defaults = MascotGenericFile::new().unwrap().to_param().unwrap();
+    assert_eq!(&defaults, MascotGenericFile::new().unwrap().defaults());
+    let mut parameters = defaults.clone();
+    parameters
+        .set_value("number_of_hits", ParamValue::Integer(5), "", &[])
+        .unwrap();
+    parameters
+        .set_value(
+            "special_modifications",
+            ParamValue::String("Deamidated (NQ)".into()),
+            "",
+            &[],
+        )
+        .unwrap();
+    let file = MascotGenericFile::from_param(&parameters).unwrap();
+    assert_eq!(
+        file.to_param().unwrap().value("number_of_hits").unwrap(),
+        &ParamValue::Integer(5)
+    );
+    // updateMembers_ ran: the specificity group is expanded.
+    assert_eq!(
+        file.special_modification_groups()
+            .get("Deamidated (N)")
+            .map(String::as_str),
+        Some("Deamidated (NQ)")
+    );
+    let mut unknown = defaults.clone();
+    unknown
+        .set_value("no_such_parameter", ParamValue::Integer(1), "", &[])
+        .unwrap();
+    let (_, warnings) = MascotGenericFile::from_param_with_warnings(&unknown).unwrap();
+    assert!(!warnings.is_empty());
+    assert!(
+        warnings.iter().any(|w| w.contains("no_such_parameter")),
+        "{warnings:?}"
+    );
+    // A restriction violation is an error, as the source's InvalidParameter.
+    let mut bad = defaults;
+    bad.set_value("number_of_hits", ParamValue::Integer(-1), "", &[])
+        .unwrap();
+    assert!(MascotGenericFile::from_param(&bad).is_err());
+}
