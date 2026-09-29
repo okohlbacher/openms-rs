@@ -108,7 +108,8 @@ impl SplineInterpolatedPeaks {
             intensity_slim2.extend_from_slice(&intensity_slim1[..2]);
             for i in 2..pos_slim1.len() {
                 if intensity_slim1[i] == 0.0
-                    && (pos_slim1[i] - pos_slim1[i - 1]) < (pos_slim1[i - 1] - pos_slim1[i - 2]) * scaling_thermo_bug
+                    && (pos_slim1[i] - pos_slim1[i - 1])
+                        < (pos_slim1[i - 1] - pos_slim1[i - 2]) * scaling_thermo_bug
                 {
                     continue;
                 }
@@ -120,7 +121,8 @@ impl SplineInterpolatedPeaks {
             let mut start_package = vec![true, false];
             for i in 2..pos_slim2.len() {
                 start_package.push(
-                    (pos_slim2[i] - pos_slim2[i - 1]) / (pos_slim2[i - 1] - pos_slim2[i - 2]) > new_package,
+                    (pos_slim2[i] - pos_slim2[i - 1]) / (pos_slim2[i - 1] - pos_slim2[i - 2])
+                        > new_package,
                 );
             }
 
@@ -157,7 +159,11 @@ impl SplineInterpolatedPeaks {
     /// As [`Self::new`].
     pub fn from_spectrum(raw_spectrum: &MSSpectrum) -> Result<Self> {
         let pos: Vec<f64> = raw_spectrum.peaks.iter().map(|p| p.mz).collect();
-        let intensity: Vec<f64> = raw_spectrum.peaks.iter().map(|p| f64::from(p.intensity)).collect();
+        let intensity: Vec<f64> = raw_spectrum
+            .peaks
+            .iter()
+            .map(|p| f64::from(p.intensity))
+            .collect();
         Self::new(&pos, &intensity)
     }
 
@@ -169,7 +175,11 @@ impl SplineInterpolatedPeaks {
     /// As [`Self::new`].
     pub fn from_chromatogram(raw_chromatogram: &MSChromatogram) -> Result<Self> {
         let pos: Vec<f64> = raw_chromatogram.peaks.iter().map(|p| p.rt).collect();
-        let intensity: Vec<f64> = raw_chromatogram.peaks.iter().map(|p| f64::from(p.intensity)).collect();
+        let intensity: Vec<f64> = raw_chromatogram
+            .peaks
+            .iter()
+            .map(|p| f64::from(p.intensity))
+            .collect();
         Self::new(&pos, &intensity)
     }
 

@@ -46,7 +46,8 @@ impl SplinePackage {
     pub fn new(pos: &[f64], intensity: &[f64]) -> Result<Self> {
         if !(pos.len() == intensity.len() && pos.len() > 1) {
             return Err(Error::InvalidValue(
-                "m/z (or RT) and intensity vectors either not of the same size or too short.".into(),
+                "m/z (or RT) and intensity vectors either not of the same size or too short."
+                    .into(),
             ));
         }
         let spline = CubicSpline2d::new(pos, intensity)?;

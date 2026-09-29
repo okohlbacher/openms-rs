@@ -136,7 +136,7 @@ fn mz_shift(pattern: &MultiplexIsotopicPeakPattern, i: usize) -> Result<f64> {
 /// spline-interpolated profile data; each peak pattern yields one filter
 /// result. The two filters
 /// [`MultiplexFilteringCentroided`](super::filtering_centroided::MultiplexFilteringCentroided)
-/// and `MultiplexFilteringProfile`
+/// and [`MultiplexFilteringProfile`](super::filtering_profile::MultiplexFilteringProfile)
 /// wrap this type and contain the mode-specific `filter` method.
 ///
 /// The source derives from `ProgressLogger`; the filters take a

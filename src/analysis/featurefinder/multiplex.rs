@@ -10,6 +10,8 @@
 //! share [`satellite`]. See `docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md` for the
 //! API mapping and the evidence.
 
+/// Clustering the filter results (source `MultiplexClustering.h`).
+pub mod clustering;
 /// Mass shift patterns (source `MultiplexDeltaMasses.h`).
 pub mod delta_masses;
 /// All mass shifts a labelling can cause (source
@@ -24,17 +26,21 @@ pub mod filtered_peak;
 pub mod filtering;
 /// Filtering centroided data (source `MultiplexFilteringCentroided.h`).
 pub mod filtering_centroided;
+/// Filtering profile data (source `MultiplexFilteringProfile.h`).
+pub mod filtering_profile;
 /// Isotopic peak patterns (source `MultiplexIsotopicPeakPattern.h`).
 pub mod isotopic_peak_pattern;
 /// Satellite peaks and data points (source `MultiplexSatelliteCentroided.h`
 /// and `MultiplexSatelliteProfile.h`).
 pub mod satellite;
 
+pub use clustering::{MultiplexClustering, MultiplexDistance};
 pub use delta_masses::{DeltaMass, LabelSet, MultiplexDeltaMasses};
 pub use delta_masses_generator::{LabelMassShifts, MultiplexDeltaMassesGenerator};
 pub use filtered_ms_experiment::MultiplexFilteredMSExperiment;
 pub use filtered_peak::MultiplexFilteredPeak;
 pub use filtering::MultiplexFiltering;
 pub use filtering_centroided::MultiplexFilteringCentroided;
+pub use filtering_profile::MultiplexFilteringProfile;
 pub use isotopic_peak_pattern::MultiplexIsotopicPeakPattern;
 pub use satellite::{MultiplexSatelliteCentroided, MultiplexSatelliteProfile};
