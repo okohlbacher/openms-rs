@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
+//! Identification-run to MS-run-path mapping (`METADATA/IdentifierMSRunMapper.h`).
+
 use super::{PeptideIdentification, ProteinIdentification, bad};
 use crate::concept::constants::user_param::{BASE_NAME, ID_MERGE_INDEX};
 use crate::data_structures::list::ListFormat;
@@ -24,9 +26,16 @@ impl IdentifierMSRunMapper {
     /// Conservative cumulative owned payload/node allocation per create call.
     pub const MAX_BYTES: usize = 64 * 1024 * 1024;
 
+    /// An empty mapping (the source's default constructor).
     pub fn new() -> Self {
         Self::default()
     }
+    /// A mapping built by [`create`](Self::create); the source's constructor
+    /// from identification runs.
+    ///
+    /// # Errors
+    ///
+    /// As [`create`](Self::create).
     pub fn from_runs(runs: &[ProteinIdentification]) -> Result<Self> {
         let mut mapping = Self::default();
         mapping.create(runs)?;
@@ -41,6 +50,13 @@ impl IdentifierMSRunMapper {
     ///
     /// Resource errors occur before copying and leave the old mapping unchanged.
     /// Paths are exact, ordered strings: no sorting or filesystem normalization.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a resource limit, and for a repeated path
+    /// list with the source's message: `the value '<paths joined by ','>'
+    /// was used but is not valid; Multiple protein identifications with the
+    /// same ms-run-path. Check input!`.
     pub fn create(&mut self, runs: &[ProteinIdentification]) -> Result<()> {
         preflight(runs)?;
         let mut next = Self::default();
@@ -65,12 +81,15 @@ impl IdentifierMSRunMapper {
         *self = next;
         Ok(())
     }
+    /// Whether no run is mapped (the source's `empty()`).
     pub fn is_empty(&self) -> bool {
         self.forward.is_empty()
     }
+    /// Number of mapped run identifiers (the source's `size()`).
     pub fn len(&self) -> usize {
         self.forward.len()
     }
+    /// Whether a run with `identifier` is mapped.
     pub fn has_identifier(&self, identifier: &str) -> bool {
         self.forward.contains_key(identifier)
     }
@@ -85,6 +104,7 @@ impl IdentifierMSRunMapper {
     pub fn identifiers(&self) -> impl ExactSizeIterator<Item = &str> {
         self.forward.keys().map(String::as_str)
     }
+    /// Whether a run with exactly these primary MS run paths is mapped.
     pub fn has_run_path(&self, paths: &[String]) -> bool {
         self.reverse.contains_key(paths)
     }
@@ -92,6 +112,12 @@ impl IdentifierMSRunMapper {
     pub fn try_identifier(&self, paths: &[String]) -> Option<&str> {
         self.reverse.get(paths).map(String::as_str)
     }
+    /// The identifier of the run with exactly these paths.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when no run has them (the source's
+    /// `Exception::ElementNotFound`).
     pub fn identifier(&self, paths: &[String]) -> Result<&str> {
         self.try_identifier(paths)
             .ok_or_else(|| bad("MS run paths not found in mapping"))
