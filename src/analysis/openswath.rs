@@ -25,6 +25,8 @@ pub mod mock_objects;
 pub mod mrm_feature_access;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
 pub mod mrm_mapping;
+/// Peak-group picking across the chromatograms of one precursor, from `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`.
+pub mod mrm_transition_group_picker;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.

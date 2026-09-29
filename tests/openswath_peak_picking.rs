@@ -13,10 +13,16 @@
 //! shared chromatogram literals are the exact-bit TSVs of
 //! `tests/data/chromatogram_processing_*`.
 
+use openms::analysis::openswath::mrm_transition_group_picker::{
+    BackgroundSubtraction, BoundarySelection, MRMTransitionGroupPicker, PeakIntegrationSignal,
+};
 use openms::analysis::peak_integrator::{
     BaselineType, IntegrationMethod, PEAK_INTEGRATOR_NAME, PeakIntegrator,
 };
-use openms::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};
+use openms::concept::unique_id::UniqueIdGenerator;
+use openms::kernel::mrm::{MRMTransitionGroup, SimpleTransition};
+use openms::kernel::{ChromatogramPeak, DataArray, Feature, MSChromatogram, MSSpectrum, Peak1D};
+use openms::metadata::MetaValue;
 use openms::param::{Param, ParamValue};
 use openms::processing::chromatogram::{
     ChromatogramPickingMethod, ChromatogramSmoothing, PEAK_PICKER_CHROMATOGRAM_NAME,
@@ -680,4 +686,675 @@ fn integrator_index_overloads_reproduce_shape_class_test() {
             )
             .is_err()
     );
+}
+
+// ---------------------------------------------------------------------------
+// MRMTransitionGroupPicker
+// ---------------------------------------------------------------------------
+
+/// `TEST_REAL_SIMILAR` at its defaults (`ClassTest.cpp:35-38`): absolute
+/// difference within 1e-5, or ratio within 1 + 1e-5.
+fn real_similar(actual: f64, expected: f64) {
+    let absdiff = (actual - expected).abs();
+    let ratio = if actual.abs() > expected.abs() {
+        actual / expected
+    } else {
+        expected / actual
+    };
+    assert!(
+        absdiff <= 1e-5 || (1.0 - ratio).abs() <= 1e-5,
+        "{actual} !~ {expected} (absdiff {absdiff}, ratio {ratio})"
+    );
+}
+
+type Group = MRMTransitionGroup<MSChromatogram, SimpleTransition>;
+
+fn srm_chromatogram(id: &str, rts: &[f64], intensities: &[f64]) -> MSChromatogram {
+    MSChromatogram {
+        native_id: id.into(),
+        peaks: rts
+            .iter()
+            .zip(intensities)
+            .map(|(&rt, &intensity)| ChromatogramPeak::new(rt, intensity as f32))
+            .collect(),
+        ..Default::default()
+    }
+}
+
+fn with_product_mz(mut chromatogram: MSChromatogram, mz: f64) -> MSChromatogram {
+    chromatogram
+        .metadata
+        .insert("product_mz".into(), MetaValue::try_from(mz).unwrap());
+    chromatogram
+}
+
+/// `setup_transition_group` of `MRMTransitionGroupPicker_test.cpp:34-117`.
+fn transition_group_1() -> Group {
+    let rt_1 = [
+        1474.34, 1477.11, 1479.88, 1482.64, 1485.41, 1488.19, 1490.95, 1493.72, 1496.48, 1499.25,
+        1502.03, 1504.8, 1507.56, 1510.33, 1513.09, 1515.87, 1518.64, 1521.42,
+    ];
+    let rt_2 = [
+        1473.55, 1476.31, 1479.08, 1481.84, 1484.61, 1487.39, 1490.15, 1492.92, 1495.69, 1498.45,
+        1501.23, 1504.0, 1506.76, 1509.53, 1512.29, 1515.07, 1517.84, 1520.62,
+    ];
+    let int_1 = [
+        3.26958, 3.74189, 3.31075, 86.1901, 3.47528, 387.864, 13281.0, 6375.84, 39852.6, 2.66726,
+        612.747, 3.34313, 793.12, 3.29156, 4.00586, 4.1591, 3.23035, 3.90591,
+    ];
+    let int_2 = [
+        3.44054, 2142.31, 3.58763, 3076.97, 6663.55, 45681.0, 157694.0, 122844.0, 86034.7, 85391.1,
+        15992.8, 2293.94, 6934.85, 2735.18, 459.413, 3.93863, 3.36564, 3.44005,
+    ];
+    let ms1 = [
+        900.0, 2600.0, 4100.0, 5400.0, 6500.0, 7400.0, 8100.0, 8600.0, 8900.0, 9000.0, 8900.0,
+        8600.0, 8100.0, 7400.0, 6500.0, 5400.0, 4100.0, 2600.0,
+    ];
+    let mut group = Group::new();
+    for (id, rts, intensities, mz) in [("1", &rt_1, &int_1, 618.31), ("2", &rt_2, &int_2, 619.31)] {
+        group
+            .add_chromatogram(
+                with_product_mz(srm_chromatogram(id, rts, intensities), mz),
+                id,
+            )
+            .unwrap();
+        group
+            .add_transition(SimpleTransition::new(id, -1.0), id)
+            .unwrap();
+    }
+    let shifted: Vec<f64> = rt_2.iter().map(|rt| rt + 0.5).collect();
+    group
+        .add_precursor_chromatogram(
+            srm_chromatogram("Precursor_i0", &shifted, &ms1),
+            "Precursor_i0",
+        )
+        .unwrap();
+    group
+}
+
+/// `setup_transition_group2` of `MRMTransitionGroupPicker_test.cpp:119-186`.
+fn transition_group_2() -> Group {
+    let rts: Vec<f64> = (0..30).map(f64::from).collect();
+    let traces: [(&str, [f64; 30], f64); 3] = [
+        (
+            "1",
+            [
+                3., 3., 3., 3., 3., 3., 3., 3., 4., 6., 8., 12., 14., 15., 16., 15., 14., 12., 8.,
+                6., 4., 3., 3., 3., 3., 3., 3., 3., 3., 3.,
+            ],
+            618.31,
+        ),
+        (
+            "2",
+            [
+                3., 3., 4., 6., 8., 10., 11., 11., 10., 8., 6., 4., 4., 6., 8., 10., 11., 11., 10.,
+                8., 6., 4., 3., 3., 3., 3., 3., 3., 3., 3.,
+            ],
+            619.31,
+        ),
+        ("3", [3.0; 30], 812.2),
+    ];
+    let mut group = Group::new();
+    for (id, intensities, mz) in traces {
+        group
+            .add_chromatogram(
+                with_product_mz(srm_chromatogram(id, &rts, &intensities), mz),
+                id,
+            )
+            .unwrap();
+        group
+            .add_transition(SimpleTransition::new(id, -1.0), id)
+            .unwrap();
+    }
+    group
+}
+
+fn picker_with(settings: &[(&str, ParamValue)]) -> MRMTransitionGroupPicker {
+    let mut param = MRMTransitionGroupPicker::defaults().unwrap();
+    for (key, value) in settings {
+        set(&mut param, key, value.clone());
+    }
+    let (picker, warnings) = MRMTransitionGroupPicker::from_param_with_warnings(&param).unwrap();
+    assert!(warnings.is_empty(), "{warnings:?}");
+    picker
+}
+
+fn legacy_picker() -> MRMTransitionGroupPicker {
+    picker_with(&[
+        (
+            "PeakPickerChromatogram:method",
+            ParamValue::String("legacy".into()),
+        ),
+        ("PeakPickerChromatogram:peak_width", ParamValue::Float(40.0)),
+    ])
+}
+
+fn corrected_picker(use_consensus: bool) -> MRMTransitionGroupPicker {
+    picker_with(&[
+        ("resample_boundary", ParamValue::Float(1.0)),
+        (
+            "PeakPickerChromatogram:gauss_width",
+            ParamValue::Float(10.0),
+        ),
+        ("PeakPickerChromatogram:peak_width", ParamValue::Float(-1.0)),
+        (
+            "PeakPickerChromatogram:signal_to_noise",
+            ParamValue::Float(1.0),
+        ),
+        (
+            "PeakPickerChromatogram:method",
+            ParamValue::String("corrected".into()),
+        ),
+        (
+            "use_consensus",
+            ParamValue::String(if use_consensus { "true" } else { "false" }.into()),
+        ),
+    ])
+}
+
+fn meta(feature: &Feature, key: &str) -> f64 {
+    feature.base.metadata[key].as_f64().unwrap()
+}
+
+fn hull_sum(feature: &Feature) -> f64 {
+    feature.convex_hulls[0]
+        .hull_points()
+        .iter()
+        .fold(0.0, |sum, point| sum + point.mz)
+}
+
+fn ids() -> UniqueIdGenerator {
+    UniqueIdGenerator::from_seed(1)
+}
+
+/// `MRMTransitionGroupPicker.cpp:27-65`.
+#[test]
+fn group_picker_defaults_follow_the_source_constructor() {
+    let defaults = MRMTransitionGroupPicker::defaults().unwrap();
+    let top: Vec<_> = defaults
+        .iter()
+        .unwrap()
+        .map(|item| item.key.clone())
+        .filter(|key| !key.contains(':'))
+        .collect();
+    assert_eq!(
+        top,
+        [
+            "stop_after_feature",
+            "stop_after_intensity_ratio",
+            "min_peak_width",
+            "peak_integration",
+            "background_subtraction",
+            "recalculate_peaks",
+            "use_precursors",
+            "use_consensus",
+            "recalculate_peaks_max_z",
+            "minimal_quality",
+            "resample_boundary",
+            "compute_peak_quality",
+            "compute_peak_shape_metrics",
+            "compute_total_mi",
+            "boundary_selection_method",
+        ]
+    );
+    for key in &top[2..] {
+        assert!(
+            defaults.entry(key).unwrap().tags.contains("advanced"),
+            "{key}"
+        );
+    }
+    for key in &top[..2] {
+        assert!(
+            !defaults.entry(key).unwrap().tags.contains("advanced"),
+            "{key}"
+        );
+    }
+    assert_eq!(
+        defaults.value("stop_after_feature").unwrap(),
+        &ParamValue::Integer(-1)
+    );
+    assert_eq!(
+        defaults.value("stop_after_intensity_ratio").unwrap(),
+        &ParamValue::Float(0.0001)
+    );
+    assert_eq!(
+        defaults.value("min_peak_width").unwrap(),
+        &ParamValue::Float(0.001)
+    );
+    assert_eq!(string(&defaults, "peak_integration"), "original");
+    assert_eq!(string(&defaults, "background_subtraction"), "none");
+    assert_eq!(string(&defaults, "use_consensus"), "true");
+    assert_eq!(
+        defaults.value("recalculate_peaks_max_z").unwrap(),
+        &ParamValue::Float(1.0)
+    );
+    assert_eq!(
+        defaults.value("minimal_quality").unwrap(),
+        &ParamValue::Float(-10000.0)
+    );
+    assert_eq!(
+        defaults.value("resample_boundary").unwrap(),
+        &ParamValue::Float(15.0)
+    );
+    assert_eq!(string(&defaults, "boundary_selection_method"), "largest");
+    assert_eq!(
+        defaults
+            .entry("background_subtraction")
+            .unwrap()
+            .valid_strings,
+        ["none", "original", "exact"]
+    );
+    // The two subsections are the nested classes' own defaults.
+    assert!(
+        defaults
+            .copy("PeakPickerChromatogram:", true)
+            .unwrap()
+            .source_equal(&PeakPickerChromatogram::defaults().unwrap())
+            .unwrap()
+    );
+    assert!(
+        defaults
+            .copy("PeakIntegrator:", true)
+            .unwrap()
+            .source_equal(&PeakIntegrator::defaults().unwrap())
+            .unwrap()
+    );
+    let picker = MRMTransitionGroupPicker::from_param(&defaults).unwrap();
+    assert!(picker.use_consensus && !picker.use_precursors);
+    assert_eq!(picker.stop_after_feature, -1);
+    assert_eq!(picker.boundary_selection_method, BoundarySelection::Largest);
+    assert_eq!(picker.peak_integration, PeakIntegrationSignal::Original);
+    assert_eq!(picker.background_subtraction, BackgroundSubtraction::None);
+}
+
+#[test]
+fn group_picker_parameters_reach_the_nested_classes() {
+    let picker = picker_with(&[
+        (
+            "PeakPickerChromatogram:method",
+            ParamValue::String("legacy".into()),
+        ),
+        (
+            "PeakIntegrator:integration_type",
+            ParamValue::String("simpson".into()),
+        ),
+        ("background_subtraction", ParamValue::String("exact".into())),
+        (
+            "boundary_selection_method",
+            ParamValue::String("widest".into()),
+        ),
+        ("stop_after_feature", ParamValue::Integer(3)),
+    ]);
+    assert_eq!(picker.picker.method, ChromatogramPickingMethod::Legacy);
+    assert_eq!(
+        picker.integrator.integration_method,
+        IntegrationMethod::Simpson
+    );
+    assert_eq!(picker.background_subtraction, BackgroundSubtraction::Exact);
+    assert_eq!(picker.boundary_selection_method, BoundarySelection::Widest);
+    assert_eq!(picker.stop_after_feature, 3);
+    let written = picker.to_param().unwrap();
+    assert_eq!(string(&written, "PeakPickerChromatogram:method"), "legacy");
+    assert_eq!(
+        string(&written, "PeakIntegrator:integration_type"),
+        "simpson"
+    );
+    assert_eq!(string(&written, "boundary_selection_method"), "widest");
+
+    // An unknown subsection key warns twice, as the source's two
+    // `setParameters` calls do; a bad value is refused.
+    let mut param = MRMTransitionGroupPicker::defaults().unwrap();
+    set(&mut param, "PeakIntegrator:surplus", ParamValue::Integer(1));
+    let (_, warnings) = MRMTransitionGroupPicker::from_param_with_warnings(&param).unwrap();
+    assert_eq!(warnings.len(), 2, "{warnings:?}");
+    let mut bad = MRMTransitionGroupPicker::defaults().unwrap();
+    set(
+        &mut bad,
+        "peak_integration",
+        ParamValue::String("both".into()),
+    );
+    assert!(MRMTransitionGroupPicker::from_param(&bad).is_err());
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:249-311`.
+#[test]
+fn group_picker_class_test_transition_group_1() {
+    let mut group = transition_group_1();
+    legacy_picker()
+        .pick_transition_group(&mut group, &mut ids())
+        .unwrap();
+    assert_eq!(group.features().len(), 1);
+    let feature = &group.features()[0];
+    real_similar(feature.base.rt, 1492.83060);
+    real_similar(f64::from(feature.base.intensity), 564236.0);
+    real_similar(meta(feature, "leftWidth"), 1484.60998535156);
+    real_similar(meta(feature, "rightWidth"), 1501.23);
+    assert_eq!(
+        feature.feature("1").unwrap().convex_hulls[0]
+            .hull_points()
+            .len(),
+        6
+    );
+    assert_eq!(
+        feature.feature("2").unwrap().convex_hulls[0]
+            .hull_points()
+            .len(),
+        6
+    );
+    real_similar(hull_sum(feature.feature("2").unwrap()), 504308.354492188);
+    real_similar(
+        f64::from(feature.feature("2").unwrap().base.intensity),
+        504308.0,
+    );
+    real_similar(hull_sum(feature.feature("1").unwrap()), 59927.5729999542);
+    real_similar(
+        f64::from(feature.feature("1").unwrap().base.intensity),
+        59927.6,
+    );
+    assert_eq!(
+        feature.precursor_feature_ids().collect::<Vec<_>>(),
+        ["Precursor_i0"]
+    );
+    let resampling_loss = 6043.9760742188;
+    let precursor = feature.precursor_feature("Precursor_i0").unwrap();
+    real_similar(hull_sum(precursor), 53900.0 - resampling_loss);
+    real_similar(
+        f64::from(precursor.base.intensity),
+        53900.0 - resampling_loss,
+    );
+    // Native: the unique ID is drawn from the caller's generator.
+    assert_ne!(feature.base.unique_id, 0);
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:313-346`.
+#[test]
+fn group_picker_class_test_transition_group_2_consensus() {
+    let mut group = transition_group_2();
+    corrected_picker(true)
+        .pick_transition_group(&mut group, &mut ids())
+        .unwrap();
+    assert_eq!(group.features().len(), 1);
+    let feature = &group.features()[0];
+    real_similar(feature.base.rt, 14.0);
+    real_similar(meta(feature, "leftWidth"), 8.0);
+    real_similar(meta(feature, "rightWidth"), 20.0);
+    for (id, intensity, apex_int, apex_pos) in [
+        ("1", 134.0, 16.0, 14.0),
+        ("2", 102.0, 11.0, 16.0),
+        ("3", 39.0, 3.0, 8.0),
+    ] {
+        let sub = feature.feature(id).unwrap();
+        real_similar(f64::from(sub.base.intensity), intensity);
+        real_similar(meta(sub, "peak_apex_int"), apex_int);
+        real_similar(meta(sub, "peak_apex_position"), apex_pos);
+    }
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:348-377` and `432-498`.
+#[test]
+fn group_picker_class_test_transition_group_2_without_consensus() {
+    let mut group = transition_group_2();
+    corrected_picker(false)
+        .pick_transition_group(&mut group, &mut ids())
+        .unwrap();
+    assert_eq!(group.features().len(), 2);
+    let feature = &group.features()[0];
+    real_similar(f64::from(feature.base.intensity), 237.0);
+    real_similar(feature.base.rt, 14.0);
+    real_similar(meta(feature, "leftWidth"), 8.0);
+    real_similar(meta(feature, "rightWidth"), 20.0);
+    for (id, intensity, apex_int, apex_pos) in [
+        ("1", 134.0, 16.0, 14.0),
+        ("2", 64.0, 11.0, 16.0),
+        ("3", 39.0, 3.0, 8.0),
+    ] {
+        let sub = feature.feature(id).unwrap();
+        real_similar(f64::from(sub.base.intensity), intensity);
+        real_similar(meta(sub, "peak_apex_int"), apex_int);
+        real_similar(meta(sub, "peak_apex_position"), apex_pos);
+    }
+    // Source issue 9138: equally long hulls outside consensus mode.
+    let hulls: Vec<_> = ["1", "2", "3"]
+        .iter()
+        .map(|id| {
+            feature.feature(id).unwrap().convex_hulls[0]
+                .hull_points()
+                .len()
+        })
+        .collect();
+    assert!(hulls[0] > 0);
+    assert_eq!(hulls, [hulls[0]; 3]);
+
+    // A non-detecting transition is an error outside consensus mode, and the
+    // group is left unchanged.
+    let mut group = transition_group_2();
+    group.transitions_mut()[0].detecting = false;
+    assert!(
+        corrected_picker(false)
+            .pick_transition_group(&mut group, &mut ids())
+            .is_err()
+    );
+    assert!(group.features().is_empty());
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:379-430`.
+#[test]
+fn group_picker_class_test_only_quantifying_transitions_count() {
+    let picker = legacy_picker();
+    for (quantifying, expected) in [
+        ([true, true], Some(564236.0)),
+        ([false, true], Some(504308.0)),
+        ([true, false], Some(59927.6)),
+        ([false, false], None),
+    ] {
+        let mut group = transition_group_1();
+        for (transition, flag) in group.transitions_mut().iter_mut().zip(quantifying) {
+            transition.quantifying = flag;
+        }
+        picker
+            .pick_transition_group(&mut group, &mut ids())
+            .unwrap();
+        match expected {
+            Some(intensity) => {
+                assert_eq!(group.features().len(), 1);
+                real_similar(f64::from(group.features()[0].base.intensity), intensity);
+                real_similar(group.features()[0].base.rt, 1492.83060);
+            }
+            // Zero-intensity peak groups are dropped.
+            None => assert!(group.features().is_empty()),
+        }
+    }
+}
+
+fn empty_arrays() -> Vec<DataArray<f32>> {
+    (0..PeakPickerChromatogram::SIZE_OF_FLOATINDICES)
+        .map(|_| DataArray::new("", Vec::new()))
+        .collect()
+}
+
+/// The hand-made picked chromatograms of
+/// `MRMTransitionGroupPicker_test.cpp:506-534`: one peak at 1490 s with
+/// boundaries 1481.84 and 1512.29 in each fragment chromatogram.
+fn hand_picked(group: &Group) -> Vec<MSChromatogram> {
+    group
+        .chromatograms()
+        .iter()
+        .map(|chromatogram| {
+            let mut arrays = empty_arrays();
+            arrays[PeakPickerChromatogram::IDX_ABUNDANCE] =
+                DataArray::new("IntegratedIntensity", vec![1000.0]);
+            arrays[PeakPickerChromatogram::IDX_LEFTBORDER] =
+                DataArray::new("leftWidth", vec![1481.840]);
+            arrays[PeakPickerChromatogram::IDX_RIGHTBORDER] =
+                DataArray::new("rightWidth", vec![1512.290]);
+            MSChromatogram {
+                native_id: chromatogram.native_id.clone(),
+                peaks: vec![ChromatogramPeak::new(1490.0, 170.0)],
+                float_data_arrays: arrays,
+                ..Default::default()
+            }
+        })
+        .collect()
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:504-634`. The class test spells its
+/// picker keys `PeakPickerChromatogram::method`, which match no parameter; the
+/// chromatogram picker is not used by `createMRMFeature` either way.
+#[test]
+fn group_picker_class_test_create_mrm_feature() {
+    let group = transition_group_1();
+    // (settings, [area 2, apex 2, area 1, apex 1 (NaN: not asserted), ratio])
+    let cases: [(Vec<(&str, ParamValue)>, [f64; 5]); 4] = [
+        (
+            Vec::new(),
+            [535801.503, 157694.0, 61405.95106, 30286.9130513267, 8.72556],
+        ),
+        (
+            vec![(
+                "background_subtraction",
+                ParamValue::String("original".into()),
+            )],
+            [514583.0, 155925.8085, 60913.8, f64::NAN, 8.44773],
+        ),
+        (
+            vec![
+                ("background_subtraction", ParamValue::String("exact".into())),
+                (
+                    "PeakIntegrator:integration_type",
+                    ParamValue::String("simpson".into()),
+                ),
+            ],
+            [
+                1.42194e+06,
+                155331.37806798,
+                168685.0,
+                30251.2414481247,
+                8.42957,
+            ],
+        ),
+        (
+            vec![("background_subtraction", ParamValue::String("exact".into()))],
+            [
+                514590.0,
+                155331.37806798,
+                61009.7,
+                30251.2414481247,
+                8.43456040596823,
+            ],
+        ),
+    ];
+    for (index, (settings, [area_2, apex_2, area_1, apex_1, ratio])) in cases.iter().enumerate() {
+        let picker = picker_with(settings);
+        let mut picked = hand_picked(&group);
+        let feature = picker
+            .create_mrm_feature(&group, &mut picked, &[], 1, 0, &mut ids())
+            .unwrap();
+        let one = feature.feature("1").unwrap();
+        let two = feature.feature("2").unwrap();
+        real_similar(f64::from(two.base.intensity), *area_2);
+        real_similar(meta(two, "peak_apex_int"), *apex_2);
+        real_similar(f64::from(one.base.intensity), *area_1);
+        if !apex_1.is_nan() {
+            real_similar(meta(one, "peak_apex_int"), *apex_1);
+        }
+        real_similar(
+            f64::from(two.base.intensity) / f64::from(one.base.intensity),
+            *ratio,
+        );
+        if index == 0 {
+            assert_eq!(feature.base.rt, 1490.0);
+            assert_eq!(one.convex_hulls[0].hull_points().len(), 12);
+            assert_eq!(two.convex_hulls[0].hull_points().len(), 12);
+            real_similar(hull_sum(two), 535801.503);
+            real_similar(hull_sum(one), 61405.95106);
+            real_similar(meta(&feature, "leftWidth"), 1481.840);
+            real_similar(meta(&feature, "rightWidth"), 1512.290);
+            // The seed is consumed.
+            assert_eq!(picked[1].peaks[0].intensity, 0.0);
+        }
+    }
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:641-677`.
+#[test]
+fn group_picker_class_test_find_largest_peak() {
+    let picked: Vec<MSChromatogram> = (0..3_u8)
+        .map(|k| MSChromatogram {
+            peaks: vec![
+                ChromatogramPeak::new(3120.0, 100.0 + f32::from(k)),
+                ChromatogramPeak::new(4120.0, 200.0 + f32::from(k)),
+            ],
+            ..Default::default()
+        })
+        .collect();
+    assert_eq!(
+        MRMTransitionGroupPicker::find_largest_peak(&picked),
+        Some((2, 1))
+    );
+}
+
+fn with_borders(peaks: &[(f64, f32)], borders: &[(f32, f32)]) -> MSChromatogram {
+    let mut arrays = empty_arrays();
+    arrays[PeakPickerChromatogram::IDX_LEFTBORDER] =
+        DataArray::new("leftWidth", borders.iter().map(|b| b.0).collect());
+    arrays[PeakPickerChromatogram::IDX_RIGHTBORDER] =
+        DataArray::new("rightWidth", borders.iter().map(|b| b.1).collect());
+    MSChromatogram {
+        peaks: peaks
+            .iter()
+            .map(|&(rt, intensity)| ChromatogramPeak::new(rt, intensity))
+            .collect(),
+        float_data_arrays: arrays,
+        ..Default::default()
+    }
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:679-727`.
+#[test]
+fn group_picker_class_test_find_widest_peak_indices() {
+    let picked = [
+        with_borders(
+            &[(110.0, 2000.0), (150.0, 6000.0), (190.0, 2000.0)],
+            &[(100.0, 120.0), (120.0, 180.0), (180.0, 200.0)],
+        ),
+        with_borders(
+            &[(150.0, 5500.0), (190.0, 2000.0)],
+            &[(100.0, 180.0), (180.0, 200.0)],
+        ),
+        with_borders(
+            &[(110.0, 2000.0), (150.0, 7000.0), (190.0, 2000.0)],
+            &[(105.0, 115.0), (125.0, 175.0), (185.0, 195.0)],
+        ),
+    ];
+    assert_eq!(
+        MRMTransitionGroupPicker::find_widest_peak_indices(&picked).unwrap(),
+        Some((1, 0))
+    );
+}
+
+/// `MRMTransitionGroupPicker_test.cpp:730-841`.
+#[test]
+fn group_picker_class_test_remove_overlapping_features() {
+    let original = [
+        with_borders(
+            &[(3120.0, 170.0), (3090.0, 170.0), (3060.0, 170.0)],
+            &[(3100.0, 3140.0), (3070.0, 3120.0), (3050.0, 3090.0)],
+        ),
+        with_borders(
+            &[(3120.0, 170.0), (3060.0, 170.0)],
+            &[(3100.0, 3140.0), (3050.0, 3090.0)],
+        ),
+    ];
+    let intensities =
+        |c: &MSChromatogram| -> Vec<f32> { c.peaks.iter().map(|p| p.intensity).collect() };
+    for (left, right, first, second) in [
+        (3100.0, 3140.0, vec![0.0, 0.0, 170.0], vec![0.0, 170.0]),
+        (3070.0, 3120.0, vec![0.0, 0.0, 0.0], vec![0.0, 0.0]),
+        (3050.0, 3090.0, vec![170.0, 0.0, 0.0], vec![170.0, 0.0]),
+    ] {
+        let mut picked = original.clone();
+        MRMTransitionGroupPicker::remove_overlapping_features(&mut picked, left, right);
+        assert_eq!(intensities(&picked[0]), first);
+        assert_eq!(intensities(&picked[1]), second);
+    }
 }
