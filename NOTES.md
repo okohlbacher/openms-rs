@@ -22,7 +22,12 @@ DIAHelper -> DIAScoring, DIAPrescoring -> MRMScoring -> IonMobilityScoring -> Op
 - DIAScoring.cpp uses its own global C13C12 = 1.0033548 (not Constants' 1.0033548378); DIAPrescoring uses Constants.
 - Averagine: SourceSingle precision (C++ Peak1D float intensities).
 
+## Progress
+- DIA trio green (24). MRMScoring green (16, commit d21665c8). OpenSwathScores methods + Usage (06df27ef).
+- IonMobilityScoring (7bd5f5fd): peak picking -> Error::Unsupported (PeakPickerMobilogram unported);
+  MobilogramParquetConsumer -> MobilogramSink trait; driftIdScoring takes detection transitions slice.
+- Test files: tests/openswath_{dia_scoring,mrm_scoring,ion_mobility_scoring}.rs (default features).
+
 ## Next step
-1. DONE: DIA trio gate green (24 tests, default features, dax).
-2. MRMScoring (304+836) -> mrm_scoring.rs, uses OA scoring.rs (xcorr, MI).
-3. OpenSwathScores, IonMobilityScoring, OpenSwathScoring.
+1. Confirm gate4 (3 test files). 2. OpenSwathScoring (339+832). 3. Support doc docs/OPENSWATH_SCORING_SUPPORT.md,
+provenance tests/data/openswath_scoring_provenance.json, doc coverage, clippy/fmt/doc/MSRV/sweep, report+ledger.
