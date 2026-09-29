@@ -38,7 +38,10 @@ Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils
 - F7b ZIP input vs B8a zip_input.rs (cross-group, flag to lead).
 - F3b driver.cpp.txt must go.
 
-## Next step
-1. logs/t1.log = full test --all-features --no-fail-fast on dax (running). Fix failures.
-2. Proposed ci_matrix JOBS edits (temporarily, uncommitted) -> --write -> sweep integ-F-sweep with them; fetch per-line logs.
-3. Consolidated INTEG-F.json (validate with core_sdk_coverage in scratch copy) + INTEG-F.md.
+## Next step (incarnation 3, 12:05)
+- t1.log (test --all-features --all-targets --no-fail-fast, dax): 6582 passed, 0 failed, 21 ignored. DONE.
+- sweep1 (scratch/sweep1) died: ssh via sshgw dropped during line 1 ("Can't assign requested address"). Uncommitted
+  rust.yml/ci_matrix.py/ci_coverage_baseline.json = proposed slices (DO NOT COMMIT; lead's files; copy in ci_proposed.patch).
+1. Re-run sweep -> scratch/sweep2 (background, poll). If ssh keeps dropping, run lines in chunks via openms-kim-gate.sh.
+2. Consolidated INTEG-F.json (scratch ledger.py; validate with core_sdk_coverage in scratch copy) + INTEG-F.md via Bash.
+3. Revert the three lead files, delete NOTES.md in final commit.
