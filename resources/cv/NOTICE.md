@@ -35,3 +35,11 @@ source SDK license hashes are recorded in [its provenance manifest](../../tests/
 The source OpenMS copyright and BSD-3-Clause license are retained in the root
 [license notices](../../LICENSES.md); this attribution does not alter the
 separate ontology terms described above.
+
+## TraML mapping resource
+
+`TraML-mapping.xml` is an unchanged copy of `share/OpenMS/MAPPING/TraML-mapping.xml`
+from OpenMS4-core revision `bc9cc12`. It contains the source TraML semantic
+mapping rules that `TraMLFile::isSemanticallyValid` loads, and has no separate
+embedded license notice. Its SHA-256 is recorded in
+[the TraML provenance manifest](../../tests/data/traml_provenance.json).
