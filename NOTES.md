@@ -43,3 +43,7 @@ Branch: worktree-wf_cd066dab-0a7-19 (retry; merged -14 notes).
 - Gate cmd that works: OPENMS_GATE_HOST=spock OPENMS_GATE_JOBS=64 ~/.local/bin/openms-kim-gate.sh F7c test --locked --all-features --test <t> ...
   (no shell variables in the command; the sandbox refuses them). Edit scripts go in scratchpad as .py files.
 - Do NOT run check_doc_coverage.py --write (docs/doc-coverage.json is the lead's).
+- 13761720 MzXML transform progress (tier 1, ../oracle/F7c-transform-progress). 682eb2aa dta2d from_peak_options.
+- e66a3c4c MzData isSemanticallyValid + MzDataValidator (tier 1, ../oracle/F7c-mzdata-semantic; 13 inputs).
+- Sweep F7c-sweep running -> scratchpad/sweep1. Next: ConsensusXML (ZIP input, passive PeakFileOptions), MGF review/param shape, TrafoXML member check vs M1.
+- CI slices to report: mzxml_transform_progress (mzml, 4 tests); mzdata semantic test needs mzml+semantic-validation (64 tests; 63 without).
