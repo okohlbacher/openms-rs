@@ -21,3 +21,23 @@ src/analysis/openswath.rs.
 1. Read MRMIonSeries.h/.cpp/test; check Rust AASequence, residue, TheoreticalSpectrumGenerator, ModificationsDB, TraML reader availability.
 2. Port MRMIonSeries, commit.
 3. MRMDecoy, then MRMAssay, then TransitionListEvidenceFilter.
+
+## Findings (incarnation 1)
+- No TraML reader in Rust (FORMAT/TraMLFile.h unported) -> TraML fixtures of
+  MRMAssay/MRMDecoy tests cannot be loaded; plan a C++ oracle on ibminode06
+  (../oracle/O1c-<topic>/) that dumps inputs/outputs in a simple text/JSON form.
+- LightTargetedExperiment (OPENSWATHALGO) unported -> generateDecoysLight and
+  *Light signatures are a named gap; port algorithms on (location) vectors.
+- Residue loss table already in src/chemistry/theoretical.rs fragment_losses
+  (D/E/S/T H2O, K/N/Q NH3, R NH3,C1H2N2,C1H2N1O1; modified residue -> mod's
+  losses only, empty formulas never present). AASequence::internal_mass(i) is
+  pub(crate) = Residue::getMonoWeight(Internal).
+- boost::uniform_int<> default range is [0,9]! pseudoRNG() in shufflePeptide
+  yields 0..9; pseudoRNG(n) yields [0,n-1] via generate_uniform_int bucket
+  mapping on 32-bit boost::mt19937 (rand_mt::Mt is 32-bit MT19937).
+- decoy_random.rs: Mt64 + bucket mapping for Math::RandomShuffler (used by
+  generateDecoys when aim_decoy_fraction < 1); shuffle is &mut [u8] only.
+- C++ defect candidates: MRMIonSeries::annotateTransition uses getSuffix for
+  a/b/c ions; annotationToCVTermList_ `static const EmpiricalFormula
+  nl_formula(...)` caches the FIRST loss formula forever; shuffle in
+  generateDecoys seeds from time(nullptr).
