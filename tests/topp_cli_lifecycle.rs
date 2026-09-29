@@ -2538,6 +2538,20 @@ fn number_conversion_follows_string_utils() {
     let ctx = captured();
     assert_eq!(ctx.int("intoption").unwrap(), 12);
     assert_eq!(ctx.double("doubleoption").unwrap(), 5.0);
+
+    // The Linux Release build's StringUtils::toDouble (libstdc++ from_chars)
+    // refuses a literal that rounds to zero: row `toDouble 1e-400` of
+    // tests/data/string_utils_oracle.tsv (../oracle/B8a-stringutils,
+    // ibminode06). TOPPBase.cpp:2372 (cli c19e494) calls it for the value.
+    let outcome = run::<ToppBaseTest>(&["-doubleoption", "1e-400"]);
+    assert_eq!(outcome.code, ExitCode::IllegalParameters);
+    assert!(
+        outcome
+            .err
+            .contains("Could not convert string '1e-400' to a double value"),
+        "{}",
+        outcome.err
+    );
 }
 
 // ---------------------------------------------------------------------------
