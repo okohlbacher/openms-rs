@@ -14,7 +14,7 @@ optional `arrow` feature (see the `arrow-rs` row of
 | `FORMAT/ParquetFilter.h` | `src/format/parquet_filter.rs` | complete |
 | `FORMAT/ArrowIOHelpers.h` (+ `ParquetWriteConfig` of `MSExperimentArrowExport.h`) | `src/format/arrow_io_helpers.rs` | complete (QPX value validation by lane F1c, see [QPX_SUPPORT](QPX_SUPPORT.md)) |
 | `FORMAT/ProteinIdentificationArrowIO.h` | `src/format/protein_identification_arrow_io.rs` | complete |
-| `FORMAT/PSMArrowIO.h` | — | not ported (`QPXFile`, which it builds on, is ported: [QPX_SUPPORT](QPX_SUPPORT.md)) |
+| `FORMAT/PSMArrowIO.h` | `src/format/psm_arrow_io.rs` | complete (wave-4 integration, on lane F1c's `QPXFile`) |
 | `FORMAT/FeatureMapArrowIO.h` | `src/format/feature_map_arrow_io.rs` | partial: features table; PSM table and bundle need `QPXFile` |
 | `FORMAT/ConsensusMapArrowIO.h` | — | not ported: needs `QPXFile`, ProForma parsing of peptidoforms |
 
@@ -114,6 +114,35 @@ optional `arrow` feature (see the `arrow-rs` row of
 | `applyRunIdentifierRename` | `apply_run_identifier_rename` |
 | `checkUniqueIdentifiers` | `check_unique_identifiers` |
 | `writeArrowTableToParquet_` (anonymous) | `write_table` |
+
+### `PSMArrowIO.h`
+
+Ported at wave-4 integration (INTEG-F), once lane F1c's `QPXFile` and this
+lane's `ProteinIdentificationArrowIO` met; the `.idparquet` bundle is those two
+writers and readers in the source's order.
+
+| Source | Rust (`psm_arrow_io::`) |
+|---|---|
+| class `PSMArrowIO` (static members only) | unit struct `PSMArrowIO` |
+| `exportToParquet(protein_identifications, peptide_identifications, dir, export_all_psms = true, config = {})` | `PSMArrowIO::export_to_parquet(proteins, peptides, dir, export_all_psms, config)` (modification names resolved in `ModificationsDB::global()`), `export_to_parquet_with_registry(..., registry)`; returns the PSM export's warnings |
+| `importFromParquet(dir, protein_identifications, peptide_identifications)` | `PSMArrowIO::import_from_parquet(dir, proteins, peptides)` (a copy of the global registry, then dropped), `import_from_parquet_with_registry(..., registry)`; returns the imports' warnings |
+| anonymous `kPSMs`, `kProteins`, `kProteinGroups`, `kSearchParams` | `PSMS`, `PROTEINS`, `PROTEIN_GROUPS`, `SEARCH_PARAMS` |
+| anonymous `ensureDirectory_` | private `ensure_directory` (`std::fs::create_dir`: the directory itself, not its parents) |
+
+Export, in the source's order: `checkUniqueIdentifiers` before anything is
+created (`Error::InvalidValue`, the source's `Exception::InvalidValue`); the
+directory; `psms.parquet` from `QpxFile::export_to_arrow` through
+`write_table_to_parquet`; `proteins.parquet`, `protein_groups.parquet`, and
+`search_params.parquet` with the definitions of
+`modification_definitions::collect` encoded by `encode_by_run`. Import:
+the directory and all four files must exist; the protein side first
+(registering the stored definitions), then the PSM table, then fresh run
+identifiers (`synthesize_run_identifiers`) applied to the identifications in
+lock-step (`IdXMLFile.cpp:530` parity). Where the source logs an error and
+returns `false`, the port returns `Err` with the same message text. Native:
+the registry form stages its registrations and commits them, with the
+outputs, only on success, where the source may already have registered a
+bundle's definitions process-wide when a later table fails.
 
 ### `FeatureMapArrowIO.h`
 
@@ -217,7 +246,7 @@ optional `arrow` feature (see the `arrow-rs` row of
   `feature_file` or `pg_file` table with `QPXValueValidation` and refuses one
   that violates the QPX value contract (`Error::InvalidValue`), as the source
   does.
-* `PSMArrowIO`, the PSM and bundle half of `FeatureMapArrowIO`, and
+* The PSM and bundle half of `FeatureMapArrowIO`, and
   `ConsensusMapArrowIO` build and read
   their PSM tables through `QPXFile::exportToArrow`/`importFromArrow`
   (`FORMAT/QPXFile.h`, now `QpxFile::export_to_arrow`/`import_from_arrow`),
@@ -258,3 +287,14 @@ live outside the repository (`../oracle/F1a-arrow`, `F1a-arrow2`,
   the source reads them; orphaned subordinates and an empty table.
 * `tests/parquet_filter.rs` (19 tests, default build): every section of the
   upstream class test `ParquetFilter_test.cpp` (tier 3).
+* `tests/psm_arrow_io.rs` (14 tests, wave-4 integration): every section of
+  the upstream class test `PSMArrowIO_test.cpp` (tier 3), including the
+  peptidoform chemistry and definition registration; the C++-written
+  `IDMerger_idparquet_input{1,2}.idparquet` fixtures, which the test-data
+  pin records as `IDFileConverter -in IDMerger_1_inputX.idXML -out ...`
+  (`topp/CMakeLists.txt:178`), import to those idXML files' identifications
+  (hits, scores, charges, protein references, precursor, protein hits),
+  as the retained `IDMerger_idparquet_output.idXML` of the C++ pipeline also
+  shows them; all four C++-written idparquet fixtures import with the
+  bundle's invariants (identifications per `peptide_identification_index`,
+  hits per row, runs per search-parameter row, fresh identifiers; tier 4).

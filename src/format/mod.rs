@@ -235,6 +235,9 @@ pub mod percolator_outfile;
 /// Parquet files (`ProteinIdentificationArrowIO.h`).
 #[cfg(feature = "arrow")]
 pub mod protein_identification_arrow_io;
+/// Identifications as a Parquet directory bundle, `.idparquet` (`PSMArrowIO.h`).
+#[cfg(feature = "arrow")]
+pub mod psm_arrow_io;
 /// All-or-nothing writing of a QPX collection (`QPXCollectionExport.h`).
 #[cfg(feature = "arrow")]
 pub mod qpx_collection_export;

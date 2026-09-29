@@ -78,6 +78,18 @@
   {
    "path": "src/tests/class_tests/openms/source/ParquetFilter_test.cpp",
    "sha256": "e72742faccbd0647ba63e7f4275d4c0642f56323595e093f0700500cfb26f407"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PSMArrowIO.h",
+   "sha256": "9e42d0eeddbf806ba98200439dfb773c6c0a002abea1c1908af9d55644362537"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PSMArrowIO.cpp",
+   "sha256": "8656e08a10e7f9671438005a0f0a5bbc0fd8351ac596384ca8dadc11f28c0b6b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PSMArrowIO_test.cpp",
+   "sha256": "da14f39dd231b2aac314c6ffd7eed82e719676d385e6c717a20473675ac732b2"
   }
  ],
  "fixtures": [
@@ -343,13 +355,15 @@
   "src/format/parquet_filter.rs",
   "src/format/arrow_io_helpers.rs",
   "src/format/protein_identification_arrow_io.rs",
-  "src/format/feature_map_arrow_io.rs"
+  "src/format/feature_map_arrow_io.rs",
+  "src/format/psm_arrow_io.rs"
  ],
  "native_tests": [
   "tests/arrow_parquet.rs",
   "tests/protein_identification_arrow_io.rs",
   "tests/feature_map_arrow_io.rs",
-  "tests/parquet_filter.rs"
+  "tests/parquet_filter.rs",
+  "tests/psm_arrow_io.rs"
  ],
  "support_document": "docs/ARROW_PARQUET_SUPPORT.md",
  "external_reference_artifacts": [
@@ -498,5 +512,6 @@
    "origin_key": "fixtures"
   }
  ],
- "external_reference_note": "The oracle drivers are C++ and stay outside the repository; their records were copied verbatim into tests/data/arrow_parquet/ (hashes above), and results/hashes.txt of each oracle hashes the driver, the built binary, libOpenMS.so and every file it wrote. The C++-written pia_*.parquet files embed a fresh uuid and creation_date per run, so the two runs of oracle part 3 differ in those files only; the records are identical."
+ "external_reference_note": "The oracle drivers are C++ and stay outside the repository; their records were copied verbatim into tests/data/arrow_parquet/ (hashes above), and results/hashes.txt of each oracle hashes the driver, the built binary, libOpenMS.so and every file it wrote. The C++-written pia_*.parquet files embed a fresh uuid and creation_date per run, so the two runs of oracle part 3 differ in those files only; the records are identical.",
+ "psm_arrow_io_note": "PSMArrowIO (wave-4 integration, INTEG-F): tests/psm_arrow_io.rs ports every section of PSMArrowIO_test.cpp (tier 3) and imports the C++-written test-data fixtures IDMerger_idparquet_input1/2.idparquet (already listed under fixtures), which topp/CMakeLists.txt:178 at test-data 0cb15f2 records as written by IDFileConverter from topp/IDMerger_1_input1.idXML (sha256 3621364be45a069a2bd4224832231e1608528c098accdc1ede1aa83003de3cdd) and topp/IDMerger_1_input2.idXML (sha256 a7ece5d0cec93d55c9b43ed53a456222c8f73035be78a6995b069ae742d390eb); the expected identifications are transcribed from those two idXML files, and the retained topp/IDMerger_idparquet_output.idXML (sha256 0fa0bf1a78d3dab97b0474cf62bdaa5f47451ad0224a253a338df7bac42d1c73, the C++ import merged by IDMerger, which sorts hits) shows the same hits. No C++ was executed for PSMArrowIO itself."
 }
