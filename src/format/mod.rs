@@ -168,6 +168,17 @@ pub mod arrow_schema_registry;
 /// (`FeatureMapArrowIO.h`, features half).
 #[cfg(feature = "arrow")]
 pub mod feature_map_arrow_io;
+/// OpenSWATH mobilograms to `.xim` Parquet
+/// (`DATAACCESS/MobilogramParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod mobilogram_parquet_consumer;
+/// OpenSWATH chromatograms to `.xic` Parquet
+/// (`DATAACCESS/MSChromatogramParquetConsumer.h`).
+#[cfg(feature = "arrow")]
+pub mod ms_chromatogram_parquet_consumer;
+/// Shared writer machinery of the OpenSWATH Parquet consumers.
+#[cfg(feature = "arrow")]
+mod openswath_parquet_writer;
 /// Shared Parquet read/write helpers and type-coercing column accessors
 /// (`ParquetFile.h`).
 #[cfg(feature = "arrow")]
