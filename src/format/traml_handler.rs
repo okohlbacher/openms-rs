@@ -704,10 +704,10 @@ impl Handler<'_> {
         let value = data_value_text(&term.value);
         let accession = term.accession.as_str();
         match parent {
-            "Software" => self.software.cv_terms.add(term)?,
-            "Publication" => self.publication.cv_terms.add(term)?,
-            "Instrument" => self.instrument.cv_terms.add(term)?,
-            "Contact" => self.contact.cv_terms.add(term)?,
+            "Software" => self.software.cv_terms.add_source(term),
+            "Publication" => self.publication.cv_terms.add_source(term),
+            "Instrument" => self.instrument.cv_terms.add_source(term),
+            "Contact" => self.contact.cv_terms.add_source(term),
             "RetentionTime" => {
                 let unit = term.value.unit().map(|u| u.accession().to_owned());
                 match unit.as_deref() {
@@ -750,16 +750,16 @@ impl Handler<'_> {
                             "The CV term '{accession}' - '{}' used in tag '{parent}' is currently not supported!",
                             term.name
                         ));
-                        self.rt.cv_terms.add(term)?;
+                        self.rt.cv_terms.add_source(term);
                     }
                 }
             }
-            "Evidence" => self.peptide.evidence.add(term)?,
+            "Evidence" => self.peptide.evidence.add_source(term),
             "Peptide" => match accession {
                 "MS:1000041" => self.peptide.set_charge_state(source_int32(&value)?),
                 "MS:1000893" => self.peptide.set_peptide_group_label(value),
                 "MS:1002476" => self.peptide.set_drift_time(source_double(&value)?),
-                _ => self.peptide.cv_terms.add(term)?,
+                _ => self.peptide.cv_terms.add_source(term),
             },
             "Modification" => {
                 let modification = self.peptide.mods.last_mut().ok_or_else(|| {
@@ -772,7 +772,7 @@ impl Handler<'_> {
                 if is_unimod {
                     modification.unimod_id = source_int32(&accession[7..])?;
                 } else {
-                    modification.cv_terms.add(term)?;
+                    modification.cv_terms.add_source(term);
                 }
             }
             "Compound" => match accession {
@@ -784,11 +784,11 @@ impl Handler<'_> {
                 // here, which the next `<Peptide>` start discards; the
                 // compound's own drift time is set instead.
                 "MS:1002476" => self.compound.set_drift_time(source_double(&value)?),
-                _ => self.compound.cv_terms.add(term)?,
+                _ => self.compound.cv_terms.add_source(term),
             },
-            "Protein" => self.protein.cv_terms.add(term)?,
-            "Configuration" => self.configuration.cv_terms.add(term)?,
-            "Prediction" => self.prediction.cv_terms.add(term)?,
+            "Protein" => self.protein.cv_terms.add_source(term),
+            "Configuration" => self.configuration.cv_terms.add_source(term),
+            "Prediction" => self.prediction.cv_terms.add_source(term),
             "Interpretation" => {
                 let ion = match accession {
                     "MS:1000903" => {
@@ -812,24 +812,36 @@ impl Handler<'_> {
                     "MS:1001233" => PeptideFragmentType::YIonMinusNH3,
                     "MS:1001240" => PeptideFragmentType::NonIdentified,
                     _ => {
-                        self.interpretation.cv_terms.add(term)?;
+                        self.interpretation.cv_terms.add_source(term);
                         return Ok(());
                     }
                 };
                 self.interpretation.iontype = ion;
             }
-            "ValidationStatus" => self.validation.add(term)?,
-            "TargetList" => self.exp.add_target_cv_term(term)?,
-            "Target" => self.target.cv_terms.add(term)?,
+            "ValidationStatus" => self.validation.add_source(term),
+            "TargetList" => {
+                let mut list = self.exp.target_cv_terms().clone();
+                list.add_source(term);
+                self.exp.set_target_cv_terms(list);
+            }
+            "Target" => self.target.cv_terms.add_source(term),
             "Precursor" => {
                 if grandparent == "Transition" {
                     if accession == "MS:1000827" {
                         self.transition.set_precursor_mz(source_double(&value)?);
                     } else {
-                        self.transition.add_precursor_cv_term(term)?;
+                        let mut list = self
+                            .transition
+                            .precursor_cv_term_list()
+                            .cloned()
+                            .unwrap_or_default();
+                        list.add_source(term);
+                        self.transition.set_precursor_cv_term_list(list);
                     }
                 } else if grandparent == "Target" {
-                    self.target.add_precursor_cv_term(term)?;
+                    let mut list = self.target.precursor_cv_term_list().clone();
+                    list.add_source(term);
+                    self.target.set_precursor_cv_term_list(list);
                 } else {
                     // The source ignores this term without a message.
                     self.drop_data(format!(
@@ -852,9 +864,9 @@ impl Handler<'_> {
                     self.product.set_charge_state(charge.trunc() as i32);
                 }
                 "MS:1000827" => self.product.set_mz(source_double(&value)?),
-                _ => self.product.cv_terms.add(term)?,
+                _ => self.product.cv_terms.add_source(term),
             },
-            "SourceFile" => self.sourcefile.cv_terms.add(term)?,
+            "SourceFile" => self.sourcefile.cv_terms.add_source(term),
             "Transition" => match accession {
                 "MS:1002007" => self
                     .transition
@@ -865,7 +877,7 @@ impl Handler<'_> {
                 "MS:1001226" | "MS:1000905" => self
                     .transition
                     .set_library_intensity(source_double(&value)?),
-                _ => self.transition.cv_terms.add(term)?,
+                _ => self.transition.cv_terms.add_source(term),
             },
             _ => {
                 let name = term.name.clone();
@@ -998,9 +1010,12 @@ fn attributes_of(start: &BytesStart<'_>) -> Result<Attributes> {
 /// convert, or a ceiling of `options` that is reached;
 /// [`Error::Unsupported`] for data the source drops (see the module
 /// documentation), unless [`ReadOptions::source_compatible`] is set;
-/// [`Error::InvalidValue`] for a CV term that [`CVTermList::add`] refuses
-/// (an empty accession or one with whitespace), which the source stores;
+/// [`Error::InvalidValue`] for a unit accession with whitespace;
 /// [`Error::Io`] from `input`.
+///
+/// A CV term with an empty accession is stored, as the source stores it
+/// (the C++ `OpenSwathDecoyGenerator` writes such terms), although
+/// [`CVTermList::validate`] reports it.
 pub fn read_document(
     input: impl BufRead,
     options: &ReadOptions,

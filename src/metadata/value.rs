@@ -585,6 +585,21 @@ impl CVTermList {
             .push(term);
         Ok(())
     }
+    /// Append a term as a ported source reader stores it, without the
+    /// accession check of [`CVTermList::add`].
+    ///
+    /// Only for crate readers whose source stores such a term and whose own
+    /// retained output contains it: `TraMLHandler` reads and writes
+    /// `<cvParam cvRef="" accession="" .../>`, and the C++
+    /// `OpenSwathDecoyGenerator` output at test-data `0cb15f2` carries 33 of
+    /// them. [`CVTermList::validate`] still reports such a term.
+    #[cfg(feature = "traml")]
+    pub(crate) fn add_source(&mut self, term: CVTerm) {
+        self.terms
+            .entry(term.accession.clone())
+            .or_default()
+            .push(term);
+    }
     /// Appends terms, matching the surprisingly additive C++ setCVTerms method.
     pub fn add_terms(&mut self, terms: &[CVTerm]) -> Result<()> {
         for term in terms {

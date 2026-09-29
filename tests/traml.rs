@@ -57,6 +57,24 @@ fn normalized_lines(text: &str) -> Vec<String> {
     out
 }
 
+/// Two lines agree when they are equal, or when every `"`-delimited token
+/// is equal or both tokens read as the same `f64`. The retained outputs were
+/// written by earlier C++ releases whose number spelling differs (`500` for
+/// the precursor m/z the pinned `precisionWrapper` spells `500.0`); the
+/// upstream comparison is FuzzyDiff (`topp/CMakeLists.txt:59`), which accepts
+/// both. Requiring the identical double is stricter than FuzzyDiff's
+/// tolerances.
+fn same_line(a: &str, b: &str) -> bool {
+    if a == b {
+        return true;
+    }
+    let (ta, tb): (Vec<&str>, Vec<&str>) = (a.split('"').collect(), b.split('"').collect());
+    ta.len() == tb.len()
+        && ta.iter().zip(&tb).all(|(x, y)| {
+            x == y || matches!((x.parse::<f64>(), y.parse::<f64>()), (Ok(p), Ok(q)) if p == q)
+        })
+}
+
 // --- TraMLFile_test.cpp -----------------------------------------------------
 
 /// `store`: ToyExample1 survives a store/load round trip unchanged.
@@ -150,7 +168,11 @@ fn rewriting_retained_cpp_output_reproduces_it() {
         let written = to_text(&exp);
         let (want, got) = (normalized_lines(&expected), normalized_lines(&written));
         for (index, (a, b)) in want.iter().zip(&got).enumerate() {
-            assert_eq!(a, b, "{name}: line {}", index + 1);
+            assert!(
+                same_line(a, b),
+                "{name}: line {}\n want: {a}\n  got: {b}",
+                index + 1
+            );
         }
         assert_eq!(want.len(), got.len(), "{name}: line count");
         // And the rewritten document decodes to the same experiment.
