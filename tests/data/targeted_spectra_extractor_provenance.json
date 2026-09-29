@@ -5,7 +5,7 @@
  "group": "targeted_spectra_extractor",
  "work_package": "O4b (wave 4)",
  "method": "Port of ANALYSIS/OPENSWATH/TargetedSpectraExtractor except searchSpectrum (needs AccurateMassSearchEngine) and storeSpectraMSP (needs the MSP writer; its two preparation steps are ported). The class-test sections that do not need MSP libraries are transcribed with their literals and TEST_REAL_SIMILAR tolerance; the target list is built in the test from the class test's CSV for the fields the class reads.",
- "evidence_tier": "tier 3 (class-test literals: parameters, pickSpectrum, annotateSpectra both overloads, scoreSpectra both overloads, selectSpectra both overloads, extractSpectra both targeted overloads, mergeFeatures, annotateSpectra with MS1 features, constructTransitionsList, storeSpectraMSP's peak removal); tier 4 (matching with a fixed-score comparator, BinnedSpectrumComparator self-match and option parsing, Rust-only refusals)",
+ "evidence_tier": "tier 1 (executed differential: 8 cases, 2682 records, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06: target list as TransitionTSVFile reads it, annotateSpectra, pickSpectrum under three settings, scoreSpectra with features, selectSpectra at three thresholds, extractSpectra, BinnedSpectrumComparator with matchSpectrum); tier 3 (class-test literals: parameters, pickSpectrum, annotateSpectra both overloads, scoreSpectra both overloads, selectSpectra both overloads, extractSpectra both targeted overloads, mergeFeatures, annotateSpectra with MS1 features, constructTransitionsList, storeSpectraMSP's peak removal); tier 4 (matching with a fixed-score comparator, BinnedSpectrumComparator self-match and option parsing, Rust-only refusals)",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h",
@@ -24,7 +24,8 @@
   "src/analysis/openswath/targeted_spectra_extractor.rs"
  ],
  "native_tests": [
-  "tests/targeted_spectra_extractor.rs"
+  "tests/targeted_spectra_extractor.rs",
+  "tests/targeted_spectra_extractor_oracle.rs"
  ],
  "support_document": "docs/TARGETED_SPECTRA_EXTRACTOR_SUPPORT.md",
  "fixtures": [
@@ -43,8 +44,44 @@
    "kind": "published source fixture",
    "origin": "src/tests/class_tests/openms/data/TargetedSpectraExtractor_13CFlux_TraML.csv",
    "role": "The class test's target list; the test builds the equivalent TargetedExperiment from it (TransitionTSVFile is not ported)"
+  },
+  {
+   "path": "tests/data/targeted_spectra_extractor/oracle_expected.tsv",
+   "sha256": "f86eeacac89d661c4d861e9ff8f8165cc2a56859700dabb10e89c2a0be98bf9c",
+   "bytes": 166064,
+   "rows": 2682,
+   "kind": "oracle-generated (tier 1 executed differential)",
+   "role": "Records of ../oracle/O4b-tse/driver.cpp (results/oracle.tsv), byte-identical across two runs"
   }
  ],
+ "oracle": {
+  "evidence_label": "oracle-generated (tier 1 executed differential)",
+  "sdk": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0, flags -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "host": "ibminode06",
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<run>/home OPENMS_HOME_PATH=<run>/home OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<install>/share/OpenMS/4.0.0 OMP_NUM_THREADS=1",
+  "reproduction": "remote_run.sh runs the driver twice in fresh processes; records, stdout, stderr and exit code were byte-identical (results/differ.txt empty).",
+  "comparison": "Names, counts, annotation coordinates and selection membership exactly; values computed through smoothing, picking and noise estimation within 1e-9 relative (absolute below 1e-9), a bound fixed before the first run.",
+  "measured": "Linux x86_64 (spock), stable and 1.85.0: all 4832 floating values bit-identical; the test-side target list equals TransitionTSVFile's on every transition name, peptide reference and precursor m/z and every peptide retention time and unit (598 records)."
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/O4b-tse/driver.cpp",
+   "sha256": "e85b5e4ea0e496318a7267fe6f799603c0d4165a9d8a3e14f101d205889db878",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4b-tse/remote_run.sh",
+   "sha256": "a75df5c346f72cd9118b5e186c883ddc97b9460b85af41cf3b36f6ea649233f4",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4b-tse/results/hashes.txt",
+   "sha256": "afec5a8430a79df3f3077e98caea921592bee1d3a7a7aa2b39a4fd062fe6a680",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The C++ driver and its run script live outside this repository under ../oracle/O4b-tse so that no C++ is committed here. results/hashes.txt records the sha256 of the driver, the two inputs, the built driver, libOpenMS.so and the oracle output as they were on ibminode06.",
  "class_test_review": {
   "path": "src/tests/class_tests/openms/source/TargetedSpectraExtractor_test.cpp",
   "comparison": "TEST_EQUAL exact; TEST_REAL_SIMILAR as isRealSimilar with absdiff 1e-5 and ratio 1 + 1e-5.",

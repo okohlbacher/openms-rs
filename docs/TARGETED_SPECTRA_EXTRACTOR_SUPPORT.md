@@ -7,7 +7,9 @@ members that need components the crate does not have yet (see
 [Gaps](#gaps)).
 
 Tests: [`tests/targeted_spectra_extractor.rs`](../tests/targeted_spectra_extractor.rs)
-(8 tests without features; 12 with `mzml`, which loads the class test's mzML).
+(8 tests without features; 12 with `mzml`, which loads the class test's mzML)
+and [`tests/targeted_spectra_extractor_oracle.rs`](../tests/targeted_spectra_extractor_oracle.rs)
+(the executed differential; `mzml`).
 Manifest: [`tests/data/targeted_spectra_extractor_provenance.json`](../tests/data/targeted_spectra_extractor_provenance.json).
 
 ## API mapping
@@ -124,14 +126,16 @@ Manifest: [`tests/data/targeted_spectra_extractor_provenance.json`](../tests/dat
    `untargetedMatching`) and the MS1-feature `extractSpectra` section load MSP
    libraries with `MSPGenericFile`, and the targeted sections load the target
    list with `TransitionTSVFile` (unmapped). The targeted sections run here on a
-   target list built in the test from the same CSV (see the test's
-   `targeted_experiment`); the matching logic is tested with a fixed-score
-   comparator and a self-match of `BinnedSpectrumComparator`.
+   target list built in the test from the same CSV, which the executed
+   differential shows equal to `TransitionTSVFile`'s for every field the class
+   reads; matching runs in the differential with the experiment's own spectra
+   as the library, and with a fixed-score comparator in the unit tests.
 
 ## Checked boundaries and evidence
 
 | Tier | Source | What it covers |
 | --- | --- | --- |
+| 1, executed differential | `../oracle/O4b-tse` (driver sha256 in the manifest), Release install `openms4-release-bc9cc12-c19e494-174b576`, GCC 14, run twice on ibminode06 with byte-identical output; 2,682 records | the target list as `TransitionTSVFile` reads it (every transition's name, peptide reference and precursor m/z, every peptide's retention time and unit) against the test's CSV builder; `annotateSpectra` (30 spectra); `pickSpectrum` on every annotated spectrum under three settings (class filters, no filters, Savitzky-Golay with S/N 0.5); `scoreSpectra` with features and subordinates; `selectSpectra` at 0.7, 12 and 15; `extractSpectra`; `BinnedSpectrumComparator` + `matchSpectrum` with the experiment as library. Measured on Linux x86_64 (spock): all 4,832 floating values bit-identical; the test's bound is `1e-9` relative, fixed before the first run |
 | 3, source review | `TargetedSpectraExtractor_test.cpp` literals, with its `TEST_REAL_SIMILAR` tolerance | parameters; `pickSpectrum` on the inline C-aconitate spectrum (three filter settings, the unsorted refusal); `annotateSpectra` (30 spectra, names, sizes, feature RT/m/z); `scoreSpectra` (all 24 asserted values and the size refusal, both overloads); `selectSpectra` and `extractSpectra` (both overloads); `mergeFeatures`; MS1-feature `annotateSpectra`; `constructTransitionsList`; `storeSpectraMSP`'s in-place peak removal |
 | 4, independently derived | fixed-score comparator; contrast angle of a spectrum with itself | `match_spectrum` ordering, cut-off and top-N; `targeted_matching` meta values and unmatched indices; option parsing of `BinnedSpectrumComparator` |
 
