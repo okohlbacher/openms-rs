@@ -310,6 +310,37 @@ fn validate_qpx_values_for_write(table: &RecordBatch, filename: &Path) -> Result
     }
 }
 
+/// `builder` with the codec, level, statistics and data page size `config`
+/// selects, and the Parquet-compliant list layout, as `writeTableToParquet`
+/// and the source's streaming writers configure a Parquet writer. The row
+/// group size is left to the caller.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for an invalid level or a negative data page size.
+pub(crate) fn configured_properties(
+    config: &ParquetWriteConfig,
+    builder: parquet::file::properties::WriterPropertiesBuilder,
+) -> Result<parquet::file::properties::WriterPropertiesBuilder> {
+    let codec = codec(config)?;
+    let page_size = usize::try_from(config.data_page_size).map_err(|_| {
+        Error::InvalidValue(format!(
+            "Parquet data page size {} is negative",
+            config.data_page_size
+        ))
+    })?;
+    let statistics = if config.write_statistics {
+        EnabledStatistics::Chunk
+    } else {
+        EnabledStatistics::None
+    };
+    Ok(builder
+        .set_compression(codec)
+        .set_statistics_enabled(statistics)
+        .set_data_page_size_limit(page_size)
+        .set_coerce_types(true))
+}
+
 /// Write a table to a Parquet file.
 ///
 /// Ports `writeTableToParquet(table, filename, config)`. The file stores the
@@ -358,23 +389,8 @@ pub fn write_table_to_parquet(
 ) -> Result<()> {
     let filename = filename.as_ref();
     validate_qpx_values_for_write(table, filename)?;
-    let codec = codec(config)?;
-    let page_size = usize::try_from(config.data_page_size).map_err(|_| {
-        Error::InvalidValue(format!(
-            "Parquet data page size {} is negative",
-            config.data_page_size
-        ))
-    })?;
-    let statistics = if config.write_statistics {
-        EnabledStatistics::Chunk
-    } else {
-        EnabledStatistics::None
-    };
-    let properties = writer_properties(table, config.row_group_size)?
-        .set_compression(codec)
-        .set_statistics_enabled(statistics)
-        .set_data_page_size_limit(page_size)
-        .set_coerce_types(true);
+    let properties =
+        configured_properties(config, writer_properties(table, config.row_group_size)?)?;
     let bytes = encode(
         table,
         properties,

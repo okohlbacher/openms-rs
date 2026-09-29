@@ -577,13 +577,37 @@ pub(crate) fn encode(
     } else {
         properties
     };
-    // Schema metadata goes into the footer as key-value pairs in key order,
-    // as Parquet C++ writes it (in insertion order there), and the stored
-    // Arrow schema carries none: an arrow-rs schema keeps its metadata in a
-    // randomly seeded hash map, so encoding it would make the file's bytes
-    // vary from run to run. Both readers merge the footer pairs back into
-    // the schema metadata.
-    let schema = table.schema();
+    let (bare, options) = writer_options(&table.schema(), properties, store_schema);
+    let table = RecordBatch::try_new(bare.clone(), table.columns().to_vec())
+        .map_err(|error| Error::InvalidValue(format!("{failure}: {error}")))?;
+    let mut bytes = Vec::new();
+    let mut writer = ArrowWriter::try_new_with_options(&mut bytes, bare, options).map_err(fail)?;
+    if table.num_rows() == 0 {
+        let (mut file, factory) = writer.into_serialized_writer().map_err(fail)?;
+        write_row_group(&mut file, &factory, 0, &table, failure)?;
+        file.close().map_err(fail)?;
+    } else {
+        writer.write(&table).map_err(fail)?;
+        writer.close().map_err(fail)?;
+    }
+    Ok(bytes)
+}
+
+/// The stored schema and writer options of an Arrow-to-Parquet writer.
+///
+/// Schema metadata goes into the footer as key-value pairs in key order, as
+/// Parquet C++ writes it (in insertion order there), and the stored Arrow
+/// schema carries none: an arrow-rs schema keeps its metadata in a randomly
+/// seeded hash map, so encoding it would make the file's bytes vary from run
+/// to run. Both readers merge the footer pairs back into the schema
+/// metadata. The returned schema is `schema` without metadata; the tables
+/// written must use it. `store_schema` embeds it (Arrow C++'s
+/// `store_schema()`).
+pub(crate) fn writer_options(
+    schema: &arrow_schema::Schema,
+    properties: parquet::file::properties::WriterPropertiesBuilder,
+    store_schema: bool,
+) -> (arrow_schema::SchemaRef, ArrowWriterOptions) {
     let mut pairs: Vec<(&String, &String)> = schema.metadata().iter().collect();
     pairs.sort();
     let pairs: Vec<parquet::file::metadata::KeyValue> = pairs
@@ -594,8 +618,6 @@ pub(crate) fn encode(
         })
         .collect();
     let bare = std::sync::Arc::new(arrow_schema::Schema::new(schema.fields().clone()));
-    let table = RecordBatch::try_new(bare.clone(), table.columns().to_vec())
-        .map_err(|error| Error::InvalidValue(format!("{failure}: {error}")))?;
     let mut properties = properties
         .set_key_value_metadata((!pairs.is_empty()).then_some(pairs))
         .build();
@@ -605,26 +627,46 @@ pub(crate) fn encode(
     let options = ArrowWriterOptions::new()
         .with_properties(properties)
         .with_skip_arrow_metadata(true);
-    let mut bytes = Vec::new();
-    let mut writer = ArrowWriter::try_new_with_options(&mut bytes, bare, options).map_err(fail)?;
-    if table.num_rows() == 0 {
-        let (mut file, factory) = writer.into_serialized_writer().map_err(fail)?;
-        let columns = factory.create_column_writers(0).map_err(fail)?;
-        let mut group = file.next_row_group().map_err(fail)?;
-        for column in columns {
-            column
-                .close()
-                .map_err(fail)?
-                .append_to_row_group(&mut group)
-                .map_err(fail)?;
+    (bare, options)
+}
+
+/// Write `table` as the one row group `index` of `file`, whatever its row
+/// count: a table with no rows becomes an empty row group, as Parquet C++'s
+/// `WriteTable` writes one.
+///
+/// `table` must have the schema the writer was created with.
+pub(crate) fn write_row_group<W: std::io::Write + Send>(
+    file: &mut parquet::file::writer::SerializedFileWriter<W>,
+    factory: &parquet::arrow::arrow_writer::ArrowRowGroupWriterFactory,
+    index: usize,
+    table: &RecordBatch,
+    failure: &str,
+) -> Result<()> {
+    let fail =
+        |error: parquet::errors::ParquetError| Error::InvalidValue(format!("{failure}: {error}"));
+    let mut columns = factory.create_column_writers(index).map_err(fail)?;
+    if table.num_rows() > 0 {
+        let schema = table.schema();
+        let mut writers = columns.iter_mut();
+        for (field, array) in schema.fields().iter().zip(table.columns()) {
+            for leaf in parquet::arrow::arrow_writer::compute_leaves(field, array).map_err(fail)? {
+                let writer = writers.next().ok_or_else(|| {
+                    Error::InvalidValue(format!("{failure}: more leaf columns than writers"))
+                })?;
+                writer.write(&leaf).map_err(fail)?;
+            }
         }
-        group.close().map_err(fail)?;
-        file.close().map_err(fail)?;
-    } else {
-        writer.write(&table).map_err(fail)?;
-        writer.close().map_err(fail)?;
     }
-    Ok(bytes)
+    let mut group = file.next_row_group().map_err(fail)?;
+    for column in columns {
+        column
+            .close()
+            .map_err(fail)?
+            .append_to_row_group(&mut group)
+            .map_err(fail)?;
+    }
+    group.close().map_err(fail)?;
+    Ok(())
 }
 
 /// `table` with every `timestamp[s]` column, top level or inside a list,

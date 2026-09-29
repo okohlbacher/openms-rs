@@ -159,9 +159,7 @@ impl IdentifierMSRunMapper {
             ))
         })?;
         let index = value.as_i64().map_err(|_| {
-            Error::MissingInformation(format!(
-                "'{ID_MERGE_INDEX}' is not an integer: {place}."
-            ))
+            Error::MissingInformation(format!("'{ID_MERGE_INDEX}' is not an integer: {place}."))
         })?;
         if usize::try_from(index)
             .ok()
