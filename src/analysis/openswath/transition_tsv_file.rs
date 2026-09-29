@@ -1427,7 +1427,7 @@ fn modification(location: i32, m: &SequenceModification) -> Result<PeptideModifi
 }
 
 /// A line for the writer from a transition (`convertTransition_`).
-fn convert_transition(
+pub(crate) fn convert_transition(
     rm: &ReactionMonitoringTransition,
     exp: &TargetedExperiment,
 ) -> Result<TsvTransition> {
