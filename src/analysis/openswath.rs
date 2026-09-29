@@ -62,3 +62,5 @@ pub mod dia_prescoring;
 pub mod dia_scoring;
 /// Cross-correlation, library, S/N and mutual-information scores of SRM/MRM peak groups, from `ANALYSIS/OPENSWATH/MRMScoring.h`.
 pub mod mrm_scoring;
+/// `OpenSwath_Scores_Usage` and the LDA scoring methods of `OpenSwath_Scores`, from `ANALYSIS/OPENSWATH/OpenSwathScores.h`.
+pub mod openswath_scores;

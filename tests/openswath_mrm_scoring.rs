@@ -435,3 +435,103 @@ fn unknown_native_id() {
     let mut s = MRMScoring::new();
     assert!(s.initialize_xcorr_matrix(&f, &ids(&["nope"])).is_err());
 }
+
+// ---------------------------------------------------------------------------
+// OpenSwathScores (OpenSwathScores_test.cpp)
+// ---------------------------------------------------------------------------
+
+use openms::analysis::openswath::openswath_scores::OpenSwathScoresUsage;
+use openms::kernel::mrm::OpenSwathScores;
+
+/// OpenSwathScores_test.cpp:EXTRA OpenSwath_Scores().
+#[test]
+fn scores_defaults() {
+    let s = OpenSwathScores::default();
+    real_similar(s.ms1_xcorr_coelution_score, -1.0);
+    real_similar(s.ms1_xcorr_shape_score, -1.0);
+    real_similar(s.ms1_mi_score, -1.0);
+    // derived: OpenSwathScores.h `OpenSwath_Scores_Usage` member initialisers
+    let u = OpenSwathScoresUsage::default();
+    assert!(u.use_coelution_score && u.use_ms2_isotope_scores && u.use_ionseries_scores);
+    assert!(!u.use_peak_shape_metrics);
+}
+
+/// OpenSwathScores_test.cpp:get_quick_lda_score.
+#[test]
+fn scores_quick_lda() {
+    real_similar(
+        OpenSwathScores::get_quick_lda_score(1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
+        -0.5319046 + 2.1643962 + 8.0353047 + 0.1458914 + -1.6901925 + -0.8002824,
+    );
+}
+
+fn ones() -> OpenSwathScores {
+    OpenSwathScores {
+        library_corr: 1.0,
+        library_norm_manhattan: 1.0,
+        norm_rt_score: 1.0,
+        xcorr_coelution_score: 1.0,
+        xcorr_shape_score: 1.0,
+        log_sn_score: 1.0,
+        elution_model_fit_score: 1.0,
+        ..OpenSwathScores::default()
+    }
+}
+
+/// OpenSwathScores_test.cpp:calculate_lda_prescore.
+#[test]
+fn scores_lda_prescore() {
+    real_similar(OpenSwathScores::default().calculate_lda_prescore(), 0.0);
+    real_similar(
+        ones().calculate_lda_prescore(),
+        -0.34664267 + 2.98700722 + 7.05496384 + 0.09445371 + -5.71823862 + -0.72989582 + 1.88443209,
+    );
+}
+
+/// OpenSwathScores_test.cpp:calculate_lda_single_transition.
+#[test]
+fn scores_lda_single_transition() {
+    real_similar(
+        OpenSwathScores::default().calculate_lda_single_transition(),
+        0.0,
+    );
+    real_similar(
+        ones().calculate_lda_single_transition(),
+        7.05496384 + -0.72989582 + -1.08443209,
+    );
+}
+
+/// OpenSwathScores_test.cpp:calculate_swath_lda_prescore.
+#[test]
+fn scores_swath_lda_prescore() {
+    real_similar(
+        OpenSwathScores::default().calculate_swath_lda_prescore(),
+        0.0,
+    );
+    let s = OpenSwathScores {
+        library_corr: 1.0,
+        library_norm_manhattan: 1.0,
+        norm_rt_score: 1.0,
+        isotope_correlation: 1.0,
+        isotope_overlap: 1.0,
+        massdev_score: 1.0,
+        xcorr_coelution_score: 1.0,
+        xcorr_shape_score: 1.0,
+        yseries_score: 1.0,
+        log_sn_score: 1.0,
+        ..OpenSwathScores::default()
+    };
+    real_similar(
+        s.calculate_swath_lda_prescore(),
+        -0.19011762
+            + 2.47298914
+            + 5.63906731
+            + -0.62640133
+            + 0.36006925
+            + 0.08814003
+            + 0.13978311
+            + -1.16475032
+            + -0.19267813
+            + -0.61712054,
+    );
+}
