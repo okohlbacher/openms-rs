@@ -36,12 +36,14 @@ retained, even though its XSD lists additional historical types.
 | inherited `ProgressLogger` | `load_with_progress`, `store_with_progress` | see Progress |
 
 **Input transport.** The source's `XMLFile::parse_` reads plain, gzip, bzip2
-and ZIP input. Plain, gzip and bzip2 are read here through the shared
-`path_io::open`; ZIP input is added to that same function by lane B8a
-(`src/format/zip_input.rs`, tier 1 against the Release build for featureXML
-and mzML), which every path reader, this one included, inherits once that
-branch is merged. Until then a ZIP archive is refused as
-`Error::Unsupported`.
+and ZIP input, and so does the shared `path_io::open` this loader reads
+through: a single-entry ZIP archive goes through `format::zip_ifstream`
+(lane F7b, wave 4; the stream is tier 1 against the Release build's
+`ZipIfstream`, and `tests/zip_input_oracle.rs` replays the Release loader
+records of `../oracle/B8a-zip-input` for featureXML and mzML).
+`tests/compressed_streams.rs::consensusxml_loads_from_zip` loads
+`ConsensusXMLFile_1.consensusXML` from an archive and requires the map the
+plain file gives, apart from the recorded loaded path.
 
 ## Protein-group quantities
 
