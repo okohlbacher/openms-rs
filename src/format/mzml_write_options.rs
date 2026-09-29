@@ -529,6 +529,43 @@ impl<W: Write> Output<'_, W> {
             },
         })
     }
+    /// Switch an output that has written nothing between the single-pass
+    /// indexed mode of [`Output::streamed_with_capacity`] and plain mzML.
+    ///
+    /// The mzML writing consumer learns `write_index` from its
+    /// `PeakFileOptions` after it has wrapped its writer, as the source's
+    /// `setOptions` reaches the handler after construction.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] once a byte has been written, or for an output
+    /// of the prepared two-pass writer, whose layout is fixed.
+    pub(crate) fn set_streamed_index(&mut self, indexed: bool) -> Result<()> {
+        if self.position != 0 {
+            return Err(Error::InvalidValue(
+                "mzML output mode cannot change after writing started".into(),
+            ));
+        }
+        match (&self.mode, indexed) {
+            (Mode::Stream { .. }, true) | (Mode::Legacy, false) => Ok(()),
+            (Mode::Stream { .. }, false) => {
+                self.mode = Mode::Legacy;
+                self.hash = None;
+                Ok(())
+            }
+            (Mode::Legacy, true) => {
+                self.mode = Mode::Stream {
+                    spectra: Vec::new(),
+                    chromatograms: Vec::new(),
+                };
+                self.hash = Some(Sha1::new());
+                Ok(())
+            }
+            _ => Err(Error::InvalidValue(
+                "a prepared mzML output cannot change mode".into(),
+            )),
+        }
+    }
     /// The wrapped writer, after the document has been closed.
     pub(crate) fn into_inner(self) -> W {
         self.writer

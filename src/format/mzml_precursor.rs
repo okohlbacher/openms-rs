@@ -193,6 +193,25 @@ fn promoted(p: &Precursor, value: &crate::metadata::MetaValue, id: &str, kind: &
     {
         return false;
     }
+    // The source reaches a cvParam only through `checkAndGetTermByName(key)`
+    // (`MzMLHandler.cpp:3666`), an exact lookup of the metadata key among the
+    // pinned CV's term names. `MS:1000138` is named "normalized collision
+    // energy" there, while the reader stores it under the historical key
+    // "percent collision energy" (`:1919-1922`), so the source writes that key
+    // back as a userParam: measured on the Release build, ../oracle/F7a-record-cv
+    // (FileConverter -process_lowmemory and plain store, ibminode06). A route
+    // whose key is not its term's name is therefore never promoted.
+    let key = ACTIVATION_METADATA
+        .iter()
+        .find(|row| row.0 == id)
+        .map(|row| row.1);
+    let named = crate::format::controlled_vocabulary::ControlledVocabulary::psi_ms()
+        .ok()
+        .and_then(|cv| cv.get_term(id).ok())
+        .is_some_and(|term| Some(term.name.as_str()) == key);
+    if !named {
+        return false;
+    }
     use crate::metadata::MetaValueData;
     match (kind, value.data()) {
         ("xsd:double", MetaValueData::Float(_)) => true,

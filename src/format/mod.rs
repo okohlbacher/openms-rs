@@ -119,9 +119,23 @@ pub mod imzml_writer;
 /// Indexed mzML footer discovery and checked offset decoding.
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml;
+/// Loads indexed mzML on disc and stores on-disc or in-memory maps (`IndexedMzMLFileLoader.h`).
+#[cfg(feature = "mzml")]
+pub mod indexed_mzml_file_loader;
 /// Random access to one record of an indexed mzML file (`IndexedMzMLHandler.h`).
 #[cfg(feature = "mzml")]
 pub mod indexed_mzml_handler;
+/// Consumer merging spectra that share a retention time (`MSDataAggregatingConsumer.h`).
+pub mod ms_data_aggregating_consumer;
+/// Consumer passing records through a sequence of consumers (`MSDataChainingConsumer.h`).
+pub mod ms_data_chaining_consumer;
+/// Consumer buffering records into an sqMass SQLite file (`MSDataSqlConsumer.h`).
+#[cfg(feature = "sqmass")]
+pub mod ms_data_sql_consumer;
+/// Consumer keeping every record in memory (`MSDataStoringConsumer.h`).
+pub mod ms_data_storing_consumer;
+/// Consumer applying caller-supplied functions to each record (`MSDataTransformingConsumer.h`).
+pub mod ms_data_transforming_consumer;
 /// Streaming mzML consumer that writes records as they arrive (`MSDataWritingConsumer.h`).
 #[cfg(feature = "mzml")]
 pub mod ms_data_writing_consumer;
@@ -155,6 +169,8 @@ pub mod mzxml;
 /// mzQC writers.
 #[cfg(any(feature = "sqlite", feature = "mzml"))]
 pub(crate) mod nlohmann_json;
+/// Consumer that performs no operation (`NoopMSDataConsumer.h`).
+pub mod noop_ms_data_consumer;
 /// pepXML search results: load, store and modification resolution (`PepXMLFile.h`).
 #[cfg(feature = "idxml")]
 pub mod pepxml;

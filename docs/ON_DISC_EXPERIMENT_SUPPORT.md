@@ -394,9 +394,10 @@ there.
 - Tier 1 evidence would need an oracle driver over `OnDiscMSExperiment` in
   `../oracle/drivers/`, printing full-precision peak arrays for each record of
   `IndexedmzMLFile_1.mzML` plus the five filtered variants. Not built here.
-- `IndexedMzMLFileLoader` is not ported; only the materialisation loop of its
-  `store`, as `load_experiment`. Its own `store` overloads, its options and its
-  `load` are out of scope.
+- `IndexedMzMLFileLoader` is ported separately, as
+  `src/format/indexed_mzml_file_loader.rs`
+  ([its own document](INDEXED_MZML_FILE_LOADER_SUPPORT.md)); its on-disc
+  `store` streams record by record rather than through `load_experiment`.
 - The `Interfaces::Spectrum` / `Interfaces::Chromatogram` pointer overloads are
   not ported; the crate has no OpenSWATH `Interfaces` layer.
 - `OnDiscImzMLExperiment` (the imzML sibling) is not ported.

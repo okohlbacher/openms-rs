@@ -94,8 +94,10 @@ pub(crate) fn store_reporting<T>(
 }
 
 /// Source IdXMLFile writes plain bytes even when the filename ends in .gz/.bz2,
-/// and so do the source MzQCFile's `std::ofstream` (`mzml`) and the Parquet
-/// writers (`arrow`), which publish their encoded files the same way.
+/// and so do the source MzQCFile's `std::ofstream` and the streaming mzML
+/// writer behind `IndexedMzMLFileLoader::store` of an on-disc experiment
+/// (`mzml`), and the Parquet writers (`arrow`), which publish their encoded
+/// files the same way.
 #[cfg(any(feature = "idxml", feature = "mzml", feature = "arrow"))]
 pub(crate) fn write_plain(
     path: &Path,

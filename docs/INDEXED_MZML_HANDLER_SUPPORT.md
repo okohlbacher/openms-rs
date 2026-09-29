@@ -317,7 +317,8 @@ there.
   `OnDiscPeakMap` alias) is a separate work package. This module deliberately
   exposes what that facade needs: counts, per-index and per-native-id fetch,
   offsets, identifiers and the options.
-- `IndexedMzMLFileLoader` is not ported.
+- `IndexedMzMLFileLoader` is ported in `src/format/indexed_mzml_file_loader.rs`
+  ([INDEXED_MZML_FILE_LOADER_SUPPORT.md](INDEXED_MZML_FILE_LOADER_SUPPORT.md)).
 - The `Interfaces::Spectrum` / `Interfaces::Chromatogram` pointer overloads are
   not ported; the crate has no OpenSWATH `Interfaces` layer.
 - Tier 1 evidence would need an oracle driver over `IndexedMzMLHandler` in
