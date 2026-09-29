@@ -51,7 +51,9 @@ directory as `-in`: Linux Release exits 12, port exits 10.
 - FOUND mislabel: tests/topp_cli_lifecycle.rs ~1782 calls in_is_directory exit 10 "Release evidence"
   -> fix to cite fi_notype_log (Release, exit 10 + closing line). Header note on lifecycle rerun.
 
+- DONE dcc64f70: lifecycle relabel. Sweep slot A1-sweep was raced by another lane (foreign
+  openswath_data_access test); re-running in slot A1-cd066-sweep (scratchpad/sweep2).
+
 ## Next step
-1. Fix topp_cli_lifecycle.rs mislabel + header; gate topp_cli_lifecycle on dax.
-2. Write .planning/lane-reports/A1.md and ledger-fragments/wave4/A1.json.
+1. Read scratchpad sweep2/summary.log; then write .planning/lane-reports/A1.md and ledger-fragments/wave4/A1.json.
 2. Full CI sweep in background; delete NOTES.md in final commit.
