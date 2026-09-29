@@ -761,13 +761,13 @@ fn assert_row_order(case: &str, dir: &Path, exp: &LightTargetedExperiment) {
     assert_eq!(got, rows, "{case} compound order");
 }
 
-fn check_read_case(all: &[Vec<String>], case: &str, dir: &Path, with_ids: bool) {
+fn check_read_case(all: &[Vec<String>], case: &str, dir: &Path, rows_dir: &Path, with_ids: bool) {
     let (result, exp, ids) = read(dir, with_ids);
     let record = outcome(all, case);
     if record[0] == "OK" {
         result.unwrap_or_else(|e| panic!("{case}: {e:?}"));
         assert_experiment_matches(case, &exp, all);
-        assert_row_order(case, dir, &exp);
+        assert_row_order(case, rows_dir, &exp);
         if with_ids {
             assert_eq!(maps_of(&ids), id_maps(all, case), "{case} source ids");
         }
@@ -787,14 +787,14 @@ fn oracle_reader_on_release_written_containers() {
     let tmp = tmp();
     for &(case, source, with_ids) in READ_CASES {
         let dir = container(tmp.path(), source, case);
-        check_read_case(&all, case, &dir, with_ids);
+        check_read_case(&all, case, &dir, &dir, with_ids);
     }
     // Zipped containers: the same library read through a store-only archive.
     for (case, source) in [("traml_zip_read", "traml_zip_write"), ("r_zip", "r_basic")] {
         let dir = container(tmp.path(), source, &format!("{case}_src"));
         let zip = tmp.path().join(format!("{case}.oswpq"));
         ZipArchiveFile::zip_directory(&dir, &zip).unwrap();
-        check_read_case(&all, case, &zip, true);
+        check_read_case(&all, case, &zip, &dir, true);
     }
     // A path that does not exist.
     let missing = tmp.path().join("does_not_exist.oswpq");
