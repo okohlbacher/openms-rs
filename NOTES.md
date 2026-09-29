@@ -48,7 +48,13 @@ All 12 scope headers + 3 deps ported; class tests pass; TOPP differential 11/11 
 Ledger fragment written: .planning/ledger-fragments/wave4/FF2b.json. Provenance: tests/data/featurefinder_multiplex_provenance.json.
 NOTE: scratchpad/sweep/summary.log was STALE from another session; use a fresh log dir.
 
+## Restart 3 (worktree-wf_a10fdd71-2d2-9)
+Merged 0a7-51 (fast-forward, contains 0a7-34). Previous sweep (scratchpad/logs/sweep.log): all test lines pass; only clippy
+(excessive_precision) and doc links failed, fixed in f28919eb/e6c1e5b0 but NOT re-swept. Ledger fragment already at main
+.planning/ledger-fragments/wave4/FF2b.json; report FF2b.md NOT written. Scratchpad is shared with other lanes: use
+scratchpad/FF2b-sweep2 as the log dir.
+
 ## Next step
-1. Wait for CI sweep (scratchpad/logs/sweep.log, log dir scratchpad/sweep); fix anything of ours.
+1. Check Param shape (defaults/from_param/to_param) vs brief; re-run sweep into scratchpad/FF2b-sweep2.
 2. Measure slices: each new test file under --no-default-features --features <list>; MSRV +1.85.0.
 3. Write report .planning/lane-reports/FF2b.md (Bash heredoc); delete NOTES.md in final commit.
