@@ -32,7 +32,18 @@ Order: 1 QPXValueValidation (+ wire into arrow_io_helpers gate), 2 QPXIdentity, 
   ProteinGroupArrowExport_impl (QuantificationUnits, sampleAbundances, ...), ExperimentalDesign -> gap.
 - Worktree guard: run git commands alone (no chaining, no 'git' inside heredocs in the same call).
 
+## Done
+- QPXIdentity + QPXValueValidation committed (tests pass on dax: qpx_identity 7, qpx_value_validation 17,
+  arrow_parquet 23, lib 368). Cargo.lock fetched from dax (ssh ... cat /scratch/kohlbach/agents/F1c/Cargo.lock).
+- IdentifierMSRunMapper::validate_merge_index now uses the C++ messages + MissingInformation (tests/run_mapping.rs updated).
+
+## QPXFile design decisions
+- rank: Rust PeptideHit.rank field <-> C++ "rank" metavalue (only when != 0).
+- Warnings returned (QpxOutput{value,warnings}); streaming writes per-batch row groups via
+  ArrowWriter::into_serialized_writer over Vec<u8> drained into path_io::write_plain.
+- operator double on a string DataValue is UB-ish garbage in C++ -> Rust refuses (defect candidate).
+- isKnownScoreType = ScoreType::from_normalized_name; higher_better = ScoreType::parse(key).ok().
+
 ## Next step
-1. Port QPXIdentity (src/format/qpx_identity.rs) + blake2 dep; commit.
-2. Port QPXValueValidation (src/format/qpx_value_validation.rs), wire into arrow_io_helpers; commit.
-3. QPXFile (src/format/qpx_file.rs). 4. QPXCollectionExport::Transaction.
+1. QPXFile (src/format/qpx_file.rs) + tests/qpx_file.rs. 2. Oracle ../oracle/F1c-qpx on ibminode06.
+3. QPXCollectionExport::Transaction. 4. docs/QPX_SUPPORT.md, provenance, report, ledger.

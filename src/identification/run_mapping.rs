@@ -124,6 +124,20 @@ impl IdentifierMSRunMapper {
     /// Require an unambiguous integer index only for runs with multiple files.
     /// Zero/one-path and unknown runs are exempt, including stale/wrong-type
     /// indices. This is an explicit check, not implicit in path lookup.
+    ///
+    /// Ports `validateMergeIndex(pep_id, psm_index)`, whose messages these
+    /// are, word for word, where `<where>` is `PSM #<psm_index> of
+    /// identification run '<identifier>' (<n> files in the run)`:
+    ///
+    /// * `Multiple files in a run, but no 'id_merge_index' in
+    ///   PeptideIdentification found: <where>.`
+    /// * `'id_merge_index' is not an integer: <where>.`
+    /// * `'id_merge_index' = <value> is out of range: <where>.`
+    ///
+    /// # Errors
+    ///
+    /// [`Error::MissingInformation`], as the source's
+    /// `Exception::MissingInformation`, for each of the three.
     pub fn validate_merge_index(
         &self,
         peptide: &PeptideIdentification,
@@ -133,24 +147,29 @@ impl IdentifierMSRunMapper {
         if paths.len() < 2 {
             return Ok(());
         }
-        let diagnostic = |reason: &str| {
-            bad(&format!(
-                "PSM #{psm_index} in a {}-file run: {reason}",
-                paths.len()
+        let place = format!(
+            "PSM #{psm_index} of identification run '{}' ({} files in the run)",
+            peptide.identifier,
+            paths.len()
+        );
+        let value = peptide.metadata.get(ID_MERGE_INDEX).ok_or_else(|| {
+            Error::MissingInformation(format!(
+                "Multiple files in a run, but no '{ID_MERGE_INDEX}' in PeptideIdentification \
+                 found: {place}."
             ))
-        };
-        let value = peptide
-            .metadata
-            .get(ID_MERGE_INDEX)
-            .ok_or_else(|| diagnostic("missing id_merge_index"))?;
-        let index = value
-            .as_i64()
-            .map_err(|_| diagnostic("id_merge_index is not an integer"))?;
+        })?;
+        let index = value.as_i64().map_err(|_| {
+            Error::MissingInformation(format!(
+                "'{ID_MERGE_INDEX}' is not an integer: {place}."
+            ))
+        })?;
         if usize::try_from(index)
             .ok()
             .is_none_or(|index| index >= paths.len())
         {
-            return Err(diagnostic("id_merge_index is out of range"));
+            return Err(Error::MissingInformation(format!(
+                "'{ID_MERGE_INDEX}' = {index} is out of range: {place}."
+            )));
         }
         Ok(())
     }
