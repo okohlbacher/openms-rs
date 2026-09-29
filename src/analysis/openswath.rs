@@ -29,6 +29,8 @@ pub mod mrm_mapping;
 pub mod mrm_transition_group_picker;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
+/// Peak picking in a single ion mobilogram, from `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`.
+pub mod peak_picker_mobilogram;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
 /// Distances, cross-correlation, ranks and mutual information, from `OPENSWATHALGO/ALGO/Scoring.h`.

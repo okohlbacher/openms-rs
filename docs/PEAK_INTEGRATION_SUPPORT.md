@@ -226,7 +226,7 @@ oracles are tested separately.
 `tests/openswath_peak_picking.rs` (OpenMS4-core `bc9cc12`) checks the
 parameter surface against `getDefaultParameters` and the `getParameters`
 section of `PeakIntegrator_test.cpp:165-171`, and replays the `ConstIterator`
-sections (`232-289`, `350-407`, `506-585`, `669-749`, `801-850`, `901-950`)
+sections (`232-289`, `350-407`, `506-586`, `669-749`, `801-849`, `901-949`)
 through the `_between` methods with the class test's `RTBegin(left)` and
 `RTEnd(right) - 1` indices. Every integration, background and shape metric of
 the tier-1 `MRMTransitionGroupPicker` oracle (32 cases, bit-identical to the

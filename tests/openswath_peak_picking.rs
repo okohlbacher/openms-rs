@@ -16,12 +16,16 @@
 use openms::analysis::openswath::mrm_transition_group_picker::{
     BackgroundSubtraction, BoundarySelection, MRMTransitionGroupPicker, PeakIntegrationSignal,
 };
+use openms::analysis::openswath::peak_picker_mobilogram::{PeakPickerMobilogram, PeakPositions};
 use openms::analysis::peak_integrator::{
     BaselineType, IntegrationMethod, PEAK_INTEGRATOR_NAME, PeakIntegrator,
 };
 use openms::concept::unique_id::UniqueIdGenerator;
 use openms::kernel::mrm::{MRMTransitionGroup, SimpleTransition};
-use openms::kernel::{ChromatogramPeak, DataArray, Feature, MSChromatogram, MSSpectrum, Peak1D};
+use openms::kernel::{
+    ChromatogramPeak, DataArray, Feature, MSChromatogram, MSSpectrum, MobilityPeak1D, Mobilogram,
+    Peak1D,
+};
 use openms::metadata::{MetaValue, MetaValueData};
 use openms::param::{Param, ParamValue};
 use openms::processing::chromatogram::{
@@ -495,7 +499,7 @@ fn last(input: &MSChromatogram, position: f64) -> usize {
     input.peaks.partition_point(|p| p.rt <= position) - 1
 }
 
-/// `PeakIntegrator_test.cpp:506-585` and the spectrum twin at `669-749`.
+/// `PeakIntegrator_test.cpp:506-586` and the spectrum twin at `669-749`.
 #[test]
 fn integrator_index_overloads_reproduce_the_class_test() {
     let input = trace("glutamate");
@@ -618,7 +622,7 @@ fn integrator_index_overloads_reproduce_background_class_test() {
     }
 }
 
-/// `PeakIntegrator_test.cpp:801-850` and the spectrum twin at `901-950`.
+/// `PeakIntegrator_test.cpp:801-849` and the spectrum twin at `901-949`.
 #[test]
 fn integrator_index_overloads_reproduce_shape_class_test() {
     let input = trace("glutamate");
@@ -1632,4 +1636,289 @@ fn hex_float_parser_reads_glibc_output() {
     assert_eq!(parse_hex_float("0x0p+0"), 0.0);
     assert_eq!(parse_hex_float("0x1.753527c57eb84p+10"), 1492.8305524575708);
     assert!(parse_hex_float("nan").is_nan());
+}
+
+// ---------------------------------------------------------------------------
+// PeakPickerMobilogram
+// ---------------------------------------------------------------------------
+
+/// `get_mobilogram(0)` of `PeakPickerMobilogram_test.cpp:21-44`: the first 60
+/// of the 61 listed mobilities (the loop stops at 60).
+fn class_test_mobilogram() -> Mobilogram {
+    let mobilities = [
+        0.93734956, 0.93835497, 0.9393905, 0.9404265, 0.9414631, 0.9425003, 0.9435083, 0.9445466,
+        0.9455854, 0.94662476, 0.947635, 0.94867545, 0.9496867, 0.95072824, 0.95177037, 0.9527832,
+        0.9538264, 0.95484036, 0.9558847, 0.9568997, 0.9579451, 0.9589612, 0.96000767, 0.9610248,
+        0.96207243, 0.96309066, 0.9641094, 0.96515864, 0.9661785, 0.96719885, 0.96824974,
+        0.9692712, 0.9702931, 0.97131556, 0.9723687, 0.97339225, 0.9744164, 0.975441, 0.9764661,
+        0.977522, 0.9785482, 0.979575, 0.98060226, 0.98163015, 0.9826585, 0.9836874, 0.98471683,
+        0.9857468, 0.9867773, 0.98780835, 0.98883986, 0.989872, 0.9909046, 0.9919378, 0.99297154,
+        0.99397534, 0.99501014, 0.9960454, 0.9970813, 0.9981177,
+    ];
+    let intensities = [
+        341.995757,
+        200.000741,
+        325.0076900000001,
+        79.002655,
+        227.00538,
+        487.00108,
+        576.0032550000001,
+        526.996605,
+        715.9864020000001,
+        778.010235,
+        686.003534,
+        548.0023570000001,
+        481.00395999999995,
+        547.00563,
+        950.006949,
+        1453.9987189999997,
+        831.026847,
+        1839.009966,
+        2306.021277,
+        2588.9953999999993,
+        2126.0273610000004,
+        3254.0281579999996,
+        3961.0108749999995,
+        4708.020719000002,
+        4991.072095,
+        5230.084562000001,
+        6559.103413000001,
+        6486.9137040000005,
+        9512.035332,
+        14461.755780000001,
+        16570.804681,
+        19887.687351000004,
+        22368.220470000004,
+        31683.985819,
+        37679.199531000006,
+        46487.67955,
+        48958.673168000016,
+        52820.41709300001,
+        58070.474128999995,
+        57655.34146700001,
+        58849.449743000005,
+        56964.34470800001,
+        56100.919934,
+        48964.276839,
+        43019.251419,
+        39263.106511000005,
+        28199.275315000003,
+        25018.205981999996,
+        20248.883416,
+        14727.949587000001,
+        10372.823519,
+        6309.068338999999,
+        5370.119231000001,
+        2253.037892,
+        2025.998686,
+        868.9924269999999,
+        209.0077,
+        44.99693,
+        317.999914,
+        57.00195,
+    ];
+    Mobilogram::from_peaks(
+        mobilities
+            .iter()
+            .zip(intensities)
+            .map(|(&mobility, intensity)| MobilityPeak1D::new(mobility, intensity as f32))
+            .collect(),
+    )
+}
+
+/// `PeakPickerMobilogram.cpp:26-45`.
+#[test]
+fn mobilogram_picker_defaults_follow_the_source_constructor() {
+    let defaults = PeakPickerMobilogram::defaults().unwrap();
+    let keys: Vec<_> = defaults
+        .iter()
+        .unwrap()
+        .map(|item| item.key.clone())
+        .collect();
+    assert_eq!(
+        keys,
+        [
+            "sgolay_frame_length",
+            "sgolay_polynomial_order",
+            "gauss_width",
+            "use_gauss",
+            "peak_width",
+            "signal_to_noise",
+            "sn_win_len",
+            "sn_bin_count",
+            "write_sn_log_messages",
+            "remove_overlapping_peaks",
+            "method",
+        ]
+    );
+    assert_eq!(
+        defaults.value("sgolay_frame_length").unwrap(),
+        &ParamValue::Integer(9)
+    );
+    assert_eq!(
+        defaults.value("gauss_width").unwrap(),
+        &ParamValue::Float(0.002)
+    );
+    assert_eq!(string(&defaults, "use_gauss"), "false");
+    // `defaults_.setValue("sn_win_len", 1, ...)`: an integer parameter.
+    assert_eq!(
+        defaults.value("sn_win_len").unwrap(),
+        &ParamValue::Integer(1)
+    );
+    assert_eq!(
+        defaults.value("sn_bin_count").unwrap(),
+        &ParamValue::Integer(4)
+    );
+    assert_eq!(
+        defaults.entry("method").unwrap().valid_strings,
+        ["legacy", "corrected", "crawdad"]
+    );
+    assert_eq!(
+        defaults.description("method").unwrap(),
+        "Which method to choose for mobilogram peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed mobilogram)."
+    );
+    let picker = PeakPickerMobilogram::from_param(&defaults).unwrap();
+    assert_eq!(
+        picker.smoothing,
+        ChromatogramSmoothing::SavitzkyGolay {
+            frame_length: 9,
+            polynomial_order: 3
+        }
+    );
+    assert!(picker.to_param().unwrap().source_equal(&defaults).unwrap());
+    let mut param = defaults.clone();
+    set(&mut param, "method", ParamValue::String("crawdad".into()));
+    assert!(PeakPickerMobilogram::from_param(&param).is_err());
+    let mut param = defaults;
+    set(
+        &mut param,
+        "remove_overlapping_peaks",
+        ParamValue::String("true".into()),
+    );
+    set(&mut param, "sn_bin_count", ParamValue::Integer(-3));
+    let picker = PeakPickerMobilogram::from_param(&param).unwrap();
+    assert!(picker.remove_overlapping_peaks);
+    // Stored without effect, as in the source.
+    assert_eq!(picker.sn_bin_count, -3);
+}
+
+/// `PeakPickerMobilogram_test.cpp:67-84`: `getParameters`, `method`
+/// `corrected`, `use_gauss` `false`, `setParameters`, then
+/// `pickMobilogram(mobilogram, picked, smoothed)`.
+#[test]
+fn mobilogram_picker_class_test() {
+    let mut param = PeakPickerMobilogram::default().to_param().unwrap();
+    set(&mut param, "method", ParamValue::String("corrected".into()));
+    set(&mut param, "use_gauss", ParamValue::String("false".into()));
+    let picker = PeakPickerMobilogram::from_param(&param).unwrap();
+    let input = class_test_mobilogram();
+    let result = picker.pick_mobilogram(&input).unwrap();
+    let picked = &result.picked;
+    real_similar(f64::from(picked.peaks[0].intensity), 58956.1);
+    real_similar(picked.peaks[0].mobility, 0.978364);
+    let array = |index: usize| f64::from(picked.float_data_arrays[index].data[0]);
+    real_similar(array(PeakPickerMobilogram::IDX_ABUNDANCE), 884145.0);
+    real_similar(array(PeakPickerMobilogram::IDX_LEFTBORDER), 0.948675);
+    real_similar(array(PeakPickerMobilogram::IDX_RIGHTBORDER), 0.997081);
+    let names: Vec<_> = picked
+        .float_data_arrays
+        .iter()
+        .map(|a| a.name.as_str())
+        .collect();
+    assert_eq!(
+        names,
+        [
+            "FWHM",
+            "IntegratedIntensity",
+            "leftWidth",
+            "rightWidth",
+            "leftWidthIndex",
+            "rightWidthIndex"
+        ]
+    );
+    // The index arrays name the border samples; the public per-peak vectors
+    // hold the same values.
+    let left = result.left_widths[0];
+    let right = result.right_widths[0];
+    assert_eq!(
+        array(PeakPickerMobilogram::IDX_OF_LEFTBORDER_IDX),
+        left as f64
+    );
+    assert_eq!(
+        array(PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX),
+        right as f64
+    );
+    assert_eq!(
+        array(PeakPickerMobilogram::IDX_LEFTBORDER),
+        f64::from(input.peaks[left].mobility as f32)
+    );
+    let sum = input.peaks[left..=right]
+        .iter()
+        .fold(0.0, |s, p| s + f64::from(p.intensity));
+    assert_eq!(result.integrated_intensities[0], sum);
+    assert_eq!(result.smoothed.len(), input.len());
+    assert!(
+        PeakPickerMobilogram::default()
+            .pick_mobilogram(&Mobilogram::default())
+            .unwrap()
+            .picked
+            .peaks
+            .is_empty()
+    );
+}
+
+/// `filterTopPeak` and `findHighestPeak_` (`PeakPickerMobilogram.cpp:242-436`).
+#[test]
+fn mobilogram_top_peak_filters() {
+    let input = class_test_mobilogram();
+    let result = PeakPickerMobilogram::default()
+        .pick_mobilogram(&input)
+        .unwrap();
+    let (left, right) = (result.left_widths[0], result.right_widths[0]);
+    let mut many = vec![input.clone(), input.clone()];
+    let positions = PeakPickerMobilogram::filter_top_peak(&result.picked, &mut many).unwrap();
+    // `apex` is the picked peak's index, as the source returns it.
+    assert_eq!(
+        positions,
+        PeakPositions {
+            left,
+            apex: 0,
+            right
+        }
+    );
+    for cut in &many {
+        assert_eq!(cut.len(), right - left + 1);
+        assert_eq!(cut.peaks[0], input.peaks[left]);
+    }
+    let mut one = input.clone();
+    assert_eq!(
+        PeakPickerMobilogram::filter_top_peak_single(&result.picked, &mut one).unwrap(),
+        positions
+    );
+    assert_eq!(one, many[0]);
+    // No picked peaks: the whole first mobilogram, apex in its middle.
+    let mut empty_picked = result.picked.clone();
+    for array in &mut empty_picked.float_data_arrays {
+        array.data.clear();
+    }
+    empty_picked.peaks.clear();
+    let mut whole = vec![input.clone()];
+    assert_eq!(
+        PeakPickerMobilogram::filter_top_peak(&empty_picked, &mut whole).unwrap(),
+        PeakPositions {
+            left: 0,
+            apex: 30,
+            right: 59
+        }
+    );
+    assert_eq!(whole[0], input);
+    // Missing arrays or no mobilograms: all zeros, nothing cut.
+    assert_eq!(
+        PeakPickerMobilogram::filter_top_peak(&Mobilogram::default(), &mut many).unwrap(),
+        PeakPositions::default()
+    );
+    assert_eq!(
+        PeakPickerMobilogram::filter_top_peak(&result.picked, &mut []).unwrap(),
+        PeakPositions::default()
+    );
 }
