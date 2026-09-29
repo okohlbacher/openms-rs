@@ -1,0 +1,3 @@
+Running: sh -c echo "[$B7VAR]"
+[x y]
+Executed 'sh' successfully!

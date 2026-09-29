@@ -41,11 +41,16 @@
 mod console;
 mod context;
 mod defs;
+mod external_tool;
+mod info_stream;
+mod ini_updater;
 mod logging;
+mod map_aligner;
 mod outcome;
 mod param_ctd;
 mod parameter;
 mod processing;
+mod search_engine;
 mod spec;
 mod tool_description_file;
 mod tool_handler;
@@ -60,7 +65,10 @@ pub use context::{
     parse_range_int,
 };
 pub use defs::{CITE_OPENMS, Citation};
+pub use external_tool::{EXTERNAL_OUTPUT_DEBUG_LEVEL, ExternalProcessOutput, exit_code_of};
+pub use ini_updater::{INIUpdater, ToolMapping, ToolMappingEntry};
 pub use logging::{LOG_SEPARATOR, ToolLog};
+pub use map_aligner::{ReferenceParameterKind, TOPPMapAlignerBase};
 pub use outcome::{ToolError, ToolResult};
 pub use param_ctd::{MAX_CTD_BYTES, ParamCtdFile};
 pub use parameter::{ExitCode, ParameterInformation, ParameterType};
@@ -68,6 +76,7 @@ pub use processing::{
     AddDataProcessing, TEST_MODE_COMPLETION_TIME, TEST_MODE_PARAMETER_KEY,
     TEST_MODE_PARAMETER_VALUE, TEST_MODE_VERSION,
 };
+pub use search_engine::{PEPTIDE_INDEXING_ADVANCED, RAWFILE_INSPECTED_SPECTRA, SearchEngineBase};
 pub use spec::ToolSpec;
 pub use tool_description_file::{
     LoadedToolDescriptions, MAX_TTD_BYTES, MAX_TTD_DEPTH, MAX_TTD_ELEMENTS, ToolDescriptionFile,
@@ -1966,11 +1975,7 @@ fn validate(
             } else {
                 format!("'{}' [valid: {}]", entry.name, restrictions.join(", "))
             };
-            session.error(
-                out,
-                err,
-                &format!("Error: The required parameter {name} was not given or is empty!"),
-            )?;
+            session.error(out, err, &defs::required_parameter_text(&name))?;
             return Ok(Some(ExitCode::MissingParameters));
         }
         if empty {
@@ -2180,10 +2185,15 @@ fn format_listed(formats: &[&str], kind: FileType) -> bool {
 /// parameter does not accept is `InvalidParameter`, exit 6. A parameter without
 /// registered formats is not checked.
 ///
-/// `get_type` fails where content recognition cannot read the file, for
-/// example on a directory with an unknown name, for which the source reports an
-/// unknown type (an open follow-up of `src/format/file_handler.rs`). Such a
-/// failure is treated here as an undetermined format, with the warning.
+/// A `skipexists` input skips the readability check, and a name no type
+/// claims then reaches content recognition: a file that does not exist ends
+/// the run as the source's `FileNotFound` does (`Error: File not found (the
+/// file '<path>' could not be found)`, exit 1), and one that cannot be opened
+/// for lack of permission as its `FileNotReadable` (exit 2). `get_type` also
+/// fails where content recognition cannot read an existing path, for example
+/// a directory with an unknown name, for which the source reports an unknown
+/// type (an open follow-up of `src/format/file_handler.rs`). Such a failure is
+/// treated here as an undetermined format, with the warning.
 fn input_path(
     session: &Session<'_>,
     entry: &ParameterInformation,
@@ -2200,7 +2210,34 @@ fn input_path(
     if formats.is_empty() {
         return Ok(None);
     }
-    let kind = FileHandler::get_type(path).unwrap_or(FileType::Unknown);
+    let kind = match FileHandler::get_type(path) {
+        Ok(kind) => kind,
+        // Only a `skipexists` input gets here without the readability check.
+        // For a name no type claims, the source's content recognition opens
+        // the file with `TextFile`, which throws `FileNotFound` or
+        // `FileNotReadable` (`TextFile.cpp:32-42` at core bc9cc12), and the
+        // run ends in that exception's catch block (`TOPPBase.cpp:436-453`).
+        // Release oracle: `se_db_blank` in `../oracle/B7-cli`.
+        Err(Error::Io(_)) if !file::exists(path) => {
+            session.error(
+                out,
+                err,
+                &format!("Error: File not found (the file '{path}' could not be found)"),
+            )?;
+            return Ok(Some(ExitCode::InputFileNotFound));
+        }
+        Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::PermissionDenied => {
+            session.error(
+                out,
+                err,
+                &format!(
+                    "Error: File not readable (the file '{path}' is not readable for the current user)"
+                ),
+            )?;
+            return Ok(Some(ExitCode::InputFileNotReadable));
+        }
+        Err(_) => FileType::Unknown,
+    };
     if kind == FileType::Unknown {
         session.warn(
             out,
@@ -2492,7 +2529,14 @@ pub fn run_with_registry<T: Tool>(
         deferred: std::cell::RefCell::new(Vec::new()),
     };
     let code = match prepare::<T>(&mut session, &spec, arguments, out, err) {
-        Ok(Prepared::Run(ctx)) => run_body::<T>(&session, &ctx, out, err),
+        Ok(Prepared::Run(ctx)) => {
+            let code = run_body::<T>(&session, &ctx, out, err);
+            let pending = ctx.take_unterminated_warning();
+            if !pending.is_empty() {
+                session.defer(&[pending]);
+            }
+            code
+        }
         Ok(Prepared::Done(code)) => code,
         Err(error) => initialisation_failure::<T>(&error, err),
     };
@@ -2530,27 +2574,31 @@ fn run_body<T: Tool>(
     let _ = watch.start();
     let result = T::run_io(ctx, out, err);
     let _ = watch.stop();
-    match result {
+    let code = match result {
         Ok(code) => {
             let memory = crate::system::sys_info::process_peak_memory_consumption()
                 .filter(|&kib| kib != 0)
                 .map(|kib| format!("; Peak Memory Usage: {} MB", kib / 1024))
                 .unwrap_or_default();
-            let _ = writeln!(out, "{} took {}{memory}.", T::NAME, watch.summary());
+            let closing = format!("{} took {}{memory}.", T::NAME, watch.summary());
+            if !ctx.finish_info_stream(out, Some(&closing)) {
+                let _ = writeln!(out, "{closing}");
+            }
             code
         }
         Err(ToolError::Error(error)) => {
             if let Some((code, text)) = ctx.escaped_refusal(&error) {
                 let _ = session.error(out, err, &text);
-                return code;
+                code
+            } else {
+                let mut text = Vec::new();
+                let code = run_failure(&error, &mut text);
+                let text = String::from_utf8_lossy(&text);
+                for line in text.lines() {
+                    let _ = session.error(out, err, line);
+                }
+                code
             }
-            let mut text = Vec::new();
-            let code = run_failure(&error, &mut text);
-            let text = String::from_utf8_lossy(&text);
-            for line in text.lines() {
-                let _ = session.error(out, err, line);
-            }
-            code
         }
         Err(ToolError::Caught { code, message }) => {
             for line in message.lines() {
@@ -2565,7 +2613,11 @@ fn run_body<T: Tool>(
             );
             ExitCode::InternalError
         }
-    }
+    };
+    // The info stream's end of process: repeated lines still cached and
+    // unfinished text, after the closing line when there is one.
+    ctx.finish_info_stream(out, None);
+    code
 }
 
 /// Run a tool against the process arguments and standard streams, returning the

@@ -1,0 +1,9 @@
+ext
+-exe
+pwd
+-workdir
+/
+-debug
+4
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_workdir/cwd/cap

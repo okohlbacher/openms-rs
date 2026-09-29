@@ -1,0 +1,9 @@
+ext
+-exe
+ls
+-args
+-0
+-log
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_log/cwd/run.log
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_broken_log/cwd/cap

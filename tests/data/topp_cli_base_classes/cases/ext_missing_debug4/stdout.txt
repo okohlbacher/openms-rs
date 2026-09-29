@@ -1,0 +1,3 @@
+Running: /path/does/not/exists.exe
+Process '/path/does/not/exists.exe' failed to start. Does it exist? Is it executable?
+B7ExternalTool took <T>.

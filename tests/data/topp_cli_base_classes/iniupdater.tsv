@@ -1,0 +1,36 @@
+names	empty
+names	two	FeatureFinder	SomeTool
+names	broken	FeatureFinder	SomeTool
+names	more	FeatureFinder	SomeTool	Aaa
+map	FeatureFinder	centroided	1	FeatureFinderCentroided		0
+map	FeatureFinder	isotope_wavelet	1	FeatureFinderIsotopeWavelet		0
+map	FeatureFinder	mrm	1	FeatureFinderMRM		0
+map	FeatureLinker	labeled	1	FeatureLinkerLabeled		0
+map	FeatureLinker	unlabeled	1	FeatureLinkerUnlabeled		0
+map	FeatureLinker	unlabeled_qt	1	FeatureLinkerUnlabeledQT		0
+map	MapAligner	apply_given_trafo	1	MapRTTransformer		0
+map	MapAligner	identification	1	MapAlignerIdentification		0
+map	MapAligner	pose_clustering	1	MapAlignerPoseClustering		0
+map	NoiseFilter	gaussian	1	NoiseFilterGaussian		0
+map	NoiseFilter	sgolay	1	NoiseFilterSGolay		0
+map	PeakPicker	high_res	1	PeakPickerHiRes		0
+map	PeakPicker	wavelet	1	PeakPickerWavelet		0
+new	FeatureFinder	centroided	1	FeatureFinderCentroided
+new	PeakPicker	wavelet	1	PeakPickerWavelet
+new	FileInfo		1	FileInfo
+new	FileInfo	bogus type	1	FileInfo
+new	UNKNOWNTOOL	bogus type	0	
+new	FeatureFinder		0	
+new	FeatureFinder	centroided,x	0	
+new	FeatureFinder	Centroided	0	
+new	MapAligner	apply_given_trafo	1	MapRTTransformer
+new	FeatureFinderCentroided		1	FeatureFinderCentroided
+new	NoiseFilter	sgolay	1	NoiseFilterSGolay
+new			0	
+new	INIUpdater		1	INIUpdater
+new	TOPPView		0	
+new	TOPPAS		0	
+new	FeatureLinker	unlabeled_qt	1	FeatureLinkerUnlabeledQT
+new	PeakPickerHiRes	high_res	1	PeakPickerHiRes
+new	FeatureFinder	 centroided	0	
+new	MapRTTransformer	apply_given_trafo	1	MapRTTransformer

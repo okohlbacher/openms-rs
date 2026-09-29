@@ -1,0 +1,4 @@
+Standard output: Running: sh -c printf abc; printf def >&2; exit 1
+abc
+Standard error: defProcess 'sh' did not finish successfully (exit code: 1). Please check the log.
+

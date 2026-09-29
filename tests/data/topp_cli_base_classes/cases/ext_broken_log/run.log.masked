@@ -1,0 +1,6 @@
+<DATE> B7ExternalTool:1:: Standard output: Running: ls -0
+
+<DATE> B7ExternalTool:1:: Standard error: /usr/bin/ls: invalid option -- '0'
+Try '/usr/bin/ls --help' for more information.
+Process 'ls' did not finish successfully (exit code: 2). Please check the log.
+

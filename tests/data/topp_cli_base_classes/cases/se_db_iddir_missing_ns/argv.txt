@@ -1,0 +1,6 @@
+se
+-in
+/scratch/kohlbach/oracle/B7-cli/data/empty_spec_ns.mzML
+-database
+nothing.fasta
+-force

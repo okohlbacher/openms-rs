@@ -1,0 +1,1 @@
+Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')

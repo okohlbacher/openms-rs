@@ -1,0 +1,5 @@
+se
+-in
+/scratch/kohlbach/oracle/B7-cli/data/MzXMLFile_2_minimal.mzXML
+-database
+/scratch/kohlbach/oracle/B7-cli/data/empty.fasta

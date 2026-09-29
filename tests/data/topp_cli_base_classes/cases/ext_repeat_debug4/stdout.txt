@@ -1,0 +1,6 @@
+Running: sh -c echo a; echo a; echo b; echo a
+a
+b
+Executed 'sh' successfully!
+<a> occurred 3 times
+B7ExternalTool took <T>.

@@ -1,0 +1,10 @@
+ext
+-exe
+echo
+-args
+hello
+world
+-debug
+4
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_echo_debug4/cwd/cap

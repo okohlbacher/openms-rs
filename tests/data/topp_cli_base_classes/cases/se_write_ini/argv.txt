@@ -1,0 +1,3 @@
+se
+-write_ini
+/scratch/kohlbach/oracle/B7-cli/runs/run1/se_write_ini/cwd/out.ini

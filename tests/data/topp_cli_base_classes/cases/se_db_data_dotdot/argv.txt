@@ -1,0 +1,6 @@
+se
+-in
+/scratch/kohlbach/oracle/B7-cli/data/empty_spec.mzML
+-database
+CHEMISTRY/../CHEMISTRY/Elements.xml
+-force

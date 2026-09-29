@@ -1,0 +1,4 @@
+Running: pwd
+/
+Executed 'pwd' successfully!
+B7ExternalTool took <T>.

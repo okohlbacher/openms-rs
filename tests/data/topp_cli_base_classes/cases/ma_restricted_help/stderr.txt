@@ -1,0 +1,32 @@
+stty: 'standard input': Inappropriate ioctl for device
+
+B7MapAlignerRestricted -- B7 oracle for TOPPMapAlignerBase
+Full documentation: http://www.openms.de/doxygen/release/4.0.0/html/TOPP_B7MapAlignerRestricted.html
+Version: 4.0.0 Sep 14 2026, 20:34:41, Revision: bc9cc12
+To cite OpenMS:
+ + Pfeuffer, J., Bielow, C., Wein, S. et al.. OpenMS 3 enables reproducible analysis of large-scale mass spectrometry data. Nat Methods (2024). doi:10.1038/s41592-024-02197-7.
+
+Usage:
+  B7MapAlignerRestricted <options>
+
+Options (mandatory options marked with '*'):
+  -in <files>*                Input files to align (all must have the same file type) (valid formats: 'featureXML', 'consensusXML')
+  -out <files>                Output files (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together. (valid formats: 'featureXML', 'consensusXML')
+  -trafo_out <files>          Transformation output files. This option or 'out' has to be provided; they can be used together. (valid formats: 'trafoXML')
+  -in_spectra_files <files>   Optional input spectra files (mzML) that will be transformed along with the alignment. Size must match the number of input files. (valid formats: 'mzML')
+  -out_spectra_files <files>  Optional output spectra files (mzML) corresponding to transformed in_spectra_files. Size must match in_spectra_files. (valid formats: 'mzML')
+
+Options to define a reference file (use either 'file' or 'index', not both):
+  -reference:file <file>      File to use as reference (same file format as input files required) (valid formats: 'featureXML', 'consensusXML')
+  -reference:index <number>   Use one of the input files as reference ('1' for the first file, etc.).
+                              If '0', no explicit reference is set - the algorithm will select a reference. (default: '0') (min: '0')
+
+  -store_original_rt          Keep the original retention times
+                              
+Common UTIL options:
+  -ini <file>                 Use the given TOPP INI file
+  -threads <n>                Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores) (default: '1')
+  -write_ini <file>           Writes the default configuration file
+  --help                      Shows options
+  --helphelp                  Shows all options (including advanced)
+

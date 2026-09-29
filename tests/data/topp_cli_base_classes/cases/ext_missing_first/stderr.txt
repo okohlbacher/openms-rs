@@ -1,0 +1,4 @@
+Standard output: Running: /path/does/not/exists.exe
+
+Standard error: Process '/path/does/not/exists.exe' failed to start. Does it exist? Is it executable?
+
