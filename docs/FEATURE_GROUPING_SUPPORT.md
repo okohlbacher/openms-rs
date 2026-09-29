@@ -1,4 +1,4 @@
-# Feature grouping support (`FeatureDistance`, `BaseGroupFinder`, `StablePairFinder`, `FeatureGroupingAlgorithm*`)
+# Feature grouping support (`FeatureDistance`, `BaseGroupFinder`, `StablePairFinder`, `LabeledPairFinder`, `QTClusterFinder`, `KDTreeFeatureMaps`, `FeatureMapping`, `MapAlignmentAlgorithmKD`, `FeatureGroupingAlgorithm*`)
 
 Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -11,10 +11,16 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h` | `src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs` | complete |
 | `ANALYSIS/MAPMATCHING/QTClusterFinder.h` | `src/analysis/mapmatching/qt_cluster_finder.rs` | partial (tie order of equal-quality clusters) |
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h` | `src/analysis/mapmatching/feature_grouping_algorithm_qt.rs` | complete (inherits the finder's tie order) |
-| `FeatureGroupingAlgorithmKD.h` | none | blocked on `DATASTRUCTURES/KDTree.h` |
-| `LabeledPairFinder.h`, `FeatureGroupingAlgorithmLabeled.h` | none | not ported |
-| `WNetMatcher.h`, `FeatureGroupingAlgorithmWNet.h` | none | not ported |
-| `FeatureMapping.h`, `PipEchoAlgorithm.h` | none | not ported |
+| `ANALYSIS/MAPMATCHING/LabeledPairFinder.h` | `src/analysis/mapmatching/labeled_pair_finder.rs` | complete |
+| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h` | `src/analysis/mapmatching/feature_grouping_algorithm_labeled.rs` | complete |
+| `ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h` | `src/analysis/mapmatching/kd_tree_feature_maps.rs` | complete |
+| `ANALYSIS/QUANTITATION/KDTreeFeatureNode.h` | `src/analysis/mapmatching/kd_tree_feature_maps.rs` | complete |
+| `DATASTRUCTURES/KDTree.h` (libkdtree++) | private subset in `kd_tree_feature_maps.rs` (insert, `optimise`, `find_within_range`) | partial: only what `KDTreeFeatureMaps` uses |
+| `ANALYSIS/MAPMATCHING/FeatureMapping.h` | `src/analysis/mapmatching/feature_mapping.rs` | complete (reproduces the source's map-1 exclusion) |
+| `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h` | `src/analysis/mapmatching/map_alignment_algorithm_kd.rs` | partial (LOWESS without `auto_span`, `akima`) |
+| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h` (with `ClusterProxyKD`) | `src/analysis/mapmatching/feature_grouping_algorithm_kd.rs` | partial (inherits the LOWESS gap when warping) |
+| `WNetMatcher.h`, `FeatureGroupingAlgorithmWNet.h` | none | not ported: needs the external `wnetalign` network-flow solver |
+| `PipEchoAlgorithm.h` | none | not started |
 
 Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 `from_param`, `from_param_with_warnings`, `to_param`, validated through
@@ -42,7 +48,7 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 | Source | Rust |
 |---|---|
 | abstract class (`DefaultParamHandler`, `ProgressLogger`) | trait `BaseGroupFinder` |
-| `virtual void run(const vector<ConsensusMap>&, ConsensusMap&) = 0` | `fn run(&self, &[ConsensusMap], &mut ConsensusMap) -> Result<()>` |
+| `virtual void run(const vector<ConsensusMap>&, ConsensusMap&) = 0` | `fn run(&mut self, &[ConsensusMap], &mut ConsensusMap) -> Result<()>` (mutable: `QTClusterFinder` keeps `bin_tolerances_` across runs) |
 | protected `checkIds_(maps)` | `check_ids(&[ConsensusMap]) -> Result<()>` |
 | private copy and assignment | not applicable |
 
@@ -101,6 +107,65 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 | `group(const vector<ConsensusMap>&, ConsensusMap&)` | `FeatureGroupingAlgorithm::group_consensus` (overridden: no conversion) |
 | private template `group_` | private `group_impl` |
 
+### LabeledPairFinder
+
+| Source | Rust |
+|---|---|
+| constructor, destructor, private copy and assignment | `Default`, `from_param`, `from_param_with_warnings`, `defaults`, `to_param` |
+| `run(input_maps, result_map)` | `BaseGroupFinder::run` (clock-seeded IDs); `run_with_generator(input, result, &mut UniqueIdGenerator) -> Result<RtPairEstimate>` |
+| protected `PValue_(x, m, sig1, sig2)` | private `p_value` (with the source's literal `0.707106781`) |
+| the `cout` estimation messages | `RtPairEstimate` (`rt_pair_dist`, `rt_dev_low`, `rt_dev_high`, `estimation_pairs`, `estimated`) and `RtPairEstimate::warnings` |
+
+### FeatureGroupingAlgorithmLabeled
+
+| Source | Rust |
+|---|---|
+| constructor, destructor, private copy and assignment | `Default`, `from_param`, `from_param_with_warnings`, `defaults`, `to_param`; the parameters are those of `LabeledPairFinder` (field `pair_finder`) |
+| `group(maps, out)` | `FeatureGroupingAlgorithm::group`; `group_with_generator(maps, out, &mut UniqueIdGenerator) -> Result<RtPairEstimate>` |
+
+### KDTreeFeatureMaps and KDTreeFeatureNode
+
+| Source | Rust |
+|---|---|
+| `KDTreeFeatureMaps()`, `KDTreeFeatureMaps(maps, param)`, destructor, copy | `new()`, `from_maps(&maps)` (the parameters have no effect in the source), `Clone` |
+| `typedef FeatureKDTree` | private `Tree` (libkdtree++ subset) |
+| `addMaps`, `addFeature`, `optimizeTree`, `clear` | `add_maps`, `add_feature`, `optimize_tree`, `clear` (fallible for the ceilings) |
+| `feature`, `rt`, `mz`, `intensity`, `charge`, `mapIndex` | same names, `Result` for an index out of range (unchecked in the source) |
+| `size`, `treeSize`, `numMaps` | `size`, `tree_size`, `num_maps` |
+| `getNeighborhood(index, result, rt_tol, mz_tol, mz_ppm, include_same_map, max_pairwise_log_fc)` | `get_neighborhood(...)`, appends |
+| `queryRegion(rt_low, rt_high, mz_low, mz_high, result, ignored_map_index)` | `query_region(..., Option<usize>)`; `None` is `numeric_limits<Size>::max()` |
+| `applyTransformations(vector<TransformationModelLowess*>)` | `apply_transformations(Fn(map, rt) -> Result<f64>)` |
+| protected `updateMembers_`, `features_`, `map_index_`, `rt_`, `num_maps_`, `kd_tree_` | private fields; `updateMembers_` is empty in the source |
+| `KDTreeFeatureNode(data, idx)`, copy, `getIndex`, `operator[]` | `KDTreeFeatureNode::new(&data, idx)`, `Copy`, `index`, `get(i) -> Result<f64>` (`ElementNotFound` for `i > 1`) |
+
+### FeatureMapping
+
+| Source | Rust |
+|---|---|
+| `FeatureMappingInfo` (`feature_maps`, `kd_tree`) | `FeatureMappingInfo<'a>` (`feature_maps: &'a [FeatureMap]`, `kd_tree`), built by `FeatureMappingInfo::new` |
+| `FeatureToMs2Indices` (`assignedMS2` keyed by feature pointer, `unassignedMS2`) | `FeatureToMs2Indices` (`assigned_ms2` keyed by global kd-tree index, `unassigned_ms2`) |
+| `static assignMS2IndexToFeature(spectra, info, mz_tol, rt_tol, ppm)` | `assign_ms2_index_to_feature(&spectra, &info, mz_tol, rt_tol, ppm) -> Result<FeatureToMs2Indices>` |
+
+### MapAlignmentAlgorithmKD
+
+| Source | Rust |
+|---|---|
+| `MapAlignmentAlgorithmKD(num_maps, param)`, destructor | `new(num_maps, &Param) -> Result<Self>`, `with_settings(num_maps, Option<KdWarpSettings>)` |
+| `addRTFitData(kd_data)`, `fitLOWESS()`, `transform(kd_data)` | `add_rt_fit_data`, `fit_lowess() -> Result<Vec<String>>` (the warnings), `transform` |
+| protected `updateMembers_`, `computeCCs_`, `getCCs_`, `filterCCs_` | `KdWarpSettings::from_param`, private `compute_ccs`, `get_ccs`, `filter_ccs` |
+| private `fit_data_`, `transformations_`, `param_`, tolerances | private fields; `fit_data()` reads the fit data |
+| `TransformationModelLowess` parameters (`LOWESS:`) | `LowessParameters` (`to_param`, `fit`) over `LowessModel` |
+
+### FeatureGroupingAlgorithmKD and ClusterProxyKD
+
+| Source | Rust |
+|---|---|
+| constructor, destructor, private copy and assignment | `Default`, `from_param`, `from_param_with_warnings`, `defaults`, `to_param` (built with the source's call sequence) |
+| `group(vector<FeatureMap>)`, `group(vector<ConsensusMap>)` | `FeatureGroupingAlgorithm::group`, `group_consensus` |
+| private `group_`, `runClustering_`, `updateClusterProxies_`, `computeBestClusterForCenter_`, `addConsensusFeature_` | private functions of the same names |
+| private `rt_tol_secs_`, `mz_tol_`, `mz_ppm_`, `feature_distance_`, `progress_` | public parameter fields; the distance functor is built per run |
+| `ClusterProxyKD` (constructors, `operator<`, `==`, `!=`, `getSize`, `isValid`, `getAvgDistance`, `getCenterIndex`) | `ClusterProxyKD` (`new`, `Default`, `Ord`, `Eq`, `size`, `is_valid`, `avg_distance`, `center_index`) |
+
 ## Preserved source conventions
 
 - `FeatureDistance`: charges must agree unless one is 0 or `ignore_charge` is
@@ -156,6 +221,42 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 - `FeatureGroupingAlgorithmQT`: a fresh finder per call, `out`'s features
   replaced (`clear(false)`), then `postprocess`.
 
+- `LabeledPairFinder`: exactly one input map and two column headers with one
+  file name, labeled `light` and `heavy`; RT estimation from all
+  charge- and m/z-compatible pairs: median, a 100-bin histogram of the
+  `|map|/2` distances around it, the median bin count as background, the
+  highest bin as centre, the sigma walk down to the background, and
+  `GaussFitter` (bit-identical to the Release build on both oracle inputs);
+  every candidate pair gets a fresh unique ID, the light features' meta
+  values are cleared, both features' identifications are appended with their
+  `map_index`; greedy selection by quality (stable) on the handles' unique
+  IDs; protein and unassigned identifications appended; stable sort by m/z.
+- `KDTreeFeatureMaps`: the libkdtree++ tree is reproduced node for node:
+  insertion left when strictly less on the level's axis, `optimise()` from the
+  in-order sequence with libstdc++'s introselect `nth_element`, and range
+  queries in pre-order with the region-bounds pruning; coordinates are read
+  live, so queries after `apply_transformations` use the new RTs on the old
+  tree. The query order is checked against the Release build.
+- `FeatureMapping`: the source passes `true` as `queryRegion`'s
+  `ignored_map_index`, so features of map 1 are never assigned; reproduced.
+  Ties in m/z distance go to the first feature in query order; the starting
+  distance is 1e11 and the starting index 0.
+- `MapAlignmentAlgorithmKD`: BFS connected components over
+  `getNeighborhood(..., false, max_pairwise_log_fc)`; the size filter
+  `max(2, min_rel_cc_size * num_maps)` truncated to an integer; the conflict
+  filter; the source's charge filter is a no-op (its `continue` only continues
+  the inner loop), reproduced; fewer than 50 fit points give the identity
+  through (0,0), (1,1), (1e6,1e6).
+- `FeatureGroupingAlgorithmKD`: partition boundaries at gaps above the larger
+  m/z tolerance with the `j >= boundaries * (n / nr_partitions)` rule and a
+  final `max + 1`; the aligner collects fit data from every partition before
+  one LOWESS fit per map; linking per partition on a fresh kd-tree (warped
+  and re-optimised when enabled); the distance functor from the link
+  tolerances, `ignore_charge` only for `Any`; clusters chosen by size, then
+  average distance, then the higher centre index; average quality summed in
+  `f32`; the `best ion` index starting at global index 0 (a source quirk,
+  see the module documentation); `postprocess` as for the other algorithms.
+
 ## Native differences
 
 - Errors instead of undefined behaviour or silent insertion in
@@ -193,6 +294,33 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   source stringifies them).
 - `MAX_FEATURES` (2^24) bounds a QT run; the partition count must fit the
   source's `int`.
+
+- `LabeledPairFinder`: the input is sorted by position stably (the source's
+  `std::sort` leaves equal positions unordered); a candidate score that is
+  not a number (a zero deviation meeting an exact match) is an error; the
+  estimation's histogram walk is bounded; `MAX_COMPARISONS` and
+  `MAX_CANDIDATES` bound a run; the RT estimate is returned instead of
+  printed.
+- `KDTreeFeatureMaps`: `MAX_FEATURES` and `MAX_DEPTH` (a degenerate
+  insertion chain) are checked; accessors report an out-of-range index; the
+  partition scan of `nth_element` is bounded, which only matters for
+  coordinates that are not numbers (undefined behaviour in the source).
+- `FeatureMapping`: `assigned_ms2` is keyed by the feature's global kd-tree
+  index; the source keys by address, whose order follows memory layout.
+- `FeatureGroupingAlgorithmKD`: a failed LOWESS fit is returned as an error
+  (the source logs it and returns an empty, unprocessed result); a candidate
+  without a finite distance is an error (the source records `SIZE_MAX`);
+  input features must have finite coordinates.
+- `MapAlignmentAlgorithmKD`: `TransformationModelLowess` is not ported; the
+  fit runs through `LowessModel` without `auto_span` or `akima`
+  (`Error::Unsupported`); an aligner built from an empty tree is
+  unconfigured and its operations fail (the source leaves the tolerances
+  uninitialised).
+- QT, labeled and KD consensus features take their elements' peptide
+  identifications (with `map_index`), as `ConsensusFeature::insert(map,
+  BaseFeature)` does in the source (`insert_base_feature`). The QT port
+  previously inserted only the handles; fixed, and the TOPP differentials now
+  compare identifications.
 
 ## Checked boundaries and evidence
 
@@ -232,6 +360,27 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   calls it for featureXML input), `transferSubelements` on real data, and
   `StablePairFinder`'s `use_identifications`.
 
+- Tier 1 against the Release build (oracle `M2-labeled`, ibminode06,
+  `openms4-release-bc9cc12-c19e494-174b576`, two identical runs):
+  `tests/mapmatching_labeled_grouping_oracle.rs` (FeatureLinkerLabeled_1/_2
+  path and the class test's estimation input, fitted RT distance and
+  deviation to 1e-12), `tests/mapmatching_kd_tree_feature_maps_oracle.rs`
+  (1589 features in two maps: neighbourhood and region queries in the exact
+  order returned; FeatureMapping's map-1 exclusion),
+  `tests/mapmatching_kd_grouping_oracle.rs` (KD defaults tree;
+  FeatureLinkerUnlabeledKD_1 to _8 paths including consensus input, LOWESS
+  warp, charge and adduct merging, `best ion` and `LinkedGroups`).
+- Tier 1 against retained outputs: `tests/mapmatching_labeled_grouping_topp.rs`
+  (FeatureLinkerLabeled_1, _2; case 2's retained qualities predate the pin's
+  `GaussFitter` and differ from the Release build by up to 3.7e-4 relative,
+  so they are compared with the oracle instead) and
+  `tests/mapmatching_kd_grouping_topp.rs` (FeatureLinkerUnlabeledKD_1 to _8,
+  case 2 through `keep_subelements` and `transferSubelements`).
+- Tier 3: every section of `LabeledPairFinder_test.cpp`,
+  `FeatureGroupingAlgorithmLabeled_test.cpp`, `KDTreeFeatureMaps_test.cpp`,
+  `KDTreeFeatureNode_test.cpp`, `FeatureMapping_test.cpp`,
+  `FeatureGroupingAlgorithmKD_test.cpp` and `MapAlignmentAlgorithmKD_test.cpp`.
+
 ## Backlog
 
 - `QTClusterFinder` tie order: reproducing the source for clusters of exactly
@@ -239,8 +388,10 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   consolidation order and Boost's `unordered_map` iteration order of the grid
   cells (the `HashGrid` port iterates cells in ascending order). The retained
   `FeatureLinkerUnlabeledQT_5` output is the test for it.
-- `FeatureGroupingAlgorithmKD`: needs `DATASTRUCTURES/KDTree.h` (libkdtree++),
-  not ported.
-- `LabeledPairFinder` and `FeatureGroupingAlgorithmLabeled`, `WNetMatcher`
-  and `FeatureGroupingAlgorithmWNet`, `FeatureMapping`, `PipEchoAlgorithm`:
-  not started.
+- `TransformationModelLowess` (unmapped): automatic span selection and
+  `akima` interpolation, which `MapAlignmentAlgorithmKD` and
+  `FeatureGroupingAlgorithmKD` need for those parameter values.
+- `WNetMatcher` and `FeatureGroupingAlgorithmWNet`: need the `wnetalign`
+  network-flow aligner (`WNetAligner<2>`, the vcpkg overlay port); no crate
+  provides it. Retained test: `FeatureLinkerWNet_1`.
+- `PipEchoAlgorithm` (and the private `PIPECHO/` sources): not started.

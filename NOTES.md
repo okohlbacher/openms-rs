@@ -60,7 +60,16 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
 - WNetMatcher needs the external wnetalign C++ lib (network flow) -> leave untouched (named dependency).
 - PipEcho: ~3000 lines in PIPECHO/ -> untouched unless time.
 
+- KD DONE + green (7f5eee9b..79368ed7): FeatureGroupingAlgorithmKD (+ClusterProxyKD), MapAlignmentAlgorithmKD (LowessModel;
+  auto_span/akima Unsupported). Oracle kd1..kd8 + kddefaults all match at full precision (incl. LOWESS warp).
+  Retained TOPP KD_1..8 pass (KD_2 via keep_subelements + transfer_subelements).
+- FIX: QT create_consensus_feature now appends element peptide ids (insert_base_feature in feature_grouping_algorithm.rs);
+  TOPP differentials (Unlabeled, QT, Labeled, KD) compare peptide ids.
+- clippy --all-targets (featurexml,consensusxml,paramxml) clean; MSRV 1.85 check clean; doc clean.
+- docs/FEATURE_GROUPING_SUPPORT.md + tests/data/feature_grouping_provenance.json updated.
+
 ## Next step
-1. FeatureGroupingAlgorithmKD: needs MapAlignmentAlgorithmKD (warp) + LowessModel (src/analysis/transformations/lowess.rs,
-   no auto_span/akima). TOPP KD_1..3 warp disabled (tier 1 w/o warp), KD_4/5 warp + adducts.
-2. Lane report (Bash heredoc) + ledger fragment; delete NOTES.md in final commit.
+1. Ledger fragment (.planning/ledger-fragments/wave4/M2.json, main repo path) + lane report (Bash heredoc).
+2. CI sweep (openms-ci-sweep.sh M2-sweep <logdir>) for pass counts per slice.
+3. Optional: PipEchoAlgorithm (large), WNet (external lib: leave).
+4. Delete NOTES.md in the final commit.
