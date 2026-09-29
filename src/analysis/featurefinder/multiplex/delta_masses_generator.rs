@@ -434,7 +434,7 @@ impl MultiplexDeltaMassesGenerator {
     /// each sample's first label `mc + 1` times against the first sample's;
     /// without labelling, the single zero shift. The list is then sorted by
     /// [`MultiplexDeltaMasses::source_less`] with
-    /// [`source_sort_by`](crate::math::source_sort::source_sort_by), which is
+    /// [`source_sort_by`], which is
     /// the Release build's `std::sort`, so equivalent patterns end in the
     /// source's order.
     ///

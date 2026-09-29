@@ -7,7 +7,7 @@
 //! shifts), and its building blocks.
 //!
 //! One submodule per source header, except that the two satellite headers
-//! share [`satellite`]. See `docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md` for the
+//! share [`satellite`](crate::analysis::featurefinder::multiplex::satellite). See `docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md` for the
 //! API mapping and the evidence.
 
 /// The multiplex feature finder (source `FeatureFinderMultiplexAlgorithm.h`).
