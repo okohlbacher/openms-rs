@@ -231,7 +231,8 @@ impl SwathQC {
                 if !Self::is_subsampled_spectrum(nr_spec, nr_samples, i) {
                     continue;
                 }
-                convert_to_openms_spectrum(&sptr.spectrum_by_id(i)?, &mut s)?;
+                let light = sptr.spectrum_by_id(i)?;
+                convert_to_openms_spectrum(&light, &mut s)?;
                 sq.process_spectrum(&s)?;
             }
         }
