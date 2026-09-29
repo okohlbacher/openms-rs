@@ -62,6 +62,37 @@ pub(crate) fn add_string(
     Ok(())
 }
 
+/// `defaults_.setValue(key, value, description, tags)` for an integer, with the
+/// optional `setMinInt` / `setMaxInt` restrictions.
+pub(crate) fn add_int(
+    param: &mut Param,
+    key: &str,
+    value: i64,
+    description: &str,
+    advanced: bool,
+    min: Option<i32>,
+    max: Option<i32>,
+) -> Result<()> {
+    param.set_value(
+        key,
+        ParamValue::Integer(value),
+        description,
+        &tags(advanced),
+    )?;
+    if let Some(min) = min {
+        param.set_min_int(key, min)?;
+    }
+    if let Some(max) = max {
+        param.set_max_int(key, max)?;
+    }
+    Ok(())
+}
+
+/// An integer parameter.
+pub(crate) fn int(param: &Param, key: &str) -> Result<i64> {
+    param.value(key)?.to_i64()
+}
+
 /// A float parameter; an integer is converted as the source's `DataValue`
 /// conversion to `double` does.
 pub(crate) fn float(param: &Param, key: &str) -> Result<f64> {

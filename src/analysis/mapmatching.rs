@@ -24,6 +24,8 @@ pub mod feature_distance;
 /// The interface of feature grouping algorithms and their shared
 /// post-processing (source `FeatureGroupingAlgorithm.h`).
 pub mod feature_grouping_algorithm;
+/// QT feature grouping (source `FeatureGroupingAlgorithmQT.h`).
+pub mod feature_grouping_algorithm_qt;
 /// Unlabeled feature grouping by stepwise pairing (source
 /// `FeatureGroupingAlgorithmUnlabeled.h`).
 pub mod feature_grouping_algorithm_unlabeled;
@@ -35,5 +37,7 @@ pub(crate) mod params;
 /// A quality-threshold cluster for QT feature grouping (source
 /// `DATASTRUCTURES/QTCluster.h`).
 pub mod qt_cluster;
+/// QT clustering of features across maps (source `QTClusterFinder.h`).
+pub mod qt_cluster_finder;
 /// Pair finding by mutual nearest neighbours (source `StablePairFinder.h`).
 pub mod stable_pair_finder;
