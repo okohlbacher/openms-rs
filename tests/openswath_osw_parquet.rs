@@ -222,7 +222,13 @@ fn float_at(a: &ArrayRef, row: usize) -> Option<f64> {
 
 /// Compares every column of `got` with `want`; returns the [`STALE`]
 /// entries it had to apply. Panics listing every other difference.
-fn assert_tables_equal(ctx: &str, rel: &str, got: &Path, want: &Path) -> BTreeSet<usize> {
+fn assert_tables_equal(
+    ctx: &str,
+    rel: &str,
+    got: &Path,
+    want: &Path,
+    problems: &mut Vec<String>,
+) -> BTreeSet<usize> {
     let g = ParquetFile::read_table(got).unwrap_or_else(|e| panic!("{ctx}: {e}"));
     let w = ParquetFile::read_table(want).unwrap();
     assert_eq!(g.num_rows(), w.num_rows(), "{ctx} rows");
@@ -234,14 +240,13 @@ fn assert_tables_equal(ctx: &str, rel: &str, got: &Path, want: &Path) -> BTreeSe
     };
     assert_eq!(fields(&g.schema()), fields(&w.schema()), "{ctx} schema");
     let mut used = BTreeSet::new();
-    let mut problems = Vec::new();
     for (i, field) in w.schema().fields().iter().enumerate() {
         let (gc, wc) = (g.column(i), w.column(i));
         if gc.to_data() == wc.to_data() {
             continue;
         }
         if field.data_type() != &arrow_schema::DataType::Float64 {
-            problems.push(format!("{} (non-float column)", field.name()));
+            problems.push(format!("{ctx}: {} (non-float column)", field.name()));
             continue;
         }
         for row in 0..wc.len() {
@@ -266,13 +271,12 @@ fn assert_tables_equal(ctx: &str, rel: &str, got: &Path, want: &Path) -> BTreeSe
                     used.insert(k);
                 }
                 None => problems.push(format!(
-                    "{} row {row}: got {gv:?}, want {wv:?}",
+                    "{ctx}: {} row {row}: got {gv:?}, want {wv:?}",
                     field.name()
                 )),
             }
         }
     }
-    assert!(problems.is_empty(), "{ctx}: {problems:#?}");
     used
 }
 
@@ -301,6 +305,7 @@ fn json_keys(text: &str) -> BTreeSet<String> {
 /// Returns the [`STALE`] entries applied.
 fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) -> BTreeSet<usize> {
     let mut used = BTreeSet::new();
+    let mut problems = Vec::new();
     let files = Path::new(DATA).join("files");
     let entries = of(all, "F", case);
     assert!(!entries.is_empty(), "no files for {case}");
@@ -313,7 +318,7 @@ fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) -> BTre
         let want = files.join(&r[3]);
         assert!(got.exists(), "{ctx}: missing");
         if rel.ends_with(".parquet") {
-            used.extend(assert_tables_equal(&ctx, rel, &got, &want));
+            used.extend(assert_tables_equal(&ctx, rel, &got, &want, &mut problems));
         } else if rel.ends_with(".idx.json") {
             let g = std::fs::read_to_string(&got).unwrap();
             let w = std::fs::read_to_string(&want).unwrap();
@@ -343,6 +348,7 @@ fn assert_container_matches(all: &[Vec<String>], case: &str, dir: &Path) -> BTre
         }
     }
     assert_eq!(got_names, want_names, "{case}: file set");
+    assert!(problems.is_empty(), "{problems:#?}");
     used
 }
 
