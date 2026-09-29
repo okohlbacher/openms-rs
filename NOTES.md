@@ -17,6 +17,18 @@ Its NOTES (git show worktree-wf_ee239125-5be-32:NOTES.md) list fixes to re-apply
 F4 993fdd01, F5 f3c14e82, F6 877758b7 (took F3a/integ-F sax_xml.rs, gate any(idxml,kb-xml)), F7a eb3e44e7,
 F7b 30c01dae (Cargo.lock union-merged by hand: verify --locked!), F7c b44150c9, fmt 5a6fbd7e.
 
+## Done after merge (commits)
+7fb53b93 D1 format::string_utils folded; 60e302c6 cherry-pick f5f51116 sort ties; cherry-pick 4bc5bf07 StringUtils
+Release from_chars (+tests/string_utils_release.rs); 978bdf89 cherry-pick 687c6145 PEFF/lookup; 0bf73090 Bruker imaging;
+1f64cd7a D2 SAX collapse (xtandem/omssa -> sax_xml; ptm oracle); 4ddbebe9 D4 PTMXML (ptm_xml_file removed);
+cccfe3e4 driver.cpp.txt removed; 266c174a D5 parseInt -> StringManager. clippy all-features: CLEAN (logs/c2.log).
+C++ reference at bc9cc12: .reference/openms4-core-bc9cc12 (scratch/core symlink; cpp.py prints lines).
+Audit scripts: scratch audit.py / audit_fn.py / gaps.py / frag.py. No complete-with-unported-member found so far;
+handlers inconsistent (PTMXMLHandler F3b complete vs F6 native_equivalent -> native_equivalent).
+Ledger rule: core_sdk_coverage.py accepts only complete/partial/native_equivalent; rust/tests/doc files must exist.
+'unmapped' entries (F1b ConsensusMapArrowExport/ProteinGroupArrowExport, F5 HDF5/Thermo) must NOT go in INTEG-F.json.
+Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils::stod) - collapse if time.
+
 ## Duplicates to collapse
 - D1 string_utils: F3b src/data_structures/string_utils.rs vs F4 src/format/string_utils.rs (cli/context uses data_structures).
 - D2 SAX: F3b src/format/search_engine_xml.rs driver vs sax_xml.rs (X!Tandem/OMSSA).
@@ -27,6 +39,6 @@ F7b 30c01dae (Cargo.lock union-merged by hand: verify --locked!), F7c b44150c9, 
 - F3b driver.cpp.txt must go.
 
 ## Next step
-1. Poll logs/c1.log (clippy all-features on dax). Fix compile errors.
-2. Collapse D1, D4, D2, D5; remove driver.cpp.txt.
-3. Full sweep; attack complete claims; write INTEG-F.json + INTEG-F.md.
+1. logs/t1.log = full test --all-features --no-fail-fast on dax (running). Fix failures.
+2. Proposed ci_matrix JOBS edits (temporarily, uncommitted) -> --write -> sweep integ-F-sweep with them; fetch per-line logs.
+3. Consolidated INTEG-F.json (validate with core_sdk_coverage in scratch copy) + INTEG-F.md.
