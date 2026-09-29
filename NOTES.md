@@ -49,7 +49,14 @@ Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils
   Gate g1 (scratch logs/g1.log) running; then commit.
 - sweep2 running on dax slot integ-F-sweep (logs/sweep2.out; remote .ci-line.N.log) - snapshot BEFORE the consumer port.
 
+## Incarnation 3, later (12:45)
+- Committed: 2392a81f MSDataCachedConsumer; 3d0e7897 empty test mod (clippy fail from 6ab21922); 5685ca4e doc links
+  (PEFF/PTMXML/Unimod module docs - 23 rustdoc errors; F6 never ran doc).
+- PSMArrowIO ported (src/format/psm_arrow_io.rs, tests/psm_arrow_io.rs 14 pass, doc ARROW_PARQUET_SUPPORT, manifest
+  arrow_parquet_provenance psm_arrow_io_note, ledger.py entry). Gates g9-g11 (clippy, doc, 1.85) running -> commit.
+- sweep2 = pre-fix snapshot: its clippy + doc lines WILL fail (fixed since). Needs sweep3 on final tree.
+
 ## Next step
-1. g1 green -> commit consumer. Then gate clippy --all-features --all-targets, doc --all-features, +1.85.0 mzml slice.
-2. Wait sweep2; collect per-line pass counts via ssh (read-only).
-3. Write INTEG-F.md (Bash heredoc) from lane reports + this; revert lead files; delete NOTES.md; final commit.
+1. g9-g11 green -> commit PSMArrowIO.
+2. When sweep2 done: collect per-line counts (ssh read .ci-line.N.log + lines.tsv). Start sweep3 on final tree.
+3. Write INTEG-F.md; final: revert rust.yml/ci_matrix/baseline (keep copy in scratch ci_proposed2.patch), delete NOTES.md.
