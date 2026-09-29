@@ -681,7 +681,7 @@ fn math_functions_quantile(x: &[f64], q: f64) -> Result<f64> {
 /// The [`EmpiricalFormula::parse`] error, and [`Error::Unsupported`] for a
 /// formula with isotope-labelled atoms, whose source symbols this port does
 /// not enumerate.
-fn to_adduct_string(ion_string: &str, charge: i32) -> Result<String> {
+pub(super) fn to_adduct_string(ion_string: &str, charge: i32) -> Result<String> {
     let formula = EmpiricalFormula::parse(ion_string)?;
     let mut entries: BTreeMap<&str, i32> = BTreeMap::new();
     let mut covered = 0i64;
@@ -938,6 +938,6 @@ impl<'a> Clustering<'_, 'a> {
 }
 
 /// A meta value as the source's `DataValue::toString()` renders a string.
-fn meta_text(value: &MetaValue) -> Result<String> {
+pub(super) fn meta_text(value: &MetaValue) -> Result<String> {
     Ok(value.as_str()?.to_string())
 }

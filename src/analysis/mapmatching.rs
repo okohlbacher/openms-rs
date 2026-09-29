@@ -24,6 +24,9 @@ pub mod feature_distance;
 /// The interface of feature grouping algorithms and their shared
 /// post-processing (source `FeatureGroupingAlgorithm.h`).
 pub mod feature_grouping_algorithm;
+/// KD-tree feature grouping with optional LOWESS warp (source
+/// `FeatureGroupingAlgorithmKD.h`, with `ClusterProxyKD`).
+pub mod feature_grouping_algorithm_kd;
 /// Labeled feature grouping with two labels (source
 /// `FeatureGroupingAlgorithmLabeled.h`).
 pub mod feature_grouping_algorithm_labeled;
@@ -44,6 +47,9 @@ pub mod kd_tree_feature_maps;
 /// Pair finding for isotope-labeled features within one map (source
 /// `LabeledPairFinder.h`).
 pub mod labeled_pair_finder;
+/// RT alignment from conflict-free connected components of a kd-tree
+/// compatibility graph (source `MapAlignmentAlgorithmKD.h`).
+pub mod map_alignment_algorithm_kd;
 /// Parameter-tree helpers shared by the feature-grouping ports.
 pub(crate) mod params;
 /// A quality-threshold cluster for QT feature grouping (source
