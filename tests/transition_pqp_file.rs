@@ -27,7 +27,12 @@ fn temp(name: &str) -> PathBuf {
     dir.join(name)
 }
 
+/// Lines agree when equal after trimming surrounding whitespace (FuzzyDiff
+/// splits on whitespace; the hand-edited `TargetedFileConverter_11_input`
+/// indents one `</Product>` by five spaces), or when every token is equal or
+/// reads as the same `f64`.
 fn same_line(a: &str, b: &str, separators: &[char]) -> bool {
+    let (a, b) = (a.trim(), b.trim());
     if a == b {
         return true;
     }
