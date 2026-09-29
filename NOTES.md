@@ -48,9 +48,16 @@ Prereq merge: worktree-wf_ee239125-5be-1 fast-forwarded f0990c0 -> 9fcb962 (no m
 - Provider ctor design (if time): owned DigestionEnzymeProtein, ProteaseDB struct w/ OnceLock global,
   from_enzymes/extend (later name replaces), from Param (EnzymeXML). Deferred: IDFilter depends only on query API.
 
+## Done (restart 3)
+- ProteaseDB members + ModificationsDB members, tier-1 oracle ../oracle/B8b-dbs (ran, fetched), tests
+  tests/protease_db.rs (7) + tests/modifications_db.rs (11) GREEN on dax (--all-features). Docs + manifests done.
+  Remaining named gaps: ProteaseDB provider ctor; ModificationsDB initializeModificationsDB (UnimodXMLFile),
+  wildcard residues in old find/search_by_mass, PSI-MOD. Both stay partial.
+- Helpers in $SCRATCH/B8b: make_manifest.py (spec json -> manifest), undoc.py (list undocumented items),
+  specs/*.json. Heredocs writing into scratch are REFUSED: use Write tool for scratch files.
+
 ## Next step
-1. ProteaseDB: write_tsv, lowercase name lookup, get_enzyme_by_regex (single), docs 100%; oracle later.
-2. ModificationsDB: has, search_fast, find_modification_index, sorted mass search x2, all_search_modifications,
-   write_tsv, search_modification(&mod), add_modification.
-3. IDFilter: countHits, getBestHit, predicates, digestion filter, etc.
-4. One combined oracle ../oracle/B8b-dbs-idfilter on ibminode06.
+1. IDFilter: countHits, getBestHit, filterGroupsByScore, RTPredictPValue, regex, best-per-peptide annotate/keep,
+   extractUnassignedProteins, generic predicates, digestion filters; oracle ../oracle/B8b-idfilter.
+2. Clippy + CI slices for protease_db/modifications_db (features: none needed? check), MSRV 1.85.
+3. Ledger fragment + lane report.
