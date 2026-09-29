@@ -162,6 +162,10 @@ pub mod bzip2_ifstream;
 /// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
 #[cfg(feature = "file-compression")]
 pub mod gzip_ifstream;
+/// UTF-16 string helpers of the XML handlers (`HANDLERS/StringManager.h`).
+pub mod string_manager;
+/// Read-only view over an element's attributes (`HANDLERS/XMLAttributes.h`).
+pub mod xml_attributes;
 /// Create, unpack, list, index and update ZIP archives (`ZipArchiveFile.h`).
 #[cfg(feature = "file-compression")]
 pub mod zip_archive_file;

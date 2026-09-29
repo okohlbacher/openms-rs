@@ -40,7 +40,7 @@ use super::zip_ifstream::{Entry, EntryMeta};
 use crate::system::file::TempDir;
 use crate::{Error, Result};
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, Read, Write};
+use std::io::{self, Write};
 use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -285,8 +285,9 @@ impl ZipArchiveFile {
                     archive_path.display()
                 ))
             })?;
+        let entry = name.clone();
         rewrite(archive_path, &name, "sidecar write", move |writer| {
-            writer.start_file(name.as_str(), stored(json.len() as u64, None))?;
+            writer.start_file(entry.as_str(), stored(json.len() as u64, None))?;
             writer.write_all(json.as_bytes())?;
             Ok(())
         })

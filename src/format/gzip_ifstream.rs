@@ -323,6 +323,9 @@ enum How {
     Copy,
     /// Inside a gzip member (zlib `GZIP`).
     Gzip(Box<Member>),
+    /// A member's deflate data ended; its trailer must match this CRC-32 and
+    /// length.
+    Trailer(u32, u32),
     /// No more data.
     Done,
 }
@@ -402,6 +405,11 @@ impl Decoder {
         loop {
             match &mut self.how {
                 How::Done => return Ok(0),
+                How::Trailer(crc, length) => {
+                    let (crc, length) = (*crc, *length);
+                    read_trailer(&mut self.input, crc, length)?;
+                    self.how = How::Look;
+                }
                 How::Look => {
                     let available = self.input.ensure(2)?;
                     if available == 0 {
@@ -455,10 +463,10 @@ impl Decoder {
                     self.input.consume(consumed);
                     member.crc.update(&out[..produced]);
                     if status == flate2::Status::StreamEnd {
-                        let crc = member.crc.sum();
-                        let length = member.crc.amount();
-                        read_trailer(&mut self.input, crc, length)?;
-                        self.how = How::Look;
+                        // Hand out this call's bytes before the trailer can
+                        // fail: zlib decodes a member's data even when its
+                        // trailer is cut off.
+                        self.how = How::Trailer(member.crc.sum(), member.crc.amount());
                         if produced > 0 {
                             return Ok(produced);
                         }
