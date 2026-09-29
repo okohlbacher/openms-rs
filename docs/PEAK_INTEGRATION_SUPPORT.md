@@ -28,6 +28,44 @@ finite intensities are accepted.
 | Baseline | `estimate_background_spectrum` / `estimate_background_chromatogram` | `PeakBackground`: area and height at the supplied apex |
 | Shape | `calculate_shape_metrics_spectrum` / `calculate_shape_metrics_chromatogram` | `PeakShapeMetrics`: widths and sampled starts/ends at 5%, 10%, 50%; total width; tailing/asymmetry; baseline difference/height ratio; sample counts |
 
+Each operation also has an index-bounded form, the source's `ConstIterator&`
+overloads: `integrate_chromatogram_between`, `integrate_spectrum_between`,
+`estimate_background_chromatogram_between`,
+`estimate_background_spectrum_between`,
+`calculate_shape_metrics_chromatogram_between` and
+`calculate_shape_metrics_spectrum_between` take the indices of the first and
+last sample. As in the source (`PeakIntegrator.cpp:27-80`, which reads
+`left->getRT()` and `right->getRT()`), only the two positions are used, so with
+duplicate positions the selection covers every sample at them. An index that
+names no sample is an error, where the source dereferences the iterator
+unchecked.
+
+The source's `DefaultParamHandler` surface is `PeakIntegrator::defaults()`
+(`getDefaultParameters` / `getDefaults`), `to_param()` (`getParameters`) and
+`from_param()` / `from_param_with_warnings()` (`setParameters` then
+`updateMembers_`): `integration_type` (`intensity_sum`; valid `intensity_sum`,
+`simpson`, `trapezoid`), `baseline_type` (`base_to_base`; valid
+`base_to_base`, `vertical_division`, `vertical_division_min`,
+`vertical_division_max`) and `fit_EMG` (`false`), with the source descriptions.
+`fit_EMG = true` selects `EmgGradientDescent::default()`, the configuration of
+the source's never-configured `emg_` member; `to_param` writes it as
+`emg.is_some()`, so a custom fitter configuration, which has no source
+parameter, is not represented. `vertical_division` is written back as
+`vertical_division_min`, the baseline it names. The source stores the two type
+strings and throws `Exception::InvalidParameter` only when an operation runs;
+the valid-string restriction refuses an unknown value in `from_param` instead.
+The seven source string constants (`INTEGRATION_TYPE_*`, `BASELINE_TYPE_*`) are
+associated constants of `PeakIntegrator`.
+
+| Source member | Rust |
+| --- | --- |
+| `PeakIntegrator()`, `~PeakIntegrator()` | `Default`, `Drop` |
+| `PeakArea`, `PeakBackground`, `PeakShapeMetrics` | the structs of the same names |
+| twelve `integratePeak` / `estimateBackground` / `calculatePeakShapeMetrics` overloads | the six position-bounded and six `_between` methods above |
+| `getDefaultParameters(Param&)`, `updateMembers_()` | `defaults()`, `from_param()` |
+| protected `integratePeak_`, `estimateBackground_`, `calculatePeakShapeMetrics_`, `simpson_`, `findPosAtPeakHeightPercent_`, `EMGPreProcess_` | private `integrate`, `background`, `shape`, `simpson`, `threshold_position`, `preprocess` |
+| members `integration_type_`, `baseline_type_`, `fit_EMG_`, `emg_` | `integration_method`, `baseline_type`, `emg` |
+
 Positions are m/z for spectra and retention time in seconds for chromatograms.
 Every operation takes finite ordered bounds. Background and shape operations
 also require a finite apex inside those requested bounds. Shape height must be
@@ -155,8 +193,9 @@ in a Simpson subintegral is an error. Nonfinite results and overflowing tailing
 factor denominators are errors. The implementation does not silently change the
 formula to compensate for overflow or underflow.
 
-There is no iterator-overload framework, automatic background subtraction, or
-background-corrected shape calculation. Without fitting, work in the scientific
+There is no automatic background subtraction or background-corrected shape
+calculation (the source has none either; `MRMTransitionGroupPicker` subtracts
+the background itself). Without fitting, work in the scientific
 routines is linear in whole-input point count; integration hull storage is linear
 in selected points, and baseline/shape routines allocate no point arrays. With
 fitting, additional work and storage follow the fitter limits and include the
@@ -184,7 +223,18 @@ from `tests/data/emg_traces.tsv`. The expected fitted lengths come directly from
 the pinned `EmgGradientDescent_test.cpp`; fitter-specific parameter and curve
 oracles are tested separately.
 
-Pinned SHA-256 values:
+`tests/openswath_peak_picking.rs` (OpenMS4-core `bc9cc12`) checks the
+parameter surface against `getDefaultParameters` and the `getParameters`
+section of `PeakIntegrator_test.cpp:165-171`, and replays the `ConstIterator`
+sections (`232-289`, `350-407`, `506-585`, `669-749`, `801-850`, `901-950`)
+through the `_between` methods with the class test's `RTBegin(left)` and
+`RTEnd(right) - 1` indices. Every integration, background and shape metric of
+the tier-1 `MRMTransitionGroupPicker` oracle (32 cases, bit-identical to the
+executed Release build, `tests/data/openswath_peak_picking_provenance.json`)
+goes through this integrator, including Simpson and trapezoid integration and
+the vertical-division-max baseline.
+
+Pinned SHA-256 values (unchanged between `7c029e8` and `bc9cc12`):
 
 | Source file | SHA-256 |
 | --- | --- |
