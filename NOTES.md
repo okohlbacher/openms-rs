@@ -38,3 +38,12 @@ fs_{class,empty,rich,empty_cols}, ts_{class,empty,rich} + err_unwritable FileNot
 1. Run the osw parquet test on spock (--features arrow --test openswath_osw_parquet); fix.
 2. Copy O5c-export results into tests/data/openswath_parquet_exporter/, write tests/openswath_parquet_exporter.rs.
 3. Provenance json, support doc section, ledger, report, delete NOTES.
+
+## KEY FINDING (incarnation 3): Release writer stale values
+C++ `appendOptionalFloat_(b, extractMetaDouble_(x, key, value), value, col)` passes `value` BY VALUE; GCC evaluates
+args right-to-left, so the Release build writes the PREVIOUS successful extraction (off by one) in whole blocks
+(feature_transition row: total_area_intensity=7.25 (feature im_log_intensity), apex_intensity=20 (s1 total_xic), ...;
+feature_precursor apex 7.0). Rust writes intended values. Test handles it with the STALE table in
+tests/openswath_osw_parquet.rs (file, column, row, release, port) + assert_all_stale; populate from g4.log listing.
+Preserved-archive test: rebuild from Release w_rich_zip files zipped + Rust preserve-append run 7, then compare.
+Exporter test tests/openswath_parquet_exporter.rs written (data tests/data/openswath_parquet_exporter).
