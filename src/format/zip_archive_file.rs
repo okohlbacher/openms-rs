@@ -8,7 +8,7 @@
 //! replace an entry from a file on disk, list the entries, write a JSON size
 //! index, and extract a single entry. The source uses libzip; this port uses
 //! the `zip` crate for the archive structure and decodes entries through
-//! [`ZipIfstream`](super::zip_ifstream::ZipIfstream)'s decoder, so the same
+//! [`ZipIfstream`](crate::format::zip_ifstream::ZipIfstream)'s decoder, so the same
 //! stored, deflate and bzip2 entries are supported and every extracted entry
 //! is checked against its CRC-32 and declared size.
 //!

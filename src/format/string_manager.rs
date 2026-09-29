@@ -15,7 +15,7 @@
 //! - `shared_xerces_ptr<T>` and `unique_xerces_ptr<T>` are RAII guards that
 //!   release Xerces-allocated memory through `XMLString::release` or the
 //!   node's `release()`. Owned Rust values (`Vec<u16>`, `String`) free
-//!   themselves, so no guard type exists; [`StringManager::convert_ptr`]
+//!   themselves, so no guard type exists; [`StringManager::convert_ptr`](crate::format::string_manager::StringManager::convert_ptr)
 //!   returns the owned buffer those guards would hold.
 //! - `CONST_XMLCH(s)`, a UTF-16 string literal, is `"s".encode_utf16()`.
 //!
@@ -23,8 +23,8 @@
 //!
 //! The source takes NUL-terminated `const char16_t*` strings. Here a slice
 //! carries its length, and every function that the source bounds by the
-//! terminator ([`StringManager::convert_utf16`], [`StringManager::str_length`],
-//! [`StringManager::parse_int`]) stops at the first `0` unit when there is
+//! terminator ([`StringManager::convert_utf16`](crate::format::string_manager::StringManager::convert_utf16), [`StringManager::str_length`](crate::format::string_manager::StringManager::str_length),
+//! [`StringManager::parse_int`](crate::format::string_manager::StringManager::parse_int)) stops at the first `0` unit when there is
 //! one, so a terminated buffer gives the source's result. Where the source
 //! would read past the end of an unterminated buffer, the slice end is used.
 //!

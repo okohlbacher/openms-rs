@@ -15,7 +15,7 @@
 //! checked by the compiler.
 //!
 //! Values are UTF-8 `&str` rather than UTF-16 `const char16_t*`; where UTF-16
-//! is needed, [`StringManager::convert`](super::string_manager::StringManager::convert)
+//! is needed, [`StringManager::convert`](crate::format::string_manager::StringManager::convert)
 //! transcodes. The source's "`nullptr` if absent" is `None`, and its negative
 //! index for a missing attribute is `None` as well.
 

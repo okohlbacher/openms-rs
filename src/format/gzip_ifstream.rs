@@ -13,7 +13,7 @@
 //! - **Concatenated members** are decoded one after another.
 //! - **Trailing data** after a complete member that does not start with the
 //!   gzip magic bytes is ignored, as zlib ignores "trailing garbage".
-//! - **Closing.** The stream closes itself when a [`GzipIfstream::read`]
+//! - **Closing.** The stream closes itself when a [`GzipIfstream::read`](crate::format::gzip_ifstream::GzipIfstream::read)
 //!   request cannot be filled completely: `gzeof` reports end of file only
 //!   after a read tried to go past it. A request that ends exactly at the end
 //!   of the data leaves the stream open; the next read returns `0` and closes.
