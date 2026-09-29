@@ -229,13 +229,18 @@ Source defects, and what the port does:
   documents all three positions as mobilogram indices; the port keeps the
   source value and says so on `PeakPositions`.
 
-Evidence: tier 3, `PeakPickerMobilogram_test.cpp:67-84` (apex position and
-intensity, integrated intensity and both border mobilities of the 60-point
-class-test mobilogram, through `getParameters`/`setParameters`), plus tier 4
-tests of the defaults, the refusals, the index arrays against the border
-samples and the raw sum, and every branch of the top-peak filters. The
-chromatogram machinery underneath is tier 1 through the
-`MRMTransitionGroupPicker` oracle above; no mobilogram-specific C++ was run.
+Evidence: **tier 1**, `mobilogram_and_hull_scores_match_the_release_build_bit_for_bit`
+replays eight cases (the class-test mobilogram and two synthetic ones;
+corrected, legacy, a forced width, Gaussian and Savitzky-Golay smoothing)
+against the Release build on ibminode06 (`../oracle/O3a-mobilogram-masstrace`,
+run twice, identical): picked and smoothed mobilograms, all six arrays, the
+public per-peak vectors and both `filterTopPeak` overloads, bit for bit. The
+driver constructs the picker in zeroed storage, so the never-assigned
+`remove_overlapping_` reads `false`, which is the port's default. Tier 3:
+`PeakPickerMobilogram_test.cpp:67-84` (apex position and intensity,
+integrated intensity and both border mobilities of the 60-point class-test
+mobilogram, through `getParameters`/`setParameters`); tier 4 for the
+defaults, the refusals and the empty-input branches of the top-peak filters.
 
 ## Mass trace correlation
 
@@ -275,11 +280,19 @@ Native differences:
   source's `std::sort` may order them differently for traces longer than 16
   points.
 
-Evidence: tier 3, every section of `MasstraceCorrelator_test.cpp`: the matching
-cases (`38-209`, on the private function), the cross-correlation and the three
-`scoreHullpoints` calls (`211-283`), and `createPseudoSpectra` with
-`min_peak_nr` 0 and 1 on the retained `Masstraces_Testdata.consensusXML`
-(`285-315`).
+Evidence: **tier 1**, `pseudo_spectra_match_the_release_build_bit_for_bit`
+(five `createPseudoSpectra` cases on the class-test map and a synthetic
+14-feature map, varying `min_peak_nr`, the correlation, lag and RT limits)
+and six `scoreHullpoints` pairs in
+`mobilogram_and_hull_scores_match_the_release_build_bit_for_bit`: every
+pseudo-spectrum peak, every score array and every score bit-identical to the
+Release build (`../oracle/O3a-mobilogram-masstrace`). Its stderr carries the
+source's non-fatal `Double conversion error of "4the_second_seed202.0"`,
+which confirms the 0.0 the test substitutes for that RT. Tier 3: every
+section of `MasstraceCorrelator_test.cpp`: the matching cases (`38-209`, on
+the private function), the cross-correlation and the three `scoreHullpoints`
+calls (`211-283`), and `createPseudoSpectra` with `min_peak_nr` 0 and 1 on
+the retained `Masstraces_Testdata.consensusXML` (`285-315`).
 
 Source files at `bc9cc12`:
 
