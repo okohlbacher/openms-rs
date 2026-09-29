@@ -48,3 +48,6 @@ NOT written; write it at the end (with Bash heredoc).
 ## Incarnation 6 (restart on branch worktree-wf_cd066dab-0a7-17)
 - Fast-forwarded to 19f16930 (inc. 5 tip, includes worktree-wf_ee239125-5be-11). Draft report still in
   session scratchpad F2.md. Next: step 2 (sweep) then 3 (report).
+
+## Incarnation 7 (restart on branch worktree-wf_a10fdd71-2d2-1)
+- Merged worktree-wf_cd066dab-0a7-17 (tip 2f186f89). Next: step 2 (sweep) then 3 (report).
