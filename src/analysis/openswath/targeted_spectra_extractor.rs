@@ -21,24 +21,24 @@
 //!
 //! # Workflow
 //!
-//! [`TargetedSpectraExtractor::extract_spectra`] runs the whole pipeline; the
-//! steps can also be run individually, in this order:
+//! [`TargetedSpectraExtractor::extract_spectra`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::extract_spectra)
+//! runs the whole pipeline; the steps can also be run individually, in this order:
 //!
-//! 1. [`annotate_spectra`](TargetedSpectraExtractor::annotate_spectra): match
+//! 1. [`annotate_spectra`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::annotate_spectra): match
 //!    spectra to targets by precursor m/z and retention time;
-//! 2. [`pick_spectrum`](TargetedSpectraExtractor::pick_spectrum): smooth and
+//! 2. [`pick_spectrum`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::pick_spectrum): smooth and
 //!    pick peaks, for each spectrum;
-//! 3. [`score_spectra`](TargetedSpectraExtractor::score_spectra): score by TIC,
+//! 3. [`score_spectra`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::score_spectra): score by TIC,
 //!    FWHM and S/N with configurable weights;
-//! 4. [`select_spectra`](TargetedSpectraExtractor::select_spectra): keep the
+//! 4. [`select_spectra`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::select_spectra): keep the
 //!    best spectrum per transition.
 //!
 //! # Spectral library matching
 //!
-//! [`match_spectrum`](TargetedSpectraExtractor::match_spectrum) compares one
-//! spectrum against a library held by a [`Comparator`];
-//! [`targeted_matching`](TargetedSpectraExtractor::targeted_matching) and
-//! [`untargeted_matching`](TargetedSpectraExtractor::untargeted_matching) do it
+//! [`match_spectrum`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::match_spectrum) compares one
+//! spectrum against a library held by a [`Comparator`](crate::analysis::openswath::targeted_spectra_extractor::Comparator);
+//! [`targeted_matching`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::targeted_matching) and
+//! [`untargeted_matching`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::untargeted_matching) do it
 //! in bulk, for extracted and for unprocessed spectra respectively.
 //!
 //! Downstream, `MRMFeatureFilter` filters the results for QC and
@@ -52,8 +52,8 @@
 //! - `storeSpectraMSP`: it writes through `FileHandler` to the MSP format,
 //!   whose writer (`MSPGenericFile::store`) is not in the crate. The two
 //!   preparation steps it runs first are ported as
-//!   [`deisotope_ms2_spectra`](TargetedSpectraExtractor::deisotope_ms2_spectra)
-//!   and [`remove_ms2_spectra_peaks`](TargetedSpectraExtractor::remove_ms2_spectra_peaks).
+//!   [`deisotope_ms2_spectra`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::deisotope_ms2_spectra)
+//!   and [`remove_ms2_spectra_peaks`](crate::analysis::openswath::targeted_spectra_extractor::TargetedSpectraExtractor::remove_ms2_spectra_peaks).
 
 use super::reaction_monitoring_transition::ReactionMonitoringTransition;
 use super::targeted_experiment::TargetedExperiment;
