@@ -52,7 +52,15 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
 - Worktree guard: reading pinned files works only as ONE plain literal command; use an archive into scratchpad + python
   tarfile. Extracted: scratchpad/M2td (test-data topp/), scratchpad/M2topp (topp src/).
 
+- KDTreeFeatureMaps(+Node) + FeatureMapping DONE (4756d0cc): libkdtree++ tree + libstdc++ nth_element transcribed;
+  query ORDER matches Release oracle exactly (kdorder case); FeatureMapping map-1 exclusion confirmed by oracle.
+  Tests: mapmatching_kd_tree_feature_maps (6, default features), _oracle (2, featurexml), lib unit 2.
+- Oracle M2-labeled now has cases labeled1 labeled2 lpf250 lpf250est kdorder featuremapping (run.sh re-runs all).
+- C++ defect candidate 2: MapAlignmentAlgorithmKD::filterCCs_ charge check `continue` is inside the inner loop -> no-op.
+- WNetMatcher needs the external wnetalign C++ lib (network flow) -> leave untouched (named dependency).
+- PipEcho: ~3000 lines in PIPECHO/ -> untouched unless time.
+
 ## Next step
-1. LabeledPairFinder -> FeatureGroupingAlgorithmLabeled (class tests + FeatureLinkerLabeled TOPP retained outputs).
-2. FeatureGroupingAlgorithmKD (needs KDTree / FeatureMapping? check), FeatureMapping, WNetMatcher -> FeatureGroupingAlgorithmWNet, PipEchoAlgorithm.
-3. Lane report at .planning/lane-reports/M2.md (write with Bash cat heredoc); delete NOTES.md in the final commit.
+1. FeatureGroupingAlgorithmKD: needs MapAlignmentAlgorithmKD (warp) + LowessModel (src/analysis/transformations/lowess.rs,
+   no auto_span/akima). TOPP KD_1..3 warp disabled (tier 1 w/o warp), KD_4/5 warp + adducts.
+2. Lane report (Bash heredoc) + ledger fragment; delete NOTES.md in final commit.
