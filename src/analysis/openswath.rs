@@ -75,3 +75,6 @@ pub mod transition_experiment;
 pub mod transition_helper;
 /// The nested targeted experiment, from `OPENSWATHALGO/DATAACCESS/Transitions.h`.
 pub mod transitions;
+/// `TransitionParquetFile`: read and write OpenSWATH Parquet assay libraries (`.oswpq`).
+#[cfg(all(feature = "arrow", feature = "file-compression"))]
+pub mod transition_parquet_file;
