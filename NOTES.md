@@ -31,6 +31,7 @@ F1a infra: src/format/{arrow_io_helpers,arrow_schema_registry,parquet_file}.rs, 
 
 ## Next step
 1. DONE readers (tests/openswath_parquet.rs 23 pass on spock, --features arrow).
-2. xim_parquet_file.rs, xipm_parquet_file.rs.
-3. ms_chromatogram_parquet_consumer.rs, mobilogram_parquet_consumer.rs (XIPM consumer partial: needs ExtractedPeakMap).
+2. DONE xim/xipm readers; consumers MSChromatogram/Mobilogram/XIPM (tests/openswath_parquet_writers.rs 13+ pass,
+   differential vs retained C++ .xic/.xipm bit-identical). ExtractedPeakMap struct in src/analysis/openswath/peak_map_extractor.rs.
+3. Gates: scratchpad multi.sh (tests, lib, clippy, doc, doctest, msrv). Then docs/OPENSWATH_PARQUET_SUPPORT.md, provenance json.
 4. ArrowExports last (likely untouched).
