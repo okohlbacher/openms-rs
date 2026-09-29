@@ -19,7 +19,16 @@ Branch: worktree-wf_cd066dab-0a7-18 (incarnation 2 merged -13), base f0990c0. Sl
 - ZipIfstream_test [EXTRA]: corrupt (text) zip -> FileNotReadable; FileHandler getTypeByFileName strips .zip (sample.mzML.zip -> MZML); end-to-end loadExperiment(Deisotoper_input1.mzML.zip) == plain (sizes, ms levels).
 - ZipArchiveFile: zipDirectory (store-only, recursive, rel generic paths, removes existing), unzipDirectory (dir -> returned unchanged; !readable -> FileNotFound; TempDir/parquet_unpacked; abs path / escape -> InvalidValue), addOrReplaceFromFile (ZIP_CREATE; stored), listEntries (empty on failure), writeSidecarIndex (dir -> <path>.idx.json external; zip -> entry '<basename>.idx.json', JSON `{\n  "name": size,\n...\n}\n`, stored), extractEntryToTempFile (dir layout -> path, missing -> FileNotFound).
 
+## Done (incarnation 3, committed)
+- src/format/{gzip_ifstream,bzip2_ifstream,zip_ifstream,zip_archive_file,string_manager,xml_attributes}.rs; ZIP in path_io::open; zip =6.0.0 in file-compression; Cargo.lock fetched from dax.
+- tests/compressed_streams.rs (20 pass on dax), tests/string_manager.rs, tests/mzml_counts.rs zip assertion now Io(InvalidData) (C++ FileNotReadable).
+- StringManager class test is XMLHandler_test.cpp (compress64/isASCII/appendASCII/strLength) + MzMLFile_test.cpp UTF-8 section.
+- Existing Release oracle ../oracle/B8a-zip-input (ibminode06): LZMA entry -> FileNotReadable (Release libzip has no LZMA), bad CRC -> ParseError, junk -> FileNotReadable, dir-only/empty -> FileEmpty.
+- Own oracle ../oracle/F7b-streams launched on ibminode06 (run.sh push/pull).
+
 ## Next step
-1. Add zip dep; new module src/format/compressed_ifstream.rs (GzipIfstream, Bzip2Ifstream, ZipIfstream); wire ZIP into path_io::open.
-2. Copy class-test data into tests/data (provenance manifest), port the 3 class tests.
-3. ZipArchiveFile module. 4. StringManager + XMLAttributes. 5. IndentedStream public type. 6. Oracle on ibminode06 in ../oracle/F7b-streams/.
+1. `bash ../oracle/F7b-streams/run.sh pull`; copy results/records.tsv into tests/data/compressed_streams/f7b_oracle_records.tsv (+ oracle data files) and write the differential test.
+2. Provenance manifest tests/data/compressed_streams/provenance.json; THIRD_PARTY_CRATE_DECISIONS entry for zip.
+3. Full CI sweep; MSRV +1.85.0 check; clippy; doc.
+4. Report + ledger fragment; delete NOTES.md.
+5. If time: IndentedStream public type (src/cli/usage.rs Indented).
