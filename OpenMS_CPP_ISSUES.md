@@ -1,77 +1,463 @@
 # Issues found in the original OpenMS C++ SDK
 
-This is the ongoing upstream issue log for the Rust port. Findings below were
-checked against **OpenMS4-core `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`**.
-They are open in that source revision. **Fixes are proposed C++ changes, not
-claims that the upstream repository has been patched.** Rust behavior is noted
+This is the ongoing upstream issue log for the Rust port. **Fixes are proposed
+C++ changes, not claims that the upstream repository has been patched**, and no
+entry has a verified upstream fix: every entry is open. Rust behavior is noted
 separately. Findings first logged here: 2026-09-11.
 
-“Executed” means a focused C++ reproduction ran. “Source-reviewed” means the
-fault follows from the inspected source and stated input; it does not claim a
-C++ runtime reproduction. A native regression alone is not C++ execution.
-Intentional source behavior, ordinary API differences and unconfirmed suspicions
-are not classified as confirmed defects here.
+**Source revisions.** Each entry names the revision it was checked against, in its
+*Source revision* or *Status and source* line or in its source links, and the
+index below repeats it. They are not all the same revision:
 
-| ID | Issue | Evidence | Status |
-| --- | --- | --- | --- |
-| CPP-001 | DateTime silently replaces early dates after failed libc conversion | Executed, macOS | Open |
-| CPP-002 | DateTime fractional normalization has signed integer overflow | Executed, UBSan | Open |
-| CPP-003 | Stale system configuration discards repaired defaults | Source-reviewed | Open |
-| CPP-004 | Isotope left-trimming retains every peak when all are below cutoff | Source-reviewed | Open |
-| CPP-005 | Fragment isotope truncation writes beyond the result container | Source-reviewed | Open |
-| CPP-006 | Non-preprocessed interpolation prepends unwanted zero coordinates | Source-reviewed | Open |
-| CPP-007 | EMG evaluation produces NaN from finite tail inputs | Source-reviewed; independent numerical regression | Open |
-| CPP-008 | ProForma modified ranges silently lose residue modifications | Source-reviewed | Open |
-| CPP-009 | ProForma ambiguous mass validation ignores candidate modifications | Source-reviewed | Open |
-| CPP-010 | IntegerMassDecomposer can hang on sorted positive weights | Source-reviewed; independent recurrence and arithmetic | Open |
-| CPP-011 | Reusing MassTraceDetection retains stale array indices | Source-reviewed | Open |
-| CPP-012 | Smoothed peak area mixes raw and smoothed intensities | Source-reviewed | Open |
-| CPP-013 | FeatureFindingMetabo divides by zero total intensity | Source-reviewed | Open |
-| CPP-014 | MassDecomposition addition can lower its maximum-count cache | Source-reviewed | Open |
-| CPP-015 | Label-only cross-link endpoints make mass depend on chain order | Source-reviewed | Open |
-| CPP-016 | mzML counting can decode binary arrays for spectra without RT | Source-reviewed | Open |
-| CPP-017 | Skipping chromatograms suppresses unrelated mzML callbacks | Source-reviewed | Open |
-| CPP-018 | Centroid inspection fails to restore reader options after an error | Source-reviewed | Open |
-| CPP-019 | mzML writer overstates the number of processing records | Source-reviewed | Open |
-| CPP-020 | ProForma try-mass validates a different resolved copy than it calculates | Source-reviewed; public AST trigger | Open |
-| CPP-021 | CV XML output substitutes the wrong unit or dereferences an empty set | Source-reviewed | Open |
-| CPP-022 | Legacy binary-type xrefs retain part of their prefix | Source-reviewed | Open |
-| CPP-023 | Vocabulary stream output sends parent lines to global stdout | Source-reviewed | Open |
-| CPP-024 | CV XML output leaves several attribute values unescaped | Source-reviewed | Open |
-| CPP-025 | Processing-action fallback state leaks between mzML methods | Source-reviewed | Open |
-| CPP-026 | mzML writer gives every processing step the same order value | Source-reviewed; schema contract | Open |
-| CPP-027 | mzML writing discards processing completion seconds | Source-reviewed; executed (CLI-2 oracle) | Open |
-| CPP-028 | Recognized software metadata reaches a missing mzML mapping path | Source-reviewed | Open |
-| CPP-029 | Annotation-only brackets pass AASequence checks but fail conversion | Source-reviewed | Open |
-| CPP-030 | Strict AASequence conversion silently drops terminal crosslinks | Source-reviewed; public AST trigger | Open |
-| CPP-031 | Empty ambiguous regions shift AASequence attachment indices | Source-reviewed; public AST trigger | Open |
-| CPP-032 | CV mapping namespace stripping rejects plain segments and loses attribute markers | Source-reviewed | Open |
-| CPP-033 | Failed CV mapping loads contaminate later loads on the same reader | Source-reviewed | Open |
-| CPP-034 | CV reference bulk assignment invalidates an aliased input iterator | Source-reviewed | Open |
-| CPP-035 | Invalid CV mapping enum values silently change validation rules | Source-reviewed | Open |
-| CPP-036 | XML compression sniffing reads uninitialized bytes from short files | Source-reviewed | Open |
-| CPP-037 | ProForma modification combination loses charged-formula mass | Source-reviewed; public AST trigger | Open |
-| CPP-038 | ProForma crosslink spectra count resolved linker mass twice | Source-reviewed; public AST trigger | Open |
-| CPP-039 | SemanticValidator rejects allowed descendant units | Source-reviewed; custom vocabulary trigger | Open |
-| CPP-040 | Failed semantic validation leaves stale XML paths and rule counts | Source-reviewed; repeated-call trigger | Open |
-| CPP-041 | mzML header strings are inserted into attributes without escaping | Source-reviewed; ordinary text trigger | Open |
-| CPP-042 | XLMS linear suffix losses divide the mass by charge twice | Source-reviewed; charge-two trigger | Open |
-| CPP-043 | XLMS precursor isotope companions omit precursor charge division | Source-reviewed; charge-two trigger | Open |
-| CPP-044 | Missing-path CV lookup changes behavior after validation | Source-reviewed; call-order trigger | Open |
-| CPP-045 | PeptideEvidence rejects valid first-residue limits and accepts invalid ranges | Source-reviewed; zero-based range trigger | Open |
-| CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Source-reviewed; XSD lexical contract | Open |
-| CPP-047 | ProForma XLMS link positions ignore preceding flattened ranges | Source-reviewed; explicit AST trigger | Open |
-| CPP-048 | Zero centroid-inspection limit underflows and depends on spectrum type | Source-reviewed; unsigned counter trigger | Open |
-| CPP-049 | Indexed mzML output always writes a placeholder file checksum | Source-reviewed; literal footer and schema contract | Open |
-| CPP-050 | Empty indexed mzML declares zero indices but emits a dummy entry | Source-reviewed; empty-offset-list branch | Open |
-| CPP-051 | mzML validation reuses parameter groups from earlier documents | Source-reviewed; successful repeated-call trigger | Open |
-| CPP-052 | Four-line schema detection rejects indexed mzML with a longer XML prolog | Source-reviewed; independently executed XSD checks | Open |
-| CPP-053 | Chromatogram primary-array selection can relabel pressure values as flow | Source-reviewed; competing primary-array trigger | Open |
-| CPP-054 | Indexed mzML schema does not enforce offset ID references | Source-reviewed; independently executed XSD checks | Open |
-| CPP-055 | SIMD Base64 decoding accepts characters outside the Base64 alphabet | Source-reviewed; malformed numeric payload trigger | Open |
-| CPP-056 | mzML writing drops spectrum mobility when acquisition records are empty | Source-reviewed; synthetic scan branch | Open |
-| CPP-057 | Spectrum settings equality omits both ion-mobility state fields | Source-reviewed; distinct mobility-state trigger | Open |
-| CPP-058 | Floating DataValue casts read an inactive union member for strings and lists | Source-reviewed; public numeric-cast trigger | Open |
+- CPP-001 to CPP-060 were checked at OpenMS4-core `82ce5b3` (2026-09-11; the
+  full hash is in each entry's links), eight commits before the current pin.
+  `docs/CORE_SDK_BC9CC12_REVIEW.md` records what changed between the two; an
+  entry is not re-verified at the pin unless it says so.
+- CPP-061 onwards were checked at the pins the rest of the repository uses:
+  core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`, with the TOPP framework at
+  cli `c19e49414bcd9ebdea42f89b3f74d2823205892c`, the TOPP tools at topp
+  `174b576` and test data at `0cb15f2` where an entry names them.
+- Entries whose revision reads *SDK 4fdec46* were also executed on the product
+  SDK, a macOS arm64 **Debug** build of core `4fdec46`, an ancestor of the pin.
+
+`tools/check_source_citations.py` reads every entry's line numbers against the
+revisions that entry spells in full, and anything that names none - this header,
+the index, a future entry without a revision line - against the two pins spelled
+in full above.
+
+**Evidence.** “Executed” means a C++ reproduction ran, and the index says where:
+on the **Linux x86_64 Release** build `openms4-release-bc9cc12-c19e494-174b576`
+(the reference build, run on ibminode06 unless the entry names another node), on
+the **macOS arm64 Debug product SDK**, or
+in an isolated probe that compiles the pinned source with small adapters and is
+not a full SDK build. The build is taken from each oracle's own manifest or
+README. “Source-reviewed” means the fault follows from the inspected source and
+stated input; it does not claim a C++ runtime reproduction. A native regression
+alone is not C++ execution. Intentional source behavior, ordinary API differences
+and unconfirmed suspicions are not classified as confirmed defects here; entries
+their own text calls unconfirmed candidates are marked *(unconfirmed)* in the
+index.
+
+## Maintaining this log
+
+Add an entry whenever porting or testing identifies a new original C++ defect.
+Include the checked source revision, affected files/functions/lines, a concrete
+trigger, observed versus expected behavior, evidence level, proposed C++ fix,
+regression coverage and the Rust port's handling. Keep stable IDs and update
+status only after verifying the upstream fix. Retain resolved entries with the
+fixing commit. Link durable probe data once it lands; temporary investigation
+paths are not sufficient long-term evidence. Do not promote a suspicion to an
+executed or confirmed finding without verification.
+
+Give the entry a **Source revision** line that spells every revision it read in
+full - the citation checker reads the entry's line numbers against exactly those
+- and, for an executed entry, name the build and the node it ran on. Add its row
+to the index below in the same vocabulary.
+
+## Index
+
+The classification is this log's triage, not an upstream rating, and was made
+from each entry's own text:
+
+- **Severity.** *High*: memory-safety, undefined behavior or a data race
+  reachable from ordinary or untrusted input, a hang or crash on input a user can
+  supply, or a silently wrong scientific result or lost data on ordinary input.
+  *Medium*: a wrong result or a crash on unusual input or a non-default setting,
+  a refusal of valid input, output other software cannot read, or state that
+  survives a failure into a later call. *Low*: diagnostics, documentation that
+  contradicts the code, test and fixture defects, and edge cases with no data
+  consequence.
+- **Class.** *memory* (out-of-bounds access, null or end dereference, double
+  free, leak), *UB* (other undefined behavior: signed overflow, out-of-range
+  conversion, uninitialized read, invalid comparator), *race*, *crash* (an abort,
+  an exception on valid input, unbounded allocation), *hang*, *wrong result*
+  (silently wrong output or state) and *spec* (a violated format, schema or
+  documented contract, a misleading diagnostic; *doc*, *test* and *test data*
+  mark defects in documentation, class tests and fixtures).
+- **Port.** *reproduces*: the port keeps the C++ behavior, usually because an
+  executed comparison or a TOPP tool's output depends on it. *refuses*: the port
+  returns an error where the C++ misbehaves. *fixes*: the port does what the
+  C++ evidently intended. *documents*: nothing to execute, the port's
+  documentation states the discrepancy. *not yet ported*: the entry says the
+  affected code is not ported; that statement is the entry's own and can be
+  older than the code. *n/a*: nothing in the port corresponds. A second clause
+  names an opt-in or a split between the library and the tool path.
+
+354 entries. CPP-123 records that a review found no new defect and is
+kept only because the number was issued. CPP-141 is the same DataValue
+conversion defect as CPP-058, found again from another caller.
+
+| Class | High | Medium | Low | Total |
+| --- | ---: | ---: | ---: | ---: |
+| memory | 27 | 7 | 2 | 36 |
+| UB | 10 | 13 | 2 | 25 |
+| race | 2 | 1 | 0 | 3 |
+| crash | 6 | 11 | 10 | 27 |
+| hang | 3 | 1 | 1 | 5 |
+| wrong result | 19 | 95 | 45 | 159 |
+| spec | 0 | 18 | 80 | 98 |
+| none | 0 | 0 | 0 | 1 |
+| **all** | 67 | 146 | 140 | 354 |
+
+Evidence: 108 executed, 245 source-reviewed, 1 without a defect. Of the executed, 53 on Linux x86_64 Release, 40 on macOS Debug product SDK, 10 on an isolated probe, 5 on Linux x86_64 Release + macOS Debug product SDK.
+Port: 119 reproduces, 115 fixes, 77 refuses, 28 not yet ported, 10 n/a, 4 documents, 1 —.
+
+| ID | Issue | Severity | Class | Evidence | Revision | Port |
+| --- | --- | --- | --- | --- | --- | --- |
+| CPP-001 | DateTime ignores failed calendar conversion | Medium | wrong result | Executed: isolated probe, macOS arm64 (UBSan) | core 82ce5b3 | fixes |
+| CPP-002 | Fractional seconds overflow signed int during normalization | High | UB | Executed: isolated probe, macOS arm64 (UBSan) | core 82ce5b3 | refuses |
+| CPP-003 | Configuration repair is computed and discarded | Medium | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-004 | trimLeft does nothing when every peak is below cutoff | Medium | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-005 | Truncated fragment distribution is indexed at full input length | High | memory | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-006 | Interpolation overload resizes and then appends coordinates | Medium | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-007 | EMG tail expression overflows before its asymptotic branch | Medium | wrong result | Source-reviewed + independent numerics | core 82ce5b3 | refuses |
+| CPP-008 | ProForma modified ranges omit their residue annotations | High | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-009 | Ambiguous mass checks ignore modifications on candidates | Medium | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-010 | Integer mass decomposition can loop without progress | High | hang | Source-reviewed + independent computation | core 82ce5b3 | refuses |
+| CPP-011 | Mass trace detection reuses stale metadata-array state | High | memory | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-012 | Smoothed area accumulation uses raw peak intensities | High | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-013 | Feature finding does not guard zero normalization intensity | Medium | wrong result | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-014 | Addition can reduce the cached maximum residue count | Low | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-015 | Cross-link mass depends on endpoint traversal order | Medium | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-016 | Count-only mzML loading can still decode peak arrays | Low | crash | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-017 | The chromatogram skip option activates a global callback guard | High | wrong result | Executed: Linux x86_64 Release | core 82ce5b3 | fixes |
+| CPP-018 | Centroid inspection leaves reader options changed after failure | Low | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-019 | Declared processing count includes records that are not written | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-020 | Formula interning can separate mass validation from calculation | Low | wrong result | Source-reviewed (public AST) | core 82ce5b3 | reproduces |
+| CPP-021 | CV XML formatting ignores the value's actual unit | High | UB | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-022 | Legacy binary xref parsing removes the wrong prefix length | Medium | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-023 | Vocabulary printing splits output between two streams | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-024 | CV parameter rendering does not escape every XML attribute | Medium | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-025 | A later processing method can omit its required action term | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-026 | Processing step order is always written as zero | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-027 | mzML writing discards processing completion seconds | Medium | wrong result | Executed: macOS arm64 Debug product SDK (CLI-2; source-reviewed first) | core 82ce5b3 | fixes |
+| CPP-028 | Recognized software metadata can throw during mzML writing | Medium | crash | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-029 | Annotation-only brackets pass conversion checks but fail conversion | Low | spec | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-030 | Strict AASequence conversion silently drops terminal crosslinks | Medium | wrong result | Source-reviewed (public AST) | core 82ce5b3 | reproduces |
+| CPP-031 | An empty ambiguous region shifts the conversion attachment index | Low | crash | Source-reviewed (public AST) | core 82ce5b3 | reproduces |
+| CPP-032 | CV mapping namespace stripping mishandles path segments | Medium | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-033 | Failed CV mapping loads contaminate later loads | Medium | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-034 | CV reference bulk assignment can invalidate its input iterator | High | UB | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-035 | Invalid CV mapping enums silently select different rules | Medium | spec | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-036 | XML compression sniffing reads uninitialized short-file bytes | High | UB | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-037 | ProForma combination discards a formula's charge contribution | Low | wrong result | Source-reviewed (public AST) | core 82ce5b3 | reproduces |
+| CPP-038 | ProForma crosslink spectra count resolved linker mass twice | Low | wrong result | Source-reviewed (public AST) | core 82ce5b3 | reproduces |
+| CPP-039 | SemanticValidator compares descendant units with the measured term | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-040 | Failed semantic validation contaminates later document paths | Medium | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-041 | The mzML header writer does not escape several string attributes | Medium | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-042 | XLMS linear suffix losses divide the mass by charge twice | High | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-043 | XLMS precursor isotope companions omit charge normalization | Medium | wrong result | Source-reviewed | core 82ce5b3 | reproduces |
+| CPP-044 | Unmapped CV lookup depends on earlier validation calls | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-045 | PeptideEvidence misclassifies valid and invalid position limits | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Low | spec | Source-reviewed + XSD specification | core 82ce5b3 | reproduces |
+| CPP-047 | ProForma XLMS link positions ignore preceding flattened sections | Low | wrong result | Source-reviewed (public AST) | core 82ce5b3 | reproduces |
+| CPP-048 | Zero centroid-inspection limit depends on the first spectrum type | Low | spec | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-049 | Indexed mzML output writes a constant placeholder checksum | Medium | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-050 | Empty indexed mzML declares zero indices but emits a dummy index | Low | spec | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-051 | mzML semantic validation reuses parameter groups from earlier documents | Medium | wrong result | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-052 | mzML schema selection depends on the first four physical lines | Medium | spec | Source-reviewed + independent xmllint | core 82ce5b3 | fixes |
+| CPP-053 | Chromatogram array promotion mismatches values and their physical role | Medium | wrong result | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-054 | Shipped indexed mzML schema leaves index references unchecked | Low | spec | Source-reviewed + independent xmllint | core 82ce5b3 | reproduces |
+| CPP-055 | Base64 SIMD decoding does not validate its alphabet | Medium | wrong result | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-056 | Synthetic mzML scans omit spectrum ion mobility | Medium | wrong result | Source-reviewed | core 82ce5b3 | not yet ported |
+| CPP-057 | Spectrum equality ignores ion-mobility format and peak type | Low | spec | Source-reviewed | core 82ce5b3 | fixes |
+| CPP-058 | Nonnumeric DataValue casts read an inactive union member | High | UB | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-059 | Short experimental-design rows are read past the end of the row vector | High | memory | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-060 | Negative design indices wrap to large unsigned values | Medium | wrong result | Source-reviewed | core 82ce5b3 | refuses |
+| CPP-061 | SpectrumHelper::makePeakPositionUnique discards the whole spectrum record | High | wrong result | Source-reviewed | core bc9cc12 | fixes; source behaviour opt-in |
+| CPP-062 | SpectrumRangeManager::byMSLevel(0) can only throw | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-063 | MSExperiment::updateRanges registers no per-level entry for MS level 0 | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-064 | RangeBase accepts NaN and infinity and breaks its own emptiness invariant | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-065 | RangeUtils energy and isolation predicates contradict their own notes for MS1 spectra | Low | spec (doc) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-066 | BinnedSpectrum default construction leaves a null bin matrix | Medium | memory | Source-reviewed | core bc9cc12 | fixes |
+| CPP-067 | BinnedSpectrum::getBinIntensity mutates the spectrum it reads | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-068 | BinnedSpectrum::operator== ignores the bin offset | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-069 | BinnedSpectrum left-boundary guard relies on unsigned wraparound | Medium | memory | Source-reviewed | core bc9cc12 | fixes |
+| CPP-070 | FeatureHandle::asMutable casts away constness of a possibly const object | Medium | UB | Source-reviewed | core bc9cc12 | fixes |
+| CPP-071 | DRange default constructor contradicts its documentation | Low | spec (doc) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-072 | DRange::united of two empty ranges returns the universal range | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-073 | DRange::extend comment contradicts the collapse it performs | Low | spec (doc) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-074 | DIntervalBase default constructor documented as infinite corners | Low | spec (doc) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-075 | Class tests with unreachable or duplicated assertions | Low | spec (test) | Source-reviewed | core bc9cc12 | fixes |
+| CPP-076 | rasterizeIMFrame clears the caller's image before the check that can throw | Low | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-077 | rasterizeIMFrame multiplies the bin counts without an overflow check | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-078 | rasterizeIMFrame casts a non-finite coordinate to Int64 | High | UB | Source-reviewed | core bc9cc12 | refuses |
+| CPP-079 | sortByPositionPresorted handles an incomplete chunk list differently in its two branches | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-080 | sortByPositionPresorted trusts is_sorted and feeds std::inplace_merge an unsorted range | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-081 | Chunks::add can record a chunk whose start exceeds its end | Medium | UB | Source-reviewed | core bc9cc12 | refuses |
+| CPP-082 | An empty ion-mobility array makes isSortedByIM report true and sortByIonMobility a silent no-op | Low | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-083 | mergePeaks leaves the inherited range cache too narrow, undocumented | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-084 | mergePeaks leaves the destination's data arrays mis-sized, so a later sort or select throws | Low | crash | Source-reviewed | core bc9cc12 | refuses; source behaviour opt-in |
+| CPP-085 | setSumSimilarUnion has external linkage at global namespace scope | Low | spec | Source-reviewed | core bc9cc12 | n/a |
+| CPP-086 | mergePeaks takes a non-const reference to a chromatogram it only reads | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-087 | The chromatogram stream operator prints an always-empty settings block | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-088 | updateRanges warns that ranges were already up to date on its very first call | Low | spec | Source-reviewed | core bc9cc12 | n/a |
+| CPP-089 | BaseFeature::sortPeptideIdentifications comparator is not a strict weak ordering | High | UB | Source-reviewed | core bc9cc12 | fixes |
+| CPP-090 | The same comparator mutates its arguments, so hits are sorted only where the sort happens to compare | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-091 | Mixed isHigherScoreBetter flags make the sort comparator asymmetric | Medium | UB | Source-reviewed | core bc9cc12 | refuses |
+| CPP-092 | updateIDReferences / updateAllIDReferences lose identification matches on a throwing translation | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-093 | ConsensusFeature::Ratio default constructor leaves ratio_value_ indeterminate | Medium | UB | Source-reviewed | core bc9cc12 | fixes |
+| CPP-094 | ConsensusFeature::setRatios takes a non-const lvalue reference for a copy-in setter | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-095 | getAnnotationState reports MULTIPLE_SAME when only one identification actually has hits | Low | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-096 | Feature::getConvexHull() is a const method that lazily mutates the object and hands out a mutable reference | High | race | Source-reviewed | core bc9cc12 | fixes |
+| CPP-097 | MRMFeature lookup by unknown key mutates the map and returns the first feature | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-098 | MRMFeature::addFeature strands a feature when a key repeats, while the sibling class throws | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses; source behaviour opt-in |
+| CPP-099 | MRMTransitionGroup::isInternallyConsistent cannot report an inconsistent group in a release build | Medium | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-100 | IDScoresAsMetaValue writes the transition_names meta value twice | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-101 | getLibraryIntensity clamps entries the caller already had in the output vector | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-102 | subset re-keys precursor chromatograms by nativeID and throws on a group the class's own test builds | Medium | crash | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-103 | subsetDependent indexes chromatogram_map_.at() without the guard subset uses | Medium | crash | Source-reviewed | core bc9cc12 | refuses |
+| CPP-104 | The subsetDependent class-test section tests subset, leaving subsetDependent with no coverage | Low | spec (test) | Source-reviewed | core bc9cc12 | reproduces; adds coverage |
+| CPP-105 | IndexedMzMLHandler copy constructor silently drops both native-id maps | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-106 | IndexedMzMLHandler::openFile accumulates index state instead of replacing it | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-107 | Record read length is unchecked in both directions and the read result is never inspected | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-108 | Chromatogram out-of-range message reports the spectrum count | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-109 | Record XML parse errors are discarded, and the handler always feeds the parser ill-formed input for the last record | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-110 | getMSChromatogramById(int) recomputes ranges twice | Low | spec | Source-reviewed | core bc9cc12 | n/a |
+| CPP-111 | MapConversion::convert(PeakMap) sorts and indexes past the end of its vector | High | memory | Source-reviewed | core bc9cc12 | fixes |
+| CPP-112 | FeatureMap::swap and ConsensusMap::swap do not swap the meta values | Low | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-113 | ConsensusMap::split indexes its result vector with the map index | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-114 | ConsensusMap::split dereferences an empty map in the isobaric branch | Medium | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-115 | ConsensusMap::appendRows pairs column headers by position, not by column index | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-116 | ConsensusMap::setPrimaryMSRunPath writes by position through a default-inserting map | Low | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-117 | MSExperiment::getPrimaryMSRunPath joins using the unstripped file:/// path | Low | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-118 | UniqueIdIndexer::resolveUniqueIdConflicts can loop forever | Medium | hang | Source-reviewed | core bc9cc12 | refuses |
+| CPP-119 | FeatureMap::getPrimaryMSRunPath does not clear its output argument | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-120 | mzML list `count` attribute drives an unvalidated container reserve | High | crash | Source-reviewed | core bc9cc12 | fixes |
+| CPP-121 | rasterizeRTMZ's SUM aggregation is not reproducible across thread counts | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-122 | rasterizeRTMZ's two negative-bin guards are dead code that mask an unchecked precondition | Low | spec | Source-reviewed | core bc9cc12 | refuses |
+| CPP-123 | None found — no new C++ source defect | — | none | — | core bc9cc12 | — |
+| CPP-124 | .ibd array reads are sized from the declared count with no comparison against the file's length | High | crash | Source-reviewed | core bc9cc12 | refuses |
+| CPP-125 | ImzMLMeta::mz_data_type and int_data_type stay empty on an index-only load | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-126 | An unnamed external auxiliary array vanishes from the index with no trace | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-127 | verifyIbdUuid_ carries two contradictory doc comments, one describing behaviour the function does not have | Low | spec (doc) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-128 | The declared .ibd checksums are parsed and mirrored but never verified on any read path | Medium | spec | Source-reviewed | core bc9cc12 | fixes (opt-in check) |
+| CPP-129 | OnDiscImzMLExperiment::open re-derives the .ibd path in a branch that cannot be taken | Low | spec | Source-reviewed | core bc9cc12 | n/a |
+| CPP-130 | IonImage allocates width * height from unvalidated file-supplied image dimensions | High | crash | Source-reviewed | core bc9cc12 | refuses |
+| CPP-131 | MSImagingRegion::fromMask computes the far corner in wrapping UInt arithmetic | Low | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-132 | ImzMLWriter::store cannot write a metadata-only continuous dataset | Low | crash | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-133 | ImzMLWriter::store leaks the ProgressLogger recursion depth on every throw | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-134 | A failed ImzMLWriter::store leaves a truncated .ibd with no .imzML | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-135 | ImzMLFile_1_Example_Continuous.imzML is not schema-valid mzML 1.1.0, so ImzMLFile::isValid would reject its own reference fixture | Low | spec (test data) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-136 | ImzMLFile_2_Example_Processed.imzML declares mzML version="1.1" instead of 1.1.0 and is ISO-8859-1 with Latin-1 bytes | Low | spec (test data) | Source-reviewed | core bc9cc12 | n/a |
+| CPP-137 | ImzMLFile's two buildImagingGeometry overloads, documented as the same source of truth, disagree on the pixel-size condition and on the skip-reason ordering | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-138 | ClassTest::isRealSimilar reports any two infinities as similar, including +inf against -inf | Medium | spec (test) | Source-reviewed | core bc9cc12 | reproduces in the oracle; port assertions refuse |
+| CPP-139 | ClassTest::isRealSimilar is asymmetric — the quotient underflows to -0.0 and defeats its own opposite-sign branch | Medium | spec (test) | Source-reviewed | core bc9cc12 | reproduces in the oracle; port assertions refuse |
+| CPP-140 | ImzMLHandler's non-external peak fill is dead code: MzMLHandler throws first on a mixed spectrum | Medium | crash | Source-reviewed | core bc9cc12 | fixes |
+| CPP-141 | DataValue::operator double() reads the union's double member for a non-numeric value | High | UB | Source-reviewed | core bc9cc12 | refuses |
+| CPP-142 | ImzMLWriter::store treats one misaligned FloatDataArray as skippable or fatal depending on an unrelated PeakFileOptions flag | Low | crash | Source-reviewed | core bc9cc12 | fixes |
+| CPP-143 | Negative CHEMMOD identifiers fail modification-cell parsing | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-144 | Quoted commas split a MzTab modification-list entry | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-145 | MzTab parameter rendering fails to quote a bare comma | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-146 | MzTab score-by-run header order differs from row order | High | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-147 | MzTab PSM optional columns are dropped on load | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-148 | MzTab column-unit metadata parses its key as an index | High | memory | Source-reviewed | core bc9cc12 | fixes |
+| CPP-149 | MzTab-M assay custom metadata is written under ms_run | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes; source behaviour opt-in |
+| CPP-150 | MzTab-M column-unit families share an incorrect output key | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes; source behaviour opt-in |
+| CPP-151 | MzTab-M exporter changes metadata keys before lookup | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes; source behaviour opt-in |
+| CPP-152 | pepXML end_scan mismatch check reads start_scan twice | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-153 | pepXML drops a uniquely resolved undeclared modification | High | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-154 | pepXML fixed protein C-terminal modification misses terminal branch | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-155 | qcML loses units across its own store/load | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes; source behaviour opt-in |
+| CPP-156 | qcML table writer discards its normalized row copy | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses; source behaviour opt-in |
+| CPP-157 | qcML removeAllAttachments omits set-only entries | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-158 | qcML map2csv emits misaligned rows when a column is missing | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-159 | qcML writer and reader disagree on set-member CV accession | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-160 | qcML TIC slump percentage truncates before multiplication | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-161 | Percolator loader requires FileName through an unchecked map lookup | Low | crash | Source-reviewed | core bc9cc12 | refuses |
+| CPP-162 | Percolator enzyme features use unmapped protein-terminal markers | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-163 | Percolator writer and loader disagree on trailing protein-list width | Medium | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-164 | Mascot query index guard accepts one-past-end | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-165 | Mascot RT failure test treats zero as failure and NaN as success | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-166 | Mascot MGF loader carries precursor and RT fields between blocks | High | wrong result | Source-reviewed | core bc9cc12 | fixes; source behaviour opt-in |
+| CPP-167 | mzIdentML writer places C-terminal modification at last-residue location | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-168 | mzIdentML reader dereferences missing PeptideSequence child | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-169 | mzIdentML substitution position is used as unchecked string index | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-170 | mzData checks missing and short arrays after unsafe indexing | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-171 | mzData writer emits scan modes its reader does not recognize | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-172 | mzML writers emit `dataProcessingRef` and `sourceFileRef` the header never declares | Medium | spec | Executed: Linux x86_64 Release (ibminode06) | core bc9cc12 | refuses; source behaviour opt-in |
+| CPP-173 | mzXML release decode reads beyond short peak payload | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-174 | mzXML precursor value and window width depend on SAX chunking | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-175 | SVOutStream probe stream remains poisoned after non-newline manipulator | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-176 | TrafoXML omits unsupported parameter types after a non-fatal diagnostic | Low | spec (unconfirmed) | Source-reviewed | core bc9cc12 | refuses |
+| CPP-177 | Linear transformation accepts symmetric_regression but never uses it | Medium | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-178 | MSstats missing design pair silently uses sample0 | Low | wrong result (unconfirmed) | Source-reviewed | core bc9cc12 | refuses |
+| CPP-179 | MSstats unknown summarization method writes zero intensities | Medium | wrong result | Source-reviewed | core bc9cc12 | refuses |
+| CPP-180 | MSstats aggregation collapses equal intensities at distinct times | High | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-181 | SqliteConnector permits copying an owned database handle | Medium | memory | Source-reviewed | core bc9cc12 | fixes |
+| CPP-182 | SqliteConnector does not close a handle when opening fails | Low | memory (leak) | Source-reviewed | core bc9cc12 | fixes |
+| CPP-183 | SQLite bound statements leak on bind or step errors | Low | memory (leak) | Source-reviewed | core bc9cc12 | fixes |
+| CPP-184 | SQLite table-name helpers interpolate names as SQL syntax | High | wrong result (SQL injection) | Executed: adapted probe, kim (not a full SDK build) | core bc9cc12 | fixes |
+| CPP-185 | SQLite query helpers ignore step errors and can leak statements | Medium | wrong result | Executed: adapted probe, kim (not a full SDK build) | core bc9cc12 | fixes |
+| CPP-186 | SQLite string extraction truncates embedded NUL bytes | Low | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-187 | SQLite integer-to-string extraction narrows to 32 bits | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-188 | MSDataWritingConsumer class test is disabled and calls a nonexistent constructor | Low | spec (test) | Source-reviewed | core bc9cc12 | n/a |
+| CPP-189 | SqliteConnector row-count documentation names the wrong exception | Low | spec (doc) | Executed: adapted probe, kim (not a full SDK build) | core bc9cc12 | documents |
+| CPP-190 | Default handler writing reads an uninitialized SQL batch size | High | UB | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-191 | Array hydration lacks pair length and role validation | High | memory | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-192 | Blob hydration assigns objects by SQL row encounter order instead of record identity | High | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-193 | Spectrum/chromatogram IDs and peptide sequence remain unescaped SQL values | High | wrong result (SQL injection) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-194 | Metadata failures leave committed DATA rows and advanced writer counters | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-195 | Product and precursor indexes are accidentally built on DATA | Low | spec | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-196 | SWATH selection stops at a matching chromatogram precursor NULL ID | High | wrong result | Executed: adapted probe, kim (not a full SDK build) | core bc9cc12 | fixes |
+| CPP-197 | SWATH window docs promise distinct centers but query deduplicates full bounds tuples | Low | spec (doc) | Executed: adapted probe, kim (not a full SDK build) | core bc9cc12 | reproduces |
+| CPP-198 | Recreating tables on a used handler retains counters from the deleted database | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-199 | Metadata readers accept invalid negative activation enum values below -1 | Low | spec | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-200 | SqMassFile transform issues an extra empty selected-read batch | Medium | crash | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-201 | Full metadata recovery promise omits auxiliary-array loss | Low | spec (unconfirmed) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-202 | Read accessors create an empty database when the input path is missing | Medium | spec | Executed: adapted probe, kim (not a full SDK build) | core bc9cc12 | fixes |
+| CPP-203 | SWATH accessors can return partial success after SQLite step errors | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-204 | MSDataSqlConsumer owning raw pointer leaks during failed construction and can be shallow-copied | Medium | memory | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-205 | MSDataSqlConsumer destructor lets I/O exceptions escape noexcept destruction | Medium | crash | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-206 | MSDataSqlConsumer changes buffered records to the next run ID | Low | wrong result (unconfirmed) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-207 | SpectrumAccessSqMass unchecked view positions permit out-of-bounds access | High | memory | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-208 | SpectrumAccessSqMass bulk read does not preserve the configured view order or duplicates | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-209 | SpectrumAccessSqMass metadata index stays zero for every spectrum | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-210 | SpectrumAccessSqMass class test repeats one out-of-range index instead of testing 50 | Low | spec (test) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-211 | SpectrumAccessSqMass installed example omits required handler run ID | Low | spec (doc) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-212 | OpenSwath drift filtering dereferences missing or misaligned mobility arrays | High | memory | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-213 | SqMassFile store documentation hides unconditional replacement of an existing database | Low | spec (unconfirmed) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-214 | MSDataSqlConsumer full metadata discards supplied experimental settings and addRun suppresses accumulated snapshot | Medium | wrong result | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-215 | MSDataSqlConsumer accepts negative signed buffer size before unsigned allocation | Low | crash (unconfirmed) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-216 | SpectrumAccessSqMass zero-width RT documentation differs from delegated first-at-or-after behavior | Low | spec (doc) | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-217 | OpenSwath getMultipleSpectra count parameter can return more than requested | Low | spec | Source-reviewed | core bc9cc12 | not yet ported |
+| CPP-218 | Positive-accuracy Numpress encoding destroys one- and two-point coordinate arrays | High | wrong result | Executed: isolated codec probe (not a full SDK build) | core bc9cc12 | fixes on the sqMass path; raw codec reproduces |
+| CPP-219 | Chromatogram precursor reload drops supplemental activation metadata | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-220 | Negative initial linear-Numpress coordinates can wrap during sqMass writing | Medium | wrong result (unconfirmed) | Source-reviewed + independent arithmetic | core bc9cc12 | refuses |
+| CPP-221 | Gumbel result declares eval without defining it | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-222 | Gumbel least-squares fitter advertises an undefined weighted fit | Low | spec | Source-reviewed | core bc9cc12 | documents |
+| CPP-223 | Distribution-fitter documentation names nonexistent gnuplot members | Low | spec (doc) | Source-reviewed | core bc9cc12 | documents |
+| CPP-224 | Gumbel maximum-likelihood fitting reads beyond a short weight vector | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-225 | Memory-usage delta overwrites its minus sign | Low | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-226 | Update notification announces the local version instead of the offered update | Low | wrong result | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-227 | Download filename selection does not prevent concurrent overwrite | Medium | race | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-228 | Squaring Gumbel negative log likelihood can change the optimum | Low | wrong result (unconfirmed) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-229 | Download collision-suffix counter lacks an overflow guard | Low | crash (unconfirmed) | Source-reviewed | core bc9cc12 | refuses |
+| CPP-230 | FuzzyStringComparator reports the last above-one ratio as the maximum | Low | spec | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-231 | A reused FuzzyStringComparator keeps its raised ratio maximum | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-232 | A negative ratio that underflows to -0.0 passes the sign and ratio tests | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-233 | The libc++ number fallback accepts hexadecimal floats, so verdicts depend on the standard library | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | fixes |
+| CPP-234 | A missing second input is reported as the first input file | Low | spec | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-235 | A NaN relative tolerance accepts every ratio | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-236 | FuzzyDiff -sort defeats the same-file check | Low | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, topp 174b576 | reproduces |
+| CPP-237 | FeatureFinderCentroided's intensity filter keeps zero and subnormal intensities | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, topp 174b576, SDK 4fdec46 | reproduces |
+| CPP-238 | A FAIMS voltage of -1 V is indistinguishable from an unset drift time | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-239 | The precursor drift-time writer has no FAIMS case | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-240 | Upstream FAIMS fixtures spell the volt unit UO:000218 | Low | spec (test data) | Source-reviewed | test-data 0cb15f2 | fixes |
+| CPP-241 | computeIntensityProfile dereferences begin() of an empty MassTraces | Medium | memory | Source-reviewed | core bc9cc12 | fixes |
+| CPP-242 | computeIntensityProfile never terminates on a NaN retention time | High | hang | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-243 | updateBaseline leaves the baseline indeterminate when no trace holds a peak | Medium | UB | Source-reviewed | core bc9cc12 | fixes |
+| CPP-244 | getCompensationVoltages lets a NaN into std::set<double> | Medium | UB | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses |
+| CPP-245 | filterPeptidesByFAIMSCV silently accepts parameters that can never match | Low | spec | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses |
+| CPP-246 | PeakTypeEstimator's comment states an 80% threshold for a 75% test | Low | spec (doc) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-247 | FeatureFinderAlgorithmPicked's abundance override keeps a stray (0, 1) peak | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses; intended behaviour opt-in |
+| CPP-248 | CoarseIsotopePatternGenerator::run gives different bits in different runs of one binary | Medium | wrong result (nondeterminism) | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces the majority order |
+| CPP-249 | ElementDB builds iridium from rhenium's tables | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | fixes |
+| CPP-250 | -instance cannot be used | Medium | crash | Executed: macOS arm64 Debug product SDK | core bc9cc12, cli c19e494, SDK 4fdec46 | reproduces |
+| CPP-251 | common: values override instance values for subsection parameters | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, cli c19e494, SDK 4fdec46 | reproduces |
+| CPP-252 | A common:<tool>: value for a top-level parameter is rejected | Low | crash | Executed: macOS arm64 Debug product SDK | core bc9cc12, cli c19e494, SDK 4fdec46 | reproduces |
+| CPP-253 | StringUtils::number silently cuts its text at 63 bytes | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses; tool path reproduces |
+| CPP-254 | StringUtils::number turns a digit count of 2^31 or more into a negative precision | Low | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses; tool path reproduces |
+| CPP-255 | StringUtils::toStr documents significant digits but writes fraction digits | Low | spec (doc) | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-256 | SignalToNoiseEstimatorMedian's AUTOMAXBYPERCENT mode reads and writes out of bounds | High | memory | Executed: macOS arm64 Debug product SDK (crash) and Linux x86_64 Release | core bc9cc12, SDK 4fdec46 | refuses outside the defined domain |
+| CPP-257 | SignalToNoiseEstimatorMedian converts an unbounded bin quotient to int | Medium | UB | Executed: Linux x86_64 Release | core bc9cc12 | reproduces (tool profile); fixes (native profile) |
+| CPP-258 | PeakPickerHiRes's FWHM bisection can loop forever | High | hang | Source-reviewed | core bc9cc12 | refuses |
+| CPP-259 | PeakPickerHiRes weights ion mobility with samples its spline discards | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses; source behaviour opt-in |
+| CPP-260 | Orphaned PeakPickerHiRes class-test fixtures no longer match the code | Low | spec (test data) | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | n/a |
+| CPP-261 | PeakPickerHiRes FTMS class-test files repeat a spectrum id | Low | spec (test data) | Source-reviewed | core bc9cc12 | refuses |
+| CPP-262 | Dangling mzML software and data-processing references are silently default-constructed | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses; source behaviour opt-in |
+| CPP-263 | MzMLSplitter's parts carry no processing record | Low | wrong result | Executed: macOS arm64 Debug product SDK | cli c19e494, topp 174b576, SDK 4fdec46 | reproduces |
+| CPP-264 | ParamXMLFile declares ISO-8859-1 but writes UTF-8 bytes | Medium | wrong result | Source-reviewed | core bc9cc12 | fixes |
+| CPP-265 | XML files are opened twice, so a FIFO given as input blocks | Low | hang | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | fixes |
+| CPP-266 | An INI that exists but cannot be opened is reported as an internal error | Low | spec | Executed: macOS arm64 Debug product SDK | core bc9cc12, cli c19e494, SDK 4fdec46 | reproduces |
+| CPP-267 | FileInfo::Result declares fields that run never fills | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-268 | FileInfo computes the FAIMS compensation voltages twice per peak file | Low | spec | Source-reviewed | core bc9cc12 | fixes |
+| CPP-269 | FileInfo_test copies to a fixed temporary file name | Low | spec (test) | Source-reviewed | core bc9cc12 | fixes |
+| CPP-270 | Retained FileInfo outputs keep a stale intensity padding | Low | spec (test data) | Source-reviewed | core bc9cc12, test-data 0cb15f2 | fixes |
+| CPP-271 | mass_trace:min_spectra = 1 silently finds nothing | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses |
+| CPP-272 | The overall seed score depends on the platform's powf | Medium | wrong result (platform) | Executed: macOS arm64 Debug product SDK and Linux x86_64 Release | core bc9cc12, SDK 4fdec46 | reproduces the Linux Release |
+| CPP-273 | write_debug reads an undeclared parameter and throws | Medium | crash | Executed: Linux x86_64 Release | core bc9cc12 | reproduces; fix opt-in |
+| CPP-274 | A single retention time or m/z makes the intensity score undefined | Medium | UB | Executed: macOS arm64 Debug product SDK and Linux x86_64 Release | core bc9cc12, SDK 4fdec46 | reproduces; refusal opt-in |
+| CPP-275 | charge_low above charge_high wraps the charge count | High | memory | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-276 | isotopeScore_ stops trying shorter isotope tails after a better fit | Low | wrong result (unconfirmed) | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-277 | FeatureFinderAlgorithmPicked's empty-input message names ranges | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-278 | splitByFAIMSCV groups carry no ranges, so FeatureFinderCentroided fails on FAIMS input | High | crash | Executed: macOS arm64 Debug product SDK and Linux x86_64 Release | core bc9cc12, SDK 4fdec46 | fixes |
+| CPP-279 | splitByFAIMSCV destroys the chromatograms of FAIMS input | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | fixes |
+| CPP-280 | splitByFAIMSCV groups NaN voltages unpredictably | Medium | UB | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | refuses |
+| CPP-281 | splitByFAIMSCV's information message says "Not" for "No" | Low | spec | Source-reviewed | core bc9cc12 | reproduces |
+| CPP-282 | mergeFAIMSFeatures removes every FAIMS feature without a unique ID | High | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces; tool route fixed |
+| CPP-283 | FeatureOverlapFilter merges already removed features again | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces; fix opt-in |
+| CPP-284 | FeatureOverlapFilter's float boxes miss pairs within tolerance | Low | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-285 | Trace-level overlap compares only start times and drops some traces | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces |
+| CPP-286 | FeatureOverlapFilter aborts a Debug build on valid feature maps | Low | crash | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | reproduces the Release build |
+| CPP-287 | FeatureOverlapFilter leaves the map changed when it throws | Low | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12, SDK 4fdec46 | fixes |
+| CPP-288 | FeatureOverlapFilter has undefined behaviour on reachable inputs | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-289 | GaussTraceFitter's copy leaves region_rt_span_ uninitialised | Medium | UB | Source-reviewed | core bc9cc12 | fixes |
+| CPP-290 | GaussTraceFitter's Jacobian carries 0.125 in the sigma column | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12 | reproduces |
+| CPP-291 | An all-zero intensity profile "fits" with a NaN sigma | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12 | reproduces; refusal opt-in |
+| CPP-292 | The trace fitters read empty traces and index theoretical peaks unchecked | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-293 | ParamEntry::isValid narrows a 64-bit integer before its range check | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12 | refuses |
+| CPP-294 | TraceFitter documents both RT-span checks backwards and calls maxfev an iteration count | Low | spec (doc) | Source-reviewed | core bc9cc12 | documents |
+| CPP-295 | EGHTraceFitter::setInitialParameters_ has no alpha >= 1 guard | Medium | wrong result | Executed: macOS arm64 Debug product SDK | core bc9cc12 | reproduces |
+| CPP-296 | EGHTraceFitter::setInitialParameters_ reads an empty trace | High | memory | Source-reviewed | core bc9cc12 | refuses |
+| CPP-297 | EGHTraceFunctor drops the baseline in one branch and takes \|sigma\| in one of two places | Low | wrong result | Source-reviewed + executed rows | core bc9cc12 | reproduces |
+| CPP-298 | extendMassTraces_ compares a pattern index with a trace index | Medium | wrong result | Source-reviewed; output executed | core bc9cc12 | reproduces |
+| CPP-299 | The better-seed search re-reads a moving m/z | Low | wrong result | Source-reviewed; output executed | core bc9cc12 | reproduces |
+| CPP-300 | The monoisotopic m/z correction uses the proton mass and a trace index | High | wrong result | Source-reviewed; output executed | core bc9cc12 | reproduces |
+| CPP-301 | The final feature intensity picks the isotope window by m/z, not by mass | High | wrong result | Source-reviewed; output executed | core bc9cc12 | reproduces |
+| CPP-302 | aborts_ is written from inside the OpenMP region without synchronisation | High | race | Executed: Linux x86_64 Release | core bc9cc12 | fixes |
+| CPP-303 | MorphologicalFilter leaves the last output sample unwritten for a one-sample element | Medium | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-304 | MorphologicalFilter::filterRange's static scratch buffer leaks between calls | Medium | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-305 | The indexedmzML indexListOffset addresses the byte before <indexList | Medium | spec | Executed: Linux x86_64 Release | core bc9cc12 | fixes |
+| CPP-306 | Converting a 32-bit time array from minutes narrows the result back to float | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces (tool path); fixes (library default) |
+| CPP-307 | The XML writers print doubles at 15 significant digits, so their own output does not round-trip | Medium | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | fixes |
+| CPP-308 | MapNormalizer divides every MS1 intensity by an unguarded maximum | Medium | wrong result | Executed: Linux x86_64 Release (dax) | topp 174b576 | refuses |
+| CPP-309 | DTAFile::load and DTAFile::store use different proton masses | Medium | wrong result | Source-reviewed + independent arithmetic | core bc9cc12 | fixes; tool path reproduces |
+| CPP-310 | DTAFile::store writes two different 15-digit rules on one line, both past their type's precision | Low | spec | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-311 | MzMLSplitter writes parts whose precursor spectrumRef does not resolve | Medium | spec | Executed: Linux x86_64 Release | topp 174b576 | reproduces |
+| CPP-312 | FeatureFinderAlgorithmPicked divides a zero-width retention-time range by intensity:bins | Medium | UB | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-313 | FeatureXMLHandler caps its feature reservation at 1e5 on a premise current data exceeds | Low | spec | Executed: Linux x86_64 Release (premise only) | core bc9cc12 | n/a |
+| CPP-314 | FeatureFinderAlgorithmPicked converts NaN, infinite and huge doubles to Size without a check | Medium | UB | Executed: Linux x86_64 Release | core bc9cc12 | reproduces; refuses above the resource ceiling |
+| CPP-315 | FeatureFinderDefs is defined in two headers, so a translation unit including both does not compile | Low | spec | Executed: compile check with the Release install's GCC 14 | core bc9cc12 | fixes |
+| CPP-316 | A reused FeatureFinderAlgorithmPicked instance carries four kinds of state into its next run | High | memory | Executed: Linux x86_64 Release | core bc9cc12 | refuses the out-of-bounds read; reproduces the rest |
+| CPP-317 | FeatureFinderAlgorithmPicked's step 4 computes a charge remainder without a zero check | Medium | crash | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-318 | DefaultParamHandler::setParameters assigns param_ before checkDefaults throws | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-319 | ParamValue::operator double() returns the union's double member for a string or list value | High | UB | Executed: Linux x86_64 Release | core bc9cc12 | reproduces where reproducible; refuses the address-dependent band |
+| CPP-320 | The debug comment at FeatureFinderAlgorithmPicked.cpp:1047 names the wrong erased array | Low | spec (doc) | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-321 | FeatureFinderAlgorithmPicked's step 1 silently drops scans with a non-finite drift time | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-322 | FeatureFinderAlgorithmPicked dereferences an empty best isotope pattern when feature:min_isotope_fit is 0 | Medium | memory | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-323 | Heavy averagine windows are silently empty | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-324 | A NaN isotopic_pattern:intensity_percentage_optional is accepted and empties every isotope window | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-325 | An unsorted input with a mis-sized data array leaves the caller's map partly sorted | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | fixes |
+| CPP-326 | FeatureFinderAlgorithmPicked's step-1 progress range wraps modulo 2^32 | Low | spec | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-327 | Large retention times silently give features of infinite width and intensity | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-328 | A trace of zero intensities terminates FeatureFinderAlgorithmPicked | High | crash | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-329 | SignalToNoiseEstimatorMedian leaves its percentage members uninitialised and operator= keeps stale ones | Medium | UB | Source-reviewed | core bc9cc12 | fixes |
+| CPP-330 | SignalToNoiseEstimatorMedian's empty-median-bin fallback is dead code and its comment is wrong | Low | spec (doc) | Source-reviewed | core bc9cc12 | n/a |
+| CPP-331 | SignalToNoiseEstimatorMedian divides zero by zero for an empty container | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces (source profile); refuses (native profile) |
+| CPP-332 | estimateNoiseFromRandomScans ignores its ms_level filter and can read out of bounds | High | memory | Executed: Linux x86_64 Release | core bc9cc12 | reproduces in bounds; refuses out of bounds |
+| CPP-333 | SignalToNoiseEstimatorMedian's int counters overflow beyond INT_MAX points | Low | UB | Executed: Linux x86_64 Release | core bc9cc12 | reproduces the executed line; refuses the rest |
+| CPP-334 | Param accepts NaN for a bounded double | Medium | spec | Executed: Linux x86_64 Release | core bc9cc12 | reproduces (source profile); refuses (native profile) |
+| CPP-335 | FileInfo declares CorruptionInfo and DetailInfo and never fills them | Low | spec | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-336 | FileInfo's `-d` listing reads front() and back() of an SRM chromatogram unchecked | Low | UB | Source-reviewed | core bc9cc12 | refuses |
+| CPP-337 | IndexedMzMLDecoder skips the first child of every `<index>` element | High | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | fixes |
+| CPP-338 | FeatureFinderCentroided crashes intermittently at `-threads 32` | Medium | crash (undiagnosed) | Executed: observed once, Linux x86_64 Release | core bc9cc12 | n/a |
+| CPP-339 | MzMLFile::transform's first pass leaves a ProgressLogger running, so every low-memory TOPP path fails on an mzML with both spectra and chromatograms | High | crash | Executed: Linux x86_64 Release | core bc9cc12 | fixes |
+| CPP-340 | MSDataWritingConsumer never checks its output stream, so a low-memory TOPP run whose output cannot be created exits 0 having written nothing | High | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-341 | FileInfo indexes a per-peptide occurrence vector with the consensus map's *id* instead of its position, which is out of bounds whenever a consensusXML numbers its maps from one | High | memory | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-342 | FileInfo reads `proteins[0]` of an identification file before establishing that a run exists, while its own structured block guards the same access | High | memory | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-343 | FileInfo reads `getHits()[0]` behind a guard that `PeptideIdentification::empty()` can never satisfy for a loaded file, so any identification file with a hit-less spectrum crashes it | High | memory | Executed: Linux x86_64 Release | core bc9cc12 | refuses |
+| CPP-344 | FileInfo's consensusXML statistics summarise the qualities and widths of twice as many values as there are consensus features, half of them zero | Medium | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-345 | FileInfo's `-m`, `-p` and `-s` have no mzIdentML arm, so an mzIdentML input is reported against an MSExperiment that was never loaded | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-346 | FileInfo's FASTA duplicate detection overwrites each hash bucket instead of appending to it, so a hash collision hides a duplicate | Low | wrong result | Executed: Linux x86_64 Release (mechanism only) | core bc9cc12 | reproduces |
+| CPP-347 | FileInfo reads order statistics positionally out of a `std::sort`ed sample whose elements `operator<` calls equivalent, so the consensusXML `-s` minimum, quartiles and maximum depend on the order of the values in the file | Medium | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-348 | All three re-exposed peak-picker parameters forward an unrestricted value into a restricted one, so NaN silently suppresses every S/N gate and an out-of-range value aborts with a message naming a class the user never mentioned | Medium | spec | Executed: Linux x86_64 Release | core bc9cc12 | reproduces (source profile); refuses (native profile) |
+| CPP-349 | The CTD writer escapes only the first of two adjacent special characters, and escapes a tab twice, so `-write_ctd` can write malformed XML | Medium | spec | Executed: Linux x86_64 Release | core bc9cc12 | reproduces |
+| CPP-350 | `-write_cwl` and `-write_json` empty the target file before discovering they cannot write it | Medium | wrong result | Executed: Linux x86_64 Release | core bc9cc12, cli c19e494 | fixes |
+| CPP-351 | Every `.ttd` tool is registered by name, so two external tools (which have none) collide, and the duplicate message lacks its closing quote | Medium | crash | Executed: Linux x86_64 Release | core bc9cc12, cli c19e494 | reproduces |
+| CPP-352 | `checkParam_`'s exemption for the tool's own section never applies, so every `common:<tool>:` subsection value draws an "Unknown subsection" warning | Low | spec | Executed: Linux x86_64 Release and macOS arm64 Debug product SDK | cli c19e494 | reproduces |
+| CPP-353 | Usage text on a console narrower than its option column is not broken, and a line that ends exactly at the console edge is followed by an empty line | Low | spec | Executed: Linux x86_64 Release | core bc9cc12, cli c19e494 | reproduces |
+| CPP-354 | A progress section an exception leaves open stays in `ProgressLogger`'s static depth for the rest of the process, indenting every later section of every object | Low | wrong result | Executed: Linux x86_64 Release | core bc9cc12 | reproduces while the failing logger lives; fixes beyond it |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
 
@@ -1143,17 +1529,6 @@ a normal interval, unknown endpoints, reversed limits and other negative values.
 zero and excludes negative coordinates. `has_valid_limits()` accepts ordered
 known intervals, including 0..=0; `validate()` rejects reversed endpoints. These
 corrections are retained and explicitly exercised by the identification tests.
-
-## Maintaining this log
-
-Add an entry whenever porting or testing identifies a new original C++ defect.
-Include the checked source revision, affected files/functions/lines, a concrete
-trigger, observed versus expected behavior, evidence level, proposed C++ fix,
-regression coverage and the Rust port's handling. Keep stable IDs and update
-status only after verifying the upstream fix. Retain resolved entries with the
-fixing commit. Link durable probe data once it lands; temporary investigation
-paths are not sufficient long-term evidence. Do not promote a suspicion to an
-executed or confirmed finding without verification.
 
 ## CPP-046 — Semantic date validation applies date-time syntax to xsd:date
 
@@ -6493,7 +6868,7 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-350 — `-write_cwl` and `-write_json` empty the target file before discovering they cannot write it
 
-**Source revision:** as CPP-349; `cli` `c19e494`.
+**Source revision:** core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` and cli `c19e49414bcd9ebdea42f89b3f74d2823205892c`, as CPP-349.
 
 **Status:** Executed.
 
@@ -6511,7 +6886,7 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-351 — Every `.ttd` tool is registered by name, so two external tools (which have none) collide, and the duplicate message lacks its closing quote
 
-**Source revision:** `cli` `c19e494`; core as CPP-349.
+**Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c`; core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`, as CPP-349.
 
 **Status:** Executed.
 
@@ -6529,7 +6904,7 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-352 — `checkParam_`'s exemption for the tool's own section never applies, so every `common:<tool>:` subsection value draws an "Unknown subsection" warning
 
-**Source revision:** `cli` `c19e494`.
+**Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c`.
 
 **Status:** Executed (the product SDK oracle and the Release build agree).
 
@@ -6547,7 +6922,7 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-353 — Usage text on a console narrower than its option column is not broken, and a line that ends exactly at the console edge is followed by an empty line
 
-**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; `cli` `c19e494`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
+**Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; cli `c19e49414bcd9ebdea42f89b3f74d2823205892c`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
 **Status:** Executed.
 
@@ -6587,7 +6962,7 @@ CPP-133 is the same defect at one site, `ImzMLWriter::store`. The failing object
 **Evidence:** `oracle/progress-format-readers/driver.cpp`, in `tests/data/progress_format_readers_release.tsv`:
 
 - The depth after the call is 1 in `dta2d_load_missing`, `dta2d_load_bad_line`, `featurexml_load_truncated` and `mzxml_load_truncated`, and 2 in `mzml_load_truncated`.
-- In `mzdata_static_counter`, a second, separate `MzDataFile` (`driver.cpp:411-412`) starts its section at depth 1 after the first one's failed load.
+- In `mzdata_static_counter`, a second, separate `MzDataFile` (`progress-format-readers/driver.cpp:411-412`) starts its section at depth 1 after the first one's failed load.
 - In `mzml_reuse_after_failure`, the same object's second load starts at depth 2, and in command mode fails on the running `StopWatch`.
 
 **Rust handling:** Reproduced while the failing logger lives; corrected beyond it (F4 of the phase 3 wave 1 verification). The port's native nesting bound turned the drift into a refusal: after 1,024 failed loads, every load that reported progress failed. Now a section left open when its call finishes is abandoned:
