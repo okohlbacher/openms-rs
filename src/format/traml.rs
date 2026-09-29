@@ -26,11 +26,11 @@
 
 pub use crate::format::traml_handler::{ReadOptions, TraMLLoad};
 
+use crate::Result;
 use crate::analysis::openswath::targeted_experiment::TargetedExperiment;
 use crate::chemistry::ModificationsDB;
 use crate::format::controlled_vocabulary::ControlledVocabulary;
 use crate::format::traml_handler::{read_document, write_document};
-use crate::Result;
 use std::io::{BufRead, Write};
 use std::path::Path;
 
@@ -130,7 +130,8 @@ pub fn write(mut out: impl Write, exp: &TargetedExperiment) -> Result<()> {
 pub fn is_semantically_valid(
     path: impl AsRef<Path>,
 ) -> Result<crate::format::semantic_validator::ValidationReport> {
-    use crate::format::cv_mapping::{CVMappingFile, CVMappings};
+    use crate::data_structures::cv_mapping::CVMappings;
+    use crate::format::cv_mapping::CVMappingFile;
     use std::sync::OnceLock;
     static MAPPING: OnceLock<std::result::Result<CVMappings, String>> = OnceLock::new();
     let mapping = match MAPPING.get_or_init(|| {
@@ -141,8 +142,10 @@ pub fn is_semantically_valid(
         Ok(mapping) => mapping,
         Err(message) => return Err(crate::Error::InvalidValue(message.clone())),
     };
-    let mut validator =
-        crate::format::semantic_validator::SemanticValidator::new(mapping, ControlledVocabulary::psi_ms()?);
+    let mut validator = crate::format::semantic_validator::SemanticValidator::new(
+        mapping,
+        ControlledVocabulary::psi_ms()?,
+    );
     validator.options.check_units = true;
     validator.validate(path)
 }

@@ -48,7 +48,7 @@ use crate::metadata::{
 use crate::{Error, Result};
 use quick_xml::Reader;
 use quick_xml::events::{BytesStart, Event};
-use std::io::{BufRead, Read, Write};
+use std::io::{BufRead, Write};
 
 /// Ceilings and the compatibility switch for [`read_document`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -108,9 +108,11 @@ fn parse_error(message: impl Into<String>) -> Error {
 /// `inf` are accepted, as `std::from_chars` accepts them.
 pub(crate) fn source_double(text: &str) -> Result<f64> {
     let trimmed = text.trim_matches([' ', '\t', '\n', '\r']);
-    trimmed
-        .parse::<f64>()
-        .map_err(|_| parse_error(format!("Could not convert string '{text}' to a double value")))
+    trimmed.parse::<f64>().map_err(|_| {
+        parse_error(format!(
+            "Could not convert string '{text}' to a double value"
+        ))
+    })
 }
 
 /// `StringUtils::toInt32`: surrounding whitespace is ignored and the whole
@@ -125,9 +127,11 @@ pub(crate) fn source_int32(text: &str) -> Result<i32> {
 /// `StringUtils::toInt64`, as [`source_int32`] for `i64`.
 fn source_int64(text: &str) -> Result<i64> {
     let trimmed = text.trim_matches([' ', '\t', '\n', '\r']);
-    trimmed
-        .parse::<i64>()
-        .map_err(|_| parse_error(format!("Could not convert string '{text}' to an int64 value")))
+    trimmed.parse::<i64>().map_err(|_| {
+        parse_error(format!(
+            "Could not convert string '{text}' to an int64 value"
+        ))
+    })
 }
 
 /// `XMLHandler::fromXSDString`: the typed value of a `userParam`.
@@ -144,7 +148,9 @@ fn source_int64(text: &str) -> Result<i64> {
 /// source throws `Exception::ConversionError`.
 pub fn from_xsd_string(xsd_type: &str, value: &str) -> Result<MetaValue> {
     Ok(match xsd_type {
-        "xsd:double" | "xsd:float" | "xsd:decimal" => MetaValue::source_float(source_double(value)?),
+        "xsd:double" | "xsd:float" | "xsd:decimal" => {
+            MetaValue::source_float(source_double(value)?)
+        }
         "xsd:byte" | "xsd:int" | "xsd:unsignedShort" | "xsd:short" | "xsd:unsignedByte"
         | "xsd:unsignedInt" => MetaValue::from(source_int32(value)?),
         "xsd:long"
@@ -370,7 +376,7 @@ impl Handler<'_> {
                 let mut meta = MetaValue::from(value);
                 // Source `CVTerm::hasUnit` tests the unit accession only.
                 if !unit_accession.is_empty() {
-                    meta = meta.with_unit(Unit::new(unit_accession, unit_name, unit_cv_ref))?;
+                    meta = meta.with_unit(Unit::new(unit_accession, unit_name, unit_cv_ref)?)?;
                 }
                 term.value = meta;
                 self.handle_cv_param(&grandparent, &parent, term)?;
@@ -520,7 +526,9 @@ impl Handler<'_> {
         }
         match tag {
             "Contact" => self.exp.add_contact(std::mem::take(&mut self.contact)),
-            "Instrument" => self.exp.add_instrument(std::mem::take(&mut self.instrument)),
+            "Instrument" => self
+                .exp
+                .add_instrument(std::mem::take(&mut self.instrument)),
             "Publication" => self
                 .exp
                 .add_publication(std::mem::take(&mut self.publication)),
@@ -833,7 +841,10 @@ impl Handler<'_> {
                 "MS:1000041" => {
                     // The source converts through `toDouble` into an `int`.
                     let charge = source_double(&value)?;
-                    if !charge.is_finite() || charge < f64::from(i32::MIN) || charge > f64::from(i32::MAX) {
+                    if !charge.is_finite()
+                        || charge < f64::from(i32::MIN)
+                        || charge > f64::from(i32::MAX)
+                    {
                         return Err(parse_error(format!(
                             "product charge '{value}' is outside the int range"
                         )));
@@ -944,9 +955,7 @@ impl Handler<'_> {
                 _ => set(&mut self.transition.cv_terms.metadata),
             },
             _ => {
-                self.drop_data(format!(
-                    "Unhandled userParam '{name}' in tag '{parent}'."
-                ))?;
+                self.drop_data(format!("Unhandled userParam '{name}' in tag '{parent}'."))?;
             }
         }
         Ok(())
@@ -962,8 +971,7 @@ fn attributes_of(start: &BytesStart<'_>) -> Result<Attributes> {
         let key = std::str::from_utf8(attribute.key.as_ref())
             .map_err(|e| parse_error(e.to_string()))?
             .to_owned();
-        let raw =
-            std::str::from_utf8(&attribute.value).map_err(|e| parse_error(e.to_string()))?;
+        let raw = std::str::from_utf8(&attribute.value).map_err(|e| parse_error(e.to_string()))?;
         let normalized = raw.replace(['\r', '\n', '\t'], " ");
         let value = quick_xml::escape::unescape(&normalized)
             .map_err(|e| parse_error(e.to_string()))?
@@ -999,7 +1007,9 @@ pub fn read_document(
     cv: Option<&ControlledVocabulary>,
 ) -> Result<TraMLLoad> {
     if options.max_elements == 0 || options.max_depth == 0 {
-        return Err(Error::InvalidValue("TraML read limits must be nonzero".into()));
+        return Err(Error::InvalidValue(
+            "TraML read limits must be nonzero".into(),
+        ));
     }
     let limit = options.max_input_bytes;
     let mut reader = Reader::from_reader(input.take(limit.saturating_add(1)));
@@ -1029,15 +1039,16 @@ pub fn read_document(
                 }
                 seen_root = true;
                 elements += 1;
-                if elements > options.max_elements || handler.open_tags.len() >= options.max_depth
-                {
+                if elements > options.max_elements || handler.open_tags.len() >= options.max_depth {
                     return Err(parse_error("TraML element or depth limit exceeded"));
                 }
                 let name = std::str::from_utf8(start.name().as_ref())
                     .map_err(|e| parse_error(e.to_string()))?
                     .to_owned();
                 if handler.open_tags.is_empty() && name != "TraML" {
-                    return Err(parse_error(format!("expected a TraML root, found '{name}'")));
+                    return Err(parse_error(format!(
+                        "expected a TraML root, found '{name}'"
+                    )));
                 }
                 let attributes = attributes_of(&start)?;
                 handler.start(&name, &attributes)?;
@@ -1394,8 +1405,7 @@ impl Writer<'_> {
         let sequence: Vec<char> = peptide.sequence.chars().collect();
         let (term, residue) = if modification.location < 0 {
             (TermSpecificity::NTerm, sequence.first().copied())
-        } else if usize::try_from(modification.location).unwrap_or(usize::MAX) >= sequence.len()
-        {
+        } else if usize::try_from(modification.location).unwrap_or(usize::MAX) >= sequence.len() {
             (TermSpecificity::CTerm, sequence.last().copied())
         } else {
             (
