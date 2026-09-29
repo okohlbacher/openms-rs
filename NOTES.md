@@ -41,3 +41,12 @@ src/analysis/openswath.rs.
   a/b/c ions; annotationToCVTermList_ `static const EmpiricalFormula
   nl_formula(...)` caches the FIRST loss formula forever; shuffle in
   generateDecoys seeds from time(nullptr).
+
+## Progress (incarnation 1)
+- DONE (committed): MRMIonSeries (src/analysis/openswath/mrm_ion_series.rs,
+  tests/mrm_ion_series.rs 8 tests), MRMDecoy heavy API (mrm_decoy.rs,
+  tests/mrm_decoy.rs 13 tests; seeded shuffle literals all match).
+- TransitionListEvidenceFilter: BLOCKED (needs SwathMap, LightTargetedExperiment,
+  ChromExtractParams/OpenSwathWorkflow, spectrum access) -> untouched.
+- Next: MRMAssay heavy API (src/analysis/openswath/mrm_assay.rs), then docs
+  (docs/MRM_ASSAY_SUPPORT.md), provenance, doc coverage, report + ledger.
