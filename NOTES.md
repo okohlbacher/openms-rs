@@ -16,8 +16,12 @@ MRMChromHandler -> check whether ported; probably blocked (name the deps).
 - DONE: TraMLHandler + TraMLFile (src/format/traml.rs, traml_handler.rs), tests/traml.rs 13/13 pass on dax
   (`test --features semantic-validation --test traml`). CVTermList::add_source added (metadata/value.rs, gated traml).
 
+- DONE: TransitionTSVFile heavy path (src/analysis/openswath/transition_tsv_file.rs), tests/transition_tsv_file.rs
+  10/10 pass (tier 1: ConvertTSVToTraML_1..6 incl. MRM, TFC_5/6/8/13). Light overloads = gap (TransitionExperiment.h).
+- TargetedFileConverter lives in openswath package, pinned e29e7ee (git -C .../packages/openswath show e29e7ee:src/TargetedFileConverter.cpp).
+
 ## Next step
-2. TransitionTSVFile -> src/analysis/openswath/transition_tsv_file.rs
+2. (done) TransitionTSVFile -> src/analysis/openswath/transition_tsv_file.rs
 3. TransitionPQPFile (rusqlite) -> src/analysis/openswath/transition_pqp_file.rs
 4. MRMFile / TargetedDataFileLoader if deps exist.
 
