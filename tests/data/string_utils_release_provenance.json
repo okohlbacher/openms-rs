@@ -1,0 +1,46 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+      "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+    },
+    {
+      "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+      "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668"
+    }
+  ],
+  "oracle": {
+    "build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "platform": "Linux x86_64, ibminode06 (Ubuntu, kernel 6.8.0-124-generic), Release install",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+    "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+    "driver": "oracle/integ-A-stringutils/{driver.cpp,remote_run.sh,run.sh}",
+    "driver_sha256": {
+      "driver.cpp": "619266669353a7a51fb85bb6a6ae4a318ae4a65575d06f619aaf36568edb8062",
+      "remote_run.sh": "a0086e30e5fe3d5d8aff66ecfb87b4758faee8c97575faa25e90dd519f3082d1",
+      "run.sh": "4029737a03d1ae38289c9cd2f3f071e6951ab1be4c0a8afd62c71070a427730a"
+    },
+    "binaries": {
+      "build/driver": "cb35d641c75dcfec6f0143bd3b8e08145d999dc96c4b7fb042c6acb88255e10f",
+      "lib/libOpenMS.so": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+    },
+    "repeats": 2,
+    "repeats_identical": true,
+    "invocations": 2,
+    "invocations_identical": true,
+    "date": "2026-09-29",
+    "purpose": "StringUtils::toDouble (38 inputs) and StringUtils::toInt32 (14 inputs) where concept::string_conversion, lane A5b's copy of the CLI's earlier conversions, was in doubt: underflow to zero, the sign of -nan, nan(n-char-sequence) after a sign, overflow, subnormals, whitespace, signs, hexadecimal and trailing text. Each result is the double's 64 bits, the int, or the ConversionError what() text."
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/string_utils_release/oracle.tsv",
+      "sha256": "7429d0fd0b3422ed3b32c527e2a5fd96ad7cae479ee2280445bba2b01dfeeae8"
+    }
+  ],
+  "consumers": [
+    "src/concept/string_conversion.rs::tests::to_double_and_to_int32_match_the_release_build"
+  ]
+}

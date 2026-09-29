@@ -6,10 +6,13 @@
 //! (`DATASTRUCTURES/StringUtils.h`, `source/DATASTRUCTURES/StringUtils.cpp` at
 //! core SDK `bc9cc12`) for the layers below `cli`.
 //!
-//! The `cli` context module carries the same two conversions privately; this
+//! The `cli` context module carried the same two conversions privately; this
 //! module exists so `metadata` and other low layers can use them without an
-//! edge to `cli`. The two copies must stay in step until the `cli` ones are
-//! switched to these.
+//! edge to `cli`. At the group-A integration `concept::version_info`'s own
+//! `toInt32` copy was switched to this one, and `to_double` was corrected
+//! against the Linux x86_64 Release build (`../oracle/integ-A-stringutils`):
+//! it refuses a literal that underflows to zero and keeps the sign of `-nan`,
+//! which the copy it was taken from did not.
 
 /// The source's four whitespace characters, skipped from `index` on.
 fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
@@ -77,12 +80,16 @@ fn word_at(bytes: &[u8], index: usize, word: &str) -> Option<usize> {
 ///
 /// Whitespace is skipped on both sides and `nan`, optionally followed by a
 /// parenthesised payload, is accepted before anything else. Then one `+` may
-/// precede a `std::from_chars` general-format number: an optional `-`, digits
-/// with an optional fraction and exponent, or `inf`/`infinity`. A finite
-/// literal that overflows is an error, as `result_out_of_range` is; underflow
-/// rounds, as the oracle's libc++ fallback accepts it. Hexadecimal floats are
-/// rejected, following `std::from_chars` rather than the `strtod` fallback the
-/// source uses on libc++.
+/// precede a libstdc++ `std::from_chars` general-format number: an optional
+/// `-`, digits with an optional fraction and exponent, `inf`/`infinity`, or
+/// `nan` with an optional `(n-char-sequence)`, whose sign is kept (`-nan` is
+/// `0xfff8000000000000`). A literal whose value is out of range is an error, as
+/// `result_out_of_range` is: one that overflows to an infinity, and one with a
+/// non-zero digit that rounds to zero (`1e-400`, `2.4e-324`; `0e-400` is zero
+/// and accepted). Hexadecimal floats are rejected, as `std::from_chars`'s
+/// general format rejects them. Every rule is the Linux x86_64 Release build's,
+/// compared case by case with `../oracle/integ-A-stringutils`
+/// (`to_double_matches_the_release_build`).
 pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
     let bytes = text.as_bytes();
     let not_converted = || format!("Could not convert string '{text}' to a double value");
@@ -110,10 +117,28 @@ pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
     if bytes.get(cursor) == Some(&b'-') {
         cursor += 1;
     }
+    let negative = bytes.get(start) == Some(&b'-');
     let infinity = word_at(bytes, cursor, "infinity").or_else(|| word_at(bytes, cursor, "inf"));
     let nan = word_at(bytes, cursor, "nan");
-    if let Some(length) = infinity.or(nan) {
+    let mut nonzero_mantissa = false;
+    if let Some(length) = infinity {
         cursor += length;
+    } else if let Some(length) = nan {
+        cursor += length;
+        // `nan(n-char-sequence)`: letters, digits and `_` up to a `)`; without
+        // the `)` only `nan` is consumed.
+        if bytes.get(cursor) == Some(&b'(') {
+            let mut close = cursor + 1;
+            while bytes
+                .get(close)
+                .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_')
+            {
+                close += 1;
+            }
+            if bytes.get(close) == Some(&b')') {
+                cursor = close + 1;
+            }
+        }
     } else {
         let integer_start = cursor;
         while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
@@ -134,6 +159,9 @@ pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
         if digits == 0 {
             return Err(not_converted());
         }
+        nonzero_mantissa = bytes[integer_start..cursor]
+            .iter()
+            .any(|b| matches!(*b, b'1'..=b'9'));
         if matches!(bytes.get(cursor), Some(b'e' | b'E')) {
             let mut exponent = cursor + 1;
             if matches!(bytes.get(exponent), Some(b'+' | b'-')) {
@@ -148,13 +176,15 @@ pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
             }
         }
     }
-    let literal = text.get(start..cursor).ok_or_else(not_converted)?;
     let value: f64 = if nan.is_some() && infinity.is_none() {
-        f64::NAN
+        if negative { -f64::NAN } else { f64::NAN }
     } else {
+        let literal = text.get(start..cursor).ok_or_else(not_converted)?;
         literal.parse().map_err(|_| not_converted())?
     };
-    if value.is_infinite() && infinity.is_none() {
+    // `result_out_of_range`: an overflow to infinity, or a non-zero literal
+    // that rounds to zero.
+    if (value.is_infinite() && infinity.is_none()) || (value == 0.0 && nonzero_mantissa) {
         return Err(not_converted());
     }
     let after = skip_whitespace(bytes, cursor);
@@ -194,5 +224,102 @@ mod tests {
         assert!(to_double("0x10").is_err());
         assert!(to_double("1.5x").is_err());
         assert!(to_double("").is_err());
+    }
+
+    /// The driver's inputs, in its order (`../oracle/integ-A-stringutils`,
+    /// `driver.cpp`).
+    const DOUBLE_INPUTS: [&str; 38] = [
+        "1e-400",
+        "-1e-400",
+        "1e-320",
+        "4.9e-324",
+        "2.4e-324",
+        "2.5e-324",
+        "1e309",
+        "-1e309",
+        "1.7976931348623157e308",
+        "nan",
+        "-nan",
+        "+nan",
+        "NaN(123)",
+        "-nan(1)",
+        " nan ",
+        "inf",
+        "-inf",
+        "+inf",
+        "infinity",
+        "-Infinity",
+        "  12.5  ",
+        "+-3",
+        "-+3",
+        "0x1p3",
+        "1e",
+        "1e+",
+        ".5",
+        "5.",
+        ".",
+        "-0",
+        "-0.0",
+        "1.5abc",
+        "",
+        "   ",
+        "1e-400 ",
+        "0e-400",
+        "123456789012345678901234567890",
+        "1_0",
+    ];
+    const INT_INPUTS: [&str; 14] = [
+        "12",
+        " +7 ",
+        "+-7",
+        "-7",
+        "2147483647",
+        "2147483648",
+        "-2147483648",
+        "-2147483649",
+        "1.5",
+        "",
+        " ",
+        "0x10",
+        "12 3",
+        "007",
+    ];
+
+    /// Tier 1: every `StringUtils::toDouble`/`toInt32` result, bits or the
+    /// `ConversionError` text, as the Linux x86_64 Release build returned it
+    /// (`../oracle/integ-A-stringutils`, ibminode06, install
+    /// openms4-release-bc9cc12-c19e494-174b576, two runs in each of two
+    /// invocations, identical; tests/data/string_utils_release_provenance.json).
+    #[test]
+    fn to_double_and_to_int32_match_the_release_build() {
+        let text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/data/string_utils_release/oracle.tsv"),
+        )
+        .unwrap();
+        let mut rows = 0;
+        for line in text.lines() {
+            let fields: Vec<&str> = line.splitn(4, '\t').collect();
+            let (function, index, outcome, value) = (fields[0], fields[1], fields[2], fields[3]);
+            let index: usize = index.parse().unwrap();
+            let actual = match function {
+                "toDouble" => match to_double(DOUBLE_INPUTS[index]) {
+                    Ok(number) => format!("ok\t{:#018x}", number.to_bits()),
+                    Err(message) => format!("err\t{message}"),
+                },
+                "toInt32" => match to_int32(INT_INPUTS[index]) {
+                    Ok(number) => format!("ok\t{number}"),
+                    Err(message) => format!("err\t{message}"),
+                },
+                other => panic!("unknown function {other}"),
+            };
+            assert_eq!(
+                actual,
+                format!("{outcome}\t{value}"),
+                "{function} case {index}"
+            );
+            rows += 1;
+        }
+        assert_eq!(rows, DOUBLE_INPUTS.len() + INT_INPUTS.len());
     }
 }
