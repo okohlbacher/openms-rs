@@ -9,10 +9,10 @@
 //! maps with `ClusterHierarchical` and `AverageLinkage` (`ML/CLUSTERING`) and
 //! prints the tree with `ClusterAnalyzer::newickTree`, whose ports are not in
 //! this crate yet. The similarity the clustering uses,
-//! [`peptide_identifications_pearson_similarity`], and the per-map data it
-//! runs on, [`MapAlignmentAlgorithmTreeGuided::extract_seq_and_rt`], are
+//! [`peptide_identifications_pearson_similarity`](crate::analysis::mapmatching::alignment_tree_guided::peptide_identifications_pearson_similarity), and the per-map data it
+//! runs on, [`MapAlignmentAlgorithmTreeGuided::extract_seq_and_rt`](crate::analysis::mapmatching::alignment_tree_guided::MapAlignmentAlgorithmTreeGuided::extract_seq_and_rt), are
 //! ported; the tree is a parameter of
-//! [`MapAlignmentAlgorithmTreeGuided::align_with_tree`]. See
+//! [`MapAlignmentAlgorithmTreeGuided::align_with_tree`](crate::analysis::mapmatching::alignment_tree_guided::MapAlignmentAlgorithmTreeGuided::align_with_tree). See
 //! `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use super::alignment_identification::MapAlignmentAlgorithmIdentification;

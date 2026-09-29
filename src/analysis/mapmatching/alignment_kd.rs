@@ -7,7 +7,7 @@
 //! Ports `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h` and its `.cpp`.
 //! The source works on a `KDTreeFeatureMaps` (`ANALYSIS/QUANTITATION`), whose
 //! port is not in this crate yet; the part of it the algorithm uses is the
-//! trait [`KdFeatureMaps`], which that port implements when it lands. See
+//! trait [`KdFeatureMaps`](crate::analysis::mapmatching::alignment_kd::KdFeatureMaps), which that port implements when it lands. See
 //! `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use super::superimposer::float;
