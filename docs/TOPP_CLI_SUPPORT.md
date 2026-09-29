@@ -223,8 +223,10 @@ flags are registered with a leading dash, so their command-line tokens carry two
 values already queued (`parseCommandLine_`). Every entry of a registered
 subsection is an option too, as `-section:name`, typed by its default: a string
 that defaults to `false` and is restricted to `true`/`false` becomes a flag, and
-numbers convert while parsing with `StringUtils::toInt32` and `toDouble` rules,
-whose messages are reproduced. An option given twice keeps its last value with a
+numbers convert while parsing through the StringUtils port
+(`data_structures::string_utils::to_int32` and `to_double`, whose messages are
+the source's), so a literal that rounds to zero, such as `1e-400`, is refused as
+the Linux Release build refuses it. An option given twice keeps its last value with a
 warning. Unknown options are reported before trailing text, and both after
 `--help`.
 
@@ -1143,7 +1145,7 @@ and run with the Release case's arguments, paths mapped.
 | `runExternalProcess_(exe, args, workdir, env)` | `ToolContext::run_external_process` |
 | `runExternalProcess_(exe, args, proc_stdout, proc_stderr, workdir, env)` | `ToolContext::run_external_process_output`, returning `ExternalProcessOutput { code, stdout, stderr }` |
 | the `RETURNSTATE` switch | `exit_code_of` (exhaustive; the source's `InternalToolError` default arm is unreachable) |
-| `debug_level_ >= 4` echo to `OPENMS_LOG_INFO` | `EXTERNAL_OUTPUT_DEBUG_LEVEL`, `ToolContext::write_info_stream` (the info stream's two-line repeat cache, `src/cli/info_stream.rs`) |
+| `debug_level_ >= 4` echo to `OPENMS_LOG_INFO` | `EXTERNAL_OUTPUT_DEBUG_LEVEL`, `ToolContext::write_info_stream` (the run's info stream, a `concept::log_stream::LogStream` with the source's two-line repeat cache, `src/cli/info_stream.rs`) |
 | `writeLogError_("Standard output: …")`, `("Standard error: …")` on failure below level 4 | `write_log_error`, on `err` and in the `-log` file |
 
 The child runs through `ExternalProcess` (`src/system/external_process.rs`)
