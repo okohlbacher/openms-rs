@@ -19,6 +19,7 @@
 //! See `docs/BRUKER_TIMS_SUPPORT.md` for the member mapping and the evidence.
 
 use crate::concept::progress_logger::ProgressLogType;
+use crate::data_structures::string_utils;
 use crate::format::bruker_tims_file::{self, BrukerTimsFile, ExportMode, sql_int};
 use crate::format::imzml_file::ImagingExperiment;
 use crate::format::tims_data_handle::{sql_error, sql_text};
@@ -330,60 +331,23 @@ fn column_exists(db: &Connection, table: &str, column: &str) -> Result<bool> {
     Ok(false)
 }
 
-/// The whitespace `StringUtils` skips around a number (`skipWS`): space,
-/// tab, line feed and carriage return; not form feed or vertical tab.
-fn is_string_utils_ws(c: char) -> bool {
-    matches!(c, ' ' | '\t' | '\n' | '\r')
-}
-
 /// The source's `parseFrameId`: the integer after a leading `frame=`, up to
-/// the first space, parsed as `StringUtils::toInt32` does; `None` where the
+/// the first space, through `StringUtils::toInt32` (the shared
+/// [`crate::data_structures::string_utils::to_int32`]); `None` where the
 /// source returns -1.
-///
-/// `toInt32` skips `skipWS` whitespace, drops one leading `+`, and hands the
-/// rest to the integer `std::from_chars`, which takes an optional `-` but no
-/// `+`, and must consume everything up to trailing whitespace. Rust's integer
-/// `parse` also accepts a `+`, so a second one is refused here explicitly.
 fn parse_frame_id(native_id: &str) -> Option<i32> {
     let rest = native_id.strip_prefix("frame=")?;
     let field = rest.split(' ').next().unwrap_or("");
-    let body = field.trim_matches(is_string_utils_ws);
-    let body = body.strip_prefix('+').unwrap_or(body);
-    if body.starts_with('+') {
-        return None;
-    }
-    body.parse().ok()
+    string_utils::to_int32(field).ok()
 }
 
-/// `StringUtils::toDouble`: `skipWS` whitespace around the number, one
-/// leading `+` dropped, then the floating-point `std::from_chars` in general
-/// format over the whole remainder (`inf`, `infinity` and `nan` in any case
-/// included); `None` where the source throws.
-///
-/// `from_chars` reports a finite literal whose value overflows, or underflows
-/// to zero, as out of range, and `toDouble` then throws; Rust's `parse`
-/// rounds both, so both are refused here explicitly. Rust's `parse` also
-/// accepts a `+`, so a second one is refused explicitly.
+/// `StringUtils::toDouble` through the shared
+/// [`crate::data_structures::string_utils::to_double`]; `None` where the
+/// source throws (a finite literal that overflows or a nonzero one that
+/// underflows to zero is out of range for the Release build's
+/// `std::from_chars`).
 fn to_double(text: &str) -> Option<f64> {
-    let trimmed = text.trim_matches(is_string_utils_ws);
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    if body.starts_with('+') {
-        return None;
-    }
-    let value: f64 = body.parse().ok()?;
-    let unsigned = body.strip_prefix('-').unwrap_or(body).to_ascii_lowercase();
-    let literal_special = unsigned.starts_with("inf") || unsigned.starts_with("nan");
-    if literal_special {
-        return Some(value);
-    }
-    if value.is_infinite() {
-        return None;
-    }
-    let mantissa = unsigned.split('e').next().unwrap_or("");
-    if value == 0.0 && mantissa.bytes().any(|b| (b'1'..=b'9').contains(&b)) {
-        return None;
-    }
-    Some(value)
+    string_utils::to_double(text).ok()
 }
 
 /// The source's `computeBoundingBox_`, in 64-bit arithmetic: `(x_min, y_min,
