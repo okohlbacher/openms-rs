@@ -50,7 +50,12 @@ pub(crate) fn add_int(
     min: Option<i32>,
     max: Option<i32>,
 ) -> Result<()> {
-    param.set_value(key, ParamValue::Integer(value), description, &tags(advanced))?;
+    param.set_value(
+        key,
+        ParamValue::Integer(value),
+        description,
+        &tags(advanced),
+    )?;
     if let Some(min) = min {
         param.set_min_int(key, min)?;
     }
@@ -106,11 +111,7 @@ pub(crate) fn flag(param: &Param, key: &str) -> Result<bool> {
 
 /// The source's `"true"`/`"false"` spelling of a flag.
 pub(crate) fn flag_text(value: bool) -> &'static str {
-    if value {
-        "true"
-    } else {
-        "false"
-    }
+    if value { "true" } else { "false" }
 }
 
 /// An [`Error::InvalidValue`] with `message`.

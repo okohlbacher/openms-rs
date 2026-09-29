@@ -6,6 +6,8 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// The interface of element group finders (source `BaseGroupFinder.h`).
+pub mod base_group_finder;
 /// Median normalisation of consensus maps and the accession/description
 /// filter shared with the threshold normaliser (source
 /// `ConsensusMapNormalizerAlgorithmMedian.h`).
@@ -16,14 +18,22 @@ pub mod consensus_map_normalizer_quantile;
 /// Ratio-threshold normalisation of consensus maps (source
 /// `ConsensusMapNormalizerAlgorithmThreshold.h`).
 pub mod consensus_map_normalizer_threshold;
-/// A feature as QT feature grouping stores it (source
-/// `DATASTRUCTURES/GridFeature.h`).
-pub mod grid_feature;
-/// A quality-threshold cluster for QT feature grouping (source
-/// `DATASTRUCTURES/QTCluster.h`).
-pub mod qt_cluster;
-/// Parameter-tree helpers shared by the feature-grouping ports.
-pub(crate) mod params;
 /// The distance between two features that feature grouping minimises (source
 /// `FeatureDistance.h`).
 pub mod feature_distance;
+/// The interface of feature grouping algorithms and their shared
+/// post-processing (source `FeatureGroupingAlgorithm.h`).
+pub mod feature_grouping_algorithm;
+/// Unlabeled feature grouping by stepwise pairing (source
+/// `FeatureGroupingAlgorithmUnlabeled.h`).
+pub mod feature_grouping_algorithm_unlabeled;
+/// A feature as QT feature grouping stores it (source
+/// `DATASTRUCTURES/GridFeature.h`).
+pub mod grid_feature;
+/// Parameter-tree helpers shared by the feature-grouping ports.
+pub(crate) mod params;
+/// A quality-threshold cluster for QT feature grouping (source
+/// `DATASTRUCTURES/QTCluster.h`).
+pub mod qt_cluster;
+/// Pair finding by mutual nearest neighbours (source `StablePairFinder.h`).
+pub mod stable_pair_finder;

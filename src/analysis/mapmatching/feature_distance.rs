@@ -177,21 +177,117 @@ impl FeatureDistance {
     /// Only a parameter-tree resource failure.
     pub fn to_param(&self) -> Result<Param> {
         let mut p = Param::new();
-        add_float(&mut p, "distance_RT:max_difference", self.rt.max_difference, "Never pair features with a larger RT distance (in seconds).", false, Some(0.0), None)?;
-        add_float(&mut p, "distance_RT:exponent", self.rt.exponent, "Normalized RT differences ([0-1], relative to 'max_difference') are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", true, Some(0.0), None)?;
-        add_float(&mut p, "distance_RT:weight", self.rt.weight, "Final RT distances are weighted by this factor", true, Some(0.0), None)?;
+        add_float(
+            &mut p,
+            "distance_RT:max_difference",
+            self.rt.max_difference,
+            "Never pair features with a larger RT distance (in seconds).",
+            false,
+            Some(0.0),
+            None,
+        )?;
+        add_float(
+            &mut p,
+            "distance_RT:exponent",
+            self.rt.exponent,
+            "Normalized RT differences ([0-1], relative to 'max_difference') are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)",
+            true,
+            Some(0.0),
+            None,
+        )?;
+        add_float(
+            &mut p,
+            "distance_RT:weight",
+            self.rt.weight,
+            "Final RT distances are weighted by this factor",
+            true,
+            Some(0.0),
+            None,
+        )?;
         p.set_section_description("distance_RT", "Distance component based on RT differences")?;
-        add_float(&mut p, "distance_MZ:max_difference", self.mz.max_difference, "Never pair features with larger m/z distance (unit defined by 'unit')", false, Some(0.0), None)?;
-        add_string(&mut p, "distance_MZ:unit", if self.mz_ppm { "ppm" } else { "Da" }, "Unit of the 'max_difference' parameter", false, &["Da", "ppm"])?;
-        add_float(&mut p, "distance_MZ:exponent", self.mz.exponent, "Normalized ([0-1], relative to 'max_difference') m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", true, Some(0.0), None)?;
-        add_float(&mut p, "distance_MZ:weight", self.mz.weight, "Final m/z distances are weighted by this factor", true, Some(0.0), None)?;
+        add_float(
+            &mut p,
+            "distance_MZ:max_difference",
+            self.mz.max_difference,
+            "Never pair features with larger m/z distance (unit defined by 'unit')",
+            false,
+            Some(0.0),
+            None,
+        )?;
+        add_string(
+            &mut p,
+            "distance_MZ:unit",
+            if self.mz_ppm { "ppm" } else { "Da" },
+            "Unit of the 'max_difference' parameter",
+            false,
+            &["Da", "ppm"],
+        )?;
+        add_float(
+            &mut p,
+            "distance_MZ:exponent",
+            self.mz.exponent,
+            "Normalized ([0-1], relative to 'max_difference') m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)",
+            true,
+            Some(0.0),
+            None,
+        )?;
+        add_float(
+            &mut p,
+            "distance_MZ:weight",
+            self.mz.weight,
+            "Final m/z distances are weighted by this factor",
+            true,
+            Some(0.0),
+            None,
+        )?;
         p.set_section_description("distance_MZ", "Distance component based on m/z differences")?;
-        add_float(&mut p, "distance_intensity:exponent", self.intensity_exponent, "Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", true, Some(0.0), None)?;
-        add_float(&mut p, "distance_intensity:weight", self.intensity_weight, "Final intensity distances are weighted by this factor", true, Some(0.0), None)?;
-        add_string(&mut p, "distance_intensity:log_transform", if self.log_transform { "enabled" } else { "disabled" }, "Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))", true, &["enabled", "disabled"])?;
+        add_float(
+            &mut p,
+            "distance_intensity:exponent",
+            self.intensity_exponent,
+            "Differences in relative intensity ([0-1]) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)",
+            true,
+            Some(0.0),
+            None,
+        )?;
+        add_float(
+            &mut p,
+            "distance_intensity:weight",
+            self.intensity_weight,
+            "Final intensity distances are weighted by this factor",
+            true,
+            Some(0.0),
+            None,
+        )?;
+        add_string(
+            &mut p,
+            "distance_intensity:log_transform",
+            if self.log_transform {
+                "enabled"
+            } else {
+                "disabled"
+            },
+            "Log-transform intensities? If disabled, d = |int_f2 - int_f1| / int_max. If enabled, d = |log(int_f2 + 1) - log(int_f1 + 1)| / log(int_max + 1))",
+            true,
+            &["enabled", "disabled"],
+        )?;
         p.set_section_description("distance_intensity", "Distance component based on differences in relative intensity (usually relative to highest peak in the whole data set)")?;
-        add_string(&mut p, "ignore_charge", flag_text(self.ignore_charge), "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state", false, &["true", "false"])?;
-        add_string(&mut p, "ignore_adduct", flag_text(self.ignore_adduct), "true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts", false, &["true", "false"])?;
+        add_string(
+            &mut p,
+            "ignore_charge",
+            flag_text(self.ignore_charge),
+            "false [default]: pairing requires equal charge state (or at least one unknown charge '0'); true: Pairing irrespective of charge state",
+            false,
+            &["true", "false"],
+        )?;
+        add_string(
+            &mut p,
+            "ignore_adduct",
+            flag_text(self.ignore_adduct),
+            "true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts",
+            false,
+            &["true", "false"],
+        )?;
         Ok(p)
     }
 
@@ -251,7 +347,11 @@ impl FeatureDistance {
         let log_transform = match string(p, "distance_intensity:log_transform")?.as_str() {
             "enabled" => true,
             "disabled" => false,
-            other => return Err(bad(format!("invalid distance_intensity:log_transform '{other}'"))),
+            other => {
+                return Err(bad(format!(
+                    "invalid distance_intensity:log_transform '{other}'"
+                )));
+            }
         };
         Ok(Self {
             rt: component("RT")?,
@@ -364,7 +464,9 @@ impl FeatureDistance {
         }
 
         let total_weight_reciprocal = 1.0
-            / (self.rt.effective_weight() + self.mz.effective_weight() + intensity.effective_weight());
+            / (self.rt.effective_weight()
+                + self.mz.effective_weight()
+                + intensity.effective_weight());
         let dist = (dist_rt + dist_mz + dist_intensity) * total_weight_reciprocal;
         Ok((valid, dist))
     }
