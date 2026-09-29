@@ -92,3 +92,5 @@ pub mod statistic_functions;
 pub(crate) mod x86_64;
 
 pub mod ml;
+/// `Math::RandomShuffler`: the source's portable, seedable Fisher–Yates shuffle.
+pub mod random_shuffler;

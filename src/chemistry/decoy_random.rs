@@ -13,12 +13,13 @@
 //! draw/work checks remain atomic at the public operation boundary.
 //!
 //! Raw words come from `rand_mt::Mt64`, the reference MT19937-64, in place of
-//! the source's `boost::mt19937_64`. Only Boost `uniform_int`'s range mapping
-//! and the source's descending Fisher–Yates loop are implemented here: `rand`'s
-//! range mapping and slice shuffle choose different values and would change
-//! every decoy.
+//! the source's `boost::mt19937_64`. Boost `uniform_int`'s range mapping and
+//! the source's descending Fisher–Yates loop come from
+//! [`crate::math::random_shuffler`], with a draw budget on top: `rand`'s range
+//! mapping and slice shuffle choose different values and would change every
+//! decoy.
 
-use crate::{Error, Result};
+use crate::Result;
 use rand_mt::Mt64;
 
 /// MT19937-64 word stream with the source shuffler's range mapping on top.
@@ -64,42 +65,12 @@ impl DecoyRandom {
 
 // The Fisher–Yates loop and range mapping read raw words through a closure so
 // the private tests can script adversarial words; production passes the engine.
-fn shuffle_from(
-    mut next: impl FnMut() -> u64,
-    data: &mut [u8],
-    remaining_draws: &mut usize,
-) -> Result<()> {
-    for end in (1..data.len()).rev() {
-        let high = u64::try_from(end)
-            .map_err(|_| Error::InvalidValue("decoy shuffle range exceeds u64".into()))?;
-        let selected = bounded_from(&mut next, high, remaining_draws)? as usize;
-        // selected <= end, so the native usize conversion cannot truncate.
-        data.swap(end, selected);
-    }
-    Ok(())
-}
-
-// Boost uniform_int(0, high) uses bucket division/rejection, not modulo.
-// u128 expresses 2^64 directly; for high>=1 the bucket fits a nonzero u64.
-fn bounded_from(
-    mut next: impl FnMut() -> u64,
-    high: u64,
-    remaining_draws: &mut usize,
-) -> Result<u64> {
-    if high == 0 {
-        return Ok(0);
-    }
-    let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
-    loop {
-        *remaining_draws = remaining_draws
-            .checked_sub(1)
-            .ok_or_else(|| Error::InvalidValue("decoy random draw limit exceeded".into()))?;
-        let result = next() / bucket;
-        if result <= high {
-            return Ok(result);
-        }
-    }
-}
+// Both are the public `Math::RandomShuffler`'s, defined once in
+// `crate::math::random_shuffler`, so the decoy permutation and every other
+// source-exact shuffle cannot drift apart.
+#[cfg(test)]
+use crate::math::random_shuffler::bounded_from;
+use crate::math::random_shuffler::shuffle_from;
 
 #[cfg(test)]
 mod tests {

@@ -54,3 +54,5 @@ pub mod reaction_monitoring_transition;
 pub mod targeted_experiment;
 /// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
 pub mod targeted_experiment_helper;
+/// `MRMRTNormalizer`: outlier removal and RT coverage for iRT normalization.
+pub mod mrm_rt_normalizer;
