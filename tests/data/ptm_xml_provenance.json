@@ -29,6 +29,14 @@
    "sha256": "7bde0cc5292f4b58b6dfa54882621c1c522083bb766084d19a0c962e1c100e9e",
    "kind": "upstream class-test fixture, byte-identical",
    "upstream_path": "src/tests/class_tests/openms/data/PTMs.xml"
+  },
+  {
+   "path": "tests/data/ptm_xml_release/cpp_release_records.txt",
+   "sha256": "1b45b482fa0c4e711f22acc8b3e2b4e19b3acd0306060b26a97555079eb6460f",
+   "bytes": 405,
+   "kind": "executed Release C++ output (results/records.tsv of ../oracle/integ-F-ptmxml)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
   }
  ],
  "native_implementation": [
@@ -39,7 +47,7 @@
   "tests/ptm_xml.rs"
  ],
  "support_document": "docs/PTM_XML_SUPPORT.md",
- "method": "Expected values are PTMXMLFile_test.cpp literals at the pin (tier 3); the multi-entry writer layout is derived from PTMXMLHandler.cpp:29-38 (tier 4). Escaping, compression, bounds and malformed-input refusals are native policy checks (tier 4).",
+ "method": "Expected values are PTMXMLFile_test.cpp literals at the pin (tier 3); the multi-entry writer layout is derived from PTMXMLHandler.cpp:29-38 (tier 4). Escaping, compression, bounds and malformed-input refusals are native policy checks (tier 4). At wave-4 integration an oracle driver (../oracle/integ-F-ptmxml/driver.cpp) linked against the Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 with conda-forge g++ 14.4.0 stored and loaded names holding <, >, &, \" and ' and loaded two hand-written documents, on ibminode06, twice (identical once the per-run temporary directory is masked). The Release PTMXMLFile::store writes such a name unescaped and its own load then fails with a ParseError; reading an escaped name, Xerces splits the text at every reference and PTMXMLHandler::onCharacters assigns rather than appends, so only the last character run survives. tests/ptm_xml.rs asserts both; this writer's escaping is the documented native difference.",
  "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
@@ -47,5 +55,45 @@
    "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
   ],
   "source_changes": []
- }
+ },
+ "evidence_tier": "class-test literals (tier 3) for load/store; executed differential (tier 1) for names holding XML-escaped characters, against the OpenMS4 Linux x86_64 Release build",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/integ-F-ptmxml/driver.cpp",
+   "sha256": "ccece8a72a572a98df3787111befdc429eef1b3e9165fcc9249c2b46095b8e4f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-ptmxml/remote_run.sh",
+   "sha256": "438e4de35082944d75eaabd003ca06ffbc0f9ddb7bfb4404e1af9cc730931edb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-ptmxml/run.sh",
+   "sha256": "25f4bc923a943e257962f5407480552d27d24dd1ec25ab5db61e83d6150b09eb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-ptmxml/results/records.tsv",
+   "sha256": "1b45b482fa0c4e711f22acc8b3e2b4e19b3acd0306060b26a97555079eb6460f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-ptmxml/results/hashes.txt",
+   "sha256": "48cb70e6bed638f717537c83af90baeec6aadd60eb0e5445a26e4e5d48f5cd8b",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-ptmxml/results/host.txt",
+   "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The oracle driver and its scripts are C++ and shell for the Release install and stay under ../oracle/integ-F-ptmxml/."
 }

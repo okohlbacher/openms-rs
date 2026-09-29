@@ -43,11 +43,18 @@ machinery and the evidence.
   whole-file reader that splits lines where `std::getline` does, the
   `std::string` search helpers with `npos` arithmetic, and `flanking_residue`,
   which the Sequest and Inspect result readers share.
-- `format::search_engine_xml` is the bounded SAX driver behind the X! Tandem and
-  OMSSA readers. It delivers every text node whole, white space included, because
-  the OMSSA handler resets state on the white space between elements. It expands
-  the predefined entities and character references, and it refuses a DTD. X!
-  Tandem documents are read as Latin-1, as the source's handler does.
+- The X! Tandem and OMSSA readers are driven by the crate's one Xerces-faithful
+  SAX driver, `format::sax_xml`, which every `XMLHandler` port shares; lane F3b's
+  own driver was folded into it at wave-4 integration, and
+  `format::search_engine_xml` keeps only the public `XmlReadLimits`. The driver
+  delivers character data where the Release build's Xerces delivers it, split at
+  every reference and ended by markup, a comment or a processing instruction,
+  with white space inside the root element reported (the OMSSA handler resets
+  state on the white space between elements; both handlers act on the first
+  `characters` call of a text node, as the source does). It refuses a DTD. X!
+  Tandem documents are read as Latin-1, as the source's
+  `XMLFile::enforceEncoding_` does. The splitting is recorded from the Release
+  build by `../oracle/integ-F-xerces-sax` (`tests/data/xerces_sax_release`).
 - `inspect_infile::parse_modification_line` is the `handlePTMs` grammar that
   `InspectInfile` and `SequestInfile` share.
 - `resources/search_engines/OMSSA_modification_mapping` is the source's

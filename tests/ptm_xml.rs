@@ -77,7 +77,17 @@ fn writer_emits_entries_in_key_order() {
 
 /// Source `writeTo` does not escape; this does, so markup characters survive.
 #[test]
-fn escaped_names_round_trip() {
+fn escaped_names_keep_the_last_character_run_as_the_release_build_does() {
+    // Executed Release build (tests/data/ptm_xml_release/cpp_release_records.txt,
+    // ../oracle/integ-F-ptmxml, ibminode06): `PTMXMLFile::store` writes this
+    // name unescaped, a file its own `load` refuses ("roundtrip load threw
+    // Parse Error"); this writer escapes it (a documented native difference).
+    // Reading the escaped file, Xerces delivers `a`, `<b`, `>`, `&`, `"c`, `'`
+    // as separate character runs (it splits at every reference) and
+    // `PTMXMLHandler::onCharacters` assigns rather than appends, so the Release
+    // build keeps only the last run: `'` (records: "escaped ... name=[']").
+    // Lane F6 asserted a full round trip, which only its former coalescing
+    // driver produced.
     let map = PtmInformation::from([("a<b>&\"c'".to_owned(), ("H2O".to_owned(), "S".to_owned()))]);
     let mut bytes = Vec::new();
     ptm_xml::write(&mut bytes, &map).unwrap();
@@ -86,7 +96,18 @@ fn escaped_names_round_trip() {
             .unwrap()
             .contains("<name>a&lt;b&gt;&amp;&quot;c&apos;</name>")
     );
-    assert_eq!(ptm_xml::read(bytes.as_slice()).unwrap(), map);
+    let expected = PtmInformation::from([("'".to_owned(), ("H2O".to_owned(), "S".to_owned()))]);
+    assert_eq!(ptm_xml::read(bytes.as_slice()).unwrap(), expected);
+}
+
+#[test]
+fn references_split_the_text_the_handler_assigns() {
+    // The same oracle's "handwritten" document: `A&amp;B` reads as `&B` and
+    // `H2&#79;` as `O`, the last character run of each element.
+    let document = "<PTMs>\n<PTM>\n<name>A&amp;B</name>\n<composition>H2&#79;</composition>\n\
+                    <possible_amino_acids>S T</possible_amino_acids>\n</PTM>\n</PTMs>\n";
+    let expected = PtmInformation::from([("&B".to_owned(), ("O".to_owned(), "S T".to_owned()))]);
+    assert_eq!(ptm_xml::read(document.as_bytes()).unwrap(), expected);
 }
 
 /// `PTMXMLFile::store` goes through `XMLFile::save_`, which compresses by the

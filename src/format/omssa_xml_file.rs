@@ -7,7 +7,9 @@
 //! Ports `FORMAT/OMSSAXMLFile.h`/`.cpp`: loads the documents that implement
 //! the OMSSA XML schema (`<MSResponse>` holding one `MSHitSet` per spectrum,
 //! each with `MSHits` peptide hits). The source is a Xerces SAX handler; this
-//! port drives the same callbacks through [`crate::format::search_engine_xml`].
+//! port drives the same callbacks through the crate's Xerces-faithful SAX
+//! driver (`format::sax_xml`), with the limits of
+//! [`crate::format::search_engine_xml::XmlReadLimits`].
 //! OMSSA reports modifications by its own internal numbers, which the bundled
 //! `resources/search_engines/OMSSA_modification_mapping` (the source's
 //! `share/OpenMS/CHEMISTRY/OMSSA_modification_mapping`) maps to UniMod names.
@@ -19,10 +21,9 @@ use crate::chemistry::{
 };
 use crate::data_structures::DateTime;
 use crate::data_structures::string_utils::{split, to_double, to_int32, trim};
+use crate::format::sax_xml::{SaxAttributes as Attributes, SaxEncoding, SaxHandler, drive};
 use crate::format::search_engine_text::parse_permissive_sequence;
-use crate::format::search_engine_xml::{
-    Attributes, SaxHandler, TextEncoding, XmlReadLimits, drive, read_document,
-};
+use crate::format::search_engine_xml::XmlReadLimits;
 use crate::identification::{
     FlankingResidue, PeptideEvidence, PeptideHit, PeptideIdentification, ProteinHit,
     ProteinIdentification,
@@ -241,7 +242,7 @@ impl OMSSAXMLFile {
         reader: impl Read,
         options: OMSSALoadOptions,
     ) -> Result<OMSSAXmlResult> {
-        let text = read_document(reader, TextEncoding::Utf8, &self.limits)?;
+        let limits = self.limits.sax()?;
         let mut handler = Handler {
             reader: self,
             options,
@@ -255,7 +256,12 @@ impl OMSSAXMLFile {
             actual_mod_type: String::new(),
             warnings: Vec::new(),
         };
-        drive(&text, TextEncoding::Utf8, &mut handler, &self.limits)?;
+        drive(
+            BufReader::new(reader),
+            SaxEncoding::Utf8,
+            &limits,
+            &mut handler,
+        )?;
         let now = self.run_date.unwrap_or_else(DateTime::now);
         let identifier = format!("{SCORE_TYPE}_{}", now.get());
         let mut peptide_identifications = handler.peptide_identifications;

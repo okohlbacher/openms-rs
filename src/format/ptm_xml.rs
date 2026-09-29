@@ -180,9 +180,10 @@ impl Handler {
 ///   empty `<possible_amino_acids/>` stores nothing, and a later entry with
 ///   the same name replaces an earlier one.
 /// - Every text is trimmed of spaces, tabs and line ends.
-/// - Character data interrupted by a CDATA section, comment or processing
-///   instruction arrives in pieces, as Xerces delivers it, and each piece
-///   overwrites the last.
+/// - Character data interrupted by a reference, a CDATA section, a comment or
+///   a processing instruction arrives in pieces, as Xerces delivers it, and
+///   each piece overwrites the last: `A&amp;B` reads as `&B` in the Release
+///   build and here (`tests/data/ptm_xml_release/cpp_release_records.txt`).
 ///
 /// # Errors
 ///

@@ -8,7 +8,10 @@
 //! implement the X! Tandem output schema (`<bioml>` holding `model` groups of
 //! `protein` elements whose `peptide` holds the `domain` peptide hits). The
 //! source is a Xerces SAX handler; this port drives the same callbacks through
-//! [`crate::format::search_engine_xml`]. See
+//! the crate's Xerces-faithful SAX driver (`format::sax_xml`), which splits a
+//! text node at every reference as Xerces does, so a `<note>` holding an
+//! entity reference keeps only its first run, as in the source (the handler
+//! acts on the first `characters` call and then clears its flags). See
 //! `docs/SEARCH_ENGINE_FILES_SUPPORT.md` for the API mapping and every
 //! divergence.
 
@@ -18,9 +21,10 @@ use crate::chemistry::{
 };
 use crate::data_structures::DateTime;
 use crate::data_structures::string_utils::{to_double, to_int32};
-use crate::format::search_engine_xml::{
-    Attributes, SaxHandler, TextEncoding, XmlReadLimits, drive, read_document, xerces_parse_int,
+use crate::format::sax_xml::{
+    SaxAttributes as Attributes, SaxEncoding, SaxHandler, drive, xerces_parse_int,
 };
+use crate::format::search_engine_xml::XmlReadLimits;
 use crate::identification::{
     FlankingResidue, PeptideEvidence, PeptideHit, PeptideIdentification, ProteinHit,
     ProteinIdentification,
@@ -138,9 +142,14 @@ impl XTandemXMLFile {
         reader: impl Read,
         modifications: &ModificationDefinitionsSet,
     ) -> Result<XTandemXmlResult> {
-        let text = read_document(reader, TextEncoding::Latin1, &self.limits)?;
+        let limits = self.limits.sax()?;
         let mut handler = Handler::new(modifications.clone())?;
-        drive(&text, TextEncoding::Latin1, &mut handler, &self.limits)?;
+        drive(
+            BufReader::new(reader),
+            SaxEncoding::Latin1,
+            &limits,
+            &mut handler,
+        )?;
         handler.finish(self.run_date.unwrap_or_else(DateTime::now))
     }
 }

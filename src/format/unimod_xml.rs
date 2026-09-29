@@ -147,18 +147,16 @@ fn parse_error(message: impl Into<String>) -> Error {
 
 /// Source `attributeAsString_`: a missing attribute is a fatal parse error.
 fn required<'a>(attributes: &'a SaxAttributes, name: &str) -> Result<&'a str> {
-    attributes
-        .get(name)
-        .ok_or_else(|| parse_error(format!("Required attribute '{name}' not present!")))
+    attributes.required(name)
 }
 
-/// A finite decimal. Source `StringUtils::toDouble` also accepts surrounding
-/// white space, which the trim reproduces; it accepts `nan` and `inf`, which a
-/// modification mass cannot be, so those are refused.
+/// A finite decimal through the source's `StringUtils::toDouble`
+/// (`attributeAsDouble_`, and the direct calls of `UnimodXMLHandler.cpp:122-123`);
+/// it also accepts `nan` and `inf`, which a modification mass cannot be, so
+/// those are refused.
 fn mass(attributes: &SaxAttributes, name: &str) -> Result<f64> {
     let text = required(attributes, name)?;
-    text.trim_matches([' ', '\t', '\n', '\r'])
-        .parse::<f64>()
+    crate::data_structures::string_utils::to_double(text)
         .ok()
         .filter(|value| value.is_finite())
         .ok_or_else(|| {
