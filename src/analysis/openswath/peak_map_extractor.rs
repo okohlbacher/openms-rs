@@ -4,7 +4,8 @@
 
 //! Targeted m/z–RT–ion-mobility peak maps (`ANALYSIS/OPENSWATH/PeakMapExtractor.h`).
 //!
-//! Partial port: the result type [`ExtractedPeakMap`], which
+//! Partial port: the result type
+//! [`ExtractedPeakMap`](crate::analysis::openswath::peak_map_extractor::ExtractedPeakMap), which
 //! [`XIPMParquetConsumer`](crate::format::xipm_parquet_consumer::XIPMParquetConsumer)
 //! writes. The extractor itself, `PeakMapExtractor::extractPeakMaps`, is not
 //! ported yet: it takes `ChromatogramExtractorAlgorithm::ExtractionCoordinates`

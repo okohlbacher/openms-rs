@@ -11,7 +11,7 @@
 //! (`decodeBinary_`), the analyte extraction of `getAnalytes` and the run
 //! listing of `getRuns`. The source keeps these out of the public headers;
 //! so does this port — the module is crate-private, and only the plain data
-//! types ([`Analyte`], [`RunInfo`], [`ReaderLimits`]) surface, re-exported
+//! types (`Analyte`, `RunInfo`, `ReaderLimits`) surface, re-exported
 //! by [`xic_parquet_file`](crate::format::xic_parquet_file),
 //! [`xim_parquet_file`](crate::format::xim_parquet_file) and
 //! [`xipm_parquet_file`](crate::format::xipm_parquet_file).

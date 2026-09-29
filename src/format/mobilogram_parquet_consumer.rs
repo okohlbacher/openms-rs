@@ -11,7 +11,7 @@
 //! ([`XIMSchema`](crate::format::arrow_schema_registry::XIMSchema)), which
 //! [`XimParquetFile`](crate::format::xim_parquet_file::XimParquetFile) reads
 //! back. The row carries the run, the caller's annotation
-//! ([`MobilogramAnnotation`]) and, when the annotation names a transition of
+//! ([`MobilogramAnnotation`](crate::format::mobilogram_parquet_consumer::MobilogramAnnotation)) and, when the annotation names a transition of
 //! the library, that transition's precursor and fragment metadata, with the
 //! same numeric ids and decoy rule as the `.xic` writer
 //! ([`ms_chromatogram_parquet_consumer`](crate::format::ms_chromatogram_parquet_consumer)).

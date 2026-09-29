@@ -7,7 +7,7 @@
 //! Ports `FORMAT/XIMParquetFile.h` / `XIMParquetFile.cpp`, the ion-mobility
 //! sibling of [`xic_parquet_file`](crate::format::xic_parquet_file). One or
 //! more files are read as one table; mobilograms can be selected by the
-//! common metadata fields ([`XimQuery`]), by a textual filter or by a typed
+//! common metadata fields ([`XimQuery`](crate::format::xim_parquet_file::XimQuery)), by a textual filter or by a typed
 //! [`ParquetFilter`](crate::format::parquet_filter::ParquetFilter), and the
 //! selection happens before the compressed mobility and intensity arrays are
 //! decoded. The `.xim` schema is the one
@@ -34,7 +34,7 @@
 //! `ANNOTATION`. A column the files do not have is an error. The mobility and
 //! intensity arrays are not filterable, and neither is `FEATURE_RT`: a filter
 //! naming `MOBILITY`, `INTENSITY` or `FEATURE_RT` is refused (select a
-//! feature RT with [`XimQuery::feature_rt`] instead).
+//! feature RT with [`XimQuery::feature_rt`](crate::format::xim_parquet_file::XimQuery::feature_rt) instead).
 //! How the operands are compared is described in `docs/OPENSWATH_PARQUET_SUPPORT.md`.
 //!
 //! ```no_run

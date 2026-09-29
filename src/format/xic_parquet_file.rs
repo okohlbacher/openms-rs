@@ -6,7 +6,7 @@
 //!
 //! Ports `FORMAT/XICParquetFile.h` / `XICParquetFile.cpp`. One or more files
 //! are read as one table; chromatograms can be selected by the common
-//! metadata fields ([`XicQuery`]), by a textual filter or by a typed
+//! metadata fields ([`XicQuery`](crate::format::xic_parquet_file::XicQuery)), by a textual filter or by a typed
 //! [`ParquetFilter`](crate::format::parquet_filter::ParquetFilter), and the
 //! selection happens before the compressed RT and intensity arrays are
 //! decoded. The `.xic` schema is the one

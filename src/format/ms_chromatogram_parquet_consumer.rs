@@ -14,7 +14,7 @@
 //!
 //! | Column | Type | Content |
 //! |---|---|---|
-//! | `RUN_ID` | int64 | the run id given to [`MSChromatogramParquetConsumer::new`] |
+//! | `RUN_ID` | int64 | the run id given to [`MSChromatogramParquetConsumer::new`](crate::format::ms_chromatogram_parquet_consumer::MSChromatogramParquetConsumer::new) |
 //! | `SOURCE_FILE` | string | the source file given there (null when empty) |
 //! | `MS_LEVEL` | int64 | 1 for a precursor trace, 2 for a fragment trace |
 //! | `PRECURSOR_ID` | int64 | the compound's numeric id |

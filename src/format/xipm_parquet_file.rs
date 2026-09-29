@@ -10,7 +10,7 @@
 //! writes it ([`XIPMSchema`](crate::format::arrow_schema_registry::XIPMSchema)).
 //! Unlike its `.xic` and `.xim` siblings the reader has no filter
 //! expressions: peak maps are selected by the metadata fields of
-//! [`XipmQuery`] alone, and every file is checked against the XIPM schema in
+//! [`XipmQuery`](crate::format::xipm_parquet_file::XipmQuery) alone, and every file is checked against the XIPM schema in
 //! subset mode (extra columns allowed, and missing ones too, but a present
 //! column must have its registered type).
 //!
