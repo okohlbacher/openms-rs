@@ -41,9 +41,11 @@ pub const PI0_SMOOTHING_PARAMETER: f64 = -1.0;
 /// With `smooth_log_pi0`, the source feeds `log(pi0_lambda)` to the spline and a
 /// non-positive per-lambda estimate becomes `-inf`. The ported spline refuses
 /// non-finite ordinates, so such an input takes the fallback here. The source's
-/// spline does not check its inputs and attempts the fit through `-inf`; what
-/// it then predicts was not executed for this port, so agreement on that corner
-/// is not claimed (`docs/MULTIPLE_TESTING_SUPPORT.md`).
+/// spline does not check its inputs and attempts the fit through `-inf`; the
+/// Linux x86_64 Release build then takes the same fallback (`pi0 = 0`,
+/// `pi0_smooth = false`), executed for five such inputs in
+/// `tests/multiple_testing.rs::pi0_with_an_empty_lambda_matches_the_release_build`
+/// (`docs/MULTIPLE_TESTING_SUPPORT.md`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct SplinePi0Smoother;
 

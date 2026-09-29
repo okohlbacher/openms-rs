@@ -115,11 +115,16 @@ Every public member of the header appears here.
   `section_pi0_est_pyprophet_checks_through_the_source_signature`), so the seam
   carries the source's behaviour rather than merely declaring it.
 
-  One corner is not claimed: with `smooth_log_pi0` and a per-lambda estimate of
-  zero, the source hands `-inf` to a spline that does not check its inputs,
-  while the ported spline refuses a non-finite ordinate, so the adapter takes
-  the `min(min(pi0_lambda), 1)` fallback. What the source's spline predicts from
-  `-inf` was not executed.
+  With `smooth_log_pi0` and a per-lambda estimate of zero, the source hands
+  `-inf` to a spline that does not check its inputs, while the ported spline
+  refuses a non-finite ordinate, so the adapter takes the
+  `min(min(pi0_lambda), 1)` fallback. The Linux x86_64 Release build reaches the
+  same answer (`pi0 = 0`, `pi0_smooth = false`): five such inputs, from one empty
+  lambda to an all-zero grid, and their linear-space twins, executed on
+  ibminode06 (`../oracle/integ-A-pi0`,
+  `tests/data/multiple_testing_pi0_release_provenance.json`), agree bit for bit
+  with the port in
+  `tests/multiple_testing.rs::pi0_with_an_empty_lambda_matches_the_release_build`.
 
   **Passing `None` is a different answer, and the less safe one.** In the
   source `!spl.ok()` is a pathology; here it is what a caller who omits the

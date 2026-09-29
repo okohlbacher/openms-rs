@@ -451,6 +451,86 @@ fn section_pi0_est_pyprophet_checks_through_the_source_signature() {
     assert!(res3.pi0_smooth);
 }
 
+/// Tier 1: `pi0Est` of the Linux x86_64 Release build (ibminode06, core
+/// `bc9cc12`; `tests/data/multiple_testing_pi0_release_provenance.json`) where a
+/// per-lambda estimate is zero. With `smooth_log_pi0` the source turns that
+/// zero into `-inf` (`MultipleTesting.cpp:249-251`) and hands it to its
+/// unchecked spline; the Release build then takes the `min(pi0_lambda)`
+/// fallback (`pi0 = 0`, `pi0_smooth = false`, `:274-286`), which is what the
+/// port's refusing spline reaches too. The linear-space twin of each input,
+/// and a control whose estimates are all positive, check the fitted value
+/// itself. Every double is compared by its bits.
+#[test]
+fn pi0_with_an_empty_lambda_matches_the_release_build() {
+    let oracle = std::fs::read_to_string(data("multiple_testing_pi0_release/oracle.tsv")).unwrap();
+    let mut rows = std::collections::BTreeMap::new();
+    for line in oracle.lines() {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(fields.len(), 3, "malformed oracle row {line:?}");
+        rows.insert(
+            (fields[0].to_string(), fields[1].to_string()),
+            fields[2].to_string(),
+        );
+    }
+    let field = |case: &str, name: &str| -> String {
+        rows.get(&(case.to_string(), name.to_string()))
+            .unwrap_or_else(|| panic!("oracle has no {case} {name}"))
+            .clone()
+    };
+    let bits = |case: &str, name: &str| -> u64 {
+        u64::from_str_radix(field(case, name).trim_start_matches("0x"), 16).unwrap()
+    };
+
+    // The driver's inputs, built with the same double operations.
+    let below_090: Vec<f64> = (0..20).map(|i| 0.045 * f64::from(i)).collect();
+    let below_095: Vec<f64> = (0..20).map(|i| 0.047 * f64::from(i)).collect();
+    let below_050 = vec![0.01, 0.02, 0.1, 0.2, 0.3, 0.4, 0.45, 0.49];
+    let zeros = vec![0.0; 10];
+    let p4 = vec![0.05, 0.1, 0.3, 0.5, 0.7, 0.75];
+    let grid4 = vec![0.2, 0.4, 0.6, 0.8];
+    let spread: Vec<f64> = (0..40).map(|i| 0.025 * f64::from(i)).collect();
+    let cases: [(&str, &[f64], &[f64]); 6] = [
+        ("below_090", &below_090, &[]),
+        ("below_095", &below_095, &[]),
+        ("below_050", &below_050, &[]),
+        ("all_zero", &zeros, &[]),
+        ("grid4", &p4, &grid4),
+        ("spread", &spread, &[]),
+    ];
+
+    let mut compared_rows = 0;
+    for (stem, p, lambda) in cases {
+        for (space, log_pi0) in [("log", true), ("linear", false)] {
+            let case = format!("{stem}_{space}");
+            let got = pi0_est_smoothed(p, lambda, Pi0Method::Smoother, DEFAULT_SMOOTH_DF, log_pi0)
+                .unwrap();
+            assert_eq!(
+                got.pi0.to_bits(),
+                bits(&case, "pi0"),
+                "{case}: pi0 {}",
+                got.pi0
+            );
+            assert_eq!(
+                got.pi0_smooth,
+                field(&case, "pi0_smooth") == "1",
+                "{case}: pi0_smooth"
+            );
+            let n: usize = field(&case, "n_lambda").parse().unwrap();
+            assert_eq!(got.pi0_lambda.len(), n, "{case}: n_lambda");
+            for (i, value) in got.pi0_lambda.iter().enumerate() {
+                assert_eq!(
+                    value.to_bits(),
+                    bits(&case, &format!("pi0_lambda[{i}]")),
+                    "{case}: pi0_lambda[{i}] {value}"
+                );
+            }
+            compared_rows += 3 + n;
+        }
+    }
+    // Every oracle row was compared.
+    assert_eq!(compared_rows, rows.len());
+}
+
 // L248 double bwNrd0(const std::vector<double>&)
 #[test]
 fn section_bw_nrd0_five_point_ladder() {

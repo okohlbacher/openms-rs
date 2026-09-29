@@ -1,0 +1,46 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/MATH/STATISTICS/MultipleTesting.h",
+      "sha256": "994269d4d76657c3e8fd661b32fb8488bc3ccd31cdb3b9d5eccc7e5b669b5ed6"
+    },
+    {
+      "path": "src/openms/source/MATH/STATISTICS/MultipleTesting.cpp",
+      "sha256": "cc1c69596ffd443a343c4b5ff1d88a6de55dcf660db1b872780f30b0ad9edd5e"
+    }
+  ],
+  "oracle": {
+    "build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "platform": "Linux x86_64, ibminode06 (Ubuntu, kernel 6.8.0-124-generic), Release install",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+    "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+    "driver": "oracle/integ-A-pi0/{driver.cpp,remote_run.sh,run.sh}",
+    "driver_sha256": {
+      "driver.cpp": "a9dd8b86494f189b2242941258ed02f394b05e0155a369016263bfba301c9cbc",
+      "remote_run.sh": "a0086e30e5fe3d5d8aff66ecfb87b4758faee8c97575faa25e90dd519f3082d1",
+      "run.sh": "7f21e73e91d031888112cb49b9e3edd412f97bfb8c739e4af984440189059ee9"
+    },
+    "binaries": {
+      "build/driver": "c19c29363e67dded43b7a92b19ca496547b3250df63af5b12e5ecb41f171eba7",
+      "lib/libOpenMS.so": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+    },
+    "repeats": 2,
+    "repeats_identical": true,
+    "invocations": 2,
+    "invocations_identical": true,
+    "date": "2026-09-29",
+    "purpose": "Math::MultipleTesting::pi0Est (Smoother, smooth_df 3) where a per-lambda estimate is zero, in log space (the source hands -inf to its unchecked BSplineSmoothingSpline, MultipleTesting.cpp:249-251) and in linear space, plus a control with every estimate positive; pi0, pi0_smooth and every pi0_lambda printed, doubles as their 64 bits."
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/multiple_testing_pi0_release/oracle.tsv",
+      "sha256": "9a6e6b5ca9b0dd75ed529860eda432c5e72c03fa48b093b745481d06342a02a1"
+    }
+  ],
+  "consumers": [
+    "tests/multiple_testing.rs::pi0_with_an_empty_lambda_matches_the_release_build"
+  ]
+}
