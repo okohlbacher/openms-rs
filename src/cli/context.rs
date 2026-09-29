@@ -454,7 +454,7 @@ impl ToolContext {
     }
     /// An integer option, as `getIntOption_`: a value beyond 32 bits, which
     /// only a JSON `-ini` can set, is its low 32 bits, as the source's `Int`
-    /// (see [`source_int`]).
+    /// (the private `source_int`).
     ///
     /// # Errors
     ///

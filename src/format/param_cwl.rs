@@ -13,11 +13,11 @@
 //! `convertToCWL`), and only when OpenMS is configured with `-DENABLE_TDL=ON`.
 //! The Release build at the pins is configured without it: its
 //! `writeCWLToStream` throws a `std::runtime_error` with
-//! [`TDL_UNAVAILABLE`] (`ParamCWLFile.cpp:327-332`), so no CWL document
+//! [`TDL_UNAVAILABLE`](crate::format::param_json::TDL_UNAVAILABLE) (`ParamCWLFile.cpp:327-332`), so no CWL document
 //! exists to compare with, and every TOPP tool's `-write_cwl` ends with that
 //! message and exit 12 (`../oracle/toppbase-completion`, cases `write_cwl`,
 //! `write_nested_cwl`, `write_cwl_cwd` and `write_nested_cwl_and_json`, in
-//! `tests/topp_cli_completion.rs`). [`ParamCwlFile`] is that class: both
+//! `tests/topp_cli_completion.rs`). [`ParamCwlFile`](crate::format::param_cwl::ParamCwlFile) is that class: both
 //! members refuse with the same message, which is also the one
 //! [`ParamJsonFile`](crate::format::param_json::ParamJsonFile) gives.
 //!
