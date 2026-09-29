@@ -25,7 +25,13 @@
 //! - No file entry is refused as the source's `Exception::FileEmpty` ("ZIP
 //!   archive contains no file entries"); more than one as its
 //!   `Exception::ParseError`, whose message names every entry in archive order
-//!   ("ZIP archive contains 2 file entries; expected exactly 1: a b").
+//!   ("ZIP archive contains 2 file entries; expected exactly 1: a b"). The
+//!   source constructs that `ParseError` with an empty expression
+//!   (`ZipIfstream.cpp:87`), so its `what()` is the message followed by
+//!   `" in: "` and nothing else (`Exception.cpp:160-164`); the error message
+//!   here is that whole `what()`, as every line-0 [`Error::Parse`] that
+//!   reproduces a source `ParseError` is, so a TOPP tool reports it as the
+//!   Release build does.
 //! - The methods the reference build's libzip decodes are decoded: stored (0),
 //!   deflate (8) and bzip2 (12). Its libzip links zlib and libbz2 only
 //!   (`ldd deps/lib/libzip.so.5` of the Release install), so it has no LZMA,
@@ -107,6 +113,8 @@ pub(crate) fn open_single_entry(file: File, name: &str) -> Result<Box<dyn BufRea
                 message.push(' ');
                 message.push_str(entry);
             }
+            // `ParseError(..., "", msg)`: `what()` is `msg + " in: " + ""`.
+            message.push_str(" in: ");
             return Err(Error::Parse { line: 0, message });
         }
     };

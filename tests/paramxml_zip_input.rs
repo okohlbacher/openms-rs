@@ -59,18 +59,30 @@ fn zip_input_matches_the_release_build() {
         let (name, expected) = line.split_once('\t').unwrap();
         let result = paramxml::load(fixture(name));
         if let Some(error) = expected.strip_prefix("ERR:") {
-            // "FileEmpty:the file '<what>' is empty" or "Parse Error:<what> in: ".
-            let what = if let Some(text) = error.strip_prefix("FileEmpty:the file '") {
-                text.strip_suffix("' is empty").unwrap()
+            let refusal = result.expect_err(name);
+            if let Some(what) = error.strip_prefix("Parse Error:") {
+                // The source's whole `what()`, " in: " and its empty
+                // expression included, is the message of a line-0 parse error.
+                match &refusal {
+                    openms::Error::Parse { line: 0, message } => {
+                        assert_eq!(message, what, "{name}");
+                    }
+                    other => panic!("{name}: C++ ParseError {what:?}, port {other:?}"),
+                }
             } else {
-                let text = error.strip_prefix("Parse Error:").unwrap();
-                text.strip_suffix(" in: ").unwrap()
-            };
-            let message = result.expect_err(name).to_string();
-            assert!(
-                message.contains(what),
-                "{name}: C++ {what:?}, port {message:?}"
-            );
+                // `FileEmpty` names its message as the file: "the file
+                // '<message>' is empty". The port has no file-empty error and
+                // refuses with the message itself (src/format/zip_input.rs).
+                let what = error
+                    .strip_prefix("FileEmpty:the file '")
+                    .and_then(|text| text.strip_suffix("' is empty"))
+                    .unwrap();
+                let message = refusal.to_string();
+                assert!(
+                    message.contains(what),
+                    "{name}: C++ {what:?}, port {message:?}"
+                );
+            }
             refused += 1;
             continue;
         }
