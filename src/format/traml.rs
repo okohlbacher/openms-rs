@@ -16,7 +16,7 @@
 //! class for the TSV format.
 //!
 //! The document is read into and written from a
-//! [`TargetedExperiment`]; the element-by-element work is in
+//! [`TargetedExperiment`](crate::analysis::openswath::targeted_experiment::TargetedExperiment); the element-by-element work is in
 //! [`traml_handler`](crate::format::traml_handler). See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TRAML_SUPPORT.md)
 //! for the member mapping and the evidence.

@@ -7,7 +7,7 @@
 //! Ports `FORMAT/HANDLERS/TraMLHandler.h` (with its `.cpp`). The source is a
 //! Xerces SAX handler that the header marks "Do not use this class. It is
 //! only needed in TraMLFile"; here it is two functions,
-//! [`read_document`] and [`write_document`], that `traml` calls and that are
+//! [`read_document`](crate::format::traml_handler::read_document) and [`write_document`](crate::format::traml_handler::write_document), that `traml` calls and that are
 //! public so a caller can read from or write to any stream.
 //!
 //! The reader keeps the source's structure: one *pending* object per element
@@ -19,9 +19,9 @@
 //! Where the source logs a problem and drops data (an unknown element, a
 //! `cvParam` or `userParam` in a place it does not handle, a `RetentionTime`,
 //! `Configuration` or `Target` under an unexpected parent), this port refuses
-//! the document by default. [`ReadOptions::source_compatible`] selects the
+//! the document by default. [`ReadOptions::source_compatible`](crate::format::traml_handler::ReadOptions::source_compatible) selects the
 //! source behaviour instead: the data is dropped and the message the source
-//! logs is returned in [`TraMLLoad::warnings`]. Messages the source logs
+//! logs is returned in [`TraMLLoad::warnings`](crate::format::traml_handler::TraMLLoad::warnings). Messages the source logs
 //! without dropping anything (an obsolete CV term, a CV term name that does
 //! not match the vocabulary, an unsupported retention-time term) are always
 //! returned as warnings.

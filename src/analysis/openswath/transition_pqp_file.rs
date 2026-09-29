@@ -6,9 +6,9 @@
 //!
 //! Ports `ANALYSIS/OPENSWATH/TransitionPQPFile.h` (with its `.cpp`). PQP
 //! files are SQLite databases whose tables represent the data of a TraML
-//! file; this type converts between them and a [`TargetedExperiment`]. For
+//! file; this type converts between them and a [`TargetedExperiment`](crate::analysis::openswath::targeted_experiment::TargetedExperiment). For
 //! another format that stores transitions see
-//! [`TransitionTSVFile`], whose parameters and conversion this type shares
+//! [`TransitionTSVFile`](crate::analysis::openswath::transition_tsv_file::TransitionTSVFile), whose parameters and conversion this type shares
 //! (the source class derives from it).
 //!
 //! # Tables
