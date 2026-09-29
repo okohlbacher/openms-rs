@@ -408,9 +408,7 @@ impl<M: RansacModel> Ransac<M> {
             )));
         }
         if pairs.iter().any(|(x, y)| !(x.is_finite() && y.is_finite())) {
-            return Err(Error::InvalidValue(
-                "RANSAC: non-finite data point".into(),
-            ));
+            return Err(Error::InvalidValue("RANSAC: non-finite data point".into()));
         }
         let work = (k as u128).saturating_mul(pairs.len() as u128);
         if work > MAX_RANSAC_WORK {

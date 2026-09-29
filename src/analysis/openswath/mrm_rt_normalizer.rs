@@ -397,7 +397,9 @@ pub fn compute_binned_coverage(
         .ok()
         .filter(|bins| *bins > 0)
         .ok_or_else(|| {
-            Error::InvalidValue(format!("RT coverage: {nr_bins} bins is not a positive count"))
+            Error::InvalidValue(format!(
+                "RT coverage: {nr_bins} bins is not a positive count"
+            ))
         })?;
     let mut bin_counter = vec![0_i64; bins];
     for (_, theoretical) in pairs {

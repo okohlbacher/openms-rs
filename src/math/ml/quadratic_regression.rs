@@ -99,8 +99,8 @@ impl QuadraticRegression {
             [sum_x, sum_xx, sum_xxx],
             [sum_xx, sum_xxx, sum_xxxx],
         ];
-        let inverse =
-            inverse_3x3(&matrix).ok_or_else(|| unable_to_fit("could not fit a linear model to the data"))?;
+        let inverse = inverse_3x3(&matrix)
+            .ok_or_else(|| unable_to_fit("could not fit a linear model to the data"))?;
         let rhs = [sum_y, sum_xy, sum_xxy];
         let mut solution = [0.0; 3];
         for (row, value) in inverse.iter().zip(solution.iter_mut()) {

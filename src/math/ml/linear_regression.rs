@@ -309,9 +309,8 @@ impl LinearRegression {
         let left = (x_intercept - x_mean) * g;
         let bottom = 1.0 - g;
         let d = x_intercept - x_mean;
-        let right = t_star
-            * (stand_dev_residuals / self.slope)
-            * ((d * d) / s_xx + (bottom / n_f)).sqrt();
+        let right =
+            t_star * (stand_dev_residuals / self.slope) * ((d * d) / s_xx + (bottom / n_f)).sqrt();
         let mut lower = x_intercept + (left + right) / bottom;
         let mut upper = x_intercept + (left - right) / bottom;
         if lower > upper {
@@ -430,18 +429,26 @@ mod tests {
             .compute_regression(0.95, &[0.0, 1.0, 2.0], &[1.0, 3.0, 5.0], true)
             .unwrap();
         let before = regression.clone();
-        assert!(regression
-            .compute_regression(0.95, &[1.0, 1.0], &[1.0, 2.0], true)
-            .is_err());
-        assert!(regression
-            .compute_regression(0.95, &[1.0, f64::NAN], &[1.0, 2.0], true)
-            .is_err());
-        assert!(regression
-            .compute_regression_weighted(0.95, &[1.0, 1.0], &[1.0, 2.0], &[1.0, 1.0], true)
-            .is_err());
-        assert!(regression
-            .compute_regression(1.0, &[0.0, 1.0, 2.0], &[1.0, 3.0, 5.0], true)
-            .is_err());
+        assert!(
+            regression
+                .compute_regression(0.95, &[1.0, 1.0], &[1.0, 2.0], true)
+                .is_err()
+        );
+        assert!(
+            regression
+                .compute_regression(0.95, &[1.0, f64::NAN], &[1.0, 2.0], true)
+                .is_err()
+        );
+        assert!(
+            regression
+                .compute_regression_weighted(0.95, &[1.0, 1.0], &[1.0, 2.0], &[1.0, 1.0], true)
+                .is_err()
+        );
+        assert!(
+            regression
+                .compute_regression(1.0, &[0.0, 1.0, 2.0], &[1.0, 3.0, 5.0], true)
+                .is_err()
+        );
         assert_eq!(regression, before);
     }
 }

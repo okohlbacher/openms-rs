@@ -229,7 +229,10 @@ mod tests {
     #[test]
     fn default_is_the_boost_default_seed() {
         assert_eq!(RandomShuffler::default(), RandomShuffler::new(5489));
-        assert_eq!(RandomShuffler::from_int_seed(-1), RandomShuffler::new(u64::MAX));
+        assert_eq!(
+            RandomShuffler::from_int_seed(-1),
+            RandomShuffler::new(u64::MAX)
+        );
         assert_eq!(RandomShuffler::from_int_seed(42), RandomShuffler::new(42));
     }
 }
