@@ -27,9 +27,14 @@ Prereqs merged: 0a7-27, 0a7-30 (commit "[MERGE] O4b prerequisites").
 - src/analysis/openswath/mrm_rt_normalizer.rs; tests/ransac.rs (13), tests/mrm_rt_normalizer.rs (9) pass on spock.
 - Oracle ../oracle/O4b-ransac (gen_data.py -> datasets.tsv, cases.tsv; driver.cpp interposes time()); run via `bash run.sh` (background).
 
+## Done later (incarnation 1)
+- RANSAC group complete: tests/ransac_oracle.rs (tier 1, 128 cases), docs/RANSAC_SUPPORT.md, tests/data/ransac_provenance.json.
+  All gates on spock green (clippy all-features lib+tests, +1.85 no-default tests, doc -D warnings, doctest).
+- TSE: src/analysis/openswath/targeted_spectra_extractor.rs compiles clippy-clean (untested). Gaps: searchSpectrum (AMSE), storeSpectraMSP (MSP writer).
+
 ## Next step
-1. Fetch oracle results; write tests/ransac_oracle.rs comparing bits (t-quantile: tolerance), fixtures in tests/data/ransac_oracle_*.tsv.
-2. docs/RANSAC_SUPPORT.md, tests/data/ransac_provenance.json, THIRD_PARTY entry? (statrs already a dep; add row for students_t).
-3. TSE partial (deps: GaussFilter, SavitzkyGolay, PeakPickerHiRes, S/N median, BinnedSpectrum, Deisotoper, TargetedExperiment from O1a).
-4. CalibrationWorkflow: likely untouched (needs MRMFeatureFinderScoring, OpenSwathWorkflow, SwathMapMassCorrection...).
-5. Report + ledger fragment; delete NOTES.md.
+1. tests/targeted_spectra_extractor.rs: class-test sections (pickSpectrum inline data; params; mzML-based ones need feature mzml + a test-side
+   TargetedExperiment built from TargetedSpectraExtractor_13CFlux_TraML.csv [transition_group_id=peptide ref, RetentionTime minutes, PrecursorMz]).
+   Test data at .reference/openms4-core-bc9cc12/src/tests/class_tests/openms/data/TargetedSpectraExtractor_*.
+2. docs/TARGETED_SPECTRA_EXTRACTOR_SUPPORT.md + provenance; CalibrationWorkflow assessment (likely untouched).
+3. Report + ledger fragment; delete NOTES.md.

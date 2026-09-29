@@ -50,6 +50,8 @@ pub mod swath_map;
 pub mod targeted_experiment;
 /// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
 pub mod targeted_experiment_helper;
+/// `TargetedSpectraExtractor`: annotate, pick, score and select spectra against a target list.
+pub mod targeted_spectra_extractor;
 /// The light targeted experiment, from `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h`.
 pub mod transition_experiment;
 /// Transition grouping and compound lookup, from `OPENSWATHALGO/DATAACCESS/TransitionHelper.h`.
