@@ -28,7 +28,16 @@ Never run cargo locally; gate: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=64 ~/.local
   (verify on ibminode06 oracle). annotate non-atomic in C++.
 - SwathMapMassCorrection (819 lines .cpp) needs MRMFeatureFinderScoring::MRMTransitionGroupType -> likely partial.
 
+## Progress (committed)
+- chromatogram_extractor_algorithm.rs, swath_window_loader.rs, peak_map_extractor.rs, chromatogram_extractor.rs
+  + tests/openswath_extraction.rs (21 tests pass on dax: gate `test --locked --test openswath_extraction`).
+- Oracle ../oracle/O4a-extraction (driver.cpp, node.sh, run.sh push|pull) started on ibminode06, results/DONE marker.
+  Covers tophat, xic file/IM, peakmap, prepare_coordinates/return_chromatogram, SwathWindowLoader edge files,
+  SwathQC subsample grid + charge distribution + JSON, SMC estimateWindow/params/findSwathMapsPasef.
+
 ## Next step
-1. Read ChromatogramExtractorAlgorithm.h/.cpp + test; port to chromatogram_extractor_algorithm.rs.
-2. SwathWindowLoader (text-file parser) -> swath_window_loader.rs.
-3. ChromatogramExtractor, PeakMapExtractor, SwathQC, SwathMapMassCorrection.
+1. Pull oracle (run.sh pull), compare vs Rust; add tier-1 tests from records.tsv (tests/data/openswath_extraction_oracle.tsv).
+2. SwathQC -> swath_qc.rs (Deisotoper + PeakPickerHiRes exist).
+3. SwathMapMassCorrection -> partial: params, getters, estimate_window, find_swath_maps_pasef; correctMZ/IM gaps
+   (need OpenSwathScoring::fetchSpectrumSwath, DIAHelpers, Linear/QuadraticRegression).
+4. Support doc docs/OPENSWATH_EXTRACTION_SUPPORT.md, provenance json, doc coverage, full CI sweep, report + ledger.
