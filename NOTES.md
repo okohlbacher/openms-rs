@@ -18,6 +18,14 @@ Class tests exist only for: LevelContextInference, OpenSwathLibraryIDNormalizer,
 ## Plan: files src/analysis/openswath/{openswath_inference_data,openswath_inference_config,level_context_inference,
 openswath_{peptide,protein,gene}_inference,openswath_peptidoform_inference,openswath_library_id_normalizer}.rs
 
+## Done
+- 95ffb473: 8 modules written (data, config, level_context, 3 wrappers, peptidoform, library_id_normalizer); dax clippy --lib -D warnings clean.
+- Oracle ../oracle/O5b-inference (driver.cpp, make_inputs.py -> inputs/ + cases.txt, remote_run.sh, run.sh) on ibminode06.
+  Output: results/out/*.tsv (expected), results/log. Class tests with literals: LevelContextInference_test, PeptidoformInference_test,
+  OpenSwathLibraryIDNormalizer_test, OSWFileInference_test (reader counts 682/32/389/9431).
+- PercolatorScoring: needs ANALYSIS/ID/Percolator (in-process), OSWParquetReader, ParquetFile, sqlite -> expect untouched/partial.
+
 ## Next step
-1. Read class tests (LevelContextInference_test, LibraryIDNormalizer_test) for expected values.
-2. Write data+config+level_context, commit.
+1. When oracle FETCHED: copy inputs + results/out to tests/data/openswath_inference/, write tests/openswath_inference.rs comparing.
+2. Support doc docs/OPENSWATH_INFERENCE_SUPPORT.md, provenance tests/data/openswath_inference_provenance.json.
+3. Assess PercolatorScoring. Report + ledger fragment.
