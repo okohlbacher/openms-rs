@@ -374,7 +374,7 @@ impl SimpleSearchEngineAlgorithm {
         )?;
         p.set_valid_strings("fragment:mass_tolerance_unit", &units)?;
         p.set_section_description("fragment", "Fragments (Product Ion) Options")?;
-        let all_mods = all_search_modifications(ModificationsDB::global());
+        let all_mods = ModificationsDB::global().all_search_modifications();
         p.set_value(
             "modifications:fixed",
             ParamValue::StringList(self.modifications_fixed.clone()),
@@ -1670,21 +1670,6 @@ fn primary_ms_run_paths(in_spectra: &str, spectra: &MSExperiment) -> (Vec<String
         }
     }
     (vec![in_spectra.to_owned()], raw)
-}
-
-/// Every UniMod-backed modification identifier, as source
-/// `ModificationsDB::getAllSearchModifications` lists them: full IDs of
-/// records with a UniMod record ID, sorted case-insensitively, the shorter of
-/// two otherwise-equal names first.
-fn all_search_modifications(database: &ModificationsDB) -> Vec<String> {
-    let mut names: Vec<String> = database
-        .entries()
-        .iter()
-        .filter(|record| record.record_id().is_some_and(|id| id > 0))
-        .map(|record| record.full_id().to_owned())
-        .collect();
-    names.sort_by_cached_key(|name| (name.to_lowercase(), name.len()));
-    names
 }
 
 fn resolve_modifications(names: &[String]) -> Result<Vec<Arc<ResidueModification>>> {

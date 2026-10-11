@@ -37,7 +37,7 @@
 
 use super::needleman_wunsch::{NeedlemanWunsch, ScoringMatrix};
 use crate::analysis::id_filter::{DuplicatePolicy, remove_duplicate_peptide_hits};
-use crate::chemistry::{AASequence, EmpiricalFormula, PeptideFragmentType, SequenceModification};
+use crate::chemistry::{AASequence, EmpiricalFormula, PeptideFragmentType};
 use crate::identification::{PeptideEvidence, PeptideHit, PeptideIdentification};
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
@@ -251,49 +251,10 @@ impl PartialOrd for SourceOrdered {
 /// Source `SequenceGrouping`: sequence -> hit information.
 type Grouping = BTreeMap<SourceOrdered, HitInfo>;
 
-/// Source `AASequence::operator<`: length first, then the N-terminal
-/// modification (none before any), then residue by residue the one-letter
-/// code and the modification, then the C-terminal modification.
-///
-/// The source compares two residue modifications by *pointer*, an order that
-/// depends on allocation; this compares them by name and full ID instead, and
-/// finally by the native [`AASequence`] order, so that the order is total and
-/// deterministic.
+/// Source `AASequence::operator<` ([`AASequence::source_order`]), made total
+/// by the native [`AASequence`] order for the sequences it calls equal.
 fn source_sequence_cmp(a: &AASequence, b: &AASequence) -> Ordering {
-    fn modification(
-        m: Option<&SequenceModification>,
-        n: Option<&SequenceModification>,
-    ) -> Ordering {
-        match (m, n) {
-            (None, None) => Ordering::Equal,
-            (None, Some(_)) => Ordering::Less,
-            (Some(_), None) => Ordering::Greater,
-            (Some(m), Some(n)) => m
-                .name()
-                .cmp(n.name())
-                .then_with(|| m.full_id().cmp(n.full_id())),
-        }
-    }
-    a.len()
-        .cmp(&b.len())
-        .then_with(|| modification(a.n_terminal_modification(), b.n_terminal_modification()))
-        .then_with(|| {
-            let (x, y) = (a.as_str().as_bytes(), b.as_str().as_bytes());
-            for index in 0..x.len() {
-                let order = x[index].cmp(&y[index]).then_with(|| {
-                    modification(
-                        a.residue_modification(index).ok().flatten(),
-                        b.residue_modification(index).ok().flatten(),
-                    )
-                });
-                if order != Ordering::Equal {
-                    return order;
-                }
-            }
-            Ordering::Equal
-        })
-        .then_with(|| modification(a.c_terminal_modification(), b.c_terminal_modification()))
-        .then_with(|| a.cmp(b))
+    a.source_order(b).then_with(|| a.cmp(b))
 }
 
 /// Source `compareChargeStates_`: a zero charge adopts the new one; two

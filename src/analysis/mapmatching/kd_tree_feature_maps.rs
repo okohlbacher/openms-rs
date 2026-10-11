@@ -44,6 +44,7 @@
 use crate::concept::math_functions::tolerance_window;
 use crate::error::{Error, Result};
 use crate::kernel::features::BaseFeature;
+use crate::math::libstdcxx::nth_element_by;
 
 use super::qt_cluster_finder::QtInputMap;
 
@@ -188,10 +189,10 @@ impl Tree {
             }
             let axis = level % 2;
             let middle = begin + (end - begin) / 2;
-            nth_element(
+            nth_element_by(
                 &mut values[begin..end],
                 middle - begin,
-                &|a: &usize, b: &usize| coord(*a, axis) < coord(*b, axis),
+                |a: &usize, b: &usize| coord(*a, axis) < coord(*b, axis),
             );
             self.insert(values[middle], coord)?;
             if middle + 1 != end {
@@ -243,168 +244,6 @@ impl Tree {
             }
         }
     }
-}
-
-/// libstdc++'s `std::nth_element` (`__introselect` with a depth limit of
-/// `2 * floor(log2(n))`, median-of-three pivoting, `__heap_select` fallback
-/// and a final insertion sort), transcribed so that the element order it
-/// leaves is the one the source's `optimise()` sees.
-fn nth_element<T: Copy>(v: &mut [T], nth: usize, less: &impl Fn(&T, &T) -> bool) {
-    let len = v.len();
-    if len == 0 || nth >= len {
-        return;
-    }
-    let mut depth_limit = 2 * (usize::BITS - 1 - len.leading_zeros()) as usize;
-    let mut first = 0usize;
-    let mut last = len;
-    while last - first > 3 {
-        if depth_limit == 0 {
-            heap_select(&mut v[first..last], nth + 1 - first, less);
-            v.swap(first, nth);
-            return;
-        }
-        depth_limit -= 1;
-        let cut = unguarded_partition_pivot(&mut v[first..last], less) + first;
-        if cut <= nth {
-            first = cut;
-        } else {
-            last = cut;
-        }
-    }
-    insertion_sort(&mut v[first..last], less);
-}
-
-/// libstdc++ `__unguarded_partition_pivot`: returns the cut, relative to `v`.
-fn unguarded_partition_pivot<T: Copy>(v: &mut [T], less: &impl Fn(&T, &T) -> bool) -> usize {
-    let last = v.len();
-    let mid = last / 2;
-    move_median_to_first(v, 0, 1, mid, last - 1, less);
-    // `__unguarded_partition(first + 1, last, first)`.
-    let mut lo = 1usize;
-    let mut hi = last;
-    loop {
-        // The source's scan is unguarded: a strict weak order stops it at the
-        // pivot's sentinel. The bound only matters for coordinates that are
-        // not numbers, where the source reads past the range.
-        while lo < last && less(&v[lo], &v[0]) {
-            lo += 1;
-        }
-        hi -= 1;
-        while less(&v[0], &v[hi]) {
-            hi -= 1;
-        }
-        if lo >= hi {
-            return lo;
-        }
-        v.swap(lo, hi);
-        lo += 1;
-    }
-}
-
-/// libstdc++ `__move_median_to_first`.
-fn move_median_to_first<T: Copy>(
-    v: &mut [T],
-    result: usize,
-    a: usize,
-    b: usize,
-    c: usize,
-    less: &impl Fn(&T, &T) -> bool,
-) {
-    let pick = if less(&v[a], &v[b]) {
-        if less(&v[b], &v[c]) {
-            b
-        } else if less(&v[a], &v[c]) {
-            c
-        } else {
-            a
-        }
-    } else if less(&v[a], &v[c]) {
-        a
-    } else if less(&v[b], &v[c]) {
-        c
-    } else {
-        b
-    };
-    v.swap(result, pick);
-}
-
-/// libstdc++ `__insertion_sort` with `__unguarded_linear_insert`.
-fn insertion_sort<T: Copy>(v: &mut [T], less: &impl Fn(&T, &T) -> bool) {
-    for i in 1..v.len() {
-        let value = v[i];
-        if less(&value, &v[0]) {
-            v.copy_within(0..i, 1);
-            v[0] = value;
-        } else {
-            let mut hole = i;
-            while less(&value, &v[hole - 1]) {
-                v[hole] = v[hole - 1];
-                hole -= 1;
-            }
-            v[hole] = value;
-        }
-    }
-}
-
-/// libstdc++ `__heap_select(first, middle, last)`.
-fn heap_select<T: Copy>(v: &mut [T], middle: usize, less: &impl Fn(&T, &T) -> bool) {
-    make_heap(&mut v[..middle], less);
-    for i in middle..v.len() {
-        if less(&v[i], &v[0]) {
-            // `__pop_heap(first, middle, i)`.
-            let value = v[i];
-            v[i] = v[0];
-            adjust_heap(&mut v[..middle], 0, value, less);
-        }
-    }
-}
-
-/// libstdc++ `__make_heap`.
-fn make_heap<T: Copy>(v: &mut [T], less: &impl Fn(&T, &T) -> bool) {
-    let len = v.len();
-    if len < 2 {
-        return;
-    }
-    let mut parent = (len - 2) / 2;
-    loop {
-        let value = v[parent];
-        adjust_heap(v, parent, value, less);
-        if parent == 0 {
-            return;
-        }
-        parent -= 1;
-    }
-}
-
-/// libstdc++ `__adjust_heap` followed by `__push_heap`.
-fn adjust_heap<T: Copy>(v: &mut [T], hole: usize, value: T, less: &impl Fn(&T, &T) -> bool) {
-    let len = v.len();
-    let top = hole;
-    let mut hole = hole;
-    let mut second = hole;
-    while second < (len - 1) / 2 {
-        second = 2 * (second + 1);
-        if less(&v[second], &v[second - 1]) {
-            second -= 1;
-        }
-        v[hole] = v[second];
-        hole = second;
-    }
-    if len % 2 == 0 && second == (len - 2) / 2 {
-        second = 2 * (second + 1);
-        v[hole] = v[second - 1];
-        hole = second - 1;
-    }
-    // `__push_heap(first, hole, top, value)`.
-    while hole > top {
-        let parent = (hole - 1) / 2;
-        if !less(&v[parent], &value) {
-            break;
-        }
-        v[hole] = v[parent];
-        hole = parent;
-    }
-    v[hole] = value;
 }
 
 /// A kd-tree entry: a feature of a [`KDTreeFeatureMaps`] by its global
@@ -718,48 +557,5 @@ impl<'a> KDTreeFeatureMaps<'a> {
         }
         self.rt = rt;
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Tier 4: `nth_element` leaves the `nth` element in its sorted
-    /// position with no greater element before and no smaller one after, for
-    /// every position of several inputs, including the heap-select path
-    /// (forced by a depth limit of zero through a crafted length is not
-    /// reachable, so the invariant is checked on adversarial orders).
-    #[test]
-    fn nth_element_partitions() {
-        let inputs: Vec<Vec<i32>> = vec![
-            vec![5, 1, 4, 2, 3],
-            vec![1, 1, 1, 1, 1, 1, 1],
-            (0..50).rev().collect(),
-            (0..50).map(|i| (i * 37) % 23).collect(),
-            vec![3, 1, 2],
-        ];
-        for input in inputs {
-            let mut sorted = input.clone();
-            sorted.sort();
-            for nth in 0..input.len() {
-                let mut v = input.clone();
-                nth_element(&mut v, nth, &|a: &i32, b: &i32| a < b);
-                assert_eq!(v[nth], sorted[nth]);
-                assert!(v[..nth].iter().all(|x| *x <= v[nth]));
-                assert!(v[nth + 1..].iter().all(|x| *x >= v[nth]));
-            }
-        }
-    }
-
-    #[test]
-    fn heap_select_keeps_smallest() {
-        let mut v: Vec<i32> = vec![9, 3, 7, 1, 8, 2, 6, 4, 5, 0];
-        heap_select(&mut v, 4, &|a: &i32, b: &i32| a < b);
-        let mut head = v[..4].to_vec();
-        head.sort();
-        assert_eq!(head, vec![0, 1, 2, 3]);
-        // A max-heap on the first four: the root is the largest of them.
-        assert_eq!(v[0], 3);
     }
 }

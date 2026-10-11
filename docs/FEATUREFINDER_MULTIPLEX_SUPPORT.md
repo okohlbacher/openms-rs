@@ -21,11 +21,10 @@ TOPP test data `0cb15f2` of the test-data package.
 | `PROCESSING/MISC/SplinePackage.h` (dependency) | `src/processing/spline/spline_package.rs` | complete |
 | `PROCESSING/MISC/SplineInterpolatedPeaks.h` (dependency) | `src/processing/spline/spline_interpolated_peaks.rs` | complete |
 
-`ML/REGRESSION/LinearRegressionWithoutIntercept.h` is used by the algorithm
-and is **not** ported here: its one computation (`sum(x*y) / sum(x*x)`, NaN for
-fewer than two points) is a private helper, `slope_without_intercept`, in
-`algorithm.rs`. When the regression header is ported, that helper should be
-replaced by it.
+`ML/REGRESSION/LinearRegressionWithoutIntercept.h` is used by the algorithm;
+it is ported in `src/math/ml/linear_regression_without_intercept.rs`
+(`docs/LINEAR_REGRESSION_WITHOUT_INTERCEPT_SUPPORT.md`), and the lane's private
+copy of its computation was collapsed onto it at integration.
 
 ## Placement
 
@@ -34,7 +33,7 @@ Everything is `FEATUREFINDER` and needs `kernel`, `chemistry`, `processing`
 and `format` (the debug consensusXML and the ostream number formatting), so
 it lives in `src/analysis/featurefinder/multiplex/`, one file per header except
 that the two satellite headers share `satellite.rs`. `PeakWidthEstimator` is a
-`FEATUREFINDER` header and sits beside it in `src/analysis/featurefinder/`. The
+`FEATUREFINDER` header and sits beside it in `src/analysis/featurefinder/`; lanes FF1 (`docs/FEATUREFINDER_MODELS_SUPPORT.md`) and FF2b ported it in parallel with the same algorithm, and the two copies were collapsed into one at integration (the module's own tests and both lanes' tests run on it). The
 two `PROCESSING/MISC` spline headers depend only on `CubicSpline2d` and the
 kernel, and join the other spline ports in `src/processing/spline/`.
 

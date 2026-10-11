@@ -30,6 +30,7 @@ use crate::kernel::{
     FeatureHandle, FeatureMap, MSChromatogram, MSExperiment, Point2D, SpectrumType,
 };
 use crate::math::ml::clustering::grid_based_cluster::GridBasedCluster;
+use crate::math::ml::linear_regression_without_intercept::LinearRegressionWithoutIntercept;
 use crate::math::source_sort::source_sort_by;
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
@@ -421,20 +422,14 @@ fn less_pattern(p1: &MultiplexIsotopicPeakPattern, p2: &MultiplexIsotopicPeakPat
     }
 }
 
-/// Source `Math::LinearRegressionWithoutIntercept`: the least-squares slope of
-/// a line through the origin, `sum(x*y) / sum(x*x)`, NaN for fewer than two
-/// points. Private to this module: the regression header is not ported here.
+/// `Math::LinearRegressionWithoutIntercept` over the paired intensities
+/// (`addData(x, y)` for the shorter of the two lists, then `getSlope`).
 fn slope_without_intercept(x: &[f64], y: &[f64]) -> f64 {
-    let mut sum_xx = 0.0;
-    let mut sum_xy = 0.0;
+    let mut regression = LinearRegressionWithoutIntercept::new();
     for (&xi, &yi) in x.iter().zip(y) {
-        sum_xx += xi * xi;
-        sum_xy += xi * yi;
+        regression.add_data(xi, yi);
     }
-    if x.len() < 2 {
-        return f64::NAN;
-    }
-    sum_xy / sum_xx
+    regression.slope()
 }
 
 /// The source's `DBoundingBox<2>` of one mass trace, x = RT, y = m/z.

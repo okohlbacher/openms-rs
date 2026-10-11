@@ -1554,6 +1554,83 @@ impl fmt::Display for AASequence {
     }
 }
 
+impl AASequence {
+    /// The order of the source's `AASequence::operator<`, which orders the
+    /// keys of a `std::map<AASequence, ...>`: first by the number of
+    /// residues, then by the N-terminal modification (none before any), then
+    /// residue by residue by one-letter code and modification, and last by
+    /// the C-terminal modification.
+    ///
+    /// The source compares two modifications by **address**, an order that
+    /// follows the allocation of the registry's records. Here a registry
+    /// modification is compared by its record identifier (the registry's
+    /// allocation order), then its full identifier; a mass-only tag, which the
+    /// source allocates while it parses and so after every registry record, by
+    /// its full identifier after all registry modifications. The order is
+    /// total on the sequences it separates and deterministic; two sequences
+    /// it calls equal are the source's equal keys. It is not the native
+    /// [`Ord`], which orders by text.
+    pub fn source_order(&self, other: &Self) -> Ordering {
+        fn modification(
+            left: Option<&SequenceModification>,
+            right: Option<&SequenceModification>,
+        ) -> Ordering {
+            match (left, right) {
+                (None, None) => Ordering::Equal,
+                (None, Some(_)) => Ordering::Less,
+                (Some(_), None) => Ordering::Greater,
+                (Some(a), Some(b)) => {
+                    let key = |m: &SequenceModification| -> (u8, Option<u32>, String) {
+                        match m {
+                            SequenceModification::Known(known) => {
+                                (0, known.record_id(), known.full_id().to_owned())
+                            }
+                            SequenceModification::MassTag(tag) => {
+                                (1, None, tag.full_id.to_string())
+                            }
+                        }
+                    };
+                    key(a).cmp(&key(b))
+                }
+            }
+        }
+        self.len()
+            .cmp(&other.len())
+            .then_with(|| {
+                modification(
+                    self.n_terminal_modification(),
+                    other.n_terminal_modification(),
+                )
+            })
+            .then_with(|| {
+                for (index, (a, b)) in self
+                    .as_str()
+                    .bytes()
+                    .zip(other.as_str().bytes())
+                    .enumerate()
+                {
+                    if a != b {
+                        return a.cmp(&b);
+                    }
+                    let order = modification(
+                        self.residue_modification(index).ok().flatten(),
+                        other.residue_modification(index).ok().flatten(),
+                    );
+                    if order != Ordering::Equal {
+                        return order;
+                    }
+                }
+                Ordering::Equal
+            })
+            .then_with(|| {
+                modification(
+                    self.c_terminal_modification(),
+                    other.c_terminal_modification(),
+                )
+            })
+    }
+}
+
 #[cfg(test)]
 mod parent_parse_budget_tests {
     use super::*;

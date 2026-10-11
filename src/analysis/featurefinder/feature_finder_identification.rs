@@ -56,6 +56,7 @@ use crate::identification::{PeptideHit, PeptideIdentification, ProteinIdentifica
 use crate::kernel::faims_helper::FaimsHelper;
 use crate::kernel::im_data_converter::ImDataConverter;
 use crate::kernel::{Feature, FeatureMap, MSExperiment};
+use crate::math::statistic_functions::median_of_sorted;
 use crate::metadata::{DriftTimeUnit, ImTypes, IonMobilityFormat, MetaInfo, MetaValue};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
@@ -215,68 +216,6 @@ fn rt_map_insert(map: &mut RtMap, rt: f64, index: usize) {
 #[derive(Clone, Debug)]
 struct SequenceKey(AASequence);
 
-fn modification_order(
-    left: Option<&SequenceModification>,
-    right: Option<&SequenceModification>,
-) -> Ordering {
-    match (left, right) {
-        (None, None) => Ordering::Equal,
-        (None, Some(_)) => Ordering::Less,
-        (Some(_), None) => Ordering::Greater,
-        (Some(a), Some(b)) => {
-            // Registry modifications are allocated before any mass-only one,
-            // which the source creates while it parses, so their addresses
-            // order the same way.
-            let key = |m: &SequenceModification| -> (u8, Option<u32>, String) {
-                match m {
-                    SequenceModification::Known(known) => {
-                        (0, known.record_id(), known.full_id().to_owned())
-                    }
-                    SequenceModification::MassTag(tag) => (1, None, tag.full_id().to_owned()),
-                }
-            };
-            key(a).cmp(&key(b))
-        }
-    }
-}
-
-fn source_sequence_cmp(left: &AASequence, right: &AASequence) -> Ordering {
-    left.len()
-        .cmp(&right.len())
-        .then_with(|| {
-            modification_order(
-                left.n_terminal_modification(),
-                right.n_terminal_modification(),
-            )
-        })
-        .then_with(|| {
-            for (index, (a, b)) in left
-                .as_str()
-                .bytes()
-                .zip(right.as_str().bytes())
-                .enumerate()
-            {
-                if a != b {
-                    return a.cmp(&b);
-                }
-                let order = modification_order(
-                    left.residue_modification(index).ok().flatten(),
-                    right.residue_modification(index).ok().flatten(),
-                );
-                if order != Ordering::Equal {
-                    return order;
-                }
-            }
-            Ordering::Equal
-        })
-        .then_with(|| {
-            modification_order(
-                left.c_terminal_modification(),
-                right.c_terminal_modification(),
-            )
-        })
-}
-
 impl PartialEq for SequenceKey {
     fn eq(&self, other: &Self) -> bool {
         self.cmp(other) == Ordering::Equal
@@ -290,7 +229,7 @@ impl PartialOrd for SequenceKey {
 }
 impl Ord for SequenceKey {
     fn cmp(&self, other: &Self) -> Ordering {
-        source_sequence_cmp(&self.0, &other.0)
+        self.0.source_order(&other.0)
     }
 }
 
@@ -409,15 +348,6 @@ fn meta_text(meta: &MetaInfo, key: &str) -> String {
             Ok(text) => text.to_owned(),
             Err(_) => value.to_string(),
         },
-    }
-}
-
-fn median_of_sorted(values: &[f64]) -> f64 {
-    let n = values.len();
-    if n % 2 == 0 {
-        (values[n / 2 - 1] + values[n / 2]) / 2.0
-    } else {
-        values[n / 2]
     }
 }
 

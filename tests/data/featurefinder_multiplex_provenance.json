@@ -472,10 +472,6 @@
   {
    "member": "SplineInterpolatedPeaks::Navigator::Navigator()",
    "reason": "pyOpenMS default constructor with a null package pointer; every call on it is undefined"
-  },
-  {
-   "member": "ML/REGRESSION/LinearRegressionWithoutIntercept.h",
-   "reason": "outside this lane's scope; its one computation is a private helper in algorithm.rs"
   }
  ]
 }

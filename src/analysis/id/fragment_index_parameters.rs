@@ -306,7 +306,7 @@ impl FragmentIndexParameters {
             tags,
         )?;
         p.set_min_int("fragment:min_ion_index", 0)?;
-        let all_mods = all_search_modifications(ModificationsDB::global());
+        let all_mods = ModificationsDB::global().all_search_modifications();
         p.set_value(
             "modifications:fixed",
             ParamValue::StringList(self.modifications_fixed.clone()),
@@ -631,17 +631,4 @@ fn int(value: usize, name: &str) -> Result<ParamValue> {
         .map_err(|_| {
             Error::InvalidValue(format!("'{name}' does not fit the source 32-bit parameter"))
         })
-}
-
-/// Source `ModificationsDB::getAllSearchModifications`: full IDs of records
-/// with a UniMod record ID, sorted case-insensitively, shorter first.
-fn all_search_modifications(database: &ModificationsDB) -> Vec<String> {
-    let mut names: Vec<String> = database
-        .entries()
-        .iter()
-        .filter(|record| record.record_id().is_some_and(|id| id > 0))
-        .map(|record| record.full_id().to_owned())
-        .collect();
-    names.sort_by_cached_key(|name| (name.to_lowercase(), name.len()));
-    names
 }

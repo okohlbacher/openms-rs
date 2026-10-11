@@ -30,7 +30,7 @@ use crate::math::ml::clustering::average_linkage::AverageLinkage;
 use crate::math::ml::clustering::cluster_analyzer::ClusterAnalyzer;
 use crate::math::ml::clustering::cluster_hierarchical::ClusterHierarchical;
 use crate::math::source_sort::source_sort_by;
-use crate::math::statistic_functions::pearson_correlation_coefficient;
+use crate::math::statistic_functions::{median_of_sorted, pearson_correlation_coefficient};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
@@ -426,7 +426,7 @@ impl MapAlignmentAlgorithmTreeGuided {
         generator: &mut UniqueIdGenerator,
     ) -> Result<TreeGuidedAlignment> {
         let (tree, _) = Self::build_tree(feature_maps)?;
-        let newick = ClusterAnalyzer::default().newick_tree(&tree, Some(&to_str_f32))?;
+        let newick = ClusterAnalyzer.newick_tree(&tree, Some(&to_str_f32))?;
         let merges: Vec<TreeMerge> = tree
             .iter()
             .map(|node| (node.left_child, node.right_child))
@@ -609,11 +609,7 @@ fn positional_median(values: &[f64]) -> Result<f64> {
     if size == 0 {
         return Err(Error::InvalidRange("median of an empty range".into()));
     }
-    Ok(if size % 2 == 0 {
-        (values[size / 2 - 1] + values[size / 2]) / 2.0
-    } else {
-        values[(size - 1) / 2]
-    })
+    Ok(median_of_sorted(values))
 }
 
 /// The 10/90 percentile range of a sorted, non-empty list as the source

@@ -554,6 +554,28 @@ impl ModificationsDB {
         &self.entries
     }
 
+    /// Source `ModificationsDB::getAllSearchModifications`: the full IDs of
+    /// the records carrying a UniMod record ID (a positive one), sorted
+    /// case-insensitively with the shorter of two otherwise-equal names
+    /// first. The source's comparator lower-cases character by character and
+    /// falls back to the shorter string; the key used here is the same order
+    /// and a total one, which Rust's sort requires.
+    ///
+    /// This is the list the search engines and the MGF reader draw their
+    /// fixed and variable modification names from; it is not
+    /// [`crate::chemistry::cross_links::CrossLinksDB::all_search_modifications`]'s
+    /// accession-based list.
+    pub fn all_search_modifications(&self) -> Vec<String> {
+        let mut names: Vec<String> = self
+            .entries
+            .iter()
+            .filter(|record| record.record_id().is_some_and(|id| id > 0))
+            .map(|record| record.full_id().to_owned())
+            .collect();
+        names.sort_by_cached_key(|name| (name.to_lowercase(), name.len()));
+        names
+    }
+
     /// Find matching short/full names, full IDs or UniMod accessions.
     /// The UniMod prefix is case-insensitive; names otherwise match exactly.
     pub fn find(

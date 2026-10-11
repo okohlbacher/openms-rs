@@ -13,3 +13,5 @@
 pub mod clustering;
 /// `LinearInterpolation`: linearly interpolated values and derivatives.
 pub mod linear_interpolation;
+/// `LinearRegressionWithoutIntercept`: least-squares slope of a line through the origin.
+pub mod linear_regression_without_intercept;

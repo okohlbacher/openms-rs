@@ -11,8 +11,9 @@
 
 use super::superimposer::{
     BaseSuperimposer, Dump, Histogram, Superimposition, WINDOW_LENGTH_BASELINE, entry, float, g,
-    int, nth_element_by, similarity, string, tree, used_points,
+    int, similarity, string, tree, used_points,
 };
+use crate::math::libstdcxx::nth_element_by;
 use std::sync::atomic::{AtomicI32, Ordering};
 
 /// The source's function-local `static Int dump_buckets_serial` of `run`,
@@ -362,7 +363,7 @@ impl PoseClusteringAffineSuperimposer {
                 // std::nth_element(rbegin, rbegin + (size - limit), rend, IntensityLess)
                 let nth = points.len() - limit;
                 points.reverse();
-                nth_element_by(&mut points, nth, &intensity_less);
+                nth_element_by(&mut points, nth, intensity_less);
                 points.reverse();
                 points.truncate(limit);
             }
