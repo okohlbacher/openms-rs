@@ -20,3 +20,9 @@ pub mod id_score_switcher;
 pub mod needleman_wunsch;
 /// `PeptideProteinResolution`: resolve shared peptides between protein groups.
 pub mod peptide_protein_resolution;
+/// `Percolator.h`: in-process semi-supervised target/decoy rescoring.
+pub mod percolator;
+/// `PercolatorFeatureSetHelper.h`: search-engine Percolator features and multi-engine run merging.
+pub mod percolator_feature_set_helper;
+/// `PercolatorTypes.h`: the in-process Percolator's input, output and model types.
+pub mod percolator_types;

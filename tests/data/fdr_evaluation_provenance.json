@@ -1,0 +1,64 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h",
+   "sha256": "0a736fe4833cee56aee703110fe5be2da14ac83cb4c73cfb53504a7c8c823c73"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/FalseDiscoveryRate.cpp",
+   "sha256": "79983c8b567daca4c4eeee3e55309ecd9819714bf942a095b1d40a65d5e8e1ed",
+   "role": "diffEstimatedEmpirical, the rocN overloads, applyEvaluateProteinIDs and the trapezoid helpers."
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IDScoreGetterSetter.h",
+   "sha256": "45d0fa7d43cffedf6360a9a69d3d6f0fba55a44ab814442a3c7f389746b67989",
+   "role": "getScores_, getTDLabel_ and checkTDAnnotation_ as the evaluation members use them."
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/Utils/MapUtilities.h",
+   "sha256": "c3c46515ae9f0c049369714224290c5f0d7858f9e33b9ed767ffd14f62b25d32",
+   "role": "applyFunctionOnPeptideIDs: feature identifications, then unassigned ones."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/fdr_evaluation_oracle.tsv",
+   "sha256": "d532a79e9435abc1beb0bc73277d1fb9d0345f97dc20b6133f66b262cf6a4a87",
+   "bytes": 81341,
+   "role": "Executed C++ Release output of ../oracle/I2-fdr/driver.cpp (ibminode06, two identical runs): every input and result at %.17g, and the source's log lines."
+  }
+ ],
+ "scope": "The FalseDiscoveryRate.h evaluation members: diffEstimatedEmpirical, rocN (pairs, peptide lists, consensus maps, with and without run identifier), applyEvaluateProteinIDs (three overloads).",
+ "rust_implementation": [
+  "src/analysis/false_discovery_rate.rs"
+ ],
+ "native_tests": [
+  "tests/false_discovery_rate_evaluation.rs"
+ ],
+ "cpp_execution": {
+  "host": "ibminode06",
+  "build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576"
+ },
+ "support_document": "docs/FDR_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I2-fdr/driver.cpp",
+   "sha256": "d47514ec76b70b53421c3b5b587e4ac7cfa6db29b4f13e382fb7faf4e1453348",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-fdr/node.sh",
+   "sha256": "66726d04cb32f1fcfed012b9675d36adaa09d7176c4fe6c4a83e1d7fe04c9c62",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-fdr/run.sh",
+   "sha256": "5cf490806cc8a2a560c7ac3aefb421ac5ccc5c6e4ecb3ca7dced53c73edc9eb2",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The C++ driver lives outside the repository; its output is the committed fixture.",
+ "target_verification": "180 of 180 results bit-identical."
+}

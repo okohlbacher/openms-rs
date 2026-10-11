@@ -277,7 +277,7 @@ fn lane_madd(a: f64, b: f64, accumulator: f64) -> f64 {
 /// Two packet accumulators take four terms per step; they are added lane-wise,
 /// a trailing packet joins lane-wise, the two lanes are added, and any odd term
 /// is added last.
-fn eigen_sum(size: usize, term: impl Fn(usize) -> f64) -> f64 {
+pub(crate) fn eigen_sum(size: usize, term: impl Fn(usize) -> f64) -> f64 {
     let aligned = size / 2 * 2;
     if aligned == 0 {
         return term(0);
@@ -312,7 +312,7 @@ fn eigen_sum(size: usize, term: impl Fn(usize) -> f64) -> f64 {
 
 /// `squaredNorm()` of `size` coefficients (`Dot.h:21-27`): the reduction of
 /// the squares. Zero for an empty vector, as Eigen's `sum()`.
-fn eigen_squared_norm(size: usize, coeff: impl Fn(usize) -> f64) -> f64 {
+pub(crate) fn eigen_squared_norm(size: usize, coeff: impl Fn(usize) -> f64) -> f64 {
     if size == 0 {
         return 0.0;
     }
@@ -329,7 +329,7 @@ fn eigen_squared_norm(size: usize, coeff: impl Fn(usize) -> f64) -> f64 {
 /// them, later packets are multiply-added in, and the accumulators are folded
 /// as `a2 += a3; a1 += a2; a0 += a1` before the two lanes of `a0` are added.
 /// The odd tail is multiply-added one coefficient at a time.
-fn eigen_dot(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) -> f64 {
+pub(crate) fn eigen_dot(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) -> f64 {
     if size == 0 {
         return 0.0;
     }
@@ -395,7 +395,11 @@ fn eigen_dot(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) ->
 /// (`GeneralMatrixVector.h:298-462`): two lanes multiply-added over the
 /// packet-aligned prefix starting from zero, the lanes added, then a scalar
 /// tail. The `1 * cc` scaling and the addition to a zeroed result are exact.
-fn eigen_gemv_row(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) -> f64 {
+pub(crate) fn eigen_gemv_row(
+    size: usize,
+    a: impl Fn(usize) -> f64,
+    b: impl Fn(usize) -> f64,
+) -> f64 {
     let full = size / 2 * 2;
     let (mut lane0, mut lane1) = (0.0f64, 0.0f64);
     let mut j = 0;

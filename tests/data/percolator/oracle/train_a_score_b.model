@@ -1,0 +1,9 @@
+# OpenMS Percolator model file
+format_version: 1
+normalizer: stdv
+seed: 17
+n_features: 2
+bias: -0.96214592660201947
+# features — one 'name<TAB>weight' per line
+signal	0.5402449811123371
+noise	0
