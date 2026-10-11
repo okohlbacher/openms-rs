@@ -38,3 +38,5 @@ pub mod seed_list_generator;
 /// FeatureFinderMultiplex and its building blocks (`FEATUREFINDER/Multiplex*.h`,
 /// `FeatureFinderMultiplexAlgorithm.h`).
 pub mod multiplex;
+/// The Biosaur2 feature detection workflow (`FEATUREFINDER/Biosaur2Algorithm.h`).
+pub mod biosaur2;
