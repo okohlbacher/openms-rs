@@ -33,10 +33,14 @@ pub mod metabo_targeted_target_decoy;
 pub mod mock_objects;
 /// Access-trait implementations over kernel types, from `ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h`.
 pub mod mrm_feature_access;
+/// Flagging and filtering of MRM features against QC bounds, from `ANALYSIS/OPENSWATH/MRMFeatureFilter.h`.
+pub mod mrm_feature_filter;
 /// Per-component and per-component-group picker parameters, from `ANALYSIS/OPENSWATH/MRMFeaturePicker.h`.
 pub mod mrm_feature_picker;
 /// Quality-control bounds for MRM components and component groups, from `ANALYSIS/OPENSWATH/MRMFeatureQC.h`.
 pub mod mrm_feature_qc;
+/// Metavalue conversions shared by the MRM feature modules.
+pub(crate) mod mrm_feature_support;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
 pub mod mrm_mapping;
 /// Cross-correlation, library, S/N and mutual-information scores of SRM/MRM peak groups, from `ANALYSIS/OPENSWATH/MRMScoring.h`.
