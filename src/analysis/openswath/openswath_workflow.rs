@@ -635,6 +635,17 @@ fn select_assigned_transitions(
     used
 }
 
+/// Reborrow an optional mobilogram sink for one call, with the object lifetime
+/// shortened to the borrow (the callee's signature ties the two together).
+fn reborrow_sink<'s>(
+    sink: &'s mut Option<&mut (dyn MobilogramSink + '_)>,
+) -> Option<&'s mut dyn MobilogramSink> {
+    match sink {
+        Some(s) => Some(&mut **s),
+        None => None,
+    }
+}
+
 fn sort_features_by_position(map: &mut FeatureMap) -> Result<()> {
     // `Peak2D::PositionLess` on the feature map, ordered like the Release
     // build's `std::sort`
@@ -812,12 +823,12 @@ impl OpenSwathWorkflow {
         result_feature_file: &mut FeatureMap,
         store_features_in_feature_file: bool,
         result_osw: &OpenSwathOSWWriter,
-        mut result_chromatograms: Option<&mut dyn MSDataConsumer>,
+        mut result_chromatograms: Option<&mut (dyn MSDataConsumer + '_)>,
         batch_size: i32,
         ms1_isotopes: i32,
         load_into_memory: bool,
         mrm_mapping_param: &Param,
-        mut mobilogram_consumer: Option<&mut dyn MobilogramSink>,
+        mut mobilogram_consumer: Option<&mut (dyn MobilogramSink + '_)>,
         inner_batch_size: i32,
         max_concurrent_swaths: i32,
     ) -> Result<()> {
@@ -1139,9 +1150,9 @@ impl OpenSwathWorkflow {
         out_feature_file: &mut FeatureMap,
         store_features: bool,
         osw_writer: &OpenSwathOSWWriter,
-        mut chrom_consumer: Option<&mut dyn MSDataConsumer>,
+        mut chrom_consumer: Option<&mut (dyn MSDataConsumer + '_)>,
         ms1_isotopes: i32,
-        mut mobilogram_consumer: Option<&mut dyn MobilogramSink>,
+        mut mobilogram_consumer: Option<&mut (dyn MobilogramSink + '_)>,
         user_inner_batch_size: i32,
         scheduler_options: &SchedulerOptions,
         estimate: &ConcurrencyEstimate,
@@ -1302,7 +1313,7 @@ impl OpenSwathWorkflow {
                 next_job = chunk_end;
 
                 let run = |entry: &(InnerBatchScoringJob, u64),
-                           mobilogram: Option<&mut dyn MobilogramSink>|
+                           mobilogram: Option<&mut (dyn MobilogramSink + '_)>|
                  -> Result<ScoredJob> {
                     let (job, seed) = entry;
                     let context = &contexts[job.context_index];
@@ -1417,7 +1428,7 @@ impl OpenSwathWorkflow {
         context: &mut SwathContext,
         out_feature_file: &mut FeatureMap,
         store_features: bool,
-        chrom_consumer: Option<&mut dyn MSDataConsumer>,
+        chrom_consumer: Option<&mut (dyn MSDataConsumer + '_)>,
         progress: &mut i64,
     ) -> Result<()> {
         if !context.active || context.finalized {
@@ -1452,11 +1463,11 @@ impl OpenSwathWorkflow {
         out_feature_file: &mut FeatureMap,
         store_features: bool,
         osw_writer: &OpenSwathOSWWriter,
-        mut chrom_consumer: Option<&mut dyn MSDataConsumer>,
+        mut chrom_consumer: Option<&mut (dyn MSDataConsumer + '_)>,
         batch_size_arg: i32,
         ms1_isotopes: i32,
         load_into_memory: bool,
-        mut mobilogram_consumer: Option<&mut dyn MobilogramSink>,
+        mut mobilogram_consumer: Option<&mut (dyn MobilogramSink + '_)>,
         user_inner_batch_size: i32,
         ms1_only: bool,
         estimate: &ConcurrencyEstimate,
@@ -1496,7 +1507,7 @@ impl OpenSwathWorkflow {
             let seeds: Vec<u64> = chunk.iter().map(|_| self.draw_seed()).collect();
             let entries: Vec<(usize, u64)> = chunk.iter().copied().zip(seeds).collect();
             let process = |entry: &(usize, u64),
-                           mut mobilogram: Option<&mut dyn MobilogramSink>|
+                           mut mobilogram: Option<&mut (dyn MobilogramSink + '_)>|
              -> Result<Vec<ScoredBatch>> {
                 let (i, seed) = *entry;
                 if swath_maps[i].ms1 {
@@ -1651,7 +1662,7 @@ impl OpenSwathWorkflow {
         osw_writer: &OpenSwathOSWWriter,
         nr_ms1_isotopes: i32,
         ms1only: bool,
-        mobilogram_consumer: Option<&mut dyn MobilogramSink>,
+        mobilogram_consumer: Option<&mut (dyn MobilogramSink + '_)>,
         deferred_osw_output: Option<&mut OswData>,
     ) -> Result<()> {
         let seed = self.draw_seed();
@@ -1687,7 +1698,7 @@ impl OpenSwathWorkflow {
         osw_writer: &OpenSwathOSWWriter,
         nr_ms1_isotopes: i32,
         ms1only: bool,
-        mut mobilogram_consumer: Option<&mut dyn MobilogramSink>,
+        mut mobilogram_consumer: Option<&mut (dyn MobilogramSink + '_)>,
         deferred_osw_output: Option<&mut OswData>,
         seed: u64,
     ) -> Result<()> {
@@ -1894,7 +1905,7 @@ impl OpenSwathWorkflow {
                 swath_maps,
                 output,
                 ms1only,
-                mobilogram_consumer.as_deref_mut(),
+                reborrow_sink(&mut mobilogram_consumer),
             ) {
                 Ok(()) => {}
                 Err(error) => {
@@ -1973,7 +1984,7 @@ pub fn write_out_features_and_chroms(
     feature_file: &FeatureMap,
     out_feature_file: &mut FeatureMap,
     store_features: bool,
-    chrom_consumer: Option<&mut dyn MSDataConsumer>,
+    chrom_consumer: Option<&mut (dyn MSDataConsumer + '_)>,
 ) -> Result<()> {
     if let Some(consumer) = chrom_consumer {
         'consume: {
