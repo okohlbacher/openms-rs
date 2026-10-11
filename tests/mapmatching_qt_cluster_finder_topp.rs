@@ -4,7 +4,10 @@
 
 //! Evidence tier 1 for `FeatureGroupingAlgorithmQT` and `QTClusterFinder`:
 //! the algorithm path of the upstream `TOPP_FeatureLinkerUnlabeledQT_1`,
-//! `_3`, `_4`, `_5` and `_6` tests, compared with the retained C++ outputs.
+//! `_3`, `_4` and `_6` tests, compared with the retained C++ outputs. `_5` is
+//! compared with the executed Release build in
+//! `mapmatching_qt_tie_order_oracle.rs`; its retained output differs in one tie
+//! (see below).
 //!
 //! Upstream definition: `topp/CMakeLists.txt:2907-2925` at test-data revision
 //! 0cb15f2 runs `FeatureLinkerUnlabeledQT -test` with the case's parameters
@@ -243,25 +246,57 @@ fn topp_feature_linker_unlabeled_qt_4() {
 }
 
 // `TOPP_FeatureLinkerUnlabeledQT_5`: three clusters of exactly equal quality
-// (0.974444) and identical handle keys (every input feature has unique ID 0),
-// so the retained order is the extraction order of the source's
-// `boost::heap::fibonacci_heap` over Boost's hash-ordered grid. It is
-// reproduced since `FibonacciHeap`, the Boost grid order and the libstdc++
-// hash-map orders are emulated (see `docs/FEATURE_GROUPING_SUPPORT.md`).
+// (0.974444) and identical handle keys (every input feature has unique ID 0).
+// The extraction order of the three is the source's `boost::heap::
+// fibonacci_heap` order over Boost's hash-ordered grid, which this port now
+// reproduces; against the *executed* Linux x86_64 Release build it is exact
+// (`mapmatching_qt_tie_order_oracle.rs`, case `topp_qt5`).
+//
+// The retained `FeatureLinkerUnlabeledQT_5_output.consensusXML` is NOT what
+// that build produces. In the middle cluster (RT 300 / 31x / 320) the build
+// takes the map-1 feature at RT 310.1 where the retained file has the one at
+// RT 310.0: two equally near candidates, decided by container order or by
+// another difference of the build that generated the file (what differs there
+// is not established; the retained outputs of this family were not produced by
+// the pinned Linux build). The test below
+// states exactly that difference, with the retained values from the
+// C++-generated file and the executed values from the oracle (the cluster's
+// centroid RT 310.0333.. = (300 + 310.1 + 320) / 3 in `qt_oracle.tsv`): the
+// two outer clusters agree in every handle, the middle cluster differs in the
+// map-1 handle's RT alone.
 #[test]
-fn topp_feature_linker_unlabeled_qt_5() {
+fn topp_feature_linker_unlabeled_qt_5_agrees_with_retained_except_one_tie() {
     let mut param = ini_algorithm("feature_linker_unlabeled_qt_1_parameters.ini");
     set(
         &mut param,
         "distance_RT:max_difference",
         ParamValue::Float(200.0),
     );
-    run(
-        &param,
-        &QT_5,
-        "feature_linker_unlabeled_qt_5_output.consensusXML",
-        "QT_5",
-    );
+    let (mut algorithm, _warnings) =
+        FeatureGroupingAlgorithmQT::from_param_with_warnings(&param).unwrap();
+    let maps: Vec<FeatureMap> = QT_5.iter().map(|f| load(&format!("{DIR}/{f}"))).collect();
+    let mut out = ConsensusMap::new();
+    algorithm.group(&maps, &mut out).unwrap();
+
+    let path = format!("{DIR}/feature_linker_unlabeled_qt_5_output.consensusXML");
+    let text = std::fs::read_to_string(&path).unwrap();
+    let retained = consensusxml::read(text.replace(NULL_DATE, VALID_DATE).as_bytes()).unwrap();
+    assert_eq!(out.len(), 3);
+    assert_eq!(retained.len(), 3);
+    for (index, (produced, expected)) in out.features.iter().zip(&retained.features).enumerate() {
+        let produced_rts: Vec<f64> = produced.handles().iter().map(|h| h.rt).collect();
+        let expected_rts: Vec<f64> = expected.handles().iter().map(|h| h.rt).collect();
+        if index == 1 {
+            assert_eq!(expected_rts, vec![300.0, 310.0, 320.0], "retained");
+            assert_eq!(produced_rts, vec![300.0, 310.1, 320.0], "executed build");
+        } else {
+            assert_eq!(produced_rts, expected_rts, "consensus feature {index}");
+        }
+        assert!(
+            (f64::from(produced.quality) - f64::from(expected.quality)).abs() < 5e-6,
+            "quality {index}"
+        );
+    }
 }
 
 #[test]

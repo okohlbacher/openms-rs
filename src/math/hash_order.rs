@@ -37,7 +37,7 @@
 //! `tests/hash_order_oracle.rs`).
 //!
 //! The reproductions model the *order*, not a general-purpose container: they
-//! keep keys and (for [`StdHashMap`]) values, and lookups go through the
+//! keep keys and (for `StdHashMap`) values, and lookups go through the
 //! bucket structure like the original, so a lookup is as fast as a hash
 //! lookup.
 
