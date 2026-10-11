@@ -820,6 +820,120 @@ fn coerce_array(array: &ArrayRef) -> Result<Option<ArrayRef>> {
     }
 }
 
+/// `array` rebuilt so that its nested field names are those of `target`.
+///
+/// `arrow::ConcatenateTables` accepts tables whose schemas are
+/// `Schema::Equals`-equal without metadata, and Arrow C++ compares a list's
+/// element field by nullability and type only, so `list<item: int32>` and
+/// `list<element: int32>` concatenate (measured on the Release build,
+/// `../oracle/integ-F-concat`; the result takes the first table's spelling).
+/// arrow-rs's concatenation and `RecordBatch::try_new` compare the element
+/// name as well, so a table that is equal for Arrow C++ is retyped to the
+/// first table's spelling before it is concatenated. Only lists and structs
+/// are rebuilt; every other array is returned as it is, and a type that
+/// differs beyond a nested name is left for the caller's equality check to
+/// have refused.
+fn conform_array(array: &ArrayRef, target: &DataType) -> Result<ArrayRef> {
+    use arrow_array::{FixedSizeListArray, StructArray};
+    use std::sync::Arc;
+    if array.data_type() == target {
+        return Ok(array.clone());
+    }
+    let fail = |error: ArrowError| {
+        Error::InvalidValue(format!("Failed to match nested field names: {error}"))
+    };
+    match (array.data_type(), target) {
+        (DataType::List(_), DataType::List(field)) => {
+            let list = array.as_list::<i32>();
+            let values = conform_array(list.values(), field.data_type())?;
+            arrow_array::ListArray::try_new(
+                field.clone(),
+                list.offsets().clone(),
+                values,
+                list.nulls().cloned(),
+            )
+            .map(|array| Arc::new(array) as ArrayRef)
+            .map_err(fail)
+        }
+        (DataType::LargeList(_), DataType::LargeList(field)) => {
+            let list = array.as_list::<i64>();
+            let values = conform_array(list.values(), field.data_type())?;
+            arrow_array::LargeListArray::try_new(
+                field.clone(),
+                list.offsets().clone(),
+                values,
+                list.nulls().cloned(),
+            )
+            .map(|array| Arc::new(array) as ArrayRef)
+            .map_err(fail)
+        }
+        (DataType::FixedSizeList(_, _), DataType::FixedSizeList(field, size)) => {
+            let fixed = array.as_fixed_size_list();
+            let values = conform_array(fixed.values(), field.data_type())?;
+            FixedSizeListArray::try_new(field.clone(), *size, values, fixed.nulls().cloned())
+                .map(|array| Arc::new(array) as ArrayRef)
+                .map_err(fail)
+        }
+        (DataType::Struct(_), DataType::Struct(fields)) => {
+            let strukt = array.as_struct();
+            if strukt.num_columns() != fields.len() {
+                return Ok(array.clone());
+            }
+            let children = strukt
+                .columns()
+                .iter()
+                .zip(fields.iter())
+                .map(|(child, field)| conform_array(child, field.data_type()))
+                .collect::<Result<Vec<_>>>()?;
+            StructArray::try_new(fields.clone(), children, strukt.nulls().cloned())
+                .map(|array| Arc::new(array) as ArrayRef)
+                .map_err(fail)
+        }
+        _ => Ok(array.clone()),
+    }
+}
+
+/// `table` with its columns retyped to the spelling of `schema`'s nested field
+/// names (see [`conform_array`]); the table is returned as it is when every
+/// column already has the target type.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] when the table has a different number of columns
+/// than `schema` or a nested array cannot be rebuilt.
+pub(crate) fn conform_to_schema(
+    table: &RecordBatch,
+    schema: &arrow_schema::SchemaRef,
+) -> Result<RecordBatch> {
+    if table.num_columns() != schema.fields().len() {
+        return Err(Error::InvalidValue(format!(
+            "A table of {} columns cannot take a schema of {} fields",
+            table.num_columns(),
+            schema.fields().len()
+        )));
+    }
+    if table
+        .columns()
+        .iter()
+        .zip(schema.fields().iter())
+        .all(|(column, field)| column.data_type() == field.data_type())
+    {
+        return Ok(table.clone());
+    }
+    let columns = table
+        .columns()
+        .iter()
+        .zip(schema.fields().iter())
+        .map(|(column, field)| conform_array(column, field.data_type()))
+        .collect::<Result<Vec<_>>>()?;
+    RecordBatch::try_new_with_options(
+        schema.clone(),
+        columns,
+        &arrow_array::RecordBatchOptions::new().with_row_count(Some(table.num_rows())),
+    )
+    .map_err(|error| Error::InvalidValue(format!("Failed to match nested field names: {error}")))
+}
+
 /// The type with every `timestamp[s]`, at any list or struct depth, turned
 /// into `timestamp[ms]`; `None` when it has none.
 fn millisecond_type(data_type: &DataType) -> Option<DataType> {

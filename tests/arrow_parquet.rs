@@ -18,6 +18,12 @@
 //! `*.parquet` files beside them were written by the executed library. See
 //! `tests/data/arrow_parquet_provenance.json`. Each test names the records
 //! it reads; a record a test cannot reproduce by construction says why.
+//!
+//! `cpp_release_concat_records.tsv` (sha256
+//! `fd644358cbaeab4585ebb75a73f539d41dd2763424cfca47471663211b73a513`, run twice on
+//! ibminode06, `../oracle/integ-F-concat`) records `arrow::ConcatenateTables`
+//! and `concatenateAndWriteToParquet` over tables whose list element fields
+//! are spelled differently.
 
 use arrow_array::builder::{Int32Builder, ListBuilder};
 use arrow_array::cast::AsArray;
@@ -44,6 +50,7 @@ use std::sync::Arc;
 
 const RECORDS: &str = include_str!("data/arrow_parquet/cpp_release_records.tsv");
 const RECORDS_2: &str = include_str!("data/arrow_parquet/cpp_release_records_2.tsv");
+const RECORDS_CONCAT: &str = include_str!("data/arrow_parquet/cpp_release_concat_records.tsv");
 
 fn data(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1248,6 +1255,126 @@ fn concatenate_and_write_to_parquet_matches_the_release_build() {
     assert_eq!(
         aio::table_row_count(Some(&small_table(5))).to_string(),
         rec("tableRowCount", "five")
+    );
+}
+
+/// The first record of the concatenation records under `kind` and `key`.
+///
+/// This driver prints Arrow's multi-line `Status` texts raw, so a line without
+/// two tabs continues the previous record's value and is skipped here; the
+/// single-line records this test reads are unaffected.
+fn rec_concat(kind: &str, key: &str) -> String {
+    RECORDS_CONCAT
+        .lines()
+        .filter_map(|line| {
+            let mut parts = line.splitn(3, '\t');
+            Some((parts.next()?, parts.next()?, parts.next()?))
+        })
+        .find(|(k, key2, _)| *k == kind && *key2 == key)
+        .map(|(_, _, value)| value.to_owned())
+        .unwrap_or_else(|| panic!("no record {kind}\t{key}"))
+}
+
+/// Records `list ...`, `struct child name` and
+/// `concatenateAndWriteToParquet ...` of the concatenation oracle: tables
+/// whose schemas differ in a list's element *name* are equal for Arrow C++'s
+/// `Schema::Equals(check_metadata = false)` and concatenate, the result
+/// keeping the first table's spelling; a different element nullability or a
+/// different struct child name is not equal and does not.
+#[test]
+fn concatenation_follows_schema_equality_for_nested_names() {
+    fn list_table(element: &str, nullable: bool, values: &[i32]) -> RecordBatch {
+        let mut builder = ListBuilder::new(Int32Builder::new()).with_field(Arc::new(Field::new(
+            element,
+            DataType::Int32,
+            nullable,
+        )));
+        for value in values {
+            builder.values().append_value(*value);
+            builder.append(true);
+        }
+        RecordBatch::try_from_iter([("v", Arc::new(builder.finish()) as ArrayRef)]).unwrap()
+    }
+    fn struct_table(child: &str, values: &[i32]) -> RecordBatch {
+        let fields = Fields::from(vec![Field::new(child, DataType::Int32, true)]);
+        let array = StructArray::new(
+            fields,
+            vec![Arc::new(Int32Array::from(values.to_vec())) as ArrayRef],
+            None,
+        );
+        RecordBatch::try_from_iter([("s", Arc::new(array) as ArrayRef)]).unwrap()
+    }
+    let dir = scratch("concat_nested");
+    let config = ParquetWriteConfig::default();
+    // (record name, first table, second table), the driver's rows in order.
+    let cases = [
+        (
+            "list item+element",
+            list_table("item", true, &[1, 2]),
+            list_table("element", true, &[3]),
+        ),
+        (
+            "list element+item",
+            list_table("element", true, &[1]),
+            list_table("item", true, &[2, 3]),
+        ),
+        (
+            "list item+item",
+            list_table("item", true, &[1]),
+            list_table("item", true, &[2]),
+        ),
+        (
+            "list element nullability",
+            list_table("item", true, &[1]),
+            list_table("item", false, &[2]),
+        ),
+        (
+            "list other name",
+            list_table("item", true, &[1]),
+            list_table("value", true, &[2]),
+        ),
+        (
+            "struct child name",
+            struct_table("a", &[1]),
+            struct_table("b", &[2]),
+        ),
+    ];
+    for (name, x, y) in cases {
+        let equal = rec_concat(name, "schema_equals_no_metadata") == "true";
+        assert_eq!(
+            validation::schemas_equal(&x.schema(), &y.schema()),
+            equal,
+            "{name}: Schema::Equals"
+        );
+        let accepted = rec_concat(name, "ConcatenateTables_ok") == "true";
+        assert_eq!(accepted, equal, "{name}: the driver's own consistency");
+        let path = dir.join(format!("{}.parquet", name.replace([' ', '+'], "_")));
+        let written =
+            aio::concatenate_and_write_to_parquet(&[x.clone(), y.clone()], &path, &config, None);
+        assert_eq!(written.is_ok(), accepted, "{name}: {written:?}");
+        if accepted {
+            let back = ParquetFile::read_table(&path).unwrap();
+            assert_eq!(
+                back.num_rows().to_string(),
+                rec_concat(name, "combined_rows"),
+                "{name}: rows"
+            );
+            assert_eq!(back.num_rows(), x.num_rows() + y.num_rows(), "{name}");
+        } else {
+            assert!(!path.exists(), "{name}: a refusal writes nothing");
+        }
+    }
+    // The OpenMS writer over the item/element pair, as the driver recorded it:
+    // three rows, and the Parquet file spells the element `element` because
+    // `writeTableToParquet` stores no Arrow schema.
+    assert_eq!(
+        rec_concat("concatenateAndWriteToParquet", "item+element"),
+        "true"
+    );
+    assert_eq!(rec_concat("concatenateAndWriteToParquet", "rowCount"), "3");
+    assert_eq!(
+        rec_concat("concatenateAndWriteToParquet", "read_schema"),
+        "v: list<element: int32>"
     );
 }
 

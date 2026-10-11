@@ -270,6 +270,23 @@ pub mod validation {
         }
     }
 
+    /// Whether two schemas are equal as Arrow C++
+    /// `Schema::Equals(other, check_metadata = false)` decides it: the same
+    /// field names, types (by [`types_equal`], so a list's element *name* is
+    /// not compared) and nullability, in order. Schema and field metadata are
+    /// never compared.
+    ///
+    /// This is the test `arrow::ConcatenateTables` applies, which both
+    /// `concatenateAndWriteToParquet` and `readParquetTable` rely on.
+    pub fn schemas_equal(a: &Schema, b: &Schema) -> bool {
+        a.fields().len() == b.fields().len()
+            && a.fields().iter().zip(b.fields().iter()).all(|(x, y)| {
+                x.name() == y.name()
+                    && x.is_nullable() == y.is_nullable()
+                    && types_equal(x.data_type(), y.data_type())
+            })
+    }
+
     /// An Arrow type spelled as Arrow C++ `DataType::ToString()` spells it.
     ///
     /// Native helper for the validation messages, which the source builds

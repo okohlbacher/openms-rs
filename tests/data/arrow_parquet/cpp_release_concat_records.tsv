@@ -1,0 +1,62 @@
+list item+element	schema_x	v: list<item: int32>
+list item+element	schema_y	v: list<element: int32>
+list item+element	schema_equals_no_metadata	true
+list item+element	ConcatenateTables_ok	true
+list item+element	concat_rows	3
+list item+element	concat_schema	v: list<item: int32>
+list item+element	CombineChunks_ok	true
+list item+element	combined_rows	3
+list item+element	combined_chunks	1
+list item+element	combined_schema	v: list<item: int32>
+list element+item	schema_x	v: list<element: int32>
+list element+item	schema_y	v: list<item: int32>
+list element+item	schema_equals_no_metadata	true
+list element+item	ConcatenateTables_ok	true
+list element+item	concat_rows	3
+list element+item	concat_schema	v: list<element: int32>
+list element+item	CombineChunks_ok	true
+list element+item	combined_rows	3
+list element+item	combined_chunks	1
+list element+item	combined_schema	v: list<element: int32>
+list item+item	schema_x	v: list<item: int32>
+list item+item	schema_y	v: list<item: int32>
+list item+item	schema_equals_no_metadata	true
+list item+item	ConcatenateTables_ok	true
+list item+item	concat_rows	2
+list item+item	concat_schema	v: list<item: int32>
+list item+item	CombineChunks_ok	true
+list item+item	combined_rows	2
+list item+item	combined_chunks	1
+list item+item	combined_schema	v: list<item: int32>
+list element nullability	schema_x	v: list<item: int32>
+list element nullability	schema_y	v: list<item: int32 not null>
+list element nullability	schema_equals_no_metadata	false
+list element nullability	ConcatenateTables_ok	false
+list element nullability	ConcatenateTables_status	Invalid: Schema at index 1 was different: 
+v: list<item: int32>
+vs
+v: list<item: int32 not null>
+list other name	schema_x	v: list<item: int32>
+list other name	schema_y	v: list<value: int32>
+list other name	schema_equals_no_metadata	true
+list other name	ConcatenateTables_ok	true
+list other name	concat_rows	2
+list other name	concat_schema	v: list<item: int32>
+list other name	CombineChunks_ok	true
+list other name	combined_rows	2
+list other name	combined_chunks	1
+list other name	combined_schema	v: list<item: int32>
+struct child name	schema_x	s: struct<a: int32>
+struct child name	schema_y	s: struct<b: int32>
+struct child name	schema_equals_no_metadata	false
+struct child name	ConcatenateTables_ok	false
+struct child name	ConcatenateTables_status	Invalid: Schema at index 1 was different: 
+s: struct<a: int32>
+vs
+s: struct<b: int32>
+concatenateAndWriteToParquet	item+element	true
+concatenateAndWriteToParquet	rowCount	3
+concatenateAndWriteToParquet	read_schema	v: list<element: int32>
+concatenateAndWriteToParquet	read_rows	3
+concatenateAndWriteToParquet	nullability mismatch	false
+done	done	done

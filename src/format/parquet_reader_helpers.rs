@@ -45,6 +45,7 @@
 //! `Exception::ConversionError`, reported here as [`Error::InvalidValue`] with
 //! the source's message).
 
+use crate::format::arrow_schema_registry::validation::schemas_equal;
 use crate::format::numpress_coder::{
     self as codec, NumpressCoderLimits, NumpressCompression, Work,
 };
@@ -198,18 +199,6 @@ pub(crate) fn require_files(filenames: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-/// Two schemas are equal as Arrow C++'s `Schema::Equals(other,
-/// check_metadata=false)` sees them: same field names, types and
-/// nullability, in order.
-fn schemas_equal(a: &Schema, b: &Schema) -> bool {
-    a.fields().len() == b.fields().len()
-        && a.fields().iter().zip(b.fields().iter()).all(|(x, y)| {
-            x.name() == y.name()
-                && x.data_type() == y.data_type()
-                && x.is_nullable() == y.is_nullable()
-        })
-}
-
 /// `readParquetTable(filenames)` / `readParquetTableColumns(filenames,
 /// columns)`: every file read (`columns` projects), then concatenated.
 ///
@@ -251,10 +240,13 @@ pub(crate) fn read_tables(
             ));
         }
     }
+    // The tables are equal for Arrow C++ (`schemas_equal`), which ignores a
+    // list's element name; they take the first table's spelling, as the
+    // source's result does.
     let batches: Vec<RecordBatch> = tables
-        .into_iter()
-        .map(|table| RecordBatch::try_new(first.clone(), table.columns().to_vec()))
-        .collect::<std::result::Result<_, _>>()
+        .iter()
+        .map(|table| parquet_file::conform_to_schema(table, &first))
+        .collect::<Result<_>>()
         .map_err(|error| {
             Error::InvalidValue(format!("Failed to concatenate parquet tables: {error}"))
         })?;
@@ -1345,6 +1337,82 @@ pub(crate) fn owned_paths<P: AsRef<Path>>(filenames: &[P]) -> Vec<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// `readParquetTable` concatenates with `arrow::ConcatenateTables`, whose
+    /// schema test is `Schema::Equals(other, check_metadata = false)`: Arrow
+    /// C++ compares a list's element field by nullability and type, not by
+    /// name (the Release record `list item vs element` of
+    /// `tests/data/arrow_parquet/cpp_release_records.tsv`). Two files whose
+    /// list columns are spelled `item` and `element`, as two Parquet writers
+    /// spell them, therefore read as one table.
+    #[test]
+    fn files_that_spell_a_list_element_differently_concatenate() {
+        use arrow_array::builder::{Int32Builder, ListBuilder};
+        use arrow_schema::Field;
+        use std::sync::Arc;
+
+        fn table(element_name: &str, values: &[i32]) -> RecordBatch {
+            let mut builder = ListBuilder::new(Int32Builder::new())
+                .with_field(Arc::new(Field::new(element_name, DataType::Int32, true)));
+            for value in values {
+                builder.values().append_value(*value);
+                builder.append(true);
+            }
+            RecordBatch::try_from_iter([("v", Arc::new(builder.finish()) as ArrayRef)])
+                .expect("one list column")
+        }
+
+        let dir =
+            std::env::temp_dir().join(format!("openms-reader-helpers-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("scratch directory");
+        let first = dir.join("item.parquet");
+        let second = dir.join("element.parquet");
+        // `write_table` stores no Arrow schema, so a reader sees the Parquet
+        // spelling `element`; a plain `ArrowWriter` embeds the schema, which
+        // keeps the `item` of arrow-rs's list constructors.
+        parquet_file::ParquetFile::write_table(&table("element", &[1, 2]), &second)
+            .expect("write element file");
+        let item_table = table("item", &[3]);
+        let mut writer = parquet::arrow::ArrowWriter::try_new(
+            std::fs::File::create(&first).expect("create item file"),
+            item_table.schema(),
+            None,
+        )
+        .expect("arrow writer");
+        writer.write(&item_table).expect("write item rows");
+        writer.close().expect("close item file");
+        let names: Vec<String> = [&first, &second]
+            .iter()
+            .map(|path| {
+                let schema = parquet_file::read_file_schema(path).expect("schema");
+                match schema.field(0).data_type() {
+                    DataType::List(field) => field.name().clone(),
+                    other => panic!("not a list: {other}"),
+                }
+            })
+            .collect();
+        assert_eq!(names, ["item", "element"], "the two writers must differ");
+        // arrow-rs's own `==` tells the two spellings apart, which is what this
+        // module's schema test used before it shared `schemas_equal`.
+        let item_type = parquet_file::read_file_schema(&first).expect("schema");
+        let element_type = parquet_file::read_file_schema(&second).expect("schema");
+        assert_ne!(
+            item_type.field(0).data_type(),
+            element_type.field(0).data_type()
+        );
+        assert!(schemas_equal(&item_type, &element_type));
+
+        let both = read_tables(
+            &[first.clone(), second.clone()],
+            None,
+            &ReaderLimits::default(),
+        )
+        .expect("schemas are equal for Arrow C++");
+        assert_eq!(both.num_rows(), 3);
+        let schema = read_schema_all_files(&[first, second]).expect("schemas agree");
+        assert_eq!(schema.fields().len(), 1);
+        std::fs::remove_dir_all(&dir).ok();
+    }
 
     #[test]
     fn tokenizer_and_parser_follow_the_source_grammar() {

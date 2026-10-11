@@ -169,6 +169,22 @@ bundle's definitions process-wide when a later table fails.
   `timestamp[s]`, restores `large_string` from the stored schema, and keeps
   the schema metadata (`ARROW:schema` removed), all as the source's reader
   does (measured on the C++-written files).
+* **Concatenation.** `concatenateAndWriteToParquet` (and the OpenSWATH
+  readers' `readParquetTable`) hand their tables to `arrow::ConcatenateTables`,
+  whose schema test is `Schema::Equals(check_metadata = false)`. That test
+  compares a list's element field by nullability and type, not by name, and
+  struct children by name, nullability and type: `list<item: int32>` and
+  `list<element: int32>` concatenate, the result keeps the first table's
+  spelling, while a different element nullability or struct child name is
+  refused with `Schema at index 1 was different` (measured, six cases,
+  `../oracle/integ-F-concat`, `tests/data/arrow_parquet/cpp_release_concat_records.tsv`).
+  `validation::schemas_equal` is that test; arrow-rs's own `DataType`
+  equality and `RecordBatch::try_new` compare the element name too, so the
+  tables are retyped to the first table's spelling before they are
+  concatenated (`parquet_file::conform_to_schema`). Wave-4 integration found
+  the OpenSWATH readers testing with arrow-rs's `==` and so refusing two
+  files that differ only in that spelling, as two Parquet writers produce
+  them.
 * **`readMetaValues`** converts `int` with `std::stoll` and `double`/`float`
   with glibc `strtod` semantics: prefix parsing, hexadecimal floats,
   `inf`/`infinity`/`nan(...)`, and `ERANGE` for overflow and for an inexact

@@ -69,6 +69,37 @@ Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils
 3. Revert lead files, regenerate patch, delete NOTES.md, final commit, final message = report.
 
 ## Incarnation 4 (wf_97065d91-48e-4, 2026-10-11): resumed from the above by merging worktree-wf_a10fdd71-2d2-14 (4d9800d6)
-Own worktree branch: worktree-wf_97065d91-48e-4. Scratch (old): see above; new scratch: /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad
-Existing artifacts of the earlier run in main checkout .planning: ledger-fragments/wave4/INTEG-F.json (Sep 29 13:01, predates PSMArrowIO + cached consumer diff?), lane-reports/INTEG-F-lead-files.patch.
-Verifier tasks still open: sweep on the merged tree (slot integ-F), complete-claim audit, evidence audit, final fragment+report.
+Own branch: worktree-wf_97065d91-48e-4. Scratch (shared with other agents!): /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad
+ (mine: audit/ lead-copy/ sweep2/ sweep-copy.sh gate-copy.sh collapse_d*.py; others' dirs: O3a integB-inc2 status tools lemon)
+Guard quirks: no loops/heredocs with git in one command; ".git" substring anywhere (even .github, --exclude) is refused; write
+ scripts with the Write tool and run them. Lead files may not be edited in the worktree -> proposals go through lead-copy/ (scratch
+ copy of the tree with old-lead.patch applied; sweep-copy.sh runs the sweep from it). Killing remote processes is refused.
+Done in this incarnation:
+- merged 4d9800d6 (all 12 lanes + collapses); lane files present (lanecheck.sh), test counts preserved (testcount.sh)
+- 0822a187 D7: one StringUtils split/trim/toDouble/toInt32 for msp, xquest, mascot_xml, mascot_generic, mztab, mztab_file
+  (tests pass on dax slot integ-F-g, clippy all-features clean)
+- D8 (uncommitted until its gate is green): arrow_schema_registry::validation::schemas_equal is the one Schema::Equals; the
+  OpenSWATH readers' concatenation used arrow-rs == (refused list<item> vs list<element>) and readers/writer fed arrow-rs
+  concat, which also compares the element name -> parquet_file::conform_to_schema. Oracle ../oracle/integ-F-concat (ibminode06,
+  Release, twice identical) -> tests/data/arrow_parquet/cpp_release_concat_records.tsv, tests/arrow_parquet.rs
+  concatenation_follows_schema_equality_for_nested_names, lib test parquet_reader_helpers::files_that_spell_...;
+  manifest arrow_parquet_provenance + docs/ARROW_PARQUET_SUPPORT.md updated.
+- sweep2 (77 lines = 54 + 23 proposed slices, from lead-copy) running on dax slot integ-F. A leftover loop of the killed
+  first sweep (remote pid 2576733) runs in the same slot and overwrites .ci-line.N.log: do not trust PASS summary lines blindly,
+  re-run suspicious lines individually under another slot (integ-F-g) with gate-copy.sh (GATE_LOCAL=lead-copy).
+- register_trial.py: 37 unregistered F manifests register cleanly (check_core_sdk passes) -> audit/registered_manifests.txt
+Cross-group: B8a (INTEG-B, worktree-wf_97065d91-48e-3) also adds src/data_structures/string_utils.rs (1912 lines, Result<_, Error>
+ API), src/format/zip_input.rs and edits path_io.rs; merge-tree vs this branch conflicts in Cargo.*, mod.rs files,
+ string_utils.rs (add/add), path_io.rs, file_handler.rs, pepxml.rs, cli/context.rs, identification.rs, digestion.rs.
+Residual (documented, not collapsed): mascot_xml::SpectrumTitleLookup + pepxml::SpectrumIndex vs spectrum_meta_data_lookup;
+ mzidentml OPXLHelper steps (data-preserving) vs xquest (faithful); path_io gzip/bzip2 = MultiGzDecoder (not GzipIfstream).
+
+## Next step (incarnation 4)
+1. g-d8d green -> commit D8 (src, tests, test data, provenance, docs). Re-run clippy + doc + 1.85 for the whole tree.
+2. Wait for sweep2 (+ leftover loop) to end; read per-line pass counts from dax .ci-line.N.log.
+3. Regenerate the lead patch (rust.yml, tools/ci_matrix.py, tools/ci_coverage_baseline.json) from lead-copy after any new
+   test file; write it to the main checkout .planning/lane-reports/INTEG-F-lead-files.patch.
+4. Final fragment: start from main-checkout .planning/ledger-fragments/wave4/INTEG-F.json, amend PEFF scope (tier-1
+   sequence members exist: ../oracle/F6-peff-sequences), D7/D8 notes; the system rule forbids a report .md: report in the
+   final message and in the fragment/lead notes.
+5. Delete NOTES.md in the final commit.

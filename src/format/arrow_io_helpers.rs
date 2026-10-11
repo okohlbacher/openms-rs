@@ -34,7 +34,7 @@
 use crate::data_structures::datetime::DateTime;
 use crate::data_structures::list;
 use crate::data_structures::string_utils;
-use crate::format::arrow_schema_registry::validation::types_equal;
+use crate::format::arrow_schema_registry::validation::schemas_equal;
 use crate::format::parquet_file::{encode, publish, writer_properties};
 use crate::format::percolator_infile::ScanNumberPattern;
 use crate::format::qpx_value_validation::{QpxValueValidation, View};
@@ -401,18 +401,6 @@ pub fn write_table_to_parquet(
     publish(filename, &bytes)
 }
 
-/// Whether two schemas are equal as Arrow C++'s
-/// `Schema::Equals(other, check_metadata = false)` decides it: the same
-/// field names, types (by [`types_equal`]) and nullability, in order.
-fn schemas_equal(a: &Schema, b: &Schema) -> bool {
-    a.fields().len() == b.fields().len()
-        && a.fields().iter().zip(b.fields().iter()).all(|(x, y)| {
-            x.name() == y.name()
-                && x.is_nullable() == y.is_nullable()
-                && types_equal(x.data_type(), y.data_type())
-        })
-}
-
 /// Concatenate tables that share a schema and write the result to one
 /// Parquet file.
 ///
@@ -449,7 +437,20 @@ pub fn concatenate_and_write_to_parquet(
             )));
         }
     }
-    let combined = arrow_select::concat::concat_batches(&schema, tables).map_err(|error| {
+    // Equal for Arrow C++ includes a different spelling of a list's element
+    // field; the result takes the first table's (measured,
+    // `../oracle/integ-F-concat`).
+    let conformed = tables
+        .iter()
+        .map(|table| crate::format::parquet_file::conform_to_schema(table, &schema))
+        .collect::<Result<Vec<_>>>()
+        .map_err(|error| {
+            Error::InvalidValue(format!(
+                "ArrowIOHelpers: Failed to concatenate tables for {}: {error}",
+                filename.display()
+            ))
+        })?;
+    let combined = arrow_select::concat::concat_batches(&schema, &conformed).map_err(|error| {
         Error::InvalidValue(format!(
             "ArrowIOHelpers: Failed to concatenate tables for {}: {error}",
             filename.display()

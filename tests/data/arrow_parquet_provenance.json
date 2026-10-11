@@ -417,6 +417,11 @@
    "path": "tests/data/psm_arrow_io/export_multirank/search_params.parquet",
    "sha256": "da8fc3e60129896dbd75198c9d2f4c5e9f1e38d4a4212dfe9bc89f255b3b8ee9",
    "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_concat_records.tsv",
+   "sha256": "fd644358cbaeab4585ebb75a73f539d41dd2763424cfca47471663211b73a513",
+   "kind": "records of the executed Release build, concatenation oracle (../oracle/integ-F-concat): arrow::ConcatenateTables and concatenateAndWriteToParquet over list element spellings; ibminode06, Linux x86_64 Release, run twice, identical"
   }
  ],
  "native_implementation": [
@@ -620,6 +625,48 @@
   {
    "path": "../oracle/integ-F-psmarrowio/results/stderr.txt",
    "sha256": "1237d26452494e9a7cbbb0b57cbfd786de805884a16b40b73dbb18c921d9ab74",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/driver.cpp",
+   "sha256": "0048644a451783ae1601f1ac5628d445eca2ff1ec8587f256d9a54322a693a37",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/node.sh",
+   "sha256": "9d3e694464d225c580e64dc7478423e51ba438e0dc9213fd83ded264b14bd7b7",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/run.sh",
+   "sha256": "da89146f3de6c3ccb791e235da985a17fe5cbe38fa66483eafbde9471e67800b",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/records.tsv",
+   "sha256": "fd644358cbaeab4585ebb75a73f539d41dd2763424cfca47471663211b73a513",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/hashes.txt",
+   "sha256": "ffa962c7ee848ccda35e68b5d9cdac8ff0975041872d84c8c999f7afd2e9a559",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/stderr.txt",
+   "sha256": "5fe6ac760c0d7fd8b4041caeaf7419105f03cb4960b1f655084f74333ad1b7ab",
    "location": "outside this repository",
    "origin_key": "reference_tools"
   }
