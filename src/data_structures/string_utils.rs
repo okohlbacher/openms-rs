@@ -124,7 +124,7 @@ pub const WRITTEN_DIGITS_F32: u32 = 6;
 pub const WRITTEN_DIGITS_F64: u32 = 15;
 
 /// Fraction digits of the low-precision `toStr(x, false)` and `appendToStrLowP`.
-const LOW_PRECISION_DIGITS: u32 = 3;
+const LOW_PRECISION_DIGITS: usize = 3;
 
 /// Native ceiling, in bytes, of any text a function here builds that can grow
 /// beyond its input. The source has none.
@@ -641,7 +641,7 @@ pub fn skip_non_whitespace(text: &str) -> usize {
 /// ```
 pub fn to_str(value: f64) -> String {
     let mut text = String::new();
-    append_numeric_f64(value, &mut text, WRITTEN_DIGITS_F64, false);
+    append_numeric_f64(value, &mut text, WRITTEN_DIGITS_F64 as usize, false);
     text
 }
 
@@ -665,7 +665,7 @@ pub fn to_str(value: f64) -> String {
 /// ```
 pub fn to_str_f32(value: f32) -> String {
     let mut text = String::new();
-    append_numeric_f32(value, &mut text, WRITTEN_DIGITS_F32, false);
+    append_numeric_f32(value, &mut text, WRITTEN_DIGITS_F32 as usize, false);
     text
 }
 
@@ -766,7 +766,7 @@ impl ToStr for f64 {
         F64_TO_STR_MAX_BYTES
     }
     fn append_to_str(&self, target: &mut String) {
-        append_numeric_f64(*self, target, WRITTEN_DIGITS_F64, false);
+        append_numeric_f64(*self, target, WRITTEN_DIGITS_F64 as usize, false);
     }
 }
 
@@ -775,7 +775,7 @@ impl ToStr for f32 {
         F32_TO_STR_MAX_BYTES
     }
     fn append_to_str(&self, target: &mut String) {
-        append_numeric_f32(*self, target, WRITTEN_DIGITS_F32, false);
+        append_numeric_f32(*self, target, WRITTEN_DIGITS_F32 as usize, false);
     }
 }
 

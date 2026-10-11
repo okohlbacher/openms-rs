@@ -29,7 +29,7 @@
 //!
 //! | Source | Rust | Notes |
 //! |---|---|---|
-//! | `appendNumeric<double>(T, std::string&, int precision, bool fixed_format)` | [`append_numeric_f64`](crate::concept::numeric_formatting::append_numeric_f64) | `precision` is a `u32`; the source only passes 3, 6, 15 and 18 |
+//! | `appendNumeric<double>(T, std::string&, int precision, bool fixed_format)` | [`append_numeric_f64`](crate::concept::numeric_formatting::append_numeric_f64) | `precision` is a `usize` (the source's `int`; a negative one is not representable and the source never passes one); the source only passes 3, 6, 15 and 18 |
 //! | `appendNumeric<float>(...)` | [`append_numeric_f32`](crate::concept::numeric_formatting::append_numeric_f32) | formats the `float` itself, not a promoted `double` |
 //! | `appendNumeric<long double>(...)` | not ported | Rust has no extended-precision type; see the support document |
 //! | `std::ostream << double` after `precision(p)` | [`ostream_g`](crate::concept::numeric_formatting::ostream_g) | C `%.*g`, glibc spelling of NaN |
@@ -85,7 +85,7 @@ macro_rules! append_numeric {
         $(#[$doc])*
         ///
         /// Ports `NumericFormatting::appendNumeric<T>` (`CONCEPT/Detail/NumericFormatting.h`).
-        pub fn $name(value: $float, target: &mut String, precision: u32, fixed_format: bool) {
+        pub fn $name(value: $float, target: &mut String, precision: usize, fixed_format: bool) {
             if value.is_nan() {
                 target.push_str("NaN");
                 return;
@@ -111,8 +111,7 @@ macro_rules! append_numeric {
                 return;
             }
             // std::to_chars(first, last, value, fixed, precision) into char[64].
-            let text = usize::try_from(precision)
-                .ok()
+            let text = Some(precision)
                 .filter(|digits| *digits <= NUMERIC_BUFFER_BYTES)
                 .map(|digits| format!("{value:.digits$}"))
                 .filter(|text| text.len() <= NUMERIC_BUFFER_BYTES);
