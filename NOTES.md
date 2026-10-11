@@ -37,3 +37,8 @@ Branch: worktree-wf_cd066dab-0a7-48. Prereqs 0a7-27 (OA: OPENSWATHALGO, data acc
 - Final CI sweep running: slot O3a-sweep, logs scratchpad/O3a/sweep2. Slice counts: scratchpad/O3a/slice{1,2,3}.log.
 - NEXT: when sweep passes -> write report .planning/lane-reports/O3a.md, delete NOTES.md, final commit.
 - 20c28ec: oracle 2 (mobilogram + masstrace) tier 1 bit-exact; clippy fix in masstrace loop. Final sweep: slot O3a-sweep, logs scratchpad/O3a/sweep4; slices scratchpad/O3a/f-s{1..4}.log. Report draft scratchpad/O3a/O3a.md (update counts: default 30, no-default 28). NEVER run two gates in the same slot concurrently (clobbers target).
+
+## Session 3 (restart in worktree wf_97065d91-48e-1, branch worktree-wf_97065d91-48e-1)
+- Merged 0a7-48 (this lane's earlier work), 0a7-27, 0a7-30 into main f0990c0. All work is in the tree.
+- Lost with the old scratchpad: the report draft and sweep logs. Ledger fragment survives at main .planning/ledger-fragments/wave4/O3a.json.
+- NEXT: (1) re-run full CI sweep on spock (slot O3a-sweep, log dir outside repo), (2) re-measure slice counts, (3) write .planning/lane-reports/O3a.md in the main checkout, (4) delete NOTES.md in final commit.
