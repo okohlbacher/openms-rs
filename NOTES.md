@@ -83,8 +83,19 @@ Overlap: TOPPBase.h + ParamJSONFile.h in B0 and B8c fragments (B8c is later).
 - Existing .planning/ledger-fragments/wave4/INTEG-B.json (58 entries, main checkout) is the previous ledger; verify, amend.
 - .planning is untracked: reports go to the MAIN checkout path /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R/.planning/.
 
+## Done in incarnation 2
+- 713ab240 SqrtScaler cerr warning; ebfdec00 numeric_formatting usize precision; fee55407 mascot %g collapse;
+  8ac3f931 ParamValue text + PEP format_g onto numeric_formatting (fixes tie-rule defect in param::value::format_float);
+  fbe98072 update_check toInt32 -> string_utils.
+- Unchecked-claim attack done: DefaultParamHandler, WindowMower, RankScaler, SqrtScaler, SNEstimatorMedian,
+  SpectrumAnnotator, NASG, DecoyGenerator, MSExperiment, LogStream, ParamXMLFile, Param.h (name-level + docs tables): hold.
+- Cross-group merge conflicts (merge-tree): vs INTEG-A (branch a10fdd71-2d2-12): 11 files incl numeric_formatting.rs add/add,
+  digestion.rs, text_format.rs, mod.rs roots; vs INTEG-F (97065d91-48e-4) Cargo.toml/lock, string_utils.rs, file_handler.rs ...
+- Final sweep: slot integ-B, rust.yml regenerated with ci_matrix.py --write (UNCOMMITTED: revert .github/workflows/rust.yml
+  and tools/ci_coverage_baseline.json with checkout before any commit!). Logs in scratchpad/integB-inc2/sweepFinal.
+
 ## Next step
-1. Final sweep slot integ-B (log dir scratchpad/sweepF) on HEAD; poll.
-2. Member-attack the not-yet-checked complete claims: DefaultParamHandler, WindowMower, RankScaler,
-   SqrtScaler, SNEstimatorMedian, SpectrumAnnotator, NASG, DecoyGenerator, MSExperiment, LogStream.
-3. Write .planning/lane-reports/INTEG-B.md, delete NOTES.md in the final commit.
+1. Poll sweep (task b7e7lyu0f); summarise per-line pass counts (remote .ci-line.N.log: sum "test result:" lines).
+2. Fix any failure; re-run only affected lines on slot integ-B-t.
+3. Write ledger fragment amendments (SqrtScaler scope: cerr warning now ported; DecoyGenerator/others unchanged) and
+   .planning/lane-reports/INTEG-B.md; delete NOTES.md in the final commit.
