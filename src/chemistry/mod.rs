@@ -60,7 +60,7 @@ pub use adduct_info::AdductInfo;
 pub use decoy_generator::DecoyGenerator;
 pub use digestion::{
     DigestedPeptide, DigestionEnzymeProtein, DigestionProduct, DigestionSpecificity,
-    ProductValidation, Protease, ProteaseDB, ProteaseDigestion, SourceDigestion,
+    ProductValidation, Protease, ProteaseDB, ProteaseDigestion, SourceDigestion, SourceValidity,
 };
 pub use hydrophobicity::{HydrophobicityProfile, HydrophobicityScale};
 pub use isoelectric_point::{IsoelectricPoint, ProteomicsPkaScale};

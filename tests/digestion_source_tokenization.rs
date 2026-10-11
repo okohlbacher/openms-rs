@@ -19,7 +19,7 @@
 //! none, zero, one, two and five missed cleavages and four length filters.
 //! Nothing in this file is derived from Rust output.
 
-use openms::chemistry::{DigestionSpecificity, Protease, ProteaseDigestion};
+use openms::chemistry::{DigestionSpecificity, ProductValidation, Protease, ProteaseDigestion};
 
 const ORACLE: &str = include_str!("data/digestion_source_oracle.tsv");
 
@@ -218,6 +218,116 @@ fn unspecific_cleavage_orders_by_length_where_the_native_digest_orders_by_start(
     assert_ne!(native, source.ranges);
     native.sort_by_key(|&(start, end)| (end - start, start));
     assert_eq!(native, source.ranges);
+}
+
+#[test]
+fn is_valid_product_matches_the_release_build_outside_the_sequence_too() {
+    // isValidProduct_ over pos = -1..=n+1 and length = -1..=n+1 for two
+    // sequences, with and without the missed-cleavage check, the N-terminal
+    // methionine allowance and the random D|P allowance. A cell is the answer
+    // and the warning the call wrote to OPENMS_LOG_WARN; XX is a cell the
+    // driver did not run, where the source is undefined.
+    let rows = records("valid");
+    assert!(rows.len() > 500, "{}", rows.len());
+    let (mut cells, mut skipped) = (0, 0);
+    let mut kinds = [0_usize; 4];
+    let mut accepted = 0_usize;
+    for row in rows {
+        let (enzyme, spec, mc, sequence) = (row[1], row[2], row[3], row[4]);
+        let (ignore, nterm, asp) = (row[5] == "1", row[6] == "1", row[7] == "1");
+        let digestion = digestion(enzyme, spec, mc, "1", "0");
+        let options = ProductValidation {
+            ignore_missed_cleavages: ignore,
+            allow_nterm_protein_cleavage: nterm,
+            allow_random_asp_pro_cleavage: asp,
+        };
+        let n = sequence.len() as i32;
+        let width = (n + 3) as usize;
+        let text = row[8].as_bytes();
+        assert_eq!(text.len(), 2 * width * width, "{row:?}");
+        for (index, cell) in text.chunks(2).enumerate() {
+            let pos = (index / width) as i32 - 1;
+            let length = (index % width) as i32 - 1;
+            let label = format!(
+                "{enzyme} {spec} mc={mc} {sequence} ignore={ignore} nterm={nterm} asp={asp} pos={pos} len={length}"
+            );
+            if cell == b"XX" {
+                skipped += 1;
+                continue;
+            }
+            let got = digestion
+                .is_valid_product_source(sequence, pos, length, options)
+                .unwrap_or_else(|error| panic!("{label}: {error}"));
+            assert_eq!(got.valid, cell[0] == b'1', "{label}");
+            // The warning's numbers are those after the allowance.
+            let (adjusted_pos, adjusted_length) = if nterm && pos <= 2 && sequence.starts_with('M')
+            {
+                (0, length + pos)
+            } else {
+                (pos, length)
+            };
+            let expected: Vec<String> = match cell[1] {
+                b'-' => Vec::new(),
+                b's' => vec![format!(
+                    "Warning: start of fragment ({adjusted_pos}) is beyond end of sequence '{sequence}'!"
+                )],
+                b'e' => vec![format!(
+                    "Warning: end of fragment ({}) is beyond end of sequence '{sequence}'!",
+                    adjusted_pos + adjusted_length
+                )],
+                b'z' => vec!["Warning: fragment and sequence must not be empty!".to_owned()],
+                other => panic!("{label}: unexpected warning kind {}", other as char),
+            };
+            assert_eq!(got.warnings, expected, "{label}");
+            kinds[match cell[1] {
+                b'-' => 0,
+                b's' => 1,
+                b'e' => 2,
+                _ => 3,
+            }] += 1;
+            if got.valid {
+                accepted += 1;
+            }
+            cells += 1;
+        }
+    }
+    assert!(kinds.iter().all(|&count| count > 100), "{kinds:?}");
+    assert!(accepted > 1000, "{accepted}");
+    assert!(cells > 20_000 && skipped > 1_000, "{cells} {skipped}");
+}
+
+#[test]
+fn the_source_applies_the_methionine_allowance_before_it_looks_at_the_length() {
+    // ProteaseDigestion.h: "Regard peptide as n-terminal of protein if it
+    // starts only at pos=1 or 2 and protein starts with 'M'". isValidProduct_
+    // resets (pos 1, length 0) to (0, 1) before it tests the length, so
+    // that fragment is the valid first token of MDKPR under Asp-N (a cut
+    // before the D); the native range API cannot express a length of zero and
+    // answers false for the empty range 1..1.
+    let asp_n = digestion("Asp-N", "full", "0", "1", "0");
+    let options = ProductValidation {
+        allow_nterm_protein_cleavage: true,
+        ..ProductValidation::default()
+    };
+    let result = asp_n
+        .is_valid_product_source("MDKPR", 1, 0, options)
+        .unwrap();
+    assert!(result.valid);
+    assert!(result.warnings.is_empty());
+    assert!(
+        !asp_n
+            .is_valid_product_unmodified("MDKPR", 1..1, options)
+            .unwrap()
+    );
+    // Without the allowance a length of zero is the source's empty fragment.
+    let plain = asp_n
+        .is_valid_product_source("MDKPR", 1, 0, ProductValidation::default())
+        .unwrap();
+    assert!(!plain.valid);
+    assert_eq!(
+        plain.warnings,
+        ["Warning: fragment and sequence must not be empty!"]
+    );
 }
 
 #[test]

@@ -780,6 +780,17 @@ pub struct SourceDigestion {
     pub discarded: usize,
 }
 
+/// What the source's `isValidProduct_` answers, with the warnings it writes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SourceValidity {
+    /// The verdict.
+    pub valid: bool,
+    /// The lines the source writes to `OPENMS_LOG_WARN` (without their line
+    /// ends): a start or an end beyond the sequence, or an empty fragment or
+    /// sequence.
+    pub warnings: Vec<String>,
+}
+
 /// The source's own tokenisation and loops, selected by calling these methods
 /// instead of [`ProteaseDigestion::digest_ranges`] and
 /// [`ProteaseDigestion::peptide_count`].
@@ -1031,6 +1042,152 @@ impl ProteaseDigestion {
     pub fn count_internal_cleavage_sites_source(&self, sequence: &str) -> Result<usize> {
         validate_sequence(sequence)?;
         Ok(self.enzyme.source_tokenize(sequence)?.len().wrapping_sub(1))
+    }
+
+    /// `EnzymaticDigestion::isValidProduct_` (`EnzymaticDigestion.cpp:211-303`),
+    /// the routine behind both `isValidProduct` overloads of
+    /// `ProteaseDigestion` and `EnzymaticDigestion::isValidProduct`, with the
+    /// source's `int` position and length.
+    ///
+    /// The native [`Self::is_valid_product`] takes a range and answers `false`
+    /// for an empty or out-of-bounds one before anything else; the source
+    /// applies the N-terminal methionine allowance first (a position of 1 or
+    /// 2 with length 0 becomes `0..position`, which is valid), accepts a
+    /// negative length, tokenises only the fragment's neighbourhood
+    /// (`tokenize_(sequence, pos - 2, end + 2)`, so a lookbehind cannot see
+    /// the residue before the window), and writes three warnings. They are
+    /// returned in [`SourceValidity::warnings`] instead of being logged.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for invalid settings, a sequence outside the
+    /// accepted alphabet or length, an `int` overflow of the source's
+    /// arithmetic, and where the source reads `sequence[-1]` or a residue
+    /// before the start for the random D|P allowance (undefined there).
+    pub fn is_valid_product_source(
+        &self,
+        sequence: &str,
+        position: i32,
+        length: i32,
+        options: ProductValidation,
+    ) -> Result<SourceValidity> {
+        validate_sequence(sequence)?;
+        let overflow = || invalid("fragment position and length overflow the source's int");
+        let bytes = sequence.as_bytes();
+        let size = i32::try_from(bytes.len()).map_err(|_| overflow())?;
+        let (mut pos, mut length) = (position, length);
+        let mut warnings = Vec::new();
+        let refuse = |valid: bool, warnings: Vec<String>| Ok(SourceValidity { valid, warnings });
+        // `sequence[0] == 'M'`: a std::string's terminator reads '\0'.
+        if options.allow_nterm_protein_cleavage && pos <= 2 && bytes.first() == Some(&b'M') {
+            length = length.checked_add(pos).ok_or_else(overflow)?;
+            pos = 0;
+        }
+        if pos >= size {
+            warnings.push(format!(
+                "Warning: start of fragment ({pos}) is beyond end of sequence '{sequence}'!"
+            ));
+            return refuse(false, warnings);
+        }
+        let end = pos.checked_add(length).ok_or_else(overflow)?;
+        if end > size {
+            warnings.push(format!(
+                "Warning: end of fragment ({end}) is beyond end of sequence '{sequence}'!"
+            ));
+            return refuse(false, warnings);
+        }
+        if length == 0 || sequence.is_empty() {
+            warnings.push("Warning: fragment and sequence must not be empty!".to_owned());
+            return refuse(false, warnings);
+        }
+        if self.enzyme == Protease::UnspecificCleavage {
+            return refuse(true, warnings);
+        }
+        let missed = self.missed_cleavages;
+        if self.specificity == DigestionSpecificity::None {
+            if options.ignore_missed_cleavages {
+                return refuse(true, warnings);
+            }
+            if end >= 0 && end < pos {
+                // A negative length: the source builds an iterator range whose
+                // end precedes its start (undefined; the Release build
+                // crashes). A negative end is reset to the size instead.
+                return Err(invalid(
+                    "the source tokenises a window whose end precedes its start here (undefined)",
+                ));
+            }
+            let tokens = self.source_tokenize_window(sequence, pos, end)?;
+            return refuse(tokens.len().wrapping_sub(1) <= missed, warnings);
+        }
+        if self.specificity == DigestionSpecificity::Full
+            && self.enzyme == Protease::NoCleavage
+            && !options.allow_random_asp_pro_cleavage
+        {
+            return refuse(pos == 0 && size == end, warnings);
+        }
+        let positions = self.source_tokenize_window(
+            sequence,
+            pos.checked_sub(2).ok_or_else(overflow)?,
+            end.checked_add(2).ok_or_else(overflow)?,
+        )?;
+        let at = |index: i32| -> Result<u8> {
+            usize::try_from(index)
+                .ok()
+                .and_then(|index| bytes.get(index))
+                .copied()
+                .ok_or_else(|| {
+                    invalid("the source reads a residue before the start of the sequence here (undefined)")
+                })
+        };
+        let pos_usize = usize::try_from(pos).ok();
+        let spec_n = if pos_usize.is_some_and(|p| positions.contains(&p)) {
+            true
+        } else {
+            options.allow_random_asp_pro_cleavage
+                && at(pos.checked_sub(1).ok_or_else(overflow)?)? == b'D'
+                && at(pos)? == b'P'
+        };
+        let spec_c = if end == size {
+            true
+        } else if usize::try_from(end).is_ok_and(|end| positions.contains(&end)) {
+            true
+        } else {
+            options.allow_random_asp_pro_cleavage
+                && at(end.checked_sub(1).ok_or_else(overflow)?)? == b'D'
+                && at(end)? == b'P'
+        };
+        let specific = (spec_n && spec_c)
+            || (self.specificity == DigestionSpecificity::Semi && (spec_n || spec_c));
+        if !specific {
+            return refuse(false, warnings);
+        }
+        if options.ignore_missed_cleavages {
+            return refuse(true, warnings);
+        }
+        // countMissedCleavages_: the positions strictly inside the fragment.
+        let inside = positions
+            .iter()
+            .filter(|&&p| i64::try_from(p).is_ok_and(|p| i64::from(pos) < p && p < i64::from(end)))
+            .count();
+        refuse(inside <= missed, warnings)
+    }
+
+    /// `EnzymaticDigestion::tokenize_(sequence, start, end)`
+    /// (`EnzymaticDigestion.cpp:92-116`): the tokens of the window
+    /// `[max(0, start), end)`, `end` being the size when it is negative or
+    /// beyond it. The expression sees only the window, so a lookbehind does
+    /// not see the residue before it and a lookahead does not see the one
+    /// after it.
+    fn source_tokenize_window(&self, sequence: &str, start: i32, end: i32) -> Result<Vec<usize>> {
+        let size = sequence.len();
+        let start = usize::try_from(start.max(0)).unwrap_or(0).min(size);
+        let end = usize::try_from(end)
+            .ok()
+            .filter(|&end| end <= size)
+            .unwrap_or(size);
+        let window = sequence.get(start..end.max(start)).unwrap_or("");
+        let tokens = self.enzyme.source_tokenize(window)?;
+        Ok(tokens.into_iter().map(|offset| start + offset).collect())
     }
 
     /// `EnzymaticDigestion::filterByMissedCleavages`

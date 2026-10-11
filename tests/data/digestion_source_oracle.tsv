@@ -1745,6 +1745,78 @@ unmod	Asp-N	none	5	1	4		0
 digest	Asp-N	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	Asp-N	none	5	2	6		0	
 pepcnt	Asp-N	none	5		0
+valid	Asp-N	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	1	1	0	0-0-0z0-1-0-0-0-1-0-0z0-1-0-0-0-1-0e0z0-1-0-0-0-1-0e0e0-1-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0-1-1-0-0-1-0e0e0-1-1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-0-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0z0-0-0-0-0-0e0e0-0z1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	0	1	0	0-0-0z0-1-0-0-0-0-0-0z0-1-0-0-0-0-0e0z0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	MKDPRK	0	1	0	0-0-0z0-1-0-0-0-1-0-0z0-1-0-0-0-1-0e0z0-1-0-0-0-1-0e0e0-1-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0-1-1-0-0-1-0e0e0-1-1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	1	0	0	0-0z1-0-1-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z1-0-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	1	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-1-0-0-0-0-0e1-0z1-0-0-0-0-0e0e1-0z1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	0	1	0	0-1-0z1-1-0-0-0-0-1-0z1-1-0-0-0-0-0e0z1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	1	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	1	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	MKDPRK	0	0	0	0-0z1-0-1-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z1-0-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	DKPRA	0	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	DKPRA	0	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	0	0	0	0-0z0-1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	0	1	0	0-0-0z1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	2	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N	none	2	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	2	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	Asp-N_ambic	DFPIANGER	2
 count	Asp-N_ambic	DFPIANGERDK	3
 count	Asp-N_ambic	KFPIARDEK	2
@@ -3489,6 +3561,78 @@ unmod	Asp-N_ambic	none	5	1	4		0
 digest	Asp-N_ambic	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	Asp-N_ambic	none	5	2	6		0	
 pepcnt	Asp-N_ambic	none	5		0
+valid	Asp-N_ambic	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	1	1	0	0-0-0z0-1-0-0-0-1-0-0z0-1-0-0-0-1-0e0z0-1-0-0-0-1-0e0e0-1-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0-1-1-0-0-1-0e0e0-1-1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-0-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0z0-0-0-0-0-0e0e0-0z1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	0	1	0	0-0-0z0-1-0-0-0-0-0-0z0-1-0-0-0-0-0e0z0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	MKDPRK	0	1	0	0-0-0z0-1-0-0-0-1-0-0z0-1-0-0-0-1-0e0z0-1-0-0-0-1-0e0e0-1-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-0-1-0eXX0-1-1-0-0-1-0e0e0-1-1-0-0-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	1	0	0	0-0z1-0-1-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z1-0-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	1	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-1-0-0-0-0-0e1-0z1-0-0-0-0-0e0e1-0z1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	0	1	0	0-1-0z1-1-0-0-0-0-1-0z1-1-0-0-0-0-0e0z1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	1	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	1	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	MKDPRK	0	0	0	0-0z1-0-1-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z1-0-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-0-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	DKPRA	0	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	DKPRA	0	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	0	0	0	0-0z0-1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	0	1	0	0-0-0z1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-0-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Asp-N_ambic	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	Lys-N	DFPIANGER	0
 count	Lys-N	DFPIANGERDK	1
 count	Lys-N	KFPIARDEK	2
@@ -5233,6 +5377,78 @@ unmod	Lys-N	none	5	1	4		0
 digest	Lys-N	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	Lys-N	none	5	2	6		0	
 pepcnt	Lys-N	none	5		0
+valid	Lys-N	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z1-0-0-0-1-1-0e1-0z0-0-0-1-1-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-0-1-0-1-1-0eXX0z0-1-0-1-1-0e0e0-0z0-0-0-0-0e0e0e0-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	1	1	0	0-0-0z1-0-0-0-1-1-0-0z1-0-0-0-1-1-0e0z1-0-0-0-1-1-0e0e1-0-0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-0-1-0-1-1-0eXX1-0-1-0-1-1-0e0e1-0-1-0-1-1-0e0e0e0-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z1-0-0-0-0-0-0e1-0z0-0-0-1-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0-0eXX0z0-1-0-1-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-1-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	0	1	0	0-0-0z1-0-0-0-0-0-0-0z1-0-0-0-0-0-0e0z1-0-0-0-0-0-0e0e1-0-0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0-0eXX1-0-0-0-0-0-0e0e1-0-0-0-0-0-0e0e0e0-0z0-1-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z1-0-0-0-1-0e1-0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-1-0eXX0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z1-0-0-0-1-0e1-0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-1-0eXX0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z1-0-0-0-0-0e1-0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0eXX0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z1-0-0-0-0-0e1-0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0eXX0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z1-0-0-0-1-1-0e1-0z0-0-0-1-1-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-0-1-0-1-1-0eXX0z0-1-0-1-1-0e0e0-0z0-0-0-0-0e0e0e0-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	MKDPRK	0	1	0	0-0-0z1-0-0-0-1-1-0-0z1-0-0-0-1-1-0e0z1-0-0-0-1-1-0e0e1-0-0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-0-1-0-1-1-0eXX1-0-1-0-1-1-0e0e1-0-1-0-1-1-0e0e0e0-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z1-0-0-0-1-0e1-0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-1-0eXX0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z1-0-0-0-1-0e1-0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-1-0eXX0z0-0-0-1-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	1	0	0	0-0z1-1-0-0-0-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z0-0-1-1-0e0e0e0-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-0-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	1	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-0-0-0-0-0-0e1-0z1-1-1-1-0-0e0e1-0z0-0-1-0-0e0e0e0-0z0-1-0-0e0e0e0e0-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0-0eXX0z1-1-1-1-0-0e0e1-0z1-0-1-0-0e0e0e1-0z1-1-0-0e0e0e0e1-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	0	1	0	0-1-0z1-0-0-0-0-0-1-0z1-0-0-0-0-0-0e0z1-0-0-0-0-0-0e0e1-0-0-0-0-0-0e0e0e0-0z0-1-0-0e0e0e0e0-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0-0eXX1-0-0-0-0-0-0e0e1-0-0-0-0-0-0e0e0e1-0z1-1-0-0e0e0e0e1-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	1	0	0	0-0z1-1-0-0-0-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	1	1	0	0-0z1-1-0-0-0-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-0-0-0-0-0e1-0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0eXX0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-0-0-0-0-0e1-0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0eXX0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	MKDPRK	0	0	0	0-0z1-1-0-0-0-1-0-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z0-0-1-1-0e0e0e0-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-0-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	DKPRA	0	0	0	0-0z1-1-0-0-0-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	DKPRA	0	1	0	0-0z1-1-0-0-0-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	0	0	0	0-0z0-1-0-0-0-0-0-0-0z1-0-0-0-0-0-0eXX0z0-0-0-0-0-0e0eXX0z1-1-1-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z0-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0-0eXX0z0-0-0-0-0-0e0eXX0z1-1-1-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z0-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	0	1	0	0-0-0z1-0-0-0-0-0-0-0z1-0-0-0-0-0-0eXX1-0-0-0-0-0-0e0eXX0-0-0-0-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z0-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0-0eXX1-0-0-0-0-0-0e0eXX0-0-0-0-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z0-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	0	0	0	0-0z0-1-0-0-0-0-0-0z1-0-0-0-0-0eXX0z0-0-0-0-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0eXX0z0-0-0-0-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	0	1	0	0-0z0-1-0-0-0-0-0-0z1-0-0-0-0-0eXX0z0-0-0-0-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-0-0-0-0-0eXX0z0-0-0-0-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	2	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Lys-N	none	2	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	2	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Lys-N	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	Trypsin	DFPIANGER	0
 count	Trypsin	DFPIANGERDK	1
 count	Trypsin	KFPIARDEK	2
@@ -6977,6 +7193,78 @@ unmod	Trypsin	none	5	1	4		0
 digest	Trypsin	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	Trypsin	none	5	2	6		0	
 pepcnt	Trypsin	none	5		0
+valid	Trypsin	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-1-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	1	1	0	0-0-0z0-1-0-0-1-1-0-0z0-1-0-0-1-1-0e0z0-1-0-0-1-1-0e0e0-1-0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0-1-1-0-1-1-0e0e0-1-1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-0-0e0-0z0-0-0-0-0-0e0e0-0z0-0-1-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0z0-0-0-0-0-0e0e0-0z1-0-1-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	0	1	0	0-0-0z0-1-0-0-0-0-0-0z0-1-0-0-0-0-0e0z0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-1-0-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-1-0-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-1-0-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-1-0-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-1-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	MKDPRK	0	1	0	0-0-0z0-1-0-0-1-1-0-0z0-1-0-0-1-1-0e0z0-1-0-0-1-1-0e0e0-1-0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0-1-1-0-1-1-0e0e0-1-1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	1	0	0	0-0z1-0-1-0-0-1-1-1-0z1-1-1-1-1-1-0e1-0z1-0-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	1	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-1-0-0-0-0-0e1-0z1-0-0-0-0-0e0e1-0z1-1-1-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0e1-0z1-1-1-0-0e0e0e1-0z1-1-0-0e0e0e0e1-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	0	1	0	0-1-0z1-1-0-0-0-0-1-0z1-1-0-0-0-0-0e0z1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z1-1-0-0e0e0e0e1-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	1	0	0	0-0z1-0-0-0-1-1-1-0z1-1-1-1-1-0e1-0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	1	1	0	0-0z1-0-0-0-1-1-1-0z1-1-1-1-1-0e1-0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-0-0e1-0z0-0-1-0-0e0e0-0z0-1-0-0e0e0e0-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-0-0eXX0z0-0-1-0-0e0e0-0z0-1-0-0e0e0e0-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-0-0e1-0z0-0-1-0-0e0e0-0z0-1-0-0e0e0e0-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-0-0eXX0z0-0-1-0-0e0e0-0z0-1-0-0e0e0e0-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	MKDPRK	0	0	0	0-0z1-0-1-0-0-1-0-1-0z1-1-1-1-1-1-0e1-0z1-0-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	DKPRA	0	0	0	0-0z1-0-0-0-1-1-1-0z1-1-1-1-1-0e1-0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	DKPRA	0	1	0	0-0z1-0-0-0-1-1-1-0z1-1-1-1-1-0e1-0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-1-1-0e0e0-0z0-1-1-0e0e0e0-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	0	0	0	0-0z0-1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z1-1-1-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z1-1-1-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	0	1	0	0-0-0z1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	0	0	0	0-0z0-1-1-1-1-0-0-0z1-1-1-1-0-0eXX0z1-1-1-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-0-0eXX0z1-1-1-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	0	1	0	0-0z0-1-1-1-1-0-0-0z1-1-1-1-0-0eXX0z1-1-1-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-0-0eXX0z1-1-1-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	2	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin	none	2	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	2	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	Trypsin/P	DFPIANGER	0
 count	Trypsin/P	DFPIANGERDK	1
 count	Trypsin/P	KFPIARDEK	2
@@ -8721,6 +9009,78 @@ unmod	Trypsin/P	none	5	1	4		0
 digest	Trypsin/P	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	Trypsin/P	none	5	2	6		0	
 pepcnt	Trypsin/P	none	5		0
+valid	Trypsin/P	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-1-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	1	1	0	0-0-0z0-1-0-0-1-1-0-0z0-1-0-0-1-1-0e0z0-1-0-0-1-1-0e0e0-1-0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0-1-1-0-1-1-0e0e0-1-1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-0-0-0e0-0z0-0-0-0-0-0e0e0-0z0-0-1-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0z0-0-0-0-0-0e0e0-0z1-0-1-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	0	1	0	0-0-0z0-1-0-0-0-0-0-0z0-1-0-0-0-0-0e0z0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0-0eXX0-1-0-0-0-0-0e0e0-1-0-0-0-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z0-1-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX0-1-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z0-1-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX0-1-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-1-0-0-0-0e0-0z0-0-0-0-0e0e0-0z0-1-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0eXX0z0-0-0-0-0e0e0-0z0-1-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-1-0-0-0-0e0-0z0-0-0-0-0e0e0-0z0-1-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-1-0-0-0-0eXX0z0-0-0-0-0e0e0-0z0-1-0-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-1-0-0-1-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0z0-0-0-0-0-0e0e0-0z1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	MKDPRK	0	1	0	0-0-0z0-1-0-0-1-1-0-0z0-1-0-0-1-1-0e0z0-1-0-0-1-1-0e0e0-1-0-0-1-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-1-1-0-1-1-0eXX0-1-1-0-1-1-0e0e0-1-1-0-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-1-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-1-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-1-0-1-1-0e0-0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-1-0-1-1-0eXX0z0-0-0-0-0e0e0-0z0-1-1-0e0e0e0-0z0-0-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	1	0	0	0-0z1-0-1-0-0-1-1-1-0z1-1-1-1-1-1-0e1-0z1-0-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	1	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-1-0-0-0-0-0e1-0z1-0-0-0-0-0e0e1-0z1-1-1-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0e1-0z1-1-1-0-0e0e0e1-0z1-1-0-0e0e0e0e1-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	0	1	0	0-1-0z1-1-0-0-0-0-1-0z1-1-0-0-0-0-0e0z1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z0-1-0-0e0e0e0e0-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0e1-1-0-0-0-0-0e0e0e1-0z1-1-0-0e0e0e0e1-0z1-0-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	1	0	0	0-0z1-0-1-0-1-1-1-0z1-1-1-1-1-0e1-0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	1	1	0	0-0z1-0-1-0-1-1-1-0z1-1-1-1-1-0e1-0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-1-0-0-0-0e1-0z1-0-0-0-0e0e1-0z1-1-0-0e0e0e1-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0eXX0z1-0-0-0-0e0e1-0z1-1-0-0e0e0e1-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-1-0-0-0-0e1-0z1-0-0-0-0e0e1-0z1-1-0-0e0e0e1-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0eXX0z1-0-0-0-0e0e1-0z1-1-0-0e0e0e1-0z1-0-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	MKDPRK	0	0	0	0-0z1-0-1-0-0-1-0-1-0z1-1-1-1-1-1-0e1-0z1-0-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-0-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z0-1-1-0e0e0e0e0-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	DKPRA	0	0	0	0-0z1-0-1-0-1-0-1-0z1-1-1-1-1-0e1-0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	DKPRA	0	1	0	0-0z1-0-1-0-1-0-1-0z1-1-1-1-1-0e1-0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-0-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	0	0	0	0-0z0-1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z1-1-1-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX0z1-0-0-0-0-0e0eXX0z1-1-1-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	0	1	0	0-0-0z1-1-0-0-0-0-0-0z1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0-0eXX1-1-0-0-0-0-0e0eXX1-0-0-0-0-0e0e0eXX0z1-1-0-0e0e0e0eXX0z1-0-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	0	0	0	0-0z0-1-1-0-0-0-0-0z1-1-0-0-0-0eXX0z1-0-0-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0eXX0z1-0-0-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	0	1	0	0-0z0-1-1-0-0-0-0-0z1-1-0-0-0-0eXX0z1-0-0-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-0-0-0-0eXX0z1-0-0-0-0e0eXX0z1-1-0-0e0e0eXX0z1-0-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Trypsin/P	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	unspecific cleavage	DFPIANGER	8
 count	unspecific cleavage	DFPIANGERDK	10
 count	unspecific cleavage	KFPIARDEK	8
@@ -10465,6 +10825,78 @@ unmod	unspecific cleavage	none	5	1	4		0
 digest	unspecific cleavage	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	unspecific cleavage	none	5	2	6		0	
 pepcnt	unspecific cleavage	none	5		0
+valid	unspecific cleavage	full	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	unspecific cleavage	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	no cleavage	DFPIANGER	0
 count	no cleavage	DFPIANGERDK	0
 count	no cleavage	KFPIARDEK	0
@@ -12209,6 +12641,78 @@ unmod	no cleavage	none	5	1	4		0
 digest	no cleavage	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	no cleavage	none	5	2	6		0	
 pepcnt	no cleavage	none	5		1
+valid	no cleavage	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z0-0-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	1	1	0	0-0-0z0-0-0-0-0-1-0-0z0-0-0-0-0-1-0e0z0-0-0-0-0-1-0e0e0-0-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0-0-1-0-0-1-0e0e0-0-1-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-0-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	0	1	0	0-0-0z0-0-0-0-0-1-0-0z0-0-0-0-0-1-0e0z0-0-0-0-0-1-0e0e0-0-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0-0-1-0-0-1-0e0e0-0-1-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-0-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	MKDPRK	0	1	0	0-0-0z0-0-0-0-0-1-0-0z0-0-0-0-0-1-0e0z0-0-0-0-0-1-0e0e0-0-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0-0-1-0-0-1-0e0e0-0-1-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	1	0	0	0-0z1-0-0-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z0-0-0-0-1-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z0-1-0-0-1-0e0e0-0z1-0-0-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-1-1-1-1-1-0e1-0z0-0-0-0-1-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z0-1-0-0-1-0e0e0-0z1-0-0-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	1	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	1	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z0-0-0-0-1-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z0-1-0-0-1-0e0e0-0z1-0-0-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	DKPRA	0	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	DKPRA	0	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	2	MKDPRK	0	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	no cleavage	none	2	DKPRA	0	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	2	DKPRA	0	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	no cleavage	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
 count	Chymotrypsin	DFPIANGER	0
 count	Chymotrypsin	DFPIANGERDK	0
 count	Chymotrypsin	KFPIARDEK	0
@@ -13953,3 +14457,75 @@ unmod	Chymotrypsin	none	5	1	4		0
 digest	Chymotrypsin	none	5	2	6		ERR:the value '0' was used but is not valid; Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest().
 unmod	Chymotrypsin	none	5	2	6		0	
 pepcnt	Chymotrypsin	none	5		0
+valid	Chymotrypsin	full	0	MKDPRK	1	0	0	0-0z0-0-0-0-0-0-0-0-0z0-0-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	1	1	0	0-0-0z0-0-0-0-0-1-0-0z0-0-0-0-0-1-0e0z0-0-0-0-0-1-0e0e0-0-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0-0-1-0-0-1-0e0e0-0-1-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-0-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	0	1	0	0-0-0z0-0-0-0-0-1-0-0z0-0-0-0-0-1-0e0z0-0-0-0-0-1-0e0e0-0-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0-0-1-0-0-1-0e0e0-0-1-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	1	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	1	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	MKDPRK	0	0	0	0-0z0-0-0-0-0-0-0-0-0z0-0-0-0-0-1-0e0-0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0z0-0-0-0-0-0e0e0-0z0-0-0-0-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	MKDPRK	0	1	0	0-0-0z0-0-0-0-0-1-0-0z0-0-0-0-0-1-0e0z0-0-0-0-0-1-0e0e0-0-0-0-0-1-0e0e0e0-0z0-0-0-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX0-0-1-0-0-1-0eXX0-0-1-0-0-1-0e0e0-0-1-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-0-0e0e0e0e0e0-0z0-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	DKPRA	0	0	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	DKPRA	0	1	0	0-0z0-0-0-0-0-0-0-0z0-0-0-0-1-0e0-0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	full	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX0-0-0-0-1-0eXX0z0-0-0-0-0e0e0-0z0-0-0-0e0e0e0-0z0-0-0e0e0e0e0-0z0-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	1	0	0	0-0z1-0-0-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z0-0-0-0-1-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z0-1-0-0-1-0e0e0-0z1-0-0-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	1	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-0-1-0z1-1-1-1-1-1-0e1-0z0-0-0-0-1-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z0-1-0-0-1-0e0e0-0z1-0-0-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	1	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	1	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	0	0	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	0	1	0	0-0z1-0-0-0-0-0-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	MKDPRK	0	0	0	0-0z1-0-0-0-0-0-1-1-0z1-1-1-1-1-1-0e1-0z0-0-0-0-1-0e0e0-0z0-0-0-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z0-1-0-0-1-0e0e0-0z1-0-0-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	MKDPRK	0	1	0	0-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e0-0z0-0-1-0e0e0e0e0-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z0-1-0e0e0e0e0e0-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	DKPRA	0	0	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	DKPRA	0	1	0	0-0z1-0-0-0-0-1-1-0z1-1-1-1-1-0e1-0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	semi	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z0-0-0-1-0e0e0-0z0-0-1-0e0e0e0-0z0-1-0e0e0e0e0-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	1	0	0	1-0z1-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e1-0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	1	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0e1-0z1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	1	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0e0z1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	1	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0e1-1-1-1-1-1-0e0e0e1-0z1-1-1-0e0e0e0e1-0z1-1-0e0e0e0e0e1-0z1-0e0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	1	0	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	1	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	1	1	0	1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-0e1-0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	1	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0e1-0z1-1-1-0e0e0e1-0z1-1-0e0e0e0e1-0z1-0e0e0e0e0e0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	0	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	MKDPRK	0	0	0	1-0z0-1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	MKDPRK	0	0	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX0z1-1-1-1-1-0e0eXX0z1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	MKDPRK	0	1	0	1-1-0z1-1-1-1-1-1-1-0z1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	MKDPRK	0	1	1	XXXXXXXXXXXXXXXXXXXXXX1-1-1-1-1-1-0eXX1-1-1-1-1-1-0e0eXX1-1-1-1-1-0e0e0eXX0z1-1-1-0e0e0e0eXX0z1-1-0e0e0e0e0eXX0z1-0e0e0e0e0e0eXX0s0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	DKPRA	0	0	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	DKPRA	0	0	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	DKPRA	0	1	0	1-0z0-1-1-1-1-1-1-0z1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s
+valid	Chymotrypsin	none	2	DKPRA	0	1	1	XXXXXXXXXXXXXXXXXXXX1-1-1-1-1-0eXX0z1-1-1-1-0e0eXX0z1-1-1-0e0e0eXX0z1-1-0e0e0e0eXX0z1-0e0e0e0e0eXX0s0s0s0s0s0s0sXX0s0s0s0s0s0s0s

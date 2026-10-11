@@ -37,16 +37,16 @@
  "fixtures": [
   {
    "path": "tests/data/digestion_source_oracle.tsv",
-   "sha256": "16bc1fe218dc3f4f300f3774ce01457c796b25df9089565f9e1974a27d5c2265",
-   "bytes": 1358471,
+   "sha256": "892b42cbc407fcf59a4c68df78cf225dbee91a41178fd1cfb8026799abf3dfde",
+   "bytes": 1463519,
    "evidence_tier": 1,
-   "kind": "oracle-generated: ../oracle/integ-B-digest-source/results/records.tsv verbatim behind three leading comment lines (13,952 records: 128 count, 6,144 digest, 1,536 pepcnt, 6,144 unmod); Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), the driver run once per enzyme in a fresh process, twice, with byte-identical records"
+   "kind": "oracle-generated: ../oracle/integ-B-digest-source/results/records.tsv verbatim behind three leading comment lines (14,528 records: 128 count, 6,144 digest, 1,536 pepcnt, 6,144 unmod, 576 valid); Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), the driver run once per enzyme in a fresh process, twice, with byte-identical records"
   }
  ],
  "external_reference_artifacts": [
   {
    "path": "../oracle/integ-B-digest-source/driver.cpp",
-   "sha256": "08a63c9bc16e84fa6f264e5d2a29d557680b2fe9cdc619a05ed7fd5b68355bfe",
+   "sha256": "495c364fb79ed17f3e1c6db1e0abbf4633d06b30a8a31d94ef4ccb18945c0cb6",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },
@@ -64,13 +64,13 @@
   },
   {
    "path": "../oracle/integ-B-digest-source/results/records.tsv",
-   "sha256": "74a1757e2383f94f18609289f67cbf610fcb42103358c1b0116b8376b3ecf09b",
+   "sha256": "2bebe1c6be8caf1e35d4f1f093aefae9181cf77e5fc4b6bb6a656ac2a3df134b",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },
   {
    "path": "../oracle/integ-B-digest-source/results/hashes.txt",
-   "sha256": "d48a3c5a78d724680371e112d81e9962e0bd9aab7b7c80feddd02a0c1c8f94c7",
+   "sha256": "9a6704ee94a3c1ce7657202e322bce12d473b31022601941a5476b1559ed65a1",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },
@@ -100,7 +100,7 @@
   },
   {
    "path": "../oracle/integ-B-digest-source/results/stderr.txt",
-   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "sha256": "605abc7119c30de8ffeb8797c6e546c4c25eac5931e282fe7fbf691e1142cf38",
    "location": "outside this repository",
    "origin_key": "fixtures"
   },

@@ -21,7 +21,7 @@ available from `openms::chemistry`.
 | `DigestionSpecificity`, `NAMES_OF_SPECIFICITY`, `by_name`, `value`, `from_value` | The source's `Specificity` enumeration with all six members (`SPEC_NONE` 0, `SPEC_SEMI` 1, `SPEC_FULL` 2, `SPEC_UNKNOWN` 3, `SPEC_NOCTERM` 8, `SPEC_NONTERM` 9), `NamesOfSpecificity` and `getSpecificityByName`; `digest` refuses the last three, validation treats them as full |
 | `filter_by_missed_cleavages` | `filterByMissedCleavages`: the predicate receives the source's `Int` count |
 | `NO_CLEAVAGE`, `UNSPECIFIC_CLEAVAGE` | `EnzymaticDigestion::NoCleavage` and `UnspecificCleavage` |
-| `digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source`, `count_internal_cleavage_sites_source` | The source's own arithmetic, ported literally: `ProteaseDigestion::digest` (pair overload) with its `wrong_size`, `EnzymaticDigestion::digestUnmodified` (pair overload), `peptideCount` and `countInternalCleavageSites`, over `EnzymaticDigestion::tokenize_`'s positions; see [Source arithmetic](#source-arithmetic) |
+| `digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source`, `count_internal_cleavage_sites_source`, `is_valid_product_source` | The source's own arithmetic, ported literally: `ProteaseDigestion::digest` (pair overload) with its `wrong_size`, `EnzymaticDigestion::digestUnmodified` (pair overload), `peptideCount`, `countInternalCleavageSites` and `isValidProduct_` with its `int` position and length and its three warnings, over `EnzymaticDigestion::tokenize_`'s positions; see [Source arithmetic](#source-arithmetic) |
 
 Full specificity requires both peptide ends to be protein termini or enzyme
 cleavage sites. Semi specificity requires at least one such end. `None`
@@ -275,6 +275,19 @@ listed above and in these:
 - `countInternalCleavageSites` of the empty sequence is `0 - 1` in `Size`
   arithmetic, every enzyme but `no cleavage` (whose expression `()` is not
   split and yields position 0).
+- `isValidProduct_` (`EnzymaticDigestion.cpp:211-303`) applies the N-terminal
+  methionine allowance before it looks at the length, so a position of 1 or 2
+  with length 0 on a protein that starts with `M` is the fragment `0..position`;
+  the native range API answers `false` for an empty range. It accepts a negative
+  length, tokenises only the fragment's window (`tokenize_(sequence, pos - 2,
+  end + 2)`, so a lookbehind cannot see the residue before the window), and
+  writes three `OPENMS_LOG_WARN` lines (start beyond the sequence, end beyond
+  it, empty fragment or sequence), which `is_valid_product_source` returns in
+  `SourceValidity::warnings`. Where the source is undefined it is refused with
+  an error: the random D|P allowance with a start or end before the sequence
+  (a read of `sequence[-1]`) and, for specificity none without the
+  missed-cleavage shortcut, a negative length whose window ends before it
+  starts (the Release build crashes with SIGSEGV).
 - The semi-specific scan (`semiSpecificDigestion_`) computes a length with
   `Size` arithmetic, so a candidate whose end precedes its start wraps and is
   discarded. With a leading zero-width site the forward cursor is parked on the
@@ -282,8 +295,9 @@ listed above and in these:
   with it, which is how the source loses the products its own `isValidProduct`
   accepts.
 
-`digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source` and
-`count_internal_cleavage_sites_source` port exactly these loops over the
+`digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source`,
+`count_internal_cleavage_sites_source` and `is_valid_product_source` port exactly
+these loops over the
 crate-private `Protease::source_tokenize`, so a caller that must reproduce the
 Release build's output, defects included, selects them by name.
 `digest_unmodified_source` is `digestUnmodified`'s pair overload, which
@@ -295,7 +309,7 @@ full, semi and none (`SPEC_UNKNOWN`, `SPEC_NOCTERM`, `SPEC_NONTERM`) as full
 where `digest` refuses it. Evidence: tier 1,
 `../oracle/integ-B-digest-source` on ibminode06 (Linux x86_64 Release install
 `openms4-release-bc9cc12-c19e494-174b576`, conda g++ 14.4.0, `-O3 -DNDEBUG`,
-every enzyme in its own process, two byte-identical runs), 13,952 records over
+every enzyme in its own process, two byte-identical runs), 14,528 records over
 eight enzymes (Asp-N, Asp-N_ambic, Lys-N, Trypsin, Trypsin/P, Chymotrypsin,
 `unspecific cleavage`, `no cleavage`), sixteen sequences including the empty
 one, specificities full, semi and none, 0, 1, 2 and 5 missed cleavages and four
@@ -303,7 +317,10 @@ length filters, retained as `tests/data/digestion_source_oracle.tsv` and
 asserted record by record by `tests/digestion_source_tokenization.rs`:
 `digest` (6,144 records, products, order and discarded count, and the refusals),
 `digestUnmodified`'s pair overload (6,144 records, as `(start, length)`),
-`peptideCount` (1,536) and `countInternalCleavageSites` (128). The specificity
+`peptideCount` (1,536), `countInternalCleavageSites` (128) and the
+`isValidProduct` grid (576 lines, `pos` and `length` from -1 to n + 1 for two
+sequences, with and without the missed-cleavage check, the N-terminal allowance
+and the D|P allowance, each cell the answer and the warning kind). The specificity
 enumeration and `filterByMissedCleavages` are tier 3 (`EnzymaticDigestion.h:41-49`
 and `EnzymaticDigestion.cpp:20, 205-209`; the `Size` to `Int` conversion of the
 empty sequence's count is the implementation-defined modulo wrap of the Linux
