@@ -322,7 +322,7 @@ fn to_int32(text: &str) -> Result<i32> {
 }
 
 /// `StringUtils::split(s, c)`: empty input gives no parts.
-fn split(text: &str, separator: char) -> Vec<String> {
+pub(super) fn split(text: &str, separator: char) -> Vec<String> {
     if text.is_empty() {
         Vec::new()
     } else {
@@ -347,7 +347,7 @@ fn clean(text: &str) -> String {
 }
 
 /// `DataValue::toString()` of a metadata value (full precision).
-fn value_text(value: &MetaValue) -> String {
+pub(super) fn value_text(value: &MetaValue) -> String {
     use crate::param::value::format_float;
     fn list<T>(values: &[T], f: impl Fn(&T) -> String) -> String {
         format!("[{}]", values.iter().map(f).collect::<Vec<_>>().join(", "))

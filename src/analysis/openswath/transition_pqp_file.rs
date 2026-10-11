@@ -56,12 +56,11 @@ use crate::analysis::openswath::targeted_experiment_helper::{
     Peptide, UnresolvedModificationPolicy, get_aa_sequence_with,
 };
 use crate::analysis::openswath::transition_tsv_file::{
-    TransitionTSVFile, TsvTransition, convert_transition,
+    TransitionTSVFile, TsvTransition, convert_transition, split, value_text,
 };
 use crate::chemistry::{AASequence, ModificationsDB};
 use crate::format::file_info::text_format::ostream_g;
 use crate::format::sqlite_connector::{SqlOpenMode, SqliteConnector};
-use crate::metadata::{MetaValue, MetaValueData};
 use crate::param::Param;
 use crate::{Error, Result};
 use rusqlite::types::ValueRef;
@@ -172,14 +171,6 @@ fn column_int_text(value: ValueRef<'_>) -> Result<Option<String>> {
     })
 }
 
-fn split(text: &str, separator: char) -> Vec<String> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).map(str::to_owned).collect()
-    }
-}
-
 fn has_rows(connection: &Connection, table: &str) -> Result<bool> {
     // `table` is one of this module's constant names.
     let mut statement = connection
@@ -194,16 +185,6 @@ fn validate_traml_id_table_name(table: &str) -> Result<()> {
         return Err(bad("tableName must be PRECURSOR or TRANSITION"));
     }
     Ok(())
-}
-
-/// `DataValue::toString()` for the metadata the writer reads.
-fn value_text(value: &MetaValue) -> String {
-    match value.data() {
-        MetaValueData::Empty => String::new(),
-        MetaValueData::String(s) => s.clone(),
-        MetaValueData::Float(x) => crate::param::value::format_float(*x, true),
-        _ => value.to_string(),
-    }
 }
 
 impl TransitionPQPFile {
