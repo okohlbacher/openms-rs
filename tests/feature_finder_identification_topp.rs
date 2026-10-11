@@ -30,6 +30,8 @@
 
 #[path = "support/decoded_compare.rs"]
 mod decoded;
+#[path = "support/ffid_inputs.rs"]
+mod ffid_inputs;
 #[path = "support/fuzzy_string_comparator.rs"]
 mod fuzzy;
 
@@ -51,9 +53,7 @@ use std::path::{Path, PathBuf};
 const TEST_MODE_UNIQUE_ID_SEED: u64 = 19_991_231_235_959;
 
 fn data(name: &str) -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/data/feature_finder_identification")
-        .join(name)
+    ffid_inputs::data(name)
 }
 
 fn text(path: impl AsRef<Path>) -> String {
@@ -69,14 +69,12 @@ fn load_ms1(name: &str) -> MSExperiment {
 }
 
 fn expected(name: &str) -> FeatureMap {
-    FileHandler::load_feature_map(data(name), &[FileType::FeatureXml]).unwrap()
+    ffid_inputs::load_feature_map(&data(name))
 }
 
 /// A feature map as the tool leaves it in its output file.
 fn through_file(map: &FeatureMap, work: &TempDir, name: &str) -> FeatureMap {
-    let path = work.path().join(name);
-    FileHandler::store_feature_map(&path, map, Some(FileType::FeatureXml)).unwrap();
-    FileHandler::load_feature_map(&path, &[FileType::FeatureXml]).unwrap()
+    ffid_inputs::through_file(map, work, name)
 }
 
 /// The upstream rule: `FuzzyDiff` ratio 1.01 / absolute 0.01, ids skipped; the
@@ -99,6 +97,20 @@ fn assert_matches_with(
             map.metadata.remove("spectra_data");
         }
         map.data_processing.clear();
+        // The featureXML reader names a run after the engine, the date and a
+        // process-dependent counter when the file has no engine; the names are
+        // not content.
+        for protein in &mut map.protein_identifications {
+            protein.identifier.clear();
+        }
+        for id in &mut map.unassigned_peptide_identifications {
+            id.identifier.clear();
+        }
+        for feature in &mut map.features {
+            for id in &mut feature.peptide_identifications {
+                id.identifier.clear();
+            }
+        }
     }
     let options =
         decoded::DecodedOptions::new(decoded::Tolerance::new(1.01, 0.01)).ignoring_unique_ids();
@@ -128,11 +140,8 @@ fn run_ffid(overrides: &[(&str, ParamValue)]) -> FfidRun {
     let mut algorithm = FeatureFinderIdentificationAlgorithm::from_param(&param).unwrap();
     algorithm.set_unique_id_generator(UniqueIdGenerator::from_seed(TEST_MODE_UNIQUE_ID_SEED));
     algorithm.set_ms_data(load_ms1("FeatureFinderIdentification_1_input.mzML.gz"));
-    let document = FileHandler::load_identifications(
-        data("FeatureFinderIdentification_1_input.idXML"),
-        &[FileType::IdXml],
-    )
-    .unwrap();
+    let work = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let document = ffid_inputs::load_identifications(&work);
     let mut features = FeatureMap::new();
     algorithm
         .run(
@@ -166,7 +175,11 @@ fn topp_1_model_none_matches_the_retained_output() {
         ("model:type", string("none")),
     ]);
     let work = TempDir::new_in(std::env::temp_dir(), false).unwrap();
-    let actual = through_file(&run.features, &work, "FeatureFinderIdentification_1.featureXML");
+    let actual = through_file(
+        &run.features,
+        &work,
+        "FeatureFinderIdentification_1.featureXML",
+    );
     assert_matches(
         &actual,
         &expected("FeatureFinderIdentification_1_output.featureXML"),
@@ -202,7 +215,11 @@ fn topp_3_symmetric_model_matches_the_retained_output() {
         ("model:type", string("symmetric")),
     ]);
     let work = TempDir::new_in(std::env::temp_dir(), false).unwrap();
-    let actual = through_file(&run.features, &work, "FeatureFinderIdentification_3.featureXML");
+    let actual = through_file(
+        &run.features,
+        &work,
+        "FeatureFinderIdentification_3.featureXML",
+    );
     assert_matches(
         &actual,
         &expected("FeatureFinderIdentification_3_output.featureXML"),
@@ -225,14 +242,18 @@ fn topp_5_batches_and_candidates_match_the_retained_outputs() {
     ]);
     // the final output equals the unbatched one (TOPP_5_out1 compares with the
     // output of _1)
-    let actual = through_file(&run.features, &work, "FeatureFinderIdentification_5.featureXML");
+    let actual = through_file(
+        &run.features,
+        &work,
+        "FeatureFinderIdentification_5.featureXML",
+    );
     assert_matches(
         &actual,
         &expected("FeatureFinderIdentification_1_output.featureXML"),
         "TOPP_FeatureFinderIdentification_5_out1",
     );
     // and the candidates file equals the retained candidates (TOPP_5_out2)
-    let written = FileHandler::load_feature_map(&candidates, &[FileType::FeatureXml]).unwrap();
+    let written = ffid_inputs::load_feature_map(&candidates);
     assert_matches(
         &written,
         &expected("FeatureFinderIdentification_5_candidates.featureXML"),
@@ -241,20 +262,28 @@ fn topp_5_batches_and_candidates_match_the_retained_outputs() {
 }
 
 #[test]
-fn candidates_of_the_retained_run_reprocess_to_the_retained_output() {
+fn the_retained_candidates_carry_no_identifications_so_reprocessing_keeps_nothing() {
     // `-candidates_in`: only the filtering and the model fit run. The retained
-    // candidates of TOPP_5 came from a run with `-model:type none`, so the
-    // result is the retained output of TOPP_1.
+    // candidates of TOPP_5 were written before the proteins were set, so the
+    // source's writer omitted every peptide identification (`Omitting peptide
+    // identification because of missing ProteinIdentification`): the file has
+    // 36 features (108 with their two mass traces each) and no identification
+    // at all. The filter removes the features
+    // without an identification, which is all of them.
     let mut features = expected("FeatureFinderIdentification_5_candidates.featureXML");
+    assert_eq!(features.features.len(), 36);
+    assert!(
+        features
+            .features
+            .iter()
+            .all(|f| f.peptide_identifications.is_empty())
+    );
     let param = ffid_parameters(&[("model:type", string("none"))]);
     let mut algorithm = FeatureFinderIdentificationAlgorithm::from_param(&param).unwrap();
     algorithm.run_on_candidates(&mut features).unwrap();
-    assert_matches(
-        &features,
-        &expected("FeatureFinderIdentification_1_output.featureXML"),
-        "runOnCandidates",
-    );
-    assert_eq!(algorithm.report().peptides_identified, 22);
+    assert!(features.features.is_empty());
+    assert_eq!(algorithm.report().features_after_filtering, 0);
+    assert_eq!(algorithm.report().peptides_identified, 0);
 }
 
 /// The targets of a TOPP table, as `readTargets_` parses a line.
@@ -315,7 +344,11 @@ fn metabo_ident_1_matches_the_retained_output() {
     let targets = read_targets(&data("FeatureFinderMetaboIdent_1_input.tsv"));
     let mut features = FeatureMap::new();
     algorithm
-        .run(&targets, &mut features, "FeatureFinderMetaboIdent_1_input.mzML")
+        .run(
+            &targets,
+            &mut features,
+            "FeatureFinderMetaboIdent_1_input.mzML",
+        )
         .unwrap();
     // -test: the run path without directory
     features

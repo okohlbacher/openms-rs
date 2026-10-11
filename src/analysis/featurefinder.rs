@@ -15,6 +15,10 @@ pub mod elution_model_fitter;
 pub mod emg_scoring;
 /// `FeatureFinderAlgorithm` and `FeatureFinderDefs`.
 pub mod feature_finder_algorithm;
+/// `FeatureFinderIdentificationAlgorithm`: ID-guided MS1 feature detection, the algorithm behind the TOPP tool `FeatureFinderIdentification`.
+pub mod feature_finder_identification;
+/// `FeatureFinderAlgorithmMetaboIdent`: targeted MS1 feature detection from a table of metabolite targets, the algorithm behind the TOPP tool `FeatureFinderMetaboIdent`.
+pub mod feature_finder_metabo_ident;
 /// `Fitter1D`, `LevMarqFitter1D` and `MaxLikeliFitter1D`.
 pub mod fitter1d;
 /// The five 1-D fitters: Gauss, bi-Gauss, EMG, isotope and extended isotope.
@@ -25,13 +29,9 @@ pub mod gauss_models;
 pub(crate) mod glibc_logf;
 /// `IsotopeModel` and `ExtendedIsotopeModel`.
 pub mod isotope_model;
+/// The steps the two targeted MS1 feature finders share (not public API).
+pub(crate) mod ms1_targeted;
 /// `PeakWidthEstimator`: peak width by m/z from picked peaks.
 pub mod peak_width_estimator;
 /// `SeedListGenerator`: seed lists for feature detection.
 pub mod seed_list_generator;
-/// `FeatureFinderIdentificationAlgorithm`: ID-guided MS1 feature detection, the algorithm behind the TOPP tool `FeatureFinderIdentification`.
-pub mod feature_finder_identification;
-/// `FeatureFinderAlgorithmMetaboIdent`: targeted MS1 feature detection from a table of metabolite targets, the algorithm behind the TOPP tool `FeatureFinderMetaboIdent`.
-pub mod feature_finder_metabo_ident;
-/// The steps the two targeted MS1 feature finders share (not public API).
-pub(crate) mod ms1_targeted;

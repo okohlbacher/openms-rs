@@ -234,7 +234,14 @@ pub(crate) fn elution_model_fitter(param: &Param, model_type: &str) -> Result<El
     emf_params.remove("type")?;
     emf_params.set_value(
         "asymmetric",
-        ParamValue::String(if model_type == "asymmetric" { "true" } else { "false" }.into()),
+        ParamValue::String(
+            if model_type == "asymmetric" {
+                "true"
+            } else {
+                "false"
+            }
+            .into(),
+        ),
         "",
         &[],
     )?;

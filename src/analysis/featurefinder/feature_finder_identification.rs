@@ -37,14 +37,18 @@ use crate::analysis::openswath::reaction_monitoring_transition::ReactionMonitori
 use crate::analysis::openswath::spectrum_access_openms::SimpleOpenMSSpectraFactory;
 use crate::analysis::openswath::swath_map::SwathMap;
 use crate::analysis::openswath::targeted_experiment::TargetedExperiment;
-use crate::analysis::openswath::targeted_experiment_helper::{Peptide, Protein, RTType, RetentionTime};
+use crate::analysis::openswath::targeted_experiment_helper::{
+    Peptide, Protein, RTType, RetentionTime,
+};
 use crate::analysis::transformations::TransformationDescription;
 use crate::chemistry::isotopes::ProbabilityPrecision;
 use crate::chemistry::{
-    AASequence, CoarseIsotopePatternGenerator, CoarseMassMode, IsotopeDistribution,
-    ModificationsDB, SequenceModification, TermSpecificity,
+    AASequence, CoarseIsotopePatternGenerator, CoarseMassMode, EmpiricalFormula,
+    IsotopeDistribution,
+    ModificationsDB, PeptideFragmentType, SequenceModification, TermSpecificity,
 };
 use crate::concept::constants::user_param::{FAIMS_CV, IM};
+use crate::concept::progress_logger::ProgressLogger;
 use crate::concept::unique_id::{HasUniqueId, UniqueIdGenerator};
 use crate::constants::{C13C12_MASSDIFF_U, PROTON_MASS_U};
 use crate::format::file_info::text_format::to_str;
@@ -220,12 +224,15 @@ fn modification_order(
         (None, Some(_)) => Ordering::Less,
         (Some(_), None) => Ordering::Greater,
         (Some(a), Some(b)) => {
-            let key = |m: &SequenceModification| -> (Option<u32>, String) {
+            // Registry modifications are allocated before any mass-only one,
+            // which the source creates while it parses, so their addresses
+            // order the same way.
+            let key = |m: &SequenceModification| -> (u8, Option<u32>, String) {
                 match m {
                     SequenceModification::Known(known) => {
-                        (known.record_id(), known.full_id().to_owned())
+                        (0, known.record_id(), known.full_id().to_owned())
                     }
-                    SequenceModification::MassTag(tag) => (None, tag.full_id().to_owned()),
+                    SequenceModification::MassTag(tag) => (1, None, tag.full_id().to_owned()),
                 }
             };
             key(a).cmp(&key(b))
@@ -418,7 +425,11 @@ fn median_of_sorted(values: &[f64]) -> f64 {
 fn peptide_compare(left: &PeptideIdentification, right: &PeptideIdentification) -> Ordering {
     let key = |p: &PeptideIdentification| -> (String, i32, f64) {
         match p.hits.first() {
-            Some(hit) => (hit.sequence.to_string(), hit.charge, p.rt.unwrap_or(f64::NAN)),
+            Some(hit) => (
+                hit.sequence.to_string(),
+                hit.charge,
+                p.rt.unwrap_or(f64::NAN),
+            ),
             None => (String::new(), 0, p.rt.unwrap_or(f64::NAN)),
         }
     };
@@ -478,8 +489,11 @@ pub struct FeatureFinderIdentificationAlgorithm {
     im_stats: BTreeMap<String, IMStats>,
     global_im_stats: IMStats,
     feat_finder: MRMFeatureFinderScoring,
+    progress: ProgressLogger,
     ids: Arc<Mutex<UniqueIdGenerator>>,
     report: FeatureFinderIdentificationReport,
+    capture_candidates: bool,
+    captured_candidates: Option<FeatureMap>,
 }
 
 impl std::fmt::Debug for FeatureFinderIdentificationAlgorithm {
@@ -542,7 +556,12 @@ fn string_default(
     tags: &[&str],
 ) -> Result<()> {
     let tags: Vec<String> = tags.iter().map(|t| (*t).to_owned()).collect();
-    param.set_value(key, ParamValue::String(value.to_owned()), description, &tags)?;
+    param.set_value(
+        key,
+        ParamValue::String(value.to_owned()),
+        description,
+        &tags,
+    )?;
     if !valid.is_empty() {
         let valid: Vec<String> = valid.iter().map(|v| (*v).to_owned()).collect();
         param.set_valid_strings(key, &valid)?;
@@ -790,8 +809,8 @@ impl FeatureFinderIdentificationAlgorithm {
     pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
         let mut handler = DefaultParamHandler::new(NAME)?;
         handler.set_defaults(Self::defaults()?)?;
-        let ((param, settings), warnings) =
-            handler.set_parameters_with(parameters, |complete| {
+        let ((param, settings), warnings) = handler
+            .set_parameters_with(parameters, |complete| {
                 Ok((complete.clone(), Settings::from_param(complete)?))
             })?;
         let ids = Arc::new(Mutex::new(UniqueIdGenerator::new()));
@@ -812,8 +831,11 @@ impl FeatureFinderIdentificationAlgorithm {
                 im_stats: BTreeMap::new(),
                 global_im_stats: IMStats::default(),
                 feat_finder,
+                progress: ProgressLogger::new(),
                 ids,
                 report: FeatureFinderIdentificationReport::default(),
+                capture_candidates: false,
+                captured_candidates: None,
             },
             warnings,
         ))
@@ -893,6 +915,42 @@ impl FeatureFinderIdentificationAlgorithm {
         &self.output_library
     }
 
+    /// The progress logger of the algorithm (source `getProgressLogger`):
+    /// configure its log type before [`run`](Self::run). The run reports one
+    /// step per batch of peptides, labelled "Creating assay library and
+    /// extracting chromatograms".
+    pub fn progress_logger(&self) -> &ProgressLogger {
+        &self.progress
+    }
+
+    /// Mutable access to the progress logger (source non-const
+    /// `getProgressLogger`).
+    pub fn progress_logger_mut(&mut self) -> &mut ProgressLogger {
+        &mut self.progress
+    }
+
+    /// Keep the feature candidates of the next run in memory (native addition;
+    /// default off).
+    ///
+    /// The source can only hand the candidates over as the file named by
+    /// `candidates_out`, written after the annotation and before the filtering.
+    /// With this switch the same map, with the same content, is kept and
+    /// returned by [`candidates`](Self::candidates), without the round trip
+    /// through a file (which loses nothing in the source; the native writer
+    /// prints a `float`-valued meta value with the digits of a `float`).
+    pub fn set_capture_candidates(&mut self, capture: bool) {
+        self.capture_candidates = capture;
+        if !capture {
+            self.captured_candidates = None;
+        }
+    }
+
+    /// The feature candidates of the last run, before the filtering, when
+    /// [`set_capture_candidates`](Self::set_capture_candidates) was on.
+    pub fn candidates(&self) -> Option<&FeatureMap> {
+        self.captured_candidates.as_ref()
+    }
+
     /// The report of the last run (what the source writes to its log streams).
     pub fn report(&self) -> &FeatureFinderIdentificationReport {
         &self.report
@@ -939,7 +997,10 @@ impl FeatureFinderIdentificationAlgorithm {
     ///
     /// [`Error::MissingInformation`] for a feature of positive intensity
     /// without an identification or hit (undefined behaviour in the source).
-    pub fn statistics(&self, features: &FeatureMap) -> Result<FeatureFinderIdentificationStatistics> {
+    pub fn statistics(
+        &self,
+        features: &FeatureMap,
+    ) -> Result<FeatureFinderIdentificationStatistics> {
         let mut quantified: BTreeSet<SequenceKey> = BTreeSet::new();
         for feature in &features.features {
             if feature.intensity > 0.0 {
@@ -1088,6 +1149,7 @@ impl FeatureFinderIdentificationAlgorithm {
             }
             // a fresh instance per group, with the same parameters
             let mut sub = Self::from_param(&self.param)?;
+            sub.progress.set_log_type(self.progress.log_type());
             sub.share_unique_id_generator(&self.ids);
             sub.set_ms_data(group.experiment);
             let mut features_cv = FeatureMap::new();
@@ -1095,7 +1157,9 @@ impl FeatureFinderIdentificationAlgorithm {
 
             let cv_value = MetaValue::try_from(group_cv)?;
             for mut feature in features_cv.features {
-                feature.metadata.insert(FAIMS_CV.to_owned(), cv_value.clone());
+                feature
+                    .metadata
+                    .insert(FAIMS_CV.to_owned(), cv_value.clone());
                 staged.features.push(feature);
             }
             for mut id in features_cv.unassigned_peptide_identifications {
@@ -1175,10 +1239,8 @@ impl FeatureFinderIdentificationAlgorithm {
         self.report = FeatureFinderIdentificationReport::default();
 
         // annotate the mzML file
-        features.set_primary_ms_run_path_from_experiment(
-            &[spectra_file.to_owned()],
-            &self.ms_data,
-        )?;
+        features
+            .set_primary_ms_run_path_from_experiment(&[spectra_file.to_owned()], &self.ms_data)?;
 
         // check the IM format
         let im_window = self.param.value("extract:IM_window")?.to_f64()?;
@@ -1329,6 +1391,14 @@ impl FeatureFinderIdentificationAlgorithm {
         } else {
             None
         };
+        // Note: progress only works in non-debug mode, when no logs come in
+        // between
+        self.progress.start_progress(
+            0,
+            i64::try_from(chunks.len()).unwrap_or(i64::MAX),
+            "Creating assay library and extracting chromatograms",
+        )?;
+        let mut chunk_count: i64 = 0;
         for (start, end) in chunks {
             // fills the library
             self.create_assay_library(&keys[start..end], &mut ref_rt_map, true, peptides)?;
@@ -1379,7 +1449,10 @@ impl FeatureFinderIdentificationAlgorithm {
             // empty and pickExperiment added empty protein runs with colliding
             // identifiers; the real proteins are added later
             features.protein_identifications.clear();
+            chunk_count += 1;
+            self.progress.set_progress(chunk_count)?;
         }
+        self.progress.end_progress(0)?;
         self.report.candidates = features.features.len();
         self.report.note(format!(
             "Found {} feature candidates in total.",
@@ -1394,8 +1467,8 @@ impl FeatureFinderIdentificationAlgorithm {
         let mut params = self.feat_finder.parameters().clone();
         let max_iteration = self.param.value("EMGScoring:max_iteration")?.clone();
         let init_mom = self.param.value("EMGScoring:init_mom")?.clone();
-        let write_hull = self.settings.elution_model != "none"
-            || !self.settings.candidates_out.is_empty();
+        let write_hull =
+            self.settings.elution_model != "none" || !self.settings.candidates_out.is_empty();
         if write_hull {
             params.set_value(
                 "write_convex_hull",
@@ -1492,7 +1565,11 @@ impl FeatureFinderIdentificationAlgorithm {
 
         let (decoy, score, higher_better) = {
             let id = &peptides[index];
-            (id.hits[0].is_decoy()?, id.hits[0].score, id.higher_score_better)
+            (
+                id.hits[0].is_decoy()?,
+                id.hits[0].score,
+                id.higher_score_better,
+            )
         };
         // if the decoys are not quantified they are not added to the list
         if !self.settings.quantify_decoys && decoy {
@@ -1517,7 +1594,7 @@ impl FeatureFinderIdentificationAlgorithm {
         if let Some(calc_mass) = calc_mass {
             let charge = peptides[index].hits[0].charge;
             let sequence = peptides[index].hits[0].sequence.clone();
-            let diff_mz = calc_mass - sequence.mz(charge)?;
+            let diff_mz = calc_mass - source_mz(&sequence, charge)?;
             let diff_mass = diff_mz * f64::from(charge);
             if diff_mass.abs() > 0.01 {
                 let mut modified = sequence;
@@ -1832,8 +1909,9 @@ impl FeatureFinderIdentificationAlgorithm {
         } else {
             self.settings.n_isotopes
         };
-        let generator = CoarseIsotopePatternGenerator::new(Some(n_isotopes), CoarseMassMode::Approximate)?
-            .with_precision(ProbabilityPrecision::SourceSingle);
+        let generator =
+            CoarseIsotopePatternGenerator::new(Some(n_isotopes), CoarseMassMode::Approximate)?
+                .with_precision(ProbabilityPrecision::SourceSingle);
 
         for key in keys {
             let seq = &key.0;
@@ -1952,7 +2030,7 @@ impl FeatureFinderIdentificationAlgorithm {
                 // peptide, charge and region
 
                 // isotope distribution of the peptide
-                let formula = seq.formula()?;
+                let formula = seq.formula_for_source(PeptideFragmentType::Full, 0)?;
                 let mut iso_dist = generator.run(&formula)?;
                 trim_and_renormalize(&mut iso_dist, self.settings.isotope_pmin)?;
 
@@ -1965,7 +2043,7 @@ impl FeatureFinderIdentificationAlgorithm {
                             peptide.sequence
                         )));
                     }
-                    let mz = seq.mz(charge)?;
+                    let mz = source_mz(seq, charge)?;
                     peptide.set_charge_state(charge);
                     let peptide_id = format!("{}/{}", peptide.sequence, charge);
 
@@ -2127,7 +2205,9 @@ impl FeatureFinderIdentificationAlgorithm {
                     .metadata
                     .get("PrecursorMZ")
                     .ok_or_else(|| {
-                        Error::MissingInformation("a feature has no 'PrecursorMZ' meta value".into())
+                        Error::MissingInformation(
+                            "a feature has no 'PrecursorMZ' meta value".into(),
+                        )
                     })?
                     .as_f64()?;
                 feat.mz = precursor_mz;
@@ -2184,7 +2264,8 @@ impl FeatureFinderIdentificationAlgorithm {
 
             if peptide_ref != previous_ref {
                 if !previous_ref.is_empty() {
-                    let mut rt_ids = std::mem::take(ref_rt_map.entry(previous_ref.clone()).or_default());
+                    let mut rt_ids =
+                        std::mem::take(ref_rt_map.entry(previous_ref.clone()).or_default());
                     Self::finalize_assay(features, &mut feat_ids, &mut rt_ids, peptides);
                     ref_rt_map.insert(previous_ref.clone(), rt_ids);
                 }
@@ -2251,11 +2332,21 @@ impl FeatureFinderIdentificationAlgorithm {
         self.ensure_map_unique_id(features)?;
 
         // store the feature candidates before the filtering
+        if self.capture_candidates {
+            self.captured_candidates = Some(features.clone());
+        }
         #[cfg(feature = "featurexml")]
         if !self.settings.candidates_out.is_empty() {
+            // The source's writer omits (with a warning) every peptide
+            // identification whose run is not among the protein identifications
+            // of the map. The proteins are set after this point of a run, so
+            // the candidates are written without identifications; the native
+            // writer refuses such a map, so the omission is made here.
+            let mut written = features.clone();
+            omit_identifications_without_run(&mut written);
             crate::format::file_handler::FileHandler::store_feature_map(
                 &self.settings.candidates_out,
-                features,
+                &written,
                 Some(crate::format::FileType::FeatureXml),
             )?;
         }
@@ -2383,6 +2474,33 @@ impl FeatureFinderIdentificationAlgorithm {
     }
 }
 
+/// Drop the peptide identifications whose identifier names no protein
+/// identification run of the map, from the features (subordinates included) and
+/// the unassigned list, as `FeatureXMLHandler::writePeptideIdentification_`
+/// omits them.
+#[cfg(feature = "featurexml")]
+fn omit_identifications_without_run(map: &mut FeatureMap) {
+    fn strip(feature: &mut Feature, runs: &BTreeSet<&str>) {
+        feature
+            .peptide_identifications
+            .retain(|id| runs.contains(id.identifier.as_str()));
+        for sub in &mut feature.subordinates {
+            strip(sub, runs);
+        }
+    }
+    let runs: BTreeSet<String> = map
+        .protein_identifications
+        .iter()
+        .map(|run| run.identifier.clone())
+        .collect();
+    let runs: BTreeSet<&str> = runs.iter().map(String::as_str).collect();
+    for feature in &mut map.features {
+        strip(feature, &runs);
+    }
+    map.unassigned_peptide_identifications
+        .retain(|id| runs.contains(id.identifier.as_str()));
+}
+
 /// Remove the pseudo hits of seeds and offset peptides from the features and
 /// the unassigned identifications (source `removeSeedPseudoIDs_`).
 fn remove_seed_pseudo_ids(features: &mut FeatureMap) {
@@ -2421,9 +2539,8 @@ fn remove_seed_pseudo_ids(features: &mut FeatureMap) {
 fn chunk_ranges(total: usize, batch_size: usize) -> Vec<(usize, usize)> {
     let batch = batch_size.max(1);
     let count = total / batch;
-    let mut chunks: Vec<(usize, usize)> = (0..count)
-        .map(|i| (i * batch, (i + 1) * batch))
-        .collect();
+    let mut chunks: Vec<(usize, usize)> =
+        (0..count).map(|i| (i * batch, (i + 1) * batch)).collect();
     match chunks.last_mut() {
         Some(last) => last.1 = total,
         None => chunks.push((0, total)),
@@ -2460,6 +2577,69 @@ fn first_im_unit(experiment: &MSExperiment) -> Option<DriftTimeUnit> {
         .and_then(|spectrum| spectrum.im_data().ok().map(|(_, unit)| unit))
 }
 
+/// `AASequence::getMZ(charge)` of the source: `getMonoWeight(Full, charge) /
+/// charge`, where the weight starts at `charge * PROTON_MASS_U`, adds the
+/// terminal deltas and the residues in order and the water last. The order is
+/// the one the library m/z values (and with them every score that divides by
+/// them) were computed in; the cached neutral mass of the native sequence
+/// adds the water first and differs in the last bit for some peptides.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for charge 0 (the source divides by zero) and for a
+/// sequence without a known mass.
+pub fn source_mz(sequence: &AASequence, charge: i32) -> Result<f64> {
+    if charge == 0 {
+        return Err(bad("an ion m/z needs a non-zero charge"));
+    }
+    if sequence.is_empty() {
+        return Err(bad("an empty sequence has no ion m/z"));
+    }
+    // The source's weight of a residue inside a chain is the weight of the
+    // free residue's formula (with its modification's formula) minus the weight
+    // of water: `Residue::getMonoWeight(Internal)`.
+    let water = EmpiricalFormula::parse("H2O")?.mono_mass();
+    let mut weight = f64::from(charge) * PROTON_MASS_U;
+    if let Some(modification) = sequence.n_terminal_modification() {
+        weight += modification.diff_mono_mass()?;
+    }
+    if let Some(modification) = sequence.c_terminal_modification() {
+        weight += modification.diff_mono_mass()?;
+    }
+    for index in 0..sequence.len() {
+        let mut residue = sequence.subsequence(index..index + 1)?;
+        if residue.n_terminal_modification().is_some() {
+            residue.set_n_terminal_modification("")?;
+        }
+        if residue.c_terminal_modification().is_some() {
+            residue.set_c_terminal_modification("")?;
+        }
+        let internal = match residue.residue_modification(0)? {
+            // An anonymous mass: the source's "unknown modification" gives a
+            // shifted residue the weight of the free residue plus the shift,
+            // and leaves its formula alone. A written absolute mass is the
+            // weight of the residue inside a chain.
+            Some(SequenceModification::MassTag(tag)) => {
+                if tag.is_delta() {
+                    let letter = &sequence.as_str()[index..index + 1];
+                    let base = AASequence::parse(letter)?.formula()?.mono_mass();
+                    (base + tag.mass()) - water
+                } else {
+                    tag.residue_mono_mass().ok_or_else(|| {
+                        bad("an anonymous residue mass without a known residue weight")
+                    })?
+                }
+            }
+            _ => match residue.formula() {
+                Ok(formula) => formula.mono_mass() - water,
+                Err(_) => residue.mono_mass()? - water,
+            },
+        };
+        weight += internal;
+    }
+    Ok((weight + water) / f64::from(charge))
+}
+
 /// Replace the modification of one residue by one matching a mass difference
 /// (source `AASequence::setModificationByDiffMonoMass` for an unmodified
 /// residue): the best modification within 0.002 Da, else an anonymous mass tag.
@@ -2482,7 +2662,8 @@ fn set_modification_by_diff_mono_mass(
     )?;
     match found {
         Some(modification) => {
-            *sequence = sequence.with_resolved_modifications(&[(index, modification)], None, None)?;
+            *sequence =
+                sequence.with_resolved_modifications(&[(index, modification)], None, None)?;
             Ok(())
         }
         None => {

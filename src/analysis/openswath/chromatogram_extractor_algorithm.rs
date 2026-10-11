@@ -32,6 +32,17 @@
 //!
 //! Both are recorded as C++ defect candidates in the support document.
 //!
+//! A third property decides the result of a mixed extraction. The source
+//! advances its ion-mobility iterator only in the ion-mobility overload of the
+//! integrator, so after a coordinate without ion mobility (a negative
+//! `ion_mobility`) the iterator lags behind the m/z iterator for the rest of
+//! the spectrum, and every later ion-mobility coordinate filters on the ion
+//! mobility of an earlier peak. [`ChromatogramExtractorAlgorithm::extract_chromatograms`]
+//! reproduces the lag (see
+//! [`ChromatogramExtractorAlgorithm::extract_value_tophat_im_lagged`]); an
+//! extraction in which every coordinate carries ion mobility, or none does, is
+//! not affected.
+//!
 //! # Ceilings
 //!
 //! One extraction appends one point per matching spectrum and coordinate. The
@@ -313,20 +324,85 @@ impl ChromatogramExtractorAlgorithm {
         im_extraction_window: f64,
         ppm: bool,
     ) -> Result<f64> {
+        let mut im_pos = *pos;
+        self.extract_value_tophat_im_lagged(
+            mz,
+            intensity,
+            ion_mobility,
+            pos,
+            &mut im_pos,
+            target_mz,
+            target_im,
+            mz_extraction_window,
+            im_extraction_window,
+            ppm,
+        )
+    }
+
+    /// As [`Self::extract_value_tophat_im`], with the ion-mobility walk
+    /// position kept apart from the m/z position, as the source keeps it.
+    ///
+    /// The source advances the ion-mobility iterator `im_it` only inside the
+    /// ion-mobility overload of `extract_value_tophat`; the m/z-only overload
+    /// advances `mz_it` and `int_it` and leaves `im_it` behind. A spectrum
+    /// that mixes coordinates with and without ion mobility (a coordinate
+    /// whose `ion_mobility` is negative takes the m/z-only overload) therefore
+    /// reads the ion mobility of an earlier peak for every ion-mobility
+    /// coordinate after the first m/z-only one, and the loss grows with each
+    /// further m/z-only advance. `FeatureFinderIdentification` produces such
+    /// spectra whenever a peptide has no ion-mobility annotation, and the
+    /// features it reports depend on the lag, so it is reproduced here;
+    /// [`ChromatogramExtractorAlgorithm::extract_chromatograms`] keeps one
+    /// `im_pos` per spectrum.
+    ///
+    /// `im_pos` is the source's `im_it - im_start`; it never exceeds `pos`
+    /// and advances by as many peaks as `pos` does in this call. The source
+    /// reads before the start of the array where `im_pos` lags behind a walk
+    /// that reaches the first peaks; those reads are undefined behaviour in
+    /// the source and count here as outside the window.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when `intensity` or `ion_mobility` is shorter
+    /// than `mz`, `pos` is past the end of `mz`, or `im_pos` is past `pos`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn extract_value_tophat_im_lagged(
+        &self,
+        mz: &[f64],
+        intensity: &[f64],
+        ion_mobility: &[f64],
+        pos: &mut usize,
+        im_pos: &mut usize,
+        target_mz: f64,
+        target_im: f64,
+        mz_extraction_window: f64,
+        im_extraction_window: f64,
+        ppm: bool,
+    ) -> Result<f64> {
         check_walk_arrays(mz.len(), intensity.len(), "intensity", *pos)?;
         check_walk_arrays(mz.len(), ion_mobility.len(), "ion mobility", *pos)?;
+        if *im_pos > *pos {
+            return Err(Error::InvalidValue(format!(
+                "ion mobility walk position {} is past the m/z walk position {}",
+                *im_pos, *pos
+            )));
+        }
         let (left, right) = mz_window(target_mz, mz_extraction_window, ppm);
         let left_im = target_im - im_extraction_window / 2.0;
         let right_im = target_im + im_extraction_window / 2.0;
-        Ok(tophat_walk(
+        let lag = *pos - *im_pos;
+        let before = *pos;
+        let integrated = tophat_walk(
             mz,
             intensity,
             pos,
             target_mz,
             left,
             right,
-            |i| ion_mobility[i] > left_im && ion_mobility[i] < right_im,
-        ))
+            |i| i >= lag && ion_mobility[i - lag] > left_im && ion_mobility[i - lag] < right_im,
+        );
+        *im_pos += *pos - before;
+        Ok(integrated)
     }
 
     /// Extract chromatograms at the m/z, ion mobility and RT of each
@@ -511,6 +587,8 @@ impl ChromatogramExtractorAlgorithm {
                 }
                 let current_rt = meta.rt;
                 let mut pos = 0usize;
+                // the source's `im_it`: advanced by the ion-mobility walk only
+                let mut im_pos = 0usize;
                 for (k, coord) in coordinates.iter().enumerate() {
                     if coord.rt_end - coord.rt_start > 0.0
                         && (current_rt < coord.rt_start || current_rt > coord.rt_end)
@@ -519,11 +597,12 @@ impl ChromatogramExtractorAlgorithm {
                     }
                     let use_im = coord.ion_mobility >= 0.0 && has_im;
                     let integrated = match used_filter {
-                        ExtractionFilter::Tophat if use_im => self.extract_value_tophat_im(
+                        ExtractionFilter::Tophat if use_im => self.extract_value_tophat_im_lagged(
                             mz,
                             intensity,
                             im,
                             &mut pos,
+                            &mut im_pos,
                             coord.mz,
                             coord.ion_mobility,
                             mz_extraction_window,

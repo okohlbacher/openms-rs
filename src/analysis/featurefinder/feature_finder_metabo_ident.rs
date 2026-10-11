@@ -332,6 +332,8 @@ pub struct FeatureFinderAlgorithmMetaboIdent {
     n_shared: usize,
     ids: Arc<Mutex<UniqueIdGenerator>>,
     report: FeatureFinderMetaboIdentReport,
+    capture_candidates: bool,
+    captured_candidates: Option<FeatureMap>,
 }
 
 impl std::fmt::Debug for FeatureFinderAlgorithmMetaboIdent {
@@ -367,7 +369,14 @@ fn float_default(
     Ok(())
 }
 
-fn int_default(param: &mut Param, key: &str, value: i64, description: &str, advanced: bool, min: i32) -> Result<()> {
+fn int_default(
+    param: &mut Param,
+    key: &str,
+    value: i64,
+    description: &str,
+    advanced: bool,
+    min: i32,
+) -> Result<()> {
     let tags: Vec<String> = if advanced {
         vec!["advanced".to_owned()]
     } else {
@@ -387,7 +396,12 @@ fn string_default(
     tags: &[&str],
 ) -> Result<()> {
     let tags: Vec<String> = tags.iter().map(|t| (*t).to_owned()).collect();
-    param.set_value(key, ParamValue::String(value.to_owned()), description, &tags)?;
+    param.set_value(
+        key,
+        ParamValue::String(value.to_owned()),
+        description,
+        &tags,
+    )?;
     if !valid.is_empty() {
         let valid: Vec<String> = valid.iter().map(|v| (*v).to_owned()).collect();
         param.set_valid_strings(key, &valid)?;
@@ -606,6 +620,8 @@ impl FeatureFinderAlgorithmMetaboIdent {
                 n_shared: 0,
                 ids,
                 report,
+                capture_candidates: false,
+                captured_candidates: None,
             },
             warnings,
         ))
@@ -686,6 +702,22 @@ impl FeatureFinderAlgorithmMetaboIdent {
         self.settings.rt_window
     }
 
+    /// Keep the feature candidates of the next run in memory (native addition;
+    /// default off): the map the source writes to `candidates_out` after the
+    /// annotation, before the selection, without the round trip through a file.
+    pub fn set_capture_candidates(&mut self, capture: bool) {
+        self.capture_candidates = capture;
+        if !capture {
+            self.captured_candidates = None;
+        }
+    }
+
+    /// The feature candidates of the last run, when
+    /// [`set_capture_candidates`](Self::set_capture_candidates) was on.
+    pub fn candidates(&self) -> Option<&FeatureMap> {
+        self.captured_candidates.as_ref()
+    }
+
     /// The report of the last run (what the source writes to its log streams).
     pub fn report(&self) -> &FeatureFinderMetaboIdentReport {
         &self.report
@@ -759,13 +791,18 @@ impl FeatureFinderAlgorithmMetaboIdent {
         // pre-flight: the number of library entries
         let mut entries = 0usize;
         for target in targets {
-            entries = entries
-                .saturating_add(target.charges.len().saturating_mul(target.rts.len()));
+            entries = entries.saturating_add(target.charges.len().saturating_mul(target.rts.len()));
         }
         if entries > MAX_LIBRARY_ENTRIES {
             return Err(bad(format!(
                 "the targets would create {entries} library entries; at most {MAX_LIBRARY_ENTRIES} are built"
             )));
+        }
+        let candidates_out = self.settings.candidates_out.to_ascii_lowercase();
+        if candidates_out.ends_with(".featureparquet") || candidates_out.ends_with(".parquet") {
+            return Err(Error::Unsupported(
+                "candidates_out in the feature Parquet format: FeatureParquet writing (FORMAT/FeatureMapArrowIO.h) is not ported yet".into(),
+            ));
         }
         if !self.settings.candidates_out.is_empty() && cfg!(not(feature = "featurexml")) {
             return Err(Error::Unsupported(
@@ -816,7 +853,9 @@ impl FeatureFinderAlgorithmMetaboIdent {
 
             let cv_value = MetaValue::try_from(group_cv)?;
             for mut feature in features_cv.features {
-                feature.metadata.insert(FAIMS_CV.to_owned(), cv_value.clone());
+                feature
+                    .metadata
+                    .insert(FAIMS_CV.to_owned(), cv_value.clone());
                 staged.features.push(feature);
             }
             // the proteins of the first group
@@ -881,10 +920,8 @@ impl FeatureFinderAlgorithmMetaboIdent {
     ) -> Result<()> {
         // if a proper mzML is annotated in the data it is the reference,
         // otherwise the given file name is
-        features.set_primary_ms_run_path_from_experiment(
-            &[spectra_file.to_owned()],
-            &self.ms_data,
-        )?;
+        features
+            .set_primary_ms_run_path_from_experiment(&[spectra_file.to_owned()], &self.ms_data)?;
 
         if self.ms_data.spectra.is_empty() {
             self.report
@@ -998,9 +1035,15 @@ impl FeatureFinderAlgorithmMetaboIdent {
         // auxiliary output
         self.ensure_map_unique_id(features)?;
 
+        if self.capture_candidates && self.settings.candidates_out.is_empty() {
+            self.captured_candidates = Some(features.clone());
+        }
         if !self.settings.candidates_out.is_empty() {
             // store the feature candidates
             features.features.sort_by(feature_compare);
+            if self.capture_candidates {
+                self.captured_candidates = Some(features.clone());
+            }
             #[cfg(feature = "featurexml")]
             crate::format::file_handler::FileHandler::store_feature_map(
                 &self.settings.candidates_out,
@@ -1551,7 +1594,11 @@ impl FeatureFinderAlgorithmMetaboIdent {
             }
         }
         // the targets without features
-        let n_missing = self.library.compounds().len().saturating_sub(found_refs.len());
+        let n_missing = self
+            .library
+            .compounds()
+            .len()
+            .saturating_sub(found_refs.len());
         for compound in self.library.compounds() {
             if !found_refs.contains(&compound.id) {
                 let meta = &compound.cv_terms.metadata;
@@ -1560,15 +1607,15 @@ impl FeatureFinderAlgorithmMetaboIdent {
                     "label".to_owned(),
                     meta.get("name").cloned().unwrap_or_default(),
                 );
-                metadata.insert("PeptideRef".to_owned(), MetaValue::from(compound.id.clone()));
+                metadata.insert(
+                    "PeptideRef".to_owned(),
+                    MetaValue::from(compound.id.clone()),
+                );
                 if let Some(im) = meta.get("expected_im") {
                     // ion mobility annotation, if available
                     metadata.insert("expected_im".to_owned(), im.clone());
                 }
-                let expected_rt = meta
-                    .get("expected_rt")
-                    .map(MetaValue::as_f64)
-                    .transpose()?;
+                let expected_rt = meta.get("expected_rt").map(MetaValue::as_f64).transpose()?;
                 let peptide = PeptideIdentification {
                     identifier: "id".to_owned(),
                     rt: expected_rt,
@@ -1590,6 +1637,9 @@ impl FeatureFinderAlgorithmMetaboIdent {
                 .protein_identifications
                 .resize(1, ProteinIdentification::default());
             features.protein_identifications[0].identifier = "id".to_owned();
+            // The source leaves the date unset, which its writers spell as the
+            // zero date; the native map writers require the text.
+            features.protein_identifications[0].date_time = Some("0000-00-00T00:00:00".to_owned());
         }
         Ok(n_shared)
     }

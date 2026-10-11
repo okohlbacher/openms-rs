@@ -23,6 +23,7 @@
 //! [`Error::InvalidValue`](crate::Error::InvalidValue) when the second is
 //! shorter; a longer second slice is allowed, as in the source.
 
+use crate::math::fitters::levenberg_marquardt::{eigen_dot, eigen_sum};
 use crate::{Error, Result};
 
 fn check_second_len(first: usize, second: usize) -> Result<()> {
@@ -71,8 +72,15 @@ fn normalize_in_place(values: &mut [f64], normalization_factor: f64) {
 }
 
 /// The Euclidean norm of `values`; 0 for an empty slice.
+///
+/// The squares are added in Eigen's order (`v.norm()` is the square root of
+/// the vectorised `squaredNorm()` reduction), as the Release build does; a
+/// left-to-right sum differs in the last bits for four terms or more.
 pub fn norm(values: &[f64]) -> f64 {
-    values.iter().map(|v| v * v).sum::<f64>().sqrt()
+    if values.is_empty() {
+        return 0.0;
+    }
+    eigen_sum(values.len(), |i| values[i] * values[i]).sqrt()
 }
 
 /// The dot product of `exp` and the first `exp.len()` elements of `theo`.
@@ -82,7 +90,8 @@ pub fn norm(values: &[f64]) -> f64 {
 /// [`Error::InvalidValue`] when `theo` is shorter than `exp`.
 pub fn dot_prod(exp: &[f64], theo: &[f64]) -> Result<f64> {
     check_second_len(exp.len(), theo.len())?;
-    Ok(exp.iter().zip(theo).map(|(a, b)| a * b).sum())
+    // Eigen's `dot()` (`inner_product_impl`), not a left-to-right sum
+    Ok(eigen_dot(exp.len(), |i| exp[i], |i| theo[i]))
 }
 
 /// The dot product of two `f32` sequences, accumulated in `f32` and widened
@@ -149,7 +158,11 @@ pub fn dotprod_scoring(mut int_exp: Vec<f64>, mut theorint: Vec<f64>) -> Result<
 /// [`Error::InvalidValue`] when `theo` is shorter than `exp`.
 pub fn manhattan_dist(exp: &[f64], theo: &[f64]) -> Result<f64> {
     check_second_len(exp.len(), theo.len())?;
-    Ok(exp.iter().zip(theo).map(|(a, b)| (a - b).abs()).sum())
+    if exp.is_empty() {
+        return Ok(0.0);
+    }
+    // `(v1 - v2).cwiseAbs().sum()`: Eigen's vectorised reduction
+    Ok(eigen_sum(exp.len(), |i| (exp[i] - theo[i]).abs()))
 }
 
 /// The Manhattan score of an experimental against a theoretical intensity
@@ -166,8 +179,17 @@ pub fn manhattan_scoring(mut int_exp: Vec<f64>, mut theorint: Vec<f64>) -> Resul
     check_second_len(int_exp.len(), theorint.len())?;
     int_exp.iter_mut().for_each(|v| *v = v.sqrt());
     theorint.iter_mut().for_each(|v| *v = v.sqrt());
-    let exp_total: f64 = int_exp.iter().sum();
-    let theo_total: f64 = theorint.iter().sum();
+    // `mapExp.sum()`, Eigen's vectorised reduction
+    let exp_total = if int_exp.is_empty() {
+        0.0
+    } else {
+        eigen_sum(int_exp.len(), |i| int_exp[i])
+    };
+    let theo_total = if theorint.is_empty() {
+        0.0
+    } else {
+        eigen_sum(theorint.len(), |i| theorint[i])
+    };
     normalize_in_place(&mut int_exp, exp_total);
     normalize_in_place(&mut theorint, theo_total);
     manhattan_dist(&int_exp, &theorint)
