@@ -83,7 +83,7 @@ use super::openswath_helper::{
 use super::openswath_osw_writer::{OpenSwathOSWWriter, OswData};
 use super::openswath_workflow_scheduler::{
     ConcurrencyEstimate, ConcurrencyLimiter, OpenSwathWorkflowScheduler, SchedulerOptions,
-    ScopedSlot,
+    ScopedSlot, free_memory_kib,
 };
 use super::spectrum_access::{SpectrumAccess, SpectrumAccessPtr};
 use super::spectrum_access_openms::SpectrumAccessOpenMSInMemory;
@@ -98,7 +98,6 @@ use crate::kernel::mrm::MRMTransitionGroup;
 use crate::kernel::{FeatureMap, MSChromatogram, MSSpectrum};
 use crate::math::source_sort::source_sort_by;
 use crate::param::Param;
-use crate::system::sys_info::free_system_memory;
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::ops::ControlFlow;
@@ -413,7 +412,7 @@ const OSW_SYSTEM_MEMORY_RESERVE_BYTES: u64 = 4 * 1024 * 1024 * 1024;
 /// memory when that is not above the reserve), clamped to 64 MiB .. 2 GiB;
 /// 512 MiB when the free memory is unknown.
 pub fn determine_osw_write_buffer_bytes() -> u64 {
-    osw_write_buffer_bytes_from(free_system_memory())
+    osw_write_buffer_bytes_from(free_memory_kib())
 }
 
 /// [`determine_osw_write_buffer_bytes`] for a given amount of free memory in
@@ -1066,11 +1065,11 @@ impl OpenSwathWorkflow {
             result_feature_file,
             store_features,
             result_osw,
-            result_chromatograms.as_deref_mut(),
+            result_chromatograms,
             batch_size,
             ms1_isotopes,
             load_into_memory,
-            mobilogram_consumer.as_deref_mut(),
+            mobilogram_consumer,
             user_inner_batch_size,
             ms1_only,
             &estimate,
@@ -1220,14 +1219,16 @@ impl OpenSwathWorkflow {
             // stage 1: select and extract every SWATH of the wave
             let prepared: Vec<Result<SwathContext>> =
                 map_collect(&wave.swath_indices, threads, |&swath_index| {
-                    let mut context = SwathContext::default();
-                    context.transition_exp_used_all = self.swath_transitions(
-                        transition_exp,
-                        swath_maps,
-                        swath_index,
-                        cp,
-                        tr_win_map,
-                    );
+                    let mut context = SwathContext {
+                        transition_exp_used_all: self.swath_transitions(
+                            transition_exp,
+                            swath_maps,
+                            swath_index,
+                            cp,
+                            tr_win_map,
+                        ),
+                        ..SwathContext::default()
+                    };
                     if context.transition_exp_used_all.transitions.is_empty() {
                         return Ok(context);
                     }
@@ -1296,11 +1297,10 @@ impl OpenSwathWorkflow {
                     } else {
                         0
                     };
-                    let estimated_transitions = if n_compounds > 0 {
-                        (estimated_compounds * n_transitions + n_compounds - 1) / n_compounds
-                    } else {
-                        0
-                    };
+                    // ceil(estimated_compounds * n_transitions / n_compounds); no
+                    // compounds, no estimated compounds
+                    let estimated_transitions =
+                        (estimated_compounds * n_transitions).div_ceil(n_compounds.max(1));
                     queue.push(InnerBatchScoringJob {
                         context_index: swath_index,
                         batch_index,

@@ -251,11 +251,13 @@ impl OswValue {
     /// The empty string and `NULL`, `nan`, `-nan`, `NaN`, `-NaN` give NULL;
     /// text that `strtoll` consumes completely (base 10, optional sign and
     /// surrounding white space) an integer; text that `strtod` consumes
-    /// completely a real (a NaN again NULL); any other text, and any number
-    /// that over- or underflows, a text cell.
+    /// completely a real, hexadecimal and `inf`/`infinity` forms included (a NaN,
+    /// also `nan(...)`, again NULL); any other text, and any number that over-
+    /// or underflows, a text cell.
     ///
-    /// Native difference: hexadecimal floating-point text (`0x1p3`), which
-    /// `strtod` accepts, stays text here.
+    /// Hexadecimal significands of more than 16 digits are rounded twice
+    /// here, where `strtod` rounds once; no such text is expected in an
+    /// identifier column.
     pub fn parse(value: &str) -> Self {
         if matches!(value, "" | "NULL" | "nan" | "-nan" | "NaN" | "-NaN") {
             return Self::Null;
@@ -265,21 +267,24 @@ impl OswValue {
         if let Ok(int) = trimmed.parse::<i64>() {
             return Self::Int64(int);
         }
-        if let Ok(real) = trimmed.parse::<f64>() {
-            if real.is_nan() {
-                return Self::Null;
-            }
-            let lower = trimmed.to_ascii_lowercase();
-            let literal_inf = lower.trim_start_matches(['+', '-']).starts_with("inf");
-            if real.is_infinite() && !literal_inf {
-                return Self::Text(value.to_owned()); // ERANGE
-            }
-            if real != 0.0 && real.abs() < f64::MIN_POSITIVE {
-                return Self::Text(value.to_owned()); // ERANGE (underflow)
-            }
-            return Self::Double(real);
+        let Some(real) = parse_c_double(trimmed) else {
+            return Self::Text(value.to_owned());
+        };
+        if real.is_nan() {
+            return Self::Null;
         }
-        Self::Text(value.to_owned())
+        let lower = trimmed.to_ascii_lowercase();
+        let literal_inf = lower.trim_start_matches(['+', '-']).starts_with("inf");
+        if real.is_infinite() && !literal_inf {
+            return Self::Text(value.to_owned()); // ERANGE
+        }
+        if real != 0.0 && real.abs() < f64::MIN_POSITIVE {
+            return Self::Text(value.to_owned()); // ERANGE (underflow)
+        }
+        if real == 0.0 && has_nonzero_significand(&lower) {
+            return Self::Text(value.to_owned()); // ERANGE (underflow to zero)
+        }
+        Self::Double(real)
     }
 
     /// Whether the cell is inserted as SQL NULL: a NULL cell or a NaN.
@@ -382,6 +387,98 @@ impl rusqlite::ToSql for OswValue {
             Self::Text(t) => ToSqlOutput::Borrowed(ValueRef::Text(t.as_bytes())),
         })
     }
+}
+
+/// `strtod` over a text that must be consumed completely (surrounding white
+/// space already removed): decimal, `inf`/`infinity`, `nan` and `nan(chars)`
+/// (any case, optional sign) and C99 hexadecimal floating point.
+fn parse_c_double(text: &str) -> Option<f64> {
+    if text.is_empty() {
+        return None;
+    }
+    let lower = text.to_ascii_lowercase();
+    let (negative, body) = match lower.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, lower.strip_prefix('+').unwrap_or(&lower)),
+    };
+    if let Some(rest) = body.strip_prefix("nan") {
+        let ok = rest.is_empty()
+            || (rest.starts_with('(')
+                && rest.ends_with(')')
+                && rest.len() >= 2
+                && rest[1..rest.len() - 1]
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '_'));
+        return ok.then_some(f64::NAN);
+    }
+    if let Some(hex) = body.strip_prefix("0x") {
+        let value = parse_hex_float(hex)?;
+        return Some(if negative { -value } else { value });
+    }
+    // Rust accepts the decimal and inf/infinity grammar of strtod
+    if body.starts_with(|c: char| c.is_ascii_digit() || c == '.' || c == 'i') {
+        return text.parse::<f64>().ok();
+    }
+    None
+}
+
+/// The value of a hexadecimal floating-point literal after its `0x`:
+/// `h[.h]` with at least one hex digit and an optional `p[+-]d` binary
+/// exponent.
+fn parse_hex_float(text: &str) -> Option<f64> {
+    let (mantissa, exponent) = match text.split_once('p') {
+        Some((m, e)) => (m, Some(e)),
+        None => (text, None),
+    };
+    let (integer, fraction) = match mantissa.split_once('.') {
+        Some((i, f)) => (i, f),
+        None => (mantissa, ""),
+    };
+    if integer.is_empty() && fraction.is_empty() {
+        return None;
+    }
+    if !integer
+        .chars()
+        .chain(fraction.chars())
+        .all(|c| c.is_ascii_hexdigit())
+    {
+        return None;
+    }
+    let mut value = 0.0_f64;
+    for c in integer.chars() {
+        value = value * 16.0 + f64::from(c.to_digit(16)?);
+    }
+    let mut scale = 1.0_f64 / 16.0;
+    for c in fraction.chars() {
+        value += f64::from(c.to_digit(16)?) * scale;
+        scale /= 16.0;
+    }
+    let exponent: i32 = match exponent {
+        None => 0,
+        Some(e) => {
+            let digits = e.strip_prefix(['+', '-']).unwrap_or(e);
+            if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+                return None;
+            }
+            e.parse::<i32>().ok()?
+        }
+    };
+    Some(value * 2.0_f64.powi(exponent))
+}
+
+/// Whether a lower-case numeric text has a nonzero digit in its significand.
+fn has_nonzero_significand(lower: &str) -> bool {
+    let body = lower.trim_start_matches(['+', '-']);
+    let hex = body.starts_with("0x");
+    let body = body.strip_prefix("0x").unwrap_or(body);
+    let significand = if hex {
+        body.split('p').next().unwrap_or(body)
+    } else {
+        body.split('e').next().unwrap_or(body)
+    };
+    significand
+        .chars()
+        .any(|c| c.is_ascii_hexdigit() && c != '0')
 }
 
 fn null_row<const N: usize>() -> [OswValue; N] {

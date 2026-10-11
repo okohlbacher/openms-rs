@@ -32,8 +32,34 @@
 //! ```
 
 use super::swath_map::SwathMap;
-use crate::system::sys_info::free_system_memory;
 use std::sync::{Condvar, Mutex};
+
+/// The free system memory in KiB, or `None` when the platform does not report
+/// it here.
+///
+/// Linux reads `MemAvailable` of `/proc/meminfo`, falling back to `MemFree`
+/// (the source's own primary path); other platforms report nothing, as
+/// `system::sys_info::free_system_memory` does. That function is the same query:
+/// this module cannot import it, since a dependency of `analysis` on `system`
+/// would close the cycle `analysis` - `system` - `format` - `analysis`
+/// (`tools/check_module_cycles.py`).
+pub fn free_memory_kib() -> Option<u64> {
+    #[cfg(target_os = "linux")]
+    {
+        let text = std::fs::read_to_string("/proc/meminfo").ok()?;
+        let field = |key: &str| {
+            text.lines().find_map(|line| {
+                let rest = line.strip_prefix(key)?;
+                rest.split_whitespace().next()?.parse::<u64>().ok()
+            })
+        };
+        field("MemAvailable:").or_else(|| field("MemFree:"))
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        None
+    }
+}
 
 const GIB: u64 = 1024 * 1024 * 1024;
 const MIB: u64 = 1024 * 1024;
@@ -159,7 +185,7 @@ impl OpenSwathWorkflowScheduler {
     /// the rest by the usage fraction clamped to [0.05, 0.95]. Returns 0 when
     /// the memory cannot be queried or the reserves exceed it.
     pub fn estimate_available_memory_for_scoring(options: &SchedulerOptions) -> u64 {
-        Self::estimate_available_memory_from(free_system_memory(), options)
+        Self::estimate_available_memory_from(free_memory_kib(), options)
     }
 
     /// As [`estimate_available_memory_for_scoring`](Self::estimate_available_memory_for_scoring)
