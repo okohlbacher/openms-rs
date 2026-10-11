@@ -608,7 +608,6 @@ fn assert_chromatograms_match(outcome: &Outcome, expected_name: &str) {
             chromatogram.precursor.drift_time_unit = openms::metadata::DriftTimeUnit::Millisecond;
         }
     }
-    let mut expected = expected;
     // the processing history the tool's chromatogram consumer adds is not the
     // workflow's
     for exp in [&mut actual, &mut expected] {
