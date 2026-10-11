@@ -667,11 +667,12 @@ fn set(feature: &mut Feature, key: &str, value: MetaValue) {
 }
 
 fn feature(unique_id: u64, rt: f64, intensity: f32) -> Feature {
-    let mut feature = Feature::default();
-    feature.unique_id = unique_id;
-    feature.rt = rt;
-    feature.intensity = intensity;
-    feature
+    Feature {
+        unique_id,
+        rt,
+        intensity,
+        ..Feature::default()
+    }
 }
 
 /// The driver's `sub(level, native_id, intensity)`.
@@ -812,7 +813,7 @@ fn rich_features() -> FeatureMap {
         set(&mut a, "im_drift_left", s(" 7 "));
         set(&mut a, "im_drift_right", s("abc"));
         set(&mut a, "var_ms1_ppm_diff", f(1.5));
-        set(&mut a, "ms1_area_intensity", f(123456.789012345678));
+        set(&mut a, "ms1_area_intensity", f(123_456.789_012_345_67));
         set(&mut a, "ms1_apex_intensity", f(1e-300));
         set(&mut a, "im_ms1_drift", f(5e-324));
         set(&mut a, "im_ms1_delta", f(1e308));
@@ -827,7 +828,7 @@ fn rich_features() -> FeatureMap {
         set(&mut a, "total_xic", f(1234567890123.0));
         set(&mut a, "peak_apices_sum", i(9007199254740993));
         set(&mut a, "var_bseries_score", i(3));
-        set(&mut a, "var_library_corr", f(0.987654321987654321));
+        set(&mut a, "var_library_corr", f(0.987_654_321_987_654_3));
         set(&mut a, "var_manhatt_score", f(12.0));
         set(&mut a, "var_xcorr_shape", f(0.8));
         set(&mut a, "var_xcorr_shape_weighted", f(0.1 + 0.2));
