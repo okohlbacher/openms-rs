@@ -7,6 +7,10 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
+/// Coordinates, extraction and annotated chromatograms for targeted experiments, from `ANALYSIS/OPENSWATH/ChromatogramExtractor.h`.
+pub mod chromatogram_extractor;
+/// Chromatogram extraction at given coordinates, from `ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h`.
+pub mod chromatogram_extractor_algorithm;
 /// Confidence scoring of features against an assay library, from `ANALYSIS/OPENSWATH/ConfidenceScoring.h`.
 pub mod confidence_scoring;
 /// Conversions between kernel and light records, from `ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h`.
@@ -67,6 +71,8 @@ pub mod openswath_helper;
 pub mod openswath_scores;
 /// The driver calling the chromatographic, library, DIA and ion mobility scores, from `ANALYSIS/OPENSWATH/OpenSwathScoring.h`.
 pub mod openswath_scoring;
+/// Raw m/z-RT-ion-mobility peak clouds at targeted coordinates, from `ANALYSIS/OPENSWATH/PeakMapExtractor.h`.
+pub mod peak_map_extractor;
 /// Peak picking in a single ion mobilogram, from `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`.
 pub mod peak_picker_mobilogram;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
@@ -86,6 +92,12 @@ pub mod spectrum_addition;
 pub mod stats_helpers;
 /// One SWATH map and its isolation window, from `OPENSWATHALGO/DATAACCESS/SwathMap.h`.
 pub mod swath_map;
+/// m/z and ion-mobility correction of SWATH maps (partial), from `ANALYSIS/OPENSWATH/SwathMapMassCorrection.h`.
+pub mod swath_map_mass_correction;
+/// OpenSWATH quality control (MS1 charge distribution), from `ANALYSIS/OPENSWATH/SwathQC.h`.
+pub mod swath_qc;
+/// SWATH-window files and SWATH-map annotation, from `ANALYSIS/OPENSWATH/SwathWindowLoader.h`.
+pub mod swath_window_loader;
 /// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).
 pub mod targeted_experiment;
 /// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
