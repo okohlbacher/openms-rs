@@ -265,7 +265,7 @@ impl QTClusterFinder {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when a parameter has the wrong type or
+    /// Returns [`Error::InvalidValue`](crate::error::Error::InvalidValue) when a parameter has the wrong type or
     /// violates its restriction (source `Exception::InvalidParameter`).
     pub fn from_param(parameters: &Param) -> Result<Self> {
         Ok(Self::from_param_with_warnings(parameters)?.0)
@@ -340,7 +340,7 @@ impl QTClusterFinder {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] for fewer than two input maps (source
+    /// Returns [`Error::InvalidValue`](crate::error::Error::InvalidValue) for fewer than two input maps (source
     /// `Exception::IllegalArgument`, raised per partition), when a partition's
     /// maximum m/z is outside `[1e-16, 1e16]` or its maximum intensity above
     /// `1e16` (the source's "Has 'updateRanges' been called" check), when the

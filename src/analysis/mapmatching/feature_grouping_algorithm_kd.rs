@@ -36,7 +36,7 @@
 //!   chosen (the source then records the index `numeric_limits<Size>::max()`
 //!   and dereferences it); this port returns an error.
 //! - The warp is [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::alignment_kd::MapAlignmentAlgorithmKD)
-//!   on the real [`KDTreeFeatureMaps`], fitting `TransformationModelLowess` with
+//!   on the real [`KDTreeFeatureMaps`](crate::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps), fitting `TransformationModelLowess` with
 //!   its full parameter set (automatic span selection, `akima` interpolation).
 //!
 //! The consensus feature's `best ion` annotation reproduces a source quirk:
