@@ -1020,39 +1020,7 @@ fn ostream_double(value: f64) -> String {
 /// already carries a `TITLE` meta value has its `PEPMASS=` and `RTINSECONDS=`
 /// written in this significant-digit form instead.
 fn ostream_g(value: f64, precision: u32) -> String {
-    if value.is_nan() {
-        return "nan".into();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.into();
-    }
-    if value == 0.0 {
-        return "0".into();
-    }
-    let digits = i32::try_from(precision.max(1)).unwrap_or(6);
-    let mantissa_decimals = usize::try_from(digits - 1).unwrap_or(0);
-    let scientific = format!("{value:.mantissa_decimals$e}");
-    let Some((mantissa, exponent)) = scientific.split_once('e') else {
-        return scientific;
-    };
-    let Ok(exponent) = exponent.parse::<i32>() else {
-        return scientific;
-    };
-    if !(-4..digits).contains(&exponent) {
-        let mantissa = strip_trailing_zeros(mantissa);
-        let sign = if exponent < 0 { '-' } else { '+' };
-        format!("{mantissa}e{sign}{:02}", exponent.unsigned_abs())
-    } else {
-        let decimals = usize::try_from(digits - 1 - exponent).unwrap_or(0);
-        strip_trailing_zeros(&format!("{value:.decimals$}"))
-    }
-}
-fn strip_trailing_zeros(text: &str) -> String {
-    if !text.contains('.') {
-        return text.to_owned();
-    }
-    let trimmed = text.trim_end_matches('0');
-    trimmed.strip_suffix('.').unwrap_or(trimmed).to_owned()
+    crate::concept::numeric_formatting::ostream_g(value, precision)
 }
 
 /// `precisionWrapper`: `StringUtils::toStr(value, true)`, 15 significant digits
