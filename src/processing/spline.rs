@@ -39,3 +39,9 @@ pub use b_spline::{BSpline2d, BoundaryCondition};
 pub use bisection::{SplineFunction, spline_bisection};
 pub use cubic::{CubicSpline2d, CubicSpline2dFitter};
 pub use smoothing::BSplineSmoothingSpline;
+/// Spline interpolation of spectra and chromatograms package by package
+/// (`PROCESSING/MISC/SplineInterpolatedPeaks.h`).
+pub mod spline_interpolated_peaks;
+/// The spline fit of one package of data points
+/// (`PROCESSING/MISC/SplinePackage.h`).
+pub mod spline_package;

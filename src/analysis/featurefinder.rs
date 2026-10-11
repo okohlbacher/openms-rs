@@ -29,3 +29,6 @@ pub mod isotope_model;
 pub mod peak_width_estimator;
 /// `SeedListGenerator`: seed lists for feature detection.
 pub mod seed_list_generator;
+/// FeatureFinderMultiplex and its building blocks (`FEATUREFINDER/Multiplex*.h`,
+/// `FeatureFinderMultiplexAlgorithm.h`).
+pub mod multiplex;
