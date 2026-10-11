@@ -11,10 +11,10 @@
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!
 //! Both `selectSwathTransitions` overloads (the `OpenMS::TargetedExperiment`
-//! one is [`select_swath_transitions_targeted`]) and the template
+//! one is [`select_swath_transitions_targeted`](crate::analysis::openswath::openswath_helper::select_swath_transitions_targeted)) and the template
 //! `checkSwathMapAndSelectTransitions`, whose two instantiations are one generic
-//! function over [`SwathSelectable`], are ported, and so is `sampleExperiment`
-//! ([`sample_experiment`]), which draws through
+//! function over [`SwathSelectable`](crate::analysis::openswath::openswath_helper::SwathSelectable), are ported, and so is `sampleExperiment`
+//! ([`sample_experiment`](crate::analysis::openswath::openswath_helper::sample_experiment)), which draws through
 //! [`RandomShuffler`](crate::math::random_shuffler::RandomShuffler).
 
 use super::swath_map::SwathMap;

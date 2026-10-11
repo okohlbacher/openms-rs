@@ -24,7 +24,7 @@
 //! # Ion-mobilogram peak picking
 //!
 //! With `apply_im_peak_picking` the summed aligned fragment mobilogram is
-//! picked by [`PeakPickerMobilogram`] (method `corrected`, the other
+//! picked by [`PeakPickerMobilogram`](crate::analysis::openswath::peak_picker_mobilogram::PeakPickerMobilogram) (method `corrected`, the other
 //! parameters at their defaults, as the source sets only `method`), the aligned
 //! mobilograms are cut to the highest picked peak, and the grid positions of
 //! its borders become `im_drift_left` and `im_drift_right` (-1 when no peak

@@ -14,7 +14,7 @@
 //! `LightTargetedExperiment`, converts it to a `TargetedExperiment` (peptides
 //! with id and sequence, proteins with id and sequence, transitions with
 //! native id, peptide reference, m/z, library intensity and flags) and calls
-//! the first: [`MRMMapping::map_experiment_light`].
+//! the first: [`MRMMapping::map_experiment_light`](crate::analysis::openswath::mrm_mapping::MRMMapping::map_experiment_light).
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TARGETED_EXPERIMENT_SUPPORT.md).
 //!
 //! The source contains no `#pragma omp`; the port is serial.

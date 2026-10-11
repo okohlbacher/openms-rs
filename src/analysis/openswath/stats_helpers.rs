@@ -12,8 +12,8 @@
 //!
 //! The source reduces with Eigen (`norm`, `dot`, `sum`), whose vectorised
 //! reductions add in blocks, not left to right. The `f64` reductions
-//! ([`norm`], [`dot_prod`], [`manhattan_dist`] and the sums of
-//! [`manhattan_scoring`]) add in Eigen's own order, with the Eigen 5.0.1
+//! ([`norm`](crate::analysis::openswath::stats_helpers::norm), [`dot_prod`](crate::analysis::openswath::stats_helpers::dot_prod), [`manhattan_dist`](crate::analysis::openswath::stats_helpers::manhattan_dist) and the sums of
+//! [`manhattan_scoring`](crate::analysis::openswath::stats_helpers::manhattan_scoring)) add in Eigen's own order, with the Eigen 5.0.1
 //! two-lane kernels of the Linux x86-64 Release build that
 //! `crate::math::fitters::levenberg_marquardt` carries and measured, so they
 //! agree with that build to the last bit (`tests/openswath_scoring_oracle.rs`)
