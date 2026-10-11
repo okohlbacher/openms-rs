@@ -53,9 +53,6 @@ pub mod labeled_pair_finder;
 /// LEMON's network simplex, the min-cost-flow solver of the Wasserstein
 /// network (third-party dependency of `WNetMatcher.h`).
 pub(crate) mod lemon_network_simplex;
-/// RT alignment from conflict-free connected components of a kd-tree
-/// compatibility graph (source `MapAlignmentAlgorithmKD.h`).
-pub mod map_alignment_algorithm_kd;
 /// Parameter-tree helpers shared by the feature-grouping ports.
 pub(crate) mod params;
 /// A quality-threshold cluster for QT feature grouping (source
@@ -80,13 +77,13 @@ pub mod alignment_tree_guided;
 pub mod pose_clustering_affine;
 /// Shift superimposer by pose clustering (`PoseClusteringShiftSuperimposer`).
 pub mod pose_clustering_shift;
-/// The superimposer interface (`BaseSuperimposer`) and the shared voting
-/// histograms.
-pub mod superimposer;
 /// QT clustering of features across maps (source `QTClusterFinder.h`).
 pub mod qt_cluster_finder;
 /// Pair finding by mutual nearest neighbours (source `StablePairFinder.h`).
 pub mod stable_pair_finder;
+/// The superimposer interface (`BaseSuperimposer`) and the shared voting
+/// histograms.
+pub mod superimposer;
 /// The Wasserstein-network aligner of `wnetalign` that `WNetMatcher.h` and
 /// `FeatureGroupingAlgorithmWNet.h` call.
 pub mod wnet_aligner;

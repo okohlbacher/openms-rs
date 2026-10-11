@@ -5,24 +5,35 @@
 //! Reference-free map alignment on a kd-tree of pooled features.
 //!
 //! Ports `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h` and its `.cpp`.
-//! The source works on a `KDTreeFeatureMaps` (`ANALYSIS/QUANTITATION`), whose
-//! port is not in this crate yet; the part of it the algorithm uses is the
-//! trait [`KdFeatureMaps`](crate::analysis::mapmatching::alignment_kd::KdFeatureMaps), which that port implements when it lands. See
-//! `docs/MAP_ALIGNMENT_SUPPORT.md`.
+//! The source works on a `KDTreeFeatureMaps` (`ANALYSIS/QUANTITATION`); the
+//! part of it the algorithm uses is the trait
+//! [`KdFeatureMaps`](crate::analysis::mapmatching::alignment_kd::KdFeatureMaps),
+//! which [`KDTreeFeatureMaps`](crate::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps)
+//! implements and which the brute-force pool of the tests implements too. This is the
+//! one implementation of the header: KD feature grouping
+//! ([`FeatureGroupingAlgorithmKD`](crate::analysis::mapmatching::feature_grouping_algorithm_kd::FeatureGroupingAlgorithmKD))
+//! drives it on the real kd-tree. See `docs/MAP_ALIGNMENT_SUPPORT.md` and
+//! `docs/FEATURE_GROUPING_SUPPORT.md`.
 
+use super::kd_tree_feature_maps::KDTreeFeatureMaps;
 use super::superimposer::float;
 use crate::analysis::transformations::{DataPoint, LowessModel, ModelConfig};
 use crate::param::{Param, ParamValue};
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
+/// Largest number of fit points one map collects. Checked on every insertion;
+/// the source has no ceiling.
+pub const MAX_FIT_POINTS: usize = 1 << 24;
+
 /// The pooled features of several maps with the range queries of a kd-tree
 /// on (RT, m/z): the members of the source's `KDTreeFeatureMaps` that
 /// [`MapAlignmentAlgorithmKD`] calls.
 ///
-/// Features are addressed by a global index `0..len()`. The retention time
-/// is the cached, possibly transformed one; m/z, intensity and charge are the
-/// feature's own.
+/// Features are addressed by a global index `0..len()`; the accessors are
+/// called with indices below `len()` only (an implementation may panic or
+/// answer NaN beyond it). The retention time is the cached, possibly
+/// transformed one; m/z, intensity and charge are the feature's own.
 pub trait KdFeatureMaps {
     /// Number of pooled features (source `size`).
     fn len(&self) -> usize;
@@ -209,6 +220,11 @@ impl MapAlignmentAlgorithmKD {
                         "feature {i} belongs to map {map}, but the alignment has {num_maps} maps"
                     ))
                 })?;
+                if data.len() >= MAX_FIT_POINTS {
+                    return Err(Error::InvalidValue(format!(
+                        "RT fit data exceeds {MAX_FIT_POINTS} points for map {map}"
+                    )));
+                }
                 data.push(DataPoint::new(kd_data.rt(i), average));
             }
         }
@@ -417,5 +433,63 @@ fn fit(data: &[DataPoint], config: &ModelConfig) -> Result<LowessModel> {
         _ => Err(Error::InvalidValue(
             "the LOWESS parameters did not give a LOWESS model".into(),
         )),
+    }
+}
+
+/// The kd-tree of the source: its retention times are the cached ones
+/// ([`KDTreeFeatureMaps::rt`]), the neighbourhood is
+/// [`KDTreeFeatureMaps::get_neighborhood`], and applying the transformations
+/// replaces the cached times and rebalances the tree (`applyTransformations`
+/// followed by `optimizeTree`, as `MapAlignmentAlgorithmKD::transform` calls
+/// them).
+impl KdFeatureMaps for KDTreeFeatureMaps<'_> {
+    fn len(&self) -> usize {
+        self.size()
+    }
+
+    fn rt(&self, index: usize) -> f64 {
+        KDTreeFeatureMaps::rt(self, index).unwrap_or(f64::NAN)
+    }
+
+    fn charge(&self, index: usize) -> i32 {
+        KDTreeFeatureMaps::charge(self, index).unwrap_or(0)
+    }
+
+    fn map_index(&self, index: usize) -> usize {
+        KDTreeFeatureMaps::map_index(self, index).unwrap_or(usize::MAX)
+    }
+
+    fn neighborhood(
+        &self,
+        index: usize,
+        rt_tol: f64,
+        mz_tol: f64,
+        mz_ppm: bool,
+        include_features_from_same_map: bool,
+        max_pairwise_log_fc: f64,
+    ) -> Result<Vec<usize>> {
+        let mut result = Vec::new();
+        self.get_neighborhood(
+            index,
+            &mut result,
+            rt_tol,
+            mz_tol,
+            mz_ppm,
+            include_features_from_same_map,
+            max_pairwise_log_fc,
+        )?;
+        Ok(result)
+    }
+
+    fn apply_transformations(&mut self, transformations: &[LowessModel]) -> Result<()> {
+        KDTreeFeatureMaps::apply_transformations(self, |map, rt| {
+            transformations
+                .get(map)
+                .ok_or_else(|| {
+                    Error::InvalidValue(format!("no LOWESS transformation for map {map}"))
+                })?
+                .apply(rt)
+        })?;
+        self.optimize_tree()
     }
 }

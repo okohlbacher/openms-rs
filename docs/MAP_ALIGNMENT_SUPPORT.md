@@ -11,9 +11,9 @@
 | `MapAlignmentEvaluationAlgorithmPrecision.h` | `mapmatching/alignment_evaluation.rs` | complete |
 | `MapAlignmentEvaluationAlgorithmRecall.h` | `mapmatching/alignment_evaluation.rs` | complete |
 | `MapAlignmentAlgorithmIdentification.h` | `mapmatching/alignment_identification.rs` | complete |
-| `MapAlignmentAlgorithmPoseClustering.h` | `mapmatching/alignment_pose_clustering.rs` | partial: `StablePairFinder` |
-| `MapAlignmentAlgorithmKD.h` | `mapmatching/alignment_kd.rs` | complete; runs on the trait `KdFeatureMaps` until `KDTreeFeatureMaps` (`ANALYSIS/QUANTITATION`) is ported |
-| `MapAlignmentAlgorithmTreeGuided.h` | `mapmatching/alignment_tree_guided.rs` | partial: `buildTree` (`ClusterHierarchical`, `AverageLinkage`) and the Newick info line (`ClusterAnalyzer::newickTree`) |
+| `MapAlignmentAlgorithmPoseClustering.h` | `mapmatching/alignment_pose_clustering.rs` | complete (composes `mapmatching/stable_pair_finder.rs`) |
+| `MapAlignmentAlgorithmKD.h` | `mapmatching/alignment_kd.rs` | complete; runs on the trait `KdFeatureMaps`, which `KDTreeFeatureMaps` (`mapmatching/kd_tree_feature_maps.rs`) implements |
+| `MapAlignmentAlgorithmTreeGuided.h` | `mapmatching/alignment_tree_guided.rs` | complete (`buildTree` on `ml/clustering`) |
 
 ## API mapping
 
@@ -76,11 +76,11 @@
 
 | Source | Rust |
 |---|---|
-| constructor: `superimposer:` and `pairfinder:` sections, `max_num_peaks_considered` | `Default`; `defaults()`, `to_param()`, `set_parameters()`; the `pairfinder:` section is empty here and carried through unread |
+| constructor: `superimposer:` and `pairfinder:` sections, `max_num_peaks_considered` | `Default`; `defaults()`, `to_param()`, `set_parameters()`; the `pairfinder:` section configures the composed `StablePairFinder` |
 | `setReference<MapType>(map)` | `set_reference_features`, `set_reference_peaks`, `set_reference_consensus` |
-| `align(const FeatureMap&, ...)`, `align(const PeakMap&, ...)`, `align(const ConsensusMap&, ...)` | `align_features`, `align_peaks`, `align_consensus`, each taking the pair finder as a closure |
+| `align(const FeatureMap&, ...)`, `align(const PeakMap&, ...)`, `align(const ConsensusMap&, ...)` | `align_features`, `align_peaks`, `align_consensus` (with the composed `StablePairFinder`), and `*_with_pair_finder` variants that take the pairing step as a closure |
 | `updateMembers_` | inside `set_parameters` |
-| protected `superimposer_`, `pairfinder_`, `reference_`, `max_num_peaks_considered_` | `superimposer`, `pair_finder` (its parameters), `reference()`, `max_num_peaks_considered` |
+| protected `superimposer_`, `pairfinder_`, `reference_`, `max_num_peaks_considered_` | `superimposer`, `pair_finder` (a `StablePairFinder`), `reference()`, `max_num_peaks_considered` |
 
 ### `MapAlignmentAlgorithmKD`
 
@@ -102,9 +102,9 @@
 | Source | Rust |
 |---|---|
 | constructor: `model:` (`TransformationModelDefaults::getDefaults("b_spline")`), `model_type`, `align_algorithm:` with `use_feature_rt` `true` | `new()`; `defaults()`, `to_param()`, `set_parameters()`, `from_param()`, `from_param_with_warnings()` |
-| static `buildTree(feature_maps, tree, maps_ranges)` | not ported (the clustering); its inputs `extract_seq_and_rt` and its similarity `peptide_identifications_pearson_similarity` are |
+| static `buildTree(feature_maps, tree, maps_ranges)` | `build_tree(&[FeatureMap]) -> Result<(Vec<BinaryTreeNode>, Vec<Vec<f64>>)>`: `ClusterHierarchical` with `AverageLinkage` on `peptide_identifications_pearson_similarity` |
 | `treeGuidedAlignment(tree, feature_maps_transformed, maps_ranges, map_transformed, trafo_order)` | `tree_guided_alignment(&[TreeMerge], &mut [FeatureMap], &[Vec<f64>], &mut UniqueIdGenerator) -> Result<TreeGuidedMerge>` |
-| `align(data, transformations)` | `align_with_tree(&mut [FeatureMap], &[TreeMerge], &mut UniqueIdGenerator) -> Result<TreeGuidedAlignment>` |
+| `align(data, transformations)` | `align(&mut [FeatureMap], &mut UniqueIdGenerator) -> Result<TreeGuidedAlignment>` (builds the tree, logs `  Alignment follows Newick tree: ...` with `ClusterAnalyzer::newick_tree` and the distances, then `align_with_tree`); `align_with_tree(&mut [FeatureMap], &[TreeMerge], &mut UniqueIdGenerator)` takes the tree from the caller |
 | `computeTrafosByOriginalRT(feature_maps, map_transformed, transformations, trafo_order)` | `compute_trafos_by_original_rt(&[FeatureMap], &FeatureMap)`; the unused `trafo_order` is dropped |
 | static `computeTransformedFeatureMaps(feature_maps, transformations)` | `compute_transformed_feature_maps(&mut [FeatureMap], &[TransformationDescription])` |
 | protected typedef `SeqAndRTList` | `SeqAndRtList` (`BTreeMap<String, Vec<f64>>`) |
@@ -148,11 +148,11 @@
 - **A failed call ends its progress section** (`ProgressReporter::section`), where the source's exception skips `endProgress`.
 - **Precision of an unusable ground truth** is the source's NaN (`1.0 / 0 * 0`); recall refuses it, as the source does since its guard was added.
 - **Resource limits.** Histogram sizes and the number of quadruples hashed by the affine superimposer are bounded (`max_buckets`, `max_quadruples`); the source bounds neither.
-- **The pair finder is a parameter.** `StablePairFinder` belongs to the feature-grouping headers, which this lane does not port; `MapAlignmentAlgorithmPoseClustering` takes the pairing step as a closure `&[ConsensusMap; 2] -> Result<ConsensusMap>` so that it plugs in unchanged when the finder exists, and its `pairfinder:` defaults are empty until then.
+- **The pair finder is composed, as in the source.** `MapAlignmentAlgorithmPoseClustering` holds a `StablePairFinder` (`pairfinder:` section, defaults included); the `*_with_pair_finder` variants of the three `align_*` methods take the pairing step as a closure for tests that pin the surrounding algorithm without the finder.
 
-- **The kd-tree is a trait.** `KDTreeFeatureMaps` belongs to `ANALYSIS/QUANTITATION` and is not ported; `MapAlignmentAlgorithmKD` takes any `KdFeatureMaps`, which that port implements unchanged. The tests use a brute-force stand-in (`tests/support/kd_pool.rs`).
+- **The kd-tree is a trait.** `MapAlignmentAlgorithmKD` takes any `KdFeatureMaps`; `KDTreeFeatureMaps` implements it (`apply_transformations` followed by `optimize_tree`), and `FeatureGroupingAlgorithmKD` drives the aligner on it. The class and oracle tests of this header use a brute-force stand-in (`tests/support/kd_pool.rs`), whose answers are those of the tree because the algorithm does not depend on the order of a neighbourhood; `tests/mapmatching_kd_grouping*.rs` run the same algorithm on the real tree. A second, parallel port of the header (`map_alignment_algorithm_kd.rs` of lane M2, which fitted LOWESS without `auto_span` and `akima`) was collapsed into this one at integration. The fit-point count per map is bounded by `MAX_FIT_POINTS`.
 - **KD refusals.** An algorithm built from an empty `Param` (whose tolerances the source leaves uninitialised), a feature of a map index past `num_maps` (the source writes past `fit_data_`), `transform` before `fit_lowess` (null model pointers) and a `warp:max_nr_conflicts` outside `int` are errors.
-- **The guide tree is a parameter.** `buildTree`'s clustering is `ML/CLUSTERING`; `align_with_tree` takes the merges the clustering produces (`(left_child, right_child)` of each `BinaryTreeNode`, dummy nodes included) and does not log the Newick line.
+- **The guide tree.** `align` builds it with `build_tree`; `align_with_tree` takes the merges a caller supplies (`(left_child, right_child)` of each `BinaryTreeNode`, dummy nodes included) and does not log the Newick line.
 - **Tree-guided refusals.** No maps, a range list of another length than the maps, a merge naming a map out of range or the same map twice (undefined in the source), and merging features that refer to an identification graph (the source merges `id_data_`, which the native feature map does not own) are errors. The similarity of two maps without a shared sequence is the source's `Exception::InvalidRange`; a single shared sequence gives NaN, positive here where the source's `0/0` is negative.
 - **Unique-ID conflicts** are resolved with IDs from the caller's `UniqueIdGenerator`, where the source draws from its process-wide random generator.
 
@@ -171,4 +171,5 @@ The remaining checks are tier 3 (the pinned class tests' literals and data files
 - `tests/map_alignment_kd.rs` (10 tests): the class test's construction with 42 maps and an empty `Param` (tier 3; its other sections are `NOT_TESTABLE`); derived components, filters, fit data, LOWESS fallback and refusals.
 - `tests/map_alignment_tree_guided.rs` (7 tests, feature `featurexml`): the class test on its three featureXML inputs (tier 3): identification counts 6, 5 and 5; the tree distances 1.84834e-04 and 0.505752 from the similarity (the second through the average-linkage update); following the tree `(0, 2), (0, 1)`, 15 merged features in the order 1, 2, 0 with unique IDs 20 first and 14 last and `original_RT` on all but the first five; data points at each map's median feature RT per sequence, not all identities; `original_RT` after `computeTransformedFeatureMaps`; and `TransformationModelDefaults_test.cpp`'s second section, the `model:` subtree equal to `getDefaults("b_spline")`. Derived: the similarity's arithmetic, refusals and unique-ID conflicts.
 
-Not run: `MapAlignmentAlgorithmPoseClustering_test.cpp` (307 pairs, slope 1.01164, intercept -32.0912), which needs `StablePairFinder`; `buildTree` itself, which needs `ClusterHierarchical`.
+- `tests/map_alignment_pose_clustering_class.rs` (1 test, feature `mzml`): `MapAlignmentAlgorithmPoseClustering_test.cpp`'s `align(PeakMap)` section end to end with the composed `StablePairFinder`: 307 data points, slope 1.01164, intercept -32.0912 (tier 3; its other two sections are `NOT_TESTABLE` upstream).
+- `tests/map_alignment_oracle_kd_tree.rs` also replays `build_tree` (every merge and distance of the Release build's tree) and `align` end to end (tier 1).

@@ -237,7 +237,7 @@
     "src/analysis/mapmatching/feature_grouping_algorithm_labeled.rs",
     "src/analysis/mapmatching/kd_tree_feature_maps.rs",
     "src/analysis/mapmatching/feature_mapping.rs",
-    "src/analysis/mapmatching/map_alignment_algorithm_kd.rs",
+    "src/analysis/mapmatching/alignment_kd.rs",
     "src/analysis/mapmatching/feature_grouping_algorithm_kd.rs",
     "src/analysis/mapmatching/wnet_matcher.rs",
     "src/analysis/mapmatching/wnet_aligner.rs",

@@ -17,8 +17,8 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ANALYSIS/QUANTITATION/KDTreeFeatureNode.h` | `src/analysis/mapmatching/kd_tree_feature_maps.rs` | complete |
 | `DATASTRUCTURES/KDTree.h` (libkdtree++) | private subset in `kd_tree_feature_maps.rs` (insert, `optimise`, `find_within_range`) | partial: only what `KDTreeFeatureMaps` uses |
 | `ANALYSIS/MAPMATCHING/FeatureMapping.h` | `src/analysis/mapmatching/feature_mapping.rs` | complete (reproduces the source's map-1 exclusion) |
-| `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h` | `src/analysis/mapmatching/map_alignment_algorithm_kd.rs` | partial (LOWESS without `auto_span`, `akima`) |
-| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h` (with `ClusterProxyKD`) | `src/analysis/mapmatching/feature_grouping_algorithm_kd.rs` | partial (inherits the LOWESS gap when warping) |
+| `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h` | `src/analysis/mapmatching/alignment_kd.rs` (one implementation, see `docs/MAP_ALIGNMENT_SUPPORT.md`) | complete |
+| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h` (with `ClusterProxyKD`) | `src/analysis/mapmatching/feature_grouping_algorithm_kd.rs` | complete |
 | `ANALYSIS/MAPMATCHING/WNetMatcher.h` | `src/analysis/mapmatching/wnet_matcher.rs` | complete |
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h` | `src/analysis/mapmatching/feature_grouping_algorithm_wnet.rs` | complete |
 | `wnetalign` `WNetAligner<2>`, `wnet` `WassersteinNetwork`, `pylmcf`/LEMON `NetworkSimplex` (third-party, not OpenMS headers) | `wnet_aligner.rs`, `lemon_network_simplex.rs` (crate-private solver) | the subset both OpenMS classes reach: `DIM = 2`, dense factory, no chain optimisation, no derivatives |
@@ -150,13 +150,13 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 
 ### MapAlignmentAlgorithmKD
 
-| Source | Rust |
-|---|---|
-| `MapAlignmentAlgorithmKD(num_maps, param)`, destructor | `new(num_maps, &Param) -> Result<Self>`, `with_settings(num_maps, Option<KdWarpSettings>)` |
-| `addRTFitData(kd_data)`, `fitLOWESS()`, `transform(kd_data)` | `add_rt_fit_data`, `fit_lowess() -> Result<Vec<String>>` (the warnings), `transform` |
-| protected `updateMembers_`, `computeCCs_`, `getCCs_`, `filterCCs_` | `KdWarpSettings::from_param`, private `compute_ccs`, `get_ccs`, `filter_ccs` |
-| private `fit_data_`, `transformations_`, `param_`, tolerances | private fields; `fit_data()` reads the fit data |
-| `TransformationModelLowess` parameters (`LOWESS:`) | `LowessParameters` (`to_param`, `fit`) over `LowessModel` |
+The header is ported once, in `src/analysis/mapmatching/alignment_kd.rs`
+(`docs/MAP_ALIGNMENT_SUPPORT.md` has the member table). It runs on the trait
+`KdFeatureMaps`, which `KDTreeFeatureMaps` implements (`apply_transformations`
+then `optimize_tree`, as `transform` does), and fits `TransformationModelLowess`
+through `analysis::transformations` (automatic span selection and `akima`
+included). `FeatureGroupingAlgorithmKD` builds the aligner from its own
+`to_param()` tree, as the source passes `param_`.
 
 ### FeatureGroupingAlgorithmKD and ClusterProxyKD
 
@@ -386,9 +386,7 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   (the source logs it and returns an empty, unprocessed result); a candidate
   without a finite distance is an error (the source records `SIZE_MAX`);
   input features must have finite coordinates.
-- `MapAlignmentAlgorithmKD`: `TransformationModelLowess` is not ported; the
-  fit runs through `LowessModel` without `auto_span` or `akima`
-  (`Error::Unsupported`); an aligner built from an empty tree is
+- `MapAlignmentAlgorithmKD`: an aligner built from an empty tree is
   unconfigured and its operations fail (the source leaves the tolerances
   uninitialised).
 - QT, labeled and KD consensus features take their elements' peptide
@@ -531,9 +529,6 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 
 ## Backlog
 
-- `TransformationModelLowess` (unmapped): automatic span selection and
-  `akima` interpolation, which `MapAlignmentAlgorithmKD` and
-  `FeatureGroupingAlgorithmKD` need for those parameter values.
 - `PipEchoAlgorithm` (and the private `PIPECHO/` sources, about 3100 lines):
   untouched. Its `TransferFDRModel` trains a linear-kernel SVM through
   `ML/SVM/SimpleSVM.h` (libsvm: cross-validated grid search over `log2_C`,

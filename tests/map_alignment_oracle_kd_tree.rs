@@ -411,6 +411,24 @@ fn tg_case(records: &Records, case: &str, maps: Vec<FeatureMap>, model_type: &st
             )
         })
         .collect();
+    // `buildTree` itself (ClusterHierarchical with AverageLinkage on the
+    // Pearson similarity): every merge and distance of the Release build's
+    // tree, and the sorted RT lists it returns.
+    let (built, built_ranges) = MapAlignmentAlgorithmTreeGuided::build_tree(&maps).unwrap();
+    assert_eq!(built.len(), nodes, "{case} tree size");
+    for (k, node) in built.iter().enumerate() {
+        assert_eq!(
+            (node.left_child, node.right_child),
+            tree[k],
+            "{case} node {k}"
+        );
+        same(
+            f64::from(node.distance),
+            records.get(case, &format!("node.{k}.distance")),
+            &format!("{case} node {k} distance"),
+        );
+    }
+    assert_eq!(built_ranges, ranges, "{case} ranges");
     let (l, r) = tree[0];
     same(
         records.get(case, "node.0.distance"),
@@ -491,6 +509,39 @@ fn tg_case(records: &Records, case: &str, maps: Vec<FeatureMap>, model_type: &st
             assert_eq!(
                 point.note,
                 records.text(case, &format!("trafo.{i}.{k}.note"))
+            );
+        }
+    }
+
+    // The whole `align`: the tree is built, not given, and the final
+    // retention times are the Release build's.
+    let mut aligned = maps.clone();
+    let end_to_end = aligner
+        .align(&mut aligned, &mut UniqueIdGenerator::from_seed(1))
+        .unwrap();
+    assert!(
+        end_to_end.info[0].starts_with("  Alignment follows Newick tree: ( "),
+        "{case}: {:?}",
+        end_to_end.info[0]
+    );
+    assert_eq!(end_to_end.transformations.len(), n);
+    for (trafo, expected) in end_to_end
+        .transformations
+        .iter()
+        .zip(&result.transformations)
+    {
+        assert_eq!(trafo.data_points().len(), expected.data_points().len());
+        for (point, expected) in trafo.data_points().iter().zip(expected.data_points()) {
+            same(point.x, expected.x, case);
+            same(point.y, expected.y, case);
+        }
+    }
+    for (i, map) in aligned.iter().enumerate() {
+        for (k, feature) in map.features.iter().enumerate() {
+            same(
+                feature.rt,
+                records.get(case, &format!("final.{i}.{k}")),
+                &format!("{case} align final {i} {k}"),
             );
         }
     }

@@ -165,6 +165,20 @@
  ],
  "fixtures": [
   {
+   "path": "tests/data/pose_clustering/MapAlignmentAlgorithmPoseClustering_in1.mzML.gz",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmPoseClustering_in1.mzML.gz",
+   "sha256": "248c6c24ab5dfaf062088849893a12106ffbdf8adcd5d7428378fecbb428cd35",
+   "bytes": 2501766,
+   "role": "Unmodified upstream; the reference map of the class test's align(PeakMap) section."
+  },
+  {
+   "path": "tests/data/pose_clustering/MapAlignmentAlgorithmPoseClustering_in2.mzML.gz",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmPoseClustering_in2.mzML.gz",
+   "sha256": "28c399a1d38bfc183be4a306d0fb51ff8d44f02c0bf4f1e349a274b0ee22068a",
+   "bytes": 2576209,
+   "role": "Unmodified upstream; the scene map of the class test's align(PeakMap) section."
+  },
+  {
    "path": "tests/data/map_alignment_evaluation_in.consensusXML",
    "source_path": "src/tests/class_tests/openms/data/MapAlignmentEvaluationAlgorithm_in.consensusXML",
    "sha256": "fbe831a0ab059431ffa925831b7e56ca91392d286fecda73fdc378ec1ece43bb",
@@ -434,6 +448,7 @@
   "tests/map_alignment_kd.rs",
   "tests/map_alignment_tree_guided.rs",
   "tests/map_alignment_oracle_kd_tree.rs",
+  "tests/map_alignment_pose_clustering_class.rs",
   "tests/support/kd_pool.rs"
  ],
  "support_document": "docs/MAP_ALIGNMENT_SUPPORT.md",

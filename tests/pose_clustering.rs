@@ -340,7 +340,7 @@ fn pose_clustering_alignment_inverts_the_superimposer_for_the_pairs() {
     let scene = converted(1, &[(1.4, 1.02), (5.4, 5.02)]);
     let mut seen = Vec::new();
     let trafo = aligner
-        .align_consensus(
+        .align_consensus_with_pair_finder(
             &scene,
             |maps| {
                 let mut pairs = Vec::new();
@@ -366,7 +366,7 @@ fn pose_clustering_alignment_inverts_the_superimposer_for_the_pairs() {
     }
     similar(trafo.apply(10.0).unwrap(), 9.6);
     // No pairs: the linear fit has no data, as in the source.
-    let unpaired = aligner.align_consensus(
+    let unpaired = aligner.align_consensus_with_pair_finder(
         &scene,
         |_| Ok(ConsensusMap::new()),
         &mut ProgressReporter::silent(),

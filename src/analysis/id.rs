@@ -6,18 +6,34 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Aho-Corasick matching with ambiguous residues and mismatches (`AhoCorasickAmbiguous.h`).
+pub mod aho_corasick_ambiguous;
+/// Phosphosite localisation with the AScore (`AScore.h`).
+pub mod ascore;
+/// Comet `variable_modXX` entries and their merging (`CometModification.h`).
+pub mod comet_modification;
 /// `ConsensusIDAlgorithm` and its eight variants.
 pub mod consensus_id;
 /// `ConsensusMapMergerAlgorithm`: merge the identification runs of a consensus map.
 pub mod consensus_map_merger;
+/// Fragment index for database search (`FragmentIndex.h`).
+pub mod fragment_index;
 /// `IDDecoyProbability`: target/decoy score-distribution probabilities.
 pub mod id_decoy_probability;
+/// Annotation of spectra, feature maps and consensus maps with peptide identifications (`IDMapper`).
+pub mod id_mapper;
 /// `IDMergerAlgorithm`: merge identification runs into one run.
 pub mod id_merger;
 /// `IDScoreSwitcherAlgorithm`: switch main scores to a meta-value score.
 pub mod id_score_switcher;
+/// Ion Identity Molecular Networking annotations and the GNPS supplementary-pairs table.
+pub mod ion_identity_molecular_networking;
+/// Spectral-library search for metabolite MS2 spectra (`MetaboliteSpectralMatching`).
+pub mod metabolite_spectral_matching;
 /// `NeedlemanWunsch` (`ANALYSIS/SEQUENCE`), used by the PEPMatrix consensus.
 pub mod needleman_wunsch;
+/// Subset-neighbor peptide search (`NeighborSeq.h`).
+pub mod neighbor_seq;
 /// `PeptideProteinResolution`: resolve shared peptides between protein groups.
 pub mod peptide_protein_resolution;
 /// `Percolator.h`: in-process semi-supervised target/decoy rescoring.
@@ -26,23 +42,7 @@ pub mod percolator;
 pub mod percolator_feature_set_helper;
 /// `PercolatorTypes.h`: the in-process Percolator's input, output and model types.
 pub mod percolator_types;
-/// Fragment index for database search (`FragmentIndex.h`).
-pub mod fragment_index;
-/// Subset-neighbor peptide search (`NeighborSeq.h`).
-pub mod neighbor_seq;
-/// Minimal in-memory search engine (`SimpleSearchEngineAlgorithm.h`).
-pub mod simple_search_engine;
-/// Aho-Corasick matching with ambiguous residues and mismatches (`AhoCorasickAmbiguous.h`).
-pub mod aho_corasick_ambiguous;
-/// Phosphosite localisation with the AScore (`AScore.h`).
-pub mod ascore;
-/// Comet `variable_modXX` entries and their merging (`CometModification.h`).
-pub mod comet_modification;
 /// The Andromeda-style PScore and windowed peak ranks (`PScore.h`).
 pub mod pscore;
-/// Annotation of spectra, feature maps and consensus maps with peptide identifications (`IDMapper`).
-pub mod id_mapper;
-/// Ion Identity Molecular Networking annotations and the GNPS supplementary-pairs table.
-pub mod ion_identity_molecular_networking;
-/// Spectral-library search for metabolite MS2 spectra (`MetaboliteSpectralMatching`).
-pub mod metabolite_spectral_matching;
+/// Minimal in-memory search engine (`SimpleSearchEngineAlgorithm.h`).
+pub mod simple_search_engine;

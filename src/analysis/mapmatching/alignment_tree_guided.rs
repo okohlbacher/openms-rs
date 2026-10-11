@@ -5,14 +5,15 @@
 //! Tree-guided map alignment based on peptide identifications.
 //!
 //! Ports `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h` and its
-//! `.cpp`, except for the clustering in `buildTree`: the source clusters the
-//! maps with `ClusterHierarchical` and `AverageLinkage` (`ML/CLUSTERING`) and
-//! prints the tree with `ClusterAnalyzer::newickTree`, whose ports are not in
-//! this crate yet. The similarity the clustering uses,
-//! [`peptide_identifications_pearson_similarity`](crate::analysis::mapmatching::alignment_tree_guided::peptide_identifications_pearson_similarity), and the per-map data it
-//! runs on, [`MapAlignmentAlgorithmTreeGuided::extract_seq_and_rt`](crate::analysis::mapmatching::alignment_tree_guided::MapAlignmentAlgorithmTreeGuided::extract_seq_and_rt), are
-//! ported; the tree is a parameter of
-//! [`MapAlignmentAlgorithmTreeGuided::align_with_tree`](crate::analysis::mapmatching::alignment_tree_guided::MapAlignmentAlgorithmTreeGuided::align_with_tree). See
+//! `.cpp`. `buildTree` clusters the maps with
+//! [`ClusterHierarchical`](crate::math::ml::clustering::cluster_hierarchical::ClusterHierarchical)
+//! and [`AverageLinkage`](crate::math::ml::clustering::average_linkage::AverageLinkage)
+//! (`ML/CLUSTERING`) on the similarity
+//! [`peptide_identifications_pearson_similarity`](crate::analysis::mapmatching::alignment_tree_guided::peptide_identifications_pearson_similarity),
+//! and `align` prints the tree with
+//! [`ClusterAnalyzer::newick_tree`](crate::math::ml::clustering::cluster_analyzer::ClusterAnalyzer::newick_tree).
+//! [`MapAlignmentAlgorithmTreeGuided::align_with_tree`](crate::analysis::mapmatching::alignment_tree_guided::MapAlignmentAlgorithmTreeGuided::align_with_tree)
+//! runs the alignment on a tree the caller supplies. See
 //! `docs/MAP_ALIGNMENT_SUPPORT.md`.
 
 use super::alignment_identification::MapAlignmentAlgorithmIdentification;
@@ -20,8 +21,14 @@ use super::superimposer::{entry, tree};
 use crate::analysis::alignment_transformer::MapAlignmentTransformer;
 use crate::analysis::transformations::{TransformationDescription, transformation_model_defaults};
 use crate::concept::unique_id::UniqueIdGenerator;
+use crate::data_structures::binary_tree_node::BinaryTreeNode;
+use crate::data_structures::distance_matrix::DistanceMatrix;
 use crate::format::FileType;
+use crate::format::file_info::text_format::to_str_f32;
 use crate::kernel::{Feature, FeatureMap};
+use crate::math::ml::clustering::average_linkage::AverageLinkage;
+use crate::math::ml::clustering::cluster_analyzer::ClusterAnalyzer;
+use crate::math::ml::clustering::cluster_hierarchical::ClusterHierarchical;
 use crate::math::source_sort::source_sort_by;
 use crate::math::statistic_functions::pearson_correlation_coefficient;
 use crate::param::{DefaultParamHandler, Param, ParamValue};
@@ -255,6 +262,33 @@ impl MapAlignmentAlgorithmTreeGuided {
         Ok((lists, ranges))
     }
 
+    /// The guide tree of the maps and each map's sorted identification RTs
+    /// (source `buildTree`): [`MapAlignmentAlgorithmTreeGuided::extract_seq_and_rt`]
+    /// gives each map's retention times per sequence; `ClusterHierarchical`
+    /// with `AverageLinkage` clusters the maps on
+    /// `1 - peptide_identifications_pearson_similarity` (stored as `f32`),
+    /// threshold 1, so every map joins.
+    ///
+    /// # Errors
+    ///
+    /// The errors of the extraction, of the similarity (two maps without a
+    /// shared sequence, as the source's `Exception::InvalidRange`) and of the
+    /// clustering (fewer than two maps, as the source's
+    /// `ClusterFunctor::InsufficientInput`).
+    pub fn build_tree(feature_maps: &[FeatureMap]) -> Result<(Vec<BinaryTreeNode>, Vec<Vec<f64>>)> {
+        let (lists, ranges) = Self::extract_seq_and_rt(feature_maps)?;
+        let mut distances = DistanceMatrix::<f32>::new();
+        let tree = ClusterHierarchical::new().cluster(
+            &lists,
+            |first: &SeqAndRtList, second: &SeqAndRtList| {
+                peptide_identifications_pearson_similarity(first, second)
+            },
+            &AverageLinkage,
+            &mut distances,
+        )?;
+        Ok((tree, ranges))
+    }
+
     /// Align the clusters of `feature_maps_transformed` along `tree` (source
     /// `treeGuidedAlignment`).
     ///
@@ -374,6 +408,36 @@ impl MapAlignmentAlgorithmTreeGuided {
         })
     }
 
+    /// Align the feature maps in the tree-guided way and transform them
+    /// (source `align(feature_maps, transformations)`): the guide tree is
+    /// built by [`MapAlignmentAlgorithmTreeGuided::build_tree`], logged as
+    /// the info line `  Alignment follows Newick tree: <tree>` (distances
+    /// included, as `ClusterAnalyzer::newickTree(tree, true)` writes them),
+    /// and followed by [`MapAlignmentAlgorithmTreeGuided::align_with_tree`].
+    /// The returned transformations are one per input map, in input order.
+    ///
+    /// # Errors
+    ///
+    /// The errors of `build_tree` and of `align_with_tree`; no map is changed
+    /// when the tree cannot be built.
+    pub fn align(
+        &mut self,
+        feature_maps: &mut [FeatureMap],
+        generator: &mut UniqueIdGenerator,
+    ) -> Result<TreeGuidedAlignment> {
+        let (tree, _) = Self::build_tree(feature_maps)?;
+        let newick = ClusterAnalyzer::default().newick_tree(&tree, Some(&to_str_f32))?;
+        let merges: Vec<TreeMerge> = tree
+            .iter()
+            .map(|node| (node.left_child, node.right_child))
+            .collect();
+        let mut result = self.align_with_tree(feature_maps, &merges, generator)?;
+        result
+            .info
+            .insert(0, format!("  Alignment follows Newick tree: {newick}"));
+        Ok(result)
+    }
+
     /// Align `feature_maps` along the given guide tree and transform their
     /// retention times (source `align`, with the tree `buildTree` would
     /// compute given by the caller).
@@ -384,7 +448,9 @@ impl MapAlignmentAlgorithmTreeGuided {
     /// ([`MapAlignmentAlgorithmTreeGuided::compute_trafos_by_original_rt`])
     /// and transformed with its transformation
     /// ([`MapAlignmentAlgorithmTreeGuided::compute_transformed_feature_maps`]).
-    /// The source's info line with the tree in Newick format is not produced.
+    /// The source's info line with the tree in Newick format is not produced
+    /// here; [`MapAlignmentAlgorithmTreeGuided::align`] builds the tree and
+    /// logs it.
     ///
     /// # Errors
     ///

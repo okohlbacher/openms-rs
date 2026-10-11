@@ -16,12 +16,12 @@
 //! retained TOPP outputs `tests/mapmatching_kd_grouping_topp.rs`. No expected
 //! value was derived from this port's output.
 
+use openms::analysis::mapmatching::alignment_kd::MapAlignmentAlgorithmKD;
 use openms::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm;
 use openms::analysis::mapmatching::feature_grouping_algorithm_kd::{
     ClusterProxyKD, FeatureGroupingAlgorithmKD,
 };
 use openms::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps;
-use openms::analysis::mapmatching::map_alignment_algorithm_kd::MapAlignmentAlgorithmKD;
 use openms::identification::{PeptideIdentification, ProteinIdentification};
 use openms::kernel::features::{ConsensusMap, Feature, FeatureMap};
 use openms::param::Param;

@@ -13,7 +13,7 @@
 //! partitions at gaps wider than the larger of the warp and link m/z
 //! tolerances (about `nr_partitions` of them), so that no cluster can reach
 //! across a boundary. With `warp:enabled`, a
-//! [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::map_alignment_algorithm_kd::MapAlignmentAlgorithmKD) collects RT fit data from every partition and
+//! [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::alignment_kd::MapAlignmentAlgorithmKD) collects RT fit data from every partition and
 //! fits one LOWESS transformation per map; the linking then runs on the
 //! warped retention times (reported RTs stay the original ones).
 //!
@@ -35,8 +35,9 @@
 //! - A candidate whose distance to the centre is not a number cannot be
 //!   chosen (the source then records the index `numeric_limits<Size>::max()`
 //!   and dereferences it); this port returns an error.
-//! - The warp inherits the [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::map_alignment_algorithm_kd::MapAlignmentAlgorithmKD) limitations: no
-//!   automatic LOWESS span selection and no `akima` interpolation.
+//! - The warp is [`MapAlignmentAlgorithmKD`](crate::analysis::mapmatching::alignment_kd::MapAlignmentAlgorithmKD)
+//!   on the real [`KDTreeFeatureMaps`], fitting `TransformationModelLowess` with
+//!   its full parameter set (automatic span selection, `akima` interpolation).
 //!
 //! The consensus feature's `best ion` annotation reproduces a source quirk:
 //! the best-quality index starts at 0, a global index into the partition's
@@ -45,17 +46,16 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use super::alignment_kd::MapAlignmentAlgorithmKD;
 use super::feature_distance::FeatureDistance;
 use super::feature_grouping_algorithm::{
     FeatureGroupingAlgorithm, InputIdentifications, consensus_map_identifications,
     feature_map_identifications, insert_base_feature, postprocess,
 };
 use super::kd_tree_feature_maps::KDTreeFeatureMaps;
-use super::map_alignment_algorithm_kd::{
-    KdWarpSettings, LowessParameters, MapAlignmentAlgorithmKD,
-};
 use super::params::{add_float, add_int, add_string, bad, float, int, string};
 use super::qt_cluster_finder::{QtInputMap, meta_text, to_adduct_string};
+use crate::analysis::transformations::{LowessAutoSpan, LowessOptions};
 use crate::chemistry::EmpiricalFormula;
 use crate::concept::constants::user_param::{
     ADDUCT_GROUP, DC_CHARGE_ADDUCTS, IIMN_BEST_ION, IIMN_LINKED_GROUPS,
@@ -227,8 +227,12 @@ pub struct FeatureGroupingAlgorithmKD {
     /// sets them from the link tolerances, `mz_unit` and
     /// `link:charge_merging`.
     pub distance: FeatureDistance,
-    /// The LOWESS parameters of the warp (`LOWESS:`, all advanced).
-    pub lowess: LowessParameters,
+    /// The LOWESS options of the warp (`LOWESS:span`, `num_iterations`,
+    /// `delta`, `interpolation_type`, `extrapolation_type`; all advanced).
+    pub lowess: LowessOptions,
+    /// The automatic span selection of the warp's LOWESS (`LOWESS:auto_span`
+    /// and the `auto_*` parameters), `None` when `auto_span` is `false`.
+    pub lowess_auto_span: Option<LowessAutoSpan>,
 }
 
 impl Default for FeatureGroupingAlgorithmKD {
@@ -252,7 +256,8 @@ impl Default for FeatureGroupingAlgorithmKD {
             mz_ppm: true,
             nr_partitions: 100,
             distance,
-            lowess: LowessParameters::default(),
+            lowess: LowessOptions::default(),
+            lowess_auto_span: None,
         }
     }
 }
@@ -412,7 +417,14 @@ impl FeatureGroupingAlgorithmKD {
         ] {
             p.remove(key)?;
         }
-        p.insert("LOWESS:", &self.lowess.to_param(true)?)?;
+        // The source inserts `TransformationModelLowess::getDefaultParameters()`
+        // and tags every entry `advanced`.
+        let mut lowess = self.lowess.to_param_with(self.lowess_auto_span.as_ref())?;
+        let keys: Vec<String> = lowess.iter()?.map(|item| item.key).collect();
+        for key in keys {
+            lowess.add_tag(&key, "advanced")?;
+        }
+        p.insert("LOWESS:", &lowess)?;
         p.set_section_description(
             "LOWESS",
             "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')",
@@ -471,6 +483,7 @@ impl FeatureGroupingAlgorithmKD {
                 )));
             }
         };
+        let (lowess, lowess_auto_span) = LowessOptions::from_param(&p.copy("LOWESS:", true)?)?;
         Ok(Self {
             warp_enabled: string(p, "warp:enabled")? == "true",
             warp_rt_tol: float(p, "warp:rt_tol")?,
@@ -485,22 +498,9 @@ impl FeatureGroupingAlgorithmKD {
             mz_ppm: string(p, "mz_unit")? == "ppm",
             nr_partitions: int(p, "nr_partitions")?,
             distance,
-            lowess: LowessParameters::from_complete_param(&p.copy("LOWESS:", true)?)?,
+            lowess,
+            lowess_auto_span,
         })
-    }
-
-    /// The warp settings [`MapAlignmentAlgorithmKD`] reads from these
-    /// parameters.
-    pub fn warp_settings(&self) -> KdWarpSettings {
-        KdWarpSettings {
-            rt_tol: self.warp_rt_tol,
-            mz_tol: self.warp_mz_tol,
-            mz_ppm: self.mz_ppm,
-            max_pairwise_log_fc: self.warp_max_pairwise_log_fc,
-            min_rel_cc_size: self.warp_min_rel_cc_size,
-            max_nr_conflicts: self.warp_max_nr_conflicts,
-            lowess: self.lowess.clone(),
-        }
     }
 
     /// The distance functor of one run: the source copies the `distance_*`
@@ -602,8 +602,7 @@ impl FeatureGroupingAlgorithmKD {
         };
 
         // RT transformation models.
-        let mut aligner =
-            MapAlignmentAlgorithmKD::with_settings(input_maps.len(), Some(self.warp_settings()));
+        let mut aligner = MapAlignmentAlgorithmKD::new(input_maps.len(), &self.to_param()?)?;
         if self.warp_enabled {
             for j in 0..boundaries.len() - 1 {
                 let maps = partition(j);
