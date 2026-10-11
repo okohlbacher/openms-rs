@@ -982,3 +982,238 @@ fn add_up_in_mobility_range_and_concatenate() {
     assert!(addition::concatenate_spectra(&wider).is_err());
     assert!(addition::concatenate_spectra(&[]).unwrap().is_empty());
 }
+
+// ---------------------------------------------------------------------------
+// OpenSwathHelper: the TargetedExperiment overload and sampleExperiment
+// (group O integration)
+// ---------------------------------------------------------------------------
+
+/// OpenSwathHelper_test.cpp: `selectSwathTransitions` for the heavyweight
+/// `TargetedExperiment` (lines 58-82 of the class test): three transitions at
+/// 100, 200 and 300, window 199.9 to 500, minimum edge distance 1.0, two are
+/// selected. The overload also takes the peptides and proteins over whole.
+#[test]
+fn select_swath_transitions_targeted_experiment() {
+    use openms::analysis::openswath::reaction_monitoring_transition::ReactionMonitoringTransition;
+    use openms::analysis::openswath::targeted_experiment::TargetedExperiment;
+    use openms::analysis::openswath::targeted_experiment_helper::{Peptide, Protein};
+    let mut exp1 = TargetedExperiment::new();
+    let mut exp2 = TargetedExperiment::new();
+    let transitions: Vec<ReactionMonitoringTransition> = [100.0, 200.0, 300.0]
+        .iter()
+        .map(|&mz| {
+            let mut tr = ReactionMonitoringTransition::new();
+            tr.set_precursor_mz(mz);
+            tr
+        })
+        .collect();
+    exp1.set_transitions(transitions);
+    let mut peptide = Peptide::default();
+    peptide.base.id = "pep".into();
+    exp1.set_peptides(vec![peptide]);
+    exp1.set_proteins(vec![Protein {
+        id: "prot".into(),
+        ..Protein::default()
+    }]);
+    helper::select_swath_transitions_targeted(&exp1, &mut exp2, 1.0, 199.9, 500.0);
+    assert_eq!(exp2.transitions().len(), 2);
+    assert_eq!(exp2.peptides().len(), 1);
+    assert_eq!(exp2.proteins().len(), 1);
+    // a precursor closer to the upper edge than the minimum distance is dropped
+    let mut exp3 = TargetedExperiment::new();
+    helper::select_swath_transitions_targeted(&exp1, &mut exp3, 1.0, 199.9, 200.5);
+    assert_eq!(exp3.transitions().len(), 0);
+}
+
+/// `checkSwathMapAndSelectTransitions<TargetedExperiment>`: the template's second
+/// instantiation, through the same generic function as the light one.
+#[test]
+fn check_swath_map_and_select_transitions_targeted_experiment() {
+    use openms::analysis::openswath::reaction_monitoring_transition::ReactionMonitoringTransition;
+    use openms::analysis::openswath::targeted_experiment::TargetedExperiment;
+    let mut map = MSExperiment::new();
+    let mut spectrum = MSSpectrum::default();
+    spectrum.precursors.push(Precursor {
+        mz: 250.0,
+        isolation_window_lower_offset: 50.0,
+        isolation_window_upper_offset: 50.0,
+        ..Precursor::default()
+    });
+    map.spectra.push(spectrum);
+    let mut exp = TargetedExperiment::new();
+    let mut inside = ReactionMonitoringTransition::new();
+    inside.set_precursor_mz(220.0);
+    let mut outside = ReactionMonitoringTransition::new();
+    outside.set_precursor_mz(400.0);
+    exp.set_transitions(vec![inside, outside]);
+    let mut selected = TargetedExperiment::new();
+    assert!(
+        helper::check_swath_map_and_select_transitions(&map, &exp, &mut selected, 1.0).unwrap()
+    );
+    assert_eq!(selected.transitions().len(), 1);
+    // an empty map is not a SWATH map
+    let mut again = TargetedExperiment::new();
+    assert!(
+        !helper::check_swath_map_and_select_transitions(
+            &MSExperiment::new(),
+            &exp,
+            &mut again,
+            1.0
+        )
+        .unwrap()
+    );
+}
+
+const SAMPLE_INPUTS: &str = include_str!("data/openswath_helper/sample_inputs.tsv");
+const SAMPLE_ORACLE: &str = include_str!("data/openswath_helper/sample_oracle.stdout");
+
+fn sample_library() -> LightTargetedExperiment {
+    let mut exp = LightTargetedExperiment::default();
+    for line in SAMPLE_INPUTS.lines().filter(|l| !l.is_empty()) {
+        let f: Vec<&str> = line.split('\t').collect();
+        match f[0] {
+            "C" => exp.compounds.push(LightCompound {
+                id: f[1].into(),
+                rt: f[2].parse().unwrap(),
+                sequence: f[3].into(),
+                protein_refs: f
+                    .get(4)
+                    .filter(|p| !p.is_empty())
+                    .map(|p| p.split(',').map(String::from).collect())
+                    .unwrap_or_default(),
+                ..LightCompound::default()
+            }),
+            "T" => {
+                let mut tr = LightTransition {
+                    transition_name: f[1].into(),
+                    peptide_ref: f[2].into(),
+                    library_intensity: f[3].parse().unwrap(),
+                    ..LightTransition::default()
+                };
+                tr.flags.set_decoy(f[4] == "1");
+                exp.transitions.push(tr);
+            }
+            "P" => exp.proteins.push(LightProtein {
+                id: f[1].into(),
+                ..LightProtein::default()
+            }),
+            other => panic!("unknown record {other}"),
+        }
+    }
+    exp
+}
+
+fn sample_records(
+    tag: &str,
+    result: Result<LightTargetedExperiment, Error>,
+    out: &mut Vec<(String, String)>,
+) {
+    match result {
+        Ok(e) => {
+            out.push((format!("{tag}.n_compounds"), e.compounds.len().to_string()));
+            for (i, c) in e.compounds.iter().enumerate() {
+                out.push((format!("{tag}.compound.{i}"), c.id.clone()));
+            }
+            out.push((
+                format!("{tag}.n_transitions"),
+                e.transitions.len().to_string(),
+            ));
+            for (i, t) in e.transitions.iter().enumerate() {
+                out.push((format!("{tag}.transition.{i}"), t.transition_name.clone()));
+            }
+            out.push((format!("{tag}.n_proteins"), e.proteins.len().to_string()));
+            for (i, p) in e.proteins.iter().enumerate() {
+                out.push((format!("{tag}.protein.{i}"), p.id.clone()));
+            }
+        }
+        Err(Error::InvalidValue(message)) => out.push((format!("{tag}.error"), message)),
+        Err(other) => panic!("unexpected error {other:?}"),
+    }
+}
+
+/// `OpenSwathHelper::sampleExperiment` against the Release build: seven runs
+/// over a 60-compound library with tied library intensities, duplicated
+/// sequences, decoy transitions and priority peptides, each seeded, replayed
+/// record for record (`../oracle/integ-O-helper`, ibminode06, run twice
+/// byte-identical).
+#[test]
+fn oracle_sample_experiment() {
+    use std::collections::HashSet;
+    let lib = sample_library();
+    let none: HashSet<String> = HashSet::new();
+    let set = |names: &[&str]| -> HashSet<String> { names.iter().map(|s| s.to_string()).collect() };
+    let prio6 = set(&[
+        "PEPTIDE3K",
+        "PEPTIDE10K",
+        "PEPTIDE22K",
+        "PEPTIDE41K",
+        "PEPTIDE5K",
+        "PEPTIDE17K",
+    ]);
+    let prio4 = set(&["PEPTIDE1K", "PEPTIDE30K", "PEPTIDE31K", "PEPTIDE57K"]);
+    let mut got = Vec::new();
+    sample_records(
+        "a",
+        helper::sample_experiment(&lib, 5, 2, 42, false, 1.0, &none),
+        &mut got,
+    );
+    sample_records(
+        "b",
+        helper::sample_experiment(&lib, 6, 3, 7, true, 0.5, &none),
+        &mut got,
+    );
+    sample_records(
+        "c",
+        helper::sample_experiment(&lib, 4, 3, 1234, false, 1.0, &prio6),
+        &mut got,
+    );
+    sample_records(
+        "d",
+        helper::sample_experiment(&lib, 8, 2, 99, true, 0.8, &prio4),
+        &mut got,
+    );
+    sample_records(
+        "e",
+        helper::sample_experiment(&lib, 1, 100, 5, false, 1.0, &none),
+        &mut got,
+    );
+    sample_records(
+        "f",
+        helper::sample_experiment(&lib, 3, 2, 11, true, 0.01, &none),
+        &mut got,
+    );
+    sample_records(
+        "g",
+        helper::sample_experiment(&lib, 10, 1, 2026, true, 1.0, &prio6),
+        &mut got,
+    );
+    let expected: Vec<(String, String)> = SAMPLE_ORACLE
+        .lines()
+        .filter_map(|l| l.split_once('\t'))
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect();
+    assert!(
+        expected.len() > 300,
+        "oracle holds {} records",
+        expected.len()
+    );
+    assert_eq!(got.len(), expected.len());
+    for (g, e) in got.iter().zip(&expected) {
+        assert_eq!(g, e);
+    }
+}
+
+/// Derived: the preconditions the source only asserts in debug builds, and a
+/// seed of 0 (the source's `std::random_device`) still samples.
+#[test]
+fn sample_experiment_preconditions() {
+    use std::collections::HashSet;
+    let lib = sample_library();
+    let none = HashSet::new();
+    assert!(helper::sample_experiment(&lib, 0, 1, 1, false, 1.0, &none).is_err());
+    assert!(helper::sample_experiment(&lib, 1, 0, 1, false, 1.0, &none).is_err());
+    assert!(helper::sample_experiment(&lib, 1, 1, 1, true, 0.0, &none).is_err());
+    assert!(helper::sample_experiment(&lib, 1, 1, 1, true, 1.5, &none).is_err());
+    let random = helper::sample_experiment(&lib, 5, 2, 0, false, 1.0, &none).unwrap();
+    assert!(!random.compounds.is_empty() && random.compounds.len() <= 10);
+}
