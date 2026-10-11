@@ -1949,3 +1949,406 @@ fn oracle_swath_map_mass_correction_defaults() {
         )
     );
 }
+
+// ---------------------------------------------------------------------------
+// SwathMapMassCorrection::correctMZ and correctIM (group O integration)
+// ---------------------------------------------------------------------------
+//
+// Transcribed from SwathMapMassCorrection_test.cpp at the core pin (tier 3):
+// the mock spectra, the transition groups and every expected literal.
+
+use openms::analysis::openswath::spectrum_access::SpectrumAccessPtr;
+use openms::analysis::transformations::TransformationDescription;
+use openms::kernel::mrm::MRMFeature;
+use std::collections::BTreeMap;
+
+fn smmc_transition(mz: f64, prec: f64, im: f64, pep: &str, name: &str) -> LightTransition {
+    LightTransition {
+        product_mz: mz,
+        precursor_mz: prec,
+        precursor_im: im,
+        peptide_ref: pep.into(),
+        transition_name: name.into(),
+        ..LightTransition::default()
+    }
+}
+
+/// `addTransitions`: tr1..tr4 of `pep1` (drift time 11) into `group` and `exp`.
+fn smmc_add_transitions(group: &mut MRMTransitionGroupType) -> LightTargetedExperiment {
+    let mut exp = LightTargetedExperiment::default();
+    for (i, mz) in [500.0, 600.0, 700.0, 800.0].into_iter().enumerate() {
+        let name = format!("tr{}", i + 1);
+        let tr = smmc_transition(mz, 412.0, 11.0, "pep1", &name);
+        group.add_transition(tr.clone(), &name).unwrap();
+        exp.transitions.push(tr);
+    }
+    exp.compounds.push(LightCompound {
+        id: "pep1".into(),
+        drift_time: 11.0,
+        ..LightCompound::default()
+    });
+    exp
+}
+
+/// `addTransitionsPep2` and `addTransitionsPep3`.
+fn smmc_add_pep(
+    group: &mut MRMTransitionGroupType,
+    exp: &mut LightTargetedExperiment,
+    (mz, prec, im, pep, name): (f64, f64, f64, &str, &str),
+) {
+    let tr = smmc_transition(mz, prec, im, pep, name);
+    group.add_transition(tr.clone(), name).unwrap();
+    exp.transitions.push(tr);
+    exp.compounds.push(LightCompound {
+        id: pep.into(),
+        drift_time: im,
+        ..LightCompound::default()
+    });
+}
+
+fn smmc_feature() -> MRMFeature {
+    let mut feature = MRMFeature::default();
+    feature.rt = 3120.0;
+    feature
+}
+
+fn smmc_map(peaks: &[(f64, f32)], rt: f64, im: Option<&[f32]>) -> SpectrumAccessPtr {
+    let mut exp = MSExperiment::default();
+    exp.spectra.push(spectrum(rt, peaks, im));
+    Arc::new(access(exp))
+}
+
+fn smmc_swath(sptr: SpectrumAccessPtr, lower: f64, upper: f64, im: (f64, f64)) -> SwathMap {
+    SwathMap {
+        sptr: Some(sptr),
+        lower,
+        upper,
+        center: 412.5,
+        im_lower: im.0,
+        im_upper: im.1,
+        ms1: false,
+        ..SwathMap::default()
+    }
+}
+
+fn smmc_first_mz(map: &SwathMap) -> Vec<f64> {
+    map.sptr
+        .as_ref()
+        .unwrap()
+        .spectrum_by_id(0)
+        .unwrap()
+        .mz_array()
+        .data
+        .clone()
+}
+
+fn smmc_groups<'a>(
+    groups: &[&'a MRMTransitionGroupType],
+) -> BTreeMap<String, &'a MRMTransitionGroupType> {
+    groups
+        .iter()
+        .enumerate()
+        .map(|(i, g)| (format!("group{}", i + 1), *g))
+        .collect()
+}
+
+/// SwathMapMassCorrection_test.cpp: `correctMZ`, every section.
+#[test]
+fn swath_map_mass_correction_correct_mz_class_test() {
+    // targets for correction are: 500.00, 600.00, 700.00, 800.00
+    // "measured data" as input:   500.02, 600.00, 699.97, 800.02
+    let mut group = MRMTransitionGroupType::default();
+    group.add_feature(smmc_feature()).unwrap();
+    let targ_exp = smmc_add_transitions(&mut group);
+    let map_of_groups = smmc_groups(&[&group, &group, &group]);
+
+    let sptr = smmc_map(
+        &[
+            (500.02, 150.0),
+            (600.00, 150.0),
+            (699.97, 22500.01), // double the weight of all other data
+            (800.02, 150.0),
+        ],
+        3121.0,
+        None,
+    );
+    // never used: the second PASEF map
+    let sptr2 = smmc_map(
+        &[
+            (499.97, 1_500_000.0),
+            (600.00, 150.0),
+            (699.97, 150.0),
+            (800.02, 150.0),
+        ],
+        3122.0,
+        None,
+    );
+    let map = smmc_swath(sptr, 400.0, 425.0, (10.0, 20.0));
+    // the class test never sets `mapPASEF.upper`, which stays 0: the window can
+    // never contain a precursor
+    let map_pasef = smmc_swath(sptr2, 400.0, 0.0, (20.0, 30.0));
+
+    let pasef = false;
+    let run = |function: &str, window: f64, maps: &[SwathMap], pasef: bool| -> Vec<SwathMap> {
+        let mut mc = SwathMapMassCorrection::new();
+        mc.mz_correction_function = function.into();
+        mc.mz_extraction_window = window;
+        let mut maps = maps.to_vec();
+        mc.correct_mz(&map_of_groups, &targ_exp, &mut maps, pasef)
+            .unwrap();
+        maps
+    };
+
+    // should work with empty maps, with the default (none) and a regression
+    let mut mc = SwathMapMassCorrection::new();
+    let mut empty: Vec<SwathMap> = Vec::new();
+    mc.correct_mz(&map_of_groups, &targ_exp, &mut empty, pasef)
+        .unwrap();
+    mc.mz_correction_function = "unweighted_regression".into();
+    mc.correct_mz(&map_of_groups, &targ_exp, &mut empty, pasef)
+        .unwrap();
+    // nothing was found: the window estimates are 0 (empty residuals)
+    assert_eq!(mc.fragment_mz_window(), 0.0);
+
+    // none: the spectrum is untouched
+    let maps = run("none", 1.0, std::slice::from_ref(&map), pasef);
+    let data = smmc_first_mz(&maps[0]);
+    for (got, want) in data.iter().zip([500.02, 600.00, 699.97, 800.02]) {
+        real_similar(*got, want);
+    }
+
+    // unweighted regression, window 0.05
+    let linear = |a: f64, b: f64| [500.02, 600.00, 699.97, 800.02].map(|x| a + b * x);
+    let maps = run(
+        "unweighted_regression",
+        0.05,
+        std::slice::from_ref(&map),
+        pasef,
+    );
+    for (got, want) in smmc_first_mz(&maps[0])
+        .iter()
+        .zip(linear(-0.00428216, 0.999986))
+    {
+        real_similar(*got, want);
+    }
+    // window 1.0
+    let maps = run(
+        "unweighted_regression",
+        1.0,
+        std::slice::from_ref(&map),
+        pasef,
+    );
+    for (got, want) in smmc_first_mz(&maps[0])
+        .iter()
+        .zip(linear(-0.0219795, 1.00003))
+    {
+        real_similar(*got, want);
+    }
+    // the same call again: the source test lists a third set of literals for
+    // the identical parameters (-0.0315101, 1.00005); it is the same call and
+    // the tolerance of TEST_REAL_SIMILAR admits both
+    for (got, want) in smmc_first_mz(&maps[0])
+        .iter()
+        .zip(linear(-0.0315101, 1.00005))
+    {
+        real_similar(*got, want);
+    }
+
+    // quadratic regression
+    let quad =
+        |a: f64, b: f64, c: f64| [500.02, 600.00, 699.97, 800.02].map(|x| a + b * x + c * x * x);
+    let maps = run(
+        "quadratic_regression",
+        1.0,
+        std::slice::from_ref(&map),
+        pasef,
+    );
+    for (got, want) in smmc_first_mz(&maps[0]).iter().zip(quad(
+        -0.7395987927448004,
+        1.002305255194642,
+        -1.750157412772069e-06,
+    )) {
+        real_similar(*got, want);
+    }
+    // weighted quadratic regression
+    let maps = run(
+        "weighted_quadratic_regression",
+        1.0,
+        std::slice::from_ref(&map),
+        pasef,
+    );
+    for (got, want) in smmc_first_mz(&maps[0]).iter().zip(quad(
+        -0.8323316718451679,
+        1.002596944948891,
+        -1.967834556637627e-06,
+    )) {
+        real_similar(*got, want);
+    }
+    // the delta-ppm functions
+    let maps = run(
+        "quadratic_regression_delta_ppm",
+        1.0,
+        std::slice::from_ref(&map),
+        pasef,
+    );
+    for (got, want) in smmc_first_mz(&maps[0]).iter().zip([
+        499.997160932778,
+        600.010219722383,
+        699.988081672119,
+        800.004537672719,
+    ]) {
+        real_similar(*got, want);
+    }
+    let maps = run(
+        "weighted_quadratic_regression_delta_ppm",
+        1.0,
+        std::slice::from_ref(&map),
+        pasef,
+    );
+    for (got, want) in smmc_first_mz(&maps[0]).iter().zip([
+        499.996336995751,
+        600.013185628794,
+        699.992311403648,
+        800.005854568825,
+    ]) {
+        real_similar(*got, want);
+    }
+
+    // PASEF on: only the window containing the IM of the transitions is used,
+    // so the result is that of the first map alone
+    let maps = run(
+        "unweighted_regression",
+        0.05,
+        &[map.clone(), map_pasef],
+        true,
+    );
+    for (got, want) in smmc_first_mz(&maps[0])
+        .iter()
+        .zip(linear(-0.00428216, 0.999986))
+    {
+        real_similar(*got, want);
+    }
+}
+
+/// SwathMapMassCorrection_test.cpp: `correctIM`, every section.
+#[test]
+fn swath_map_mass_correction_correct_im_class_test() {
+    // m/z targets:   500, 600, 700, 800, 900, 950
+    // mobility:       11,  11,  11,  11,  15,  20
+    // measured input: 22, 21.5, 20.5, 21, 24, 31
+    let mut gr1 = MRMTransitionGroupType::default();
+    let mut gr2 = MRMTransitionGroupType::default();
+    let mut gr3 = MRMTransitionGroupType::default();
+    for g in [&mut gr1, &mut gr2, &mut gr3] {
+        g.add_feature(smmc_feature()).unwrap();
+    }
+    let mut targ_exp = smmc_add_transitions(&mut gr1);
+    smmc_add_pep(&mut gr2, &mut targ_exp, (900.0, 500.0, 15.0, "pep2", "tr5"));
+    smmc_add_pep(&mut gr3, &mut targ_exp, (950.0, 600.0, 20.0, "pep3", "tr6"));
+    let groups = smmc_groups(&[&gr1, &gr2, &gr3]);
+
+    let peaks = [
+        (500.02, 150.0_f32),
+        (600.00, 150.0),
+        (699.97, 22500.01),
+        (800.02, 150.0),
+        (900.02, 150.0),
+        (950.02, 150.0),
+    ];
+    let im = [22.0_f32, 21.5, 20.5, 21.0, 24.0, 31.0];
+    // the class test adds the second mock spectrum to `exp` (not `exp2`), so
+    // the first map holds two spectra at RT 3121
+    let im_second = [22.3_f32, 21.5, 20.5, 21.5, 24.4, 31.0];
+    let mut exp = MSExperiment::default();
+    exp.spectra.push(spectrum(3121.0, &peaks, Some(&im)));
+    exp.spectra.push(spectrum(3121.0, &peaks, Some(&im_second)));
+    let sptr: SpectrumAccessPtr = Arc::new(access(exp));
+    let sptr2: SpectrumAccessPtr = Arc::new(access(MSExperiment::default()));
+    let mut exp_ms1 = MSExperiment::default();
+    exp_ms1.spectra.push(spectrum(
+        3121.0,
+        &[(412.02, 150.0), (500.02, 150.0), (600.01, 150.0)],
+        Some(&[22.0, 24.0, 31.0]),
+    ));
+    let sptr_ms1: SpectrumAccessPtr = Arc::new(access(exp_ms1));
+
+    let map = smmc_swath(sptr, 400.0, 800.0, (10.0, 30.0));
+    let map_pasef = smmc_swath(sptr2, 400.0, 800.0, (100.0, 200.0));
+    let ms1_map = SwathMap {
+        sptr: Some(sptr_ms1),
+        ms1: true,
+        ..SwathMap::default()
+    };
+
+    let correct = |configure: &dyn Fn(&mut SwathMapMassCorrection),
+                   maps: &[SwathMap],
+                   pasef: bool|
+     -> Result<TransformationDescription, Error> {
+        let mut mc = SwathMapMassCorrection::new();
+        configure(&mut mc);
+        let mut trafo = TransformationDescription::default();
+        mc.correct_im(&groups, &targ_exp, maps, pasef, &mut trafo)?;
+        Ok(trafo)
+    };
+    let ms2_config = |mc: &mut SwathMapMassCorrection| {
+        mc.mz_correction_function = "none".into();
+        mc.mz_extraction_window = 1.0;
+        mc.im_extraction_window = 100.0;
+    };
+
+    // empty maps: the default im_extraction_window of -1 returns at once
+    let trafo = correct(&|_| {}, &[], false).unwrap();
+    real_similar(trafo.apply(10.0).unwrap(), 10.0);
+    real_similar(trafo.apply(100.0).unwrap(), 100.0);
+    let trafo = correct(
+        &|mc| mc.mz_correction_function = "unweighted_regression".into(),
+        &[],
+        false,
+    )
+    .unwrap();
+    real_similar(trafo.apply(10.0).unwrap(), 10.0);
+    real_similar(trafo.apply(100.0).unwrap(), 100.0);
+
+    // MS2-based alignment, with and without the MS1 map
+    for maps in [vec![map.clone(), ms1_map.clone()], vec![map.clone()]] {
+        let trafo = correct(&ms2_config, &maps, false).unwrap();
+        real_similar(trafo.apply(10.0).unwrap(), 0.889721627408994);
+        real_similar(trafo.apply(20.0).unwrap(), 10.0974304068522);
+        real_similar(trafo.apply(30.0).unwrap(), 19.3051391862955);
+    }
+
+    // a single peptide: the regression is only an intercept
+    let mut map_single = map.clone();
+    map_single.upper = 425.0;
+    let trafo = correct(&ms2_config, &[map_single], false).unwrap();
+    for x in [10.0, 20.0, 30.0] {
+        real_similar(trafo.apply(x).unwrap(), 11.0);
+    }
+
+    // PASEF data: the second window is excluded
+    let trafo = correct(
+        &ms2_config,
+        &[map.clone(), map_pasef, ms1_map.clone()],
+        true,
+    )
+    .unwrap();
+    real_similar(trafo.apply(10.0).unwrap(), 0.889721627408994);
+    real_similar(trafo.apply(20.0).unwrap(), 10.0974304068522);
+    real_similar(trafo.apply(30.0).unwrap(), 19.3051391862955);
+
+    // MS1 calibration with an MS1 map but no MS2 map: no point, UnableToFit
+    let ms1_config = |mc: &mut SwathMapMassCorrection| {
+        ms2_config(mc);
+        mc.ms1_im_calibration = true;
+    };
+    match correct(&ms1_config, &[ms1_map.clone()], false) {
+        Err(Error::InvalidValue(message)) => assert!(message.starts_with("UnableToFit")),
+        other => panic!("expected UnableToFit, got {other:?}"),
+    }
+
+    // MS1 ion mobility alignment
+    let trafo = correct(&ms1_config, &[map, ms1_map], false).unwrap();
+    real_similar(trafo.apply(10.0).unwrap(), 0.835820895522389);
+    real_similar(trafo.apply(20.0).unwrap(), 10.089552238806);
+    real_similar(trafo.apply(30.0).unwrap(), 19.3432835820896);
+}

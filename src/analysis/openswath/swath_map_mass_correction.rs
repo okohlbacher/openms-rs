@@ -14,24 +14,43 @@
 //! Ported: the parameters (`DefaultParamHandler` becomes
 //! [`SwathMapMassCorrection::defaults`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::defaults), [`SwathMapMassCorrection::from_param`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::from_param)
 //! and [`SwathMapMassCorrection::to_param`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::to_param)), the estimated-window accessors,
-//! [`SwathMapMassCorrection::estimate_window`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::estimate_window) and
-//! [`SwathMapMassCorrection::find_swath_maps_pasef`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::find_swath_maps_pasef).
+//! [`SwathMapMassCorrection::estimate_window`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::estimate_window),
+//! [`SwathMapMassCorrection::find_swath_maps_pasef`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::find_swath_maps_pasef),
+//! and the two corrections,
+//! [`SwathMapMassCorrection::correct_mz`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::correct_mz) and
+//! [`SwathMapMassCorrection::correct_im`](crate::analysis::openswath::swath_map_mass_correction::SwathMapMassCorrection::correct_im), with the file-local
+//! `findBestFeature` and `findSwathMaps`.
 //!
-//! **Not ported:** `correctMZ` and `correctIM`, which need
-//! `OpenSwathScoring::fetchSpectrumSwath`, `DIAHelpers::createMZRangePPM`
-//! and `integrateWindow`, and the `LinearRegression` / `QuadraticRegression`
-//! fits, none of which is ported yet; with them go the file-local helpers
-//! `findBestFeature` and `findSwathMaps`, which only those two call.
+//! The source runs `correctIM` under `#pragma omp parallel for`; the port is
+//! serial, which is what the source does with one thread (the order in which
+//! the calibration points reach the regression, and so its last bits, depend on
+//! the thread schedule in the source).
 
+use super::data_structures::SpectrumPtr;
+use super::dia_helper::{create_mz_range_ppm, integrate_window};
+use super::openswath_scoring::OpenSwathScoring;
+use super::spectrum_access::SpectrumAccessPtr;
+use super::spectrum_access_openms::SpectrumAccessQuadMZTransforming;
 use super::swath_map::SwathMap;
-use super::transition_experiment::LightTransition;
+use super::transition_experiment::{LightTargetedExperiment, LightTransition};
+use crate::analysis::feature_finder_picked::glibc_libm;
+use crate::analysis::transformations::{
+    DataPoint, LinearOptions, ModelConfig, TransformationDescription, WindowOptions,
+};
+use crate::format::file_info::text_format::ostream_g;
 use crate::kernel::MSChromatogram;
 use crate::kernel::mrm::MRMTransitionGroup;
+use crate::kernel::ranges::RangeBase;
+use crate::math::ml::linear_regression::LinearRegression;
+use crate::math::ml::quadratic_regression::QuadraticRegression;
 use crate::math::statistic_functions::{
     DEFAULT_R_DENSE, DEFAULT_R_SPARSE, DEFAULT_TUKEY_FACTOR, adaptive_quantile,
 };
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
 use crate::{Error, Result};
+use std::collections::BTreeMap;
+use std::io::Write;
+use std::sync::Arc;
 
 /// Parameter handler name of the source class.
 pub const SWATH_MAP_MASS_CORRECTION_NAME: &str = "SwathMapMassCorrection";
@@ -440,6 +459,490 @@ impl SwathMapMassCorrection {
         Ok(used.into_iter().cloned().collect())
     }
 
+    /// Estimate and apply an m/z calibration from the best feature of every
+    /// transition group (source `correctMZ`).
+    ///
+    /// For each group with a feature, the spectrum at the retention time of its
+    /// best feature (highest overall quality, the first on ties) is fetched
+    /// from the SWATH map or maps whose window holds the first transition's
+    /// precursor, and every transition's fragment m/z is integrated; with MS1
+    /// maps the precursor m/z is integrated too. From the fragment residuals in
+    /// ppm [`fragment_mz_window`](Self::fragment_mz_window) is estimated, from
+    /// the MS1 residuals [`precursor_mz_window`](Self::precursor_mz_window).
+    /// Unless `mz_correction_function` is `none` or fewer than three points
+    /// were found, a regression of that function is fitted and **every** map of
+    /// `swath_maps` (MS1 maps included) is wrapped in a
+    /// [`SpectrumAccessQuadMZTransforming`] carrying it, the `*_delta_ppm`
+    /// functions in the ppm domain.
+    ///
+    /// `pasef` selects the window by precursor m/z and ion mobility (see
+    /// [`find_swath_maps_pasef`](Self::find_swath_maps_pasef)); with
+    /// `im_extraction_window` set, the fetch and the integration are
+    /// restricted to the peptide's library ion mobility.
+    ///
+    /// With a `debug_mz_file` set, every calibration point is written to it as
+    /// `mz theo_mz drift_time diff_ppm log_intensity RT`, tab separated, with
+    /// 15 significant digits as the source's `writtenDigits<double>()` gives.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a group with features but no transition (the
+    /// source reads `getTransitions()[0]` unchecked), for an unknown
+    /// `mz_correction_function` once at least three points were found (the
+    /// source's `Exception::IllegalArgument`, same message), and the errors of
+    /// the spectrum access, the integration and the regression (a degenerate
+    /// fit is an error, as the source's `UnableToFit`). [`Error::MissingInformation`]
+    /// for a map without spectrum access when the maps are replaced. A debug
+    /// file that cannot be created is an error here where the source silently
+    /// writes nothing. On error `swath_maps` is unchanged.
+    pub fn correct_mz(
+        &mut self,
+        transition_group_map: &BTreeMap<String, &MRMTransitionGroupType>,
+        targeted_exp: &LightTargetedExperiment,
+        swath_maps: &mut [SwathMap],
+        pasef: bool,
+    ) -> Result<()> {
+        let ppm = self.mz_extraction_window_ppm;
+        let mz_extr_window = self.mz_extraction_window;
+        let corr_type = self.mz_correction_function.clone();
+        let im_extraction = self.im_extraction_window;
+        let padding_factor = self.mz_estimation_padding_factor;
+        let is_ppm = matches!(
+            corr_type.as_str(),
+            "quadratic_regression_delta_ppm"
+                | "weighted_quadratic_regression_delta_ppm"
+                | "regression_delta_ppm"
+        );
+        if corr_type == "none" {
+            return Ok(());
+        }
+
+        let mut debug = open_debug(
+            &self.debug_mz_file,
+            "mz\ttheo_mz\tdrift_time\tdiff_ppm\tlog_intensity\tRT\n",
+        )?;
+
+        let mut weights: Vec<f64> = Vec::new();
+        let mut exp_mz: Vec<f64> = Vec::new();
+        let mut theo_mz: Vec<f64> = Vec::new();
+        let mut delta_ppm: Vec<f64> = Vec::new();
+        let mut delta_ppm_ms1: Vec<f64> = Vec::new();
+
+        let pep_im_map = pep_im_map(targeted_exp);
+        let ms1_maps: Vec<SwathMap> = swath_maps.iter().filter(|m| m.ms1).cloned().collect();
+        let scoring = OpenSwathScoring::default();
+
+        for group in transition_group_map.values() {
+            if group.features().is_empty() {
+                continue;
+            }
+            let first = group.transitions().first().ok_or_else(|| {
+                Error::InvalidValue("a transition group with features has no transitions".into())
+            })?;
+            let drift_target = pep_im_map
+                .get(first.peptide_ref.as_str())
+                .copied()
+                .unwrap_or(0.0);
+
+            let best_rt = find_best_feature(group);
+            let used_maps = if pasef {
+                self.find_swath_maps_pasef(group, swath_maps)?
+            } else {
+                find_swath_maps(group, swath_maps)
+            };
+            if used_maps.is_empty() {
+                continue;
+            }
+
+            // an ion mobility window when one is configured
+            let mut im_range = RangeBase::new();
+            if im_extraction != -1.0 {
+                im_range.set_max(drift_target)?;
+                im_range.min_span_if_singular(im_extraction)?;
+            }
+
+            let spectra = scoring.fetch_spectrum_swath_maps(&used_maps, best_rt, 1, &im_range)?;
+            let Some(sp) = spectra.first() else {
+                continue;
+            };
+            for tr in group.transitions() {
+                let mz_range = create_mz_range_ppm(tr.product_mz, mz_extr_window, ppm)?;
+                // integrate at the position of the theoretical mass
+                let Some(found) = integrate_window(sp, &mz_range, &im_range, false)? else {
+                    continue;
+                };
+                let (mz, intensity) = (found.mz, found.intensity);
+                let weight = glibc_libm::log(intensity) / glibc_libm::log(2.0);
+                weights.push(weight);
+                exp_mz.push(mz);
+                theo_mz.push(tr.product_mz);
+                let diff_ppm = (mz - tr.product_mz) * 1_000_000.0 / mz;
+                delta_ppm.push(diff_ppm);
+                if let Some(out) = debug.as_mut() {
+                    writeln!(
+                        out,
+                        "{}\t{}\t{}\t{}\t{}\t{}",
+                        ostream_g(mz, 15),
+                        ostream_g(tr.product_mz, 15),
+                        ostream_g(drift_target, 15),
+                        ostream_g(diff_ppm, 15),
+                        ostream_g(weight, 15),
+                        ostream_g(best_rt, 15)
+                    )?;
+                }
+            }
+
+            // MS1 precursor residuals for the precursor window
+            if !ms1_maps.is_empty() {
+                let spectra =
+                    scoring.fetch_spectrum_swath_maps(&ms1_maps, best_rt, 1, &im_range)?;
+                if let Some(sp_ms1) = spectra.first() {
+                    let theo_prec_mz = first.precursor_mz;
+                    let mz_range = create_mz_range_ppm(theo_prec_mz, mz_extr_window, ppm)?;
+                    if let Some(found) = integrate_window(sp_ms1, &mz_range, &im_range, false)? {
+                        let dppm = (found.mz - theo_prec_mz) / theo_prec_mz * 1e6;
+                        delta_ppm_ms1.push(dppm.abs());
+                    }
+                }
+            }
+        }
+
+        // the fragment window, then the precursor window
+        let fragment_window = Self::estimate_window(
+            &delta_ppm,
+            self.mz_estimation_percentile / 100.0,
+            true,
+            padding_factor,
+        )?;
+        self.set_fragment_mz_window(fragment_window);
+        if !delta_ppm_ms1.is_empty() {
+            delta_ppm_ms1.sort_by(f64::total_cmp);
+            let precursor_window = Self::estimate_window(
+                &delta_ppm_ms1,
+                self.mz_estimation_percentile / 100.0,
+                true,
+                padding_factor,
+            )?;
+            self.set_precursor_mz_window(precursor_window);
+        }
+
+        if exp_mz.len() < 3 {
+            return Ok(());
+        }
+        let params: [f64; 3] = match corr_type.as_str() {
+            "unweighted_regression" => {
+                let mut lr = LinearRegression::new();
+                lr.compute_regression(0.0, &exp_mz, &theo_mz, true)?;
+                [lr.intercept(), lr.slope(), 0.0]
+            }
+            "weighted_regression" => {
+                let mut lr = LinearRegression::new();
+                lr.compute_regression_weighted(0.0, &exp_mz, &theo_mz, &weights, true)?;
+                [lr.intercept(), lr.slope(), 0.0]
+            }
+            "quadratic_regression" => {
+                let mut qr = QuadraticRegression::new();
+                qr.compute_regression(&exp_mz, &theo_mz)?;
+                [qr.a(), qr.b(), qr.c()]
+            }
+            "weighted_quadratic_regression" => {
+                let mut qr = QuadraticRegression::new();
+                qr.compute_regression_weighted(&exp_mz, &theo_mz, &weights)?;
+                [qr.a(), qr.b(), qr.c()]
+            }
+            "quadratic_regression_delta_ppm" => {
+                let mut qr = QuadraticRegression::new();
+                qr.compute_regression(&exp_mz, &delta_ppm)?;
+                [qr.a(), qr.b(), qr.c()]
+            }
+            "regression_delta_ppm" => {
+                let mut lr = LinearRegression::new();
+                lr.compute_regression(0.0, &exp_mz, &delta_ppm, true)?;
+                [lr.intercept(), lr.slope(), 0.0]
+            }
+            "weighted_quadratic_regression_delta_ppm" => {
+                let mut qr = QuadraticRegression::new();
+                qr.compute_regression_weighted(&exp_mz, &delta_ppm, &weights)?;
+                [qr.a(), qr.b(), qr.c()]
+            }
+            other => {
+                return Err(Error::InvalidValue(format!(
+                    "Unknown correction type {other}"
+                )));
+            }
+        };
+
+        // Replace the SWATH maps' access with the transforming wrapper, all or
+        // none.
+        let mut wrapped: Vec<SpectrumAccessPtr> = Vec::with_capacity(swath_maps.len());
+        for map in swath_maps.iter() {
+            let sptr = map.sptr.clone().ok_or_else(|| {
+                Error::MissingInformation("SWATH map without spectrum access".into())
+            })?;
+            wrapped.push(Arc::new(SpectrumAccessQuadMZTransforming::quad_mz(
+                sptr, params[0], params[1], params[2], is_ppm,
+            )));
+        }
+        for (map, access) in swath_maps.iter_mut().zip(wrapped) {
+            map.sptr = Some(access);
+        }
+        Ok(())
+    }
+
+    /// Estimate and store the ion-mobility calibration from the best feature
+    /// of every transition group (source `correctIM`).
+    ///
+    /// Nothing happens (and `im_trafo` is left as it is) when
+    /// `im_extraction_window` is negative or `im_correction_function` is
+    /// `none`. Otherwise, for each group with a feature, the measured ion
+    /// mobility of every fragment (or, with `ms1_im_calibration`, of the first
+    /// transition's precursor in the MS1 map) is integrated at the best
+    /// feature's retention time inside the peptide's library drift time
+    /// widened to `im_extraction_window`. The pairs (measured, library) become
+    /// the data points of `im_trafo`, which is fitted with the linear model;
+    /// [`fragment_im_window`](Self::fragment_im_window) is the residual
+    /// window of that fit. When MS1 maps exist their precursor mobility points
+    /// are collected whichever mode is used, and
+    /// [`precursor_im_window`](Self::precursor_im_window) is estimated from
+    /// their raw deviations (the source assigns them to a copy whose model the
+    /// assignment resets).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] starting `UnableToFit` when no calibration point
+    /// was found, for a group with features but no transition, and the errors of
+    /// the access, the integration, the regression and the model fit.
+    pub fn correct_im(
+        &mut self,
+        transition_group_map: &BTreeMap<String, &MRMTransitionGroupType>,
+        targeted_exp: &LightTargetedExperiment,
+        swath_maps: &[SwathMap],
+        pasef: bool,
+        im_trafo: &mut TransformationDescription,
+    ) -> Result<()> {
+        let ppm = self.mz_extraction_window_ppm;
+        let mz_extr_window = self.mz_extraction_window;
+        let im_extraction_win = self.im_extraction_window;
+        let im_estimation_padding_factor = self.im_estimation_padding_factor;
+        let ms1_im = self.ms1_im_calibration;
+
+        if im_extraction_win < 0.0 {
+            return Ok(());
+        }
+        if self.im_correction_function == "none" {
+            return Ok(());
+        }
+        // anything else is the linear function
+
+        let mut debug = open_debug(&self.debug_im_file, "mz\tim\ttheo_im\tRT\tintensity\n")?;
+
+        let pep_im_map = pep_im_map(targeted_exp);
+        let ms1_maps: Vec<SwathMap> = swath_maps.iter().filter(|m| m.ms1).cloned().collect();
+        let scoring = OpenSwathScoring::default();
+
+        let mut data_im: Vec<DataPoint> = Vec::new();
+        let mut exp_im: Vec<f64> = Vec::new();
+        let mut theo_im: Vec<f64> = Vec::new();
+        let mut exp_im_ms1_all: Vec<f64> = Vec::new();
+        let mut theo_im_ms1_all: Vec<f64> = Vec::new();
+
+        let drift_of = |peptide_ref: &str| pep_im_map.get(peptide_ref).copied().unwrap_or(0.0);
+
+        'groups: for group in transition_group_map.values() {
+            if group.features().is_empty() {
+                continue;
+            }
+            let transitions = group.transitions();
+            if transitions.is_empty() {
+                return Err(Error::InvalidValue(
+                    "a transition group with features has no transitions".into(),
+                ));
+            }
+            let best_rt = find_best_feature(group);
+            let used_maps = if pasef {
+                self.find_swath_maps_pasef(group, swath_maps)?
+            } else {
+                find_swath_maps(group, swath_maps)
+            };
+            if used_maps.is_empty() {
+                continue;
+            }
+
+            let mut exp_im_ms1_local: Vec<f64> = Vec::new();
+            let mut theo_im_ms1_local: Vec<f64> = Vec::new();
+
+            // the spectrum at the best feature's retention time; the source
+            // fetches with an empty ion-mobility range here
+            let empty_im = RangeBase::new();
+            let fetch = |maps: &[SwathMap], im: &RangeBase| -> Result<Option<SpectrumPtr>> {
+                if maps.is_empty() {
+                    // Release build: no maps, no spectrum
+                    return Ok(None);
+                }
+                Ok(scoring
+                    .fetch_spectrum_swath_maps(maps, best_rt, 1, im)?
+                    .into_iter()
+                    .next())
+            };
+            let sp_ms1 = if ms1_im {
+                fetch(&ms1_maps, &empty_im)?
+            } else {
+                None
+            };
+            let sp_ms2 = if ms1_im {
+                None
+            } else {
+                fetch(&used_maps, &empty_im)?
+            };
+
+            for tr in transitions {
+                if ms1_im {
+                    continue;
+                }
+                let mz_range = create_mz_range_ppm(tr.product_mz, mz_extr_window, ppm)?;
+                let drift_target = drift_of(&tr.peptide_ref);
+                let mut im_range = RangeBase::new();
+                if im_extraction_win != -1.0 {
+                    im_range.set_max(drift_target)?;
+                    im_range.min_span_if_singular(im_extraction_win)?;
+                }
+                // the spectrum must have a drift time array
+                let Some(sp) = sp_ms2.as_ref().filter(|s| s.drift_time_array().is_some()) else {
+                    continue;
+                };
+                let Some(found) = integrate_window(sp, &mz_range, &im_range, false)? else {
+                    continue;
+                };
+                // skip empty windows
+                if found.im <= 0.0 {
+                    continue;
+                }
+                data_im.push(DataPoint::new(found.im, drift_target));
+                exp_im.push(found.im);
+                theo_im.push(drift_target);
+                if let Some(out) = debug.as_mut() {
+                    writeln!(
+                        out,
+                        "{}\t{}\t{}\t{}\t{}",
+                        ostream_g(tr.precursor_mz, 15),
+                        ostream_g(found.im, 15),
+                        ostream_g(drift_target, 15),
+                        ostream_g(best_rt, 15),
+                        ostream_g(found.intensity, 15)
+                    )?;
+                }
+            }
+
+            // MS1 mobility points for the window estimate, whatever the mode
+            if !ms1_maps.is_empty() {
+                let tr0 = &transitions[0];
+                let drift_target0 = drift_of(&tr0.peptide_ref);
+                let mut im_range_ms1 = RangeBase::singular(drift_target0)?;
+                if im_extraction_win != -1.0 {
+                    im_range_ms1.min_span_if_singular(im_extraction_win)?;
+                }
+                let collected = fetch(&ms1_maps, &im_range_ms1)?;
+                if let Some(sp) = collected
+                    .as_ref()
+                    .filter(|s| s.drift_time_array().is_some())
+                {
+                    let mz_range = create_mz_range_ppm(tr0.precursor_mz, mz_extr_window, ppm)?;
+                    if let Some(found) = integrate_window(sp, &mz_range, &im_range_ms1, false)? {
+                        if found.im > 0.0 {
+                            exp_im_ms1_local.push(found.im);
+                            theo_im_ms1_local.push(drift_target0);
+                        }
+                    }
+                }
+            }
+
+            // MS1 extraction for the calibration itself
+            if ms1_im {
+                let tr = &transitions[0];
+                let mz_range = create_mz_range_ppm(tr.precursor_mz, mz_extr_window, ppm)?;
+                let drift_target = drift_of(&tr.peptide_ref);
+                // no check of the window needed: the correction is of the IM
+                let mut im_range = RangeBase::singular(drift_target)?;
+                im_range.min_span_if_singular(im_extraction_win)?;
+                let Some(sp) = sp_ms1.as_ref().filter(|s| s.drift_time_array().is_some()) else {
+                    // the source continues with the next group here, before the
+                    // MS1 points of this group are added
+                    continue 'groups;
+                };
+                let Some(found) = integrate_window(sp, &mz_range, &im_range, false)? else {
+                    continue 'groups;
+                };
+                if found.im <= 0.0 {
+                    continue 'groups;
+                }
+                data_im.push(DataPoint::new(found.im, drift_target));
+                exp_im.push(found.im);
+                theo_im.push(drift_target);
+                if let Some(out) = debug.as_mut() {
+                    writeln!(
+                        out,
+                        "{}\t{}\t{}\t{}\t{}",
+                        ostream_g(tr.precursor_mz, 15),
+                        ostream_g(found.im, 15),
+                        ostream_g(drift_target, 15),
+                        ostream_g(best_rt, 15),
+                        ostream_g(found.intensity, 15)
+                    )?;
+                }
+            }
+
+            exp_im_ms1_all.extend(exp_im_ms1_local);
+            theo_im_ms1_all.extend(theo_im_ms1_local);
+        }
+
+        drop(debug);
+
+        if exp_im.is_empty() {
+            return Err(Error::InvalidValue(
+                "UnableToFit-LinearRegression: Could not fit a linear model to the data (0 points)."
+                    .into(),
+            ));
+        }
+
+        // the regression of the source is computed for its debug output only;
+        // its failure is the source's failure
+        let mut lr = LinearRegression::new();
+        lr.compute_regression(0.0, &exp_im, &theo_im, true)?;
+
+        // store the IM transformation with the linear model
+        im_trafo.set_data_points(data_im)?;
+        im_trafo.fit_model(ModelConfig::Linear(LinearOptions::default()))?;
+
+        // the MS2 window from the residual quantile of the fit
+        let fragment_im_window = im_trafo.estimate_window(WindowOptions {
+            quantile: self.im_estimation_percentile / 100.0,
+            inverse: false,
+            full_window: true,
+            padding_factor: im_estimation_padding_factor,
+        })?;
+        self.set_fragment_im_window(fragment_im_window);
+
+        if !exp_im_ms1_all.is_empty() {
+            let ms1_points: Vec<DataPoint> = exp_im_ms1_all
+                .iter()
+                .zip(&theo_im_ms1_all)
+                .map(|(&x, &y)| DataPoint::new(x, y))
+                .collect();
+            // `setDataPoints` of the source resets the model of the copy, so the
+            // window is that of the raw deviations (experimental to library)
+            let mut inverse_copy = im_trafo.clone();
+            inverse_copy.set_data_points(ms1_points)?;
+            let precursor_im_window = inverse_copy.estimate_window(WindowOptions {
+                quantile: self.im_estimation_percentile / 100.0,
+                inverse: false,
+                full_window: true,
+                padding_factor: im_estimation_padding_factor,
+            })?;
+            self.set_precursor_im_window(precursor_im_window);
+        }
+        Ok(())
+    }
+
     /// The estimated fragment m/z extraction window (ppm); -1 until set.
     /// Source `getFragmentMzWindow`.
     pub fn fragment_mz_window(&self) -> f64 {
@@ -487,4 +990,53 @@ impl SwathMapMassCorrection {
     pub fn set_precursor_im_window(&mut self, window: f64) {
         self.precursor_im_window = window;
     }
+}
+
+/// The feature with the highest overall quality of a transition group, as its
+/// retention time (source file-local `findBestFeature`): -1 when there is none
+/// above the initial threshold of -1000; the first feature wins ties.
+fn find_best_feature(group: &MRMTransitionGroupType) -> f64 {
+    let mut best_rt = -1.0;
+    let mut highest_score = -1000.0;
+    for feature in group.features() {
+        let quality = f64::from(feature.feature.base.quality);
+        if quality > highest_score {
+            best_rt = feature.rt;
+            highest_score = quality;
+        }
+    }
+    best_rt
+}
+
+/// The SWATH maps whose window holds the first transition's precursor,
+/// `lower < precursor <= upper` (source file-local `findSwathMaps`).
+fn find_swath_maps(group: &MRMTransitionGroupType, swath_maps: &[SwathMap]) -> Vec<SwathMap> {
+    let Some(first) = group.transitions().first() else {
+        return Vec::new();
+    };
+    swath_maps
+        .iter()
+        .filter(|m| m.lower < first.precursor_mz && m.upper >= first.precursor_mz)
+        .cloned()
+        .collect()
+}
+
+/// Library drift time per compound id; a later compound with the same id
+/// overwrites an earlier one, as the source's map assignment does.
+fn pep_im_map(targeted_exp: &LightTargetedExperiment) -> BTreeMap<&str, f64> {
+    let mut map = BTreeMap::new();
+    for compound in targeted_exp.compounds() {
+        map.insert(compound.id.as_str(), compound.drift_time);
+    }
+    map
+}
+
+/// Open a debug file and write its header; `None` for an empty file name.
+fn open_debug(path: &str, header: &str) -> Result<Option<std::io::BufWriter<std::fs::File>>> {
+    if path.is_empty() {
+        return Ok(None);
+    }
+    let mut out = std::io::BufWriter::new(std::fs::File::create(path)?);
+    out.write_all(header.as_bytes())?;
+    Ok(Some(out))
 }

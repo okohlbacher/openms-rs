@@ -15,7 +15,7 @@ The data types these ports build on (`SpectrumAccess`, light `Spectrum`/`Chromat
 | `ANALYSIS/OPENSWATH/PeakMapExtractor.h` | `peak_map_extractor.rs` | complete |
 | `ANALYSIS/OPENSWATH/SwathWindowLoader.h` | `swath_window_loader.rs` | complete |
 | `ANALYSIS/OPENSWATH/SwathQC.h` | `swath_qc.rs` | complete |
-| `ANALYSIS/OPENSWATH/SwathMapMassCorrection.h` | `swath_map_mass_correction.rs` | partial: `correctMZ`, `correctIM` |
+| `ANALYSIS/OPENSWATH/SwathMapMassCorrection.h` | `swath_map_mass_correction.rs` | complete (`correctMZ`, `correctIM` ported at group O integration) |
 
 ## API mapping
 
@@ -93,12 +93,12 @@ The data types these ports build on (`SpectrumAccess`, light `Spectrum`/`Chromat
 | ctor (a `DefaultParamHandler`), dtor | `new`, `Default`; `defaults()`, `from_param`, `from_param_with_warnings`, `to_param` (the `peak_picking.rs` shape) |
 | `updateMembers_` | `from_param` (private `from_complete_param`) |
 | parameters `mz_extraction_window` … `debug_mz_file` | public fields of the same names |
-| `correctMZ(transition_group_map, targeted_exp, swath_maps, pasef)` | **not ported** (see gaps) |
-| `correctIM(transition_group_map, targeted_exp, swath_maps, pasef, im_trafo)` | **not ported** (see gaps) |
+| `correctMZ(transition_group_map, targeted_exp, swath_maps, pasef)` | `correct_mz(&mut self, &BTreeMap<String, &MRMTransitionGroupType>, &LightTargetedExperiment, &mut [SwathMap], pasef) -> Result<()>`; the source's `std::map` of group pointers is a `BTreeMap` of references, the maps are all wrapped or none |
+| `correctIM(transition_group_map, targeted_exp, swath_maps, pasef, im_trafo)` | `correct_im(&mut self, groups, targeted_exp, &[SwathMap], pasef, &mut TransformationDescription) -> Result<()>`; serial where the source runs `#pragma omp parallel for` |
 | `findSwathMapsPasef(transition_group, swath_maps)` | `find_swath_maps_pasef(&self, &MRMTransitionGroupType, &[SwathMap]) -> Result<Vec<SwathMap>>` |
 | static `estimateWindow(residuals, quantile = 0.99, full_width = true, padding_factor = 1.0)` | `estimate_window(&[f64], f64, bool, f64) -> Result<f64>` |
 | `get/setFragmentMzWindow`, `get/setFragmentImWindow`, `get/setPrecursorMzWindow`, `get/setPrecursorImWindow` | `fragment_mz_window`/`set_fragment_mz_window`, … (default -1) |
-| file-local `findBestFeature`, `findSwathMaps` | not ported: only `correctMZ`/`correctIM` call them |
+| file-local `findBestFeature`, `findSwathMaps` | private `find_best_feature`, `find_swath_maps` of `swath_map_mass_correction.rs` |
 | — | `MRMTransitionGroupType`, `MZ_CORRECTION_FUNCTIONS`, `IM_CORRECTION_FUNCTIONS`, `SWATH_MAP_MASS_CORRECTION_NAME` |
 
 ## Preserved source conventions
@@ -193,17 +193,22 @@ The data types these ports build on (`SpectrumAccess`, light `Spectrum`/`Chromat
   `oracle_swath_windows` (9 files, 5 annotation runs), `oracle_swath_qc_subsample_grid`,
   `oracle_swath_qc_charge_distribution` (10 runs + JSON), `oracle_estimate_window` (96 values),
   `oracle_swath_map_mass_correction_defaults`. All compared bit for bit.
-- **Tier 3**: every section of the six class tests at the pin (`SwathMapMassCorrection_test.cpp`
-  tests only `correctMZ`/`correctIM`, which are not ported).
+- **Tier 3**: every section of the six class tests at the pin, and of
+  `SwathMapMassCorrection_test.cpp` (`correctMZ`: none, unweighted, quadratic, weighted quadratic,
+  both delta-ppm functions and the PASEF flag; `correctIM`: MS2 with and without the MS1 map, a
+  single peptide, PASEF, MS1 without MS2 (`UnableToFit`), MS1 calibration), in
+  `swath_map_mass_correction_correct_mz_class_test` and
+  `swath_map_mass_correction_correct_im_class_test` of `tests/openswath_extraction.rs`. Two native
+  guards: a group with features but no transition is `InvalidValue`, and the debug files are
+  created before the loop (a file that cannot be created is an error; the source's `ofstream`
+  silently writes nothing).
 - **Tier 4**: atomicity, argument order of checks, ceilings, guards.
 
 ## Gaps (named dependencies)
 
-- `SwathMapMassCorrection::correctMZ` / `correctIM` (and `findBestFeature`, `findSwathMaps`) need
-  `OpenSwathScoring::fetchSpectrumSwath`, `DIAHelpers::createMZRangePPM` / `integrateWindow`
-  (`ANALYSIS/OPENSWATH/DIAHelper.h`), `ML/REGRESSION/LinearRegression.h`,
-  `ML/REGRESSION/QuadraticRegression.h`, and `SpectrumAccessQuadMZTransforming` (ported).
-  The class test `SwathMapMassCorrection_test.cpp` covers exactly these two members.
+- None for `SwathMapMassCorrection.h`: `correctMZ` / `correctIM` were ported at group O integration
+  once `OpenSwathScoring::fetchSpectrumSwath`, `DIAHelpers`, `LinearRegression` and
+  `QuadraticRegression` were in the tree.
 - `ChromatogramExtractor::return_chromatogram<TargetedExperiment>` needs
   `ANALYSIS/TARGETED/TargetedExperiment.h`.
 - The class tests load `ChromatogramExtractor_input.TraML` through `TraMLFile` and
