@@ -53,6 +53,10 @@ pub mod file_types;
 pub mod mascot_generic;
 /// Streaming MGF peak lists and their supported text metadata.
 pub mod mgf;
+/// MRM component and component group picker parameters from a CSV file (`MRMFeaturePickerFile.h`).
+pub mod mrm_feature_picker_file;
+/// MRM feature QC criteria from and to a CSV file (`MRMFeatureQCFile.h`).
+pub mod mrm_feature_qc_file;
 /// MS2 peak-list input and output with explicit transport boundaries.
 pub mod ms2;
 /// Long-format MSstats and MSstatsTMT CSV writer (`MSstatsFile.h`).
