@@ -94,10 +94,30 @@
       "path": "tests/data/transition_tsv_light/oracle.stdout",
       "sha256": "861d5ac5915310e99c26d90781f403c2047be92a25bdbe1544caee028311522d",
       "origin": "../oracle/integ-O-tsvlight/results/stdout.txt"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/cases.tsv",
+      "sha256": "8bfb6fb95a1fca54e5b9a9789a300532330212cc2b08af1343d90529a0fc9417",
+      "origin": "../oracle/integ-O-tsvprogress/cases.tsv"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/oracle.stdout",
+      "sha256": "f56eb4e6d098d991acf0ed58fc3c1ae8736c8696eee6f5d7cfc3692b86e4a3e6",
+      "origin": "../oracle/integ-O-tsvprogress/results/stdout.txt"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/bad_line.tsv",
+      "sha256": "5432aebada72534291c613086b9cbc107530433eca021e742ed7294cf93c23d3",
+      "origin": "../oracle/integ-O-tsvprogress/inputs/bad_line.tsv"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/header_only.tsv",
+      "sha256": "b05aea9570754a5e681c84dd11506b41bf1f83c6452963cbf7d1d52b3ee3b6ef",
+      "origin": "../oracle/integ-O-tsvprogress/inputs/header_only.tsv"
     }
   ],
   "evidence_tier": 1,
-  "evidence": "Tier 1 (retained C++ output): the TargetedFileConverter heavy path (openswath e29e7ee TargetedFileConverter.cpp:229-276) reproduces ConvertTSVToTraML 1-6 (incl. minutes/seconds and the SpectraST MRM list) and TargetedFileConverter 5, 6, 8 and 13 against retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1736-1864), tokens compared with numbers as identical doubles. Tier 3: TransitionTSVFile_test.cpp heavy sections. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test transition_tsv_file`: 10 passed. Light path (group O integration): ../oracle/integ-O-tsvlight, ten cases, ibminode06 Release, dump and TSV equal (tests/transition_tsv_file.rs::light_path_matches_the_release_build).",
+  "evidence": "Tier 1 (retained C++ output): the TargetedFileConverter heavy path (openswath e29e7ee TargetedFileConverter.cpp:229-276) reproduces ConvertTSVToTraML 1-6 (incl. minutes/seconds and the SpectraST MRM list) and TargetedFileConverter 5, 6, 8 and 13 against retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1736-1864), tokens compared with numbers as identical doubles. Tier 3: TransitionTSVFile_test.cpp heavy sections. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test transition_tsv_file`: 10 passed. Light path (group O integration): ../oracle/integ-O-tsvlight, ten cases, ibminode06 Release, dump and TSV equal (tests/transition_tsv_file.rs::light_path_matches_the_release_build). ProgressLogger base (group O integration): ../oracle/integ-O-tsvprogress, nine lists x four conversions, recorded backend calls equal (tests/transition_tsv_file.rs::progress_calls_match_the_release_build).",
   "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1736-1864",
   "external_reference_artifacts": [
     {
@@ -144,6 +164,48 @@
     },
     {
       "path": "../oracle/integ-O-tsvlight/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/driver.cpp",
+      "sha256": "6e639ad26f0e14f9126df20f3a0d5064209f10c7f460deb0ee2e65471bf7584c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/remote_run.sh",
+      "sha256": "074581e0b2209923092bd90c61f0f34de06c3e142633b05ca6c2c4a708d5f7cd",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/run.sh",
+      "sha256": "fe013c90532b052009fd7610347a47c375c99df6e114be9bdf55dd9e3aecf0eb",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/cases.tsv",
+      "sha256": "8bfb6fb95a1fca54e5b9a9789a300532330212cc2b08af1343d90529a0fc9417",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/results/hashes.txt",
+      "sha256": "00bdc08a28d6045838dab61067491bda631761918198f89b8d1677bb3953b9af",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/results/output_hashes.txt",
+      "sha256": "ff730518ce581c542dc9a51d539805dafd2665f0bc40cf9c72503d7249beb8db",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/results/host.txt",
       "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
       "location": "outside this repository",
       "origin_key": "reference_tools"

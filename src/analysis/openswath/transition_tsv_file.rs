@@ -59,8 +59,11 @@
 //!
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TRANSITION_TSV_SUPPORT.md)
 //! for the member mapping and the evidence. The source contains no
-//! `#pragma omp`; the port is serial. The source's `ProgressLogger` base is not
-//! ported. The `OpenSwath::LightTargetedExperiment` members are
+//! `#pragma omp`; the port is serial. The source's `ProgressLogger` base is
+//! the `*_with_progress` entry points (`startProgress`, one `setProgress` per
+//! line, `endProgress` of the four conversions); the plain entry points report
+//! nothing, as a source object whose log type is `NONE`. The
+//! `OpenSwath::LightTargetedExperiment` members are
 //! [`TransitionTSVFile::read_light_targeted_experiment`] (with the streaming
 //! `streamTSVToLightTargetedExperiment_` it wraps) and
 //! [`TransitionTSVFile::write_light_targeted_experiment`].
@@ -77,6 +80,7 @@ use crate::analysis::openswath::transition_experiment::{
     LightCompound, LightModification, LightProtein, LightTargetedExperiment, LightTransition,
 };
 use crate::chemistry::{AASequence, ModificationsDB, PeptideFragmentType, SequenceModification};
+use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
 use crate::format::FileType;
 use crate::metadata::{CVTerm, MetaValue, MetaValueData};
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
@@ -470,6 +474,18 @@ fn read_lines(mut input: impl BufRead, max_bytes: u64) -> Result<Vec<String>> {
     Ok(lines)
 }
 
+/// Where the kept transitions of a read came from: what the progress calls
+/// of the streaming reader count.
+struct LineCounts {
+    /// Lines of the file, the header's included.
+    file_lines: usize,
+    /// Lines after the header (a headerless MRM list has all of them).
+    data_lines: usize,
+    /// For every kept transition the index of its line after the header;
+    /// the lines between were skipped (unannotated SpectraST lines).
+    kept: Vec<usize>,
+}
+
 impl TransitionTSVFile {
     /// A reader/writer with the default parameters.
     pub fn new() -> Self {
@@ -620,7 +636,21 @@ impl TransitionTSVFile {
         input: impl BufRead,
         file_type: FileType,
     ) -> Result<(Vec<TsvTransition>, Vec<String>)> {
+        let (transitions, warnings, _) = self.read_transitions_counted(input, file_type)?;
+        Ok((transitions, warnings))
+    }
+
+    /// [`read_transitions`](Self::read_transitions) and the line counts the
+    /// streaming reader's progress calls need.
+    fn read_transitions_counted(
+        &self,
+        input: impl BufRead,
+        file_type: FileType,
+    ) -> Result<(Vec<TsvTransition>, Vec<String>, LineCounts)> {
         let lines = read_lines(input, self.limits.max_bytes)?;
+        let file_lines = lines.len();
+        let mut data_lines = 0;
+        let mut kept = Vec::new();
         let mut lines = lines.into_iter();
         let mrm = file_type == FileType::Mrm;
         let (delimiter, header) = if mrm {
@@ -655,6 +685,7 @@ impl TransitionTSVFile {
         let mut spectrast_legacy = false;
         for (index, line) in lines.enumerate() {
             let count = index + 1;
+            data_lines = count;
             let fields: Vec<String> = line.split(delimiter).map(str::to_owned).collect();
             if fields.len() != header.len() {
                 return Err(bad(format!(
@@ -813,6 +844,7 @@ impl TransitionTSVFile {
             }
             cleanup_transition(&mut t);
             if !skip {
+                kept.push(index);
                 transitions.push(t);
             }
         }
@@ -821,7 +853,15 @@ impl TransitionTSVFile {
         {
             warnings.push("Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file.".into());
         }
-        Ok((transitions, warnings))
+        Ok((
+            transitions,
+            warnings,
+            LineCounts {
+                file_lines,
+                data_lines,
+                kept,
+            },
+        ))
     }
 
     /// Read a transition list file into a [`TargetedExperiment`]
@@ -874,6 +914,43 @@ impl TransitionTSVFile {
         Ok((exp, warnings))
     }
 
+    /// [`read_targeted_experiment`](Self::read_targeted_experiment), reporting
+    /// the conversion to `progress` as the source's `ProgressLogger` base does
+    /// (see [`to_targeted_experiment_with_progress`](Self::to_targeted_experiment_with_progress)).
+    ///
+    /// # Errors
+    ///
+    /// As [`read_targeted_experiment`](Self::read_targeted_experiment), and the
+    /// errors of `progress`.
+    pub fn read_targeted_experiment_with_progress(
+        &self,
+        input: impl BufRead,
+        file_type: FileType,
+        progress: &mut ProgressLogger,
+    ) -> Result<(TargetedExperiment, Vec<String>)> {
+        let (mut transitions, mut warnings) = self.read_transitions(input, file_type)?;
+        let exp =
+            self.to_targeted_experiment_with_progress(&mut transitions, &mut warnings, progress)?;
+        Ok((exp, warnings))
+    }
+
+    /// [`convert_tsv_to_targeted_experiment_with_warnings`](Self::convert_tsv_to_targeted_experiment_with_warnings),
+    /// reporting to `progress`.
+    ///
+    /// # Errors
+    ///
+    /// As [`convert_tsv_to_targeted_experiment`](Self::convert_tsv_to_targeted_experiment),
+    /// and the errors of `progress`.
+    pub fn convert_tsv_to_targeted_experiment_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        file_type: FileType,
+        progress: &mut ProgressLogger,
+    ) -> Result<(TargetedExperiment, Vec<String>)> {
+        let file = std::io::BufReader::new(std::fs::File::open(path.as_ref())?);
+        self.read_targeted_experiment_with_progress(file, file_type, progress)
+    }
+
     /// Convert read lines into a [`TargetedExperiment`] with transitions,
     /// peptides or compounds, and proteins (`TSVToTargetedExperiment_`).
     ///
@@ -895,6 +972,43 @@ impl TransitionTSVFile {
         transitions: &mut [TsvTransition],
         warnings: &mut Vec<String>,
     ) -> Result<TargetedExperiment> {
+        self.to_targeted_experiment_reporting(
+            transitions,
+            warnings,
+            &mut ProgressReporter::silent(),
+        )
+    }
+
+    /// [`to_targeted_experiment`](Self::to_targeted_experiment), reporting to
+    /// `progress` as the source's `ProgressLogger` base does:
+    /// `startProgress(0, n, "conversion to internal data representation")`,
+    /// `setProgress(i)` after line `i`, `endProgress()`
+    /// (`TransitionTSVFile.cpp:592-640`).
+    ///
+    /// # Errors
+    ///
+    /// As [`to_targeted_experiment`](Self::to_targeted_experiment), and the
+    /// errors of `progress`. As in the source, a failing line leaves the
+    /// section open.
+    pub fn to_targeted_experiment_with_progress(
+        &self,
+        transitions: &mut [TsvTransition],
+        warnings: &mut Vec<String>,
+        progress: &mut ProgressLogger,
+    ) -> Result<TargetedExperiment> {
+        self.to_targeted_experiment_reporting(
+            transitions,
+            warnings,
+            &mut ProgressReporter::new(Some(progress)),
+        )
+    }
+
+    fn to_targeted_experiment_reporting(
+        &self,
+        transitions: &mut [TsvTransition],
+        warnings: &mut Vec<String>,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<TargetedExperiment> {
         self.resolve_mixed_sequence_groups(transitions, warnings);
         let mut exp = TargetedExperiment::new();
         let mut compounds = Vec::new();
@@ -903,7 +1017,11 @@ impl TransitionTSVFile {
         let mut peptide_ids = std::collections::BTreeSet::new();
         let mut compound_ids = std::collections::BTreeSet::new();
         let mut protein_ids = std::collections::BTreeSet::new();
-        for t in transitions.iter() {
+        reporter.start_count(
+            transitions.len(),
+            "conversion to internal data representation",
+        )?;
+        for (index, t) in transitions.iter().enumerate() {
             exp.add_transition(create_transition(t)?);
             if !peptide_ids.contains(&t.group_id) && !compound_ids.contains(&t.group_id) {
                 if t.is_peptide() {
@@ -927,7 +1045,9 @@ impl TransitionTSVFile {
                     protein_ids.insert(name.clone());
                 }
             }
+            reporter.set_count(index)?;
         }
+        reporter.end()?;
         exp.set_compounds(compounds);
         exp.set_peptides(peptides);
         exp.set_proteins(proteins);
@@ -1131,6 +1251,44 @@ impl TransitionTSVFile {
         Ok(())
     }
 
+    /// [`convert_targeted_experiment_to_tsv`](Self::convert_targeted_experiment_to_tsv),
+    /// reporting to `progress`.
+    ///
+    /// # Errors
+    ///
+    /// As [`convert_targeted_experiment_to_tsv`](Self::convert_targeted_experiment_to_tsv),
+    /// and the errors of `progress`.
+    pub fn convert_targeted_experiment_to_tsv_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        exp: &TargetedExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        let mut bytes = Vec::new();
+        self.write_targeted_experiment_with_progress(&mut bytes, exp, progress)?;
+        std::fs::write(path.as_ref(), bytes)?;
+        Ok(())
+    }
+
+    /// [`write_targeted_experiment`](Self::write_targeted_experiment),
+    /// reporting to `progress` as the source's `ProgressLogger` base does:
+    /// `startProgress(0, n, "writing OpenSWATH Transition List TSV file")`,
+    /// `setProgress(i)` after transition `i` is converted, `endProgress()`
+    /// (`TransitionTSVFile.cpp:1717-1723`).
+    ///
+    /// # Errors
+    ///
+    /// As [`write_targeted_experiment`](Self::write_targeted_experiment), and
+    /// the errors of `progress`.
+    pub fn write_targeted_experiment_with_progress(
+        &self,
+        out: impl Write,
+        exp: &TargetedExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.write_targeted_reporting(out, exp, &mut ProgressReporter::new(Some(progress)))
+    }
+
     /// Write an experiment as a transition list to a stream
     /// (`writeTSVOutput_` after the reference check).
     ///
@@ -1147,19 +1305,33 @@ impl TransitionTSVFile {
     /// value does not convert; [`Error::Io`] from `out`.
     pub fn write_targeted_experiment(
         &self,
+        out: impl Write,
+        exp: &TargetedExperiment,
+    ) -> Result<()> {
+        self.write_targeted_reporting(out, exp, &mut ProgressReporter::silent())
+    }
+
+    fn write_targeted_reporting(
+        &self,
         mut out: impl Write,
         exp: &TargetedExperiment,
+        reporter: &mut ProgressReporter<'_>,
     ) -> Result<()> {
         if exp.contains_invalid_references() {
             return Err(bad(
                 "Your input file contains invalid references, cannot process file.",
             ));
         }
-        let rows = exp
-            .transitions()
-            .iter()
-            .map(|t| convert_transition(t, exp))
-            .collect::<Result<Vec<_>>>()?;
+        reporter.start_count(
+            exp.transitions().len(),
+            "writing OpenSWATH Transition List TSV file",
+        )?;
+        let mut rows = Vec::with_capacity(exp.transitions().len());
+        for (index, t) in exp.transitions().iter().enumerate() {
+            rows.push(convert_transition(t, exp)?);
+            reporter.set_count(index)?;
+        }
+        reporter.end()?;
         use crate::param::value::format_float;
         let f = |x: f64| format_float(x, true);
         let b = |x: bool| if x { "1" } else { "0" };
@@ -1223,6 +1395,49 @@ impl TransitionTSVFile {
         self.read_light_targeted_experiment(file, file_type)
     }
 
+    /// [`convert_tsv_to_light_targeted_experiment`](Self::convert_tsv_to_light_targeted_experiment),
+    /// reporting to `progress`.
+    ///
+    /// # Errors
+    ///
+    /// As [`convert_tsv_to_light_targeted_experiment`](Self::convert_tsv_to_light_targeted_experiment),
+    /// and the errors of `progress`.
+    pub fn convert_tsv_to_light_targeted_experiment_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        file_type: FileType,
+        progress: &mut ProgressLogger,
+    ) -> Result<(LightTargetedExperiment, Vec<String>)> {
+        let file = std::io::BufReader::new(std::fs::File::open(path.as_ref())?);
+        self.read_light_targeted_experiment_with_progress(file, file_type, progress)
+    }
+
+    /// [`read_light_targeted_experiment`](Self::read_light_targeted_experiment),
+    /// reporting to `progress` as the source's `ProgressLogger` base does:
+    /// `startProgress(0, n, "streaming TSV to LightTargetedExperiment")` with
+    /// `n` the lines of the file less one (the header, or for a headerless
+    /// SpectraST list the first line), `setProgress(i)` after line `i`
+    /// (a skipped line too), `endProgress()`
+    /// (`TransitionTSVFile.cpp:696-1032`).
+    ///
+    /// The source streams, so a line that fails to parse is reached after the
+    /// section was started and the lines before it were reported; the port
+    /// reads the list first, so such a failure is returned before the section
+    /// starts.
+    ///
+    /// # Errors
+    ///
+    /// As [`read_light_targeted_experiment`](Self::read_light_targeted_experiment),
+    /// and the errors of `progress`.
+    pub fn read_light_targeted_experiment_with_progress(
+        &self,
+        input: impl BufRead,
+        file_type: FileType,
+        progress: &mut ProgressLogger,
+    ) -> Result<(LightTargetedExperiment, Vec<String>)> {
+        self.read_light_reporting(input, file_type, &mut ProgressReporter::new(Some(progress)))
+    }
+
     /// Read a transition list from a stream into a [`LightTargetedExperiment`]
     /// (source `streamTSVToLightTargetedExperiment_`). Returns the experiment
     /// and the warnings the source logs.
@@ -1264,14 +1479,34 @@ impl TransitionTSVFile {
         input: impl BufRead,
         file_type: FileType,
     ) -> Result<(LightTargetedExperiment, Vec<String>)> {
-        let (transitions, mut warnings) = self.read_transitions(input, file_type)?;
+        self.read_light_reporting(input, file_type, &mut ProgressReporter::silent())
+    }
+
+    fn read_light_reporting(
+        &self,
+        input: impl BufRead,
+        file_type: FileType,
+        reporter: &mut ProgressReporter<'_>,
+    ) -> Result<(LightTargetedExperiment, Vec<String>)> {
+        let (transitions, mut warnings, counts) =
+            self.read_transitions_counted(input, file_type)?;
         // the streaming reader never reports the SpectraST legacy notice
         warnings.retain(|w| !w.starts_with("Warning: SpectraST was not run"));
         let mut exp = LightTargetedExperiment::new();
         let mut compound_ids = std::collections::BTreeSet::new();
         let mut protein_ids = std::collections::BTreeSet::new();
         let mut label_to_sequence: BTreeMap<String, String> = BTreeMap::new();
-        for t in &transitions {
+        reporter.start_count(
+            counts.file_lines.saturating_sub(1),
+            "streaming TSV to LightTargetedExperiment",
+        )?;
+        let mut next_line = 0;
+        for (t, &line) in transitions.iter().zip(&counts.kept) {
+            // the skipped lines before this one were reported when they were read
+            while next_line < line {
+                reporter.set_count(next_line)?;
+                next_line += 1;
+            }
             // inline mixed sequence group detection
             let mut effective_label = t.peptide_group_label.clone();
             if !effective_label.is_empty() {
@@ -1389,7 +1624,14 @@ impl TransitionTSVFile {
                     });
                 }
             }
+            reporter.set_count(line)?;
+            next_line = line + 1;
         }
+        while next_line < counts.data_lines {
+            reporter.set_count(next_line)?;
+            next_line += 1;
+        }
+        reporter.end()?;
         Ok((exp, warnings))
     }
 
@@ -1412,8 +1654,35 @@ impl TransitionTSVFile {
     /// [`Error::Io`] from `out`.
     pub fn write_light_targeted_experiment(
         &self,
+        out: impl Write,
+        exp: &LightTargetedExperiment,
+    ) -> Result<()> {
+        self.write_light_reporting(out, exp, &mut ProgressReporter::silent())
+    }
+
+    /// [`write_light_targeted_experiment`](Self::write_light_targeted_experiment),
+    /// reporting to `progress` as the source's `ProgressLogger` base does:
+    /// `startProgress(0, n, "writing OpenSWATH Transition List TSV file")`,
+    /// `setProgress(i)` as transition `i` is begun, `endProgress()`
+    /// (`TransitionTSVFile.cpp:1841-1995`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] from `out`, and the errors of `progress`.
+    pub fn write_light_targeted_experiment_with_progress(
+        &self,
+        out: impl Write,
+        exp: &LightTargetedExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        self.write_light_reporting(out, exp, &mut ProgressReporter::new(Some(progress)))
+    }
+
+    fn write_light_reporting(
+        &self,
         mut out: impl Write,
         exp: &LightTargetedExperiment,
+        reporter: &mut ProgressReporter<'_>,
     ) -> Result<()> {
         use crate::param::value::format_float;
         let f = |x: f64| format_float(x, true);
@@ -1429,7 +1698,12 @@ impl TransitionTSVFile {
         let na = |s: String| if s.is_empty() { "NA".to_owned() } else { s };
         let mut text = HEADER_NAMES.join("\t");
         text.push('\n');
-        for tr in &exp.transitions {
+        reporter.start_count(
+            exp.transitions.len(),
+            "writing OpenSWATH Transition List TSV file",
+        )?;
+        for (index, tr) in exp.transitions.iter().enumerate() {
+            reporter.set_count(index)?;
             let compound = compounds.get(tr.peptide_ref.as_str()).copied();
             let mut protein_names: Vec<String> = Vec::new();
             let mut uniprot_ids: Vec<String> = Vec::new();
@@ -1519,6 +1793,7 @@ impl TransitionTSVFile {
             text.push_str(&fields.join("\t"));
             text.push('\n');
         }
+        reporter.end()?;
         out.write_all(text.as_bytes())?;
         Ok(())
     }
@@ -1536,6 +1811,25 @@ impl TransitionTSVFile {
     ) -> Result<()> {
         let mut file = std::io::BufWriter::new(std::fs::File::create(path.as_ref())?);
         self.write_light_targeted_experiment(&mut file, exp)?;
+        file.flush()?;
+        Ok(())
+    }
+
+    /// [`convert_light_targeted_experiment_to_tsv`](Self::convert_light_targeted_experiment_to_tsv),
+    /// reporting to `progress`.
+    ///
+    /// # Errors
+    ///
+    /// As [`convert_light_targeted_experiment_to_tsv`](Self::convert_light_targeted_experiment_to_tsv),
+    /// and the errors of `progress`.
+    pub fn convert_light_targeted_experiment_to_tsv_with_progress(
+        &self,
+        path: impl AsRef<Path>,
+        exp: &LightTargetedExperiment,
+        progress: &mut ProgressLogger,
+    ) -> Result<()> {
+        let mut file = std::io::BufWriter::new(std::fs::File::create(path.as_ref())?);
+        self.write_light_targeted_experiment_with_progress(&mut file, exp, progress)?;
         file.flush()?;
         Ok(())
     }

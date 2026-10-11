@@ -511,3 +511,220 @@ fn class_test_light_path_tsv_roundtrip() {
     // one line per transition after the header
     assert_eq!(text.lines().count(), light.transitions.len() + 1);
 }
+
+// ---------------------------------------------------------------------------
+// The ProgressLogger base (group O integration)
+// ---------------------------------------------------------------------------
+//
+// `../oracle/integ-O-tsvprogress` (ibminode06, Release install
+// `openms4-release-bc9cc12-c19e494-174b576`, run twice, byte-identical) ran the
+// four conversions of nine lists on objects whose backend recorded every call
+// that reached it. The recorded calls (start, set, end, with their arguments
+// and nesting depth) and the outcome of each operation are the expected
+// values.
+
+use openms::concept::progress_logger::{
+    ProgressBackend, ProgressClock, ProgressLogger, ProgressNesting, ProgressTime,
+};
+use std::sync::atomic::{AtomicI64, Ordering};
+use std::sync::{Arc, Mutex};
+
+/// Records the calls in the driver's row format.
+struct Recorder {
+    events: Arc<Mutex<Vec<String>>>,
+    current: i64,
+}
+impl ProgressBackend for Recorder {
+    fn start_progress(
+        &mut self,
+        begin: i64,
+        end: i64,
+        label: &str,
+        depth: usize,
+    ) -> openms::Result<()> {
+        self.current = begin;
+        self.events
+            .lock()
+            .unwrap()
+            .push(format!("S\t{begin}\t{end}\t{label}\t{depth}"));
+        Ok(())
+    }
+    fn set_progress(&mut self, value: i64, depth: usize) -> openms::Result<()> {
+        self.events
+            .lock()
+            .unwrap()
+            .push(format!("V\t{value}\t{depth}"));
+        Ok(())
+    }
+    fn next_progress(&mut self) -> openms::Result<i64> {
+        self.current += 1;
+        self.events
+            .lock()
+            .unwrap()
+            .push(format!("N\t{}", self.current));
+        Ok(self.current)
+    }
+    fn end_progress(&mut self, depth: usize, bytes: u64) -> openms::Result<()> {
+        self.events
+            .lock()
+            .unwrap()
+            .push(format!("E\t{depth}\t{bytes}"));
+        Ok(())
+    }
+}
+
+/// A logger with an own nesting context whose clock makes every read a new
+/// second, as the driver's `time()`, so the throttle never suppresses a set.
+fn recording_logger() -> (ProgressLogger, Arc<Mutex<Vec<String>>>) {
+    let second = Arc::new(AtomicI64::new(1_000_000_000));
+    let clock: ProgressClock = Arc::new(move || {
+        Ok(ProgressTime {
+            wall_second: second.fetch_add(1, Ordering::Relaxed),
+            wall_seconds: 0.0,
+            cpu_seconds: Some(0.0),
+        })
+    });
+    let mut logger = ProgressLogger::with_clock_and_nesting(clock, ProgressNesting::default());
+    let events = Arc::new(Mutex::new(Vec::new()));
+    logger.set_logger(Box::new(Recorder {
+        events: events.clone(),
+        current: 0,
+    }));
+    (logger, events)
+}
+
+fn progress_fixture(name: &str) -> PathBuf {
+    let own = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/data/transition_tsv_progress")
+        .join(name);
+    if own.exists() { own } else { data(name) }
+}
+
+/// The progress calls of `convertTSVToTargetedExperiment` (both overloads),
+/// `convertTargetedExperimentToTSV` and `convertLightTargetedExperimentToTSV`
+/// against the Release build.
+#[test]
+fn progress_calls_match_the_release_build() {
+    let expected = std::fs::read_to_string(progress_fixture("oracle.stdout")).unwrap();
+    let cases = std::fs::read_to_string(progress_fixture("cases.tsv")).unwrap();
+    // "### case op" sections: the recorded calls, then R (counts) or X (error)
+    let mut want: Vec<(String, Vec<String>)> = Vec::new();
+    for block in expected.split("### ").filter(|s| !s.is_empty()) {
+        let (head, body) = block.split_once('\n').unwrap();
+        want.push((
+            head.to_owned(),
+            body.lines().map(str::to_owned).collect::<Vec<_>>(),
+        ));
+    }
+    let mut got: Vec<(String, Vec<String>)> = Vec::new();
+    let tsv = TransitionTSVFile::new();
+    for line in cases.lines().filter(|l| !l.is_empty()) {
+        let f: Vec<&str> = line.split('\t').collect();
+        let file = progress_fixture(f[1].rsplit('/').next().unwrap());
+        let file_type = if f[2] == "MRM" {
+            FileType::Mrm
+        } else {
+            FileType::Tsv
+        };
+        let name = f[0];
+        // heavy read
+        let (mut logger, events) = recording_logger();
+        let heavy =
+            tsv.convert_tsv_to_targeted_experiment_with_progress(&file, file_type, &mut logger);
+        let mut rows = events.lock().unwrap().clone();
+        let heavy = match heavy {
+            Ok((exp, _)) => {
+                rows.push(format!(
+                    "R\t{}\t{}\t{}",
+                    exp.transitions().len(),
+                    exp.peptides().len(),
+                    exp.compounds().len()
+                ));
+                Some(exp)
+            }
+            Err(_) => {
+                rows.push("X".to_owned());
+                None
+            }
+        };
+        got.push((format!("{name} heavy_read"), rows));
+        if let Some(exp) = heavy {
+            let (mut logger, events) = recording_logger();
+            let out = temp("progress_heavy.tsv");
+            tsv.convert_targeted_experiment_to_tsv_with_progress(&out, &exp, &mut logger)
+                .unwrap();
+            let mut rows = events.lock().unwrap().clone();
+            rows.push("R\twritten".to_owned());
+            got.push((format!("{name} heavy_write"), rows));
+        }
+        // light read
+        let (mut logger, events) = recording_logger();
+        let light = tsv.convert_tsv_to_light_targeted_experiment_with_progress(
+            &file,
+            file_type,
+            &mut logger,
+        );
+        let mut rows = events.lock().unwrap().clone();
+        let light = match light {
+            Ok((exp, _)) => {
+                rows.push(format!(
+                    "R\t{}\t{}\t{}",
+                    exp.transitions.len(),
+                    exp.compounds.len(),
+                    exp.proteins.len()
+                ));
+                Some(exp)
+            }
+            Err(_) => {
+                rows.push("X".to_owned());
+                None
+            }
+        };
+        got.push((format!("{name} light_read"), rows));
+        if let Some(exp) = light {
+            let (mut logger, events) = recording_logger();
+            let out = temp("progress_light.tsv");
+            tsv.convert_light_targeted_experiment_to_tsv_with_progress(&out, &exp, &mut logger)
+                .unwrap();
+            let mut rows = events.lock().unwrap().clone();
+            rows.push("R\twritten".to_owned());
+            got.push((format!("{name} light_write"), rows));
+        }
+    }
+    assert_eq!(
+        got.iter().map(|g| &g.0).collect::<Vec<_>>(),
+        want.iter().map(|w| &w.0).collect::<Vec<_>>(),
+        "the operations that ran"
+    );
+    assert!(got.len() >= 30);
+    let mut compared_events = 0;
+    for ((name, rows), (_, expected_rows)) in got.iter().zip(&want) {
+        if rows.last().map(String::as_str) == Some("X") {
+            // an error: the source's row is `X <exception> <message>`
+            let last = expected_rows.last().unwrap();
+            assert!(
+                last.starts_with("X\t"),
+                "{name}: the source accepted what the port refused"
+            );
+            if name == "bad_line light_read" {
+                // the source streams: it has started its section and reported
+                // the lines before the bad one when the line is reached, the
+                // port reads the whole list first (documented on
+                // `read_light_targeted_experiment_with_progress`)
+                assert!(expected_rows[0].starts_with("S\t0\t"));
+                assert_eq!(rows.len(), 1, "{name}");
+            } else {
+                assert_eq!(rows.len(), expected_rows.len(), "{name}");
+                assert_eq!(
+                    &expected_rows[..expected_rows.len() - 1],
+                    &rows[..rows.len() - 1],
+                    "{name}"
+                );
+            }
+            continue;
+        }
+        assert_eq!(rows, expected_rows, "{name}");
+        compared_events += rows.len();
+    }
+    assert!(compared_events > 1000, "{compared_events}");
+}

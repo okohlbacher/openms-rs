@@ -29,7 +29,7 @@ OpenMS4-core `bc9cc12`. Rust: `src/analysis/openswath/transition_tsv_file.rs`
 | `validateTargetedExperiment` | `validate_targeted_experiment(&exp)` | |
 | `convertTSVToTargetedExperiment` (`LightTargetedExperiment`), `streamTSVToLightTargetedExperiment_` | `convert_tsv_to_light_targeted_experiment(path, type)` / `read_light_targeted_experiment(reader, type)` (group O integration). The lines are parsed by `read_transitions` and the experiment is built with the streaming reader's rules: the retention time as read (`retentionTimeInterpretation` is not applied), modifications parsed from the sequence (a failure leaves them empty), a protein's UniProt accession at its own position, the label group check inline and in file order | the source streams; the port reads the transitions first (bounded by the reader's limits) |
 | `convertLightTargetedExperimentToTSV` | `convert_light_targeted_experiment_to_tsv(path, exp)` / `write_light_targeted_experiment(writer, exp)` | the same 29 columns; `NA` for an empty group label, gene, sequence, full name, annotation and protein ids; collision energy -1 |
-| `ProgressLogger` base | not ported | no progress reporting |
+| `ProgressLogger` base (`startProgress`, `setProgress`, `endProgress` of the four conversions) | `*_with_progress` entry points taking a `&mut ProgressLogger`: `convert_tsv_to_targeted_experiment_with_progress`, `read_targeted_experiment_with_progress`, `to_targeted_experiment_with_progress`, `convert_targeted_experiment_to_tsv_with_progress`, `write_targeted_experiment_with_progress`, `convert_tsv_to_light_targeted_experiment_with_progress`, `read_light_targeted_experiment_with_progress`, `convert_light_targeted_experiment_to_tsv_with_progress`, `write_light_targeted_experiment_with_progress` (group O integration); the plain entry points report nothing | one divergence: the source streams the light list, so a line that fails to parse is reached after the section was started and the lines before it were reported; the port reads the list first and returns that error before the section starts (the oracle's `bad_line light_read` case) |
 
 ## Preserved source conventions
 
@@ -104,3 +104,16 @@ replays the ten cases and compares the dump of the light experiment (every field
 Tier 3: the class test section "[EXTRA] Light path TSV roundtrip"
 (`class_test_light_path_tsv_roundtrip`); the other two light sections of the class test go through
 `TransitionPQPFile`'s light members.
+
+## Progress evidence (group O integration)
+
+Tier 1: `../oracle/integ-O-tsvprogress/driver.cpp` (ibminode06, Release install
+`openms4-release-bc9cc12-c19e494-174b576`, g++ 14.4.0, run twice byte-identical) ran the four conversions of nine
+lists (the TSV and SpectraST inputs of the heavy-path tests, a header-only list and a list with a short last line)
+on objects whose backend (`setLogger`) recorded every call, with `time()` replaced so the whole-second throttle never
+suppresses a set. `progress_calls_match_the_release_build` replays them with a recording backend and compares every
+`startProgress` (range, label, depth), `setProgress` (value, depth) and `endProgress` and the counts of the result.
+What the oracle showed: the heavyweight reader and both writers report one set per transition; the streaming light
+reader's range is the lines of the file less one (the header, or for a headerless SpectraST list the first line),
+and it reports one set per line including the skipped (unannotated) SpectraST lines, so the last value of a headerless
+list equals the range's end.
