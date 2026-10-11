@@ -209,7 +209,7 @@ fn native_glm_and_rt_norm_formulas() {
         rt_coef: -0.5,
         int_coef: 2.0,
     };
-    let lm = 1.0 - 0.5 * 4.0 + 2.0 * 0.25;
+    let lm: f64 = 1.0 - 0.5 * 4.0 + 2.0 * 0.25;
     assert_eq!(glm.evaluate(2.0, 0.25), 1.0 / (1.0 + (-lm).exp()));
     assert_eq!(glm.evaluate(0.0, 0.0), 1.0 / (1.0 + (-1.0_f64).exp()));
     let norm = RtNorm {
