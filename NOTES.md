@@ -16,4 +16,6 @@ M1 worktree-wf_cd066dab-0a7-36 | M2 worktree-wf_97065d91-48e-2   (all prefixes w
 4. write INTEG-X.json + INTEG-X.md in main repo .planning/.  Delete this file in the final commit.
 
 ## Progress log
-- (none yet)
+- All 12 lane branches merged (HEAD 37962aa7). Conflicts: pub-mod lists (keep both); decoy_random.rs shuffle_slice (kept HEAD, FF3 dup of existing); peak_width_estimator.rs add/add FF1 vs FF2b (kept FF1, functionally identical).
+- Suspected duplicates to collapse: map_alignment_algorithm_kd (M2) vs alignment_kd (M1); kd_tree_feature_maps; params helpers.
+- Missing lane reports: I3b, FF1, FF2a (only fragments exist).
