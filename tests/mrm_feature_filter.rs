@@ -1970,7 +1970,6 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
         transition.set_identifying_transition(false);
         transition.set_quantifying_transition(false);
         transitions.add_transition(transition.clone());
-        let mut filter_values: Vec<MRMFeatureQC> = Vec::new();
         let mut qc_criteria1 = MRMFeatureQC::default();
         let mut qc_criteria2 = MRMFeatureQC::default();
         let mut cgqcs = ComponentGroupQCs::default();
@@ -2070,7 +2069,6 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             qc_criteria1.component_qcs[0].meta_value_qc["peak_area"].1,
             0.0,
         );
-        let mut filter_values_test: Vec<MRMFeatureQC> = Vec::new();
         mrmff
             .estimate_default_mrm_feature_qc_values(&samples, &mut qc_criteria2, &transitions, true)
             .unwrap();

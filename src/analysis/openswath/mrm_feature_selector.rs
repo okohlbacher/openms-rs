@@ -289,8 +289,10 @@ pub trait LpSolver {
 /// row have the same smallest objective the **last** is chosen: the source
 /// leaves that choice to the solver's pivoting, and the Release build's GLPK
 /// was measured to take the last of two and of three tied columns on the
-/// upstream data (`tests/mrm_oracle.rs`, seven parameter sets). That is an
-/// observation about one solver, not a guarantee.
+/// upstream data in six of the seven parameter sets of `tests/mrm_oracle.rs`;
+/// in the seventh (continuous, overlapping segments) it took different tied
+/// columns in the two segments, which a one-row-at-a-time solver cannot
+/// reproduce. That is an observation about one solver, not a guarantee.
 /// A program of any other shape is refused with [`Error::Unsupported`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PartitionSolver;

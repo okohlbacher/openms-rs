@@ -28,8 +28,13 @@ objective, rows with coefficients and bounds), and hands it to an [`LpSolver`].
   least objective in each row. Ties choose the **last** tied column: the source
   leaves the choice to the solver's pivoting, and the executed Release build's
   GLPK took the last of two (`adn`) and of three (`adpglc`) tied candidates on
-  the upstream 210-feature file, in every one of the seven parameter sets. That
-  is a measurement of one solver on one data set, not a rule GLPK states.
+  the upstream 210-feature file in six of the seven parameter sets. In the
+  seventh (continuous variables, windows of 8 stepping 4) the two overlapping
+  segments of a group got different tied columns from GLPK, which a solver that
+  looks at one row at a time cannot reproduce; the oracle test compares that run
+  group by group (same groups, every pick optimal, differences only in tied
+  groups). That is a measurement of one solver on one data set, not a rule GLPK
+  states.
 - `MRMFeatureSelectorQMIP` builds its program in full (the `qp` and `ABS`
   columns and the five constraints per pair), but needs a general mixed integer
   solver, which this crate does not ship. A caller supplies one through
