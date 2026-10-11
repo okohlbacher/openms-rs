@@ -9,6 +9,9 @@ mod lowess;
 pub use lowess::{LowessModel, LowessOptions, lowess};
 
 use crate::kernel::NumericRange;
+use crate::math::statistic_functions::{
+    DEFAULT_R_DENSE, DEFAULT_R_SPARSE, DEFAULT_TUKEY_FACTOR, adaptive_quantile,
+};
 use crate::processing::peak_picking::CubicSpline2d;
 use crate::{Error, Result};
 
@@ -585,27 +588,22 @@ impl TransformationDescription {
         if residuals.is_empty() {
             return Ok(0.0);
         }
-        let raw = quantile(&residuals, options.quantile);
-        let mut robust = raw;
-        let mut weight = 0.0;
-        if residuals.len() >= 4 {
-            let q1 = quantile(&residuals, 0.25);
-            let q3 = quantile(&residuals, 0.75);
-            let iqr = q3 - q1;
-            if iqr > 0.0 {
-                let fence = finite(q3 + 1.5 * iqr)?;
-                let tail = residuals.iter().filter(|&&v| v > fence).count() as f64
-                    / residuals.len() as f64;
-                let winsorized: Vec<_> = residuals.iter().map(|&v| v.min(fence)).collect();
-                robust = quantile(&winsorized, options.quantile);
-                weight = ((tail - 0.01) / 0.09).clamp(0.0, 1.0);
-            }
-        }
-        finite(
-            ((1.0 - weight) * robust + weight * raw)
-                * if options.full_window { 2.0 } else { 1.0 }
-                * options.padding_factor,
-        )
+        // `Math::adaptiveQuantile` with the source's Tukey factor and tail
+        // fractions, the one implementation (`math::statistic_functions`) the
+        // m/z window estimation of `SwathMapMassCorrection` uses too.
+        let result = adaptive_quantile(
+            &residuals,
+            options.quantile,
+            DEFAULT_TUKEY_FACTOR,
+            DEFAULT_R_SPARSE,
+            DEFAULT_R_DENSE,
+        )?;
+        let half = if options.full_window {
+            2.0 * result.blended
+        } else {
+            result.blended
+        };
+        finite(half * options.padding_factor)
     }
 }
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -635,15 +633,5 @@ impl Default for WindowOptions {
             full_window: true,
             padding_factor: 1.0,
         }
-    }
-}
-fn quantile(sorted: &[f64], q: f64) -> f64 {
-    let position = q * (sorted.len() - 1) as f64;
-    let i = position.floor() as usize;
-    let fraction = position - i as f64;
-    if fraction == 0.0 {
-        sorted[i]
-    } else {
-        (1.0 - fraction) * sorted[i] + fraction * sorted[i + 1]
     }
 }
