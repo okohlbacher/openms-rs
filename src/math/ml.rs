@@ -11,3 +11,5 @@
 
 /// `LinearInterpolation`: linearly interpolated values and derivatives.
 pub mod linear_interpolation;
+/// Hierarchical and grid-based clustering (source `ML/CLUSTERING`).
+pub mod clustering;

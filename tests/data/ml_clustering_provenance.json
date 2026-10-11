@@ -1,0 +1,288 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/AverageLinkage.h",
+   "sha256": "334393e4236f5436915b7f20bcc9e562a7b63be7d7647253d620253135229736"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/ClusterAnalyzer.h",
+   "sha256": "b247eadbda0a39c06131aa465c1ca5f43811fb825c91919384c9182c2dcbcf89"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/ClusterFunctor.h",
+   "sha256": "a7090afac82045b87f48d5434186d5585759b4de3acaadb3c4536893379cda8c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/ClusterHierarchical.h",
+   "sha256": "e60a5f5069d0db6c3db013e33326a5e432c1b97bcf6a3fd35722ab712db68864"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/ClusteringGrid.h",
+   "sha256": "739d822a21c8a89111005ba9820210462c633803311517054760f84af223da68"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/CompleteLinkage.h",
+   "sha256": "c495eaf43e5cb0478da7230cb3108595599667d191aea23a4bd05b3df36c58aa"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/EuclideanSimilarity.h",
+   "sha256": "1954fee1acf22727f554f4718e42d159446a5275154d3fb9d7d4a4f89bd36580"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/GridBasedCluster.h",
+   "sha256": "37a91832eebde67a08c0803ffc5912f9938e8723ec8c19887c04495d5e2fd6f7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/GridBasedClustering.h",
+   "sha256": "8bc1aaf383d7bc3508ecf4f34166e2089ee9dc1ba100ff764c0ffdb81d707978"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/HashGrid.h",
+   "sha256": "949a254c2d1253480f0201bf903b6dc18ccbc5548b7c5bcccd92ca93be97085b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CLUSTERING/SingleLinkage.h",
+   "sha256": "bbc228215c9ee60945ecba1275e0149bd4a2d60cdd93afc5e47ac2da5556cea9"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/AverageLinkage.cpp",
+   "sha256": "1da5beb4d9a10c4a8ad5604dc1a5beaa7ffe3742a33db2224004bc6d1686e285"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/ClusterAnalyzer.cpp",
+   "sha256": "c5f20b81790dfbbac5a698f990fcfaf30974243990dbf1470b8389052f718cb0"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/ClusterFunctor.cpp",
+   "sha256": "0f5f30f169e3ffe420460e6022ed3e0e093a0e451132a4d3b6714c311619ff78"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/ClusterHierarchical.cpp",
+   "sha256": "962752b3a5a56d2178c69b13df5d6b277d6db4370b0771441659e32f43edce55"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/ClusteringGrid.cpp",
+   "sha256": "dca1059b0684033c070b8850931e7c79959d682e8294c1614f959ca1dff16e22"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/CompleteLinkage.cpp",
+   "sha256": "716069f4c9f2f47a3fb04d195d87e646b12be877d46d35425613f8fa56a8cf5f"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/EuclideanSimilarity.cpp",
+   "sha256": "4e7fb344149f3489346b16040429ef88ae879fbb464621f68d394fc53edd2e73"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/GridBasedCluster.cpp",
+   "sha256": "8ca9880eb2f8a0c8099eff4afb88b62e2af10694bacfbc6a9403c7374e8b81a1"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/GridBasedClustering.cpp",
+   "sha256": "1a2db341f8419fd19422cdad10aa48ff92c91998ffccab96c5894e4ae6285300"
+  },
+  {
+   "path": "src/openms/source/ML/CLUSTERING/SingleLinkage.cpp",
+   "sha256": "66b7afdec9cb90f0e14ea9692d100c3274bb68b50de792517143b130ef5d3004"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DistanceMatrix.h",
+   "sha256": "ed25d75a8eee3c70b6c7c9df014f29fdb54042f47bccc7a256ad6966f677cd6e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/BinaryTreeNode.h",
+   "sha256": "b44fc996d2351b0b5c2034b474c878f09d5e8755e771dbdd5869e80e67f0d657"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/GridFeature.h",
+   "sha256": "6ace81951d1ff229b43968a2023325c90e03314de5183ae994e8c7f10f6b01af"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/QTCluster.h",
+   "sha256": "842e09da04dd68141d421a2001d8936e246d5cb2fd2b8dfec2c387424c7fbeb9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/KDTree.h",
+   "sha256": "07aca59a00912a69078b5f9cf08d0816f556d361fa07b92cd9fcb5d6b23a1596"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/BinaryTreeNode.cpp",
+   "sha256": "9c300c48d7e6f6a854816e7257a4d38e31eaf67b00f7c9a2e52d60b6eda4b526"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/GridFeature.cpp",
+   "sha256": "db531cee2a8a1d8c99758dab8149b15e543e084b008b78cc89cd7396685e6c9c"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/QTCluster.cpp",
+   "sha256": "65833af734a4b6017bf99839dad714462486fc059853b20802d86b1fbf847286"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/DistanceMatrix_test.cpp",
+   "sha256": "ba330e4a1913f747dd7f8ea5fa27b5c0c5c91d023dbca8844ca0240330ca2af3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BinaryTreeNode_test.cpp",
+   "sha256": "8625814687b9dbdb817c9e7b34945b28922172ec43449c3e671e0e00d8b48df4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ClusterFunctor_test.cpp",
+   "sha256": "c01559fe277f87b8f93a62d0898428504996d1294c43549854579cfd4680e41c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SingleLinkage_test.cpp",
+   "sha256": "c7379d5dca78a80dbe2dd6e92f38b2618dd9c4da4026505a6f247e6128e3d750"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/CompleteLinkage_test.cpp",
+   "sha256": "6b4766882dce470c38901bc5a7728ad0bcb3723bb6bfa6522136f2992d403b20"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/AverageLinkage_test.cpp",
+   "sha256": "4885f220495b86e89abbb54c618b557a7da22ab13cf86be3b1cdade1c65ec73a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ClusterAnalyzer_test.cpp",
+   "sha256": "0a840f1f04553179059f2fd974f11f976aec9389a209da82a3df4d2494ae3aee"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ClusterHierarchical_test.cpp",
+   "sha256": "8c34d04e5437619c3993ac355af3a452f4ba2728acea3ead45c572be473272bf"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EuclideanSimilarity_test.cpp",
+   "sha256": "123c7697154e133caa8f59d4aaf3da87c305b3c5d52bd0bd7e8a11e1cb02ec4f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ClusteringGrid_test.cpp",
+   "sha256": "1520be1e80a192e83c9711fb7a68110c02916366a6a23a1d673ec74694cedbff"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GridBasedCluster_test.cpp",
+   "sha256": "7ceddb017572009f9d7f010b2eeac65e53e23e7a9eee80fe140d815290f61594"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GridBasedClustering_test.cpp",
+   "sha256": "9ce102516a168ca13e6644ad53130dd4b253984c795b96d83c1ba5e4586d1955"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/HashGrid_test.cpp",
+   "sha256": "f2d146c1196f9f9dbb47b24000d02b4b25de1b4b71698ea9968f28defeae4bd1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GridFeature_test.cpp",
+   "sha256": "f430a3f6fe2dc5e22ed2e2c97f14829e617bce550f095f1fd4b026e51af8ee12"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/QTCluster_test.cpp",
+   "sha256": "47f39ddf005818f49a33b829ded09c358aa5083eacd18bfbecf3cb256ed863b0"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexClustering.cpp",
+   "sha256": "32512709ca7ec61d3de41ec940ac56f9bcd00bf5efb680df11fadbcdb215fb05"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/AASequence.cpp",
+   "sha256": "8307ab416dedff8473f36c26e4259382eed7aaa7f82711c581c9c0832641b693"
+  }
+ ],
+ "native_implementation": [
+  "src/data_structures/distance_matrix.rs",
+  "src/data_structures/binary_tree_node.rs",
+  "src/math/ml/clustering.rs",
+  "src/math/ml/clustering/cluster_functor.rs",
+  "src/math/ml/clustering/single_linkage.rs",
+  "src/math/ml/clustering/linkage.rs",
+  "src/math/ml/clustering/complete_linkage.rs",
+  "src/math/ml/clustering/average_linkage.rs",
+  "src/math/ml/clustering/cluster_analyzer.rs",
+  "src/math/ml/clustering/cluster_hierarchical.rs",
+  "src/math/ml/clustering/euclidean_similarity.rs",
+  "src/math/ml/clustering/clustering_grid.rs",
+  "src/math/ml/clustering/grid_based_cluster.rs",
+  "src/math/ml/clustering/grid_based_clustering.rs",
+  "src/math/ml/clustering/hash_grid.rs",
+  "src/analysis/spectra_clustering.rs",
+  "src/analysis/mapmatching/grid_feature.rs",
+  "src/analysis/mapmatching/qt_cluster.rs"
+ ],
+ "native_tests": [
+  "tests/ml_clustering.rs",
+  "tests/ml_grid_clustering.rs",
+  "tests/mapmatching_qt_cluster.rs",
+  "tests/ml_clustering_oracle.rs"
+ ],
+ "support_document": "docs/CLUSTERING_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/ml_clustering_oracle.tsv",
+   "sha256": "b3ef2636d42ac7664e52487b14c1d26011f40869d391d6f8b903ddf192945666",
+   "rows": 6927,
+   "kind": "executed Release-build oracle output (results/oracle.tsv of ../oracle/FF2a-clustering), byte-identical over two runs"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/comparison_dfpianger.dta",
+   "sha256": "0175e395630673e3f0a7e44ba9b450aae2af316c18d18587509fddb8e64ae4bb",
+   "kind": "PILISSequenceDB_DFPIANGER_1.dta, the ClusterHierarchical_test.cpp binned-overload input (already retained by the comparison group)"
+  }
+ ],
+ "evidence_tier": {
+  "tier_1_executed_differential": "tests/ml_clustering_oracle.rs: linkage functors, ClusterAnalyzer, GridBasedClustering, QTCluster and HashGrid cell indices against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06; floating-point values compared by bit pattern",
+  "tier_3_class_tests": "tests/ml_clustering.rs, tests/ml_grid_clustering.rs, tests/mapmatching_qt_cluster.rs: every section of the fifteen class tests at bc9cc12",
+  "tier_4_native": "error paths for source undefined behaviour, the DistanceMatrix allocation ceiling, grid and linkage invariants"
+ },
+ "cpp_execution": {
+  "host": "ibminode06",
+  "build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "driver_binary_sha256": "fbd7fa731623cfbafc8c271c3bfc7ff8ce7a6ee10176d6f1d5fcab9b802b4eee",
+  "runs": 2,
+  "runs_identical": true
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/FF2a-clustering/driver.cpp",
+   "sha256": "995baf50502b93829a9a48e304e78ab7527097ee36b2ce22dcefe21566990faa",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/FF2a-clustering/remote_run.sh",
+   "sha256": "1d60471159f3cd381bd9f11ade16b1968709838b9a853ea4444c83346b54c138",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/FF2a-clustering/run.sh",
+   "sha256": "553327465ab7cdc849029766c0e81e7f8fd399cb601bf17219bad599f72fac26",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/FF2a-clustering/cases.txt",
+   "sha256": "3fa748dc15d18496acbe93fd162bb8fdcfe1127c4c3809aa5a300d506b9e778c",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/FF2a-clustering/results/hashes.txt",
+   "sha256": "16e97634d77a8433fbcbb26e2010c4613520fb5b063ad1a7fb20a0e8387c5906",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The FF2a oracle driver and its scripts are C++/shell kept outside the repository under ../oracle/FF2a-clustering; its results/oracle.tsv is retained unmodified as tests/data/ml_clustering_oracle.tsv.",
+ "not_ported": [
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/KDTree.h",
+   "reason": "libkdtree++ (2,208 lines, no class test); backlog: crate evaluation against find_within_range order, see docs/CLUSTERING_SUPPORT.md"
+  }
+ ],
+ "target_verification": [
+  "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a test --locked --test ml_clustering --test ml_grid_clustering --test mapmatching_qt_cluster --test ml_clustering_oracle",
+  "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a +1.85.0 test --locked --no-default-features --test ml_clustering --test ml_grid_clustering --test mapmatching_qt_cluster",
+  "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a clippy --locked --all-features --all-targets -- -D warnings",
+  "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a doc --locked --all-features --no-deps"
+ ]
+}

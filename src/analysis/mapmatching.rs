@@ -6,3 +6,9 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// A feature as QT feature grouping stores it (source
+/// `DATASTRUCTURES/GridFeature.h`).
+pub mod grid_feature;
+/// A quality-threshold cluster for QT feature grouping (source
+/// `DATASTRUCTURES/QTCluster.h`).
+pub mod qt_cluster;
