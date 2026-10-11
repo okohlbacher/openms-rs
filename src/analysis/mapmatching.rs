@@ -35,6 +35,9 @@ pub mod feature_grouping_algorithm_qt;
 /// Unlabeled feature grouping by stepwise pairing (source
 /// `FeatureGroupingAlgorithmUnlabeled.h`).
 pub mod feature_grouping_algorithm_unlabeled;
+/// Feature grouping by Wasserstein optimal transport (source
+/// `FeatureGroupingAlgorithmWNet.h`).
+pub mod feature_grouping_algorithm_wnet;
 /// Matching MS2 spectra to features by precursor position (source
 /// `FeatureMapping.h`).
 pub mod feature_mapping;
@@ -47,6 +50,9 @@ pub mod kd_tree_feature_maps;
 /// Pair finding for isotope-labeled features within one map (source
 /// `LabeledPairFinder.h`).
 pub mod labeled_pair_finder;
+/// LEMON's network simplex, the min-cost-flow solver of the Wasserstein
+/// network (third-party dependency of `WNetMatcher.h`).
+pub(crate) mod lemon_network_simplex;
 /// RT alignment from conflict-free connected components of a kd-tree
 /// compatibility graph (source `MapAlignmentAlgorithmKD.h`).
 pub mod map_alignment_algorithm_kd;
@@ -59,3 +65,9 @@ pub mod qt_cluster;
 pub mod qt_cluster_finder;
 /// Pair finding by mutual nearest neighbours (source `StablePairFinder.h`).
 pub mod stable_pair_finder;
+/// The Wasserstein-network aligner of `wnetalign` that `WNetMatcher.h` and
+/// `FeatureGroupingAlgorithmWNet.h` call.
+pub mod wnet_aligner;
+/// Pairwise point-set matching by Wasserstein optimal transport (source
+/// `WNetMatcher.h`).
+pub mod wnet_matcher;
