@@ -16,9 +16,10 @@
 //! so the text is the one the source writes when standard error is not a
 //! terminal and `COLUMNS` is unset: no colours and no shaping.
 
+use crate::concept::colorizer::{Colorizer, ConsoleStream};
 use crate::concept::log_stream::LogColor;
 use std::cell::Cell;
-use std::io::{BufRead, IsTerminal, Read, Result as IoResult, Write};
+use std::io::{BufRead, Read, Result as IoResult, Write};
 use std::sync::OnceLock;
 
 /// The width that turns shaping off, the source's
@@ -56,12 +57,12 @@ pub(crate) fn with_process_streams<R>(body: impl FnOnce() -> R) -> R {
 /// Source `InitConsole::~InitConsole` (`Colorizer.cpp:30-40`): `undoAll` on
 /// `cout`, then on `cerr`, each written only to a terminal.
 fn reset_terminals() {
-    if std::io::stdout().is_terminal() {
+    if Colorizer::is_tty(ConsoleStream::Stdout) {
         let mut out = std::io::stdout().lock();
         let _ = out.write_all(b"\x1b[0m");
         let _ = out.flush();
     }
-    if std::io::stderr().is_terminal() {
+    if Colorizer::is_tty(ConsoleStream::Stderr) {
         let _ = std::io::stderr().lock().write_all(b"\x1b[0m");
     }
 }
@@ -74,7 +75,7 @@ fn process_streams() -> bool {
 /// the process's streams and standard error is a terminal, as the source's
 /// `Colorizer::isTTY(std::cerr)`.
 fn error_stream_coloured() -> bool {
-    process_streams() && std::io::stderr().is_terminal()
+    process_streams() && Colorizer::is_tty(ConsoleStream::Stderr)
 }
 
 /// How the usage text is laid out: the console width (at least 10, or
@@ -102,8 +103,7 @@ impl Console {
             return Self::PLAIN;
         }
         Self {
-            width: *PROCESS_WIDTH
-                .get_or_init(|| width_from(std::env::var_os("COLUMNS").as_deref(), stty_size)),
+            width: process_width(),
             colour: error_stream_coloured(),
         }
     }
@@ -245,6 +245,183 @@ pub(crate) fn break_string(
         result.push(last);
     }
     result
+}
+
+/// Terminal-width-aware string wrapping for console output: source
+/// `APPLICATIONS/ConsoleUtils.h`.
+///
+/// The source is a singleton that detects the console width once per process,
+/// on construction, and wraps long strings to it with a hanging indentation,
+/// the pattern TOPP tools use for `--help` output, parameter descriptions and
+/// error messages. The width is `COLUMNS` when that is set (read as
+/// `StringUtils::toInt32` reads it), otherwise the second field of `stty size`
+/// run with the process's standard input; one less than that; and
+/// `i32::MAX`, which disables wrapping, when it is below 10 or cannot be
+/// determined. Later resizes of the terminal are not seen.
+///
+/// | Source | Rust |
+/// |---|---|
+/// | `static const ConsoleUtils& getInstance()` | [`ConsoleUtils::get_instance`] |
+/// | private `ConsoleUtils()`, deleted copy and assignment | private construction, no `Clone` |
+/// | `int getConsoleWidth() const` | [`ConsoleUtils::get_console_width`] |
+/// | `static StringList breakStringList(input, indentation, max_lines, first_line_prefill = 0)` | [`ConsoleUtils::break_string_list`] (bytes: [`ConsoleUtils::break_bytes_list`]) |
+/// | `static std::string breakString(input, indentation, max_lines, first_line_prefill = 0)` | [`ConsoleUtils::break_string`] |
+/// | `friend struct ConsoleWidthTest` (pins the width in the class test) | [`ConsoleUtils::with_console_width`] and the instance methods |
+/// | private `readConsoleSize_`, `breakString_`, `console_width_` | crate-private `width_from` and `break_string`; a private field |
+///
+/// # Windows
+///
+/// On Windows the source reads the console buffer width with
+/// `GetConsoleScreenBufferInfo`. The standard library has no safe
+/// counterpart and the crate forbids `unsafe`, so there only `COLUMNS` is
+/// read and wrapping is otherwise off.
+///
+/// # Examples
+///
+/// The upstream class test pins the width to 9 columns:
+///
+/// ```
+/// use openms::cli::ConsoleUtils;
+///
+/// let console = ConsoleUtils::with_console_width(9);
+/// let x20 = "x".repeat(19);
+/// assert_eq!(console.break_text(&x20, 3, 10, 0), "xxxxxxxxx\n   xxxxxx\n   xxxx");
+/// ```
+#[derive(Debug, PartialEq, Eq)]
+pub struct ConsoleUtils {
+    /// Source `console_width_`: at least 10, or `i32::MAX` for no wrapping.
+    console_width: i32,
+}
+
+impl ConsoleUtils {
+    /// The process-wide instance, whose width is measured on the first call:
+    /// source `getInstance()`.
+    ///
+    /// Measuring may run `stty size` through `/bin/sh` (on Unix), which prints
+    /// its own complaint on standard error when standard input is not a
+    /// terminal, as the source's does. Tools running as their own executable
+    /// share this measurement with their usage text.
+    pub fn get_instance() -> &'static Self {
+        static INSTANCE: OnceLock<ConsoleUtils> = OnceLock::new();
+        INSTANCE.get_or_init(|| Self {
+            console_width: i32::try_from(process_width()).unwrap_or(i32::MAX),
+        })
+    }
+
+    /// An instance with a fixed width, as the class test's `ConsoleWidthTest`
+    /// hook sets one: the width is taken as given, while a measured width is
+    /// never below 10. Line breaking follows the source's `breakString_` for
+    /// any width, including its unsigned wrap-around when `indentation`
+    /// exceeds the width.
+    pub fn with_console_width(width: i32) -> Self {
+        Self {
+            console_width: width,
+        }
+    }
+
+    /// The cached console width: source `getConsoleWidth()`. `i32::MAX`, the
+    /// source's `std::numeric_limits<int>::max()`, means that the width could
+    /// not be detected and wrapping is disabled.
+    pub fn get_console_width(&self) -> i32 {
+        self.console_width
+    }
+
+    /// Wraps `input` to the console width, one element per output line:
+    /// source `breakStringList`.
+    ///
+    /// Lines 2 to N are prefixed by `indentation` spaces, giving a
+    /// left-aligned hanging block, and lines wider than the console are broken
+    /// at its width. An `indentation` of 0 falls back to the native console
+    /// behaviour: a raw break at the right edge with no prefix. More than
+    /// `max_lines` lines keep the first `max_lines - 2`, a `...` line and the
+    /// final line, so the tail of the message stays visible.
+    /// `first_line_prefill` is the number of characters already on the
+    /// current console line, e.g. a label this string follows, so the first
+    /// break falls correctly. A line that fills the width and ends in a word
+    /// shorter than four bytes gives that word to the next line, and an input
+    /// ending in a line break ends in an indented empty line.
+    ///
+    /// Breaking is on bytes, as the source's `std::string` is; a multi-byte
+    /// UTF-8 character split at a line end is replaced by U+FFFD here (use
+    /// [`Self::break_bytes_list`] for the exact bytes).
+    pub fn break_string_list(
+        input: &str,
+        indentation: usize,
+        max_lines: usize,
+        first_line_prefill: usize,
+    ) -> Vec<String> {
+        Self::get_instance().break_lines(input, indentation, max_lines, first_line_prefill)
+    }
+
+    /// [`Self::break_string_list`] over bytes, exactly as the source breaks a
+    /// `std::string`.
+    pub fn break_bytes_list(
+        input: &[u8],
+        indentation: usize,
+        max_lines: usize,
+        first_line_prefill: usize,
+    ) -> Vec<Vec<u8>> {
+        Self::get_instance().break_byte_lines(input, indentation, max_lines, first_line_prefill)
+    }
+
+    /// [`Self::break_string_list`] joined with `\n`: source `breakString`.
+    pub fn break_string(
+        input: &str,
+        indentation: usize,
+        max_lines: usize,
+        first_line_prefill: usize,
+    ) -> String {
+        Self::get_instance().break_text(input, indentation, max_lines, first_line_prefill)
+    }
+
+    /// [`Self::break_string_list`] at this instance's width.
+    pub fn break_lines(
+        &self,
+        input: &str,
+        indentation: usize,
+        max_lines: usize,
+        first_line_prefill: usize,
+    ) -> Vec<String> {
+        self.break_byte_lines(input.as_bytes(), indentation, max_lines, first_line_prefill)
+            .into_iter()
+            .map(|line| String::from_utf8_lossy(&line).into_owned())
+            .collect()
+    }
+
+    /// [`Self::break_bytes_list`] at this instance's width.
+    pub fn break_byte_lines(
+        &self,
+        input: &[u8],
+        indentation: usize,
+        max_lines: usize,
+        first_line_prefill: usize,
+    ) -> Vec<Vec<u8>> {
+        break_string(
+            input,
+            indentation,
+            max_lines,
+            first_line_prefill,
+            i64::from(self.console_width),
+        )
+    }
+
+    /// [`Self::break_string`] at this instance's width.
+    pub fn break_text(
+        &self,
+        input: &str,
+        indentation: usize,
+        max_lines: usize,
+        first_line_prefill: usize,
+    ) -> String {
+        let lines =
+            self.break_byte_lines(input.as_bytes(), indentation, max_lines, first_line_prefill);
+        String::from_utf8_lossy(&lines.join(&b'\n')).into_owned()
+    }
+}
+
+/// The process's console width, measured once: `COLUMNS`, else `stty size`.
+fn process_width() -> i64 {
+    *PROCESS_WIDTH.get_or_init(|| width_from(std::env::var_os("COLUMNS").as_deref(), stty_size))
 }
 
 /// Write `text` as the source's error log stream writes to `std::cerr`: each

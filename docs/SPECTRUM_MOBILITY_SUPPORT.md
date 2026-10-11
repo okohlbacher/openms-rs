@@ -11,6 +11,17 @@ the `DriftTimeUnit` names and the `-1` unset sentinel.
 Rust: `src/kernel/spectrum_mobility.rs`. Tests: `tests/spectrum_mobility.rs`.
 Manifest: `tests/data/spectrum_mobility_provenance.json`.
 
+`IONMOBILITY/IMDataArrayUtils.h` itself is `src/kernel/im_data_array_utils.rs`
+(tests: `tests/im_data_array_utils.rs`, both class-test sections):
+`setIMUnit` is `ImDataArrayUtils::set_im_unit`, writing
+`mean ion mobility array` (`MS:1002816`) for milliseconds and
+`raw inverse reduced ion mobility array` (`MS:1003008`) for `1/K0`, and refusing
+every other unit with `Error::InvalidValue` as the source throws
+`Exception::InvalidValue`; `getIMUnit` is `ImDataArrayUtils::im_unit`, returning
+`Option<DriftTimeUnit>` over the rule below (the private `array_unit`, now
+`pub(crate)`). The source's `true`-with-`NONE` answer for a CV child without a
+usable unit is unreachable at the pinned CV, as recorded below.
+
 This work package closes the ion-mobility half of the header. The value type
 itself, its container and search operations, `getType`, the record metadata and
 the range manager were ported by earlier waves and live in `src/kernel.rs`,
@@ -122,7 +133,7 @@ member is unaccounted for, and names the file that owns each row.
 | `rasterizeIMFrame(float*, …)` | `MSSpectrum::rasterize_im_frame(&ImFrameRaster) -> Result<Vec<f32>>` |
 | `checkDataArraySizes_()` (protected) | `MSSpectrum::validate_data_arrays()` — `src/kernel.rs` |
 | protected fields `retention_time_`, `drift_time_`, `drift_time_unit_`, `ms_level_`, `name_`, the three array vectors | the public fields of the same meaning — `src/kernel.rs` |
-| `operator<<(std::ostream&, const MSSpectrum&)` | not ported for the whole spectrum. `Peak1D: Display` reproduces the per-peak `POS: … INT: …` lines the source prints; the `-- MSSPECTRUM BEGIN --` framing and the `SpectrumSettings` block have no counterpart. |
+| `operator<<(std::ostream&, const MSSpectrum&)` | `impl Display for MSSpectrum` (`src/kernel.rs`): the `-- MSSPECTRUM BEGIN --` banner, the `SpectrumSettings` block (two delimiters, `SpectrumSettings.cpp:185-190` prints no setting), one `Peak1D` line per peak and the closing banner. `format!("{spectrum:#}")` writes the numbers as the default C++ stream does and matches the Linux Release build byte for byte (`../oracle/msexperiment-close`, via `MSExperiment`'s dump); `{}` keeps Rust number formatting. See [`EXPERIMENT_MOBILITY_SUPPORT.md`](EXPERIMENT_MOBILITY_SUPPORT.md#stream-output). |
 | `setIMFormat` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::set_im_format` — `src/metadata/acquisition.rs`. Added by the IM-types package, which ported the quartet on the class that declares it; see [IM_TYPES_SUPPORT.md](IM_TYPES_SUPPORT.md) |
 | `getIMFormat` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::im_format` — `src/metadata/acquisition.rs`, over the public `ion_mobility_format` field |
 | `setIMPeakType` (inherited from `SpectrumSettings`) | `metadata::SpectrumSettings::set_im_peak_type` — `src/metadata/acquisition.rs` |
@@ -152,6 +163,9 @@ member is unaccounted for, and names the file that owns each row.
   `std::is_sorted` guard does.
 - **Stable ordering.** Both sorts are stable, so equal keys keep their input
   order, matching `std::stable_sort` and `std::inplace_merge`.
+  `sort_by_ion_mobility` runs libstdc++'s own `std::stable_sort` on the index
+  vector, so keys that are not strictly weakly ordered (a NaN) land where the
+  Release build puts them too.
 - **Chunk semantics.** `[start, end)` half-open, `Chunks::add` closing a run at
   the spectrum's current length, and an empty chunk list sorting nothing.
 - **Raster geometry.** Row-major with m/z slowest, `mz_bin * im_bins + im_bin`;
@@ -189,11 +203,17 @@ member is unaccounted for, and names the file that owns each row.
   ion-mobility array has no entries — which `checkDataArraySizes_` explicitly
   permits — is left in whatever order it was in, silently, and `isSortedByIM`
   reports `true` for it. The port refuses the mismatch.
-- **Both refuse a non-finite ion-mobility array** rather than reporting it
-  sorted. `std::is_sorted` uses `<`, under which a NaN neighbour compares
-  unordered and the array is declared sorted. This is the one place the port
-  differs from `MSSpectrum::is_sorted`, which folds an invalid coordinate into
-  `false`.
+- **(Closed by DEBT-04.)** Both used to refuse a non-finite ion-mobility
+  array, on the argument that the order `std::is_sorted` and `std::stable_sort`
+  give a NaN is unspecified. Lead decision D16 puts reproducing the Release
+  build's order in scope, so both now run the source's own algorithms:
+  `is_sorted_by_im` is `std::is_sorted` under `<` (a NaN between two values
+  does not make the array unsorted, and `[1, NaN, 0.5]` reports sorted, as the
+  Release build reports it), and `sort_by_ion_mobility` is the libstdc++
+  `std::stable_sort` of the index vector (`crate::math::source_sort`), which
+  stays in bounds on any comparison. Tier 1: `../oracle/A3a-source-order`,
+  cases `mob_*` (NaN, `+-inf`, signed zeros, 3 to 31 peaks, with and without a
+  second float array), compared bit for bit by `tests/a3a_source_order.rs`.
 - **`maybe_im_data` returns `Option<(DriftTimeUnit, &[f32])>`.** The source's
   `{DriftTimeUnit::NONE, {}}` conflates three states: no ion-mobility array, an
   ion-mobility array with no entries, and an ion-mobility array whose CV term

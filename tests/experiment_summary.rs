@@ -26,6 +26,58 @@ fn chrom(mz: f64, points: &[(f64, f32)]) -> MSChromatogram {
     c.product.mz = mz;
     c
 }
+#[test]
+fn default_ceilings_grow_with_the_map_so_a_held_run_is_never_refused_for_its_size() {
+    // Native bound (tier 4). The fixed 50,000,000 default refused
+    // combined_ranges() on a 1.2 GB run (88,521,983 spectra, peaks,
+    // chromatograms and points) that the mzML reader had admitted; the
+    // default-ceiling queries now allow three units per held element on top.
+    let exp = MSExperiment {
+        spectra: vec![
+            spectrum(1.0, 1, &[1.0, 2.0, 3.0]),
+            spectrum(2.0, 2, &[4.0, 0.0, 6.0]),
+        ],
+        chromatograms: vec![chrom(500.0, &[(1.0, 1.0), (2.0, 2.0)])],
+        ..Default::default()
+    };
+    let elements = 2 + 6 + 1 + 2;
+    let default = SummaryLimits::default();
+    assert_eq!(
+        SummaryLimits::for_experiment(&exp),
+        SummaryLimits {
+            max_work: default.max_work + 3 * elements,
+            ..default
+        }
+    );
+    // combined_ranges charges exactly one unit per element, so the allowance
+    // covers it for any map, and the other linear queries charge no more.
+    let work = |max_work| SummaryLimits {
+        max_work,
+        ..Default::default()
+    };
+    assert!(exp.combined_ranges_with_limits(work(elements)).is_ok());
+    assert!(exp.combined_ranges_with_limits(work(elements - 1)).is_err());
+    assert!(exp.chromatogram_ranges_with_limits(work(3)).is_ok());
+    assert!(exp.total_peak_count_with_limits(work(3)).is_ok());
+    assert!(exp.contains_scan_of_level_with_limits(2, work(2)).is_ok());
+    assert!(exp.has_zero_intensities_with_limits(2, work(2 + 3)).is_ok());
+    // Unbinned TIC: two units per spectrum and one per peak.
+    assert!(
+        exp.calculate_tic_binned_with_limits(0.0, 0, work(2 * 2 + 6))
+            .is_ok()
+    );
+    assert!(
+        exp.calculate_tic_binned_with_limits(0.0, 0, work(2 * 2 + 5))
+            .is_err()
+    );
+    // The default entry points agree with their explicit-ceiling forms.
+    assert_eq!(
+        exp.combined_ranges().unwrap(),
+        exp.combined_ranges_with_limits(SummaryLimits::for_experiment(&exp))
+            .unwrap()
+    );
+    assert_eq!(exp.total_peak_count().unwrap(), 8);
+}
 fn source_tic() -> MSExperiment {
     MSExperiment {
         spectra: vec![

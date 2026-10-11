@@ -226,7 +226,8 @@ fn usage_and_exit_codes_follow_the_source_contract() {
     // Usage short-circuits before any validation, so required values are not
     // demanded. The source prints usage to standard error, for --help too
     // (TOPPBase.cpp:637; oracle help in ../oracle/topp-cli-lifecycle, whose
-    // stdout is empty), so it is asserted on the error stream.
+    // stdout is empty on the macOS Debug product SDK and on the Release build,
+    // ../oracle/A1-release-rerun), so it is asserted on the error stream.
     let (code, out, err) = run(&["--help"]);
     assert_eq!(code, ExitCode::ExecutionOk);
     assert!(out.is_empty(), "{out}");

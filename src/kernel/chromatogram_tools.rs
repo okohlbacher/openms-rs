@@ -93,9 +93,11 @@ impl ChromatogramTools {
         for c in &experiment.chromatograms {
             for p in &c.peaks {
                 w.spend(3)?;
-                finite(p.rt)?;
-                finite(f64::from(p.intensity))?;
-                finite(c.product.mz)?;
+                // The source copies the retention time, the product m/z and
+                // the intensity as they are (`ChromatogramTools.h:72`, `:89`);
+                // nothing orders them, so a NaN or an infinity is carried
+                // over, as the Release build carries it
+                // (`../oracle/A3a-source-order`, case `c2s_nonfinite`).
                 let mut meter = w.meter();
                 fields::instrument(&mut meter, &c.instrument_settings)?;
                 fields::acquisition(&mut meter, &c.acquisition_info)?;
@@ -144,6 +146,24 @@ impl ChromatogramTools {
     /// Append XIC then SRM groups in ascending exact m/z key order. Points keep
     /// encounter order. Removal follows source SRM scan mode, even for skipped
     /// records; forced non-SRM records remain in the experiment.
+    ///
+    /// The groups are the source's `std::map<double, std::map<double, ...>>`
+    /// (precursor, then product m/z) and `std::map<double, MSChromatogram>`
+    /// (XIC m/z), filled with `operator[]` and `contains`
+    /// (`ChromatogramTools.h:113-160`), and every key is accepted as the
+    /// Release build accepts it. Infinities order as numbers; `-0.0` and `0.0`
+    /// are one key, which keeps the sign it was created with. A NaN key is
+    /// equivalent to every key under `operator<`, and `operator[]`'s
+    /// `lower_bound` then decides: into an empty map a NaN is inserted, and
+    /// every later key of that map lands in its entry; into a non-empty map it
+    /// is not inserted and lands in the entry of the *least* key. So a NaN
+    /// product m/z joins the smallest product of its precursor, a NaN
+    /// precursor the smallest precursor, and a NaN XIC m/z the smallest XIC,
+    /// unless the NaN came first, when its entry absorbs the rest
+    /// (`../oracle/A3a-source-order`, cases `s2c_*`). An SRM chromatogram's
+    /// precursor is that of the first spectrum its entry received, NaN
+    /// included, as in the source (`:188`). Retention times and intensities
+    /// are copied, never compared.
     pub fn convert_spectra_to_chromatograms(
         &self,
         experiment: &mut MSExperiment,
@@ -153,16 +173,21 @@ impl ChromatogramTools {
         let mut w = Work::new(self.limits);
         cap(experiment.spectra.len(), self.limits.max_input_records)?;
         w.spend(experiment.spectra.len())?;
-        let mut groups = BTreeMap::<GroupKey, Group>::new();
+        // `chroms_xic` and `chroms` (`:113-114`).
+        let mut xic = SourceMap::<Group>::new();
+        let mut srm = SourceMap::<SourceMap<Group>>::new();
+        let mut group_count = 0usize;
         let mut points = 0usize;
         let mut skipped = 0usize;
         let mut removed = 0usize;
+        let existing = experiment.chromatograms.len();
+        let max_output = self.limits.max_output_records;
         for (index, s) in experiment.spectra.iter().enumerate() {
-            let srm = s.instrument_settings.scan_mode == ScanMode::SelectedReactionMonitoring;
-            if remove_spectra && srm {
+            let srm_mode = s.instrument_settings.scan_mode == ScanMode::SelectedReactionMonitoring;
+            if remove_spectra && srm_mode {
                 removed = add(removed, 1)?;
             }
-            if !srm && !force_conversion {
+            if !srm_mode && !force_conversion {
                 continue;
             }
             let one = s.precursors.len() == 1 && !s.peaks.is_empty();
@@ -173,48 +198,35 @@ impl ChromatogramTools {
             points = add(points, s.len())?;
             cap(points, self.limits.max_points)?;
             w.spend(mul(s.len(), 3)?)?;
-            if !s.peaks.is_empty() {
-                finite(s.rt)?;
-            }
-            let precursor = if one {
-                finite(s.precursors[0].mz)?;
-                Some(Key(s.precursors[0].mz))
-            } else {
-                None
-            };
             for p in &s.peaks {
-                finite(p.mz)?;
-                finite(f64::from(p.intensity))?;
-                let key = if let Some(q) = precursor {
-                    GroupKey::Srm(q, Key(p.mz))
-                } else {
-                    GroupKey::Xic(Key(p.mz))
-                };
-                // Bound tree comparisons before lookup. Finite scalar keys avoid
-                // the undefined ordering of source NaNs; +/-zero compare equal.
+                // Bound tree comparisons before lookup.
                 w.spend(mul(
                     16,
-                    add(groups.len().saturating_add(1).ilog2() as usize, 1)?,
+                    add(group_count.saturating_add(1).ilog2() as usize, 1)?,
                 )?)?;
-                let next_count = add(groups.len(), 1)?;
-                let group = match groups.entry(key) {
-                    Entry::Occupied(entry) => entry.into_mut(),
-                    Entry::Vacant(entry) => {
-                        cap(
-                            add(experiment.chromatograms.len(), next_count)?,
-                            self.limits.max_output_records,
-                        )?;
-                        w.meter().tree::<(GroupKey, Group)>(1)?;
-                        entry.insert(Group {
-                            first: index,
-                            points: Vec::new(),
-                        })
-                    }
+                let new_group = |w: &mut Work, count: &mut usize| -> Result<Group> {
+                    let next_count = add(*count, 1)?;
+                    cap(add(existing, next_count)?, max_output)?;
+                    w.meter().tree::<(Key, Group)>(1)?;
+                    *count = next_count;
+                    Ok(Group {
+                        first: index,
+                        points: Vec::new(),
+                    })
+                };
+                let group = if one {
+                    let products = srm.entry(s.precursors[0].mz, &mut w, |w| {
+                        w.meter().tree::<(Key, SourceMap<Group>)>(1)?;
+                        Ok(SourceMap::new())
+                    })?;
+                    products.entry(p.mz, &mut w, |w| new_group(w, &mut group_count))?
+                } else {
+                    xic.entry(p.mz, &mut w, |w| new_group(w, &mut group_count))?
                 };
                 w.push(&mut group.points, ChromatogramPeak::new(s.rt, p.intensity))?;
             }
         }
-        let added_count = groups.len();
+        let added_count = group_count;
         if added_count == 0 && removed == 0 {
             return Ok(ChromatogramConversionReport {
                 skipped_spectra: skipped,
@@ -238,6 +250,14 @@ impl ChromatogramTools {
             Vec::new()
         };
         let mut removed_spectra = w.vector::<MSSpectrum>(removed)?;
+        let groups = xic
+            .into_entries()
+            .map(|(mz, group)| (GroupKey::Xic(mz), group))
+            .chain(srm.into_entries().flat_map(|(_, products)| {
+                products
+                    .into_entries()
+                    .map(|(product, group)| (GroupKey::Srm(product), group))
+            }));
         for (key, group) in groups {
             let s = &experiment.spectra[group.first];
             let mut meter = w.meter();
@@ -245,14 +265,14 @@ impl ChromatogramTools {
             fields::acquisition(&mut meter, &s.acquisition_info)?;
             fields::source(&mut meter, &s.source_file)?;
             let (precursor, product, chromatogram_type, native_id) = match key {
-                GroupKey::Srm(_, product) => {
+                GroupKey::Srm(product) => {
                     fields::precursor(&mut meter, &s.precursors[0])?;
                     meter.text(&s.native_id)?;
                     meter.charge(13, 13)?;
                     (
                         s.precursors[0].clone(),
                         Product {
-                            mz: product.0,
+                            mz: product,
                             ..Default::default()
                         },
                         ChromatogramType::SelectedReactionMonitoring,
@@ -262,10 +282,10 @@ impl ChromatogramTools {
                 GroupKey::Xic(mz) => {
                     meter.charge(256, 256)?;
                     meter.tree::<(String, crate::metadata::MetaValue)>(1)?;
-                    let mut precursor = Precursor::new(mz.0, 0);
+                    let mut precursor = Precursor::new(mz, 0);
                     precursor.cv_terms.metadata.insert(
                         "description".into(),
-                        format!("XIC @ {}", crate::param::value::format_float(mz.0, true)).into(),
+                        format!("XIC @ {}", crate::param::value::format_float(mz, true)).into(),
                     );
                     (
                         precursor,
@@ -310,8 +330,9 @@ impl ChromatogramTools {
         })
     }
 }
-// Keys are constructed only after finite validation. Exact numeric ordering
-// intentionally equates signed zero, as std::map<double> does.
+// A non-NaN key of a source `std::map<double, ...>`. Exact numeric ordering
+// intentionally equates signed zero, as `operator<` does; the map keeps the
+// key it was created with.
 #[derive(Clone, Copy, Debug)]
 struct Key(f64);
 impl PartialEq for Key {
@@ -334,10 +355,73 @@ impl Ord for Key {
         }
     }
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+/// A source `std::map<double, V>` read and filled through `operator[]` (and
+/// `contains`, which finds the same entry `operator[]` returns), on any key.
+///
+/// `operator[](k)` is `lower_bound(k)`, then an insertion only when that is
+/// `end()` or `k < key`. For a NaN `k` every `!(key < k)` holds, so
+/// `lower_bound` is the least entry and `k < key` is false: the least entry is
+/// returned, and nothing is inserted unless the map is empty. For any `k`
+/// against a map whose only key is a NaN, `lower_bound` is that entry and
+/// `k < NaN` is false: the NaN entry is returned. So a NaN enters only an
+/// empty map and then absorbs every later key, and none of this depends on
+/// the shape of the tree.
+struct SourceMap<V> {
+    entries: BTreeMap<Key, V>,
+    /// The entry of a NaN key inserted into the empty map; `entries` is
+    /// empty while this is set.
+    nan: Option<(f64, V)>,
+}
+impl<V> SourceMap<V> {
+    fn new() -> Self {
+        Self {
+            entries: BTreeMap::new(),
+            nan: None,
+        }
+    }
+    /// `operator[](key)`; `make` builds the value of a new entry.
+    fn entry(
+        &mut self,
+        key: f64,
+        w: &mut Work,
+        make: impl FnOnce(&mut Work) -> Result<V>,
+    ) -> Result<&mut V> {
+        if self.nan.is_none() {
+            if !key.is_nan() {
+                return Ok(match self.entries.entry(Key(key)) {
+                    Entry::Occupied(entry) => entry.into_mut(),
+                    Entry::Vacant(entry) => entry.insert(make(w)?),
+                });
+            }
+            // A NaN into a non-empty map: `lower_bound` is the least entry,
+            // and `NaN < key` is false, so nothing is inserted.
+            if let Some(least) = self.entries.values_mut().next() {
+                return Ok(least);
+            }
+            // A NaN into the empty map is inserted.
+            self.nan = Some((key, make(w)?));
+        }
+        // Any key against the map `{NaN}`: `lower_bound` is the NaN entry, and
+        // `key < NaN` is false, so nothing is inserted.
+        self.nan
+            .as_mut()
+            .map(|(_, value)| value)
+            .ok_or_else(|| Error::InvalidValue("empty source map".into()))
+    }
+    /// The entries in the map's order, with the key each was created with.
+    fn into_entries(self) -> impl Iterator<Item = (f64, V)> {
+        self.nan
+            .into_iter()
+            .chain(self.entries.into_iter().map(|(key, value)| (key.0, value)))
+    }
+}
+/// The key an output chromatogram is written from: the XIC m/z, or the SRM
+/// product m/z. An SRM chromatogram's precursor is not its map key but the
+/// first contributing spectrum's own precursor (`ChromatogramTools.h:188`).
+#[derive(Clone, Copy, Debug)]
 enum GroupKey {
-    Xic(Key),
-    Srm(Key, Key),
+    Xic(f64),
+    Srm(f64),
 }
 struct Group {
     first: usize,
@@ -397,15 +481,6 @@ fn mul(a: usize, b: usize) -> Result<usize> {
 }
 fn cap(n: usize, max: usize) -> Result<()> {
     if n > max { Err(limit()) } else { Ok(()) }
-}
-fn finite(v: f64) -> Result<()> {
-    if v.is_finite() {
-        Ok(())
-    } else {
-        Err(Error::InvalidValue(
-            "nonfinite chromatogram conversion coordinate/intensity".into(),
-        ))
-    }
 }
 fn limit() -> Error {
     Error::InvalidValue("chromatogram conversion resource limit exceeded".into())

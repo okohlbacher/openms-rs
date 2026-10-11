@@ -92,12 +92,18 @@ The registry contains these exact names:
 | no cleavage | `NoCleavage` |
 | unspecific cleavage | `UnspecificCleavage` |
 
-Names and declared synonyms are case-sensitive. Examples include `Clostripain`
+Names are indexed as written and in ASCII lowercase, as source
+`DigestionEnzymeDB::addEnzyme_` indexes them (`trypsin` finds Trypsin,
+`TRYPSIN` finds nothing); synonyms are literal. Examples include `Clostripain`
 for Arg-C, `Glu-C` for glutamyl endopeptidase, `no_cut` for no cleavage and
 `nonspecific` for unspecific cleavage. Identical cleavage expressions can belong
-to multiple distinct entries, so `enzymes_by_regex` returns all matching names.
-It accepts exact registered expressions only; it does not compile user regexes.
-Unknown expressions return `Unsupported`.
+to multiple distinct entries, so `enzymes_by_regex` returns all matching names,
+while `enzyme_by_regex` returns the one the source's `getEnzymeByRegEx` returns,
+the entry registered last. Both accept exact registered expressions only; they
+do not compile user regexes. Unknown expressions return `Unsupported`.
+`has_enzyme_record` is `hasEnzyme(const DigestionEnzymeProtein*)`, membership by
+identity. The executed Release oracle for these lookups is recorded in
+`docs/CHEMISTRY_VALUE_MEMBERS_SUPPORT.md`.
 
 Rules follow the actual source expressions, including explicit X/B/Z/J classes,
 not simplified biological descriptions. For example, Formic_acid requires D/B/X

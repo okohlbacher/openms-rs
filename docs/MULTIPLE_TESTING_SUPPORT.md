@@ -5,6 +5,9 @@ native equivalent for the public surface of core SDK
 `bc9cc12514c768385ce121d6ca4bb710fe1983c4` `MATH/STATISTICS/MultipleTesting.h`
 and `source/MATH/STATISTICS/MultipleTesting.cpp`.
 
+The smoothing spline `pi0Est` constructs is supplied by
+[`src/processing/spline/pi0_smoother.rs`](../src/processing/spline/pi0_smoother.rs).
+
 Tests: [`tests/multiple_testing.rs`](../tests/multiple_testing.rs). Manifest:
 [`tests/data/math_kde_provenance.json`](../tests/data/math_kde_provenance.json).
 It builds on [`KERNEL_DENSITY_SUPPORT.md`](KERNEL_DENSITY_SUPPORT.md) and
@@ -29,18 +32,18 @@ Every public member of the header appears here.
 | `static std::string lfdrTransformToString(LfdrTransform)` | `LfdrTransform::as_str()` |
 | `static LfdrTransform toLfdrTransform(const std::string&)` | `LfdrTransform::parse(&str) -> Result<Self>` |
 | `static std::vector<double> qValue(const std::vector<double>&, double pi0, bool pfdr = false)` | `q_value(&[f64], f64, bool) -> Result<Vec<f64>>` |
-| `static Pi0Result pi0Est(const std::vector<double>&, const std::vector<double>& lambda_ = {}, Pi0Method = Smoother, int smooth_df = 3, bool smooth_log_pi0 = false)` | `pi0_est(&[f64], &[f64], Pi0Method, i32, bool, Option<&dyn Pi0Smoother>) -> Result<Pi0Result>`; the extra parameter is the smoothing spline, see differences |
+| `static Pi0Result pi0Est(const std::vector<double>&, const std::vector<double>& lambda_ = {}, Pi0Method = Smoother, int smooth_df = 3, bool smooth_log_pi0 = false)` | `pi0_est(&[f64], &[f64], Pi0Method, i32, bool, Option<&dyn Pi0Smoother>) -> Result<Pi0Result>`; the extra parameter is the smoothing spline, see differences. The source's own five-parameter signature, with the spline constructed inside, is `processing::spline::pi0_smoother::pi0_est_smoothed` |
 | `static std::vector<double> lfdr(const std::vector<double>&, double pi0, bool trunc = true, bool monotone = true, LfdrTransform = Probit, double adj = 1.5, double eps = 1e-8, std::size_t gridsize = 512, double cut = 3.0)` | `lfdr(&[f64], f64, &LfdrOptions) -> Result<Vec<f64>>`; the six trailing defaults become `LfdrOptions`, whose `Default` is that argument list |
 | `static std::vector<double> pNorm(const std::vector<double>& stat, const std::vector<double>& stat0)` | `p_norm(&[f64], &[f64]) -> Result<Vec<f64>>` |
 | `template <class T> static std::vector<double> computeModelFDR(const std::vector<T>&)` | `compute_model_fdr(&[f64]) -> Result<Vec<f64>>`; see differences on the template |
 | `template <class T> static std::vector<double> pEmp(const std::vector<T>&, const std::vector<T>&)` | `p_emp(&[f64], &[f64]) -> Result<Vec<f64>>` |
 | free `qValue(...)` (inline wrapper) | the same `q_value`; a namespace-level alias for a static member is not reproduced |
-| free `pi0Est(..., const std::string& pi0_method = "smoother", ...)` | `Pi0Method::parse` plus `pi0_est` |
+| free `pi0Est(..., const std::string& pi0_method = "smoother", ...)` | `Pi0Method::parse` plus `pi0_est_smoothed` (or `pi0_est` with a caller-chosen smoother) |
 | free `lfdr(..., const std::string& transf = "probit", ...)` | `LfdrTransform::parse` plus `lfdr` |
 | free `pNorm(...)`, `computeModelFDR<T>(...)`, `pEmp<T>(...)` (inline wrappers) | the same functions |
 | file-static `argsort_asc` | private `argsort_asc` |
 | file-static `percentile` | private `percentile` |
-| Not in source but added | `MAX_ITEMS`, `DEFAULT_LFDR_ADJ`, `DEFAULT_LFDR_EPS`, `DEFAULT_SMOOTH_DF`, `LfdrOptions`, `Pi0Smoother` |
+| Not in source but added | `MAX_ITEMS`, `DEFAULT_LFDR_ADJ`, `DEFAULT_LFDR_EPS`, `DEFAULT_SMOOTH_DF`, `LfdrOptions`, `Pi0Smoother`; in `src/processing/spline/pi0_smoother.rs`, `SplinePi0Smoother` and `PI0_SMOOTHING_PARAMETER` |
 
 ## Preserved source conventions
 
@@ -102,11 +105,26 @@ Every public member of the header appears here.
   start. Duplicating an 1,800-line spline implementation inside `math` would be
   worse than stating the requirement, so `pi0_est` takes
   `Option<&dyn Pi0Smoother>` and `None` behaves exactly as the source's
-  `!spl.ok()` fallback. `tests/multiple_testing.rs` implements the trait with
-  the ported `BSplineSmoothingSpline` and reproduces the class test's pi0
-  literals through it, so the seam carries the source's behaviour rather than
-  merely declaring it. Removing the seam needs a restructuring of the module
-  graph and is recorded as a deferral.
+  `!spl.ok()` fallback. The library closes the seam one layer up, in
+  `src/processing/spline/pi0_smoother.rs`: `SplinePi0Smoother` implements the
+  trait with the ported `BSplineSmoothingSpline` (`s = -1.0`, the source's
+  argument), and `pi0_est_smoothed(p, lambda, method, smooth_df, smooth_log_pi0)`
+  is the source's `pi0Est` signature, spline included. `tests/multiple_testing.rs`
+  reproduces the class test's three pi0 literals through both
+  (`section_pi0_est_pyprophet_checks` and
+  `section_pi0_est_pyprophet_checks_through_the_source_signature`), so the seam
+  carries the source's behaviour rather than merely declaring it.
+
+  With `smooth_log_pi0` and a per-lambda estimate of zero, the source hands
+  `-inf` to a spline that does not check its inputs, while the ported spline
+  refuses a non-finite ordinate, so the adapter takes the
+  `min(min(pi0_lambda), 1)` fallback. The Linux x86_64 Release build reaches the
+  same answer (`pi0 = 0`, `pi0_smooth = false`): five such inputs, from one empty
+  lambda to an all-zero grid, and their linear-space twins, executed on
+  ibminode06 (`../oracle/integ-A-pi0`,
+  `tests/data/multiple_testing_pi0_release_provenance.json`), agree bit for bit
+  with the port in
+  `tests/multiple_testing.rs::pi0_with_an_empty_lambda_matches_the_release_build`.
 
   **Passing `None` is a different answer, and the less safe one.** In the
   source `!spl.ok()` is a pathology; here it is what a caller who omits the

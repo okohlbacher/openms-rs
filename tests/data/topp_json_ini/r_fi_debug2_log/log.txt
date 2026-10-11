@@ -1,0 +1,80 @@
+2026-09-22 07:14:18 FileInfo:1:: Writing to '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/log.txt'
+2026-09-22 07:14:18 FileInfo:1:: Debug level: 2
+2026-09-22 07:14:18 FileInfo:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/FileInfo -ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/run.json -debug 2 -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/log.txt
+2026-09-22 07:14:18 FileInfo:1:: INI file: /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/run.json
+2026-09-22 07:14:18 FileInfo:1:: INI location: FileInfo:1:
+2026-09-22 07:14:18 FileInfo:1:: Assuming INI is a cwl file
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Parameters from instance section:
+"in" -> "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/FileInfo_1_input.dta" (input file)
+"in_type" -> "dta" (input file type -- default: determined from file extension or content)
+"out" -> "" (Optional output file. If left out, the output is written to the command line.)
+"out_tsv" -> "" (Second optional output file. Tab separated flat text file.)
+"m" -> "false" (Show meta information about the whole experiment)
+"p" -> "false" (Shows data processing information)
+"s" -> "false" (Computes a five-number statistics of intensities, qualities, and widths)
+"d" -> "false" (Show detailed listing of all spectra and chromatograms (peak files only))
+"c" -> "false" (Check for corrupt data in the file (peak files only))
+"v" -> "false" (Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML))
+"i" -> "false" (Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard))
+"log" -> "" (Name of log file (created only when specified))
+"debug" -> "0" (Sets the debug level)
+"threads" -> "1" (Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores))
+"no_progress" -> "true" (Disables progress logging to command line)
+"force" -> "false" (Overrides tool-specific checks)
+"test" -> "true" (Enables the test mode (needed for internal use only))
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Parameters from common section with tool name:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Parameters from common section without tool name:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Initialize final param with cmd line:
+"log" -> "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/log.txt"
+"debug" -> "2"
+"ini" -> "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_fi_debug2_log/cwd/run.json"
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Merging instance section into param:
+"in" -> "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/FileInfo_1_input.dta" (input file)
+"in_type" -> "dta" (input file type -- default: determined from file extension or content)
+"out" -> "" (Optional output file. If left out, the output is written to the command line.)
+"out_tsv" -> "" (Second optional output file. Tab separated flat text file.)
+"m" -> "false" (Show meta information about the whole experiment)
+"p" -> "false" (Shows data processing information)
+"s" -> "false" (Computes a five-number statistics of intensities, qualities, and widths)
+"d" -> "false" (Show detailed listing of all spectra and chromatograms (peak files only))
+"c" -> "false" (Check for corrupt data in the file (peak files only))
+"v" -> "false" (Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML))
+"i" -> "false" (Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard))
+"log" -> "" (Name of log file (created only when specified))
+"debug" -> "0" (Sets the debug level)
+"threads" -> "1" (Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores))
+"no_progress" -> "true" (Disables progress logging to command line)
+"force" -> "false" (Overrides tool-specific checks)
+"test" -> "true" (Enables the test mode (needed for internal use only))
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Merging common section with tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1: Merging common section without tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'test': 1
+2026-09-22 07:14:18 FileInfo:1:: Debug level (after ini file): 2
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'no_progress': 1
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'out': 
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'out_tsv': 
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'in': /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/FileInfo_1_input.dta
+2026-09-22 07:14:18 FileInfo:1:: Checking input file '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/FileInfo_1_input.dta'
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'in_type': dta
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'i': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'm': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'p': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 's': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'd': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'c': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'v': 0
+2026-09-22 07:14:18 FileInfo:1:: Value of string option 'i': 0

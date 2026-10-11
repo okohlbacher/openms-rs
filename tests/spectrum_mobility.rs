@@ -1593,7 +1593,7 @@ fn rasterize_im_frame_rejects_invalid_grids_and_arrays() {
 }
 
 // Native: the ion-mobility sort and predicate reject the inputs whose source
-// behaviour is out-of-bounds or unspecified, and leave the spectrum unchanged.
+// behaviour is out-of-bounds, and leave the spectrum unchanged.
 #[test]
 fn ion_mobility_sorting_rejects_unusable_arrays() {
     // an empty IM array for a non-empty spectrum: checkDataArraySizes_ permits
@@ -1614,21 +1614,19 @@ fn ion_mobility_sorting_rejects_unusable_arrays() {
     ));
     assert_eq!(spec, before);
 
-    // a non-finite ion mobility value, where std::is_sorted would report sorted
+    // A non-finite ion mobility value is no longer refused (DEBT-04): the
+    // source's `std::is_sorted` under `<` finds no element less than its
+    // predecessor in `[1.0, NaN]`, reports sorted, and `sortByIonMobility`
+    // then moves nothing. tests/a3a_source_order.rs pins longer cases against
+    // the Release build.
     let mut spec = MSSpectrum {
         peaks: vec![Peak1D::new(2.0, 1.0), Peak1D::new(1.0, 2.0)],
         float_data_arrays: vec![DataArray::new(IM_MS_ARRAY, vec![1.0_f32, f32::NAN])],
         ..MSSpectrum::default()
     };
     let before = format!("{spec:?}");
-    assert!(matches!(
-        spec.sort_by_ion_mobility(),
-        Err(Error::InvalidValue(_))
-    ));
-    assert!(matches!(
-        spec.is_sorted_by_im(),
-        Err(Error::InvalidValue(_))
-    ));
+    assert!(spec.is_sorted_by_im().unwrap());
+    spec.sort_by_ion_mobility().unwrap();
     // A NaN makes `PartialEq` false against any value, itself included, so the
     // "left unchanged" check compares the rendered value instead.
     assert_eq!(format!("{spec:?}"), before);

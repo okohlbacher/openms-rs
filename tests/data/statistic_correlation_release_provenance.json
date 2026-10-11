@@ -1,0 +1,42 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+      "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d"
+    }
+  ],
+  "oracle": {
+    "build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "platform": "Linux x86_64, ibminode06 (Ubuntu, kernel 6.8.0-124-generic), Release install",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+    "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+    "driver": "oracle/integ-A-correlation/{driver.cpp,remote_run.sh,run.sh}",
+    "driver_sha256": {
+      "driver.cpp": "8f3e5e1f9d764f5e7b7a81cb2742b3b85bd8f608c98761aa23c1e6198e62cf26",
+      "remote_run.sh": "a0086e30e5fe3d5d8aff66ecfb87b4758faee8c97575faa25e90dd519f3082d1",
+      "run.sh": "a1f436ab6b2fd9a8cb37ad0ae46f8ce63a215f31afad00970905c0c6be5a49aa"
+    },
+    "binaries": {
+      "build/driver": "f1aa5bb099dcfa0ea2430ae04537c9e934ee84ee01c93d17bb8efc922ded3828",
+      "lib/libOpenMS.so": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+    },
+    "repeats": 2,
+    "repeats_identical": true,
+    "invocations": 2,
+    "invocations_identical": true,
+    "date": "2026-09-29",
+    "purpose": "Math::pearsonCorrelationCoefficient and Math::matthewsCorrelationCoefficient where the port used to return an explicit f64::NAN instead of dividing by a zero denominator (StatisticFunctions.h:767 and :811), plus the class-test Pearson, the closed forms and NaN-payload inputs; every result printed as its 64 bits."
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/statistic_correlation_release/oracle.tsv",
+      "sha256": "aa4d485b0fa1e61f9102302a7f1deafd9b3685cea3f926938a19e3337404ea0c"
+    }
+  ],
+  "consumers": [
+    "tests/statistic_functions.rs::pearson_and_matthews_divide_as_the_release_build_does"
+  ]
+}

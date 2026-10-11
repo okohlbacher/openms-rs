@@ -1,0 +1,75 @@
+{
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/ChromatogramTools.h",
+      "sha256": "8c91556e0b00cd2041cc71a57c75fa85f36b406694b0ad9b9e69f1374fb46d6e"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/MSSpectrum.h",
+      "sha256": "ce7779212eb303dc95f704daad301a1a6574c3e690c9a16b70da26a0fbd317f3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/KERNEL/RangeUtils.h",
+      "sha256": "1cc25d24b1e729ef0c3ac1f61203dd36fbcfe47d5358a2f4dbb8cfbe05da3cd4"
+    },
+    {
+      "path": "src/openms/include/OpenMS/MATH/StatisticFunctions.h",
+      "sha256": "61c80a040673e0bca53086d2947b5bcd100c046c6024c8c99f5da6237b98ec7d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h",
+      "sha256": "3fcb1c5347d13c0a6c72fe14f853afcca2d08bedb3709eeb8bfb96630690220c"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp",
+      "sha256": "12730d264da698c53ea7c40e711be76eb91ee4151ef0937b8f1f1e25ff0583a0"
+    },
+    {
+      "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp",
+      "sha256": "bf2e3249bc0b10068cea877cecc54abe508f401741c0979160db7a92e949bf44"
+    },
+    {
+      "path": "src/openms/source/IONMOBILITY/FAIMSHelper.cpp",
+      "sha256": "c0d91c7ede220a173d67cccce966ab0e0a29a1f6e1a17db9a6cff202d14bacf4"
+    },
+    {
+      "path": "src/openms/source/KERNEL/MSSpectrum.cpp",
+      "sha256": "0a1bae71430283397b5c3a4acb358fd4edc8e7d2df0ca93655308c6784403913"
+    },
+    {
+      "path": "src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp",
+      "sha256": "c72aa6a474f731511c591225a54142c288973520d7dee65e9bf9e82f97fbe8d2"
+    }
+  ],
+  "oracle": {
+    "build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+    "platform": "Linux x86_64, ibminode06 (Ubuntu, kernel 6.8.0-124-generic), Release install",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+    "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+    "driver": "oracle/A3a-source-order/{a3a_driver.cpp,gen_cases.py,remote_run.sh,run.sh}",
+    "repeats": 2,
+    "repeats_identical": true,
+    "invocations": 2,
+    "invocations_identical": true,
+    "binaries": [
+      "72ebc95df6fb6a7853d536372365c0a5b59b2f378c41faa5eb9a9b58d3472fed  a3a_driver.cpp",
+      "02cec41452b41c90cc1bd5550447801ff93f48a292f0db04b08c20f4fbccb1b7  gen_cases.py",
+      "c8dbbf9089d4f77f5ee6b3e3f530fcf7cf79074958271aae9a28367533955d97  build/a3a_driver",
+      "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
+      "differ_rc=0"
+    ]
+  },
+  "fixtures": [
+    {
+      "path": "tests/data/a3a_source_order/cases.tsv",
+      "sha256": "1b9cd63d34dcea8f4bf958c10b1663221b76e0ea441fc3dcd909216639ca0560"
+    },
+    {
+      "path": "tests/data/a3a_source_order/oracle.tsv",
+      "sha256": "99001244ced72d7175999ae50ef0a5cdae1cf3a606359c91bb32e49ac4ea8032"
+    }
+  ]
+}

@@ -4,6 +4,12 @@
 
 //! C++ stream and `StringUtils` numeric text formatting for the FileInfo report.
 //!
+//! The module also carries the whole of `DATASTRUCTURES/ListUtilsIO.h` (the
+//! vector stream operators, `VecLowPrecision` and the string-list push),
+//! because it is a thin layer over the `StringUtils::toStr` rules implemented
+//! here. The shared digit machinery, `CONCEPT/Detail/NumericFormatting.h`, is
+//! `concept::numeric_formatting`.
+//!
 //! `FORMAT/FileInfo.cpp` renders every number through one of four C++ text
 //! paths, and the upstream reference reports compare those bytes. Each path is
 //! reproduced here as a stateless function:
@@ -40,16 +46,19 @@
 //! | `StringUtils::toStr(float, true)`, `appendToStr(float, std::string&)` | [`to_str_f32`] | |
 //! | `toStr`/`appendToStr` for `int`, `unsigned int`, `short`, `unsigned short`, `long`, `unsigned long`, `long long`, `unsigned long long` | [`ToStr`] for `i16`, `u16`, `i32`, `u32`, `i64`, `u64`, `isize`, `usize` | decimal |
 //! | `toStr(const std::string&)`, `toStr(const char*)`, `toStr(std::string_view)` | [`ToStr`] for `str` and `String` | copied unchanged |
-//! | `toStr(char)` | not ported | FileInfo streams no `char` vector |
+//! | `toStr(char)` | [`ToStr`] for `char` | one character; a `bool` element is promoted to `int` (`1`/`0`) as in C++ |
 //! | `toStr(long double, bool)`, `appendToStr(long double, std::string&)`, `appendToStrLowP(long double, std::string&)` | not ported | Rust has no `long double`; FileInfo uses none |
-//! | `toStr(float, false)`, `toStr(double, false)`, `appendToStrLowP(float/double, std::string&)` | not ported | three-fraction-digit form, unused by FileInfo |
+//! | `toStr(double, false)`, `appendToStrLowP(double, std::string&)` | [`to_str_low_precision`] | three fraction digits; not on the FileInfo path |
+//! | `toStr(float, false)`, `appendToStrLowP(float, std::string&)` | [`to_str_low_precision_f32`] | |
 //! | `toStr(const DataValue&, bool)`, `toStr(const ParamValue&, bool)`, `appendToStr(const DataValue&, bool, std::string&)` | not ported here | the value types format themselves in `param` and `metadata` |
 //! | `StringUtils::numberLength(double, UInt)` | not ported | not on the FileInfo path |
-//! | `NumericFormatting::appendNumeric<T>(T, std::string&, int, bool)` | private; reached through [`to_str`] and [`to_str_f32`] with `fixed_format = false` | the `fixed_format = true` and libc++ `long double` branches are unused |
+//! | `NumericFormatting::appendNumeric<T>(T, std::string&, int, bool)` | `concept::numeric_formatting`; reached here through [`to_str`] and [`to_str_f32`] with `fixed_format = false` and through [`to_str_low_precision`] and [`to_str_low_precision_f32`] with `fixed_format = true` and precision 3 | the libc++ `long double` branch is not ported |
 //! | `writtenDigits<float>()`, `writtenDigits<double>()` | [`WRITTEN_DIGITS_F32`], [`WRITTEN_DIGITS_F64`] | the integer and `long double` specialisations are not ported |
 //! | `operator<<(std::ostream&, const std::vector<T>&)` | [`list_to_string`] | |
-//! | `VecLowPrecision<T>` and its `operator<<` | not ported | built on the low-precision `toStr` |
-//! | `operator<<(std::vector<std::string>&, const TString&)` | not ported | `Vec::push` |
+//! | `VecLowPrecision<T>`, its member `value` and constructor | [`VecLowPrecision`], `value`, [`VecLowPrecision::new`] | also `From<&[T]>` and `From<&Vec<T>>` |
+//! | `operator<<(std::ostream&, const VecLowPrecision<T>&)` | `Display` for [`VecLowPrecision`]; [`list_to_string_low_precision`] and [`VecLowPrecision::to_text`] into a bounded string | `f32` and `f64` elements, [`ToStrLowPrecision`] |
+//! | `operator<<(std::vector<std::string>&, const TString&)` | [`StringListPush::push_item`] | chains like the source operator; `<<` cannot be overloaded on `Vec<String>` |
+//! | `PrecisionWrapper<T>`, `precisionWrapper(rhs)` and its `operator<<` (`CONCEPT/PrecisionWrapper.h`) | `concept::precision_wrapper` | writes the [`to_str`] and [`to_str_f32`] text |
 //! | `std::ostream::operator<<(double)` and `(float)` in the default float field | [`ostream_g`] | a `float` is promoted to `double` first |
 //!
 //! # Preserved source conventions
@@ -199,8 +208,8 @@
 //! | Section | Status |
 //! |---|---|
 //! | `String_test.cpp` `StringUtils::toStr` for `int`, `unsigned int`, `long int`, `long unsigned int`, `short int`, `short unsigned int`, `long long unsigned int` and `long long signed int` (8 sections) | ported: [`ToStr`] |
-//! | `String_test.cpp` `StringUtils::toStr(float, bool full_precision)` | ported for `full_precision = true`: [`to_str_f32`]; the `false` literals are not ported |
-//! | `String_test.cpp` `StringUtils::toStr(double, bool full_precision)` | ported for `full_precision = true`: [`to_str`]; the `false` literals are not ported |
+//! | `String_test.cpp` `StringUtils::toStr(float, bool full_precision)` | ported: [`to_str_f32`]; the `false` literals [`to_str_low_precision_f32`] in `tests/list_utils_io.rs` |
+//! | `String_test.cpp` `StringUtils::toStr(double, bool full_precision)` | ported: [`to_str`]; the `false` literals [`to_str_low_precision`] in `tests/list_utils_io.rs` |
 //! | `String_test.cpp` `StringUtils::number(double, UInt)` | ported: [`fixed`], [`fixed_truncated`] |
 //! | `String_test.cpp` `StringUtils::toStr(long double, bool full_precision)` | not ported: Rust has no `long double` |
 //! | `String_test.cpp` `StringUtils::toStr(DataValue)` | not ported here: `DataValue` formats itself in `metadata` |
@@ -210,7 +219,8 @@
 //! | `StringUtils_test.cpp` `numberLength` and `number` | `NOT_TESTABLE` upstream ("tested in String_test.cpp") |
 //! | `StringUtils_test.cpp` `[EXTRA] non-finite values round-trip through toStr/toDouble/toFloat` | formatting literals ported; the `toDouble`/`toFloat` read-back and the `DataValue` list are outside this module |
 //! | `StringUtils_test.cpp`, the other 42 sections | outside this module |
-//! | `ListUtilsIO_test.cpp` `[EXTRA] StringList& operator<<(StringList&, const StringType&)` | not ported: `Vec::push` |
+//! | `ListUtilsIO_test.cpp` `[EXTRA] StringList& operator<<(StringList&, const StringType&)` | ported: [`StringListPush`] in `tests/list_utils_io.rs` |
+//! | `PrecisionWrapper_test.cpp`, all four sections | ported: `concept::precision_wrapper` in `tests/list_utils_io.rs` |
 //! | `NumericFormatting.h`, `Types.h` | no class test at the pin |
 //!
 //! # Follow-up
@@ -247,10 +257,18 @@
 //! [`DEFAULT_STREAM_PRECISION`]: crate::format::file_info::text_format::DEFAULT_STREAM_PRECISION
 //! [`WRITTEN_DIGITS_F32`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F32
 //! [`WRITTEN_DIGITS_F64`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F64
+//! [`to_str_low_precision`]: crate::format::file_info::text_format::to_str_low_precision
+//! [`to_str_low_precision_f32`]: crate::format::file_info::text_format::to_str_low_precision_f32
+//! [`list_to_string_low_precision`]: crate::format::file_info::text_format::list_to_string_low_precision
+//! [`ToStrLowPrecision`]: crate::format::file_info::text_format::ToStrLowPrecision
+//! [`VecLowPrecision`]: crate::format::file_info::text_format::VecLowPrecision
+//! [`VecLowPrecision::new`]: crate::format::file_info::text_format::VecLowPrecision::new
+//! [`VecLowPrecision::to_text`]: crate::format::file_info::text_format::VecLowPrecision::to_text
+//! [`StringListPush`]: crate::format::file_info::text_format::StringListPush
+//! [`StringListPush::push_item`]: crate::format::file_info::text_format::StringListPush::push_item
 
+use crate::concept::numeric_formatting;
 use crate::error::{Error, Result};
-use std::fmt::LowerExp;
-use std::str::FromStr;
 
 /// Largest text, in bytes, that `StringUtils::number` can return.
 ///
@@ -299,6 +317,9 @@ const F64_TO_STR_MAX_BYTES: usize = 24;
 const F32_TO_STR_MAX_BYTES: usize = 15;
 /// Longest decimal 64-bit integer, `-9223372036854775808`.
 const INTEGER_TO_STR_MAX_BYTES: usize = 20;
+/// Longest three-fraction-digit `toStr` text: `-9.999e-308` (11 bytes) or
+/// `-9999.999` (9 bytes), with one byte to spare.
+const LOW_PRECISION_TO_STR_MAX_BYTES: usize = 12;
 
 /// `StringUtils::number(d, n)`: `value` with exactly `digits` fraction digits,
 /// as C `snprintf("%.*f")` writes it.
@@ -509,13 +530,259 @@ pub fn to_str_f32(value: f32) -> String {
     text
 }
 
+/// `StringUtils::toStr(double, false)`: the three-fraction-digit form.
+///
+/// This is `appendToStrLowP(double, std::string&)`, which calls
+/// `NumericFormatting::appendNumeric(value, target, 3, true)`. Zero and
+/// magnitudes in `[1e-2, 1e4)` use fixed notation with 3 fraction digits, other
+/// magnitudes scientific notation with a 3-digit fraction
+/// (`std::to_chars(scientific, 3)`); both round the exact binary value with ties
+/// to even. Trailing fraction zeros are then removed, one digit being kept
+/// (`2.0`, `1.0e06`), and the exponent loses its `+` but keeps at least two
+/// digits. NaN prints as `NaN`, the infinities as `inf` and `-inf`, as in
+/// [`to_str`].
+///
+/// # Examples
+///
+/// ```
+/// use openms::format::file_info::text_format::to_str_low_precision;
+///
+/// assert_eq!(to_str_low_precision(17.012345), "17.012");
+/// assert_eq!(to_str_low_precision(2.0), "2.0");
+/// assert_eq!(to_str_low_precision(f64::MIN_POSITIVE / 10.0), "2.225e-309");
+/// ```
+pub fn to_str_low_precision(value: f64) -> String {
+    let mut text = String::new();
+    append_numeric_low_f64(value, &mut text);
+    text
+}
+
+/// `StringUtils::toStr(float, false)`: [`to_str_low_precision`]'s rules applied
+/// to the `float` itself.
+///
+/// This is `appendToStrLowP(float, std::string&)`. The magnitude thresholds
+/// are the `float` literals `1e4f` and `1e-2f`, and rounding is of the exact
+/// `float` value, not of the promoted `double`.
+///
+/// # Examples
+///
+/// ```
+/// use openms::format::file_info::text_format::to_str_low_precision_f32;
+///
+/// assert_eq!(to_str_low_precision_f32(17.0123), "17.012");
+/// assert_eq!(to_str_low_precision_f32(f32::MIN_POSITIVE / 10.0), "1.175e-39");
+/// ```
+pub fn to_str_low_precision_f32(value: f32) -> String {
+    let mut text = String::new();
+    append_numeric_low_f32(value, &mut text);
+    text
+}
+
+/// A floating-point value with a three-fraction-digit `StringUtils::toStr`
+/// form: the element types [`VecLowPrecision`] and
+/// [`list_to_string_low_precision`] accept.
+///
+/// The source's `VecLowPrecision` operator "works for vectors of float, double,
+/// long double"; it is implemented here for `f32` ([`to_str_low_precision_f32`])
+/// and `f64` ([`to_str_low_precision`]) and references to them. Rust has no
+/// `long double`.
+pub trait ToStrLowPrecision {
+    /// An upper bound of the bytes
+    /// [`ToStrLowPrecision::append_to_str_low_precision`] appends, used as
+    /// [`ToStr::text_len_bound`] is.
+    fn text_len_bound_low_precision(&self) -> usize;
+
+    /// Appends the `StringUtils::toStr(value, false)` text of `self` to
+    /// `target`.
+    fn append_to_str_low_precision(&self, target: &mut String);
+}
+
+impl ToStrLowPrecision for f64 {
+    fn text_len_bound_low_precision(&self) -> usize {
+        LOW_PRECISION_TO_STR_MAX_BYTES
+    }
+    fn append_to_str_low_precision(&self, target: &mut String) {
+        append_numeric_low_f64(*self, target);
+    }
+}
+
+impl ToStrLowPrecision for f32 {
+    fn text_len_bound_low_precision(&self) -> usize {
+        LOW_PRECISION_TO_STR_MAX_BYTES
+    }
+    fn append_to_str_low_precision(&self, target: &mut String) {
+        append_numeric_low_f32(*self, target);
+    }
+}
+
+impl<T: ToStrLowPrecision + ?Sized> ToStrLowPrecision for &T {
+    fn text_len_bound_low_precision(&self) -> usize {
+        (**self).text_len_bound_low_precision()
+    }
+    fn append_to_str_low_precision(&self, target: &mut String) {
+        (**self).append_to_str_low_precision(target);
+    }
+}
+
+/// `operator<<(std::ostream&, const VecLowPrecision<T>&)` into a string: `[`,
+/// each element's `StringUtils::toStr(value, false)` text separated by `, `,
+/// then `]`.
+///
+/// # Errors
+///
+/// Returns [`Error::InvalidValue`] when the text could exceed
+/// [`MAX_LIST_TEXT_BYTES`], judged before any allocation, or when the
+/// allocation fails, as [`list_to_string`] does. The source has no ceiling.
+///
+/// # Examples
+///
+/// ```
+/// use openms::format::file_info::text_format::list_to_string_low_precision;
+///
+/// let text = list_to_string_low_precision(&[17.012345, 2.0]);
+/// assert_eq!(text.ok().as_deref(), Some("[17.012, 2.0]"));
+/// ```
+pub fn list_to_string_low_precision<T: ToStrLowPrecision>(items: &[T]) -> Result<String> {
+    let mut bound = 2usize;
+    for (index, item) in items.iter().enumerate() {
+        let separator = if index == 0 { 0 } else { 2 };
+        bound = bound
+            .checked_add(separator)
+            .and_then(|total| total.checked_add(item.text_len_bound_low_precision()))
+            .filter(|total| *total <= MAX_LIST_TEXT_BYTES)
+            .ok_or_else(|| {
+                Error::InvalidValue(format!(
+                    "text of a {}-element vector may exceed {MAX_LIST_TEXT_BYTES} bytes",
+                    items.len()
+                ))
+            })?;
+    }
+    let mut text = String::new();
+    text.try_reserve_exact(bound).map_err(|_| {
+        Error::InvalidValue(format!("cannot allocate {bound} bytes of vector text"))
+    })?;
+    text.push('[');
+    for (index, item) in items.iter().enumerate() {
+        if index > 0 {
+            text.push_str(", ");
+        }
+        item.append_to_str_low_precision(&mut text);
+    }
+    text.push(']');
+    Ok(text)
+}
+
+/// A borrowed vector written with three fraction digits: source
+/// `VecLowPrecision<T>`.
+///
+/// The source struct holds `const std::vector<T>& value` and exists only so
+/// that `os << VecLowPrecision(my_vec)` selects the low-precision stream
+/// operator. Here [`std::fmt::Display`] is that operator: it streams the same
+/// text as [`list_to_string_low_precision`] straight into the formatter, so,
+/// like the source's `ostream` insertion, it builds no whole-list string and
+/// needs no ceiling. [`VecLowPrecision::to_text`] is the bounded, allocating
+/// form.
+///
+/// # Examples
+///
+/// ```
+/// use openms::format::file_info::text_format::VecLowPrecision;
+///
+/// let values = vec![17.012345f64, 2.0, 1.0e6];
+/// assert_eq!(VecLowPrecision::new(&values).to_string(), "[17.012, 2.0, 1.0e06]");
+/// assert_eq!(VecLowPrecision::<f32>::new(&[]).to_string(), "[]");
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct VecLowPrecision<'a, T> {
+    /// The borrowed elements: source member `value`.
+    pub value: &'a [T],
+}
+
+impl<'a, T> VecLowPrecision<'a, T> {
+    /// Wraps `value`: source constructor `VecLowPrecision(const std::vector<T>&)`.
+    pub const fn new(value: &'a [T]) -> Self {
+        Self { value }
+    }
+}
+
+impl<T: ToStrLowPrecision> VecLowPrecision<'_, T> {
+    /// The text [`std::fmt::Display`] writes, as an owned string.
+    ///
+    /// # Errors
+    ///
+    /// As [`list_to_string_low_precision`].
+    pub fn to_text(&self) -> Result<String> {
+        list_to_string_low_precision(self.value)
+    }
+}
+
+impl<'a, T> From<&'a [T]> for VecLowPrecision<'a, T> {
+    fn from(value: &'a [T]) -> Self {
+        Self::new(value)
+    }
+}
+
+impl<'a, T> From<&'a Vec<T>> for VecLowPrecision<'a, T> {
+    fn from(value: &'a Vec<T>) -> Self {
+        Self::new(value)
+    }
+}
+
+impl<T: ToStrLowPrecision> std::fmt::Display for VecLowPrecision<'_, T> {
+    /// Writes `[`, the elements' three-fraction-digit text separated by `, `,
+    /// and `]`, as the source operator does.
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("[")?;
+        let mut element = String::with_capacity(LOW_PRECISION_TO_STR_MAX_BYTES);
+        for (index, item) in self.value.iter().enumerate() {
+            if index > 0 {
+                formatter.write_str(", ")?;
+            }
+            element.clear();
+            item.append_to_str_low_precision(&mut element);
+            formatter.write_str(&element)?;
+        }
+        formatter.write_str("]")
+    }
+}
+
+/// Appends entries to a string list "with less code": source
+/// `operator<<(std::vector<std::string>&, const TString&)` from
+/// `ListUtilsIO.h`.
+///
+/// The source pushes `string` and returns the list so that insertions chain,
+/// `list << "a" << "b"`. Rust cannot overload `<<` on `Vec<String>` (both the
+/// trait and the type are foreign), so the operator is the chaining method
+/// [`StringListPush::push_item`]; plain [`Vec::push`] is the unchained form.
+///
+/// # Examples
+///
+/// ```
+/// use openms::format::file_info::text_format::StringListPush;
+///
+/// let mut list: Vec<String> = Vec::new();
+/// list.push_item("a").push_item("b").push_item(String::from("c"));
+/// assert_eq!(list, ["a", "b", "c"]);
+/// ```
+pub trait StringListPush {
+    /// Appends `item` and returns the list, for chaining.
+    fn push_item<S: Into<String>>(&mut self, item: S) -> &mut Self;
+}
+
+impl StringListPush for Vec<String> {
+    fn push_item<S: Into<String>>(&mut self, item: S) -> &mut Self {
+        self.push(item.into());
+        self
+    }
+}
+
 /// Element text for [`list_to_string`], mirroring the `StringUtils::toStr`
 /// overload set that the `ListUtilsIO.h` stream operator calls.
 ///
 /// Implemented for `f64` ([`to_str`]), `f32` ([`to_str_f32`]), the signed and
-/// unsigned 16-, 32- and 64-bit and pointer-sized integers (decimal), `str` and
-/// `String` (copied unchanged), and references to any of these. `bool` is not
-/// implemented: C++ would promote it to `int` and print `1` or `0`.
+/// unsigned 16-, 32- and 64-bit and pointer-sized integers (decimal), `char`
+/// (`toStr(char)`), `bool` (promoted to `int` as in C++, so `1` or `0`), `str`
+/// and `String` (copied unchanged), and references to any of these.
 pub trait ToStr {
     /// An upper bound of the bytes [`ToStr::append_to_str`] appends.
     ///
@@ -586,6 +853,29 @@ macro_rules! integer_to_str {
     )*};
 }
 integer_to_str!(i16, u16, i32, u32, i64, u64, isize, usize);
+
+impl ToStr for char {
+    /// Source `toStr(char c)`, `std::string(1, c)`. A Rust `char` is a Unicode
+    /// scalar value, written as its UTF-8 bytes (up to four); a C++ `char` is
+    /// one byte.
+    fn text_len_bound(&self) -> usize {
+        self.len_utf8()
+    }
+    fn append_to_str(&self, target: &mut String) {
+        target.push(*self);
+    }
+}
+
+impl ToStr for bool {
+    /// A `bool` element has no `toStr` overload of its own; C++ promotes it
+    /// to `int` and `toStr(int)` writes `1` or `0`.
+    fn text_len_bound(&self) -> usize {
+        1
+    }
+    fn append_to_str(&self, target: &mut String) {
+        target.push(if *self { '1' } else { '0' });
+    }
+}
 
 /// `operator<<(std::ostream&, const std::vector<T>&)` from `ListUtilsIO.h`:
 /// `[`, each element's `StringUtils::toStr` text separated by `, `, then `]`.
@@ -707,97 +997,27 @@ fn strip_fraction_zeros(text: &str) -> &str {
     }
 }
 
-/// `std::to_chars(first, last, value, std::chars_format::scientific)`, in Rust's
-/// `{:e}` spelling: the shortest text that reads back as `value`.
-///
-/// Among the equally short texts that read back, the C++ standard
-/// (`[charconv.to.chars]`) takes the one nearest the exact binary value and
-/// breaks a remaining tie by round-to-nearest, which gives the even digit.
-/// `{:e}` finds the same shortest length but breaks such an exact tie upwards
-/// (`-135169.706298828125` gives `...813e5` where `to_chars` gives `...812e+05`).
-///
-/// Both equally short neighbours of the exact value are candidates, and the
-/// nearer one is `{:.N$e}` at that length, which rounds the exact value with ties
-/// to even. It is taken whenever it reads back as `value`. When it does not, only
-/// the other neighbour reads back, and `{:e}` already chose that one. This
-/// happens where the value is a power of two, whose lower half-interval is half as
-/// wide as the upper: `2^-24` is `5.9604644775390625e-8` exactly, and only
-/// `5.960464477539063e-8` reads back; the `float` `2^-96` is nearer to
-/// `1.2621774e-29`, but only `1.2621775e-29` reads back.
-fn shortest_round_trip<T>(value: T) -> String
-where
-    T: Copy + PartialEq + LowerExp + FromStr,
-{
-    let shortest = format!("{value:e}");
-    let significant = shortest.split_once('e').map_or(0, |(mantissa, _)| {
-        mantissa.bytes().filter(u8::is_ascii_digit).count()
-    });
-    let Some(fraction) = significant.checked_sub(1) else {
-        return shortest;
-    };
-    let nearest = format!("{value:.fraction$e}");
-    if nearest != shortest && nearest.parse::<T>().is_ok_and(|parsed| parsed == value) {
-        nearest
-    } else {
-        shortest
-    }
+/// `NumericFormatting::appendNumeric(value, target, writtenDigits<double>(), false)`,
+/// the `StringUtils::toStr(double, true)` path; see
+/// [`crate::concept::numeric_formatting`].
+fn append_numeric_f64(value: f64, target: &mut String) {
+    numeric_formatting::append_numeric_f64(value, target, WRITTEN_DIGITS_F64 as usize, false);
 }
 
-/// `appendNumeric`'s trim: trailing fraction zeros removed, one digit kept.
-fn keep_one_fraction_digit(text: &str) -> &str {
-    let Some(point) = text.find('.') else {
-        return text;
-    };
-    let trimmed = text.trim_end_matches('0');
-    if trimmed.len() > point + 1 {
-        trimmed
-    } else {
-        text.get(..point + 2).unwrap_or(text)
-    }
+/// `NumericFormatting::appendNumeric(value, target, writtenDigits<float>(), false)`,
+/// the `StringUtils::toStr(float, true)` path.
+fn append_numeric_f32(value: f32, target: &mut String) {
+    numeric_formatting::append_numeric_f32(value, target, WRITTEN_DIGITS_F32 as usize, false);
 }
 
-macro_rules! append_numeric {
-    ($name:ident, $float:ty, $fraction_digits:expr) => {
-        /// `NumericFormatting::appendNumeric(value, target, writtenDigits, false)`
-        /// (`NumericFormatting.h:27-140`).
-        fn $name(value: $float, target: &mut String) {
-            if value.is_nan() {
-                target.push_str("NaN");
-                return;
-            }
-            if value.is_infinite() {
-                target.push_str(if value < 0.0 { "-inf" } else { "inf" });
-                return;
-            }
-            let magnitude = value.abs();
-            // Source: abs_val >= T(1e4) || abs_val < T(1e-2); NaN returned above.
-            if magnitude != 0.0 && !(1e-2..1e4).contains(&magnitude) {
-                // std::to_chars(scientific) without a precision.
-                let shortest = shortest_round_trip(value);
-                let Some((mantissa, exponent)) = shortest.split_once('e') else {
-                    target.push_str(&shortest);
-                    return;
-                };
-                if mantissa.contains('.') {
-                    target.push_str(keep_one_fraction_digit(mantissa));
-                } else {
-                    target.push_str(mantissa);
-                    target.push_str(".0");
-                }
-                target.push('e');
-                match exponent.parse::<i32>() {
-                    Ok(exponent) if exponent < 0 => {
-                        target.push_str(&format!("-{:02}", exponent.unsigned_abs()));
-                    }
-                    Ok(exponent) => target.push_str(&format!("{exponent:02}")),
-                    Err(_) => target.push_str(exponent),
-                }
-            } else {
-                let text = format!("{value:.digits$}", digits = $fraction_digits);
-                target.push_str(keep_one_fraction_digit(&text));
-            }
-        }
-    };
+/// `NumericFormatting::appendNumeric(value, target, 3, true)`, the
+/// `appendToStrLowP(double)` path.
+fn append_numeric_low_f64(value: f64, target: &mut String) {
+    numeric_formatting::append_numeric_f64(value, target, 3, true);
 }
-append_numeric!(append_numeric_f64, f64, 15);
-append_numeric!(append_numeric_f32, f32, 6);
+
+/// `NumericFormatting::appendNumeric(value, target, 3, true)`, the
+/// `appendToStrLowP(float)` path.
+fn append_numeric_low_f32(value: f32, target: &mut String) {
+    numeric_formatting::append_numeric_f32(value, target, 3, true);
+}

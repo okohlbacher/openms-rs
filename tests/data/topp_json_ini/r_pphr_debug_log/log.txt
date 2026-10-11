@@ -1,0 +1,8 @@
+2026-09-22 07:14:17 PeakPickerHiRes:1:: Writing to '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug_log/cwd/log.txt'
+2026-09-22 07:14:17 PeakPickerHiRes:1:: Debug level: 1
+2026-09-22 07:14:17 PeakPickerHiRes:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/PeakPickerHiRes -ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json -in /x/in.mzML -out /x/out.mzML -debug 1 -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug_log/cwd/log.txt
+2026-09-22 07:14:17 PeakPickerHiRes:1:: INI file: /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_unknown.json
+2026-09-22 07:14:17 PeakPickerHiRes:1:: INI location: PeakPickerHiRes:1:
+2026-09-22 07:14:17 PeakPickerHiRes:1:: Assuming INI is a cwl file
+2026-09-22 07:14:17 PeakPickerHiRes:1:: Error: Unable to read file (Parameter PeakPickerHiRes:1:aaa passed to 'PeakPickerHiRes' is invalid. To prevent usage of wrong defaults, please update/fix the parameters! in: )
+2026-09-22 07:14:17 PeakPickerHiRes:1:: Error occurred in line 89 of file /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ParamJSONFile.cpp (in function: OpenMS::ParamJSONFile::load(const std::string&, OpenMS::Param&)::<lambda(std::string, json&)>) !

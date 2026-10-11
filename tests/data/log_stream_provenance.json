@@ -124,6 +124,27 @@
    ],
    "kind": "independently derived semantics",
    "note": "Guard flushes both boundaries, restores as fresh route losing previous prefix and notifier."
+  },
+  {
+   "source": "../oracle/logstream-exit/driver.cpp",
+   "kind": "executed C++ Release oracle",
+   "build": "Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06; driver built with its x86_64-conda-linux-gnu-g++ 14.4.0, -O3 -DNDEBUG -std=gnu++23 -fPIC -fopenmp",
+   "sha256": {
+    "driver.cpp": "72b56e467642e6549a2d475cb9cfbc2df89683d64b27a2ed33139a5faace5564",
+    "remote_run.sh": "e1292b545c3af3b3a41f80a65396a18631fe022e6358af37439ae64b35af9160",
+    "build/logstream_exit": "68f75b54806da9237d1b5f6b7f5a15831314f2f9f2a55c3f4b132791c603660f",
+    "lib/libOpenMS.so": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+   },
+   "cases": [
+    "tls_return",
+    "tls_exit",
+    "tls_order",
+    "global_return",
+    "global_exit",
+    "both",
+    "thread"
+   ],
+   "note": "Process exit: each case leaves text buffered in thread-local or global streams and returns from main or calls std::exit(3); two runs per case byte-identical; stdout and stderr captured separately and together (2>&1). The combined bytes are transcribed as RELEASE_EXIT in tests/log_stream.rs (process_exit_paths_deliver_what_the_release_build_delivers). The global debug stream's text is lost in the Release build (delete_buf = false, LogStream.cpp:672); the port delivers it (CPP-355)."
   }
  ],
  "native_boundaries": [
@@ -132,7 +153,9 @@
   "Bounded line, sink count, prefix storage and cumulative operation allocation/work; output errors disable replay.",
   "No numeric filters or history APIs: prose mentions them but retained implementation does not provide them.",
   "Macros complete and flush one line; raw Write retains incremental buffering.",
-  "Windows virtual-terminal enabling and standalone mutable Colorizer composition are not provided."
+  "Rust never drops a static: finish_process_logs (and the ProcessLogs guard, which every tool executable holds for its whole run) does what the source's exit-time destructors do, in their order: the calling thread's streams, most recently created first, then the global streams debug, info, warning, error, fatal. When a thread ends, its streams are finished in the same order and, if it used with_global_log, the global streams after them; for the main thread that is process exit where the platform runs main-thread thread-local destructors (measured: macOS, Linux glibc; return and std::process::exit).",
+  "Windows console virtual-terminal mode (source InitConsole) is set through winapi-util console::mode/set_mode, once per process, the first time a record is coloured for standard output or error and when a tool executable starts; the console test (source Colorizer::isTTY) is GetConsoleMode on Windows. Compile-checked for x86_64-pc-windows-msvc only: no available runner gives a test process a console.",
+  "Standalone mutable Colorizer composition is not provided (Colorizer.h row)."
  ],
  "dependency": {
   "name": "chrono",
@@ -144,7 +167,7 @@
   "crate_sha256": "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327",
   "purpose": "Safe host-local calendar fields without native unsafe code, and the proleptic Gregorian day check of injected calendar fields (NaiveDate::from_ymd_opt)"
  },
- "validation_method": "Rust source-derived and independent tests only; no C++ build, runtime differential, or production-generated expectation.",
+ "validation_method": "Rust source-derived and independent tests, plus one executed C++ Release oracle for the process-exit behaviour (../oracle/logstream-exit).",
  "source_revision": "6bfc0e4711105f4eda2fea86812a83af7c7e791f",
  "target_verification": {
   "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
@@ -152,5 +175,12 @@
    "6bfc0e4711105f4eda2fea86812a83af7c7e791f"
   ],
   "source_changes": []
+ },
+ "windows_dependency": {
+  "name": "winapi-util",
+  "version": "0.1.11",
+  "target": "cfg(windows)",
+  "crate_sha256": "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22",
+  "purpose": "GetConsoleMode/SetConsoleMode on the standard handles without unsafe code in this crate (docs/THIRD_PARTY_CRATE_DECISIONS.md)"
  }
 }

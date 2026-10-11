@@ -42,3 +42,20 @@ pub use tool_description::{
 /// `DATASTRUCTURES/ToolInfo.h`).
 pub mod tool_info;
 pub use tool_info::ToolInfo;
+
+/// Isotopic peak clusters with a charge estimate (source
+/// `DATASTRUCTURES/IsotopeCluster.h`).
+pub mod isotope_cluster;
+pub use isotope_cluster::IsotopeCluster;
+
+/// `D`-dimensional closed bounding boxes (source
+/// `DATASTRUCTURES/DBoundingBox.h`).
+pub mod dbounding_box;
+pub use dbounding_box::{DBoundingBox, DBoundingBox1, DBoundingBox2};
+
+/// Matching the elements of two sorted containers in one forward pass (source
+/// `DATASTRUCTURES/MatchedIterator.h`).
+pub mod matched_iterator;
+
+/// Dense column-major matrix (`DATASTRUCTURES/Matrix.h`).
+pub mod matrix;

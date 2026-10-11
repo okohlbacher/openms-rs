@@ -79,6 +79,25 @@ Equality includes mobility format and peak state, correcting their omission in t
 
 Standalone settings do not silently synchronize duplicate scalar fields with an existing kernel spectrum/chromatogram, and they are not implicitly flattened into string metadata. Format support remains governed by each format's documented contract. The [mzML adapter](MZML_SUPPORT.md) preserves its documented precursor subset directly through the kernel record. DTA/MGF writers reject nondefault precursor acquisition fields. Other standalone settings do not implicitly expand file-format coverage.
 
+## Software and Precursor value operations
+
+`Software` derives `Hash` over name, version and CV terms, consistent with its
+equality, which compares all three as the source's `operator==` does; the
+source's `std::hash<Software>` hashes name and version only. The source's
+`operator<` orders by name then version and ignores the CV terms, so it cannot
+be `PartialOrd` without contradicting equality: it is `Software::cmp_name_version`
+for `sort_by`. `Software::new(name, version)` is the two-argument constructor.
+Tests: `tests/software.rs`, every `Software_test.cpp` section.
+
+`Precursor` implements `Hash` over every field (the source's `std::hash<Precursor>`
+covers the same state; the native `isolation_target_mz` and `spectrum_reference`
+are hashed as well because equality compares them). The activation-method string
+lists are `activation_methods_as_names`, `activation_methods_as_short_names`
+(`getActivationMethodsAsString`/`AsShortString`, set order) and the associated
+`all_names_of_activation_methods`, `all_short_names_of_activation_methods`
+(declaration order). Tests: `tests/precursor.rs`. The named enums and
+`ActivationMethod` derive `Hash` for this.
+
 ## Verification and provenance
 
 `tests/metadata.rs` covers source empty/string/list/bool values, exact equality and numeric boundaries, units and string bridges, metadata merge policies, CV append/replace/consume and empty-key behavior, enum names and defaults, precursor mass/isolation/drift conventions, scan/checksum/date validation, source settings-unify expectations, nested errors and the native identification attachment.

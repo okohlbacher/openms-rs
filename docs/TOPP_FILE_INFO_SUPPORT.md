@@ -20,7 +20,7 @@ second half.
 | Tests | `tests/topp_file_info.rs` (33 cases, none ignored) |
 | Fixtures | `tests/data/topp_file_info/` (`inputs/`, `expected/`), plus A4's `tests/data/file_info/` read in place |
 | Manifest | `tests/data/topp_file_info_provenance.json` |
-| Oracle drivers | `../oracle/topp-early-bundle/` (C1) and `../oracle/topp-file-info-tool/` (this package), outside this repository |
+| Oracle drivers | `../oracle/topp-early-bundle/` (C1) and `../oracle/topp-file-info-tool/` (this package), both first run on the macOS Debug product SDK, and their re-run on the Linux Release build, `../oracle/A1-release-rerun/`; all outside this repository |
 
 The tool is thin, as the source is: it registers the parameters, resolves the
 input type, maps the flags onto `format::file_info::model::Options`, and routes
@@ -135,13 +135,21 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    and the loadable `-i` cases use the core `IndexedmzMLFile_1` fixture.
 3. **A forced type the file contradicts.** The source's loaders detect the type
    themselves and throw when it is not the forced one: `ParseError`, exit 3, from
-   `loadExperiment` (oracle `forced_dta_on_featurexml`,
+   `loadExperiment` (`FileHandler.cpp:859-863`; oracle `forced_dta_on_featurexml`,
    `forced_mzml_on_featurexml`) and `InvalidFileType`, exit 8, from `loadFeatures`
-   (oracle `forced_featurexml_on_dta`). The library maps the first to
-   `Error::InvalidValue`, exit 6, and the featureXML branch, which does not pass
-   the forced type to the feature loader, reaches the loader's own refusal,
-   exit 11. Both are recorded in `a_forced_type_the_file_contradicts_is_refused`;
-   closing them belongs to the library (integrator request 2).
+   (oracle `forced_featurexml_on_dta`). The library raises the first as the
+   source does, `type: <detected> is not allowed for loading an experiment.
+   Allowed types are: , <forced> in: <file>`, exit 3, compared with the Release
+   build in `tests/topp_json_ini.rs` (batch 3 of `../oracle/json-ini`; the
+   lifecycle prints it after its `parse error on line 0: `). The featureXML
+   branch checks the detected type against `{FEATUREXML}` as the source's
+   `loadFeatures` call does (`FORMAT/FileInfo.cpp:1084`) and raises the
+   loader's `InvalidFileType`, `Error: Unexpected internal error (the file
+   '<file>' could not be created because the type specified was not valid.
+   type: dta is not allowed for loading features. Allowed types are: ,
+   featureXML)`, exit 8, byte for byte the Release build's line
+   (`fi_forced_featurexml_on_dta` of `../oracle/json-ini`, batch 3; closed by
+   the B0 integration lane, 2026-09-27).
 4. **Validation order.** The framework checks every option before the tool body,
    where the source reads `-in` inside `outputTo_`, after `-out` was opened. A
    run with a missing or empty `-in` therefore leaves no `-out` file here, while
@@ -161,10 +169,15 @@ Every member of the source `TOPPFileInfo` and the behaviour it carries.
    source's own `FileNotWritable` throw is unreachable there because
    `outputFileWritable_` ran first.
 8. **A directory as `-in`** exits 10 here, with the framework's warning and
-   the tool's own refusal, as on the macOS product SDK (oracle
-   `in_is_directory`); the Linux Release build ends in the framework's input
-   check with exit 12 (`fi_undetermined_log`, libstdc++ throws reading the
-   directory; `docs/TOPP_CLI_SUPPORT.md`, *Input checks on a directory*).
+   the tool's own refusal, as on the macOS Debug product SDK (oracle
+   `in_is_directory`). **The Release build exits 12**, in the re-run of that
+   very case (`../oracle/A1-release-rerun`, both repetitions) as in
+   `fi_undetermined_log`: libstdc++'s `basic_filebuf::underflow` throws out of
+   `TextFile::getLine` while `FileHandler::getType` sniffs the directory
+   (`TOPPBase.cpp:1578`, `FileHandler.cpp:402`, `TextFile.cpp:111-149`), and
+   only the initialisation catch takes it (`TOPPBase.cpp:510-513`). This is
+   an open gap of the framework's input check (`src/cli.rs`, `input_path`;
+   `docs/TOPP_CLI_SUPPORT.md`, *Input checks on a directory*), not of the tool.
 9. **`-i` answers with this port's index decoder, which departs from the source
    in two measured places.** Whether a file has an index, and the spectrum and
    chromatogram counts printed on the line above the content, come from
@@ -209,8 +222,16 @@ the produced `-out` file compared with the retained expectation through C3's
 0.01) and the registered whitelist `File name`, as the `_out1` comparisons do.
 _9 runs on the derived input (native difference 2).
 
-Tier 1, executed differential (product-SDK FileInfo, Debug, core `4fdec46`,
-decision D7). The C1 oracle (`../oracle/topp-early-bundle`, manifest
+Tier 1, executed differential. Both oracles below first ran on the macOS
+arm64 product SDK, a Debug build of core `4fdec46` (decision D7); every one of
+their cases was re-executed twice on the C++ Release build at the pins (Linux
+x86_64, ibminode06; `../oracle/A1-release-rerun`, manifest recorded in
+`tests/data/topp_file_info_provenance.json`, `release_verification`). Every
+report, INI, exit code and diagnostic the tests quote is the Release run's; the
+four usage-text streams and the FeatureFinderCentroided_1 output under
+`tests/data/topp_file_info/` are now the Release run's own files; the Debug-only
+`XMLHandler` warnings of the product SDK do not occur in Release; the one exit
+code that differs is item 8 above. The C1 oracle (`../oracle/topp-early-bundle`, manifest
 `64e98543…`, run1) supplies the reports of FileInfo_1/2/3/9 with `-out_tsv`, the
 empty featureXML and mzML, both FeatureFinderCentroided_1 outputs and the
 `rep.dat` run, plus the exit codes and diagnostics of the unknown type, `-i` on

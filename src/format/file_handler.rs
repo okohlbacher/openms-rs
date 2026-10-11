@@ -10,10 +10,17 @@
 //! source's name-then-content type detection, and the `*_with_options` loaders
 //! hand the source's `PeakFileOptions` and `FeatureFileOptions` to the native
 //! readers. `docs/MZML_MOBILITY_SUPPORT.md` records the API mapping and the
-//! executed C++ comparison.
+//! executed C++ comparison. [`FileHandler::load_experiment_with_progress`]
+//! takes the rest of source `loadExperiment`'s arguments (the log type,
+//! `rewrite_source_file`, `compute_hash`); every mzML load ends with the
+//! source's SRM conversion. `docs/FILE_HANDLER_SUPPORT.md` has the member
+//! ledger, the Release-build evidence and the remaining gaps.
 
 use super::file_types::{consistent_output_type, type_by_file_name};
 use super::{FileType, PeakFileOptions, dta, mgf};
+use crate::concept::progress_logger::ProgressLogger;
+use crate::kernel::{ChromatogramConversionLimits, ChromatogramTools, MSChromatogram, MSSpectrum};
+use crate::metadata::{ChecksumType, ScanMode, SourceFile};
 use crate::{Error, MSExperiment, Result};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::Path;
@@ -21,6 +28,31 @@ use std::path::Path;
 /// Bytes read for bounded content recognition; [`type_by_content`] examines at
 /// most this many.
 const SNIFF_BYTES: u64 = 65_536;
+
+/// The arguments of source `FileHandler::loadExperiment` beyond the file name,
+/// the allowed types and the log type, together with the handler's
+/// `PeakFileOptions` (`FileHandler.h:164-179`).
+///
+/// [`FileHandler::load_experiment_with_progress`] takes these; the default is
+/// the source's default call: default options, no rewriting, no hash.
+#[derive(Clone, Debug, Default)]
+pub struct ExperimentLoadOptions {
+    /// The handler's `getOptions()`, handed to the readers the source hands
+    /// them to: mzML, mzXML and mzData take all they consume, DTA2D its three
+    /// ranges, and DTA, MGF and MS2 none.
+    pub peaks: PeakFileOptions,
+    /// The native mzML reader's limits and source-compatibility switches, with
+    /// no source counterpart; the strict default unless a caller opts in.
+    #[cfg(feature = "mzml")]
+    pub mzml: super::mzml::ReadOptions,
+    /// Source `rewrite_source_file`: replace the experiment's source files by
+    /// one record naming the loaded file, as
+    /// [`FileHandler::load_experiment_with_progress`] describes.
+    pub rewrite_source_file: bool,
+    /// Source `compute_hash`: with `rewrite_source_file`, record the loaded
+    /// file's SHA-1 ([`FileHandler::compute_file_hash`]) in that record.
+    pub compute_hash: bool,
+}
 
 /// Native reader/writer dispatch; unsupported formats return explicit errors.
 pub struct FileHandler;
@@ -74,6 +106,12 @@ impl FileHandler {
 
     /// Known extensions take precedence; unknown extensions use bounded content
     /// recognition. An empty allowed list accepts every compiled adapter.
+    ///
+    /// # Errors
+    ///
+    /// A detected type outside a nonempty `allowed` list is [`Error::Parse`]
+    /// with the text of the source's `ParseError` (`FileHandler.cpp:1518-1523`);
+    /// any type but idXML is [`Error::Unsupported`].
     #[cfg(feature = "idxml")]
     pub fn load_identifications(
         path: impl AsRef<Path>,
@@ -113,7 +151,7 @@ impl FileHandler {
     }
 
     /// Whether a native experiment reader exists for `kind`: DTA, MGF, DTA2D
-    /// and MS2 always, mzML with the `mzml` feature.
+    /// and MS2 always, mzML, mzXML and mzData with the `mzml` feature.
     ///
     /// This is native availability in this build, not the source capabilities
     /// that [`FileType::source_properties`] lists.
@@ -121,11 +159,13 @@ impl FileHandler {
         matches!(
             kind,
             FileType::Dta | FileType::Mgf | FileType::Dta2d | FileType::Ms2
-        ) || (kind == FileType::MzMl && cfg!(feature = "mzml"))
+        ) || (matches!(kind, FileType::MzMl | FileType::MzXml | FileType::MzData)
+            && cfg!(feature = "mzml"))
     }
 
-    /// Whether a native experiment writer exists for `kind`; the same adapter
-    /// set as [`FileHandler::can_read_experiment`].
+    /// Whether a native experiment writer exists for `kind`: DTA, MGF, DTA2D
+    /// and MS2 always, mzML with the `mzml` feature. mzXML and mzData are read
+    /// but not yet written through this dispatch.
     pub fn can_write_experiment(kind: FileType) -> bool {
         matches!(
             kind,
@@ -145,6 +185,10 @@ impl FileHandler {
             FileType::Ms2 => super::ms2::read(reader),
             #[cfg(feature = "mzml")]
             FileType::MzMl => super::mzml::read(reader),
+            #[cfg(feature = "mzml")]
+            FileType::MzXml => super::mzxml::read(reader),
+            #[cfg(feature = "mzml")]
+            FileType::MzData => super::mzdata::read(reader),
             _ => Err(unsupported(kind, "reading")),
         }
     }
@@ -226,13 +270,22 @@ impl FileHandler {
     /// Gzip and bzip2 containers use the optional `file-compression` feature.
     /// mzML keeps the stream reader's input order; use
     /// [`FileHandler::load_experiment_with_options`] for source loading options.
+    ///
+    /// An mzML input then has its SRM spectra moved into chromatograms, as
+    /// every source `loadExperiment` does (`FileHandler.cpp:910`); see
+    /// [`FileHandler::load_experiment_with_progress`].
+    ///
+    /// # Errors
+    ///
+    /// A detected type outside a nonempty `allowed` list is the source's
+    /// `ParseError`, as for [`FileHandler::load_experiment_with_options`].
     pub fn load_experiment(path: impl AsRef<Path>, allowed: &[FileType]) -> Result<MSExperiment> {
         let path = path.as_ref();
         let kind = type_by_file_name(path.to_str().unwrap_or(""));
         let mut document = crate::metadata::DocumentIdentifier::new();
         document.set_loaded_file_path(filename(path)?)?;
         document.set_loaded_file_type(path)?;
-        let mut result = load_stream(super::path_io::open(path)?, kind, allowed)?;
+        let mut result = load_stream(super::path_io::open(path)?, kind, allowed, filename(path)?)?;
         result.settings.document.loaded_file_path = document.loaded_file_path;
         result.settings.document.loaded_file_type = document.loaded_file_type;
         Ok(result)
@@ -253,6 +306,9 @@ impl FileHandler {
     ///   takes explicit ones. Unlike [`FileHandler::load_experiment`] this
     ///   applies the source's scientific defaults, including sorting peaks by
     ///   m/z.
+    /// - mzXML and mzData: every option their readers consume
+    ///   (`docs/MZXML_SUPPORT.md`, `docs/MZDATA_SUPPORT.md`), with default
+    ///   resource limits.
     /// - DTA2D: the retention-time, m/z and intensity ranges, the only options
     ///   `DTA2DFile::load` consumes.
     /// - DTA, MGF and MS2: none, exactly as the source ignores them there.
@@ -265,15 +321,18 @@ impl FileHandler {
     /// non-finite values before any filter runs.
     ///
     /// The source's mzML branch finally moves SRM spectra into chromatograms
-    /// (`ChromatogramTools::convertSpectraToChromatograms`). This loader does
-    /// not, like [`FileHandler::load_experiment`]; the support document records
-    /// the gap.
+    /// (`ChromatogramTools::convertSpectraToChromatograms`, `:910`), and so
+    /// does this loader, as [`FileHandler::load_experiment_with_progress`]
+    /// describes. No progress is reported and the source files are kept as
+    /// read; that entry point takes the source's log type,
+    /// `rewrite_source_file` and `compute_hash`.
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the detected type is not in a
-    /// nonempty `allowed` list, where the source throws
-    /// `Exception::ParseError`; [`Error::Unsupported`] for a type without a
+    /// Returns [`Error::Parse`] with the source's `ParseError` text when the
+    /// detected type is not in a nonempty `allowed` list (`type: <detected> is
+    /// not allowed for loading an experiment. Allowed types are: , <allowed>
+    /// in: <file>`, `FileHandler.cpp:859-863`); [`Error::Unsupported`] for a type without a
     /// native adapter; and the reader's error for malformed input, options the
     /// reader cannot execute, DTA2D ranges without finite ordered endpoints, or
     /// exceeded limits.
@@ -282,7 +341,112 @@ impl FileHandler {
         allowed: &[FileType],
         options: &PeakFileOptions,
     ) -> Result<MSExperiment> {
-        load_experiment_from(path.as_ref(), allowed, options, &MzMlReadOptions::default())
+        let options = ExperimentLoadOptions {
+            peaks: options.clone(),
+            ..Default::default()
+        };
+        load_experiment_from(path.as_ref(), allowed, &options, None)
+    }
+
+    /// Load an experiment as source `FileHandler::loadExperiment` does with
+    /// all of its arguments (`FileHandler.cpp:849-1052`).
+    ///
+    /// The type is detected, checked against a nonempty `allowed` list and
+    /// read with `options.peaks` exactly as for
+    /// [`FileHandler::load_experiment_with_options`]. Then:
+    ///
+    /// - **Log type.** The source hands each file object only
+    ///   `setLogType(log)`. Here the reader reports to a copy of `logger` made
+    ///   as [`ProgressLogger::clone`] makes one: a fresh backend of its type
+    ///   that shares its clock, nesting and GUI factory. mzML, mzXML, mzData
+    ///   and DTA2D make their readers' calls (`mzml::load_with_progress`,
+    ///   `mzxml::load_with_progress`, `mzdata::load_with_progress`,
+    ///   `dta2d::read_with_progress`). DTA and MS2 make none, as `DTAFile` and
+    ///   `MS2File::load` make none in the source. MGF makes none either, where
+    ///   the source's `MascotGenericFile::load` reports its section: the
+    ///   native MGF dispatch is a different reader, and the support document
+    ///   records the gap. A `.dta2d` file that cannot be opened fails before
+    ///   its section starts, where the source starts it first.
+    /// - **SRM conversion.** An mzML input then has its SRM spectra moved into
+    ///   chromatograms: `ChromatogramTools().convertSpectraToChromatograms(exp,
+    ///   true)` (`:910`). Spectra whose scan mode is
+    ///   [`ScanMode::SelectedReactionMonitoring`] are removed, and those with
+    ///   one precursor and at least one peak become one chromatogram per
+    ///   precursor and product m/z. Each removed SRM spectrum that cannot be
+    ///   converted writes the source's `ChromatogramTools: need exactly one
+    ///   precursor ...` line to the warning log. An experiment without SRM
+    ///   spectra is untouched. The conversion's own output is bounded by
+    ///   [`ChromatogramConversionLimits`]' defaults, raised only by what moving
+    ///   the already loaded records costs.
+    /// - **`rewrite_source_file`** (`:1014-1051`). The first source file is
+    ///   kept, or a default one when there is none, with the warning `No source
+    ///   file annotated.`; more than one warns `Expecting a single source file
+    ///   in mzML. Found N will take only first one for rewriting.` Its name
+    ///   becomes the basename of `path` after trailing `/` and `\` are
+    ///   stripped, its path `file://` followed by the directory of
+    ///   [`crate::system::file::absolute_path`] of that name (`file:///` when
+    ///   the directory does not start with `/`), and its file type the mzML
+    ///   term of the detected type ([`FileType::mzml_name`]). Everything else
+    ///   the record carried, its checksum included, stays. It then replaces all
+    ///   source files.
+    /// - **`compute_hash`**: that record's checksum becomes
+    ///   [`FileHandler::compute_file_hash`] of `path` with type
+    ///   [`ChecksumType::Sha1`].
+    ///
+    /// Warnings go to the global warning log
+    /// ([`crate::concept::log_stream::LogLevel::Warn`]), as the source's go to
+    /// `OPENMS_LOG_WARN`.
+    ///
+    /// # Errors
+    ///
+    /// As [`FileHandler::load_experiment_with_options`], plus the progress
+    /// calls' errors. [`Error::InvalidValue`] when `compute_hash` is set
+    /// without `rewrite_source_file`, the source's debug-build precondition
+    /// (a release build ignores the flag then), or when the absolute path is
+    /// not UTF-8. [`Error::Unsupported`] for `compute_hash` without the `mzml`
+    /// feature, which carries the SHA-1 implementation. The SRM conversion's
+    /// errors for non-finite values or exceeded ceilings; the source has
+    /// neither check.
+    pub fn load_experiment_with_progress(
+        path: impl AsRef<Path>,
+        allowed: &[FileType],
+        options: &ExperimentLoadOptions,
+        logger: &ProgressLogger,
+    ) -> Result<MSExperiment> {
+        load_experiment_from(path.as_ref(), allowed, options, Some(logger))
+    }
+
+    /// The SHA-1 of the file's bytes as 40 lowercase hexadecimal digits.
+    ///
+    /// Source `FileHandler::computeFileHash` (`FileHandler.cpp:768-778`),
+    /// which hashes the file as stored, so a compressed file's digest is that
+    /// of its compressed bytes. As in the source, a file that cannot be opened
+    /// yields the empty string, and a read that fails ends the input: the
+    /// result is the digest of the bytes read before it. A directory opens and
+    /// then fails its first read, so its digest is that of no input, as the
+    /// Release build reports (`tests/file_handler_load.rs`).
+    #[cfg(feature = "mzml")]
+    pub fn compute_file_hash(path: impl AsRef<Path>) -> String {
+        use sha1::{Digest, Sha1};
+        let Ok(mut file) = std::fs::File::open(path) else {
+            return String::new();
+        };
+        let mut hasher = Sha1::new();
+        let mut buffer = [0u8; 8192];
+        loop {
+            match file.read(&mut buffer) {
+                Ok(0) => break,
+                Ok(read) => hasher.update(&buffer[..read]),
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => {}
+                // FileHandler.cpp:182-185: the loop ends when a read fails.
+                Err(_) => break,
+            }
+        }
+        hasher
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
     }
 
     /// Load an experiment with explicit source `PeakFileOptions` and explicit
@@ -307,7 +471,12 @@ impl FileHandler {
         options: &PeakFileOptions,
         read: &super::mzml::ReadOptions,
     ) -> Result<MSExperiment> {
-        load_experiment_from(path.as_ref(), allowed, options, read)
+        let options = ExperimentLoadOptions {
+            peaks: options.clone(),
+            mzml: *read,
+            ..Default::default()
+        };
+        load_experiment_from(path.as_ref(), allowed, &options, None)
     }
 
     /// Store to a sibling temporary file, replacing the destination only after
@@ -377,9 +546,10 @@ impl FileHandler {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the type is not in a nonempty
-    /// `allowed` list, [`Error::Unsupported`] for any type but featureXML, and
-    /// the reader's error for malformed input.
+    /// Returns [`Error::InvalidValue`] with the text of the source's
+    /// `InvalidFileType` when the type is not in a nonempty `allowed` list
+    /// (`FileHandler.cpp:1257-1262`), [`Error::Unsupported`] for any type but
+    /// featureXML, and the reader's error for malformed input.
     pub fn load_feature_map(
         path: impl AsRef<Path>,
         allowed: &[FileType],
@@ -494,9 +664,10 @@ impl FileHandler {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when the type is not in a nonempty
-    /// `allowed` list, [`Error::Unsupported`] for any type but consensusXML,
-    /// and the reader's error for malformed input.
+    /// Returns [`Error::Parse`] with the text of the source's `ParseError` when
+    /// the type is not in a nonempty `allowed` list (`FileHandler.cpp:1405-1410`),
+    /// [`Error::Unsupported`] for any type but consensusXML, and the reader's
+    /// error for malformed input.
     pub fn load_consensus_map(
         path: impl AsRef<Path>,
         allowed: &[FileType],
@@ -550,31 +721,87 @@ fn load_stream(
     mut reader: impl BufRead,
     kind: FileType,
     allowed: &[FileType],
+    file: &str,
 ) -> Result<MSExperiment> {
-    if kind != FileType::Unknown {
-        check_allowed(kind, allowed)?;
-        return FileHandler::read_experiment(reader, kind);
+    let (kind, mut experiment) = if kind != FileType::Unknown {
+        check_allowed(kind, allowed, file, LoadTarget::Experiment)?;
+        (kind, FileHandler::read_experiment(reader, kind)?)
+    } else {
+        let mut preview = Vec::new();
+        // The same bytes are replayed to the parser. This also works with nonseekable
+        // decompression streams and caps both sniffing memory and decompression work.
+        reader
+            .by_ref()
+            .take(SNIFF_BYTES)
+            .read_to_end(&mut preview)?;
+        let kind = type_by_content(&preview);
+        check_allowed(kind, allowed, file, LoadTarget::Experiment)?;
+        let experiment =
+            FileHandler::read_experiment(BufReader::new(preview.as_slice().chain(reader)), kind)?;
+        (kind, experiment)
+    };
+    if kind == FileType::MzMl {
+        convert_srm_spectra(&mut experiment)?;
     }
-    let mut preview = Vec::new();
-    // The same bytes are replayed to the parser. This also works with nonseekable
-    // decompression streams and caps both sniffing memory and decompression work.
-    reader
-        .by_ref()
-        .take(SNIFF_BYTES)
-        .read_to_end(&mut preview)?;
-    let kind = type_by_content(&preview);
-    check_allowed(kind, allowed)?;
-    FileHandler::read_experiment(BufReader::new(preview.as_slice().chain(reader)), kind)
+    Ok(experiment)
 }
 
-fn check_allowed(kind: FileType, allowed: &[FileType]) -> Result<()> {
-    if !allowed.is_empty() && !allowed.contains(&kind) {
-        return Err(Error::InvalidValue(format!(
-            "{} is not an allowed input format",
-            kind.name()
-        )));
+/// What a load was asked for; it names the source's refusal of a detected
+/// type outside the allowed list.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum LoadTarget {
+    /// `loadExperiment`.
+    Experiment,
+    /// `loadFeatures`.
+    Features,
+    /// `loadConsensusFeatures`.
+    ConsensusFeatures,
+    /// `loadIdentifications`.
+    Identifications,
+}
+
+/// The source's refusal of a detected type outside a nonempty `allowed`
+/// list, raised before the file is read: `type: <detected> is not allowed for
+/// loading <what>. Allowed types are: , <a>, <b>`, the list as the source's
+/// `allowedToString_` writes it (`FileHandler.cpp:191-202`), each name the
+/// type's [`FileType::name`] and `file` the name the caller passed.
+///
+/// An experiment (`FileHandler.cpp:859-863`), a consensus map (`:1405-1410`,
+/// `loading consensus features, Allowed`) and identifications (`:1518-1523`,
+/// `loading identifications, Allowed`) are refused with `ParseError`, whose
+/// `what()` appends ` in: <file>`: [`Error::Parse`] with that text, which a
+/// TOPP tool reports as the source's `ParseError` arm does, exit 3. Features
+/// (`:1257-1262`) are refused with `InvalidFileType`, whose `what()` is `the
+/// file '<file>' could not be created because the type specified was not
+/// valid. <message>` (`Exception.cpp:241-243`): [`Error::InvalidValue`] with
+/// that text, which a tool reports as the source's `BaseException` arm does,
+/// exit 8.
+pub(crate) fn check_allowed(
+    kind: FileType,
+    allowed: &[FileType],
+    file: &str,
+    target: LoadTarget,
+) -> Result<()> {
+    if allowed.is_empty() || allowed.contains(&kind) {
+        return Ok(());
     }
-    Ok(())
+    let list: String = allowed
+        .iter()
+        .map(|allowed| format!(", {}", allowed.name()))
+        .collect();
+    let name = kind.name();
+    let parse = |what: &str| Error::Parse {
+        line: 0,
+        message: format!("type: {name} is not allowed for loading {what}{list} in: {file}"),
+    };
+    Err(match target {
+        LoadTarget::Experiment => parse("an experiment. Allowed types are: "),
+        LoadTarget::ConsensusFeatures => parse("consensus features, Allowed types are: "),
+        LoadTarget::Identifications => parse("identifications, Allowed types are: "),
+        LoadTarget::Features => Error::InvalidValue(format!(
+            "the file '{file}' could not be created because the type specified was not valid. type: {name} is not allowed for loading features. Allowed types are: {list}"
+        )),
+    })
 }
 
 /// Bounded content recognition for common SDK interchange types. This is a
@@ -716,46 +943,207 @@ fn filename(path: &Path) -> Result<&str> {
         .ok_or_else(|| Error::InvalidValue("filename must be UTF-8".into()))
 }
 
-/// The mzML reader options [`load_experiment_from`] hands the mzML adapter, and
-/// nothing when that adapter is not compiled in.
-#[cfg(feature = "mzml")]
-type MzMlReadOptions = super::mzml::ReadOptions;
-#[cfg(not(feature = "mzml"))]
-type MzMlReadOptions = ();
-
-/// The body of [`FileHandler::load_experiment_with_options`] and
-/// [`FileHandler::load_experiment_with_read_options`].
-#[cfg_attr(not(feature = "mzml"), allow(unused_variables))]
+/// The body of [`FileHandler::load_experiment_with_options`],
+/// [`FileHandler::load_experiment_with_read_options`] and, with a logger,
+/// [`FileHandler::load_experiment_with_progress`].
 fn load_experiment_from(
     path: &Path,
     allowed: &[FileType],
-    options: &PeakFileOptions,
-    read: &MzMlReadOptions,
+    options: &ExperimentLoadOptions,
+    logger: Option<&ProgressLogger>,
 ) -> Result<MSExperiment> {
+    let text = filename(path)?;
+    if options.compute_hash && !options.rewrite_source_file {
+        return Err(Error::InvalidValue(
+            "compute_hash requires rewrite_source_file: the checksum is stored in the rewritten source file".into(),
+        ));
+    }
+    if options.compute_hash && cfg!(not(feature = "mzml")) {
+        return Err(Error::Unsupported(
+            "source-file SHA-1 checksums need the `mzml` feature".into(),
+        ));
+    }
     let mut document = crate::metadata::DocumentIdentifier::new();
-    document.set_loaded_file_path(filename(path)?)?;
+    document.set_loaded_file_path(text)?;
     document.set_loaded_file_type(path)?;
     let (kind, reader) = detect(path)?;
-    check_allowed(kind, allowed)?;
+    check_allowed(kind, allowed, text, LoadTarget::Experiment)?;
+    // Source `f.setLogType(log)` on a fresh file object: the reader reports to
+    // a copy of the caller's logger with a fresh backend of the same type.
+    let mut file_logger = logger.cloned();
     let mut result = match kind {
         #[cfg(feature = "mzml")]
-        FileType::MzMl => super::mzml::read_with_load_options(
-            reader,
-            &super::mzml::LoadOptions {
-                scientific: options.clone(),
+        FileType::MzMl => {
+            let load = super::mzml::LoadOptions {
+                scientific: options.peaks.clone(),
                 ..Default::default()
-            },
-            read,
-        )?,
-        FileType::Dta2d => super::dta2d::read_with_options(reader, &dta2d_options(options))?,
+            };
+            match file_logger.as_mut() {
+                Some(logger) => {
+                    drop(reader);
+                    super::mzml::load_with_progress(path, &load, &options.mzml, logger)?
+                }
+                None => super::mzml::read_with_load_options(reader, &load, &options.mzml)?,
+            }
+        }
+        #[cfg(feature = "mzml")]
+        FileType::MzXml => {
+            let read = super::mzxml::ReadOptions {
+                peaks: options.peaks.clone(),
+                ..Default::default()
+            };
+            match file_logger.as_mut() {
+                Some(logger) => {
+                    drop(reader);
+                    super::mzxml::load_with_progress(path, &read, logger)?
+                }
+                None => super::mzxml::read_with_options(reader, &read)?,
+            }
+        }
+        #[cfg(feature = "mzml")]
+        FileType::MzData => {
+            let limits = super::mzdata::ReadLimits::default();
+            match file_logger.as_mut() {
+                Some(logger) => {
+                    drop(reader);
+                    super::mzdata::load_with_progress(path, &options.peaks, &limits, logger)?
+                }
+                None => super::mzdata::read_with_options(reader, &options.peaks, &limits)?,
+            }
+            .experiment
+        }
+        FileType::Dta2d => {
+            let read = dta2d_options(&options.peaks);
+            match file_logger.as_mut() {
+                Some(logger) => super::dta2d::read_with_progress(reader, &read, logger)?,
+                None => super::dta2d::read_with_options(reader, &read)?,
+            }
+        }
         FileType::Dta | FileType::Mgf | FileType::Ms2 => {
             FileHandler::read_experiment(reader, kind)?
         }
         _ => return Err(unsupported(kind, "reading")),
     };
+    if kind == FileType::MzMl {
+        convert_srm_spectra(&mut result)?;
+    }
     result.settings.document.loaded_file_path = document.loaded_file_path;
     result.settings.document.loaded_file_type = document.loaded_file_type;
+    if options.rewrite_source_file {
+        rewrite_source_file(&mut result, text, kind, options.compute_hash)?;
+    }
     Ok(result)
+}
+
+/// Source `ChromatogramTools().convertSpectraToChromatograms<PeakMap>(exp,
+/// true)`, the last step of every mzML load (`FileHandler.cpp:910`,
+/// `KERNEL/ChromatogramTools.h:110-215`).
+///
+/// An experiment without SRM spectra is left alone, which is what the source
+/// conversion does with it too, and costs one scan. Otherwise the conversion
+/// runs with the default [`ChromatogramConversionLimits`] for its own output,
+/// raised by the cost of scanning and moving the records already loaded, so
+/// that a large experiment with a few SRM spectra is not refused for its size.
+fn convert_srm_spectra(experiment: &mut MSExperiment) -> Result<()> {
+    let is_srm = |spectrum: &&MSSpectrum| {
+        spectrum.instrument_settings.scan_mode == ScanMode::SelectedReactionMonitoring
+    };
+    if !experiment.spectra.iter().any(|spectrum| is_srm(&spectrum)) {
+        return Ok(());
+    }
+    // ChromatogramTools.h:162-166: every selected SRM spectrum without exactly
+    // one precursor and at least one peak is skipped with this warning, in
+    // experiment order, before any chromatogram is added.
+    for spectrum in experiment.spectra.iter().filter(is_srm) {
+        if spectrum.precursors.len() != 1 || spectrum.peaks.is_empty() {
+            let _ = crate::concept::log_stream::log_message(
+                crate::concept::log_stream::LogLevel::Warn,
+                format_args!(
+                    "ChromatogramTools: need exactly one precursor (given {}) and one or more product ions ({}), skipping conversion of this spectrum to chromatogram. If this is a MS1 chromatogram, please force conversion (e.g. with -convert_to_chromatograms).",
+                    spectrum.precursors.len(),
+                    spectrum.peaks.len()
+                ),
+            );
+        }
+    }
+    let defaults = ChromatogramConversionLimits::default();
+    let spectra = experiment.spectra.len();
+    let chromatograms = experiment.chromatograms.len();
+    let moved_bytes = spectra
+        .saturating_mul(std::mem::size_of::<MSSpectrum>())
+        .saturating_add(chromatograms.saturating_mul(std::mem::size_of::<MSChromatogram>()));
+    let limits = ChromatogramConversionLimits {
+        max_input_records: defaults.max_input_records.max(spectra),
+        max_output_records: defaults.max_output_records.saturating_add(chromatograms),
+        max_points: defaults.max_points,
+        max_work: defaults
+            .max_work
+            .saturating_add(spectra.saturating_mul(3))
+            .saturating_add(chromatograms),
+        max_bytes: defaults.max_bytes.saturating_add(moved_bytes),
+    };
+    ChromatogramTools { limits }.convert_spectra_to_chromatograms(experiment, true, false)?;
+    Ok(())
+}
+
+/// Source `loadExperiment`'s `rewrite_source_file` branch
+/// (`FileHandler.cpp:1014-1051`); `file` is the name the caller passed.
+fn rewrite_source_file(
+    experiment: &mut MSExperiment,
+    file: &str,
+    kind: FileType,
+    compute_hash: bool,
+) -> Result<()> {
+    let warn = |message: std::fmt::Arguments<'_>| {
+        let _ = crate::concept::log_stream::log_message(
+            crate::concept::log_stream::LogLevel::Warn,
+            message,
+        );
+    };
+    let sources = &experiment.settings.source_files;
+    let mut source = match sources.first() {
+        None => {
+            warn(format_args!("No source file annotated."));
+            SourceFile::default()
+        }
+        Some(first) => {
+            if sources.len() > 1 {
+                warn(format_args!(
+                    "Expecting a single source file in mzML. Found {} will take only first one for rewriting.",
+                    sources.len()
+                ));
+            }
+            first.clone()
+        }
+    };
+    let normalized = file.trim_end_matches(['/', '\\']);
+    source.name = crate::system::file::basename(normalized).to_owned();
+    let absolute = crate::system::file::absolute_path(normalized)?;
+    let absolute = absolute.to_str().ok_or_else(|| {
+        Error::InvalidValue("absolute path of the loaded file is not UTF-8".into())
+    })?;
+    // `std::filesystem::path::generic_string` writes `/` on every platform.
+    let absolute = if cfg!(windows) {
+        absolute.replace('\\', "/")
+    } else {
+        absolute.to_owned()
+    };
+    let directory = crate::system::file::path(&absolute);
+    source.path = if directory.starts_with('/') {
+        format!("file://{directory}")
+    } else {
+        format!("file:///{directory}")
+    };
+    source.file_type = kind.mzml_name().to_owned();
+    #[cfg(feature = "mzml")]
+    if compute_hash && kind != FileType::BrukerTdf {
+        source.checksum = FileHandler::compute_file_hash(file);
+        source.checksum_type = ChecksumType::Sha1;
+    }
+    #[cfg(not(feature = "mzml"))]
+    let _ = (compute_hash, ChecksumType::Sha1);
+    experiment.settings.source_files = vec![source];
+    Ok(())
 }
 
 /// Name-based type, else bounded content recognition over replayed bytes, so
@@ -777,7 +1165,12 @@ fn detect(path: &Path) -> Result<(FileType, Box<dyn BufRead>)> {
 
 fn typed_input(path: &Path, allowed: &[FileType], expected: FileType) -> Result<Box<dyn BufRead>> {
     let (kind, reader) = detect(path)?;
-    check_allowed(kind, allowed)?;
+    let target = match expected {
+        FileType::FeatureXml => LoadTarget::Features,
+        FileType::ConsensusXml => LoadTarget::ConsensusFeatures,
+        _ => LoadTarget::Identifications,
+    };
+    check_allowed(kind, allowed, filename(path)?, target)?;
     if kind != expected {
         return Err(Error::Unsupported(format!(
             "expected {} input, found {}",

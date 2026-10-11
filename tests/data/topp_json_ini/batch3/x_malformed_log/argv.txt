@@ -1,0 +1,9 @@
+PeakPickerHiRes
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/malformed.ini
+-in
+/x/in.mzML
+-out
+/x/out.mzML
+-log
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results3/x_malformed_log/cwd/log.txt

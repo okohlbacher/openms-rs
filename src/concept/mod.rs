@@ -20,3 +20,30 @@ pub mod parallel;
 pub mod progress_logger;
 pub mod unique_id;
 pub use unique_id::{HasUniqueId, UniqueId, UniqueIdGenerator};
+/// Colored and styled console text, from `CONCEPT/Colorizer.h`.
+pub mod colorizer;
+/// Enums shared across the library, from `CONCEPT/CommonEnums.h`: plotting-axis
+/// units and m/z tolerance units with their name tables.
+pub mod common_enums;
+/// FNV-1a hashing and golden-ratio hash combining, from `CONCEPT/HashUtils.h`.
+pub mod hash_utils;
+/// Named critical sections and the condition macros, from `CONCEPT/Macros.h`.
+pub mod macros;
+/// Locale-independent decimal text for floating-point values, from
+/// `CONCEPT/Detail/NumericFormatting.h`: the rules behind every
+/// `StringUtils::toStr` of a float.
+pub mod numeric_formatting;
+/// Output of a floating-point value with appropriate precision, from
+/// `CONCEPT/PrecisionWrapper.h`.
+pub mod precision_wrapper;
+/// Basic type aliases, ASCII codes and output precisions, from `CONCEPT/Types.h`.
+pub mod types;
+/// A cached unique id to index map for containers of elements with unique
+/// ids, from `CONCEPT/UniqueIdIndexer.h`.
+pub mod unique_id_indexer;
+/// Release version of the library and its parsed form, from
+/// `CONCEPT/VersionInfo.h`.
+pub mod version_info;
+
+/// `StringUtils::toInt32`/`toDouble` for the layers below `cli`.
+pub(crate) mod string_conversion;

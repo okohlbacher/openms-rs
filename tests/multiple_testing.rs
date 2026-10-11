@@ -15,19 +15,21 @@
 //!
 //! Where a value can be derived, it is, and the comment says so.
 //!
-//! The smoothing spline that `pi0_est` needs is supplied here, through
-//! `Pi0Smoother`, by the crate's port of `BSplineSmoothingSpline`. That is the
-//! seam `src/math/multiple_testing.rs` describes: `math` may not depend on
-//! `processing`, so the composition happens in this test and in whatever
-//! caller assembles the two. Reproducing the class test's pi0 literals through
-//! it is what shows the seam carries the source's behaviour.
+//! The smoothing spline that `pi0_est` needs is supplied, through
+//! `Pi0Smoother`, by `processing::spline::pi0_smoother::SplinePi0Smoother`, the
+//! library adapter over the crate's port of `BSplineSmoothingSpline`. That is
+//! the seam `src/math/multiple_testing.rs` describes: `math` may not depend on
+//! `processing`, so the composition happens one layer up. Reproducing the class
+//! test's pi0 literals through it, and through `pi0_est_smoothed` with the
+//! source's own argument lists, is what shows the seam carries the source's
+//! behaviour.
 
 use openms::Error;
 use openms::math::multiple_testing::{
-    DEFAULT_SMOOTH_DF, LfdrOptions, LfdrTransform, Pi0Method, Pi0Smoother, compute_model_fdr, lfdr,
-    p_emp, p_norm, pi0_est, q_value,
+    DEFAULT_SMOOTH_DF, LfdrOptions, LfdrTransform, Pi0Method, compute_model_fdr, lfdr, p_emp,
+    p_norm, pi0_est, q_value,
 };
-use openms::processing::spline::smoothing::BSplineSmoothingSpline;
+use openms::processing::spline::pi0_smoother::{SplinePi0Smoother, pi0_est_smoothed};
 use std::path::{Path, PathBuf};
 
 fn data(name: &str) -> PathBuf {
@@ -45,17 +47,10 @@ fn similar(actual: f64, expected: f64) {
     );
 }
 
-/// The source's `BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df)` followed
-/// by `spl.eval(max_lambda)`, with `!spl.ok()` mapped to `None`.
-struct BSplineSmoother;
-
-impl Pi0Smoother for BSplineSmoother {
-    fn smooth_eval(&self, x: &[f64], y: &[f64], smooth_df: i32, at: f64) -> Option<f64> {
-        BSplineSmoothingSpline::with_smoothing(x, y, -1.0, smooth_df)
-            .ok()
-            .and_then(|spline| spline.eval(at).ok())
-    }
-}
+/// The library's `Pi0Smoother`: the source's
+/// `BSplineSmoothingSpline spl(xs, ys, -1.0, smooth_df)` followed by
+/// `spl.eval(max_lambda)`, with `!spl.ok()` mapped to `None`.
+const BSPLINE_SMOOTHER: SplinePi0Smoother = SplinePi0Smoother;
 
 fn read_column(path: &Path, column: usize) -> Vec<f64> {
     let text = std::fs::read_to_string(path).unwrap();
@@ -347,7 +342,7 @@ fn section_pi0_est_pyprophet_checks() {
         Pi0Method::Smoother,
         DEFAULT_SMOOTH_DF,
         false,
-        Some(&BSplineSmoother),
+        Some(&BSPLINE_SMOOTHER),
     )
     .unwrap();
     similar(smoothed.pi0, 0.6685638);
@@ -370,7 +365,7 @@ fn section_pi0_est_pyprophet_checks() {
         Pi0Method::Smoother,
         DEFAULT_SMOOTH_DF,
         true,
-        Some(&BSplineSmoother),
+        Some(&BSPLINE_SMOOTHER),
     )
     .unwrap();
     similar(log_smoothed.pi0, 0.6658949);
@@ -425,6 +420,115 @@ fn section_pi0_est_pyprophet_checks() {
             .iter()
             .any(|v| v.min(1.0) == bootstrap.pi0)
     );
+}
+
+// L244-255, the same three calls with the source's own argument lists: the
+// library entry point constructs the spline itself, as `pi0Est` does.
+#[test]
+fn section_pi0_est_pyprophet_checks_through_the_source_signature() {
+    let mut p = read_column(&data("test_lfdr_ref_data.csv"), 0);
+    p.sort_by(f64::total_cmp);
+
+    // `pi0Est(pvec, std::vector<double>{0.4})`
+    let res1 = pi0_est_smoothed(&p, &[0.4], Pi0Method::Smoother, DEFAULT_SMOOTH_DF, false).unwrap();
+    similar(res1.pi0, 0.697161);
+
+    // `pi0Est(pvec)`: every default, which is the call a `None` smoother cannot make.
+    let res2 = pi0_est_smoothed(&p, &[], Pi0Method::Smoother, DEFAULT_SMOOTH_DF, false).unwrap();
+    similar(res2.pi0, 0.6685638);
+    assert!(res2.pi0_smooth);
+
+    // `pi0Est(pvec, lambda_v, "smoother", 3, true)`
+    let mut lambda = Vec::new();
+    let mut l = 0.4;
+    while l < 1.0 - 1e-12 {
+        lambda.push(l);
+        l += 0.05;
+    }
+    let method = Pi0Method::parse("smoother").unwrap();
+    let res3 = pi0_est_smoothed(&p, &lambda, method, 3, true).unwrap();
+    similar(res3.pi0, 0.6658949);
+    assert!(res3.pi0_smooth);
+}
+
+/// Tier 1: `pi0Est` of the Linux x86_64 Release build (ibminode06, core
+/// `bc9cc12`; `tests/data/multiple_testing_pi0_release_provenance.json`) where a
+/// per-lambda estimate is zero. With `smooth_log_pi0` the source turns that
+/// zero into `-inf` (`MultipleTesting.cpp:249-251`) and hands it to its
+/// unchecked spline; the Release build then takes the `min(pi0_lambda)`
+/// fallback (`pi0 = 0`, `pi0_smooth = false`, `:274-286`), which is what the
+/// port's refusing spline reaches too. The linear-space twin of each input,
+/// and a control whose estimates are all positive, check the fitted value
+/// itself. Every double is compared by its bits.
+#[test]
+fn pi0_with_an_empty_lambda_matches_the_release_build() {
+    let oracle = std::fs::read_to_string(data("multiple_testing_pi0_release/oracle.tsv")).unwrap();
+    let mut rows = std::collections::BTreeMap::new();
+    for line in oracle.lines() {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(fields.len(), 3, "malformed oracle row {line:?}");
+        rows.insert(
+            (fields[0].to_string(), fields[1].to_string()),
+            fields[2].to_string(),
+        );
+    }
+    let field = |case: &str, name: &str| -> String {
+        rows.get(&(case.to_string(), name.to_string()))
+            .unwrap_or_else(|| panic!("oracle has no {case} {name}"))
+            .clone()
+    };
+    let bits = |case: &str, name: &str| -> u64 {
+        u64::from_str_radix(field(case, name).trim_start_matches("0x"), 16).unwrap()
+    };
+
+    // The driver's inputs, built with the same double operations.
+    let below_090: Vec<f64> = (0..20).map(|i| 0.045 * f64::from(i)).collect();
+    let below_095: Vec<f64> = (0..20).map(|i| 0.047 * f64::from(i)).collect();
+    let below_050 = vec![0.01, 0.02, 0.1, 0.2, 0.3, 0.4, 0.45, 0.49];
+    let zeros = vec![0.0; 10];
+    let p4 = vec![0.05, 0.1, 0.3, 0.5, 0.7, 0.75];
+    let grid4 = vec![0.2, 0.4, 0.6, 0.8];
+    let spread: Vec<f64> = (0..40).map(|i| 0.025 * f64::from(i)).collect();
+    let cases: [(&str, &[f64], &[f64]); 6] = [
+        ("below_090", &below_090, &[]),
+        ("below_095", &below_095, &[]),
+        ("below_050", &below_050, &[]),
+        ("all_zero", &zeros, &[]),
+        ("grid4", &p4, &grid4),
+        ("spread", &spread, &[]),
+    ];
+
+    let mut compared_rows = 0;
+    for (stem, p, lambda) in cases {
+        for (space, log_pi0) in [("log", true), ("linear", false)] {
+            let case = format!("{stem}_{space}");
+            let got = pi0_est_smoothed(p, lambda, Pi0Method::Smoother, DEFAULT_SMOOTH_DF, log_pi0)
+                .unwrap();
+            assert_eq!(
+                got.pi0.to_bits(),
+                bits(&case, "pi0"),
+                "{case}: pi0 {}",
+                got.pi0
+            );
+            assert_eq!(
+                got.pi0_smooth,
+                field(&case, "pi0_smooth") == "1",
+                "{case}: pi0_smooth"
+            );
+            let n: usize = field(&case, "n_lambda").parse().unwrap();
+            assert_eq!(got.pi0_lambda.len(), n, "{case}: n_lambda");
+            for (i, value) in got.pi0_lambda.iter().enumerate() {
+                assert_eq!(
+                    value.to_bits(),
+                    bits(&case, &format!("pi0_lambda[{i}]")),
+                    "{case}: pi0_lambda[{i}] {value}"
+                );
+            }
+            compared_rows += 3 + n;
+        }
+    }
+    // Every oracle row was compared.
+    assert_eq!(compared_rows, rows.len());
 }
 
 // L248 double bwNrd0(const std::vector<double>&)
@@ -546,7 +650,7 @@ fn section_pi0_est_clipped_to_one() {
         Pi0Method::Smoother,
         DEFAULT_SMOOTH_DF,
         false,
-        Some(&BSplineSmoother),
+        Some(&BSPLINE_SMOOTHER),
     )
     .unwrap();
     assert_eq!(result.pi0, 1.0);

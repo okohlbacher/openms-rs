@@ -68,6 +68,8 @@
 
 use super::{MSExperiment, MSSpectrum, Peak1D, Precursor};
 use crate::error::{Error, Result};
+use crate::math::libstdcxx;
+use crate::math::source_sort::source_sort_by;
 use crate::metadata::{ActivationMethod, MetaInfo, Polarity, ScanMode};
 use std::collections::BTreeSet;
 use std::str::FromStr;
@@ -707,22 +709,34 @@ impl IsInIsolationWindow {
     /// `reverse` is true, the predicate is true when the isolation window
     /// misses ALL m/z values.
     ///
+    /// The sort is the source's `std::sort(vec_mz_.begin(), vec_mz_.end())`
+    /// (`RangeUtils.h:634`), run by
+    /// [`source_sort_by`] under
+    /// `operator<`: the libstdc++ introsort the Release build executes,
+    /// comparison by comparison. Every value is accepted. Infinities sort to the
+    /// ends; `-0.0` and `0.0` are equivalent and keep the relative order that
+    /// introsort leaves them in; and a NaN, which `operator<` makes incomparable
+    /// with everything, lands where the Release build's introsort puts it
+    /// (`[500, NaN, 400, 600]` becomes `[400, 500, NaN, 600]`). The search in
+    /// [`keep`](SpectrumPredicate::keep) then runs the source's own
+    /// `std::lower_bound` halving over that order, so a NaN in the list or in a
+    /// precursor gives the Release build's answer
+    /// (`../oracle/A3a-source-order`, cases `iso_*`).
+    ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] for a nonfinite value; the source would
-    /// sort NaN into an unspecified position and search past it.
+    /// Returns [`Error::InvalidValue`] only when the sort permutation cannot be
+    /// allocated. The introsort's out-of-bounds guard is unreachable here:
+    /// `<` on `f64` is asymmetric, NaN included
+    /// ([`crate::math::source_sort`]).
     pub fn new(mz_values: impl IntoIterator<Item = f64>, reverse: bool) -> Result<Self> {
         let mut mz_values: Vec<f64> = mz_values.into_iter().collect();
-        if mz_values.iter().any(|value| !value.is_finite()) {
-            return Err(Error::InvalidValue(
-                "isolation window m/z values must be finite".into(),
-            ));
-        }
-        mz_values.sort_by(f64::total_cmp);
+        source_sort_by(&mut mz_values, |a, b| a < b)?;
         Ok(Self { mz_values, reverse })
     }
 
-    /// The m/z values in the sorted order the search uses.
+    /// The m/z values in the sorted order the search uses: the order the
+    /// source's `std::sort` leaves them in.
     pub fn mz_values(&self) -> &[f64] {
         &self.mz_values
     }
@@ -736,8 +750,10 @@ impl SpectrumPredicate for IsInIsolationWindow {
         let mut is_in = false;
         for precursor in &spectrum.precursors {
             let lower_mz = precursor.mz - precursor.isolation_window_lower_offset;
-            // Source: std::lower_bound, the first value not below the lower edge.
-            let index = self.mz_values.partition_point(|&value| value < lower_mz);
+            // Source: std::lower_bound (`RangeUtils.h:651`), the first value not
+            // below the lower edge, by libstdc++'s own halving: a NaN in the
+            // list leaves it unpartitioned, and the probe order then decides.
+            let index = libstdcxx::lower_bound(&self.mz_values, |&value| value < lower_mz);
             if let Some(&candidate) = self.mz_values.get(index) {
                 let upper_mz = precursor.mz + precursor.isolation_window_upper_offset;
                 is_in |= candidate <= upper_mz;

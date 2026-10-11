@@ -101,8 +101,8 @@ Nothing is feature-gated in the library. Both integration tests need `mzml` and
 **Module edges.** The packages add three cross-module edges, all of which
 the recorded graph already held, so `tools/check_module_cycles.py` reports no
 new edge:
-- `analysis -> math`, for `pearson_correlation_coefficient` (whose range
-  error `scoring::source_pearson` returns);
+- `analysis -> math`, for `pearson_correlation_coefficient`, the
+  correlation of the isotope, crop and quality scores;
 - `analysis -> param`, for `Param` and `DefaultParamHandler`;
 - `analysis -> concept`, for `PROTON_MASS_U`, `UserParam::NUM_OF_DATAPOINTS`
   and `parallel::{Threads, map_collect}`.
@@ -483,7 +483,14 @@ as the source's second run (driver case reuse, three runs, and debug_twice):
   (`Seed::operator<`), so seeds of equal intensity share one entry. A later
   debug run's abort map reads every stored seed's spectrum and peak index in
   *that* run's input (stale scaled: the first run's 25 seeds read on doubled
-  intensities, 40 entries).
+  intensities, 40 entries). A seed with a NaN intensity, which no run of the
+  finder produces (its intensity score, and so its overall score, is NaN and
+  never reaches a seed threshold), is stored as `operator[]`'s `lower_bound`
+  stores it: into the empty map it becomes the only entry and takes every later
+  reason; into a non-empty map it replaces the reason of the least intense
+  entry. `debug::AbortReasons::insert` reproduces both since DEBT-04 (it used
+  to refuse a NaN key as unorderable): tier 1, `../oracle/A3a-source-order`,
+  cases `abort_*`, in `tests/a3a_source_order.rs`.
 - **`isotope_distributions_` is extended, never cleared**
   (`IsotopeWindows::precalculate_onto`), so a reused object's windows, and with
   them its seeds and features, can differ from a fresh object's (reuse run 2).
@@ -626,9 +633,10 @@ asymmetric, NaN keys included (*Non-finite input*, refusal 1).
     - the search starts behind the last missing optional peak at each end;
     - two isotopes are allowed only for the starting candidate;
     - the correlation is `Math::pearsonCorrelationCoefficient` as the Release
-      build computes it (`scoring::source_pearson`, crate-private): a
-      denominator that underflows to zero from non-zero deviations gives an
-      infinity, an all-equal range the default NaN;
+      build computes it (`math::statistic_functions::pearson_correlation_coefficient`,
+      which absorbed the former crate-private `scoring::source_pearson` at the
+      group-A integration): a denominator that underflows to zero from
+      non-zero deviations gives an infinity, an all-equal range the default NaN;
     - NaN correlations count as 0, two-isotope fits are capped at
       `min_isotope_fit`, and a candidate must improve by `1 +
       optional_fit_improvement` over a best that starts at 0.01;
@@ -715,7 +723,7 @@ asymmetric, NaN keys included (*Non-finite input*, refusal 1).
     with the new term as the first operand, and every step follows the SSE
     operand order of `cropFeature_` and `checkFeatureQuality_`
     (`libOpenMS.so` `0x18d8a11`-`0x18d8ad4`, `0x18d9b5f`-`0x18d9e28`); the
-    correlation is `source_pearson`'s.
+    correlation is `pearson_correlation_coefficient`'s.
   - The five quality rules run in the source's order: `checkMaximalRTSpan`,
     `MassTraces::isValid`, the centre inside the retention-time bounds,
     `checkMinimalRTSpan`, and `sqrt(correlation * fit_score)` against
@@ -1098,7 +1106,7 @@ native difference 13.
 | steps 3.1 to 3.3 run per charge | steps 3.1 and 3.2 run for every charge first | Step 3.3 reads only its own charge's arrays, so the arrays and seeds are identical. |
 | user seeds are a copied `FeatureMap` sorted in place with `std::sort` | the same map sorted in place in the Release build's introsort order; the seed stage keeps positions only | The m/z and retention time are the only fields the source reads. Equal and NaN m/z values are sorted as the executed library sorts them (`sort_probe.cpp` site `features`, and the `v2_seeds_*`/`v3_seeds_*` runs). |
 | unbounded work | `Limits`: spectra, peaks, charges, bins per dimension, windows, pattern values, score bytes, work units | Checked before the allocation or computation each bounds. The FFC_1 workload is several orders of magnitude below every default. |
-| `Math::pearsonCorrelationCoefficient` returns an infinity when its denominator underflows to 0 from non-zero deviations | the same infinity (`scoring::source_pearson`, crate-private, for the isotope, crop and quality correlations) | Since fix round 3; the crate's shared `pearson_correlation_coefficient` keeps its NaN for its other callers. In `cropFeature_` and `checkFeatureQuality_` `std::max(0.0, inf)` keeps the infinity, and the final score is infinite or NaN (`inf * 0`), which no threshold rejects. Reaching it needs theoretical intensities that vary by less than about `1e-154` around the baseline while the measured ones vary; no executed or generated input did. Such a feature then stores the non-finite `score_correlation`, as the source does (next rows). |
+| `Math::pearsonCorrelationCoefficient` returns an infinity when its denominator underflows to 0 from non-zero deviations | the same infinity (`math::statistic_functions::pearson_correlation_coefficient`, for the isotope, crop and quality correlations) | Since fix round 3, first in a crate-private `scoring::source_pearson`; since the group-A integration the crate's shared function divides the same way for every caller (`../oracle/integ-A-correlation` rows `pearson_underflow_pos`/`_neg`). In `cropFeature_` and `checkFeatureQuality_` `std::max(0.0, inf)` keeps the infinity, and the final score is infinite or NaN (`inf * 0`), which no threshold rejects. Reaching it needs theoretical intensities that vary by less than about `1e-154` around the baseline while the measured ones vary; no executed or generated input did. Such a feature then stores the non-finite `score_correlation`, as the source does (next rows). |
 | `Exception::UnableToFit` from `fitter->fit` would be thrown inside the `omp parallel for`, where nothing catches it, and would end the process | unreachable, so not reproduced; an error from the port's fit (its point, byte or work ceilings, or the refused NaN profile merge) ends the run with that error | Both throws of `TraceFitter::optimize_` are unreachable from the seed loop: a fitted candidate has at least two traces of which at most one has fewer than three peaks, so at least 4 residuals for at most 4 parameters (`TraceFitter.cpp:111`), and Eigen returns `ImproperInputParameters` (`:129`) only for `maxfev <= 0`, which the `fit:max_iterations` restriction excludes. The residual count is `int` (`GaussTraceFitter.cpp:140`, `EGHTraceFitter.cpp:29`), so more than `INT_MAX` peaks would also throw at `:111`, but the solver's `MAX_POINTS` ceiling refuses such traces first. The argument is written out at `FittedModel::fit`. The port used to turn any fit error into an abort reason, which hid its own ceilings. |
 | `extendMassTraces_` reads `pattern.spectrum[0]` when the best pattern stayed empty (or its first matched isotope has no peak) | `Error::InvalidValue` at that seed (`extension::EMPTY_PATTERN_WHAT`, crate-private), with a `TerminationKind::OutOfBounds` termination in a debug run | Undefined behaviour: an out-of-bounds read (lead decision D1). The SIGSEGV and the flushed-only log are established for an **empty** best pattern, which every executed crash had. The other sub-case, a non-empty pattern whose first isotope has no peak, reads `map_[spectrum][size_t(-1)]`, 16 or 32 bytes before a spectrum's peak buffer (heap metadata, which is mapped), so the process would probably not fault there; it was never observed (the round-3 instrumentation verifier classified 6,076 refusals of a 19,200-run grid: all empty patterns), and its executed outcome is unknown. The port refuses it at the same read and records the same termination, whose `SIGSEGV` label is established only for the empty pattern. Reachable from `run_` with ordinary parameter values: `feature:min_isotope_fit` 0 lets a seed without any placement through. Executed SIGSEGV, twice each: the stage cases `g_avg_trace0`, `g_iso0_seed0`, `p_ipo_100_seed0_iso0` and `p_ipo_nan_seed0_iso0`; the library runs `neg_oob1`, `neg_oob_seed035` and `neg_none_avg0` (negated intensities or none, with and without `write_debug`); FeatureFinderCentroided `avg0` (`../oracle/ffap-complete-fix3`; `../oracle/ffc-numerics-v2`, `logs/g_avg_trace0_gdb.txt`, and `../oracle/ffc-instrumentation-v2` found the first ones). `boundary_cases_match_the_linux_release_build`, `a_seed_loop_crash_keeps_what_the_executed_process_had_written`, `a_run_that_reaches_an_empty_best_pattern_is_refused_where_the_release_build_crashes`; the public function's refusal: `an_empty_pattern_is_refused_instead_of_dereferenced`. |
 | `traces[traces.max_trace]` is indexed before the fit without a range check | `Error::InvalidValue` | Undefined behaviour when `max_trace` is stale. The one branch that could make it stale (`traces.clear()` for a trace before `max_trace`) is unreachable, because `max_trace` is still 0 at every index that could satisfy `p < max_trace`. |

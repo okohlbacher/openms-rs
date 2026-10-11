@@ -1,0 +1,2 @@
+{"whitelist": ["a", "b c"], "matched_whitelist": [], "ratio": 2, "absdiff": 0.5, "verbose": 3,
+ "in1": {"class": "File", "path": "/x/a.txt"}, "in2": {"class": "File", "path": "/x/b.txt"}}

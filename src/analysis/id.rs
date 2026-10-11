@@ -6,3 +6,7 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// Search-engine score extraction and write-back for
+/// `MATH/STATISTICS/PosteriorErrorProbabilityModel.h` (the members that need
+/// identification records).
+pub mod posterior_error_probability_scores;

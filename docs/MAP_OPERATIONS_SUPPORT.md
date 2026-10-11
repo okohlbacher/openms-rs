@@ -80,7 +80,7 @@ are marked **new**.
 | `RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>` base | `FeatureMap::ranges() -> Result<FeatureRanges>`, computed on demand |
 | `UniqueIdInterface` base | the public `unique_id: u64` field plus `HasUniqueId` (`src/concept/unique_id.rs`) |
 | `UniqueIdIndexer<FeatureMap>` base — `uniqueIdToIndex` | `FeatureMap::unique_id_to_index` |
-| `UniqueIdIndexer<FeatureMap>` — `updateUniqueIdToIndex`, `resolveUniqueIdConflicts`, `swap` | not ported as public API: `CONCEPT/UniqueIdIndexer.h` is not this work package's header. The conflict resolution the map merges depend on is reproduced privately in `map_operations.rs`; the cached hash map itself has no counterpart, because `unique_id_to_index` rebuilds the index per call rather than keeping a mutable cache |
+| `UniqueIdIndexer<FeatureMap>` — `updateUniqueIdToIndex`, `resolveUniqueIdConflicts`, `swap` | not public on the maps: the cached indexer itself is `concept::unique_id_indexer::UniqueIdIndexer` (`CONCEPT/UniqueIdIndexer.h`), which the maps do not hold. The conflict resolution the map merges depend on is reproduced privately in `map_operations.rs`; the cached hash map itself has no counterpart, because `unique_id_to_index` rebuilds the index per call rather than keeping a mutable cache |
 | `MapUtilities<FeatureMap>` base — `applyFunctionOnPeptideHits` / `applyFunctionOnPeptideIDs`, const and non-const | not ported: `DATASTRUCTURES/Utils/MapUtilities.h` is a different header, and plain Rust iteration over `features` and `unassigned_peptide_identifications` is the counterpart (`map.features.iter_mut().flat_map(\|f\| &mut f.peptide_identifications)`) |
 
 ### Construction, comparison and arithmetic

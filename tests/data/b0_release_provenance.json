@@ -1,0 +1,36 @@
+{
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "scope": "The B0 integration lane's checks of the five Phase-B branches (2026-09-27): the bits ParamJSONFile::load stores for 51 JSON number tokens on a floating-point, 64-bit integer, floating-point list and integer list parameter (tests/data/b0_release/json, json_release.tsv); FileHandler::loadExperiment's ParseError for an input whose name and content no type claims, through the seven ported tools that load with an allowed list; BaselineFilter with a DataPoints structuring element of a negative and of a fractional length below one.",
+ "method": "ParamJSONFile.cpp, FileHandler.cpp, MorphologicalFilter.h and the tool sources read at the pins with git show. A driver (driver.cpp) built on the node with the Release install's compiler and libOpenMS's own core flags loads each JSON document of json_cases.tsv (written by make_inputs.py) and prints the stored doubles as their IEEE-754 bits; nine TOPP cases run the installed tools, each in a clean environment (env -i, per-case HOME, OPENMS_HOME_PATH and cwd, OPENMS_DISABLE_UPDATE_CHECK=ON, OPENMS_DATA_PATH pinned). Everything ran twice; the JSON records are identical, and the TOPP cases are identical once paths and run times are masked, except bf_dp_negative's standard error, which is the shell's report of the SIGSEGV and names a process id. run1 is retained under tests/data/b0_release and replayed by tests/param_json.rs (number_tokens_store_the_release_builds_bits) and tests/topp_b0_release.rs.",
+ "evidence_tier": "oracle-generated (tier 1 executed differential) against the Release build; the documented differences (BaselineFilter refuses an element below one sample where the Release build completes or crashes; the lifecycle renders an Error::Parse inside 'parse error on line 0: ') are in docs/TOPP_CLI_SUPPORT.md.",
+ "oracle": {
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06",
+  "build_type": "Release",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "libOpenMS_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+ },
+ "external_reference_artifacts": [
+  {"path": "../oracle/B0-attacks/driver.cpp", "sha256": "5d078008b45808f26bed24a24d71c5405f516a93b7e340dbeecba0187e221b9d", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B0-attacks/make_inputs.py", "sha256": "55b8f3913e7993a0eec6ae46cd326ad5b8cce7b901960abe0bde6a949f9296be", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B0-attacks/remote_run.sh", "sha256": "942ef169a0ce11080b86c6a0b88cd542b7c001efb4ce9a53c8e1540a1ff1411e", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B0-attacks/run.sh", "sha256": "88a37f2ff15c051940a2f4075d02975ec90f6acd02f90f1b672e4cf92dace26f", "origin_key": "oracle", "role": "driver"},
+  {"path": "../oracle/B0-attacks/results/run1/json.tsv", "sha256": "b6f1323bef226fd734d80beb93a8f9935699e2a01b3354fe3af9a8c2e228f73c", "origin_key": "oracle", "role": "result"},
+  {"path": "../oracle/B0-attacks/results/run2_json.tsv", "sha256": "b6f1323bef226fd734d80beb93a8f9935699e2a01b3354fe3af9a8c2e228f73c", "origin_key": "oracle", "role": "result"},
+  {"path": "../oracle/B0-attacks/results/host.txt", "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c", "origin_key": "oracle", "role": "result"},
+  {"path": "../oracle/B0-attacks/results/compiler.txt", "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb", "origin_key": "oracle", "role": "result"},
+  {"path": "../oracle/B0-attacks/results/differ.txt", "sha256": "30af79036464ebbb40a04d445c105f509038fe3cda41aee46a4faf8e63b6c227", "origin_key": "oracle", "role": "result"},
+  {"path": "../oracle/B0-attacks/results/hashes.txt", "sha256": "070171bfdcc360da36048211d73b2f65f43079159fb986ad89994d48c06756a1", "origin_key": "oracle", "role": "result"},
+  {"path": "../oracle/B0-attacks/results/inputs.sha256", "sha256": "02fc8646ea6988cf416b78fbfc3ed26887f196e8f92e85b836a9782ec08959fc", "origin_key": "oracle", "role": "result"}
+ ],
+ "retained": [
+  "tests/data/b0_release/json",
+  "tests/data/b0_release/json_cases.tsv",
+  "tests/data/b0_release/json_release.tsv",
+  "tests/data/b0_release/topp"
+ ]
+}

@@ -1,0 +1,5 @@
+PeakPickerHiRes
+-ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_trailing_garbage.json
+-write_ini
+/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/w_pphr_trailing_garbage/cwd/out.ini

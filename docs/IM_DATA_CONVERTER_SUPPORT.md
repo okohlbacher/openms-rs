@@ -42,12 +42,13 @@ runs FeatureFinderAlgorithmPicked once per group.
 | native only | `ImDataConverter::MAX_SPECTRA`; `FaimsSplit::has_faims()` |
 | used: `FAIMSHelper::getCompensationVoltages` | `kernel::faims_helper::FaimsHelper::get_compensation_voltages` (A1, reused unchanged) |
 | used: `MSExperiment::getExperimentalSettings`, `getSqlRunID` | `MSExperiment::settings`, `MSExperiment::sql_run_id` |
-| `static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame)` | not ported (outside D5) |
+| `static MSExperiment reshapeIMFrameToMany(MSSpectrum im_frame)` | `ImDataConverter::reshape_im_frame_to_many(&MSSpectrum) -> Result<MSExperiment>` (wave 4, A5b); by reference, so the arrays the source drops stay with the caller |
 | `static std::tuple<std::vector<MSExperiment>, Math::BinContainer> splitExperimentByIonMobility(MSExperiment&& in, UInt number_of_IM_bins, double bin_extension_abs, double mz_binning_width, MZ_UNITS mz_binning_width_unit)` | not ported: needs the unported `SpectraMerger` |
-| `static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in)` | not ported (outside D5) |
-| `static void setIMUnit(DataArrays::FloatDataArray& fda, const DriftTimeUnit unit)` | not ported. It forwards to `IMDataArrayUtils::setIMUnit`, which is not ported either |
-| `static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)` | not ported as a public function. It forwards to `IMDataArrayUtils::getIMUnit`, whose name-to-unit rule exists privately in `src/kernel/spectrum_mobility.rs` (`array_unit`) behind `MSSpectrum::im_data` |
-| file-local `annotateAsIM`, `processDriftTimeStack` | not ported (helpers of the unported members) |
+| `static MSExperiment reshapeIMFrameToSingle(const MSExperiment& in)` | `ImDataConverter::reshape_im_frame_to_single(&MSExperiment) -> Result<MSExperiment>` (wave 4, A5b) |
+| `static void setIMUnit(DataArrays::FloatDataArray& fda, const DriftTimeUnit unit)` | `ImDataConverter::set_im_unit(&mut DataArray<f32>, DriftTimeUnit) -> Result<()>`, forwarding to `kernel::im_data_array_utils::ImDataArrayUtils::set_im_unit` as the source forwards |
+| `static bool getIMUnit(const DataArrays::FloatDataArray& fda, DriftTimeUnit& unit)` | `ImDataConverter::im_unit(&DataArray<f32>) -> Option<DriftTimeUnit>`, forwarding to `ImDataArrayUtils::im_unit` (the `spectrum_mobility` name rule) |
+| file-local `processDriftTimeStack` | private `collapse_drift_time_stack` |
+| file-local `annotateAsIM` | not ported: defined at `IMDataConverter.cpp:242` but called nowhere; `setIMUnit` does the same |
 
 ## Preserved source conventions
 
@@ -178,21 +179,21 @@ every platform.
 | `splitByFAIMSCV(PeakMap& exp)` | `split_by_faims_cv_section` (feature `mzml`) | passes unchanged, through the Rust mzML reader |
 | `splitByFAIMSCV assigns MS2 without explicit CV to last seen FAIMS CV` | `split_by_faims_cv_assigns_ms2_without_explicit_cv_to_last_seen_faims_cv_section` | passes unchanged |
 | `splitByFAIMSCV returns single-element group for non-FAIMS dataset` | `split_by_faims_cv_returns_single_element_group_for_non_faims_dataset_section` | passes unchanged |
-| `setIMUnit(DataArrays::FloatDataArray&, const DriftTimeUnit)` | none | not ported |
-| `getIMUnit(const DataArrays::FloatDataArray&, DriftTimeUnit&)` | none | `NOT_TESTABLE` in the source (tested with `setIMUnit`); not ported |
-| `reshapeIMFrameToMany(MSSpectrum im_frame)` | none | not ported |
+| `setIMUnit(DataArrays::FloatDataArray&, const DriftTimeUnit)` | `converter_section_set_im_unit` (`tests/im_data_array_utils.rs`) | passes unchanged |
+| `getIMUnit(const DataArrays::FloatDataArray&, DriftTimeUnit&)` | `converter_section_set_im_unit` | `NOT_TESTABLE` in the source (tested with `setIMUnit`) |
+| `reshapeIMFrameToMany(MSSpectrum im_frame)` | `converter_section_reshape_im_frame_to_many_and_back` | passes unchanged, including the round trip `frame_reconstruct[0] == frame` |
 | `splitExperimentByIonMobility(...)` | none | not ported (needs `SpectraMerger`) |
-| `reshapeIMFrameToSingle(const MSExperiment& in)` | none | `NOT_TESTABLE` in the source (tested with `reshapeIMFrameToMany`); not ported |
+| `reshapeIMFrameToSingle(const MSExperiment& in)` | `converter_section_reshape_im_frame_to_many_and_back` | `NOT_TESTABLE` in the source (tested with `reshapeIMFrameToMany`) |
 
-Five sections ported, five recorded as not ported, none unaccounted. The ledger
-entry for `IMDataConverter.h` stays `partial`.
+Nine sections ported, one recorded as not ported, none unaccounted. The ledger
+entry for `IMDataConverter.h` stays `partial` for `splitExperimentByIonMobility`
+alone.
 
 ## Deferrals
 
-- **The rest of the header** (`reshapeIMFrameToMany`, `reshapeIMFrameToSingle`,
-  `splitExperimentByIonMobility`, `setIMUnit`, `getIMUnit`) waits for its
-  consumers (IonMobilityBinning, FeatureFinderMetabo, FeatureFinderMultiplex) and
-  for `SpectraMerger` and `IMDataArrayUtils`.
+- **`splitExperimentByIonMobility`** waits for `SpectraMerger`
+  (`mergeSpectraBlockWise`), which it runs once per ion-mobility bin, and for
+  `Math::createBins`/`BinContainer`. Its consumer is IonMobilityBinning.
 - **Logging.** When kernel modules are wired to `LogStream`, the messages can be
   forwarded there; until then callers relay `FaimsSplit::messages`.
 - **The FeatureFinderCentroided FAIMS closure** (B11, D5) decides whether the
@@ -210,3 +211,39 @@ C++ issue candidates, each with executed evidence in `oracle_cases.tsv`:
 - **NaN voltages corrupt the grouping** (`nan_first`, `nan_middle`, `nan_last`).
 - **Message wording:** "Not FAIMS compensation voltages found" for "No FAIMS
   compensation voltages found".
+
+## Frame reshaping (wave 4, A5b)
+
+`reshape_im_frame_to_many` and `reshape_im_frame_to_single` port
+`IMDataConverter.cpp:95-161` and `:261-323`.
+
+Preserved: an empty frame gives an empty experiment without any check; an
+unsorted frame is stably sorted by ion mobility first; one output spectrum per
+distinct `f32` mobility value, carrying it as its drift time with the array's
+unit, the frame's metadata, and its peaks m/z-sorted (the source sorts each
+spectrum, not the experiment, because an unstable RT sort would permute the
+mobility order, #10051); the result is a new experiment with default settings.
+The collapse groups consecutive per-spectrum-IM spectra of equal retention time,
+copies every other spectrum unchanged, appends peaks in input order, names the
+new array by `setIMUnit` from the first spectrum's unit, narrows each drift time
+to `f32`, and unsets the drift time; the output has default settings and no
+chromatograms, as in the source.
+
+Native differences:
+
+- Both take their input **by reference**. The source drops every data array but
+  the ion-mobility one (to many) and every data array of the collapsed spectra
+  (to single), and returns fresh settings; with a borrowed input nothing is lost
+  to the caller.
+- `reshape_im_frame_to_many` refuses an ion-mobility array whose length differs
+  from the peak count (the source indexes peaks by the array, reading past them
+  or ignoring the surplus) and a non-finite mobility, and does not reproduce the
+  source's null dereference when the first value is `FLT_MAX` (its "new value"
+  comparison starts from `FLT_MAX`).
+- `MAX_RESHAPED_SPECTRA` (2^20) caps the distinct mobility values of one frame
+  and the input spectra of the collapse, checked before allocation.
+
+Evidence: tier 3, the class test's shared `frame` (`IMDataConverter_test.cpp:105-122`)
+with every literal of the `reshapeIMFrameToMany` section unchanged, including the
+exact round trip; the other cases in `tests/im_data_array_utils.rs` are derived
+from the source and say so.

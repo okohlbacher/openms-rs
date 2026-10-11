@@ -722,10 +722,11 @@ impl ControlledVocabulary {
 }
 
 /// Source FNV-1a byte hash, explicitly 64-bit on every target.
+///
+/// This is `fnv1a_hash_string` from `CONCEPT/HashUtils.h`, delegated to
+/// [`crate::concept::hash_utils::fnv1a_hash_string`].
 pub fn fnv1a_hash(key: &str) -> u64 {
-    key.bytes().fold(14695981039346656037u64, |hash, byte| {
-        (hash ^ u64::from(byte)).wrapping_mul(1099511628211)
-    })
+    crate::concept::hash_utils::fnv1a_hash_string(key)
 }
 fn invalid(message: &str) -> Error {
     Error::InvalidValue(message.into())

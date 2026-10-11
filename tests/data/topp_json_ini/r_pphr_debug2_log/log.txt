@@ -1,0 +1,90 @@
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Writing to '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug2_log/cwd/log.txt'
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Debug level: 2
+2026-09-22 07:14:18 PeakPickerHiRes:1::  >> /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/bin/PeakPickerHiRes -ini /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_all.json -out /x/out.mzML -debug 2 -log /ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug2_log/cwd/log.txt
+2026-09-22 07:14:18 PeakPickerHiRes:1:: INI file: /ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_all.json
+2026-09-22 07:14:18 PeakPickerHiRes:1:: INI location: PeakPickerHiRes:1:
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Assuming INI is a cwl file
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Parameters from instance section:
+"in" -> "/x/in.mzML" (input profile data file )
+"out" -> "/x/out.mzML" (output peak file )
+"processOption" -> "lowmemory" (Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first)
+"log" -> "" (Name of log file (created only when specified))
+"debug" -> "0" (Sets the debug level)
+"threads" -> "2" (Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores))
+"no_progress" -> "true" (Disables progress logging to command line)
+"force" -> "false" (Overrides tool-specific checks)
+"test" -> "false" (Enables the test mode (needed for internal use only))
+"algorithm|signal_to_noise" -> "1.5" (Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!))
+"algorithm|spacing_difference_gap" -> "4" (The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.)
+"algorithm|spacing_difference" -> "1.5" (Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.)
+"algorithm|missing" -> "3" (Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.)
+"algorithm|ms_levels" -> "[1, 2]" (List of MS levels for which the peak picking is applied. If empty, auto mode is enabled, all peaks which aren't picked yet will get picked. Other scans are copied to the output without changes.)
+"algorithm|report_FWHM" -> "true" (Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.)
+"algorithm|report_FWHM_unit" -> "absolute" (Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).)
+"algorithm|allow_missing_flank" -> "false" (Allow peaks without flanking data points on both sides. This is useful for TimsTOF data where profile peaks may be missing the leading or trailing edge.)
+"algorithm:SignalToNoise|max_intensity" -> "-1" (maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode). Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')! All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin. If you choose 'max_intensity' too small, the noise estimate might be too small as well.  If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime). In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.)
+"algorithm:SignalToNoise|auto_max_stdev_factor" -> "3" (parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev)
+"algorithm:SignalToNoise|auto_max_percentile" -> "95" (parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile)
+"algorithm:SignalToNoise|auto_mode" -> "0" (method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method)
+"algorithm:SignalToNoise|win_len" -> "150" (window length in Thomson)
+"algorithm:SignalToNoise|bin_count" -> "30" (number of bins for intensity values)
+"algorithm:SignalToNoise|min_required_elements" -> "10" (minimum number of elements required in a window (otherwise it is considered sparse))
+"algorithm:SignalToNoise|noise_for_empty_window" -> "1e+20" (noise value used for sparse windows)
+"algorithm:SignalToNoise|write_log_messages" -> "false" (Write out log messages in case of sparse windows or median in rightmost histogram bin)
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Parameters from common section with tool name:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Parameters from common section without tool name:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Initialize final param with cmd line:
+"log" -> "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/results2/r_pphr_debug2_log/cwd/log.txt"
+"debug" -> "2"
+"out" -> "/x/out.mzML"
+"ini" -> "/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs/pphr_all.json"
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Merging instance section into param:
+"in" -> "/x/in.mzML" (input profile data file )
+"out" -> "/x/out.mzML" (output peak file )
+"processOption" -> "lowmemory" (Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first)
+"log" -> "" (Name of log file (created only when specified))
+"debug" -> "0" (Sets the debug level)
+"threads" -> "2" (Sets the number of threads allowed to be used by the TOPP tool (0 = all available cores))
+"no_progress" -> "true" (Disables progress logging to command line)
+"force" -> "false" (Overrides tool-specific checks)
+"test" -> "false" (Enables the test mode (needed for internal use only))
+"algorithm|signal_to_noise" -> "1.5" (Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!))
+"algorithm|spacing_difference_gap" -> "4" (The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.)
+"algorithm|spacing_difference" -> "1.5" (Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.)
+"algorithm|missing" -> "3" (Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.)
+"algorithm|ms_levels" -> "[1, 2]" (List of MS levels for which the peak picking is applied. If empty, auto mode is enabled, all peaks which aren't picked yet will get picked. Other scans are copied to the output without changes.)
+"algorithm|report_FWHM" -> "true" (Add metadata for FWHM (as floatDataArray named 'FWHM' or 'FWHM_ppm', depending on param 'report_FWHM_unit') for each picked peak.)
+"algorithm|report_FWHM_unit" -> "absolute" (Unit of FWHM. Either absolute in the unit of input, e.g. 'm/z' for spectra, or relative as ppm (only sensible for spectra, not chromatograms).)
+"algorithm|allow_missing_flank" -> "false" (Allow peaks without flanking data points on both sides. This is useful for TimsTOF data where profile peaks may be missing the leading or trailing edge.)
+"algorithm:SignalToNoise|max_intensity" -> "-1" (maximal intensity considered for histogram construction. By default, it will be calculated automatically (see auto_mode). Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')! All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin. If you choose 'max_intensity' too small, the noise estimate might be too small as well.  If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime). In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.)
+"algorithm:SignalToNoise|auto_max_stdev_factor" -> "3" (parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev)
+"algorithm:SignalToNoise|auto_max_percentile" -> "95" (parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile)
+"algorithm:SignalToNoise|auto_mode" -> "0" (method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method)
+"algorithm:SignalToNoise|win_len" -> "150" (window length in Thomson)
+"algorithm:SignalToNoise|bin_count" -> "30" (number of bins for intensity values)
+"algorithm:SignalToNoise|min_required_elements" -> "10" (minimum number of elements required in a window (otherwise it is considered sparse))
+"algorithm:SignalToNoise|noise_for_empty_window" -> "1e+20" (noise value used for sparse windows)
+"algorithm:SignalToNoise|write_log_messages" -> "false" (Write out log messages in case of sparse windows or median in rightmost histogram bin)
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Merging common section with tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1: Merging common section without tool name into param:
+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Value of string option 'test': 0
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Debug level (after ini file): 2
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Value of string option 'no_progress': 1
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Value of string option 'in': /x/in.mzML
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Checking input file '/x/in.mzML'
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Error: File not found (the file '/x/in.mzML' could not be found)
+2026-09-22 07:14:18 PeakPickerHiRes:1:: Error occurred in line 1983 of file /scratch/kohlbach/openms4-release-bench/src/cli/source/APPLICATIONS/TOPPBase.cpp (in function: void OpenMS::TOPPBase::inputFileReadable_(const std::string&, const std::string&) const) !

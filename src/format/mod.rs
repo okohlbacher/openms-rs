@@ -31,6 +31,9 @@ pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;
 
+/// Parameter values from a JSON document onto a known tree (`ParamJSONFile`).
+#[cfg(feature = "paramxml")]
+pub mod param_json;
 /// OpenMS parameter trees in INI XML format.
 #[cfg(feature = "paramxml")]
 pub mod paramxml;
@@ -185,3 +188,7 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+
+/// Unimod XML modification files and their data provider.
+#[cfg(feature = "unimod-xml")]
+pub mod unimod_xml;

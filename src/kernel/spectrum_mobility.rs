@@ -33,6 +33,8 @@
 use super::{MSSpectrum, finite};
 use crate::concept::constants::user_param;
 use crate::error::{Error, Result};
+use crate::math::libstdcxx;
+use crate::math::source_sort::{TemporaryBuffer, source_stable_sort_permutation};
 use crate::metadata::DriftTimeUnit;
 
 /// The sentinel the source uses for an unset drift time
@@ -97,7 +99,7 @@ const CV_IM_ARRAYS: [(&str, DriftTimeUnit); 9] = [
 /// exact PSI-MS term first, then the two inverse-reduced `UserParam` prefixes,
 /// then the generic `"Ion Mobility"` prefix whose embedded accession decides
 /// between `1/K0`, CCS and milliseconds.
-fn array_unit(name: &str) -> Option<DriftTimeUnit> {
+pub(crate) fn array_unit(name: &str) -> Option<DriftTimeUnit> {
     if let Some(&(_, unit)) = CV_IM_ARRAYS.iter().find(|(term, _)| *term == name) {
         return Some(unit);
     }
@@ -514,22 +516,23 @@ impl MSSpectrum {
     /// Returns [`Error::MissingInformation`] when the spectrum carries no ion
     /// mobility array, as the source does.
     ///
-    /// Returns [`Error::InvalidValue`] in two cases the source answers instead.
-    /// When the array's length differs from the peak count the source reports on
-    /// the array alone, so an empty ion mobility array makes an arbitrarily
-    /// unsorted spectrum report *sorted*; the peaks it is supposed to describe
-    /// are never consulted. And when the array holds a non-finite value, the
-    /// source's `std::is_sorted` uses `<`, under which a NaN neighbour compares
-    /// unordered and the array is again reported sorted. The port refuses both
-    /// rather than returning a meaningless `true`. That is the one place this
-    /// differs from [`MSSpectrum::is_sorted`], which folds an invalid coordinate
-    /// into `false`.
+    /// Returns [`Error::InvalidValue`] when the array's length differs from
+    /// the peak count. The source reports on the array alone then, so an empty
+    /// ion mobility array makes an arbitrarily unsorted spectrum report
+    /// *sorted*; the peaks it is supposed to describe are never consulted. The
+    /// port refuses that rather than returning a meaningless `true`, and it is
+    /// the one place this differs from [`MSSpectrum::is_sorted`], which folds
+    /// an invalid coordinate into `false`.
+    ///
+    /// Every value is otherwise accepted, NaN and infinities included. The
+    /// answer is the source's `std::is_sorted` under `<` (no element less than
+    /// its predecessor), so a NaN, which compares unordered with its
+    /// neighbours, does not by itself make the array unsorted:
+    /// `[1.0, NaN, 0.5]` is reported sorted, as the Release build reports it
+    /// (`../oracle/A3a-source-order`, case `mob_nan_claims_sorted`).
     pub fn is_sorted_by_im(&self) -> Result<bool> {
         let values = self.checked_im_values()?;
-        for &value in values {
-            finite(f64::from(value), "ion mobility value")?;
-        }
-        Ok(values.windows(2).all(|pair| pair[0] <= pair[1]))
+        Ok(libstdcxx::is_sorted_by(values, |a, b| a < b))
     }
 
     /// The ion mobility values, checked against the peak count.
@@ -560,15 +563,26 @@ impl MSSpectrum {
     /// order, and it is skipped entirely when the array is already ordered, as
     /// in the source.
     ///
+    /// Both steps are the source's own: `std::is_sorted` on the array
+    /// (`MSSpectrum.cpp:390`), then `MSSpectrum::sort` (`MSSpectrum.h:363-374`),
+    /// a `std::stable_sort` of an index vector under `im[i1] < im[i2]`,
+    /// run here by
+    /// [`source_stable_sort_permutation`],
+    /// the libstdc++ merge sort comparison by comparison. That makes every
+    /// value acceptable: infinities sort to the ends, `-0.0` and `0.0` are
+    /// equal and keep their order, and a NaN, which `<` makes incomparable
+    /// with everything, ends where the Release build leaves it
+    /// (`../oracle/A3a-source-order`, cases `mob_*`). The result can then
+    /// still hold a descending pair across a NaN; the source's is the same.
+    ///
     /// # Errors
     ///
     /// Returns [`Error::MissingInformation`] when
     /// [`MSSpectrum::contains_im_data`] is false, as the source's
     /// `Exception::MissingInformation`. Returns [`Error::InvalidValue`] when the
-    /// ion mobility array's length differs from the peak count, when it holds a
-    /// non-finite value, when a different non-empty data array's length differs
-    /// from the peak count, or when the peak count exceeds
-    /// [`MSSpectrum::MAX_MOBILITY_ITEMS`].
+    /// ion mobility array's length differs from the peak count, when a
+    /// different non-empty data array's length differs from the peak count,
+    /// or when the peak count exceeds [`MSSpectrum::MAX_MOBILITY_ITEMS`].
     ///
     /// The length check is stricter than the source, deliberately. The source
     /// tests `std::is_sorted` on the ion mobility array before it sorts
@@ -580,17 +594,17 @@ impl MSSpectrum {
     /// moves.
     pub fn sort_by_ion_mobility(&mut self) -> Result<()> {
         let values = self.checked_im_values()?;
-        for &value in values {
-            finite(f64::from(value), "ion mobility value")?;
-        }
-        if values.windows(2).all(|pair| pair[0] <= pair[1]) {
+        if libstdcxx::is_sorted_by(values, |a, b| a < b) {
             return Ok(());
         }
         self.validate_data_arrays()?;
-        let mut indices: Vec<usize> = (0..self.peaks.len()).collect();
         let (index, _) = self.im_data()?;
         let values = &self.float_data_arrays[index].data;
-        indices.sort_by(|&a, &b| values[a].partial_cmp(&values[b]).expect("finite"));
+        let indices = source_stable_sort_permutation(
+            self.peaks.len(),
+            |a, b| values[a] < values[b],
+            TemporaryBuffer::Allocate,
+        )?;
         self.select(&indices)
     }
 

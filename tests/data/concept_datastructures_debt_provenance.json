@@ -1,0 +1,157 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "evidence_tier": "class-test literals (tier 3) and independently derived values (tier 4); ConsoleUtils also tier 1 through tests/topp_cli_console.rs",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/CommonEnums.h",
+   "sha256": "6957c1dc8ac4d6b6beace79726dc375b0abe02d079f6065bbbc55a7fc1ac58b5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Types.h",
+   "sha256": "4013ec657ac3dc4d14cfd01a6a2cab7ea75379364bf53aebd60538e0d07b2fc6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/HashUtils.h",
+   "sha256": "c5f288ec6a6e0b41696822d9294a16f28f0e7587f128f62c4184453ba18dde1b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Macros.h",
+   "sha256": "90d8f9cd59f9248df8df8b60d2c2f71e415f0688a31b6fd7f5d3fd9b9590ed82"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/PrecisionWrapper.h",
+   "sha256": "3134c07bdbd5a4faec1d18d91b4ea54abcc0aa811c643b74249811385724e9cb"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PrecisionWrapper_test.cpp",
+   "sha256": "11d9c768ed5c3f63f781b3da2f64116cb05dd3a0d8fb89d1e026d16d65cf25ed"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h",
+   "sha256": "c3481f999bfa5dde7b28ef959967eb7c0a5e5f6e6a758cf5e607857a200543e6"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/UniqueIdIndexer_test.cpp",
+   "sha256": "bf9640ed2c3c3df3f2b02c0266b879d1eceba9c0fcb8798c5427045089854bbc"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/VersionInfo.h",
+   "sha256": "428d3b6a9bbf75ee15031f1ae0a12f9d03c4dc8c1dfaf4bbccb92b175f723a16"
+  },
+  {
+   "path": "src/openms/source/CONCEPT/VersionInfo.cpp",
+   "sha256": "32d69d27b24c5fb23911355b4428114dceda5197681fe3cd2b96541a152cfe68"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/VersionInfo_test.cpp",
+   "sha256": "e8a175a25e806cc77a446bd6986ebd209e004101ed4006b8e111879e7bc058b3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CONCEPT/Colorizer.h",
+   "sha256": "3d2a27148385beea0bd026d36e0dd27459cecd8fe324b78d7c0caa47f39a8a24"
+  },
+  {
+   "path": "src/openms/source/CONCEPT/Colorizer.cpp",
+   "sha256": "641bb161074a7bf77de7b41cdb3aca43910af899252ed6065dc95059dc80a6d3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Colorizer_test.cpp",
+   "sha256": "36bffd5276aa0e52d5eaca92cb8657344dd9b0da0312f6f4b4de7f55f45ca5b1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/APPLICATIONS/ConsoleUtils.h",
+   "sha256": "52bcfb0aadc332cca738ca85aae33fc320ff702fe36489cc03cce2c1ced0fbda"
+  },
+  {
+   "path": "src/openms/source/APPLICATIONS/ConsoleUtils.cpp",
+   "sha256": "c870c8ed0426c1f694b7e148cf4762126a7d82794f2d0128a5b77c1f311b67b5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsoleUtils_test.cpp",
+   "sha256": "db24974b9afdbf089b5451b077d21a9c7df0b9bd651e8f6f211f872261287b20"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DBoundingBox.h",
+   "sha256": "5a71ca1b34de215282edb32ea31e209bb10f583c68c7ce81b534bc216089980d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/DBoundingBox_test.cpp",
+   "sha256": "2be3650d1fb84708bbf74d065bcaa8005943eeb9484c9f6454a902d6850b9c4b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
+   "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConvexHull2D_test.cpp",
+   "sha256": "cd91a9ffd820c816d9a5ee8d8e0c04725f40dfb9fdd6e4658d9e94e43b7627da"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/IsotopeCluster.h",
+   "sha256": "dc1862c75d47245a8fa59d1fac43ba9eacd3c1465d28c2a7b05ebb7afd36bf4e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ListUtilsIO.h",
+   "sha256": "ae4767948b7c5b40bd7398e210a8fbabe008021210192d1c64f3d59d83c79212"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ListUtilsIO_test.cpp",
+   "sha256": "94d9817af79e57b379950a805ebef390c46f20f11ebe644d2f88f9d29b92cf4f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/MatchedIterator.h",
+   "sha256": "79941c1975151fcb2b98228295fcdbad0c8aca966266fc20b053ee27aeeab0d3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MatchedIterator_test.cpp",
+   "sha256": "f9cf1573e74c1c5a0996acdbc7752b5326036f1aa82ff68d656b907626465e98"
+  }
+ ],
+ "native_implementation": [
+  "src/concept/common_enums.rs",
+  "src/concept/types.rs",
+  "src/concept/hash_utils.rs",
+  "src/concept/macros.rs",
+  "src/concept/numeric_formatting.rs",
+  "src/concept/precision_wrapper.rs",
+  "src/concept/unique_id_indexer.rs",
+  "src/concept/version_info.rs",
+  "src/concept/colorizer.rs",
+  "src/cli/console.rs",
+  "src/data_structures/dbounding_box.rs",
+  "src/kernel/geometry.rs",
+  "src/data_structures/isotope_cluster.rs",
+  "src/format/file_info/text_format.rs",
+  "src/data_structures/matched_iterator.rs"
+ ],
+ "native_tests": [
+  "tests/concept_basics.rs",
+  "tests/concept_macros.rs",
+  "tests/list_utils_io.rs",
+  "tests/unique_id_indexer.rs",
+  "tests/version_info.rs",
+  "tests/colorizer.rs",
+  "tests/console_utils.rs",
+  "tests/dbounding_box.rs",
+  "tests/convex_hull_2d.rs",
+  "tests/isotope_cluster.rs",
+  "tests/matched_iterator.rs"
+ ],
+ "support_documents": [
+  "docs/CONCEPT_BASICS_SUPPORT.md",
+  "docs/DBOUNDING_BOX_SUPPORT.md",
+  "docs/ISOTOPE_CLUSTER_SUPPORT.md",
+  "docs/LOG_STREAM_SUPPORT.md",
+  "docs/TOPP_CLI_SUPPORT.md",
+  "docs/MAP_OPERATIONS_SUPPORT.md",
+  "docs/UPDATE_CHECK_SUPPORT.md",
+  "docs/COMPARISON_SUPPORT.md"
+ ],
+ "evidence": "Literal expectations transcribed from the pinned class tests; hash values recomputed in Python from the header formulas over explicit little-endian bytes. No expected value is generated from native output.",
+ "license": "OpenMS BSD-3-Clause; source attribution retained through this manifest and repository notices."
+}

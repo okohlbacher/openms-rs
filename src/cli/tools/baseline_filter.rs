@@ -16,7 +16,7 @@
 //! `main_` returns, so `TOPPBase`'s closing line follows (Release oracles
 //! `bf_empty_log` and `bf_centroided_log` of `../oracle/topp-exception-exits`).
 
-use crate::cli::{ExitCode, PoolLines, Tool, ToolContext, ToolResult, ToolSpec};
+use crate::cli::{ExitCode, PoolLines, Tool, ToolContext, ToolError, ToolResult, ToolSpec};
 use crate::format::file_handler::FileHandler;
 use crate::format::file_types::FileType;
 use crate::kernel::{MSSpectrum, SpectrumType, SpectrumTypeQueryLimits};
@@ -160,6 +160,23 @@ const EMPTY_INPUT_WARNING: &str = "The given file does not contain any conventio
 
 impl BaselineFilter {
     /// The tool body, as the source `main_`.
+    ///
+    /// # Errors
+    ///
+    /// A structuring element the morphological filter refuses ends the run
+    /// with [`ToolError::invalid_parameter`], exit 6, where the source
+    /// configures its filter, after the input checks: a `DataPoints` element
+    /// below one sample (a `struc_elem_length` below 1, or negative) and a
+    /// `Thomson` width that is not finite and positive
+    /// (`docs/MORPHOLOGICAL_FILTER_SUPPORT.md`). The source refuses none of
+    /// them. It widens a zero-sample element to one sample and completes
+    /// (Release oracle `bf_dp_negative_fraction` of `../oracle/B0-attacks`,
+    /// exit 0), and it converts a negative length to `UInt`, which is
+    /// undefined behaviour and ends the Release build with SIGSEGV
+    /// (`bf_dp_negative`, exit 139). Neither is an exit code to reproduce, so
+    /// the port keeps the parameter code these refusals had before an
+    /// [`Error::InvalidValue`] escaping a tool body took the source's
+    /// `UNKNOWN_ERROR` arm.
     fn run_in_pool(ctx: &ToolContext, lines: &mut PoolLines) -> ToolResult {
         let mut experiment = FileHandler::load_experiment(ctx.string("in")?, &[FileType::MzMl])?;
 
@@ -188,23 +205,24 @@ impl BaselineFilter {
         }
 
         let length = ctx.double("struc_elem_length")?;
-        let filter = MorphologicalFilter {
-            method: method(ctx.string("method")?)?,
-            structuring_element: match ctx.string("struc_elem_unit")? {
-                "Thomson" => StructuringElement::Thomson(length),
-                "DataPoints" => {
-                    StructuringElement::DataPoints(usize::try_from(length as i64).map_err(
-                        |_| Error::InvalidValue("struc_elem_length must not be negative".into()),
-                    )?)
-                }
-                other => {
-                    return Err(Error::InvalidValue(format!(
-                        "unknown structuring element unit '{other}'"
+        let structuring_element = match ctx.string("struc_elem_unit")? {
+            "Thomson" => StructuringElement::Thomson(length),
+            "DataPoints" => {
+                StructuringElement::DataPoints(usize::try_from(length as i64).map_err(|_| {
+                    ToolError::invalid_parameter(Error::InvalidValue(
+                        "struc_elem_length must not be negative".into(),
                     ))
-                    .into());
-                }
-            },
+                })?)
+            }
+            other => {
+                return Err(Error::InvalidValue(format!(
+                    "unknown structuring element unit '{other}'"
+                ))
+                .into());
+            }
         };
+        let filter = MorphologicalFilter::new(method(ctx.string("method")?)?, structuring_element)
+            .map_err(ToolError::invalid_parameter)?;
         filter.filter_experiment(&mut experiment)?;
         // Source addDataProcessing_(ms_exp, getProcessingInfo_(BASELINE_REDUCTION)):
         // one shared record on every spectrum and chromatogram.

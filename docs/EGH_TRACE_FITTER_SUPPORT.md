@@ -31,8 +31,10 @@ TRACE_FITTER_SUPPORT's "Known gap: solver fidelity beyond the fixtures"
 measures this on 79 generated Gaussian inputs and locates the departure inside
 `minimize`, not in the functor or the driver configuration, so the caveat
 applies to the EGH fits as well. The EGH fits have not been measured beyond
-these fixtures. The root cause is in `src/math/fitters/levenberg_marquardt.rs`,
-under investigation in lane B3b.
+these fixtures. The root cause, in `src/math/fitters/levenberg_marquardt.rs`,
+was found and fixed in package B3b-LM-FIDELITY; against the Linux x86_64
+Release build the solver is bit-exact on all 141 traced fits
+(`docs/TRACE_FITTER_SUPPORT.md`, *Known gap*).
 
 The source marks the class `@experimental`: "Needs further testing on real
 data", and its class test exercises the EGH only as a replacement for the

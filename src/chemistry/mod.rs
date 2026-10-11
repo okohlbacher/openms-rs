@@ -25,7 +25,15 @@ pub mod aa_index;
 pub mod adduct_info;
 pub mod decoy_generator;
 pub mod digestion;
+/// The element database (`CHEMISTRY/ElementDB.h`) and `Element` value members.
+pub mod element_db;
 mod elements;
+mod empirical_formula;
+/// `CHEMISTRY/EnzymaticDigestion.h`: specificities, names and the missed-cleavage filter.
+pub mod enzymatic_digestion;
+/// `ResidueModification::SourceClassification` (`CHEMISTRY/ResidueModification.h`).
+pub mod modification_classification;
+pub use empirical_formula::FormulaEntry;
 pub mod hydrophobicity;
 pub mod ims_alphabet;
 pub mod ims_element;
@@ -189,7 +197,7 @@ pub fn element(symbol_or_name: &str) -> Option<&'static Element> {
         .find(|e| e.symbol == symbol_or_name || e.name == symbol_or_name)
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Atom {
     symbol: &'static str,
     isotope: Option<u16>,
@@ -244,7 +252,7 @@ impl Atom {
 /// atom and charge -2. Use [`Self::with_charge`] to avoid notation ambiguity.
 /// Outer whitespace is trimmed. Group multipliers and interior whitespace are
 /// rejected. Display writes explicit counts so negative charges round-trip.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct EmpiricalFormula {
     atoms: BTreeMap<Atom, i32>,
     charge: i32,

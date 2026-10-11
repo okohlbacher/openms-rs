@@ -451,7 +451,9 @@ readable.
 
 ## Deferred
 
-- **Ledger, coverage and CI wiring are not written**, because
+- **Ledger, coverage and CI wiring were not written by this package** (the
+  integrator did it: CI in `1b6c30a`, `docs/doc-coverage.json` and the ledger
+  in `051f475`), because
   `docs/core-sdk-reviewed-apis.json`, `docs/core-sdk-coverage.json`,
   `docs/doc-coverage.json`, `docs/VALIDATION.md`, `README.md`, `CHANGELOG.md`,
   `OpenMS_CPP_ISSUES.md` and `.github/workflows/rust.yml` are outside this

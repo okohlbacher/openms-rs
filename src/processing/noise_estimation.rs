@@ -200,9 +200,11 @@ impl GaussianEstimate {
 /// the draws of `std::uniform_real_distribution<double>(0, 1)` as the Release
 /// build computes them.
 ///
-/// A Lehmer generator with multiplier `16807` and modulus `2^31 - 1`
-/// (`linear_congruential_engine<uint_fast32_t, 16807, 0, 2147483647>`, the
-/// typedef at `bits/random.h:1743` of GCC 14.4). Seeding keeps
+/// A Lehmer generator with multiplier `16807` and modulus `2^31 - 1`:
+/// `typedef linear_congruential_engine<uint_fast32_t, 16807UL, 0UL, 2147483647UL>`
+/// (`bits/random.h:1694-1695` of GCC 14.4) names it `minstd_rand0`, and
+/// `typedef minstd_rand0 default_random_engine;` (`bits/random.h:1743`) makes it
+/// the default engine. Seeding keeps
 /// `seed mod (2^31 - 1)` and replaces a zero state by one
 /// (`bits/random.tcc:119-126`).
 ///

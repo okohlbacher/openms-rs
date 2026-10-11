@@ -746,10 +746,11 @@ fn malformed_mgf_and_ms2_are_parse_errors() {
 }
 
 /// A forced type the loader's own detection contradicts: the source throws
-/// `ParseError` (`FORMAT/FileHandler.cpp:858-864`; oracle `g_forced_on_mzxml` and
-/// driver `lib_m_forced_mgf`, exit 3). This port refuses with
-/// [`Error::InvalidValue`], as for every other peak type
-/// (`docs/TOPP_FILE_INFO_SUPPORT.md`, native difference 3).
+/// `ParseError` (`FORMAT/FileHandler.cpp:859-863`; oracle `g_forced_on_mzxml` and
+/// driver `lib_m_forced_mgf`, exit 3), `type: <detected> is not allowed for
+/// loading an experiment. Allowed types are: , <forced>` in the file, as the
+/// Release build words it for FileInfo (`fi_forced_dta_on_featurexml` of
+/// `../oracle/json-ini`, batch 3), and so does this port.
 #[test]
 fn a_forced_type_the_loader_detects_otherwise_is_refused() {
     for (id, input) in [
@@ -762,14 +763,22 @@ fn a_forced_type_the_loader_detects_otherwise_is_refused() {
             "text_peak_lists/MS2File_test_spectra.ms2".to_owned(),
         ),
     ] {
+        let detected = if id == "g_forced_on_mzxml" {
+            "mzXML"
+        } else {
+            "ms2"
+        };
+        let path = data(&input);
         let case: Case = (id, input, "", FileType::Mgf);
         match run(&case) {
-            Err(Error::InvalidValue(message)) => {
-                assert!(
-                    message.ends_with("is not an allowed input format"),
-                    "{id}: {message}"
-                );
-            }
+            Err(Error::Parse { message, .. }) => assert_eq!(
+                message,
+                format!(
+                    "type: {detected} is not allowed for loading an experiment. Allowed types are: , mgf in: {}",
+                    path.display()
+                ),
+                "{id}"
+            ),
             other => panic!("{id}: {other:?}"),
         }
     }

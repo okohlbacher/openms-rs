@@ -6,12 +6,17 @@
 //! featureXML branches with `-m`, `-p` and `-s`, text and TSV reports.
 //!
 //! Evidence, in order of strength (see `tests/data/file_info_provenance.json`):
-//! - tier 1, executed differential: the text and TSV reports of the product-SDK
-//!   FileInfo (Debug, core `4fdec46`) from the C1 oracle
-//!   (`../oracle/topp-early-bundle`: FileInfo_1/2/3/9 with `-out_tsv`, the
-//!   empty featureXML and mzML, the retained FeatureFinderCentroided_1 output)
-//!   and from this package's oracle (`../oracle/file-info-core`: 27 more cases),
-//!   compared byte for byte with only the `File name` lines normalised;
+//! - tier 1, executed differential: the text and TSV reports of the C++
+//!   FileInfo from the C1 oracle (`../oracle/topp-early-bundle`: FileInfo_1/2/3/9
+//!   with `-out_tsv`, the empty featureXML and mzML, the retained
+//!   FeatureFinderCentroided_1 output) and from this package's oracle
+//!   (`../oracle/file-info-core`: 27 more cases), compared byte for byte with
+//!   only the `File name` lines normalised. Both oracles ran on the macOS
+//!   product SDK, a Debug build of core `4fdec46`. Every C1 report retained
+//!   here was re-checked against the C++ Release build at the pins (Linux
+//!   x86_64, ibminode06; `../oracle/A1-release-rerun`, two repetitions): the
+//!   Release reports are the same bytes apart from the `File name` path;
+//!   `../oracle/file-info-core` has not been re-run on the Release build;
 //! - tier 1, retained upstream outputs: FileInfo_1, _2, _3 and _9 at test-data
 //!   `0cb15f2`, compared as registered, with FuzzyDiff (`FuzzyDiff.ini`, ratio
 //!   1.01, absdiff 0.01) and the whitelist `File name`;
@@ -120,7 +125,8 @@ fn dta_forced() -> Options {
 }
 
 // ---------------------------------------------------------------------------
-// Tier 1: C1 oracle (../oracle/topp-early-bundle, run1)
+// Tier 1: C1 oracle (../oracle/topp-early-bundle, run1; the same reports on
+// the Release build in ../oracle/A1-release-rerun)
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -1207,14 +1213,19 @@ fn a_type_the_source_cannot_load_is_a_parse_error() {
         matches!(&error, Error::Parse { message, .. } if message.ends_with("type is not supported for loading experiments")),
         "{error}"
     );
-    // A forced type the detected type contradicts is refused as not allowed.
+    // A forced type the detected type contradicts is the loader's ParseError
+    // (FileHandler.cpp:859-863; Release oracle fi_forced_dta_on_featurexml of
+    // ../oracle/json-ini batch 3).
     let forced = Options {
         forced_type: FileType::Tsv,
         ..Options::default()
     };
     let error = FileInfo::new().run(&text, &forced).unwrap_err();
     assert!(
-        matches!(&error, Error::InvalidValue(message) if message.contains("not allowed")),
+        matches!(&error, Error::Parse { message, .. } if message == &format!(
+            "type: txt is not allowed for loading an experiment. Allowed types are: , tsv in: {}",
+            text.display()
+        )),
         "{error}"
     );
     // imzML is refused as an imaging format.
@@ -1266,10 +1277,18 @@ fn a_detected_type_other_than_the_forced_one_is_refused() {
         forced_type: FileType::Dta,
         ..Options::default()
     };
-    let error = FileInfo::new()
-        .run(data("file_info/inputs/FileInfo_9_input.mzML"), &options)
-        .unwrap_err();
-    assert!(matches!(error, Error::InvalidValue(_)), "{error}");
+    let input = data("file_info/inputs/FileInfo_9_input.mzML");
+    let error = FileInfo::new().run(&input, &options).unwrap_err();
+    // The loader's ParseError, as the Release build raises it for a forced
+    // type the file contradicts (FileHandler.cpp:859-863; oracle
+    // fi_forced_dta_on_featurexml of ../oracle/json-ini batch 3).
+    assert!(
+        matches!(&error, Error::Parse { message, .. } if message == &format!(
+            "type: mzML is not allowed for loading an experiment. Allowed types are: , dta in: {}",
+            input.display()
+        )),
+        "{error}"
+    );
 }
 
 #[test]

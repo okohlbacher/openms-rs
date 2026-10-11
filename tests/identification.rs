@@ -37,7 +37,9 @@ fn defaults_express_missing_values_without_sentinels() {
     assert_eq!(PeptideHit::default().rank, 0);
     assert_eq!(ProteinHit::default().coverage, None);
     let search = SearchParameters::default();
-    assert_eq!(search.charge_range().unwrap(), None);
+    // Source getChargeRange of the empty default string (Release oracle
+    // protein-identification-closure, charge_range `charges<>`).
+    assert_eq!(search.charge_range().unwrap(), (0, 0));
     assert_eq!(search.digestion_enzyme, "unknown_enzyme");
     assert_eq!(search.enzyme_specificity, EnzymeTermSpecificity::Unknown);
     assert_eq!(search.fragment_tolerance, Tolerance::Absolute(0.0));
@@ -299,6 +301,9 @@ fn annotations_and_protein_groups_follow_source_comparison_keys() {
 
 #[test]
 fn charge_ranges_include_upstream_goldens_and_signed_boundaries() {
+    // The first four are the upstream class-test goldens. Every row, including
+    // the former native-only rows, is the Release getChargeRange result
+    // (oracle protein-identification-closure, cases charge_range/charge_range2).
     for (text, expected) in [
         ("1,2,3", (1, 3)),
         ("+2-+5", (2, 5)),
@@ -307,24 +312,26 @@ fn charge_ranges_include_upstream_goldens_and_signed_boundaries() {
         (" -3--1 ", (-3, -1)),
         ("2+:5+", (2, 5)),
         ("3-:1-", (-3, -1)),
-        ("-2147483648:2147483647", (i32::MIN, i32::MAX)),
-        ("2147483648-", (i32::MIN, i32::MIN)),
+        ("a", (0, 0)),
+        ("3:1", (3, 1)),
+        ("2147483648", (0, 0)),
+        ("2--3", (-2, 3)),
+        ("-2147483648", (i32::MIN, i32::MIN)),
+        ("-2147483647-2", (-2147483647, 2)),
     ] {
         let params = SearchParameters {
             charges: text.into(),
             ..Default::default()
         };
-        assert_eq!(params.charge_range().unwrap(), Some(expected), "{text}");
+        assert_eq!(params.charge_range().unwrap(), expected, "{text}");
     }
     for text in [
         "1,",
-        "a",
-        "3:1",
         "1:2:3",
         "1,2:3",
-        "2147483648",
         "--1",
-        "2--3",
+        "-2147483648:2147483647",
+        "2147483648-",
     ] {
         assert!(
             SearchParameters {

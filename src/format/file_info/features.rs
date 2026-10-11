@@ -42,8 +42,9 @@ use super::report::{
     write_statistics_title, write_summary_text,
 };
 use super::text_format::WRITTEN_DIGITS_F32;
-use crate::format::FileHandler;
 use crate::format::featurexml::FeatureFileOptions;
+use crate::format::file_handler::{LoadTarget, check_allowed};
+use crate::format::{FileHandler, FileType};
 use crate::kernel::ranges::RangeBase;
 use crate::kernel::{Feature, FeatureMap};
 use crate::math::statistic_functions::SummaryStatistics;
@@ -54,6 +55,11 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 /// Load the feature map and write the featureXML branch, `-m`, `-p` and `-s`.
+///
+/// The source loads with `{FEATUREXML}` as the allowed list
+/// (`FORMAT/FileInfo.cpp:1084`), so a file whose detected type is another,
+/// such as a DTA file forced to featureXML, is refused with the loader's
+/// `InvalidFileType` (`FileHandler.cpp:1257-1262`) before it is read.
 pub(crate) fn report(
     path: &Path,
     options: &Options,
@@ -66,6 +72,12 @@ pub(crate) fn report(
         load_subordinates: false,
         ..FeatureFileOptions::default()
     };
+    check_allowed(
+        FileHandler::get_type(path)?,
+        &[FileType::FeatureXml],
+        &path.display().to_string(),
+        LoadTarget::Features,
+    )?;
     let map = FileHandler::load_feature_map_with_options(path, &load)?;
     let ranges = feature_map_ranges(&map)?;
 

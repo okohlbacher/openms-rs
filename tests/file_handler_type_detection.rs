@@ -202,19 +202,28 @@ fn feature_finder_options_load_the_ffc_1_input() {
         assert_eq!(spectrum.native_id, row[3]);
         assert_eq!(spectrum.len().to_string(), row[4]);
     }
-    // A detected type outside the allowed list: the source throws ParseError.
+    // A detected type outside the allowed list: the source throws ParseError,
+    // and so does the port, with the source's text (FileHandler.cpp:859-863,
+    // the list as allowedToString_ writes it, :191-202).
     assert_eq!(
         rows("experiment_disallowed", Some("spectrum_representation"))[0][2],
         "Parse Error"
     );
-    assert!(matches!(
-        FileHandler::load_experiment_with_options(
-            fixture("spectrum_representation.mzML"),
-            &[FileType::Mgf],
-            &PeakFileOptions::default()
-        ),
-        Err(Error::InvalidValue(_))
-    ));
+    let path = fixture("spectrum_representation.mzML");
+    let refused = FileHandler::load_experiment_with_options(
+        &path,
+        &[FileType::Mgf],
+        &PeakFileOptions::default(),
+    );
+    let Err(Error::Parse { message, .. }) = refused else {
+        panic!("{refused:?}");
+    };
+    assert_eq!(
+        message,
+        format!(
+            "type: mzML is not allowed for loading an experiment. Allowed types are: , mgf in: {path}"
+        )
+    );
 }
 
 #[cfg(feature = "mzml")]

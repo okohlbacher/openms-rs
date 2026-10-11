@@ -1,0 +1,1 @@
+Error: Unexpected internal error (the file '/ceph/ibmi/abi/oliver/oracle-runs/json-ini/inputs3/FileInfo_1_input.dta' could not be created because the type specified was not valid. type: dta is not allowed for loading features. Allowed types are: , featureXML)

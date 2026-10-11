@@ -96,11 +96,13 @@ pub const MAX_LISTED_PROBLEMS: usize = 20;
 
 /// How a region's footprint is represented.
 ///
-/// Source `MSImagingRegion::Shape`.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+/// Source `MSImagingRegion::Shape`; the default is `Rectangle`, the source's
+/// member initialiser `shape_ = Shape::Rectangle`.
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum RegionShape {
     /// Grid-aligned bounding box; every cell inside the box belongs to the
     /// region.
+    #[default]
     Rectangle,
     /// Per-pixel bitmask inside the bounding box.
     Mask,
@@ -111,9 +113,11 @@ pub enum RegionShape {
 /// Source `MSImagingRegion`, a pure-geometry footprint that knows nothing about
 /// acquired pixels or spectra and is reusable as a bare annotation. Coordinates
 /// are zero-based and bounding boxes are inclusive on both ends. Build one with
-/// [`rectangle`](Self::rectangle) or [`from_mask`](Self::from_mask); the source
-/// likewise has no public constructor and only those two factories.
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// [`rectangle`](Self::rectangle) or [`from_mask`](Self::from_mask), the
+/// source's two factories. The source also keeps its implicit default
+/// constructor public (`MSImagingRegion r {};` in its class test); that is
+/// [`Default`]: id 0, an empty name, a 1 x 1 rectangle at the origin.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ImagingRegion {
     id: usize,
     shape: RegionShape,

@@ -121,10 +121,26 @@ impl ChromatogramPeak {
 
 // The source's comparator overloads map directly to scalar comparisons on the
 // public fields. Formatting and hashing are the remaining value operations.
+//
+// `{}` prints Rust's shortest round-trip numbers and `{:.N}` fixed decimals;
+// `{:#}` prints the source `operator<<` text, `POS: <%g> INT: <%g>`
+// (`Peak1D.cpp:13-17`, `ChromatogramPeak.cpp:14-18`): each number as a default
+// `std::ostream` writes it, `ostream_g` at precision 6 with glibc's `nan`/`-nan`,
+// the `float` intensity widened to `double` first. Byte for byte the Linux
+// Release build's text (`../oracle/msexperiment-close`).
 macro_rules! peak_value_traits {
     ($peak:ty, $position:ident) => {
         impl fmt::Display for $peak {
             fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                if formatter.alternate() {
+                    use crate::format::file_info::text_format::ostream_g;
+                    return write!(
+                        formatter,
+                        "POS: {} INT: {}",
+                        ostream_g(self.$position, 6),
+                        ostream_g(f64::from(self.intensity), 6)
+                    );
+                }
                 match formatter.precision() {
                     Some(precision) => write!(
                         formatter,
@@ -253,7 +269,7 @@ pub struct ExperimentRanges {
 }
 
 /// Spectrum representation. No automatic profile/centroid inference is made.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum SpectrumType {
     #[default]
     Unknown,
@@ -1074,6 +1090,62 @@ impl MSExperiment {
         Ok(candidates().next().map(|(i, _)| i))
     }
 
+    /// The first later spectrum one MS level above the spectrum at `index`
+    /// whose first precursor names that spectrum's native ID; `None` when there
+    /// is none.
+    ///
+    /// Ports both `getFirstProductSpectrum` overloads (`MSExperiment.cpp:997-1062`).
+    /// The iterator overload's `end()` is `index == self.len()`, and the `int`
+    /// overload's `-1` for an index outside the spectra is `None` here too, so
+    /// every index is accepted.
+    ///
+    /// The search walks forward and stops at the first spectrum of a *lower*
+    /// MS level than the parent. Spectra more than one level above the parent
+    /// are passed over. A candidate matches when its first precursor's
+    /// `spectrum_reference` (the source's `"spectrum_ref"` meta value) is
+    /// nonempty and equal to the parent's native ID, so an unset or empty
+    /// reference, or a parent without a native ID, never matches.
+    ///
+    /// # Notes
+    ///
+    /// A visited candidate with more than one precursor writes the source's
+    /// `OPENMS_LOG_WARN` line to the crate's warning log stream
+    /// ([`LogLevel::Warn`](crate::concept::log_stream::LogLevel::Warn),
+    /// standard error unless reconfigured):
+    /// `Spectrum at index <i> has multiple precursors. Only the first precursor
+    /// will be considered.` A logging failure never changes the result.
+    pub fn first_product_spectrum_index(&self, index: usize) -> Option<usize> {
+        let parent = self.spectra.get(index)?;
+        for (offset, candidate) in self.spectra.get(index + 1..)?.iter().enumerate() {
+            if candidate.ms_level < parent.ms_level {
+                return None;
+            }
+            if candidate.ms_level - parent.ms_level != 1 {
+                continue;
+            }
+            let Some(first) = candidate.precursors.first() else {
+                continue;
+            };
+            let position = index + 1 + offset;
+            if candidate.precursors.len() > 1 {
+                let _ = crate::concept::log_stream::log_message(
+                    crate::concept::log_stream::LogLevel::Warn,
+                    format_args!(
+                        "Spectrum at index {position} has multiple precursors. Only the first precursor will be considered."
+                    ),
+                );
+            }
+            if first
+                .spectrum_reference
+                .as_deref()
+                .is_some_and(|reference| !reference.is_empty() && reference == parent.native_id)
+            {
+                return Some(position);
+            }
+        }
+        None
+    }
+
     /// Check every spectrum and chromatogram and the attached records.
     ///
     /// # Errors
@@ -1250,3 +1322,103 @@ impl MSExperiment {
         }
     }
 }
+
+/// Write one point line of a container dump with the caller's formatter flags:
+/// `{:#}` the source stream text, `{:.N}` fixed decimals, `{}` Rust numbers.
+pub(crate) fn write_point_line(
+    formatter: &mut fmt::Formatter<'_>,
+    point: &impl fmt::Display,
+) -> fmt::Result {
+    match (formatter.alternate(), formatter.precision()) {
+        (true, _) => writeln!(formatter, "{point:#}"),
+        (false, Some(precision)) => writeln!(formatter, "{point:.precision$}"),
+        (false, None) => writeln!(formatter, "{point}"),
+    }
+}
+
+/// The source's diagnostic dump of a spectrum, `operator<<(std::ostream&,
+/// const MSSpectrum&)` (`MSSpectrum.h:767-782`): a banner, the settings block,
+/// one `POS: … INT: …` line per peak, and a closing banner.
+///
+/// The settings block is two delimiters and nothing between them, exactly as
+/// the source prints it: `operator<<(std::ostream&, const SpectrumSettings&)`
+/// (`SpectrumSettings.cpp:185-190`) takes its argument unnamed, so no setting,
+/// native ID, precursor or data array has ever appeared in this dump.
+///
+/// `{:#}` writes the numbers as a default C++ stream does (`%g`, six
+/// significant digits) and is byte-identical to the Linux Release build's
+/// text; `{}` and `{:.N}` use Rust number formatting, as the crate's peak
+/// `Display` does.
+///
+/// ```
+/// use openms::kernel::{MSSpectrum, Peak1D};
+///
+/// let mut spectrum = MSSpectrum::default();
+/// spectrum.peaks.push(Peak1D::new(500.123456789, 12.5));
+/// assert_eq!(
+///     format!("{spectrum:#}"),
+///     "-- MSSPECTRUM BEGIN --\n\
+///      -- SPECTRUMSETTINGS BEGIN --\n\
+///      -- SPECTRUMSETTINGS END --\n\
+///      POS: 500.123 INT: 12.5\n\
+///      -- MSSPECTRUM END --\n"
+/// );
+/// ```
+impl fmt::Display for MSSpectrum {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(formatter, "-- MSSPECTRUM BEGIN --")?;
+        writeln!(formatter, "-- SPECTRUMSETTINGS BEGIN --")?;
+        writeln!(formatter, "-- SPECTRUMSETTINGS END --")?;
+        for peak in &self.peaks {
+            write_point_line(formatter, peak)?;
+        }
+        writeln!(formatter, "-- MSSPECTRUM END --")
+    }
+}
+
+/// The source's diagnostic dump of an experiment, `operator<<(std::ostream&,
+/// const MSExperiment&)` (`MSExperiment.cpp:1365-1387`): a banner, the
+/// experimental settings block, every spectrum and then every chromatogram in
+/// storage order, and a closing banner.
+///
+/// Each part is the corresponding `Display`: [`ExperimentalSettings`]'s two
+/// delimiters (the source operator, `ExperimentalSettings.cpp:140-145`, prints
+/// no setting), then [`MSSpectrum`]'s and [`MSChromatogram`]'s dumps. The
+/// formatter's flags reach every point line, so `{:#}` gives the source text
+/// byte for byte — checked against the Linux Release build, nonfinite and
+/// signed-zero values included (`../oracle/msexperiment-close`) — while `{}`
+/// and `{:.N}` keep the crate's Rust number formatting.
+///
+/// [`ExperimentalSettings`]: crate::metadata::ExperimentalSettings
+///
+/// ```
+/// use openms::kernel::{ChromatogramPeak, MSChromatogram, MSExperiment, MSSpectrum, Peak1D};
+///
+/// let mut experiment = MSExperiment::new();
+/// let mut spectrum = MSSpectrum::default();
+/// spectrum.peaks.push(Peak1D::new(10.77, 0.0));
+/// experiment.spectra.push(spectrum);
+/// let mut chromatogram = MSChromatogram::new();
+/// chromatogram.peaks.push(ChromatogramPeak::new(47.11, 0.0));
+/// experiment.chromatograms.push(chromatogram);
+/// let text = format!("{experiment:#}");
+/// assert!(text.starts_with("-- MSEXPERIMENT BEGIN --\n-- EXPERIMENTALSETTINGS BEGIN --\n"));
+/// assert!(text.contains("POS: 10.77 INT: 0\n"));
+/// assert!(text.ends_with("POS: 47.11 INT: 0\n-- MSCHROMATOGRAM END --\n-- MSEXPERIMENT END --\n"));
+/// ```
+impl fmt::Display for MSExperiment {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(formatter, "-- MSEXPERIMENT BEGIN --")?;
+        fmt::Display::fmt(&self.settings, formatter)?;
+        for spectrum in &self.spectra {
+            fmt::Display::fmt(spectrum, formatter)?;
+        }
+        for chromatogram in &self.chromatograms {
+            fmt::Display::fmt(chromatogram, formatter)?;
+        }
+        writeln!(formatter, "-- MSEXPERIMENT END --")
+    }
+}
+
+/// Ion-mobility float data array names and units (`IONMOBILITY/IMDataArrayUtils.h`).
+pub mod im_data_array_utils;

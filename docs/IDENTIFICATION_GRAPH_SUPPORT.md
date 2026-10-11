@@ -102,7 +102,12 @@ All changes are staged and checked before replacing stored records.
 ## Graph merging and copying
 
 `merge_from(&other)` returns a `ReferenceTranslator`. Its typed lookup methods
-reject missing translations; they never leak a foreign ID. References are
+reject missing translations; they never leak a foreign ID. The one exception
+is the source's own: with the public `allow_missing` flag set (default
+`false`), `molecule` and `observation_match` — the two `RefTranslator::translate`
+overloads — return an untranslated ID unchanged, exactly as
+`IdentificationData.cpp:1387` and `:1396` do. The other tables are plain
+`std::map`s in the source and stay errors. References are
 translated in dependency order, including applied scores, parent positions and
 step/search associations.
 
@@ -122,6 +127,35 @@ whole call. Ordinary registration copies only an affected existing record when
 it needs merging. A late conflict or resource error leaves every prior stored
 record and its ID valid. This corrects source multi-index failure paths that can
 partially mutate or erase a record. There is no unchecked-registration mode.
+
+## Picking a score type and rewriting observations
+
+`pick_score_type(container, all_elements, any_score)` is the `pickScoreType`
+template over any iterator of `&ScoredProcessingResult`. With the defaults
+(`false`, `false`) it returns the primary score of the first scored element's
+most recent scoring step, resolved through the graph's software priorities —
+the only mode the source's one in-tree caller
+(`MapAlignmentAlgorithmIdentification.cpp:120`) uses. With counting enabled it
+returns the score type supported by the most elements, a tie going to the
+later-registered type. That is the documented contract, and it differs from the
+executed source: `max_element` over the source's `std::map<ScoreTypeRef, Size>`
+compares the pairs key first, so the source returns the counted type with the
+highest set-node address and never consults the counts.
+
+`apply_to_observations(f)` is `applyToObservations`: the closure sees every
+observation in key order and may change any field. Changed keys are re-sorted
+and observation IDs stay valid. The call is one transaction: an invalid record,
+a foreign input file, a limit violation or two observations sharing a key
+leaves the graph unchanged. The source's Boost.MultiIndex `modify` instead
+erases an element whose new key collides, leaving any match that referenced it
+dangling.
+
+Evidence: [identification_graph_apply.rs](../tests/identification_graph_apply.rs),
+Tier 1 against the executed Linux x86_64 Release build (core bc9cc12, oracle
+`../oracle/A5b-iddata`, ibminode06, run twice with identical output): all
+thirteen `pickScoreType` cases, the four `applyToObservations` states and the
+four `allow_missing` lookups. The two counting cases and the key collision
+assert the documented contract and name the source's executed answer.
 
 ## Coverage and RNA digestion
 

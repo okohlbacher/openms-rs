@@ -361,16 +361,22 @@ fn late_errors_and_resource_limits_are_atomic_and_skip_unused_payload() {
         );
         assert_eq!(e, old);
     }
+    // A NaN retention time is copied, not refused (DEBT-04): the source's
+    // `spec.setRT(pit->getRT())` (`ChromatogramTools.h:72`) orders nothing.
     let mut e = make();
     e.chromatograms[0].peaks[1].rt = f64::NAN;
-    let buffer = e.chromatograms.as_ptr();
-    assert!(
-        ChromatogramTools::default()
-            .convert_chromatograms_to_spectra(&mut e)
-            .is_err()
-    );
-    assert_eq!(e.chromatograms.as_ptr(), buffer);
-    assert!(e.spectra.is_empty());
+    ChromatogramTools::default()
+        .convert_chromatograms_to_spectra(&mut e)
+        .unwrap();
+    assert!(e.chromatograms.is_empty());
+    assert_eq!(e.spectra.len(), 2);
+    assert_eq!(e.spectra[0].rt, 1.);
+    assert!(e.spectra[1].rt.is_nan());
+    // A NaN product m/z of a precursor seen for the first time enters that
+    // precursor's empty product map as its own key (`std::map::operator[]`
+    // inserts into an empty map whatever the key), so it is a chromatogram of
+    // its own. tests/a3a_source_order.rs pins the other NaN placements against
+    // the Release build.
     let mut e = MSExperiment {
         spectra: vec![
             spectrum(ScanMode::SelectedReactionMonitoring, 1., &[5.], &[(2., 3.)]),
@@ -383,13 +389,15 @@ fn late_errors_and_resource_limits_are_atomic_and_skip_unused_payload() {
         ],
         ..Default::default()
     };
-    assert!(
-        ChromatogramTools::default()
-            .convert_spectra_to_chromatograms(&mut e, true, false)
-            .is_err()
-    );
-    assert_eq!(e.spectra.len(), 2);
-    assert!(e.chromatograms.is_empty());
+    let mut nan_product = e.clone();
+    ChromatogramTools::default()
+        .convert_spectra_to_chromatograms(&mut nan_product, true, false)
+        .unwrap();
+    assert!(nan_product.spectra.is_empty());
+    assert_eq!(nan_product.chromatograms.len(), 2);
+    assert_eq!(nan_product.chromatograms[0].product.mz, 2.);
+    assert_eq!(nan_product.chromatograms[1].precursor.mz, 6.);
+    assert!(nan_product.chromatograms[1].product.mz.is_nan());
     e.spectra[1].instrument_settings.scan_mode = ScanMode::MassSpectrum;
     ChromatogramTools::default()
         .convert_spectra_to_chromatograms(&mut e, false, false)
