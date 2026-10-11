@@ -223,9 +223,9 @@ impl Transition for SimpleTransition {
 /// `calculate_lda_prescore`, `calculate_lda_single_transition`,
 /// `calculate_swath_lda_prescore`) live in
 /// `ANALYSIS/OPENSWATH/OpenSwathScores.cpp` and belong to the OpenSWATH
-/// analysis port, not to this kernel work package; they are not ported here.
-/// `OpenSwath_Scores_Usage` is likewise an analysis-side switchboard and is not
-/// ported.
+/// analysis port: they are implemented on this struct in
+/// `analysis::openswath::openswath_scores`, which also ports the analysis-side
+/// switchboard `OpenSwath_Scores_Usage` as `OpenSwathScoresUsage`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct OpenSwathScores {
     pub elution_model_fit_score: f64,
