@@ -62,6 +62,12 @@ impl KroenikFile {
     /// from `Summed Intensity`, and a two-scan convex hull spanning
     /// `First RTime`..`Last RTime` by `m/z`..`m/z + 3/charge`.
     ///
+    /// After a non-empty load the source writes the hint `Hint: The convex hulls
+    /// are approximated in m/z dimension (Kroenik lacks this information)!` to
+    /// `OPENMS_LOG_INFO` (`KroenikFile.cpp:99`). The library has no global log
+    /// stream and writes nothing; the approximation it announces is
+    /// [`HULL_MZ_WIDTH`].
+    ///
     /// # Errors
     ///
     /// [`Error::Io`] when the file cannot be opened (source

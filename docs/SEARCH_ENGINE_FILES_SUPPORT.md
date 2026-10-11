@@ -112,6 +112,11 @@ Each is documented in full at the Rust item.
   line end, and a Sequest iterator incremented past the end.
 - On error a loader returns nothing. The source has often already changed the
   caller's containers before it throws.
+- The library has no global log stream, so the source's `OPENMS_LOG_INFO` hint
+  after a non-empty `KroenikFile::load` ("The convex hulls are approximated in
+  m/z dimension", `KroenikFile.cpp:99`) is not written; the approximation is
+  `kroenik_file::HULL_MZ_WIDTH`. (Wave-4 integration found the line neither
+  ported nor accounted for.)
 - `PTMXMLFile` escapes the five XML special characters when writing. The source
   writes the text raw, so it can produce a malformed document; reading an
   escaped name back keeps only its last character run, as the Release build
