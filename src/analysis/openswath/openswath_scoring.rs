@@ -31,6 +31,7 @@
 
 use super::data_access_helper::convert_peptide_to_aa_sequence;
 use super::data_structures::SpectrumPtr;
+use super::dia_helper::range_bounds;
 use super::dia_scoring::DiaScoring;
 use super::ion_mobility_scoring::{
     DriftExtraction, IonMobilityScoring, MobilogramExport, MobilogramSink,
@@ -135,13 +136,6 @@ fn fetch_count(n: i32) -> usize {
 
 fn contains_drift_time_data(spectra: &[SpectrumPtr]) -> bool {
     spectra.iter().any(|s| s.drift_time_array().is_some())
-}
-
-fn range_bounds(range: &RangeBase) -> (f64, f64) {
-    match (range.min(), range.max()) {
-        (Ok(min), Ok(max)) => (min, max),
-        _ => (f64::MAX, -f64::MAX),
-    }
 }
 
 /// Source `concatenateDriftFilteredSpectra_`.

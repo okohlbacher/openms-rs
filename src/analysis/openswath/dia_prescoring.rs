@@ -27,10 +27,11 @@ use super::dia_helper::{
     integrate_windows_sequence, sort_by_first,
 };
 use super::spectrum_access::SpectrumAccess;
-use super::stats_helpers::{dot_prod, manhattan_dist, norm};
+use super::stats_helpers::{dot_prod, manhattan_dist, norm, normalize_in_place};
 use super::transition_experiment::{LightTargetedExperiment, LightTransition};
 use super::transition_helper;
 use crate::chemistry::C13C12_MASSDIFF_U;
+use crate::format::file_info::text_format::ostream_g;
 use crate::kernel::ranges::RangeBase;
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
 use crate::{Error, Result};
@@ -128,16 +129,6 @@ fn entry(name: &str, value: ParamValue, description: &str) -> ParamEntry {
         description: description.into(),
         value,
         ..ParamEntry::default()
-    }
-}
-
-/// Divide `values` by `factor` in place when `factor > 0`, else leave them;
-/// the source's `OpenSwath::normalize(v, factor, v)`.
-fn normalize_in_place(values: &mut [f64], factor: f64) {
-    if factor > 0.0 {
-        for value in values {
-            *value /= factor;
-        }
     }
 }
 
@@ -453,40 +444,7 @@ fn int32(param: &Param, key: &str) -> Result<i32> {
 /// `boost::lexical_cast<std::string>(double)`: `%.17g` with trailing zeros
 /// removed and the C spellings of the non-finite values.
 pub(crate) fn format_g17(value: f64) -> String {
-    const DIGITS: i32 = 17;
-    if value.is_nan() {
-        return if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-        .into();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.into();
-    }
-    if value == 0.0 {
-        return if value.is_sign_negative() { "-0" } else { "0" }.into();
-    }
-    let scientific = format!("{:.*e}", (DIGITS - 1) as usize, value);
-    let Some((mantissa, exponent)) = scientific.split_once('e') else {
-        return scientific;
-    };
-    let exponent: i32 = exponent.parse().unwrap_or(0);
-    if !(-4..DIGITS).contains(&exponent) {
-        let sign = if exponent < 0 { '-' } else { '+' };
-        return format!("{}e{sign}{:02}", trim_zeros(mantissa), exponent.abs());
-    }
-    let decimals = usize::try_from(DIGITS - 1 - exponent).unwrap_or(0);
-    trim_zeros(&format!("{value:.decimals$}")).to_string()
-}
-
-fn trim_zeros(text: &str) -> &str {
-    if text.contains('.') {
-        text.trim_end_matches('0').trim_end_matches('.')
-    } else {
-        text
-    }
+    ostream_g(value, 17)
 }
 
 #[cfg(test)]

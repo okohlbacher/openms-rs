@@ -10,6 +10,7 @@
 //! tab-separated file writer. See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_ALGO_SUPPORT.md).
 
+use crate::format::file_info::text_format::ostream_g;
 use crate::{Error, Result};
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -153,40 +154,7 @@ impl DataFrameWriter for CsvWriter {
 /// format: `%.5g`, trailing zeros removed, exponent at least two digits, and
 /// libstdc++'s spellings of the non-finite values.
 fn ostream_g5(value: f64) -> String {
-    const DIGITS: i32 = 5;
-    if value.is_nan() {
-        return if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-        .into();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.into();
-    }
-    if value == 0.0 {
-        return if value.is_sign_negative() { "-0" } else { "0" }.into();
-    }
-    let scientific = format!("{:.*e}", (DIGITS - 1) as usize, value);
-    let Some((mantissa, exponent)) = scientific.split_once('e') else {
-        return scientific;
-    };
-    let exponent: i32 = exponent.parse().unwrap_or(0);
-    if !(-4..DIGITS).contains(&exponent) {
-        let sign = if exponent < 0 { '-' } else { '+' };
-        return format!("{}e{sign}{:02}", trim_zeros(mantissa), exponent.abs());
-    }
-    let decimals = usize::try_from(DIGITS - 1 - exponent).unwrap_or(0);
-    trim_zeros(&format!("{value:.decimals$}")).to_string()
-}
-
-fn trim_zeros(text: &str) -> &str {
-    if text.contains('.') {
-        text.trim_end_matches('0').trim_end_matches('.')
-    } else {
-        text
-    }
+    ostream_g(value, 5)
 }
 
 #[cfg(test)]

@@ -62,7 +62,7 @@ pub fn normalize(intensities: &[f64], normalization_factor: f64) -> Vec<f64> {
     out
 }
 
-fn normalize_in_place(values: &mut [f64], normalization_factor: f64) {
+pub(super) fn normalize_in_place(values: &mut [f64], normalization_factor: f64) {
     if normalization_factor > 0.0 {
         for value in values {
             *value /= normalization_factor;

@@ -195,7 +195,7 @@ pub fn integrate_window_sums(
 
 /// `(min, max)` of a range as the source `getMin`/`getMax` read them: an empty
 /// range has `min = +max_double` and `max = -max_double`, so nothing lies in it.
-fn range_bounds(range: &RangeBase) -> (f64, f64) {
+pub(super) fn range_bounds(range: &RangeBase) -> (f64, f64) {
     match (range.min(), range.max()) {
         (Ok(min), Ok(max)) => (min, max),
         _ => (f64::MAX, -f64::MAX),
