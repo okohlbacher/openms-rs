@@ -13,9 +13,11 @@
 //! publications, instruments, software, proteins, inclusion/exclusion
 //! targets and source files.
 //!
-//! Upstream stores it as `.traml` with `TraMLFile` or as `.tsv` with
-//! `TransitionTSVFile`; neither format is ported yet, and both are backlog
-//! items that depend on this type.
+//! Upstream stores it as `.traml` with `TraMLFile`, as `.tsv` with
+//! `TransitionTSVFile` or as `.pqp` with `TransitionPQPFile`; here those are
+//! `format::traml` (feature `traml`),
+//! [`transition_tsv_file`](crate::analysis::openswath::transition_tsv_file)
+//! and `analysis::openswath::transition_pqp_file` (feature `sqlite`).
 //!
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TARGETED_EXPERIMENT_SUPPORT.md)
 //! for the member mapping and the evidence. The source contains no

@@ -1,0 +1,101 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+      "sha256": "4cb12c809b306aca5ec9f27216740d5a52dcdcbe20483361ffe72601cbf8de8e"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionTSVFile.cpp",
+      "sha256": "e49ff74fcba3da1e8a2570cfab32625eb769d6d135a6e0752e40818c527f4a35"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TransitionTSVFile_test.cpp",
+      "sha256": "2723e4bde4109a0158a1d3d30a67899cbc2faf31fad8e997da7b29c283c43589"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/transition_tsv_file.rs"
+  ],
+  "native_tests": [
+    "tests/transition_tsv_file.rs"
+  ],
+  "support": "docs/TRANSITION_TSV_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/traml/MRMAssay_detectingTransistionCompound_input.TraML",
+      "sha256": "5513a89582f02e9249adf69b2eec8598d2727a9939fd8d228fcde5a330f0d7b1",
+      "origin": "src/tests/class_tests/openms/data/MRMAssay_detectingTransistionCompound_input.TraML at core bc9cc12"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_1_input.tsv",
+      "sha256": "3d59ade576d8d4f610ec8bda708e3442c2b278124cce95e2c2310fb984a1844a",
+      "origin": "topp/ConvertTSVToTraML_1_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_2_input.tsv",
+      "sha256": "35efb6a376566e6c47c4f7c609cfc817ed919c90a19f47ed1a41ca80f55dbed0",
+      "origin": "topp/ConvertTSVToTraML_2_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_4_input.mrm",
+      "sha256": "74b612be5d2901f92a96d8af5b143ad22ecbcab2f8a553bd2c2e49f6c23d721d",
+      "origin": "topp/ConvertTSVToTraML_4_input.mrm at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_4_output.TraML",
+      "sha256": "678b84d7704323e280f2f4b8612ebbe604492daa799086aec4a482d27a6ff70c",
+      "origin": "topp/ConvertTSVToTraML_4_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_5_input.tsv",
+      "sha256": "c23bd9b7bf09a09126498857abcbc4ea46f2812c6524bb35597972c4a4c71387",
+      "origin": "topp/ConvertTSVToTraML_5_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_6_input.tsv",
+      "sha256": "302c6029fdf043b6c6cf5ac09f808d96afcf5c8c42ce591369da432f26019e9e",
+      "origin": "topp/ConvertTSVToTraML_6_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTraMLToTSV_output.tsv",
+      "sha256": "b72a713df13bb45b0f8cb70635f6106455c6f8a27e8f34f64449947517461506",
+      "origin": "topp/ConvertTraMLToTSV_output.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTraMLToTSV_output_2.tsv",
+      "sha256": "ebcb943a5f338f931b0da852c4481a1e95d1a1c1b5c095de67ce974acd317386",
+      "origin": "topp/ConvertTraMLToTSV_output_2.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_8_input.tsv",
+      "sha256": "50b6b44eb89c49b5a0a6c28f648e02d70a0742a5778421566b8f32bda2fc5732",
+      "origin": "topp/TargetedFileConverter_8_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_12_input.tsv",
+      "sha256": "49108f73155195ff00fc61f81066968d245a954fe2385f26fe84f1bcd999dc91",
+      "origin": "topp/TargetedFileConverter_12_input.tsv at test-data 0cb15f2"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (retained C++ output): the TargetedFileConverter heavy path (openswath e29e7ee TargetedFileConverter.cpp:229-276) reproduces ConvertTSVToTraML 1-6 (incl. minutes/seconds and the SpectraST MRM list) and TargetedFileConverter 5, 6, 8 and 13 against retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1736-1864), tokens compared with numbers as identical doubles. Tier 3: TransitionTSVFile_test.cpp heavy sections. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test transition_tsv_file`: 10 passed.",
+  "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1736-1864",
+  "external_reference_artifacts": [
+    {
+      "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
+      "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed."
+}
