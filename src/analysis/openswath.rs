@@ -31,6 +31,8 @@ pub mod include_exclude_target;
 pub mod ion_mobility_scoring;
 /// Feature, peak-group, transition-group and S/N access traits, from `OPENSWATHALGO/DATAACCESS/ITransition.h`.
 pub mod itransition;
+/// Shared p-value, q-value and PEP inference for peptide, protein and gene rows, from `ANALYSIS/OPENSWATH/LevelContextInference.h`.
+pub mod level_context_inference;
 /// Correlation of mass traces into pseudo-spectra, from `ANALYSIS/OPENSWATH/MasstraceCorrelator.h`.
 pub mod masstrace_correlator;
 /// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
@@ -67,12 +69,40 @@ pub mod mrm_rt_normalizer;
 pub mod mrm_scoring;
 /// Peak-group picking across the chromatograms of one precursor, from `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`.
 pub mod mrm_transition_group_picker;
+/// Shared export configuration, from `ANALYSIS/OPENSWATH/OpenSwathExportConfig.h`.
+pub mod openswath_export_config;
+/// Rows, tables and matrices of the OpenSWATH exports, from `ANALYSIS/OPENSWATH/OpenSwathExportData.h`.
+pub mod openswath_export_data;
+/// Gene-level context inference, from `ANALYSIS/OPENSWATH/OpenSwathGeneInference.h`.
+pub mod openswath_gene_inference;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
+/// Error-estimation, IPF and level-context inference configuration, from `ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h`.
+pub mod openswath_inference_config;
+/// Inference levels, contexts and the compact inference rows, from `ANALYSIS/OPENSWATH/OpenSwathInferenceData.h`.
+pub mod openswath_inference_data;
+/// Canonical precursor and transition identifiers for OpenSWATH libraries, from `ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h`.
+pub mod openswath_library_id_normalizer;
+/// Building and writing of OpenSWATH quantification matrices, from `ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h`.
+pub mod openswath_matrix_exporter;
+/// The OSW (SQLite) output of OpenSWATH, from `ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h`.
+pub mod openswath_osw_writer;
+/// Peptide-level context inference, from `ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h`.
+pub mod openswath_peptide_inference;
+/// Inference of peptidoforms (IPF), from `ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h`.
+pub mod openswath_peptidoform_inference;
+/// Protein-level context inference, from `ANALYSIS/OPENSWATH/OpenSwathProteinInference.h`.
+pub mod openswath_protein_inference;
+/// Writing of filtered OpenSWATH feature results, from `ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h`.
+pub mod openswath_results_exporter;
 /// `OpenSwath_Scores_Usage` and the LDA scoring methods of `OpenSwath_Scores`, from `ANALYSIS/OPENSWATH/OpenSwathScores.h`.
 pub mod openswath_scores;
 /// The driver calling the chromatographic, library, DIA and ion mobility scores, from `ANALYSIS/OPENSWATH/OpenSwathScoring.h`.
 pub mod openswath_scoring;
+/// The OpenSWATH workflow, from `ANALYSIS/OPENSWATH/OpenSwathWorkflow.h`.
+pub mod openswath_workflow;
+/// Memory-bounded work planning of the OpenSWATH workflow, from `ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h`.
+pub mod openswath_workflow_scheduler;
 /// Raw m/z-RT-ion-mobility peak clouds at targeted coordinates, from `ANALYSIS/OPENSWATH/PeakMapExtractor.h`.
 pub mod peak_map_extractor;
 /// Peak picking in a single ion mobilogram, from `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`.

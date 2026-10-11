@@ -1,0 +1,2 @@
+HAS_CANONICAL_BEFORE	0	0
+ERROR	InvalidValue	the value 'missing_precursor' was used but is not valid; Transition references an unknown source compound ID

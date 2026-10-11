@@ -1,0 +1,212 @@
+dump_peptide_global	dump_lc	data/PyProphet_inference_test.osw	peptide	global	out/dump_peptide_global.tsv
+dump_peptide_experiment-wide	dump_lc	data/PyProphet_inference_test.osw	peptide	experiment-wide	out/dump_peptide_experiment-wide.tsv
+dump_peptide_run-specific	dump_lc	data/PyProphet_inference_test.osw	peptide	run-specific	out/dump_peptide_run-specific.tsv
+dump_protein_global	dump_lc	data/PyProphet_inference_test.osw	protein	global	out/dump_protein_global.tsv
+dump_protein_experiment-wide	dump_lc	data/PyProphet_inference_test.osw	protein	experiment-wide	out/dump_protein_experiment-wide.tsv
+dump_protein_run-specific	dump_lc	data/PyProphet_inference_test.osw	protein	run-specific	out/dump_protein_run-specific.tsv
+dump_gene_global	dump_lc	data/PyProphet_inference_test.osw	gene	global	out/dump_gene_global.tsv
+dump_gene_experiment-wide	dump_lc	data/PyProphet_inference_test.osw	gene	experiment-wide	out/dump_gene_experiment-wide.tsv
+dump_gene_run-specific	dump_lc	data/PyProphet_inference_test.osw	gene	run-specific	out/dump_gene_run-specific.tsv
+lc_peptide_global_default	lc	out/dump_peptide_global.tsv	peptide	global	default	out/lc_peptide_global_default.tsv
+lc_peptide_global_parametric	lc	out/dump_peptide_global.tsv	peptide	global	parametric	out/lc_peptide_global_parametric.tsv
+lc_peptide_global_pfdr	lc	out/dump_peptide_global.tsv	peptide	global	pfdr	out/lc_peptide_global_pfdr.tsv
+lc_peptide_global_smoother	lc	out/dump_peptide_global.tsv	peptide	global	smoother	out/lc_peptide_global_smoother.tsv
+lc_peptide_global_smoother_log	lc	out/dump_peptide_global.tsv	peptide	global	smoother_log	out/lc_peptide_global_smoother_log.tsv
+lc_peptide_global_logit	lc	out/dump_peptide_global.tsv	peptide	global	logit	out/lc_peptide_global_logit.tsv
+lc_peptide_global_notrunc_nomono	lc	out/dump_peptide_global.tsv	peptide	global	notrunc_nomono	out/lc_peptide_global_notrunc_nomono.tsv
+lc_peptide_global_lambda_single	lc	out/dump_peptide_global.tsv	peptide	global	lambda_single	out/lc_peptide_global_lambda_single.tsv
+lc_peptide_global_lambda_bad	lc	out/dump_peptide_global.tsv	peptide	global	lambda_bad	out/lc_peptide_global_lambda_bad.tsv
+lc_peptide_experiment-wide_default	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	default	out/lc_peptide_experiment-wide_default.tsv
+lc_peptide_experiment-wide_parametric	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	parametric	out/lc_peptide_experiment-wide_parametric.tsv
+lc_peptide_experiment-wide_pfdr	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	pfdr	out/lc_peptide_experiment-wide_pfdr.tsv
+lc_peptide_experiment-wide_smoother	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	smoother	out/lc_peptide_experiment-wide_smoother.tsv
+lc_peptide_experiment-wide_smoother_log	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	smoother_log	out/lc_peptide_experiment-wide_smoother_log.tsv
+lc_peptide_experiment-wide_logit	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	logit	out/lc_peptide_experiment-wide_logit.tsv
+lc_peptide_experiment-wide_notrunc_nomono	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	notrunc_nomono	out/lc_peptide_experiment-wide_notrunc_nomono.tsv
+lc_peptide_experiment-wide_lambda_single	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	lambda_single	out/lc_peptide_experiment-wide_lambda_single.tsv
+lc_peptide_experiment-wide_lambda_bad	lc	out/dump_peptide_experiment-wide.tsv	peptide	experiment-wide	lambda_bad	out/lc_peptide_experiment-wide_lambda_bad.tsv
+lc_peptide_run-specific_default	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	default	out/lc_peptide_run-specific_default.tsv
+lc_peptide_run-specific_parametric	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	parametric	out/lc_peptide_run-specific_parametric.tsv
+lc_peptide_run-specific_pfdr	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	pfdr	out/lc_peptide_run-specific_pfdr.tsv
+lc_peptide_run-specific_smoother	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	smoother	out/lc_peptide_run-specific_smoother.tsv
+lc_peptide_run-specific_smoother_log	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	smoother_log	out/lc_peptide_run-specific_smoother_log.tsv
+lc_peptide_run-specific_logit	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	logit	out/lc_peptide_run-specific_logit.tsv
+lc_peptide_run-specific_notrunc_nomono	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	notrunc_nomono	out/lc_peptide_run-specific_notrunc_nomono.tsv
+lc_peptide_run-specific_lambda_single	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	lambda_single	out/lc_peptide_run-specific_lambda_single.tsv
+lc_peptide_run-specific_lambda_bad	lc	out/dump_peptide_run-specific.tsv	peptide	run-specific	lambda_bad	out/lc_peptide_run-specific_lambda_bad.tsv
+lc_protein_global_default	lc	out/dump_protein_global.tsv	protein	global	default	out/lc_protein_global_default.tsv
+lc_protein_global_parametric	lc	out/dump_protein_global.tsv	protein	global	parametric	out/lc_protein_global_parametric.tsv
+lc_protein_global_pfdr	lc	out/dump_protein_global.tsv	protein	global	pfdr	out/lc_protein_global_pfdr.tsv
+lc_protein_global_smoother	lc	out/dump_protein_global.tsv	protein	global	smoother	out/lc_protein_global_smoother.tsv
+lc_protein_global_smoother_log	lc	out/dump_protein_global.tsv	protein	global	smoother_log	out/lc_protein_global_smoother_log.tsv
+lc_protein_global_logit	lc	out/dump_protein_global.tsv	protein	global	logit	out/lc_protein_global_logit.tsv
+lc_protein_global_notrunc_nomono	lc	out/dump_protein_global.tsv	protein	global	notrunc_nomono	out/lc_protein_global_notrunc_nomono.tsv
+lc_protein_global_lambda_single	lc	out/dump_protein_global.tsv	protein	global	lambda_single	out/lc_protein_global_lambda_single.tsv
+lc_protein_global_lambda_bad	lc	out/dump_protein_global.tsv	protein	global	lambda_bad	out/lc_protein_global_lambda_bad.tsv
+lc_protein_experiment-wide_default	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	default	out/lc_protein_experiment-wide_default.tsv
+lc_protein_experiment-wide_parametric	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	parametric	out/lc_protein_experiment-wide_parametric.tsv
+lc_protein_experiment-wide_pfdr	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	pfdr	out/lc_protein_experiment-wide_pfdr.tsv
+lc_protein_experiment-wide_smoother	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	smoother	out/lc_protein_experiment-wide_smoother.tsv
+lc_protein_experiment-wide_smoother_log	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	smoother_log	out/lc_protein_experiment-wide_smoother_log.tsv
+lc_protein_experiment-wide_logit	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	logit	out/lc_protein_experiment-wide_logit.tsv
+lc_protein_experiment-wide_notrunc_nomono	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	notrunc_nomono	out/lc_protein_experiment-wide_notrunc_nomono.tsv
+lc_protein_experiment-wide_lambda_single	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	lambda_single	out/lc_protein_experiment-wide_lambda_single.tsv
+lc_protein_experiment-wide_lambda_bad	lc	out/dump_protein_experiment-wide.tsv	protein	experiment-wide	lambda_bad	out/lc_protein_experiment-wide_lambda_bad.tsv
+lc_protein_run-specific_default	lc	out/dump_protein_run-specific.tsv	protein	run-specific	default	out/lc_protein_run-specific_default.tsv
+lc_protein_run-specific_parametric	lc	out/dump_protein_run-specific.tsv	protein	run-specific	parametric	out/lc_protein_run-specific_parametric.tsv
+lc_protein_run-specific_pfdr	lc	out/dump_protein_run-specific.tsv	protein	run-specific	pfdr	out/lc_protein_run-specific_pfdr.tsv
+lc_protein_run-specific_smoother	lc	out/dump_protein_run-specific.tsv	protein	run-specific	smoother	out/lc_protein_run-specific_smoother.tsv
+lc_protein_run-specific_smoother_log	lc	out/dump_protein_run-specific.tsv	protein	run-specific	smoother_log	out/lc_protein_run-specific_smoother_log.tsv
+lc_protein_run-specific_logit	lc	out/dump_protein_run-specific.tsv	protein	run-specific	logit	out/lc_protein_run-specific_logit.tsv
+lc_protein_run-specific_notrunc_nomono	lc	out/dump_protein_run-specific.tsv	protein	run-specific	notrunc_nomono	out/lc_protein_run-specific_notrunc_nomono.tsv
+lc_protein_run-specific_lambda_single	lc	out/dump_protein_run-specific.tsv	protein	run-specific	lambda_single	out/lc_protein_run-specific_lambda_single.tsv
+lc_protein_run-specific_lambda_bad	lc	out/dump_protein_run-specific.tsv	protein	run-specific	lambda_bad	out/lc_protein_run-specific_lambda_bad.tsv
+lc_gene_global_default	lc	out/dump_gene_global.tsv	gene	global	default	out/lc_gene_global_default.tsv
+lc_gene_global_parametric	lc	out/dump_gene_global.tsv	gene	global	parametric	out/lc_gene_global_parametric.tsv
+lc_gene_global_pfdr	lc	out/dump_gene_global.tsv	gene	global	pfdr	out/lc_gene_global_pfdr.tsv
+lc_gene_global_smoother	lc	out/dump_gene_global.tsv	gene	global	smoother	out/lc_gene_global_smoother.tsv
+lc_gene_global_smoother_log	lc	out/dump_gene_global.tsv	gene	global	smoother_log	out/lc_gene_global_smoother_log.tsv
+lc_gene_global_logit	lc	out/dump_gene_global.tsv	gene	global	logit	out/lc_gene_global_logit.tsv
+lc_gene_global_notrunc_nomono	lc	out/dump_gene_global.tsv	gene	global	notrunc_nomono	out/lc_gene_global_notrunc_nomono.tsv
+lc_gene_global_lambda_single	lc	out/dump_gene_global.tsv	gene	global	lambda_single	out/lc_gene_global_lambda_single.tsv
+lc_gene_global_lambda_bad	lc	out/dump_gene_global.tsv	gene	global	lambda_bad	out/lc_gene_global_lambda_bad.tsv
+lc_gene_experiment-wide_default	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	default	out/lc_gene_experiment-wide_default.tsv
+lc_gene_experiment-wide_parametric	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	parametric	out/lc_gene_experiment-wide_parametric.tsv
+lc_gene_experiment-wide_pfdr	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	pfdr	out/lc_gene_experiment-wide_pfdr.tsv
+lc_gene_experiment-wide_smoother	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	smoother	out/lc_gene_experiment-wide_smoother.tsv
+lc_gene_experiment-wide_smoother_log	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	smoother_log	out/lc_gene_experiment-wide_smoother_log.tsv
+lc_gene_experiment-wide_logit	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	logit	out/lc_gene_experiment-wide_logit.tsv
+lc_gene_experiment-wide_notrunc_nomono	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	notrunc_nomono	out/lc_gene_experiment-wide_notrunc_nomono.tsv
+lc_gene_experiment-wide_lambda_single	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	lambda_single	out/lc_gene_experiment-wide_lambda_single.tsv
+lc_gene_experiment-wide_lambda_bad	lc	out/dump_gene_experiment-wide.tsv	gene	experiment-wide	lambda_bad	out/lc_gene_experiment-wide_lambda_bad.tsv
+lc_gene_run-specific_default	lc	out/dump_gene_run-specific.tsv	gene	run-specific	default	out/lc_gene_run-specific_default.tsv
+lc_gene_run-specific_parametric	lc	out/dump_gene_run-specific.tsv	gene	run-specific	parametric	out/lc_gene_run-specific_parametric.tsv
+lc_gene_run-specific_pfdr	lc	out/dump_gene_run-specific.tsv	gene	run-specific	pfdr	out/lc_gene_run-specific_pfdr.tsv
+lc_gene_run-specific_smoother	lc	out/dump_gene_run-specific.tsv	gene	run-specific	smoother	out/lc_gene_run-specific_smoother.tsv
+lc_gene_run-specific_smoother_log	lc	out/dump_gene_run-specific.tsv	gene	run-specific	smoother_log	out/lc_gene_run-specific_smoother_log.tsv
+lc_gene_run-specific_logit	lc	out/dump_gene_run-specific.tsv	gene	run-specific	logit	out/lc_gene_run-specific_logit.tsv
+lc_gene_run-specific_notrunc_nomono	lc	out/dump_gene_run-specific.tsv	gene	run-specific	notrunc_nomono	out/lc_gene_run-specific_notrunc_nomono.tsv
+lc_gene_run-specific_lambda_single	lc	out/dump_gene_run-specific.tsv	gene	run-specific	lambda_single	out/lc_gene_run-specific_lambda_single.tsv
+lc_gene_run-specific_lambda_bad	lc	out/dump_gene_run-specific.tsv	gene	run-specific	lambda_bad	out/lc_gene_run-specific_lambda_bad.tsv
+lc_global4_default	lc	inputs/lc_global4.tsv	peptide	global	default	out/lc_global4_default.tsv
+lc_global4_parametric	lc	inputs/lc_global4.tsv	peptide	global	parametric	out/lc_global4_parametric.tsv
+lc_global4_pfdr	lc	inputs/lc_global4.tsv	peptide	global	pfdr	out/lc_global4_pfdr.tsv
+lc_global4_smoother	lc	inputs/lc_global4.tsv	peptide	global	smoother	out/lc_global4_smoother.tsv
+lc_global4_logit	lc	inputs/lc_global4.tsv	peptide	global	logit	out/lc_global4_logit.tsv
+lc_global4_lambda_bad	lc	inputs/lc_global4.tsv	peptide	global	lambda_bad	out/lc_global4_lambda_bad.tsv
+lc_runs8_default	lc	inputs/lc_runs8.tsv	peptide	run-specific	default	out/lc_runs8_default.tsv
+lc_runs8_parametric	lc	inputs/lc_runs8.tsv	peptide	run-specific	parametric	out/lc_runs8_parametric.tsv
+lc_runs8_pfdr	lc	inputs/lc_runs8.tsv	peptide	run-specific	pfdr	out/lc_runs8_pfdr.tsv
+lc_runs8_smoother	lc	inputs/lc_runs8.tsv	peptide	run-specific	smoother	out/lc_runs8_smoother.tsv
+lc_runs8_logit	lc	inputs/lc_runs8.tsv	peptide	run-specific	logit	out/lc_runs8_logit.tsv
+lc_runs8_lambda_bad	lc	inputs/lc_runs8.tsv	peptide	run-specific	lambda_bad	out/lc_runs8_lambda_bad.tsv
+lc_exp8_default	lc	inputs/lc_exp8.tsv	peptide	experiment-wide	default	out/lc_exp8_default.tsv
+lc_exp8_parametric	lc	inputs/lc_exp8.tsv	peptide	experiment-wide	parametric	out/lc_exp8_parametric.tsv
+lc_exp8_pfdr	lc	inputs/lc_exp8.tsv	peptide	experiment-wide	pfdr	out/lc_exp8_pfdr.tsv
+lc_exp8_smoother	lc	inputs/lc_exp8.tsv	peptide	experiment-wide	smoother	out/lc_exp8_smoother.tsv
+lc_exp8_logit	lc	inputs/lc_exp8.tsv	peptide	experiment-wide	logit	out/lc_exp8_logit.tsv
+lc_exp8_lambda_bad	lc	inputs/lc_exp8.tsv	peptide	experiment-wide	lambda_bad	out/lc_exp8_lambda_bad.tsv
+lc_mixed_default	lc	inputs/lc_mixed.tsv	peptide	global	default	out/lc_mixed_default.tsv
+lc_mixed_parametric	lc	inputs/lc_mixed.tsv	peptide	global	parametric	out/lc_mixed_parametric.tsv
+lc_mixed_pfdr	lc	inputs/lc_mixed.tsv	peptide	global	pfdr	out/lc_mixed_pfdr.tsv
+lc_mixed_smoother	lc	inputs/lc_mixed.tsv	peptide	global	smoother	out/lc_mixed_smoother.tsv
+lc_mixed_logit	lc	inputs/lc_mixed.tsv	peptide	global	logit	out/lc_mixed_logit.tsv
+lc_mixed_lambda_bad	lc	inputs/lc_mixed.tsv	peptide	global	lambda_bad	out/lc_mixed_lambda_bad.tsv
+lc_runs_mixed_default	lc	inputs/lc_runs_mixed.tsv	peptide	run-specific	default	out/lc_runs_mixed_default.tsv
+lc_runs_mixed_parametric	lc	inputs/lc_runs_mixed.tsv	peptide	run-specific	parametric	out/lc_runs_mixed_parametric.tsv
+lc_runs_mixed_pfdr	lc	inputs/lc_runs_mixed.tsv	peptide	run-specific	pfdr	out/lc_runs_mixed_pfdr.tsv
+lc_runs_mixed_smoother	lc	inputs/lc_runs_mixed.tsv	peptide	run-specific	smoother	out/lc_runs_mixed_smoother.tsv
+lc_runs_mixed_logit	lc	inputs/lc_runs_mixed.tsv	peptide	run-specific	logit	out/lc_runs_mixed_logit.tsv
+lc_runs_mixed_lambda_bad	lc	inputs/lc_runs_mixed.tsv	peptide	run-specific	lambda_bad	out/lc_runs_mixed_lambda_bad.tsv
+lc_run_nodecoy_default	lc	inputs/lc_run_nodecoy.tsv	peptide	run-specific	default	out/lc_run_nodecoy_default.tsv
+lc_run_nodecoy_parametric	lc	inputs/lc_run_nodecoy.tsv	peptide	run-specific	parametric	out/lc_run_nodecoy_parametric.tsv
+lc_run_nodecoy_pfdr	lc	inputs/lc_run_nodecoy.tsv	peptide	run-specific	pfdr	out/lc_run_nodecoy_pfdr.tsv
+lc_run_nodecoy_smoother	lc	inputs/lc_run_nodecoy.tsv	peptide	run-specific	smoother	out/lc_run_nodecoy_smoother.tsv
+lc_run_nodecoy_logit	lc	inputs/lc_run_nodecoy.tsv	peptide	run-specific	logit	out/lc_run_nodecoy_logit.tsv
+lc_run_nodecoy_lambda_bad	lc	inputs/lc_run_nodecoy.tsv	peptide	run-specific	lambda_bad	out/lc_run_nodecoy_lambda_bad.tsv
+lc_run_missing_default	lc	inputs/lc_run_missing.tsv	peptide	run-specific	default	out/lc_run_missing_default.tsv
+lc_run_missing_parametric	lc	inputs/lc_run_missing.tsv	peptide	run-specific	parametric	out/lc_run_missing_parametric.tsv
+lc_run_missing_pfdr	lc	inputs/lc_run_missing.tsv	peptide	run-specific	pfdr	out/lc_run_missing_pfdr.tsv
+lc_run_missing_smoother	lc	inputs/lc_run_missing.tsv	peptide	run-specific	smoother	out/lc_run_missing_smoother.tsv
+lc_run_missing_logit	lc	inputs/lc_run_missing.tsv	peptide	run-specific	logit	out/lc_run_missing_logit.tsv
+lc_run_missing_lambda_bad	lc	inputs/lc_run_missing.tsv	peptide	run-specific	lambda_bad	out/lc_run_missing_lambda_bad.tsv
+lc_nan_decoys_default	lc	inputs/lc_nan_decoys.tsv	peptide	global	default	out/lc_nan_decoys_default.tsv
+lc_nan_decoys_parametric	lc	inputs/lc_nan_decoys.tsv	peptide	global	parametric	out/lc_nan_decoys_parametric.tsv
+lc_nan_decoys_pfdr	lc	inputs/lc_nan_decoys.tsv	peptide	global	pfdr	out/lc_nan_decoys_pfdr.tsv
+lc_nan_decoys_smoother	lc	inputs/lc_nan_decoys.tsv	peptide	global	smoother	out/lc_nan_decoys_smoother.tsv
+lc_nan_decoys_logit	lc	inputs/lc_nan_decoys.tsv	peptide	global	logit	out/lc_nan_decoys_logit.tsv
+lc_nan_decoys_lambda_bad	lc	inputs/lc_nan_decoys.tsv	peptide	global	lambda_bad	out/lc_nan_decoys_lambda_bad.tsv
+lc_no_targets_default	lc	inputs/lc_no_targets.tsv	peptide	global	default	out/lc_no_targets_default.tsv
+lc_no_targets_parametric	lc	inputs/lc_no_targets.tsv	peptide	global	parametric	out/lc_no_targets_parametric.tsv
+lc_no_targets_pfdr	lc	inputs/lc_no_targets.tsv	peptide	global	pfdr	out/lc_no_targets_pfdr.tsv
+lc_no_targets_smoother	lc	inputs/lc_no_targets.tsv	peptide	global	smoother	out/lc_no_targets_smoother.tsv
+lc_no_targets_logit	lc	inputs/lc_no_targets.tsv	peptide	global	logit	out/lc_no_targets_logit.tsv
+lc_no_targets_lambda_bad	lc	inputs/lc_no_targets.tsv	peptide	global	lambda_bad	out/lc_no_targets_lambda_bad.tsv
+lc_single_default	lc	inputs/lc_single.tsv	peptide	global	default	out/lc_single_default.tsv
+lc_single_parametric	lc	inputs/lc_single.tsv	peptide	global	parametric	out/lc_single_parametric.tsv
+lc_single_pfdr	lc	inputs/lc_single.tsv	peptide	global	pfdr	out/lc_single_pfdr.tsv
+lc_single_smoother	lc	inputs/lc_single.tsv	peptide	global	smoother	out/lc_single_smoother.tsv
+lc_single_logit	lc	inputs/lc_single.tsv	peptide	global	logit	out/lc_single_logit.tsv
+lc_single_lambda_bad	lc	inputs/lc_single.tsv	peptide	global	lambda_bad	out/lc_single_lambda_bad.tsv
+lc_mixed_peptidoform	lc	inputs/lc_mixed.tsv	peptidoform	global	default	out/lc_mixed_peptidoform.tsv
+lc_runs_mixed_protein_global	lc	inputs/lc_runs_mixed.tsv	protein	global	default	out/lc_runs_mixed_protein_global.tsv
+wrap_peptide_peptidoform	lcwrap	peptide	peptidoform	out/wrap_peptide_peptidoform.tsv
+wrap_peptide_peptide	lcwrap	peptide	peptide	out/wrap_peptide_peptide.tsv
+wrap_peptide_protein	lcwrap	peptide	protein	out/wrap_peptide_protein.tsv
+wrap_peptide_gene	lcwrap	peptide	gene	out/wrap_peptide_gene.tsv
+wrap_protein_peptidoform	lcwrap	protein	peptidoform	out/wrap_protein_peptidoform.tsv
+wrap_protein_peptide	lcwrap	protein	peptide	out/wrap_protein_peptide.tsv
+wrap_protein_protein	lcwrap	protein	protein	out/wrap_protein_protein.tsv
+wrap_protein_gene	lcwrap	protein	gene	out/wrap_protein_gene.tsv
+wrap_gene_peptidoform	lcwrap	gene	peptidoform	out/wrap_gene_peptidoform.tsv
+wrap_gene_peptide	lcwrap	gene	peptide	out/wrap_gene_peptide.tsv
+wrap_gene_protein	lcwrap	gene	protein	out/wrap_gene_protein.tsv
+wrap_gene_gene	lcwrap	gene	gene	out/wrap_gene_gene.tsv
+dump_ipf_default	dump_ipf	data/PyProphet_inference_test.osw	default	out/ipf_fixture_default
+ipf_fixture_default	ipf	out/ipf_fixture_default.prec.tsv	out/ipf_fixture_default.trans.tsv	inputs/empty.tsv	default	out/ipf_fixture_default.result.tsv
+dump_ipf_loose	dump_ipf	data/PyProphet_inference_test.osw	loose	out/ipf_fixture_loose
+ipf_fixture_loose	ipf	out/ipf_fixture_loose.prec.tsv	out/ipf_fixture_default.trans.tsv	inputs/empty.tsv	loose	out/ipf_fixture_loose.result.tsv
+dump_ipf_ms1	dump_ipf	data/PyProphet_inference_test.osw	ms1	out/ipf_fixture_ms1
+ipf_fixture_ms1	ipf	out/ipf_fixture_ms1.prec.tsv	out/ipf_fixture_default.trans.tsv	inputs/empty.tsv	ms1	out/ipf_fixture_ms1.result.tsv
+dump_ipf_ms2	dump_ipf	data/PyProphet_inference_test.osw	ms2	out/ipf_fixture_ms2
+ipf_fixture_ms2	ipf	out/ipf_fixture_ms2.prec.tsv	out/ipf_fixture_default.trans.tsv	inputs/empty.tsv	ms2	out/ipf_fixture_ms2.result.tsv
+dump_ipf_ms1ms2	dump_ipf	data/PyProphet_inference_test.osw	ms1ms2	out/ipf_fixture_ms1ms2
+ipf_fixture_ms1ms2	ipf	out/ipf_fixture_ms1ms2.prec.tsv	out/ipf_fixture_default.trans.tsv	inputs/empty.tsv	ms1ms2	out/ipf_fixture_ms1ms2.result.tsv
+dump_ipf_grouped	dump_ipf	data/PyProphet_inference_test.osw	grouped	out/ipf_fixture_grouped
+ipf_fixture_grouped	ipf	out/ipf_fixture_grouped.prec.tsv	out/ipf_fixture_default.trans.tsv	inputs/empty.tsv	grouped	out/ipf_fixture_grouped.result.tsv
+ipf1_loose	ipf	inputs/ipf1.prec.tsv	inputs/ipf1.trans.tsv	inputs/empty.tsv	loose	out/ipf1_loose.tsv
+ipf1_default	ipf	inputs/ipf1.prec.tsv	inputs/ipf1.trans.tsv	inputs/empty.tsv	default	out/ipf1_default.tsv
+ipf1_grouped	ipf	inputs/ipf1.prec.tsv	inputs/ipf1.trans.tsv	inputs/empty.tsv	grouped	out/ipf1_grouped.tsv
+ipf2_loose	ipf	inputs/ipf2.prec.tsv	inputs/ipf2.trans.tsv	inputs/empty.tsv	loose	out/ipf2_loose.tsv
+ipf2_grouped	ipf	inputs/ipf2.prec.tsv	inputs/ipf2.trans.tsv	inputs/empty.tsv	grouped	out/ipf2_grouped.tsv
+ipf3_loose	ipf	inputs/ipf3.prec.tsv	inputs/ipf3.trans.tsv	inputs/ipf3.align.tsv	loose	out/ipf3_loose.tsv
+ipf3_propagate	ipf	inputs/ipf3.prec.tsv	inputs/ipf3.trans.tsv	inputs/ipf3.align.tsv	propagate	out/ipf3_propagate.tsv
+ipf4_default	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	default	out/ipf4_default.tsv
+ipf4_loose	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	loose	out/ipf4_loose.tsv
+ipf4_ms1	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	ms1	out/ipf4_ms1.tsv
+ipf4_ms2	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	ms2	out/ipf4_ms2.tsv
+ipf4_ms1ms2	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	ms1ms2	out/ipf4_ms1ms2.tsv
+ipf4_ms1ms2_loose	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	ms1ms2_loose	out/ipf4_ms1ms2_loose.tsv
+ipf4_grouped	ipf	inputs/ipf4.prec.tsv	inputs/ipf4.trans.tsv	inputs/empty.tsv	grouped	out/ipf4_grouped.tsv
+ipf5_loose	ipf	inputs/ipf1.prec.tsv	inputs/ipf5.trans.tsv	inputs/empty.tsv	loose	out/ipf5_loose.tsv
+ipf6_loose	ipf	inputs/ipf6.prec.tsv	inputs/ipf6.trans.tsv	inputs/ipf6.align.tsv	loose	out/ipf6_loose.tsv
+ipf6_propagate	ipf	inputs/ipf6.prec.tsv	inputs/ipf6.trans.tsv	inputs/ipf6.align.tsv	propagate	out/ipf6_propagate.tsv
+ipf6_propagate_default	ipf	inputs/ipf6.prec.tsv	inputs/ipf6.trans.tsv	inputs/ipf6.align.tsv	propagate_default	out/ipf6_propagate_default.tsv
+ipf6_grouped	ipf	inputs/ipf6.prec.tsv	inputs/ipf6.trans.tsv	inputs/ipf6.align.tsv	grouped	out/ipf6_grouped.tsv
+bm1	bm	inputs/bm1.tsv	out/bm1.tsv
+bm2	bm	inputs/bm2.tsv	out/bm2.tsv
+bm3	bm	inputs/bm3.tsv	out/bm3.tsv
+pbm_ipf1	pbm	inputs/ipf1.prec.tsv	out/pbm_ipf1.tsv
+pbm_ipf4	pbm	inputs/ipf4.prec.tsv	out/pbm_ipf4.tsv
+mfdr1	mfdr	inputs/mfdr1.tsv	out/mfdr1.tsv
+mfdr2	mfdr	inputs/mfdr2.tsv	out/mfdr2.tsv
+mfdr3	mfdr	inputs/mfdr3.tsv	out/mfdr3.tsv
+norm1	norm	inputs/norm1.tsv	DECOY_	out/norm1.tsv
+norm2	norm	inputs/norm2.tsv	DECOY_	out/norm2.tsv
+norm3	norm	inputs/norm3.tsv	REV_	out/norm3.tsv
+norm4	norm	inputs/norm4.tsv	Decoy_	out/norm4.tsv
+norm_dup	norm	inputs/norm_dup.tsv	DECOY_	out/norm_dup.tsv
+norm_missing	norm	inputs/norm_missing.tsv	DECOY_	out/norm_missing.tsv
+norm_empty_id	norm	inputs/norm_empty_id.tsv	DECOY_	out/norm_empty_id.tsv
+norm_empty_ref	norm	inputs/norm_empty_ref.tsv	DECOY_	out/norm_empty_ref.tsv
+norm_canonical	norm	inputs/norm_canonical.tsv	-	out/norm_canonical.tsv
