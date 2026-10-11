@@ -9,8 +9,8 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ANALYSIS/MAPMATCHING/StablePairFinder.h` | `src/analysis/mapmatching/stable_pair_finder.rs` | complete |
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h` | `src/analysis/mapmatching/feature_grouping_algorithm.rs` | complete |
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h` | `src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs` | complete |
-| `ANALYSIS/MAPMATCHING/QTClusterFinder.h` | `src/analysis/mapmatching/qt_cluster_finder.rs` | partial (tie order of equal-quality clusters) |
-| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h` | `src/analysis/mapmatching/feature_grouping_algorithm_qt.rs` | complete (inherits the finder's tie order) |
+| `ANALYSIS/MAPMATCHING/QTClusterFinder.h` | `src/analysis/mapmatching/qt_cluster_finder.rs` | complete (extraction order of equal-quality clusters reproduced) |
+| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h` | `src/analysis/mapmatching/feature_grouping_algorithm_qt.rs` | complete |
 | `ANALYSIS/MAPMATCHING/LabeledPairFinder.h` | `src/analysis/mapmatching/labeled_pair_finder.rs` | complete |
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h` | `src/analysis/mapmatching/feature_grouping_algorithm_labeled.rs` | complete |
 | `ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h` | `src/analysis/mapmatching/kd_tree_feature_maps.rs` | complete |
@@ -338,13 +338,28 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   `ConsensusMap::sort_by_*`, which validate the whole map and would reject two
   singletons from different inputs that share a unique ID.
 
-- QT order: the source's Fibonacci heap resolves equal qualities by its
-  internal layout; here ties go to the lower cluster id, cells are visited in
-  ascending index and neighbours in map order (see `docs/CLUSTERING_SUPPORT.md`
-  for `HashGrid` and `QTCluster`). Mirror-image pair clusters, the usual tie,
-  hold the same elements either way. Consequently the "first element" whose
-  adduct string becomes the best ion can differ from the source's when three
-  or more maps carry adducts.
+- QT order is reproduced, not approximated: the heap is
+  `math::fibonacci_heap::FibonacciHeap` (push, lazy update, pop with
+  consolidation, as `boost/heap/fibonacci_heap.hpp` 1.89), the grid
+  (`HashGrid`) iterates cells and pairs in Boost.Unordered 1.89's order, and a
+  cluster's per-map neighbours and a feature's cluster set are
+  `math::hash_order::StdHashMap`s in libstdc++ 14's `std::unordered_map`
+  order (identity hash, prime rehash policy, bucket-begin insertion). Which of
+  several equal-quality clusters is extracted first, which of several equally
+  near features becomes a neighbour, the order a cluster lists its elements
+  (and so the "first element" whose adduct string becomes the best ion), and
+  the order the neighbour distances are summed in (floating point addition
+  is not associative) therefore follow the executed C++. The orders are
+  validated by `tests/hash_order_oracle.rs` (14 operation scripts against
+  `std::unordered_map<size_t, int>` and `OpenMS::HashGrid<int>`) and end to
+  end by `tests/mapmatching_qt_tie_order_oracle.rs`. Not ported from
+  `boost::heap::fibonacci_heap`, because nothing reaches them: `increase`,
+  `decrease`, eager `update`, `erase`, `merge` and the cascading-cut marks.
+  The pointer-keyed `std::unordered_map<const GridFeature*, ...>` of the
+  source (`ElementMapping`, `tmp_element_mapping`) is only looked up here:
+  its iteration order depends on object addresses, the source's loops over
+  it touch each feature's own set independently, so the result does not
+  depend on it.
 - QT does not sort the input features' peptide hits in place (the source
   `const_cast`s its `const` input to sort them); the grouping never reads
   them afterwards.
@@ -420,17 +435,28 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   plus the incremental path on a hand-built three-map case (upstream
   `NOT_TESTABLE`).
 - Tier 1 for QT: `tests/mapmatching_qt_cluster_finder_topp.rs` reproduces
-  `TOPP_FeatureLinkerUnlabeledQT_1`, `_3`, `_4` (IDs, bin tolerances) and `_6`
+  `TOPP_FeatureLinkerUnlabeledQT_1`, `_3`, `_4` (IDs, bin tolerances), `_5`
+  (three clusters of equal quality, RT 200) and `_6`
   (IDs with default parameters, RT 200) (test-data 0cb15f2,
   `topp/CMakeLists.txt:2907-2925`; tool path `FeatureLinkerBase.cpp`: load
   without hulls and subordinates, clear meta values except
   `dc_charge_adducts`/`Group`, `group`) and matches the retained outputs
   with the same strictness. Tier 3: every section of `QTClusterFinder_test.cpp`
   (`tests/mapmatching_qt_cluster_finder.rs`).
-- Not reproduced: `TOPP_FeatureLinkerUnlabeledQT_5`, whose three clusters have
-  equal quality and equal handle keys, so its order is the source heap's tie
-  order (the named gap). `TOPP_FeatureLinkerUnlabeledQT_2` links consensusXML
-  input through the tool and is not attempted.
+- Tier 1 against the Release build for QT (oracle `M2-qt`, ibminode06,
+  `openms4-release-bc9cc12-c19e494-174b576`, two identical runs):
+  `tests/mapmatching_qt_tie_order_oracle.rs` compares 17 generated instances
+  (noisy copies of a base map under Da and ppm tolerances with up to 20
+  partitions, dense competition, integer lattices with equal intensities,
+  lattices with sub-tolerance jitter, exact duplicates, mirror pairs,
+  equidistant candidates) and the five `TOPP_FeatureLinkerUnlabeledQT_*`
+  paths, each in two views: the consensus features in the order
+  `QTClusterFinder::run` extracts them (handles, quality exactly) and after
+  `FeatureGroupingAlgorithmQT::group`'s canonical sorts. With ties broken by
+  cluster id, ascending cells and ascending map order, 7 of the 22 grouped
+  comparisons (dense3, dense4, dups3, lat3, lat4, lat5 and QT_5) and 21 of
+  the 22 extraction-order comparisons differed from the executed C++; all 44
+  agree now.
 - Reader defect found on the way: the featureXML and consensusXML readers
   refuse `IdentificationRun date="0000-00-00T00:00:00"`, which the source's
   `DateTime::fromString` turns into a null date. The QT differential replaces
@@ -493,11 +519,6 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 
 ## Backlog
 
-- `QTClusterFinder` tie order: reproducing the source for clusters of exactly
-  equal quality needs `boost::heap::fibonacci_heap`'s root-list and
-  consolidation order and Boost's `unordered_map` iteration order of the grid
-  cells (the `HashGrid` port iterates cells in ascending order). The retained
-  `FeatureLinkerUnlabeledQT_5` output is the test for it.
 - `TransformationModelLowess` (unmapped): automatic span selection and
   `akima` interpolation, which `MapAlignmentAlgorithmKD` and
   `FeatureGroupingAlgorithmKD` need for those parameter values.

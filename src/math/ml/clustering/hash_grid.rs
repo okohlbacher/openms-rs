@@ -47,7 +47,7 @@ fn cell_hash(index: &CellIndex) -> u64 {
 
 /// `hash_value(const DPosition<2, double>&)`: the XOR of `boost::hash<double>`.
 fn center_hash(center: &ClusterCenter) -> u64 {
-    boost_hash_f64(center[0]) ^ boost_hash_f64(center[1])
+    hash_value_f64(&[center[0], center[1]])
 }
 
 /// One cell: its pairs in iteration order and the emulated multimap that
@@ -393,11 +393,19 @@ fn no_cell(x: &CellIndex) -> Error {
 /// coordinates, since `boost::hash` of an integer is the integer itself.
 ///
 /// As the source's class test notes, this hash is weak: `(1, 1)` and `(2, 2)`
-/// both hash to 0. The floating-point instantiation, which Boost's container
-/// uses for [`ClusterCenter`] keys, hashes through `boost::hash<double>` and is
-/// not ported, because this port's grid does not hash.
+/// both hash to 0. The grid's cell index (`DPosition<2, Int64>`) uses this
+/// instantiation; its [`ClusterCenter`] keys use [`hash_value_f64`].
 pub fn hash_value(coordinates: &[u64]) -> u64 {
     coordinates
         .iter()
         .fold(0, |hash, coordinate| hash ^ coordinate)
+}
+
+/// Hash value of a floating-point position (the same template for
+/// `T = double`): the XOR of `boost::hash<double>` of the coordinates, which
+/// is the bit pattern of `value + 0` (`-0.0` hashes as `+0.0`).
+pub fn hash_value_f64(coordinates: &[f64]) -> u64 {
+    coordinates
+        .iter()
+        .fold(0, |hash, coordinate| hash ^ boost_hash_f64(*coordinate))
 }
