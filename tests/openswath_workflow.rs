@@ -42,9 +42,11 @@ use openms::analysis::openswath::openswath_workflow::{
 use openms::analysis::openswath::spectrum_access_openms::SimpleOpenMSSpectraFactory;
 use openms::analysis::openswath::swath_map::SwathMap;
 use openms::analysis::openswath::transition_experiment::LightTargetedExperiment;
+use openms::analysis::openswath::transition_tsv_file::TransitionTSVFile;
 use openms::analysis::transformations::{LinearOptions, ModelConfig, TransformationDescription};
 use openms::concept::UniqueIdGenerator;
 use openms::concept::parallel::Threads;
+use openms::format::FileType;
 use openms::format::{featurexml, mzml, traml, transformation_xml};
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::{FeatureMap, MSChromatogram, MSExperiment, MSSpectrum};
@@ -82,13 +84,24 @@ fn swath_maps_of(exp: &MSExperiment) -> Vec<SwathMap> {
         let center = precursor.mz;
         let lower = center - precursor.isolation_window_lower_offset;
         let upper = center + precursor.isolation_window_upper_offset;
-        let index = boundaries
-            .iter()
-            .position(|b| (b.center - center).abs() < 1e-6);
+        // the ion mobility window, -1 when the spectrum has none
+        let im = |key: &str| match spectrum.metadata.get(key).map(|v| v.data()) {
+            Some(openms::metadata::MetaValueData::Float(f)) => *f,
+            _ => -1.0,
+        };
+        let (lower_im, upper_im) = (
+            im("ion mobility lower limit"),
+            im("ion mobility upper limit"),
+        );
+        let index = boundaries.iter().position(|b| {
+            (b.center - center).abs() < 1e-6
+                && (b.im_lower - lower_im).abs() < 1e-6
+                && (b.im_upper - upper_im).abs() < 1e-6
+        });
         let index = index.unwrap_or_else(|| {
             let mut boundary = SwathMap::new(lower, upper, center, false);
-            boundary.im_lower = -1.0;
-            boundary.im_upper = -1.0;
+            boundary.im_lower = lower_im;
+            boundary.im_upper = upper_im;
             boundaries.push(boundary);
             let mut experiment = MSExperiment::new();
             experiment.settings = exp.settings.clone();
@@ -196,6 +209,18 @@ fn scoring_defaults() -> Param {
 /// One invocation of the TOPP tool, reduced to what reaches the workflow.
 #[derive(Clone)]
 struct Case {
+    /// The retained input run, and the library with its kind.
+    input: &'static str,
+    library_file: &'static str,
+    /// `-Calibration:rt_norm` given (the trafoXML of test 1), else none.
+    rt_norm: bool,
+    /// `-matching_window_only`, `-pasef`.
+    prm: bool,
+    pasef: bool,
+    /// `-ion_mobility_window`.
+    im_window: f64,
+    /// `-Scoring:Scores:use_ion_mobility_scores`.
+    use_im_scores: bool,
     enable_ms1: bool,
     mz_window: f64,
     ppm: bool,
@@ -213,6 +238,13 @@ impl Case {
     /// The tool's defaults: 50 ppm, three MS1 isotopes, both MI scores on.
     fn tool_defaults() -> Self {
         Self {
+            input: "OpenSwathWorkflow_1_input.mzML",
+            library_file: "OpenSwathWorkflow_1_input.TraML",
+            rt_norm: true,
+            prm: false,
+            pasef: false,
+            im_window: -1.0,
+            use_im_scores: false,
             enable_ms1: true,
             mz_window: 50.0,
             ppm: true,
@@ -237,15 +269,13 @@ impl Case {
             compute_peak_quality: true,
             use_ms1_mi: false,
             use_mi_score: false,
-            use_total_mi_score: false,
-            load_into_memory: false,
-            batch_size: 0,
-            threads: 1,
+            ..Self::tool_defaults()
         }
     }
 }
 
 struct Outcome {
+    library: LightTargetedExperiment,
     features: FeatureMap,
     chromatograms: Vec<MSChromatogram>,
     log: Vec<openms::analysis::openswath::openswath_workflow::LogEntry>,
@@ -280,7 +310,17 @@ impl MSDataConsumer for Collect {
 /// the order of `OpenSwathLibraryIDNormalizer`), which is also what orders the
 /// assays of the workflow.
 fn library() -> LightTargetedExperiment {
-    let exp = traml::load(data("OpenSwathWorkflow_1_input.TraML")).unwrap();
+    library_of("OpenSwathWorkflow_1_input.TraML")
+}
+
+fn library_of(file: &str) -> LightTargetedExperiment {
+    let exp = if file.ends_with(".tsv") {
+        TransitionTSVFile::new()
+            .convert_tsv_to_targeted_experiment(data(file), FileType::Tsv)
+            .unwrap()
+    } else {
+        traml::load(data(file)).unwrap()
+    };
     let mut light = convert_targeted_exp(&exp).unwrap();
     OpenSwathLibraryIDNormalizer::normalize_source_ids(&mut light).unwrap();
     light
@@ -297,18 +337,13 @@ fn rt_trafo() -> TransformationDescription {
 }
 
 fn run_case(case: &Case) -> Outcome {
-    let exp = mzml::read(
-        std::fs::read(data("OpenSwathWorkflow_1_input.mzML"))
-            .unwrap()
-            .as_slice(),
-    )
-    .unwrap();
+    let exp = mzml::read(std::fs::read(data(case.input)).unwrap().as_slice()).unwrap();
     let maps = swath_maps_of(&exp);
 
-    let mut cp = ChromExtractParams {
+    let cp = ChromExtractParams {
         min_upper_edge_dist: 0.0,
         mz_extraction_window: case.mz_window,
-        im_extraction_window: -1.0,
+        im_extraction_window: case.im_window,
         ppm: case.ppm,
         extraction_function: "tophat".into(),
         rt_extraction_window: 600.0,
@@ -318,7 +353,6 @@ fn run_case(case: &Case) -> Outcome {
     cp_ms1.mz_extraction_window = 50.0;
     cp_ms1.ppm = true;
     cp_ms1.im_extraction_window = -1.0;
-    cp.im_extraction_window = -1.0;
 
     let mut ffp = scoring_defaults();
     set_str(&mut ffp, "use_ms1_ion_mobility", "true");
@@ -349,10 +383,20 @@ fn run_case(case: &Case) -> Outcome {
     }
     // -enable_ipf defaults to true
     set_str(&mut ffp, "Scores:use_uis_scores", "true");
-    // "auto" resolves to false without -pasef
-    set_str(&mut ffp, "Scores:use_ion_mobility_scores", "false");
+    // "auto" resolves to true with -pasef and to false without; an explicit
+    // value is respected
+    set_str(
+        &mut ffp,
+        "Scores:use_ion_mobility_scores",
+        if case.use_im_scores || case.pasef {
+            "true"
+        } else {
+            "false"
+        },
+    );
 
-    let mut workflow = OpenSwathWorkflow::new(case.enable_ms1, true, false, false, false, -1);
+    let mut workflow =
+        OpenSwathWorkflow::new(case.enable_ms1, true, case.prm, case.pasef, false, -1);
     workflow.set_threads(Threads::from_cli(case.threads as i64));
     workflow.set_unique_id_generator(UniqueIdGenerator::from_seed(42));
     let mut features = FeatureMap::new();
@@ -360,11 +404,15 @@ fn run_case(case: &Case) -> Outcome {
     workflow
         .perform_extraction(
             &maps,
-            &rt_trafo(),
+            &if case.rt_norm {
+                rt_trafo()
+            } else {
+                TransformationDescription::default()
+            },
             &cp,
             &cp_ms1,
             &ffp,
-            &library(),
+            &library_of(case.library_file),
             &mut features,
             true,
             &OpenSwathOSWWriter::new("", false),
@@ -383,6 +431,7 @@ fn run_case(case: &Case) -> Outcome {
         eprintln!("[workflow {:?}] {}", entry.level, entry.message);
     }
     Outcome {
+        library: library_of(case.library_file),
         features,
         chromatograms: consumer.0,
         log,
@@ -394,8 +443,11 @@ fn expected_features(name: &str) -> FeatureMap {
 }
 
 /// Whether a feature's peptide has a bare ambiguous residue (B, Z or X).
-fn has_ambiguous_residue(feature: &openms::kernel::Feature) -> bool {
-    let ambiguous: Vec<String> = library()
+fn has_ambiguous_residue(
+    feature: &openms::kernel::Feature,
+    library: &LightTargetedExperiment,
+) -> bool {
+    let ambiguous: Vec<String> = library
         .compounds
         .iter()
         .filter(|c| c.sequence.chars().any(|r| matches!(r, 'B' | 'Z' | 'X')))
@@ -446,12 +498,12 @@ fn assert_features_match(outcome: &Outcome, expected_name: &str) {
     let expected_ambiguous = expected
         .features
         .iter()
-        .filter(|f| has_ambiguous_residue(f))
+        .filter(|f| has_ambiguous_residue(f, &outcome.library))
         .count();
     let actual_ambiguous = actual
         .features
         .iter()
-        .filter(|f| has_ambiguous_residue(f))
+        .filter(|f| has_ambiguous_residue(f, &outcome.library))
         .count();
     if actual_ambiguous == 0 && expected_ambiguous > 0 {
         let skipped = outcome
@@ -472,7 +524,9 @@ fn assert_features_match(outcome: &Outcome, expected_name: &str) {
             "{expected_name}: {expected_ambiguous} feature(s) of ambiguous peptides not produced \
              (AASequence refuses bare B/Z/X; source: formula empty)"
         );
-        expected.features.retain(|f| !has_ambiguous_residue(f));
+        expected
+            .features
+            .retain(|f| !has_ambiguous_residue(f, &outcome.library));
     }
     for map in [&mut actual, &mut expected] {
         map.unique_id = 0;
@@ -539,8 +593,22 @@ fn assert_chromatograms_match(outcome: &Outcome, expected_name: &str) {
     let expected_exp = mzml::read(std::fs::read(data(expected_name)).unwrap().as_slice()).unwrap();
     let mut expected = MSExperiment::new();
     expected.chromatograms = expected_exp.chromatograms;
+    // The tool stores the chromatograms in an mzML file, and the source's
+    // writer keeps of a precursor's ion mobility only the drift time, in
+    // milliseconds: the drift window offsets are dropped and the unit read
+    // back is millisecond. This crate's writer refuses such a precursor
+    // rather than drop information, so the loss is applied here, to the
+    // in-memory chromatograms, before comparing with the stored ones.
     let mut actual = MSExperiment::new();
     actual.chromatograms = outcome.chromatograms.clone();
+    for chromatogram in &mut actual.chromatograms {
+        chromatogram.precursor.drift_window_lower_offset = 0.0;
+        chromatogram.precursor.drift_window_upper_offset = 0.0;
+        if chromatogram.precursor.drift_time.is_some() {
+            chromatogram.precursor.drift_time_unit = openms::metadata::DriftTimeUnit::Millisecond;
+        }
+    }
+    let mut expected = expected;
     // the processing history the tool's chromatogram consumer adds is not the
     // workflow's
     for exp in [&mut actual, &mut expected] {
@@ -634,6 +702,44 @@ fn topp_20_total_mutual_information() {
     };
     let outcome = run_case(&case);
     assert_features_match(&outcome, "OpenSwathWorkflow_20_output.featureXML");
+}
+
+#[test]
+fn topp_22_matching_window_only() {
+    // TOPP_OpenSwathWorkflow_22: PRM-like data, -readOptions workingInMemory
+    // -matching_window_only true, no RT normalization, ${OLD_OSW_PARAM}
+    // -ms1_isotopes 3 (the last occurrence of an option wins)
+    let case = Case {
+        input: "OpenSwathWorkflow_22_input.mzML",
+        library_file: "OpenSwathWorkflow_22_input.tsv",
+        rt_norm: false,
+        prm: true,
+        load_into_memory: true,
+        ms1_isotopes: 3,
+        ..Case::old()
+    };
+    let outcome = run_case(&case);
+    assert_features_match(&outcome, "OpenSwathWorkflow_22_output.featureXML");
+    assert_chromatograms_match(&outcome, "OpenSwathWorkflow_22_output.chrom.mzML");
+}
+
+#[test]
+fn topp_23_diapasef() {
+    // TOPP_OpenSwathWorkflow_23: -pasef -ion_mobility_window 0.1
+    // -Scoring:Scores:use_ion_mobility_scores true ${OLD_OSW_PARAM}
+    let case = Case {
+        input: "OpenSwathWorkflow_23_input.mzML",
+        library_file: "OpenSwathWorkflow_23_input.tsv",
+        rt_norm: false,
+        pasef: true,
+        im_window: 0.1,
+        use_im_scores: true,
+        load_into_memory: true,
+        ..Case::old()
+    };
+    let outcome = run_case(&case);
+    assert_features_match(&outcome, "OpenSwathWorkflow_23_output.featureXML");
+    assert_chromatograms_match(&outcome, "OpenSwathWorkflow_23_output.chrom.mzML");
 }
 
 // ---------------------------------------------------------------------------

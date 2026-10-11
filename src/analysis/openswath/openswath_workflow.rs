@@ -27,16 +27,22 @@
 //!
 //! The source schedules this with OpenMP in three ways: a wave scheduler for
 //! in-memory data (`batch_size <= 0`), per-SWATH batches otherwise, and a
-//! nested-parallelism variant. All three produce one result for a
-//! single-threaded run, and this port reproduces it: the SWATH windows of a
-//! wave are extracted in parallel, the scoring jobs (sorted by their
-//! transition count, descending) are scored in parallel, and their results
-//! are *consumed in job order* on one thread. The output is therefore
-//! bit-identical for any thread count (set with
-//! [`OpenSwathWorkflow::set_threads`]); a mobilogram consumer, which cannot
-//! be shared, serializes the scoring. Feature identifiers are drawn from a
-//! generator that is seeded once per job in job order, so they too do not
-//! depend on the thread count; seed the workflow generator
+//! nested-parallelism variant. A single-threaded run of each has one result,
+//! and this port reproduces it: the SWATH windows of a wave are extracted in
+//! parallel, the scoring jobs (sorted by their transition count, descending)
+//! are scored in parallel, and their results are *consumed in job order* on
+//! one thread. The output of the per-SWATH path is therefore bit-identical for
+//! any thread count (set with [`OpenSwathWorkflow::set_threads`]). The wave
+//! scheduler sorts the features of a wave by position when it scored several
+//! jobs, as the source does, and which SWATHs share a wave follows the thread
+//! count (memory and `scoring_threads` cap it), so there the *set* of features
+//! with every value is what does not depend on the thread count, not their
+//! order. A mobilogram consumer, which cannot be shared, serializes the
+//! scoring.
+//!
+//! The unique identifiers of the features are keyed by the SWATH and the
+//! assay they belong to (a generator seeded from the workflow's generator,
+//! once per call), never by the schedule: seed the workflow generator
 //! ([`OpenSwathWorkflow::set_unique_id_generator`]) for reproducible
 //! identifiers.
 //!
