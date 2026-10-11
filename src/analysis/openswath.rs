@@ -7,12 +7,12 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
-/// Confidence scoring of features against an assay library, from `ANALYSIS/OPENSWATH/ConfidenceScoring.h`.
-pub mod confidence_scoring;
 /// Coordinates, extraction and annotated chromatograms for targeted experiments, from `ANALYSIS/OPENSWATH/ChromatogramExtractor.h`.
 pub mod chromatogram_extractor;
 /// Chromatogram extraction at given coordinates, from `ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h`.
 pub mod chromatogram_extractor_algorithm;
+/// Confidence scoring of features against an assay library, from `ANALYSIS/OPENSWATH/ConfidenceScoring.h`.
+pub mod confidence_scoring;
 /// Conversions between kernel and light records, from `ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h`.
 pub mod data_access_helper;
 /// Named numeric table writers, from `OPENSWATHALGO/DATAACCESS/DataFrameWriter.h`.
@@ -59,18 +59,32 @@ pub mod mrm_mapping;
 pub mod mrm_scoring;
 /// Peak-group picking across the chromatograms of one precursor, from `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`.
 pub mod mrm_transition_group_picker;
+/// Shared export configuration, from `ANALYSIS/OPENSWATH/OpenSwathExportConfig.h`.
+pub mod openswath_export_config;
+/// Rows, tables and matrices of the OpenSWATH exports, from `ANALYSIS/OPENSWATH/OpenSwathExportData.h`.
+pub mod openswath_export_data;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
+/// Building and writing of OpenSWATH quantification matrices, from `ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h`.
+pub mod openswath_matrix_exporter;
+/// The OSW (SQLite) output of OpenSWATH, from `ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h`.
+pub mod openswath_osw_writer;
+/// Writing of filtered OpenSWATH feature results, from `ANALYSIS/OPENSWATH/OpenSwathResultsExporter.h`.
+pub mod openswath_results_exporter;
 /// `OpenSwath_Scores_Usage` and the LDA scoring methods of `OpenSwath_Scores`, from `ANALYSIS/OPENSWATH/OpenSwathScores.h`.
 pub mod openswath_scores;
 /// The driver calling the chromatographic, library, DIA and ion mobility scores, from `ANALYSIS/OPENSWATH/OpenSwathScoring.h`.
 pub mod openswath_scoring;
+/// The OpenSWATH workflow, from `ANALYSIS/OPENSWATH/OpenSwathWorkflow.h`.
+pub mod openswath_workflow;
+/// Memory-bounded work planning of the OpenSWATH workflow, from `ANALYSIS/OPENSWATH/OpenSwathWorkflowScheduler.h`.
+pub mod openswath_workflow_scheduler;
+/// Raw m/z-RT-ion-mobility peak clouds at targeted coordinates, from `ANALYSIS/OPENSWATH/PeakMapExtractor.h`.
+pub mod peak_map_extractor;
 /// Peak picking in a single ion mobilogram, from `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`.
 pub mod peak_picker_mobilogram;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
-/// Raw m/z-RT-ion-mobility peak clouds at targeted coordinates, from `ANALYSIS/OPENSWATH/PeakMapExtractor.h`.
-pub mod peak_map_extractor;
 /// Distances, cross-correlation, ranks and mutual information, from `OPENSWATHALGO/ALGO/Scoring.h`.
 pub mod scoring;
 /// The spectrum access interface, from `OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h`.
@@ -86,24 +100,24 @@ pub mod spectrum_addition;
 pub mod stats_helpers;
 /// One SWATH map and its isolation window, from `OPENSWATHALGO/DATAACCESS/SwathMap.h`.
 pub mod swath_map;
-/// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).
-pub mod targeted_experiment;
-/// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
-pub mod targeted_experiment_helper;
-/// `TransitionPQPFile`: read and write PQP (SQLite) transition libraries.
-#[cfg(feature = "sqlite")]
-pub mod transition_pqp_file;
-/// `TransitionTSVFile`: read and write OpenSWATH transition lists (TSV/CSV/MRM).
-pub mod transition_tsv_file;
 /// m/z and ion-mobility correction of SWATH maps (partial), from `ANALYSIS/OPENSWATH/SwathMapMassCorrection.h`.
 pub mod swath_map_mass_correction;
 /// OpenSWATH quality control (MS1 charge distribution), from `ANALYSIS/OPENSWATH/SwathQC.h`.
 pub mod swath_qc;
 /// SWATH-window files and SWATH-map annotation, from `ANALYSIS/OPENSWATH/SwathWindowLoader.h`.
 pub mod swath_window_loader;
+/// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).
+pub mod targeted_experiment;
+/// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
+pub mod targeted_experiment_helper;
 /// The light targeted experiment, from `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h`.
 pub mod transition_experiment;
 /// Transition grouping and compound lookup, from `OPENSWATHALGO/DATAACCESS/TransitionHelper.h`.
 pub mod transition_helper;
+/// `TransitionPQPFile`: read and write PQP (SQLite) transition libraries.
+#[cfg(feature = "sqlite")]
+pub mod transition_pqp_file;
+/// `TransitionTSVFile`: read and write OpenSWATH transition lists (TSV/CSV/MRM).
+pub mod transition_tsv_file;
 /// The nested targeted experiment, from `OPENSWATHALGO/DATAACCESS/Transitions.h`.
 pub mod transitions;
