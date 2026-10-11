@@ -102,10 +102,10 @@
 //! `StringUtils_test.cpp` and `String_test.cpp` literals are ported in the same
 //! test (tier 3).
 
-use crate::concept::string_conversion;
 use crate::concept::numeric_formatting::{
     append_numeric_f32, append_numeric_f64, ostream_g, printf_nonfinite, printf_precision,
 };
+use crate::concept::string_conversion;
 use crate::error::{Error, Result};
 
 /// Largest text, in bytes, that `StringUtils::number` can return.

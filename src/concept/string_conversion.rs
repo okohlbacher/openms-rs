@@ -24,7 +24,6 @@ const fn is_blank(byte: u8) -> bool {
     matches!(byte, b' ' | b'\t' | b'\n' | b'\r')
 }
 
-
 /// Index of the first byte at or after `index` that is not one of the four
 /// blanks.
 pub(crate) fn skip_blanks(bytes: &[u8], mut index: usize) -> usize {

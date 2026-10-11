@@ -165,8 +165,12 @@ fn parse_source_double(text: &str) -> Result<f64> {
 /// fails. Both properties are reproduced here: `"2147483648"` and `"++5"` are
 /// refused.
 fn parse_source_int32(text: &str, label: &str) -> Result<i32> {
-    crate::concept::string_conversion::to_int32(text)
-        .map_err(|_| conversion(format!("could not convert {:?} to {label}", trim_source(text))))
+    crate::concept::string_conversion::to_int32(text).map_err(|_| {
+        conversion(format!(
+            "could not convert {:?} to {label}",
+            trim_source(text)
+        ))
+    })
 }
 
 /// Header cell state for `Integer` and `Double` columns.

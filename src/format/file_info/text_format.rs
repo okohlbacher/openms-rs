@@ -275,15 +275,15 @@ pub use crate::data_structures::string_utils::number as fixed;
 /// `StringUtils::number(double, UInt)` with its silent truncation, under its
 /// FileInfo name: see [`crate::data_structures::string_utils::number_truncated`].
 pub use crate::data_structures::string_utils::number_truncated as fixed_truncated;
-pub use crate::data_structures::string_utils::{
-    NUMBER_MAX_TEXT_BYTES, ToStr, WRITTEN_DIGITS_F32, WRITTEN_DIGITS_F64, to_str, to_str_f32,
-};
-/// `StringUtils::toStr(double, false)` under its FileInfo-era name: see
-/// [`crate::data_structures::string_utils::to_str_low_p`].
-pub use crate::data_structures::string_utils::to_str_low_p as to_str_low_precision;
 /// `StringUtils::toStr(float, false)` under its FileInfo-era name: see
 /// [`crate::data_structures::string_utils::to_str_f32_low_p`].
 pub use crate::data_structures::string_utils::to_str_f32_low_p as to_str_low_precision_f32;
+/// `StringUtils::toStr(double, false)` under its FileInfo-era name: see
+/// [`crate::data_structures::string_utils::to_str_low_p`].
+pub use crate::data_structures::string_utils::to_str_low_p as to_str_low_precision;
+pub use crate::data_structures::string_utils::{
+    NUMBER_MAX_TEXT_BYTES, ToStr, WRITTEN_DIGITS_F32, WRITTEN_DIGITS_F64, to_str, to_str_f32,
+};
 use crate::data_structures::string_utils::{append_to_str_low_p, append_to_str_low_p_f32};
 
 /// Longest three-fraction-digit `toStr` text: `-9.999e-308` (11 bytes) or

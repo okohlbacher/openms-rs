@@ -20,12 +20,12 @@
 use openms::Error;
 use openms::chemistry::AASequence;
 use openms::concept::boost_regex::BoostRegex;
-use openms::metadata::usi::{IndexType, Usi};
 use openms::identification::{
     IdentifierMSRunMapper, PeptideEvidence, PeptideHit, PeptideIdentification,
     ProteinIdentification, SpectrumIdentification,
 };
 use openms::metadata::MetaValue;
+use openms::metadata::usi::{IndexType, Usi};
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::hash::{Hash, Hasher};
@@ -118,7 +118,13 @@ fn usi_constructors_validity_and_text_match_the_release_build() {
         find("from_native_other"),
         &Usi::from_native_id("PXD1", "f.mzML", "custom:thing").unwrap(),
     );
-    assert_eq!(find("cv")[1..], [openms::metadata::usi::CV_ACCESSION, openms::metadata::usi::CV_NAME]);
+    assert_eq!(
+        find("cv")[1..],
+        [
+            openms::metadata::usi::CV_ACCESSION,
+            openms::metadata::usi::CV_NAME
+        ]
+    );
     assert_eq!(
         find("stream")[1],
         Usi::new("PXD1", "r.mzML", IndexType::Scan, "3", "").to_string()
@@ -803,5 +809,8 @@ fn usi_class_test_literals() {
         assert_eq!(Usi::extract_basename(path), base);
     }
     assert_eq!(openms::metadata::usi::CV_ACCESSION, "MS:1003063");
-    assert_eq!(openms::metadata::usi::CV_NAME, "universal spectrum identifier");
+    assert_eq!(
+        openms::metadata::usi::CV_NAME,
+        "universal spectrum identifier"
+    );
 }
