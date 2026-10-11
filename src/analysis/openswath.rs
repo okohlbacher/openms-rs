@@ -25,6 +25,8 @@ pub mod include_exclude_target;
 pub mod ion_mobility_scoring;
 /// Feature, peak-group, transition-group and S/N access traits, from `OPENSWATHALGO/DATAACCESS/ITransition.h`.
 pub mod itransition;
+/// Correlation of mass traces into pseudo-spectra, from `ANALYSIS/OPENSWATH/MasstraceCorrelator.h`.
+pub mod masstrace_correlator;
 /// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
 pub mod metabo_targeted_target_decoy;
 /// Test doubles for the access traits, from `OPENSWATHALGO/DATAACCESS/MockObjects.h`.
@@ -35,12 +37,16 @@ pub mod mrm_feature_access;
 pub mod mrm_mapping;
 /// Cross-correlation, library, S/N and mutual-information scores of SRM/MRM peak groups, from `ANALYSIS/OPENSWATH/MRMScoring.h`.
 pub mod mrm_scoring;
+/// Peak-group picking across the chromatograms of one precursor, from `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`.
+pub mod mrm_transition_group_picker;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
 /// `OpenSwath_Scores_Usage` and the LDA scoring methods of `OpenSwath_Scores`, from `ANALYSIS/OPENSWATH/OpenSwathScores.h`.
 pub mod openswath_scores;
 /// The driver calling the chromatographic, library, DIA and ion mobility scores, from `ANALYSIS/OPENSWATH/OpenSwathScoring.h`.
 pub mod openswath_scoring;
+/// Peak picking in a single ion mobilogram, from `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`.
+pub mod peak_picker_mobilogram;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
 /// Distances, cross-correlation, ranks and mutual information, from `OPENSWATHALGO/ALGO/Scoring.h`.
