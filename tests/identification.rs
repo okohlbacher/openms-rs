@@ -119,13 +119,30 @@ fn stable_score_sorting_and_best_hit_respect_direction_and_ties() {
     };
     proteins.hits[2].score = 2.0;
     proteins.sort().unwrap();
+    // Source `ProteinIdentification::sort` stable-sorts with `ProteinHit::ScoreMore`
+    // (`ProteinHit.h:72-80`), which compares the tuple (score, accession) with `>`:
+    // the tied P1 and P2 are ordered by accession, descending. This expectation read
+    // [P3, P1, P2] (document order kept for ties) until wave-4 integration; the
+    // comparator the source uses does not keep it.
     assert_eq!(
         proteins
             .hits
             .iter()
             .map(|h| h.accession.as_str())
             .collect::<Vec<_>>(),
-        ["P3", "P1", "P2"]
+        ["P3", "P2", "P1"]
+    );
+    // Lower scores better: `ProteinHit::ScoreLess` (`ProteinHit.h:83-92`), the same
+    // tuple with `<`, so ties ascend by accession.
+    proteins.higher_score_better = false;
+    proteins.sort().unwrap();
+    assert_eq!(
+        proteins
+            .hits
+            .iter()
+            .map(|h| h.accession.as_str())
+            .collect::<Vec<_>>(),
+        ["P1", "P2", "P3"]
     );
     assert_eq!(proteins.find_hit("P2").unwrap().sequence, "AAA");
 }

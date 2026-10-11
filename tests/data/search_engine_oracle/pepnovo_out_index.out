@@ -1,0 +1,491 @@
+Parsed 4 ids, retained 4.
+protein identifier=PepNovo+_2026-09-27 engine=PepNovo+ version=Build 20081230 score_type= higher=1
+  params fragment_tol=0.5 precursor_tol=2.5 variable=[K+42][Y+42]
+  protein_hits 0
+peptide_ids 4
+id identifier=PepNovo+_2026-09-27 score_type=PepNovo higher=1 threshold=-4 rt=1510.5732421875 mz=747.76190185546898
+  meta significance_threshold type=2 value=-4
+  hits 19
+  hit seq=ADYGVTR score=-1.4119999408721924 rank=1 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=709.7650146484375
+    meta PnvScr type=2 value=21.143999099731445
+    meta rank type=1 value=1
+  hit seq=SDYGVTR score=-1.4830000400543213 rank=2 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.8759765625
+    meta N-Gap type=2 value=695.18499755859375
+    meta PnvScr type=2 value=18.23900032043457
+    meta rank type=1 value=2
+  hit seq=YTYGVTR score=-1.5329999923706055 rank=3 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=631.7490234375
+    meta PnvScr type=2 value=17.290000915527344
+    meta rank type=1 value=3
+  hit seq=ADYGVEK score=-1.8109999895095825 rank=4 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=709.7650146484375
+    meta PnvScr type=2 value=21.065000534057617
+    meta rank type=1 value=4
+  hit seq=YTYGVEK score=-1.8980000019073486 rank=5 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=631.7490234375
+    meta PnvScr type=2 value=17.209999084472656
+    meta rank type=1 value=5
+  hit seq=SDYGVEK score=-2.062999963760376 rank=6 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.8759765625
+    meta N-Gap type=2 value=695.18499755859375
+    meta PnvScr type=2 value=18.159999847412109
+    meta rank type=1 value=6
+  hit seq=LYTFFQR score=-2.0690000057220459 rank=7 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=518.38897705078125
+    meta PnvScr type=2 value=16.777000427246094
+    meta rank type=1 value=7
+  hit seq=LYTFQFR score=-2.1740000247955322 rank=8 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=518.38897705078125
+    meta PnvScr type=2 value=16.805000305175781
+    meta rank type=1 value=8
+  hit seq=SADYGVTR score=-2.3250000476837158 rank=9 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=622.760986328125
+    meta PnvScr type=2 value=20.568000793457031
+    meta rank type=1 value=9
+  hit seq=GKLTKDR score=-2.5350000858306885 rank=10 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.8759765625
+    meta N-Gap type=2 value=676.4639892578125
+    meta PnvScr type=2 value=19.315000534057617
+    meta rank type=1 value=10
+  hit seq=SADYGVEK score=-2.9070000648498535 rank=11 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=622.760986328125
+    meta PnvScr type=2 value=20.48900032043457
+    meta rank type=1 value=11
+  hit seq=LYTYGVTR score=-2.9549999237060547 rank=12 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=518.38897705078125
+    meta PnvScr type=2 value=21.26099967956543
+    meta rank type=1 value=12
+  hit seq=LFLTKDR score=-3.0280001163482666 rank=13 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.489013671875
+    meta N-Gap type=2 value=601.03399658203125
+    meta PnvScr type=2 value=20.156000137329102
+    meta rank type=1 value=13
+  hit seq=FLLTKDR score=-3.2579998970031738 rank=14 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.489013671875
+    meta N-Gap type=2 value=601.03399658203125
+    meta PnvScr type=2 value=20.167999267578125
+    meta rank type=1 value=14
+  hit seq=KGLTKDR score=-3.3159999847412109 rank=15 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.8759765625
+    meta N-Gap type=2 value=676.4639892578125
+    meta PnvScr type=2 value=19.471000671386719
+    meta rank type=1 value=15
+  hit seq=LFLTDKR score=-3.687999963760376 rank=16 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.489013671875
+    meta N-Gap type=2 value=601.03399658203125
+    meta PnvScr type=2 value=19.054000854492188
+    meta rank type=1 value=16
+  hit seq=LYTYGVEK score=-3.7639999389648438 rank=17 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=518.38897705078125
+    meta PnvScr type=2 value=21.180999755859375
+    meta rank type=1 value=17
+  hit seq=FLLTDKR score=-3.8029999732971191 rank=18 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1493.489013671875
+    meta N-Gap type=2 value=601.03399658203125
+    meta PnvScr type=2 value=19.065999984741211
+    meta rank type=1 value=18
+  hit seq=TLYTYGVTR score=-3.9600000381469727 rank=19 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1492.873046875
+    meta N-Gap type=2 value=417.1300048828125
+    meta PnvScr type=2 value=20.895000457763672
+    meta rank type=1 value=19
+id identifier=PepNovo+_2026-09-27 score_type=PepNovo higher=1 threshold=-4 rt=1530.11535644531 mz=549.85626220703102
+  meta significance_threshold type=2 value=-4
+  hits 20
+  hit seq=VDAEPLTVQLLR score=-1.0640000104904175 rank=1 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=35.798000335693359
+    meta rank type=1 value=1
+  hit seq=VDAEPLTQVLLR score=-1.0959999561309814 rank=2 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=36.007999420166016
+    meta rank type=1 value=2
+  hit seq=VTTLPLTQVLLR score=-1.156999945640564 rank=3 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=35.769001007080078
+    meta rank type=1 value=3
+  hit seq=VTDVFDHFVFK score=-1.7619999647140503 rank=4 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.750999450683594
+    meta rank type=1 value=4
+  hit seq=VTDVFDFHVFK score=-1.8190000057220459 rank=5 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=38.139999389648438
+    meta rank type=1 value=5
+  hit seq=VTDVDFFHVFK score=-1.8200000524520874 rank=6 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=38.013999938964844
+    meta rank type=1 value=6
+  hit seq=VADEFDHFVFK score=-1.8389999866485596 rank=7 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=38.358001708984375
+    meta rank type=1 value=7
+  hit seq=RHVTLTPLTNLLLR score=-1.8849999904632568 rank=8 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=37.592998504638672
+    meta rank type=1 value=8
+  hit seq=VDAELPTVQLLR score=-1.8930000066757202 rank=9 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=35.771999359130859
+    meta rank type=1 value=9
+  hit seq=VDHLPLAPLLLR score=-1.8969999551773071 rank=10 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1648.364990234375
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.560001373291016
+    meta rank type=1 value=10
+  hit seq=VTDVDFHFVFK score=-1.9140000343322754 rank=11 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.783000946044922
+    meta rank type=1 value=11
+  hit seq=VTLTFDHFVFK score=-1.9309999942779541 rank=12 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.811000823974609
+    meta rank type=1 value=12
+  hit seq=VDHLPLALPLLR score=-1.9789999723434448 rank=13 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1648.364990234375
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=36.958000183105469
+    meta rank type=1 value=13
+  hit seq=VSVEFDHFVFK score=-1.9809999465942383 rank=14 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.562999725341797
+    meta rank type=1 value=14
+  hit seq=VDHLPALLPLLR score=-2.0150001049041748 rank=15 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1648.364990234375
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=36.543998718261719
+    meta rank type=1 value=15
+  hit seq=VDAEDFHFVFK score=-2.0309998989105225 rank=16 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=38.599998474121094
+    meta rank type=1 value=16
+  hit seq=VEGEFDHFVFK score=-2.0369999408721924 rank=17 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.915000915527344
+    meta rank type=1 value=17
+  hit seq=VGEEFDHFVFK score=-2.0559999942779541 rank=18 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.842998504638672
+    meta rank type=1 value=18
+  hit seq=VTVDFDHFVFK score=-2.0690000057220459 rank=19 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=37.694999694824219
+    meta rank type=1 value=19
+  hit seq=VTVDFDFHVFK score=-2.0889999866485596 rank=20 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1647.3580322265625
+    meta N-Gap type=2 value=293.13299560546875
+    meta PnvScr type=2 value=38.083999633789062
+    meta rank type=1 value=20
+id identifier=PepNovo+_2026-09-27 score_type=PepNovo higher=1 threshold=-4 rt=1533.16589355469 mz=358.17453002929699
+  meta significance_threshold type=2 value=-4
+  hits 20
+  hit seq=NVAEVEK score=3.3810000419616699 rank=1 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=284.13299560546875
+    meta PnvScr type=2 value=80.692001342773438
+    meta rank type=1 value=1
+  hit seq=PLAEVEK score=3.1730000972747803 rank=2 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=287.17401123046875
+    meta PnvScr type=2 value=79.404998779296875
+    meta rank type=1 value=2
+  hit seq=HVAEVEK score=1.815000057220459 rank=3 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=261.34100341796875
+    meta PnvScr type=2 value=83.961997985839844
+    meta rank type=1 value=3
+  hit seq=NVAELDK score=1.7059999704360962 rank=4 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=284.13299560546875
+    meta PnvScr type=2 value=77.55999755859375
+    meta rank type=1 value=4
+  hit seq=FHVAEVEK score=0.95399999618530273 rank=5 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=114.06300354003906
+    meta PnvScr type=2 value=87.222000122070312
+    meta rank type=1 value=5
+  hit seq=DLAEVEK score=0.92900002002716064 rank=6 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1073.52294921875
+    meta N-Gap type=2 value=270.20700073242188
+    meta PnvScr type=2 value=81.535003662109375
+    meta rank type=1 value=6
+  hit seq=HVAEEVK score=0.75 rank=7 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=261.34100341796875
+    meta PnvScr type=2 value=78.676002502441406
+    meta rank type=1 value=7
+  hit seq=LLAEVEK score=0.70099997520446777 rank=8 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=270.84201049804688
+    meta PnvScr type=2 value=85.515998840332031
+    meta rank type=1 value=8
+  hit seq=EVAEVEK score=0.68900001049041748 rank=9 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1073.52294921875
+    meta N-Gap type=2 value=270.20700073242188
+    meta PnvScr type=2 value=79.413002014160156
+    meta rank type=1 value=9
+  hit seq=VEAEVEK score=0.64999997615814209 rank=10 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1073.52294921875
+    meta N-Gap type=2 value=270.20700073242188
+    meta PnvScr type=2 value=79.463996887207031
+    meta rank type=1 value=10
+  hit seq=LDAEVEK score=0.56999999284744263 rank=11 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1073.52294921875
+    meta N-Gap type=2 value=270.20700073242188
+    meta PnvScr type=2 value=81.514999389648438
+    meta rank type=1 value=11
+  hit seq=GVQVAEVEK score=0.30700001120567322 rank=12 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=114.06300354003906
+    meta PnvScr type=2 value=79.252998352050781
+    meta rank type=1 value=12
+  hit seq=NFHVAEVEK score=0.26899999380111694 rank=13 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=100.67600250244141
+    meta rank type=1 value=13
+  hit seq=FVHAEVEK score=0.11500000208616257 rank=14 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=114.06300354003906
+    meta PnvScr type=2 value=77.599998474121094
+    meta rank type=1 value=14
+  hit seq=HFNVAEVEK score=0.10999999940395355 rank=15 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=85.384002685546875
+    meta rank type=1 value=15
+  hit seq=LPAEVEK score=0.052000001072883606 rank=16 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=287.17401123046875
+    meta PnvScr type=2 value=79.376998901367188
+    meta rank type=1 value=16
+  hit seq=FHVAEEVK score=0.008999999612569809 rank=17 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=114.06300354003906
+    meta PnvScr type=2 value=81.935997009277344
+    meta rank type=1 value=17
+  hit seq=FHNVAEVEK score=-0.096000000834465027 rank=18 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=84.983001708984375
+    meta rank type=1 value=18
+  hit seq=TGEPLAEVEK score=-0.14000000059604645 rank=19 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=81.71600341796875
+    meta rank type=1 value=19
+  hit seq=ETAEVEK score=-0.22699999809265137 rank=20 charge=3
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=1072.803955078125
+    meta N-Gap type=2 value=266.6929931640625
+    meta PnvScr type=2 value=78.012001037597656
+    meta rank type=1 value=20
+id identifier=PepNovo+_2026-09-27 score_type=PepNovo higher=1 threshold=-4 rt=1111 mz=2222
+  meta significance_threshold type=2 value=-4
+  hits 20
+  hit seq=VKEAMAPK score=9.8879995346069336 rank=1 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=109.02899932861328
+    meta rank type=1 value=1
+  hit seq=KEAMAPK score=9.2360000610351562 rank=2 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=97.9530029296875
+    meta rank type=1 value=2
+  hit seq=VKEMAAPK score=8.8719997406005859 rank=3 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=95.28399658203125
+    meta rank type=1 value=3
+  hit seq=KESDAPK score=8.7200002670288086 rank=4 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=95.558998107910156
+    meta rank type=1 value=4
+  hit seq=VKESDAPK score=8.6400003433227539 rank=5 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=106.63500213623047
+    meta rank type=1 value=5
+  hit seq=QEAMAPK score=8.4720001220703125 rank=6 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=98.365997314453125
+    meta rank type=1 value=6
+  hit seq=KSLMAPK score=8.383000373840332 rank=7 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=94.478996276855469
+    meta rank type=1 value=7
+  hit seq=VKSSDLPK score=8.3479995727539062 rank=8 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=92.5260009765625
+    meta rank type=1 value=8
+  hit seq=VKSMALPK score=8.3210000991821289 rank=9 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=110.06199645996094
+    meta rank type=1 value=9
+  hit seq=VKSMLAPK score=8.258000373840332 rank=10 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=114.65699768066406
+    meta rank type=1 value=10
+  hit seq=VEAMAPK score=8.2110004425048828 rank=11 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.031005859375
+    meta N-Gap type=2 value=127.73100280761719
+    meta PnvScr type=2 value=80.165000915527344
+    meta rank type=1 value=11
+  hit seq=GK(Acetyl)EAMAPK score=8.0450000762939453 rank=12 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=92.633003234863281
+    meta rank type=1 value=12
+  hit seq=AGVEAMAPK score=8.0319995880126953 rank=13 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=95.220001220703125
+    meta rank type=1 value=13
+  hit seq=VKEATTPK score=7.9939999580383301 rank=14 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=87.906997680664062
+    meta rank type=1 value=14
+  hit seq=NLEAMAPK score=7.9510002136230469 rank=15 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=93.126998901367188
+    meta rank type=1 value=15
+  hit seq=KSMALPK score=7.9180002212524414 rank=16 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=98.986000061035156
+    meta rank type=1 value=16
+  hit seq=VKECVAPK score=7.9000000953674316 rank=17 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=94.641998291015625
+    meta rank type=1 value=17
+  hit seq=VKETTAPK score=7.870999813079834 rank=18 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=0
+    meta PnvScr type=2 value=105.11599731445312
+    meta rank type=1 value=18
+  hit seq=QESDAPK score=7.7189998626708984 rank=19 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=95.971000671386719
+    meta rank type=1 value=19
+  hit seq=KSMLAPK score=7.6319999694824219 rank=20 charge=2
+    meta C-Gap type=2 value=0
+    meta MZ type=2 value=873.6209716796875
+    meta N-Gap type=2 value=99.280998229980469
+    meta PnvScr type=2 value=103.58100128173828
+    meta rank type=1 value=20

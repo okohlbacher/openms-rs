@@ -1,0 +1,148 @@
+CASE	MzDataFile_1.mzData
+R	0
+E	0	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	1	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	2	Name of CV term not correct: 'PSI:1000029 - adcsamplingfrequency' should be 'samplingfrequency'
+E	3	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	4	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	5	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+E	6	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	7	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	8	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+W	0	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	1	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	2	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	3	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	4	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	5	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	6	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	7	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	8	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	9	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	MzDataFile_3_minimal.mzData
+R	1
+CASE	MzDataFile_4_64bit.mzData
+R	1
+W	0	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	mzdata_big_endian.mzData
+R	1
+W	0	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	mzdata_latin1.mzData
+R	1
+CASE	mzdata_utf8.mzData
+R	1
+CASE	sv_names.mzData
+R	0
+E	0	Name of CV term not correct: 'PSI:1000004 - samplemasses' should be 'samplemass'
+E	1	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	2	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	3	Name of CV term not correct: 'PSI:1000029 - adcsamplingfrequency' should be 'samplingfrequency'
+E	4	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	5	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	6	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+E	7	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	8	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	9	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+W	0	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	1	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	2	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	3	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	4	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	5	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	6	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	7	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	8	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	9	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	sv_unknown.mzData
+R	0
+E	0	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	1	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	2	Name of CV term not correct: 'PSI:1000029 - adcsamplingfrequency' should be 'samplingfrequency'
+E	3	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	4	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	5	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+E	6	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	7	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	8	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+W	0	Unknown CV term: 'PSI:9999999 - SampleVolume' at element '/mzData/description/admin/sampleDescription'
+W	1	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	2	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	3	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	4	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	5	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	6	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	7	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	8	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	9	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	10	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	sv_wrong_element.mzData
+R	0
+E	0	CV term used in invalid element: 'PSI:1000007 - InletType' at element '/mzData/description/admin/sampleDescription'
+E	1	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	2	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	3	Name of CV term not correct: 'PSI:1000029 - adcsamplingfrequency' should be 'samplingfrequency'
+E	4	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	5	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	6	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+E	7	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	8	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	9	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+W	0	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	1	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	2	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	3	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	4	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	5	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	6	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	7	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	8	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	9	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	sv_units.mzData
+R	0
+E	0	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	1	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	2	Name of CV term not correct: 'PSI:1000029 - adcsamplingfrequency' should be 'samplingfrequency'
+E	3	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	4	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	5	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+E	6	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	7	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	8	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+W	0	Unit CV term used, but not allowed: PSI:1000004 - SampleMass of term PSI:1000004 - SampleMass
+W	1	Unit CV term used, but not allowed: UO:0000000 - nothing of term PSI:1000005 - SampleVolume
+W	2	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	3	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	4	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	5	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	6	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	7	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	8	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	9	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	10	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	11	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	sv_rules.mzData
+R	0
+E	0	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	1	Name of CV term not correct: 'PSI:1000011 - resolution' should be 'massresolution'
+E	2	Name of CV term not correct: 'PSI:1000029 - adcsamplingfrequency' should be 'samplingfrequency'
+E	3	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	4	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	5	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+E	6	Name of CV term not correct: 'PSI:1000043 - intensityunits' should be 'intensityunit'
+E	7	Name of CV term not correct: 'PSI:1000044 - method' should be 'activationmethod'
+E	8	Name of CV term not correct: 'PSI:1000046 - energyunits' should be 'energyunit'
+W	0	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	1	Obsolete CV term: 'PSI:1000009 - IonizationMode' at element '/mzData/description/instrument/source'
+W	2	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	3	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	4	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	5	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	6	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	7	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	8	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	9	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+W	10	No mapping rule found for element '/mzData/spectrumList/spectrum/spectrumDesc/spectrumSettings/spectrumInstrument'
+CASE	truncated.mzData
+X	Parse Error	While loading '<IN>/truncated.mzData': input ended before all started tags were ended; last tag started is 'spectrumList'( in line 252 column 1) in: <IN>/truncated.mzData
+CASE	missing.mzData
+X	FileNotFound	the file '<IN>/missing.mzData' could not be found

@@ -1,0 +1,2 @@
+/scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp(67): While loading 'input.protXML': Required attribute 'probability' not present!
+Error: Unable to read file (While loading 'input.protXML': Required attribute 'probability' not present! in: input.protXML)

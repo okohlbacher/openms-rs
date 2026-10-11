@@ -389,8 +389,16 @@ pub(crate) fn decode_raw(
 
 const CHUNK: usize = 16 * 1024;
 const ZLIB_STATE_BYTES: usize = 1024 * 1024;
+/// zlib-compress `input`. The compressor state is charged to `work` while it
+/// exists and returned when the call ends, so a long run of small arrays is
+/// bounded by the data it produces rather than by one state per call.
 pub(crate) fn zlib_encode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     work.allocate(ZLIB_STATE_BYTES)?;
+    let result = zlib_encode_inner(input, work);
+    work.release(ZLIB_STATE_BYTES);
+    result
+}
+fn zlib_encode_inner(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     let mut encoder = Compress::new(Compression::default(), true);
     let mut result = Vec::new();
     let mut offset = 0usize;
@@ -423,8 +431,15 @@ pub(crate) fn zlib_encode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
         }
     }
 }
+/// zlib-decompress `input`, charging the decompressor state only while the
+/// call runs (see [`zlib_encode`]).
 pub(crate) fn zlib_decode(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     work.allocate(ZLIB_STATE_BYTES)?;
+    let result = zlib_decode_inner(input, work);
+    work.release(ZLIB_STATE_BYTES);
+    result
+}
+fn zlib_decode_inner(input: &[u8], work: &mut Work) -> Result<Vec<u8>> {
     let mut decoder = Decompress::new(true);
     let mut result = Vec::new();
     let mut offset = 0usize;
@@ -489,6 +504,14 @@ impl Work {
             .checked_sub(n)
             .ok_or_else(|| invalid("cumulative allocation limit exceeded"))?;
         Ok(())
+    }
+    /// Return `n` bytes charged by [`Work::allocate`] for transient state that
+    /// has been freed again. Never raises the budget above its limit.
+    pub(crate) fn release(&mut self, n: usize) {
+        self.bytes = self
+            .bytes
+            .saturating_add(n)
+            .min(self.limits.max_total_bytes);
     }
     pub(crate) fn value_count(&self, n: usize) -> Result<()> {
         if n > self.limits.raw.max_values {

@@ -1,0 +1,106 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/XMassFile.h",
+      "sha256": "74d42454b7c869a9d13c1986f3e08f609941c65d51c7be68de5135265e2c8bac",
+      "role": "The ported header, 233 lines, header-only: load, importExperimentalSettings and store are inline. Every member is mapped in docs/XMASS_FILE_SUPPORT.md."
+    },
+    {
+      "path": "src/openms/source/FORMAT/XMassFile.cpp",
+      "sha256": "5b46111f7e123e81d09a1c0967a86899da764fdacfcd020193fbd9e128056e1a",
+      "role": "18 lines: the defaulted constructor and destructor."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/AcqusHandler.h",
+      "sha256": "ba7d3c99583ed6be6e267995d7b99031eb366a4554cd9219eb18165b8d3bd1b4",
+      "role": "The acqus handler header, 72 lines."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/AcqusHandler.cpp",
+      "sha256": "0528dc8fb240a0c3a5593c6d0df30de4613a30cd56f8e0234394131eee21f7be",
+      "role": "119 lines: the line grammar (45-61), getPosition and getParam."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/FidHandler.h",
+      "sha256": "22a0b9f16e537621e90abca4b6e1abee7ed39718715367e99ead25698a31ecaf",
+      "role": "The fid handler header, 57 lines."
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/FidHandler.cpp",
+      "sha256": "64af167fb14cb1b957806d0db4ab7dbae6ee9f9c5d2875234063659f598e4e7f",
+      "role": "58 lines: getIndex and the unchecked 4-byte getIntensity read."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/XMassFile_test.cpp",
+      "sha256": "094ea4ad7dc12b31c1b6c10971e676deba847b4a6f01740991f0c97143112bad",
+      "role": "The class test, 80 lines, 4 START_SECTIONs, all ported into tests/xmass_file.rs."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/XMassFile_test/acqus",
+      "sha256": "7bd06efa977b420fd8ba9af372694bbec62f84aa4059944d1208f6cac76e911a",
+      "role": "Upstream class-test data src/tests/class_tests/openms/data/XMassFile_test/acqus, copied unchanged."
+    },
+    {
+      "path": "tests/data/XMassFile_test/fid",
+      "sha256": "eb0ae4f34458a0d8edc7133f27e8fa9318b6f74a67fe4f2f68d147e87546e11e",
+      "role": "Upstream class-test data src/tests/class_tests/openms/data/XMassFile_test/fid, copied unchanged."
+    },
+    {
+      "path": "tests/data/XMassFile_test_data.txt",
+      "sha256": "372907aa10bd63722d65ca4e3aa1a848b0b8847cbae0181dee5b0866405633ed",
+      "role": "Upstream class-test expectation file src/tests/class_tests/openms/data/XMassFile_test_data.txt, copied unchanged (tier 3)."
+    }
+  ],
+  "native_implementation": [
+    "src/format/xmass_file.rs",
+    "src/format/acqus_handler.rs",
+    "src/format/fid_handler.rs"
+  ],
+  "native_tests": [
+    "tests/xmass_file.rs"
+  ],
+  "support_document": "docs/XMASS_FILE_SUPPORT.md",
+  "cpp_execution": {
+    "host": "ibminode06",
+    "build": "Linux x86_64 Release, openms4-release-bc9cc12-c19e494-174b576",
+    "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+    "runs": 2,
+    "identical": true,
+    "output_sha256": {
+      "results/xmass.tsv": "47bd15b716fd79df7c0e570578880cbb7b8c0810ecb2d13e3487edae15e73355"
+    },
+    "asserted_by": "tests/xmass_file.rs::load_matches_the_release_build_bit_for_bit (FNV-1a over every peak's bits, ten sampled bit patterns, source-file size)"
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/F5-xmass/driver.cpp",
+      "sha256": "4b714232678a435706850833c7de598b352863c09d79f9f65857124dcce6141c",
+      "origin_key": "cpp_execution"
+    },
+    {
+      "path": "../oracle/F5-xmass/remote_run.sh",
+      "sha256": "aca787e8ff2e644e16ec4d14a173a14069ca8f2b4da4ff039a48d0c4a14f5c24",
+      "origin_key": "cpp_execution"
+    },
+    {
+      "path": "../oracle/F5-xmass/results/xmass.tsv",
+      "sha256": "47bd15b716fd79df7c0e570578880cbb7b8c0810ecb2d13e3487edae15e73355",
+      "origin_key": "cpp_execution"
+    },
+    {
+      "path": "../oracle/F5-xmass/results/hashes.txt",
+      "sha256": "b8ea6ef37f722dc09561ec354db1d49edd30c1aaf95fe467f5ea30cb8b5a90f2",
+      "origin_key": "cpp_execution"
+    }
+  ],
+  "external_reference_note": "The F5 oracle driver, its build-and-run script and its case generator live outside this repository under ../oracle/F5-xmass/ so that no C++ is committed here. It was built on ibminode06 against the Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c) with x86_64-conda-linux-gnu-g++ 14.4.0 and libOpenMS's core flags, and every case was run twice in fresh processes with identical output. Recorded, not re-verified by the in-repo gate.",
+  "evidence": "Tier 1 for load (every peak bit-identical to the executed Release build); tier 3 for the class-test expectation file and metadata; tier 4 for the native bounds.",
+  "gaps": [
+    "The spectrum comment 'no comment' that load sets is not reproduced: the kernel MSSpectrum has no comment field (SpectrumSettings::comment), a kernel gap outside this group."
+  ]
+}

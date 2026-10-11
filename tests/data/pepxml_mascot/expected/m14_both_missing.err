@@ -1,0 +1,2 @@
+/scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp(67): While loading 'm14_both_missing.pepXML': Required attribute 'mass' not present!
+Probable cause: The file suffix (pepXML) does not match the file content (unknown). Rename the file to fix this.

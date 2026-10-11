@@ -571,3 +571,73 @@ fn many_numbered_groups_preserve_numeric_order_across_lexical_boundaries() {
         );
     }
 }
+
+/// `ConsensusXMLFile::load` records `setLoadedFilePath(filename)` and
+/// `setLoadedFileType(filename)` (`ConsensusXMLFile.cpp:87-88`): a relative
+/// path is prefixed with the current directory, as `DocumentIdentifier` does,
+/// and the type is recognised from the content.
+#[test]
+fn load_records_the_document_identifier_as_the_source_does() {
+    let relative = "tests/data/consensusxml/ConsensusXMLFile_1.consensusXML";
+    let map = consensusxml::load(relative).unwrap();
+    let expected = std::env::current_dir().unwrap().join(relative);
+    assert_eq!(map.loaded_file_path, expected.to_str().unwrap());
+    assert_eq!(map.loaded_file_type, openms::format::FileType::ConsensusXml);
+    let absolute = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(relative);
+    let map = consensusxml::load(&absolute).unwrap();
+    assert_eq!(map.loaded_file_path, absolute.to_str().unwrap());
+}
+
+/// `getOptions() = options`: the three ranges the handler tests
+/// (`ConsensusXMLHandler.cpp:75-76`) and nothing else.
+#[test]
+fn read_options_from_peak_file_options() {
+    use openms::format::PeakFileOptions;
+    use openms::kernel::NumericRange;
+    let none = ReadOptions::from_peak_options(&PeakFileOptions::default());
+    assert_eq!(none.rt_range, None);
+    assert_eq!(none.mz_range, None);
+    assert_eq!(none.intensity_range, None);
+    let defaults = ReadOptions::default();
+    assert_eq!(none.max_xml_bytes, defaults.max_xml_bytes);
+    assert!(!none.discard_mismatched_quantities);
+    let mut options = PeakFileOptions::default();
+    // e_1 (RT 1248.33, m/z 897.449, 2.59179e7) and e_3 (RT 1210.55, m/z
+    // 973.42, 2.41847e7) pass all three; e_0 fails the intensity range.
+    options.set_rt_range(NumericRange {
+        min: 1200.0,
+        max: 1300.0,
+    });
+    options.set_mz_range(NumericRange {
+        min: 890.0,
+        max: 980.0,
+    });
+    options.set_intensity_range(NumericRange {
+        min: 2.0e7,
+        max: 3.0e7,
+    });
+    options.metadata_only = true;
+    let converted = ReadOptions::from_peak_options(&options);
+    assert_eq!(converted.rt_range, Some(1200.0..1300.0));
+    assert_eq!(converted.mz_range, Some(890.0..980.0));
+    assert_eq!(converted.intensity_range, Some(2.0e7..3.0e7));
+    // The converted filters select what the explicit ones select. Run
+    // identifiers are process-local, so the feature positions are compared.
+    let explicit = ReadOptions {
+        rt_range: Some(1200.0..1300.0),
+        mz_range: Some(890.0..980.0),
+        intensity_range: Some(2.0e7..3.0e7),
+        ..Default::default()
+    };
+    let a = consensusxml::read_with_options(SOURCE, &converted).unwrap();
+    let b = consensusxml::read_with_options(SOURCE, &explicit).unwrap();
+    let project = |m: &ConsensusMap| -> Vec<(u64, f64, f64, f32)> {
+        m.features
+            .iter()
+            .map(|f| (f.unique_id, f.rt, f.mz, f.intensity))
+            .collect()
+    };
+    assert_eq!(project(&a), project(&b));
+    let kept: Vec<u64> = a.features.iter().map(|f| f.unique_id).collect();
+    assert_eq!(kept, [1, 3]);
+}

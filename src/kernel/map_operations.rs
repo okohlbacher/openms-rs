@@ -1490,8 +1490,10 @@ fn base_feature_from_handle(handle: &FeatureHandle) -> BaseFeature {
 /// Source `DataProcessingUtils::hasIsobaricAnalyzer`, the query
 /// `ConsensusMap::split` dispatches on. `METADATA/DataProcessingUtils.h` is not
 /// part of this work package, so the one query the split depends on is
-/// reproduced privately rather than exposed.
-fn has_isobaric_analyzer(processing: &[DataProcessing]) -> bool {
+/// reproduced here, crate-visible so that `QCBase::isLabeledExperiment`
+/// (the QC module's `is_labeled_experiment`) asks the same
+/// question rather than a copy of it.
+pub(crate) fn has_isobaric_analyzer(processing: &[DataProcessing]) -> bool {
     processing
         .iter()
         .any(|record| record.software.name == ISOBARIC_ANALYZER)

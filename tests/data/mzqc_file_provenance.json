@@ -1,0 +1,109 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzQCFile.h",
+   "sha256": "033c5d484711342a225cc20199497719c99576f1de6068dfcb441b244216dabd"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzQCFile.cpp",
+   "sha256": "541cefed100a04c57e3d89fc323406d3a6273b4b4096e3596f3cb93e804d0efd"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FileHandler.cpp",
+   "sha256": "51c808294e9cb258fda0f8604539b9b223a65195e408080fcedc8ecb2616334e"
+  }
+ ],
+ "package_revisions": {
+  "core": "bc9cc12",
+  "topp": "174b576",
+  "test-data": "0cb15f2"
+ },
+ "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:5387-5389 (TOPP_QCCalculator_2); ${DIFF} = FuzzyDiff -ini FuzzyDiff.ini (topp/CMakeLists.txt:59; ratio 1.01, absdiff 0.01) with -whitelist creationDate location version; tool body topp 174b576 src/QCCalculator.cpp:139-170",
+ "method": "The retained inputs are loaded with the crate's readers and passed through the library as QCCalculator does (sortSpectra; features sortByRT; MzQcFile::store with the retained input's file name). The output is compared with the retained output under the upstream FuzzyDiff contract, and line for line with the Release build's output of the same body (oracle F2-mzqc) apart from the run-dependent input location. The experiment is read from the strict-reader derivative of the mzML; the oracle shows the Release build writes the same mzQC for both files.",
+ "evidence_tier": "1 (retained C++ output; executed Release build, ibminode06)",
+ "native_implementation": [
+  "src/format/mzqc_file.rs",
+  "src/format/nlohmann_json.rs",
+  "src/format/file_handler.rs"
+ ],
+ "native_tests": [
+  "tests/mzqc_file.rs"
+ ],
+ "support_document": "docs/MZQC_FILE_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/mzqc_file/QCCalculator_input.mzML",
+   "sha256": "711ac14b666f14817c208bd4d39b738e96ac827574c4639d8f8f6eebbfde9c83",
+   "bytes": 25072,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/QCCalculator_input.mzML (SHA-1 24aeada3affec9df36568c0054e4197ac3515642, recorded in the retained output)"
+  },
+  {
+   "path": "tests/data/mzqc_file/QCCalculator_input_strict_reader.mzML",
+   "sha256": "d5d1e5d7dd8d7c6f9579f1f6d3362c9ca6f1efa3953aac24eb26c36510e1eb79",
+   "bytes": 24622,
+   "kind": "derived: QCCalculator_input.mzML with the eight dataProcessingRef attributes of its binaryDataArray elements deleted, nothing else changed; the Release build writes the same mzQC for both files (oracle F2-mzqc)"
+  },
+  {
+   "path": "tests/data/mzqc_file/FeatureFinderMetaboIdent_1_output.featureXML",
+   "sha256": "e2270924ca7a2c102c163f25837f8bced87abad290a453b56b9aa126e8cb2e85",
+   "bytes": 62809,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/FeatureFinderMetaboIdent_1_output.featureXML"
+  },
+  {
+   "path": "tests/data/mzqc_file/OpenPepXL_output.idXML",
+   "sha256": "482f6319887a2c9ac5b4ca82b09b848aa40275cbf3572f894df0648d011b530d",
+   "bytes": 145845,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/OpenPepXL_output.idXML"
+  },
+  {
+   "path": "tests/data/mzqc_file/QCCalculator_2_output.mzQC",
+   "sha256": "dce38e4e60db791d7bc4e5548fa5e8c50d5b46f002cb839ba716ee80dc7b0a21",
+   "bytes": 5460,
+   "kind": "retained upstream output: test-data 0cb15f2 topp/QCCalculator_2_output.mzQC"
+  },
+  {
+   "path": "tests/data/mzqc_file/release/QCCalculator_2_release.mzQC",
+   "sha256": "08738574446311b00855df830b70b0fe7c3f58392133bb22ad7a3418e4f6c958",
+   "bytes": 5441,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-mzqc, run twice with identical results apart from creationDate: QCCalculator's body (FileHandler loads, sortSpectra, updateRanges, sortByRT, MzQCFile::store) on the retained inputs"
+  },
+  {
+   "path": "tests/data/mzqc_file/release/host.txt",
+   "sha256": "b7b2b23538d424b88059d5daa6ad2117bcba370b8802fe02c22dab2c61b1542c",
+   "bytes": 520,
+   "kind": "host, install and compiler of the oracle run"
+  },
+  {
+   "path": "resources/cv/qc-cv.obo",
+   "sha256": "d578feacdb6467260fb49533ccdc33594e866e7f48306b27e592760a02b01f3d",
+   "bytes": 87618,
+   "kind": "core bc9cc12 share/OpenMS/CV/qc-cv.obo, unchanged (PSI QC vocabulary 0.1.2; CC BY 4.0 per HUPO-PSI/mzQC)"
+  }
+ ],
+ "external_reference_note": "The oracle driver and scripts are C++ and shell kept beside the repository in ../oracle/F2-mzqc and never committed here; results/hashes.txt records the driver, the built binary, the inputs, libOpenMS.so and both outputs.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F2-mzqc/driver.cpp",
+   "sha256": "2c518317d23bbe52b36e1e7edce121a5b7e5815daf2bc62773bcade04250575e",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-mzqc/remote_run.sh",
+   "sha256": "2b9f98166199858639ab3eec0a18b39da4199465f6432bedd58ec897d4a11490",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-mzqc/run.sh",
+   "sha256": "ba0520eda2a8d45eaba61ddf35c0877a41b45b7f1ecde8655bc1459c4defbc68",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-mzqc/results/hashes.txt",
+   "sha256": "3846c527e5575b54eed9cd9c5a41ab36c24054093f07a7ecae6d9133fd290205",
+   "origin_key": "method"
+  }
+ ]
+}

@@ -1,0 +1,5 @@
+load m06_unmatched.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [PEPTM(Oxidation)IDE] [PEPTMIDE]

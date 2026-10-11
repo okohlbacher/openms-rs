@@ -202,9 +202,9 @@ impl FileHandler {
     ///
     /// Returns [`Error::InvalidValue`] for a non-UTF-8 path, and the I/O error
     /// when content recognition cannot open or read the file, where the source
-    /// throws `Exception::FileNotFound`. A gzip or bzip2 input without the
-    /// `file-compression` feature, or a ZIP container, is
-    /// [`Error::Unsupported`]; the source looks inside all three.
+    /// throws `Exception::FileNotFound`. Gzip, bzip2 and single-file ZIP
+    /// containers are looked inside, as the source does; without the
+    /// `file-compression` feature they are [`Error::Unsupported`].
     pub fn get_type(path: impl AsRef<Path>) -> Result<FileType> {
         let normalized = filename(path.as_ref())?.trim_end_matches(['/', '\\']);
         let kind = type_by_file_name(normalized);
@@ -526,6 +526,34 @@ impl FileHandler {
         let kind =
             consistent_output_type(filename(path)?, requested.map(FileType::name).unwrap_or(""));
         super::path_io::write(path, |writer| Self::write_consensus_map(writer, map, kind))
+    }
+
+    /// The SHA-1 digest of a file's bytes as 40 lower-case hexadecimal digits,
+    /// source static `computeFileHash`.
+    ///
+    /// As in the source, a file that cannot be opened yields the empty string
+    /// rather than an error, and a read that fails part-way ends the input
+    /// there, so the digest covers the bytes read before the failure. The
+    /// file is streamed in 8 KiB blocks and never held in memory.
+    #[cfg(feature = "mzml")]
+    pub fn compute_file_hash(filename: impl AsRef<Path>) -> String {
+        use sha1::{Digest, Sha1};
+        let Ok(mut file) = std::fs::File::open(filename) else {
+            return String::new();
+        };
+        let mut sha = Sha1::new();
+        let mut buffer = [0_u8; 8192];
+        loop {
+            match file.read(&mut buffer) {
+                Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+                Ok(0) | Err(_) => break,
+                Ok(read) => sha.update(&buffer[..read]),
+            }
+        }
+        sha.finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
     }
 }
 

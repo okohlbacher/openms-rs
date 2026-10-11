@@ -21,6 +21,30 @@ Invalid nonnumeric unique-ID suffixes become zero, matching source behavior;
 numeric overflow is rejected. The source's three supported experiment types are
 retained, even though its XSD lists additional historical types.
 
+## API mapping — `FORMAT/ConsensusXMLFile.h`
+
+| Source member | Rust | Notes |
+|---|---|---|
+| `ConsensusXMLFile()` | none; `consensusxml::VERSION` (`"1.7"`) and `SCHEMA_FILE` are what the constructor registers (`ConsensusXMLFile.cpp:23-26`) | the class's only state is `options_`, passed as an argument |
+| `~ConsensusXMLFile()` | none | |
+| `void load(const std::string&, ConsensusMap&)` | `load`, `load_with_options`, `load_with_progress`, `load_into`; stream forms `read`, `read_with_options`, `read_with_registry`, `read_into`, `read_report` | records the loaded path and content-detected type as `DocumentIdentifier` does (`ConsensusXMLFile.cpp:87-88`); the source's `isMapConsistent` warning is `ReadReport::warnings`; `@exception FileNotFound` is `Error::Io`, `ParseError` is `Error::Parse`, and `MissingInformation` is not thrown by the source's load (it only warns), nor here |
+| `void store(const std::string&, const ConsensusMap&)` | `store`, `store_with_options`, `store_with_progress`; stream forms `write`, `write_with_options`, `write_with_registry` | the extension check of `FileHandler::hasValidExtension` (an unknown extension or consensusXML) is kept; duplicate unique IDs are refused (`ConsensusMap::validate`), where the source's `updateUniqueIdToIndex` throws `Postcondition`; the source's `isMapConsistent` failure only prints to `cerr` and stores anyway, as here |
+| `PeakFileOptions& getOptions()`, `const PeakFileOptions& getOptions() const` | `ReadOptions` (its three ranges), and `ReadOptions::from_peak_options` for a whole source `PeakFileOptions` | the handler reads only the three ranges (`ConsensusXMLHandler.cpp:75-76`); the writer receives the options and reads none, so `WriteOptions` holds only native ceilings |
+| protected `PeakFileOptions options_` | the `ReadOptions` argument | |
+| inherited `XMLFile::isValid(filename, os)` | `is_valid`, with the `xml-schema` feature | see below |
+| inherited `XMLFile::getVersion()` | `VERSION` | |
+| inherited `ProgressLogger` | `load_with_progress`, `store_with_progress` | see Progress |
+
+**Input transport.** The source's `XMLFile::parse_` reads plain, gzip, bzip2
+and ZIP input, and so does the shared `path_io::open` this loader reads
+through: a single-entry ZIP archive goes through `format::zip_ifstream`
+(lane F7b, wave 4; the stream is tier 1 against the Release build's
+`ZipIfstream`, and `tests/zip_input_oracle.rs` replays the Release loader
+records of `../oracle/B8a-zip-input` for featureXML and mzML).
+`tests/compressed_streams.rs::consensusxml_loads_from_zip` loads
+`ConsensusXMLFile_1.consensusXML` from an archive and requires the map the
+plain file gives, apart from the recorded loaded path.
+
 ## Protein-group quantities
 
 The private quantity codec writes typed arrays under the source group-metadata
@@ -98,5 +122,4 @@ source's six-feature fixture, original range examples, typed metadata/ID/quantit
 round trips, compressed transport, ownership and legacy reconstruction, malformed
 references, bounds and atomic failures.
 
-The source file loader also accepts ZIP archives. ZIP input is not yet supported
-by the native shared path transport and remains an explicit completion gap.
+The source file loader also accepts ZIP archives; see *Input transport* above.

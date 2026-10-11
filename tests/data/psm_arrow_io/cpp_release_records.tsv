@@ -1,0 +1,591 @@
+IDMerger_idparquet_input1.idparquet	ok	1
+IDMerger_idparquet_input1.idparquet	runs	1
+IDMerger_idparquet_input1.idparquet	run0.id	unknown_2006-10-07T06:30:59
+IDMerger_idparquet_input1.idparquet	run0.engine	
+IDMerger_idparquet_input1.idparquet	run0.engine_version	
+IDMerger_idparquet_input1.idparquet	run0.date	2006-10-07T06:30:59
+IDMerger_idparquet_input1.idparquet	run0.score_type	Mascot
+IDMerger_idparquet_input1.idparquet	run0.hsb	1
+IDMerger_idparquet_input1.idparquet	run0.threshold	0000000000000000
+IDMerger_idparquet_input1.idparquet	run0.enzyme	unknown_enzyme
+IDMerger_idparquet_input1.idparquet	run0.paths	
+IDMerger_idparquet_input1.idparquet	run0.hits	2
+IDMerger_idparquet_input1.idparquet	run0.hit0	APRT|4044000000000000
+IDMerger_idparquet_input1.idparquet	run0.hit1	APRTT|4044000000000000
+IDMerger_idparquet_input1.idparquet	peps	1
+IDMerger_idparquet_input1.idparquet	pep0.run	0
+IDMerger_idparquet_input1.idparquet	pep0.rt	bff0000000000000
+IDMerger_idparquet_input1.idparquet	pep0.mz	40837ca3d70a3d71
+IDMerger_idparquet_input1.idparquet	pep0.score_type	Mascot
+IDMerger_idparquet_input1.idparquet	pep0.hsb	1
+IDMerger_idparquet_input1.idparquet	pep0.ref	
+IDMerger_idparquet_input1.idparquet	pep0.hits	5
+IDMerger_idparquet_input1.idparquet	pep0.h0	4044400000000000|APRTPEPTIDER|2|0
+IDMerger_idparquet_input1.idparquet	pep0.h0.ev	APRT,X,X,-1,-1;
+IDMerger_idparquet_input1.idparquet	pep0.h0.meta	
+IDMerger_idparquet_input1.idparquet	pep0.h1	403e800000000000|APRTPEPTIDERR|2|0
+IDMerger_idparquet_input1.idparquet	pep0.h1.ev	APRT,X,X,-1,-1;
+IDMerger_idparquet_input1.idparquet	pep0.h1.meta	
+IDMerger_idparquet_input1.idparquet	pep0.h2	4044400000000000|APRTTPEPTIDER|2|0
+IDMerger_idparquet_input1.idparquet	pep0.h2.ev	APRTT,X,X,-1,-1;
+IDMerger_idparquet_input1.idparquet	pep0.h2.meta	
+IDMerger_idparquet_input1.idparquet	pep0.h3	403e800000000000|APEPTIDER|2|0
+IDMerger_idparquet_input1.idparquet	pep0.h3.ev	
+IDMerger_idparquet_input1.idparquet	pep0.h3.meta	
+IDMerger_idparquet_input1.idparquet	pep0.h4	403e800000000000|APEPTIDERR|2|0
+IDMerger_idparquet_input1.idparquet	pep0.h4.ev	
+IDMerger_idparquet_input1.idparquet	pep0.h4.meta	
+IDMerger_idparquet_input2.idparquet	ok	1
+IDMerger_idparquet_input2.idparquet	runs	1
+IDMerger_idparquet_input2.idparquet	run0.id	unknown_2006-10-07T06:31:08
+IDMerger_idparquet_input2.idparquet	run0.engine	
+IDMerger_idparquet_input2.idparquet	run0.engine_version	
+IDMerger_idparquet_input2.idparquet	run0.date	2006-10-07T06:31:08
+IDMerger_idparquet_input2.idparquet	run0.score_type	Mascot
+IDMerger_idparquet_input2.idparquet	run0.hsb	1
+IDMerger_idparquet_input2.idparquet	run0.threshold	0000000000000000
+IDMerger_idparquet_input2.idparquet	run0.enzyme	unknown_enzyme
+IDMerger_idparquet_input2.idparquet	run0.paths	
+IDMerger_idparquet_input2.idparquet	run0.hits	2
+IDMerger_idparquet_input2.idparquet	run0.hit0	BPRT|4044000000000000
+IDMerger_idparquet_input2.idparquet	run0.hit1	BPRTT|4044000000000000
+IDMerger_idparquet_input2.idparquet	peps	1
+IDMerger_idparquet_input2.idparquet	pep0.run	0
+IDMerger_idparquet_input2.idparquet	pep0.rt	bff0000000000000
+IDMerger_idparquet_input2.idparquet	pep0.mz	40837ca3d70a3d71
+IDMerger_idparquet_input2.idparquet	pep0.score_type	Mascot
+IDMerger_idparquet_input2.idparquet	pep0.hsb	1
+IDMerger_idparquet_input2.idparquet	pep0.ref	
+IDMerger_idparquet_input2.idparquet	pep0.hits	4
+IDMerger_idparquet_input2.idparquet	pep0.h0	4044400000000000|BPRTPEPTIDER|2|0
+IDMerger_idparquet_input2.idparquet	pep0.h0.ev	BPRT,X,X,-1,-1;
+IDMerger_idparquet_input2.idparquet	pep0.h0.meta	
+IDMerger_idparquet_input2.idparquet	pep0.h1	4044400000000000|BPRTTPEPTIDER|2|0
+IDMerger_idparquet_input2.idparquet	pep0.h1.ev	BPRTT,X,X,-1,-1;
+IDMerger_idparquet_input2.idparquet	pep0.h1.meta	
+IDMerger_idparquet_input2.idparquet	pep0.h2	403e800000000000|BPRTTPEPTIDERR|2|0
+IDMerger_idparquet_input2.idparquet	pep0.h2.ev	BPRTT,X,X,-1,-1;
+IDMerger_idparquet_input2.idparquet	pep0.h2.meta	
+IDMerger_idparquet_input2.idparquet	pep0.h3	403e800000000000|BPEPTIDER|2|0
+IDMerger_idparquet_input2.idparquet	pep0.h3.ev	
+IDMerger_idparquet_input2.idparquet	pep0.h3.meta	
+IDRipper_4_input.idparquet	ok	1
+IDRipper_4_input.idparquet	runs	1
+IDRipper_4_input.idparquet	run0.id	Comet_1900-01-01T00:00:00
+IDRipper_4_input.idparquet	run0.engine	Comet
+IDRipper_4_input.idparquet	run0.engine_version	
+IDRipper_4_input.idparquet	run0.date	invalid
+IDRipper_4_input.idparquet	run0.score_type	q-value
+IDRipper_4_input.idparquet	run0.hsb	0
+IDRipper_4_input.idparquet	run0.threshold	0000000000000000
+IDRipper_4_input.idparquet	run0.enzyme	unknown_enzyme
+IDRipper_4_input.idparquet	run0.paths	
+IDRipper_4_input.idparquet	run0.hits	2
+IDRipper_4_input.idparquet	run0.hit0	PROT_A|3f847ae147ae147b
+IDRipper_4_input.idparquet	run0.hit1	PROT_B|3f947ae147ae147b
+IDRipper_4_input.idparquet	peps	2
+IDRipper_4_input.idparquet	pep0.run	0
+IDRipper_4_input.idparquet	pep0.rt	4059000000000000
+IDRipper_4_input.idparquet	pep0.mz	407f400000000000
+IDRipper_4_input.idparquet	pep0.score_type	q-value
+IDRipper_4_input.idparquet	pep0.hsb	0
+IDRipper_4_input.idparquet	pep0.ref	
+IDRipper_4_input.idparquet	pep0.hits	2
+IDRipper_4_input.idparquet	pep0.h0	3f50624dd2f1a9fc|AAAAPEPTIDER|2|0
+IDRipper_4_input.idparquet	pep0.h0.ev	PROT_A,X,X,-1,-1;
+IDRipper_4_input.idparquet	pep0.h0.meta	target_decoy=s:target;
+IDRipper_4_input.idparquet	pep0.h1	3f60624dd2f1a9fc|AAAAPEPTIDERR|2|0
+IDRipper_4_input.idparquet	pep0.h1.ev	PROT_A,X,X,-1,-1;
+IDRipper_4_input.idparquet	pep0.h1.meta	target_decoy=s:target;
+IDRipper_4_input.idparquet	pep1.run	0
+IDRipper_4_input.idparquet	pep1.rt	405b800000000000
+IDRipper_4_input.idparquet	pep1.mz	407f400000000000
+IDRipper_4_input.idparquet	pep1.score_type	q-value
+IDRipper_4_input.idparquet	pep1.hsb	0
+IDRipper_4_input.idparquet	pep1.ref	
+IDRipper_4_input.idparquet	pep1.hits	2
+IDRipper_4_input.idparquet	pep1.h0	3f50624dd2f1a9fc|BBBBPEPTIDER|2|0
+IDRipper_4_input.idparquet	pep1.h0.ev	PROT_B,X,X,-1,-1;
+IDRipper_4_input.idparquet	pep1.h0.meta	target_decoy=s:target;
+IDRipper_4_input.idparquet	pep1.h1	3f60624dd2f1a9fc|BBBBPEPTIDERR|2|0
+IDRipper_4_input.idparquet	pep1.h1.ev	PROT_B,X,X,-1,-1;
+IDRipper_4_input.idparquet	pep1.h1.meta	target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	ok	1
+PercolatorAdapter_idparquet_in.idparquet	runs	1
+PercolatorAdapter_idparquet_in.idparquet	run0.id	Comet_2017-09-11T11:20:57
+PercolatorAdapter_idparquet_in.idparquet	run0.engine	Comet
+PercolatorAdapter_idparquet_in.idparquet	run0.engine_version	
+PercolatorAdapter_idparquet_in.idparquet	run0.date	2017-09-11T11:20:57
+PercolatorAdapter_idparquet_in.idparquet	run0.score_type	
+PercolatorAdapter_idparquet_in.idparquet	run0.hsb	1
+PercolatorAdapter_idparquet_in.idparquet	run0.threshold	0000000000000000
+PercolatorAdapter_idparquet_in.idparquet	run0.enzyme	unspecific cleavage
+PercolatorAdapter_idparquet_in.idparquet	run0.paths	
+PercolatorAdapter_idparquet_in.idparquet	run0.hits	2
+PercolatorAdapter_idparquet_in.idparquet	run0.hit0	sp|Q02952|AKA12_HUMAN|0000000000000000
+PercolatorAdapter_idparquet_in.idparquet	run0.hit1	sp|Q12774|ARHG5_HUMAN|0000000000000000
+PercolatorAdapter_idparquet_in.idparquet	peps	38
+PercolatorAdapter_idparquet_in.idparquet	pep0.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep0.rt	40868b3333333333
+PercolatorAdapter_idparquet_in.idparquet	pep0.mz	4080123e5fbb67d0
+PercolatorAdapter_idparquet_in.idparquet	pep0.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep0.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep0.ref	controllerType=0 controllerNumber=1 scan=3
+PercolatorAdapter_idparquet_in.idparquet	pep0.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep0.h0	3fa182a9930be0df|EAVPAQKERRRRGAH|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep0.h0.ev	sp|Q02952|AKA12_HUMAN,A,P,1211,1219;
+PercolatorAdapter_idparquet_in.idparquet	pep0.h0.meta	COMET:IonFrac=d:3fe2000000000000;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00b0115ae650fa9;COMET:lnNumSP=d:4022c504360f8bce;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff9f3b645a1cac1;MS:1002253=d:3fd0624dd2f1a9fc;MS:1002255=d:407009999999999a;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fa182a9930be0df;MS:1002258=s:9;MS:1002259=s:16;num_matched_peptides=s:11906;protein_references=s:unique;scan=i:3;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep1.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep1.rt	40868d999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep1.mz	407f39c5bf2f8203
+PercolatorAdapter_idparquet_in.idparquet	pep1.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep1.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep1.ref	controllerType=0 controllerNumber=1 scan=4
+PercolatorAdapter_idparquet_in.idparquet	pep1.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep1.h0	3f9bda5119ce075f|TRILKHGAKDKDDLHKY|3|0
+PercolatorAdapter_idparquet_in.idparquet	pep1.h0.ev	sp|Q02952|AKA12_HUMAN,F,],159,171;,F,],158,170;,F,],159,171;
+PercolatorAdapter_idparquet_in.idparquet	pep1.h0.meta	COMET:IonFrac=d:3fcaaaaaaaaaaa9f;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00cd6182de09af7;COMET:lnNumSP=d:4022f75a6f1adb7e;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff2978d4fdf3b64;MS:1002253=d:3fd7ae147ae147ae;MS:1002255=d:405aa00000000000;MS:1002256=d:3ff0000000000000;MS:1002257=d:3f9bda5119ce075f;MS:1002258=s:10;MS:1002259=s:48;num_matched_peptides=s:13136;protein_references=s:non-unique;scan=i:4;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep2.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep2.rt	40868f3333333333
+PercolatorAdapter_idparquet_in.idparquet	pep2.mz	40810e005fb30454
+PercolatorAdapter_idparquet_in.idparquet	pep2.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep2.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep2.ref	controllerType=0 controllerNumber=1 scan=5
+PercolatorAdapter_idparquet_in.idparquet	pep2.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep2.h0	3fa58e219652bd3c|AAGGEAEHQRAY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep2.h0.ev	sp|Q02952|AKA12_HUMAN,A,L,171,179;
+PercolatorAdapter_idparquet_in.idparquet	pep2.h0.meta	COMET:IonFrac=d:3fd8000000000000;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00957770cc21dc6;COMET:lnNumSP=d:4022492c8219bf7f;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff8bc6a7ef9db23;MS:1002253=d:3fd604189374bc6a;MS:1002255=d:405f933333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fa58e219652bd3c;MS:1002258=s:6;MS:1002259=s:16;num_matched_peptides=s:9348;protein_references=s:unique;scan=i:5;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep3.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep3.rt	408690cccccccccd
+PercolatorAdapter_idparquet_in.idparquet	pep3.mz	40807a7e7fb6afda
+PercolatorAdapter_idparquet_in.idparquet	pep3.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep3.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep3.ref	controllerType=0 controllerNumber=1 scan=6
+PercolatorAdapter_idparquet_in.idparquet	pep3.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep3.h0	3ff028f5c28f5c29|TQVVVSHLLKL|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep3.h0.ev	sp|Q02952|AKA12_HUMAN,Q,S,327,335;
+PercolatorAdapter_idparquet_in.idparquet	pep3.h0.meta	COMET:IonFrac=d:3fd0000000000000;COMET:deltCn=d:3fee6e978d4fdf3b;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3f8460d6ccca367b;COMET:lnNumSP=d:4020ff80c20e120f;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fee6e978d4fdf3b;MS:1002253=d:3f8cac083126e979;MS:1002255=d:4046400000000000;MS:1002256=d:3ff0000000000000;MS:1002257=d:3ff028f5c28f5c29;MS:1002258=s:4;MS:1002259=s:16;num_matched_peptides=s:4910;protein_references=s:unique;scan=i:6;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep4.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep4.rt	4086926666666666
+PercolatorAdapter_idparquet_in.idparquet	pep4.mz	40818a40ff9b6c88
+PercolatorAdapter_idparquet_in.idparquet	pep4.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep4.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep4.ref	controllerType=0 controllerNumber=1 scan=7
+PercolatorAdapter_idparquet_in.idparquet	pep4.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep4.h0	4018f5c28f5c28f6|AGIYR|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep4.h0.ev	sp|Q02952|AKA12_HUMAN,N,C,82,91;
+PercolatorAdapter_idparquet_in.idparquet	pep4.h0.meta	COMET:IonFrac=d:3fac71c71c71c75c;COMET:deltCn=d:3fd96872b020c49c;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3ffd4bb1e02f3b46;COMET:lnNumSP=d:4023765a11ed4a51;COMET:lnRankSP=d:3ff9c041f7ed8d32;MS:1002252=d:3fd96872b020c49c;MS:1002253=d:3f86872b020c49ba;MS:1002255=d:401199999999999a;MS:1002256=d:4014000000000000;MS:1002257=d:4018f5c28f5c28f6;MS:1002258=s:1;MS:1002259=s:18;num_matched_peptides=s:16834;protein_references=s:unique;scan=i:7;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep5.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep5.rt	408695999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep5.mz	408016145fa23d5c
+PercolatorAdapter_idparquet_in.idparquet	pep5.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep5.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep5.ref	controllerType=0 controllerNumber=1 scan=9
+PercolatorAdapter_idparquet_in.idparquet	pep5.hits	2
+PercolatorAdapter_idparquet_in.idparquet	pep5.h0	3fd9a9fbe76c8b44|SVSSKRGHASSYRR|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep5.h0.ev	sp|Q02952|AKA12_HUMAN,R,M,4,12;
+PercolatorAdapter_idparquet_in.idparquet	pep5.h0.meta	COMET:IonFrac=d:3fe0000000000000;COMET:deltCn=d:3fa33ed1e2395fc8;COMET:deltLCn=d:3fa33ed1e2395fc8;COMET:lnExpect=d:bfed3dcc9a877025;COMET:lnNumSP=d:4022ec3df967d29a;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff68f5c28f5c28f;MS:1002253=d:3fa2f1a9fbe76c8b;MS:1002255=d:4063f33333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fd9a9fbe76c8b44;MS:1002258=s:8;MS:1002259=s:16;num_matched_peptides=s:12854;protein_references=s:unique;scan=i:9;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep5.h1	3fe2f1a9fbe76c8b|AGGDPAAKGERLHFY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep5.h1.ev	sp|Q02952|AKA12_HUMAN,G,W,2239,2249;
+PercolatorAdapter_idparquet_in.idparquet	pep5.h1.meta	COMET:IonFrac=d:3fd3333333333333;COMET:deltCn=d:0000000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfe0c6a517abf64d;COMET:lnNumSP=d:4022ec3df967d29a;COMET:lnRankSP=d:3ff193ea7aad030c;MS:1002252=d:3ff5b645a1cac083;MS:1002253=d:3fca1cac083126e9;MS:1002255=d:4058e66666666666;MS:1002256=d:4008000000000000;MS:1002257=d:3fe2f1a9fbe76c8b;MS:1002258=s:6;MS:1002259=s:20;num_matched_peptides=s:12854;protein_references=s:unique;scan=i:9;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep6.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep6.rt	408698cccccccccd
+PercolatorAdapter_idparquet_in.idparquet	pep6.mz	4081d6861fa349cc
+PercolatorAdapter_idparquet_in.idparquet	pep6.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep6.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep6.ref	controllerType=0 controllerNumber=1 scan=11
+PercolatorAdapter_idparquet_in.idparquet	pep6.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep6.h0	400028f5c28f5c29|GKRGAAARGEPGGV|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep6.h0.ev	sp|Q02952|AKA12_HUMAN,E,G,488,499;
+PercolatorAdapter_idparquet_in.idparquet	pep6.h0.meta	COMET:IonFrac=d:3fb745d1745d174c;COMET:deltCn=d:3fdb22d0e5604189;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3fe67fc65a2d62c6;COMET:lnNumSP=d:4022750789e4203d;COMET:lnRankSP=d:3fe62e42fefa39ec;MS:1002252=d:3fdb22d0e5604189;MS:1002253=d:3f789374bc6a7efa;MS:1002255=d:4021666666666666;MS:1002256=d:4000000000000000;MS:1002257=d:400028f5c28f5c29;MS:1002258=s:2;MS:1002259=s:22;num_matched_peptides=s:10184;protein_references=s:unique;scan=i:11;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep7.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep7.rt	40869c0000000000
+PercolatorAdapter_idparquet_in.idparquet	pep7.mz	408082089f880679
+PercolatorAdapter_idparquet_in.idparquet	pep7.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep7.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep7.ref	controllerType=0 controllerNumber=1 scan=13
+PercolatorAdapter_idparquet_in.idparquet	pep7.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep7.h0	3fda2d0e56041893|EVFHSGHSFHLAY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep7.h0.ev	sp|Q02952|AKA12_HUMAN,E,N,219,227;
+PercolatorAdapter_idparquet_in.idparquet	pep7.h0.meta	COMET:IonFrac=d:3fd0000000000000;COMET:deltCn=d:3fe4a3d70a3d70a4;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfec9bfa082ac2ab;COMET:lnNumSP=d:4022cde24a784d42;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fe4a3d70a3d70a4;MS:1002253=d:3fce353f7ced9168;MS:1002255=d:4049b33333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fda2d0e56041893;MS:1002258=s:4;MS:1002259=s:16;num_matched_peptides=s:12114;protein_references=s:unique;scan=i:13;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep8.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep8.rt	40868b3333333333
+PercolatorAdapter_idparquet_in.idparquet	pep8.mz	4080123e5fbb67d0
+PercolatorAdapter_idparquet_in.idparquet	pep8.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep8.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep8.ref	controllerType=0 controllerNumber=1 scan=3
+PercolatorAdapter_idparquet_in.idparquet	pep8.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep8.h0	3fa182a9930be0df|EAVPAACQKERRRRGAH|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep8.h0.ev	sp|Q02952|AKA12_HUMAN,A,P,1211,1219;
+PercolatorAdapter_idparquet_in.idparquet	pep8.h0.meta	COMET:IonFrac=d:3fe2000000000000;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00b0115ae650fa9;COMET:lnNumSP=d:4022c504360f8bce;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff9f3b645a1cac1;MS:1002253=d:3fd0624dd2f1a9fc;MS:1002255=d:407009999999999a;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fa182a9930be0df;MS:1002258=s:9;MS:1002259=s:16;num_matched_peptides=s:11906;protein_references=s:unique;scan=i:3;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep9.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep9.rt	40868d999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep9.mz	407f39c5bf2f8203
+PercolatorAdapter_idparquet_in.idparquet	pep9.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep9.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep9.ref	controllerType=0 controllerNumber=1 scan=4
+PercolatorAdapter_idparquet_in.idparquet	pep9.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep9.h0	3f9bda5119ce075f|TRILKHGGFAAKDKDDLHKY|3|0
+PercolatorAdapter_idparquet_in.idparquet	pep9.h0.ev	sp|Q02952|AKA12_HUMAN,F,],159,171;,F,],158,170;,F,],159,171;
+PercolatorAdapter_idparquet_in.idparquet	pep9.h0.meta	COMET:IonFrac=d:3fcaaaaaaaaaaa9f;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00cd6182de09af7;COMET:lnNumSP=d:4022f75a6f1adb7e;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff2978d4fdf3b64;MS:1002253=d:3fd7ae147ae147ae;MS:1002255=d:405aa00000000000;MS:1002256=d:3ff0000000000000;MS:1002257=d:3f9bda5119ce075f;MS:1002258=s:10;MS:1002259=s:48;num_matched_peptides=s:13136;protein_references=s:non-unique;scan=i:4;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep10.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep10.rt	40868f3333333333
+PercolatorAdapter_idparquet_in.idparquet	pep10.mz	40810e005fb30454
+PercolatorAdapter_idparquet_in.idparquet	pep10.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep10.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep10.ref	controllerType=0 controllerNumber=1 scan=5
+PercolatorAdapter_idparquet_in.idparquet	pep10.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep10.h0	3fa58e219652bd3c|AAGGEAEHQASDRAY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep10.h0.ev	sp|Q02952|AKA12_HUMAN,A,L,171,179;
+PercolatorAdapter_idparquet_in.idparquet	pep10.h0.meta	COMET:IonFrac=d:3fd8000000000000;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00957770cc21dc6;COMET:lnNumSP=d:4022492c8219bf7f;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff8bc6a7ef9db23;MS:1002253=d:3fd604189374bc6a;MS:1002255=d:405f933333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fa58e219652bd3c;MS:1002258=s:6;MS:1002259=s:16;num_matched_peptides=s:9348;protein_references=s:unique;scan=i:5;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep11.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep11.rt	408690cccccccccd
+PercolatorAdapter_idparquet_in.idparquet	pep11.mz	40807a7e7fb6afda
+PercolatorAdapter_idparquet_in.idparquet	pep11.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep11.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep11.ref	controllerType=0 controllerNumber=1 scan=6
+PercolatorAdapter_idparquet_in.idparquet	pep11.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep11.h0	3ff028f5c28f5c29|TQVASDVVSHLLKL|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep11.h0.ev	sp|Q02952|AKA12_HUMAN,Q,S,327,335;
+PercolatorAdapter_idparquet_in.idparquet	pep11.h0.meta	COMET:IonFrac=d:3fd0000000000000;COMET:deltCn=d:3fee6e978d4fdf3b;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3f8460d6ccca367b;COMET:lnNumSP=d:4020ff80c20e120f;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fee6e978d4fdf3b;MS:1002253=d:3f8cac083126e979;MS:1002255=d:4046400000000000;MS:1002256=d:3ff0000000000000;MS:1002257=d:3ff028f5c28f5c29;MS:1002258=s:4;MS:1002259=s:16;num_matched_peptides=s:4910;protein_references=s:unique;scan=i:6;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep12.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep12.rt	4086926666666666
+PercolatorAdapter_idparquet_in.idparquet	pep12.mz	40818a40ff9b6c88
+PercolatorAdapter_idparquet_in.idparquet	pep12.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep12.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep12.ref	controllerType=0 controllerNumber=1 scan=7
+PercolatorAdapter_idparquet_in.idparquet	pep12.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep12.h0	4018f5c28f5c28f6|AGIYGFR|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep12.h0.ev	sp|Q02952|AKA12_HUMAN,N,C,82,91;
+PercolatorAdapter_idparquet_in.idparquet	pep12.h0.meta	COMET:IonFrac=d:3fac71c71c71c75c;COMET:deltCn=d:3fd96872b020c49c;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3ffd4bb1e02f3b46;COMET:lnNumSP=d:4023765a11ed4a51;COMET:lnRankSP=d:3ff9c041f7ed8d32;MS:1002252=d:3fd96872b020c49c;MS:1002253=d:3f86872b020c49ba;MS:1002255=d:401199999999999a;MS:1002256=d:4014000000000000;MS:1002257=d:4018f5c28f5c28f6;MS:1002258=s:1;MS:1002259=s:18;num_matched_peptides=s:16834;protein_references=s:unique;scan=i:7;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep13.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep13.rt	408695999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep13.mz	408016145fa23d5c
+PercolatorAdapter_idparquet_in.idparquet	pep13.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep13.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep13.ref	controllerType=0 controllerNumber=1 scan=9
+PercolatorAdapter_idparquet_in.idparquet	pep13.hits	2
+PercolatorAdapter_idparquet_in.idparquet	pep13.h0	3fd9a9fbe76c8b44|SVSSAASDKRGHASSYRR|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep13.h0.ev	sp|Q02952|AKA12_HUMAN,R,M,4,12;
+PercolatorAdapter_idparquet_in.idparquet	pep13.h0.meta	COMET:IonFrac=d:3fe0000000000000;COMET:deltCn=d:3fa33ed1e2395fc8;COMET:deltLCn=d:3fa33ed1e2395fc8;COMET:lnExpect=d:bfed3dcc9a877025;COMET:lnNumSP=d:4022ec3df967d29a;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff68f5c28f5c28f;MS:1002253=d:3fa2f1a9fbe76c8b;MS:1002255=d:4063f33333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fd9a9fbe76c8b44;MS:1002258=s:8;MS:1002259=s:16;num_matched_peptides=s:12854;protein_references=s:unique;scan=i:9;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep13.h1	3fe2f1a9fbe76c8b|AGGDASDFPAAKGERLHFY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep13.h1.ev	sp|Q02952|AKA12_HUMAN,G,W,2239,2249;
+PercolatorAdapter_idparquet_in.idparquet	pep13.h1.meta	COMET:IonFrac=d:3fd3333333333333;COMET:deltCn=d:0000000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfe0c6a517abf64d;COMET:lnNumSP=d:4022ec3df967d29a;COMET:lnRankSP=d:3ff193ea7aad030c;MS:1002252=d:3ff5b645a1cac083;MS:1002253=d:3fca1cac083126e9;MS:1002255=d:4058e66666666666;MS:1002256=d:4008000000000000;MS:1002257=d:3fe2f1a9fbe76c8b;MS:1002258=s:6;MS:1002259=s:20;num_matched_peptides=s:12854;protein_references=s:unique;scan=i:9;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep14.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep14.rt	408698cccccccccd
+PercolatorAdapter_idparquet_in.idparquet	pep14.mz	4081d6861fa349cc
+PercolatorAdapter_idparquet_in.idparquet	pep14.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep14.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep14.ref	controllerType=0 controllerNumber=1 scan=11
+PercolatorAdapter_idparquet_in.idparquet	pep14.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep14.h0	400028f5c28f5c29|GKRGAAARGEPGASDFGV|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep14.h0.ev	sp|Q02952|AKA12_HUMAN,E,G,488,499;
+PercolatorAdapter_idparquet_in.idparquet	pep14.h0.meta	COMET:IonFrac=d:3fb745d1745d174c;COMET:deltCn=d:3fdb22d0e5604189;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3fe67fc65a2d62c6;COMET:lnNumSP=d:4022750789e4203d;COMET:lnRankSP=d:3fe62e42fefa39ec;MS:1002252=d:3fdb22d0e5604189;MS:1002253=d:3f789374bc6a7efa;MS:1002255=d:4021666666666666;MS:1002256=d:4000000000000000;MS:1002257=d:400028f5c28f5c29;MS:1002258=s:2;MS:1002259=s:22;num_matched_peptides=s:10184;protein_references=s:unique;scan=i:11;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep15.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep15.rt	40869c0000000000
+PercolatorAdapter_idparquet_in.idparquet	pep15.mz	408082089f880679
+PercolatorAdapter_idparquet_in.idparquet	pep15.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep15.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep15.ref	controllerType=0 controllerNumber=1 scan=13
+PercolatorAdapter_idparquet_in.idparquet	pep15.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep15.h0	3fda2d0e56041893|EVFASDFHSGHSFHLAY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep15.h0.ev	sp|Q02952|AKA12_HUMAN,E,N,219,227;
+PercolatorAdapter_idparquet_in.idparquet	pep15.h0.meta	COMET:IonFrac=d:3fd0000000000000;COMET:deltCn=d:3fe4a3d70a3d70a4;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfec9bfa082ac2ab;COMET:lnNumSP=d:4022cde24a784d42;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fe4a3d70a3d70a4;MS:1002253=d:3fce353f7ced9168;MS:1002255=d:4049b33333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fda2d0e56041893;MS:1002258=s:4;MS:1002259=s:16;num_matched_peptides=s:12114;protein_references=s:unique;scan=i:13;target_decoy=s:target;
+PercolatorAdapter_idparquet_in.idparquet	pep16.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep16.rt	4086a73333333333
+PercolatorAdapter_idparquet_in.idparquet	pep16.mz	408162c2bf9c78f7
+PercolatorAdapter_idparquet_in.idparquet	pep16.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep16.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep16.ref	controllerType=0 controllerNumber=1 scan=17
+PercolatorAdapter_idparquet_in.idparquet	pep16.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep16.h0	3fef020c49ba5e35|SAAGHLASDFKQQAL|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep16.h0.ev	sp|Q12774|ARHG5_HUMAN,K,L,1099,1108;
+PercolatorAdapter_idparquet_in.idparquet	pep16.h0.meta	COMET:IonFrac=d:3fbc71c71c71c714;COMET:deltCn=d:3fe10e5604189375;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfa01f8b7292c559;COMET:lnNumSP=d:40203727157e0ec2;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fe10e5604189375;MS:1002253=d:3fc4fdf3b645a1cb;MS:1002255=d:4022000000000000;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fef020c49ba5e35;MS:1002258=s:2;MS:1002259=s:18;num_matched_peptides=s:3320;protein_references=s:unique;scan=i:17;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep17.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep17.rt	4086b26666666666
+PercolatorAdapter_idparquet_in.idparquet	pep17.mz	40819e521fb410c3
+PercolatorAdapter_idparquet_in.idparquet	pep17.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep17.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep17.ref	controllerType=0 controllerNumber=1 scan=22
+PercolatorAdapter_idparquet_in.idparquet	pep17.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep17.h0	4018666666666666|GSYC(Carbamidomethyl)HSGAFALKPI|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep17.h0.ev	sp|Q12774|ARHG5_HUMAN,A,F,187,197;
+PercolatorAdapter_idparquet_in.idparquet	pep17.h0.meta	COMET:IonFrac=d:0000000000000000;COMET:deltCn=d:3fc3d70a3d70a3d7;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3ffceec034df061c;COMET:lnNumSP=d:4022d4ef8a90f675;COMET:lnRankSP=d:40032ee3b77f374a;MS:1002252=d:3fc3d70a3d70a3d7;MS:1002253=d:3fbef9db22d0e560;MS:1002255=d:0000000000000000;MS:1002256=d:4026000000000000;MS:1002257=d:4018666666666666;MS:1002258=s:0;MS:1002259=s:20;num_matched_peptides=s:12282;protein_references=s:unique;scan=i:22;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep18.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep18.rt	4086b5999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep18.mz	408336ec5f80af6d
+PercolatorAdapter_idparquet_in.idparquet	pep18.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep18.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep18.ref	controllerType=0 controllerNumber=1 scan=24
+PercolatorAdapter_idparquet_in.idparquet	pep18.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep18.h0	3fa9e83e425aee63|KGRVRRKKKRRKEEA|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep18.h0.ev	sp|Q12774|ARHG5_HUMAN,P,K,504,513;
+PercolatorAdapter_idparquet_in.idparquet	pep18.h0.meta	COMET:IonFrac=d:3fbc71c71c71c714;COMET:deltCn=d:3fdcfdf3b645a1cb;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c007ded479c5daa5;COMET:lnNumSP=d:402196f34affbc60;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fdcfdf3b645a1cb;MS:1002253=d:3fd5c28f5c28f5c3;MS:1002255=d:4027cccccccccccd;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fa9e83e425aee63;MS:1002258=s:2;MS:1002259=s:18;num_matched_peptides=s:6600;protein_references=s:unique;scan=i:24;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep19.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep19.rt	4086b9999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep19.mz	408246691fb84281
+PercolatorAdapter_idparquet_in.idparquet	pep19.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep19.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep19.ref	controllerType=0 controllerNumber=1 scan=26
+PercolatorAdapter_idparquet_in.idparquet	pep19.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep19.h0	3f9930be0ded288d|QTKGTGASGSFKHHLAKY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep19.h0.ev	sp|Q12774|ARHG5_HUMAN,V,L,97,108;,V,L,94,105;,V,L,94,105;,V,L,95,106;,V,L,97,108;
+PercolatorAdapter_idparquet_in.idparquet	pep19.h0.meta	COMET:IonFrac=d:3fcd1745d1745d0d;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00da3dbac319807;COMET:lnNumSP=d:402394031e55aa9b;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff12b020c49ba5e;MS:1002253=d:3fd45a1cac083127;MS:1002255=d:404cb33333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3f9930be0ded288d;MS:1002258=s:5;MS:1002259=s:22;num_matched_peptides=s:17838;protein_references=s:non-unique;scan=i:26;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep20.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep20.rt	4086bccccccccccd
+PercolatorAdapter_idparquet_in.idparquet	pep20.mz	407c7bf97f6b46d5
+PercolatorAdapter_idparquet_in.idparquet	pep20.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep20.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep20.ref	controllerType=0 controllerNumber=1 scan=28
+PercolatorAdapter_idparquet_in.idparquet	pep20.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep20.h0	3ff7ae147ae147ae|VVGANRASHVVAAGGYY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep20.h0.ev	sp|Q12774|ARHG5_HUMAN,F,R,974,982;
+PercolatorAdapter_idparquet_in.idparquet	pep20.h0.meta	COMET:IonFrac=d:3fd4000000000000;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3fd91737b269d454;COMET:lnNumSP=d:402260838dd2ef20;COMET:lnRankSP=d:3ff193ea7aad030c;MS:1002252=d:3ff322d0e5604189;MS:1002253=d:3faeb851eb851eb8;MS:1002255=d:405c59999999999a;MS:1002256=d:4008000000000000;MS:1002257=d:3ff7ae147ae147ae;MS:1002258=s:5;MS:1002259=s:16;num_matched_peptides=s:9784;protein_references=s:unique;scan=i:28;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep21.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep21.rt	4086be6666666666
+PercolatorAdapter_idparquet_in.idparquet	pep21.mz	408192863f9e91d6
+PercolatorAdapter_idparquet_in.idparquet	pep21.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep21.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep21.ref	controllerType=0 controllerNumber=1 scan=29
+PercolatorAdapter_idparquet_in.idparquet	pep21.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep21.h0	400199999999999a|FQSMKIILLFQSMH|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep21.h0.ev	sp|Q12774|ARHG5_HUMAN,D,N,78,86;
+PercolatorAdapter_idparquet_in.idparquet	pep21.h0.meta	COMET:IonFrac=d:3fb0000000000000;COMET:deltCn=d:3fd6d916872b020c;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3fe93b0aee21c2c7;COMET:lnNumSP=d:40225ef10a23c65f;COMET:lnRankSP=d:3ff193ea7aad030c;MS:1002252=d:3fd6d916872b020c;MS:1002253=d:3fc126e978d4fdf4;MS:1002255=d:3ffb333333333333;MS:1002256=d:4008000000000000;MS:1002257=d:400199999999999a;MS:1002258=s:1;MS:1002259=s:16;num_matched_peptides=s:9754;protein_references=s:unique;scan=i:29;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep22.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep22.rt	4086c5999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep22.mz	408176641fabad48
+PercolatorAdapter_idparquet_in.idparquet	pep22.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep22.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep22.ref	controllerType=0 controllerNumber=1 scan=33
+PercolatorAdapter_idparquet_in.idparquet	pep22.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep22.h0	3fe451eb851eb852|QQKGRLHSYQQLLAG|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep22.h0.ev	sp|Q12774|ARHG5_HUMAN,W,],210,218;
+PercolatorAdapter_idparquet_in.idparquet	pep22.h0.meta	COMET:IonFrac=d:3fc0000000000000;COMET:deltCn=d:3fe70a3d70a3d70a;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfdd10787346e10e;COMET:lnNumSP=d:4023864831cd4dda;COMET:lnRankSP=d:3ff9c041f7ed8d32;MS:1002252=d:3fe70a3d70a3d70a;MS:1002253=d:3fd020c49ba5e354;MS:1002255=d:401ccccccccccccd;MS:1002256=d:4014000000000000;MS:1002257=d:3fe451eb851eb852;MS:1002258=s:2;MS:1002259=s:16;num_matched_peptides=s:17366;protein_references=s:unique;scan=i:33;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep23.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep23.rt	4086ce6666666666
+PercolatorAdapter_idparquet_in.idparquet	pep23.mz	4081064c9fba5b60
+PercolatorAdapter_idparquet_in.idparquet	pep23.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep23.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep23.ref	controllerType=0 controllerNumber=1 scan=37
+PercolatorAdapter_idparquet_in.idparquet	pep23.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep23.h0	4025666666666666|KAAPGHSRQH|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep23.h0.ev	sp|Q12774|ARHG5_HUMAN,P,T,72,81;
+PercolatorAdapter_idparquet_in.idparquet	pep23.h0.meta	COMET:IonFrac=d:3fac71c71c71c75c;COMET:deltCn=d:3fc4dd2f1a9fbe77;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:4002f64259c939a0;COMET:lnNumSP=d:4023733d779ac8e7;COMET:lnRankSP=d:3ffcab0bfa2a1fec;MS:1002252=d:3fc4dd2f1a9fbe77;MS:1002253=d:3fb6c8b439581062;MS:1002255=d:4003333333333333;MS:1002256=d:4018000000000000;MS:1002257=d:4025666666666666;MS:1002258=s:1;MS:1002259=s:18;num_matched_peptides=s:16732;protein_references=s:unique;scan=i:37;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep24.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep24.rt	4086d1999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep24.mz	408381e3bfb9d529
+PercolatorAdapter_idparquet_in.idparquet	pep24.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep24.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep24.ref	controllerType=0 controllerNumber=1 scan=39
+PercolatorAdapter_idparquet_in.idparquet	pep24.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep24.h0	3fe410624dd2f1aa|SDYNEDNLDYSTNGD|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep24.h0.ev	sp|Q12774|ARHG5_HUMAN,E,Y,307,316;
+PercolatorAdapter_idparquet_in.idparquet	pep24.h0.meta	COMET:IonFrac=d:3fbc71c71c71c714;COMET:deltCn=d:3fd9fbe76c8b4396;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfdde031c22c9a12;COMET:lnNumSP=d:401badc19a670419;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fd9fbe76c8b4396;MS:1002253=d:3fc5810624dd2f1b;MS:1002255=d:402f333333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fe410624dd2f1aa;MS:1002258=s:2;MS:1002259=s:18;num_matched_peptides=s:1012;protein_references=s:unique;scan=i:39;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep25.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep25.rt	4086d33333333333
+PercolatorAdapter_idparquet_in.idparquet	pep25.mz	40842d6abfa7a844
+PercolatorAdapter_idparquet_in.idparquet	pep25.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep25.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep25.ref	controllerType=0 controllerNumber=1 scan=40
+PercolatorAdapter_idparquet_in.idparquet	pep25.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep25.h0	3fd6f9db22d0e560|WIRITGDEYGVVAD|3|0
+PercolatorAdapter_idparquet_in.idparquet	pep25.h0.ev	sp|Q12774|ARHG5_HUMAN,D,P,192,208;
+PercolatorAdapter_idparquet_in.idparquet	pep25.h0.meta	COMET:IonFrac=d:3fa0000000000000;COMET:deltCn=d:3fdda1cac083126f;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bff06413be19e2d4;COMET:lnNumSP=d:4023d9136935759d;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fdda1cac083126f;MS:1002253=d:3fd3020c49ba5e35;MS:1002255=d:4014666666666666;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fd6f9db22d0e560;MS:1002258=s:2;MS:1002259=s:64;num_matched_peptides=s:20414;protein_references=s:unique;scan=i:40;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep26.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep26.rt	4086e1999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep26.mz	408156395faed296
+PercolatorAdapter_idparquet_in.idparquet	pep26.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep26.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep26.ref	controllerType=0 controllerNumber=1 scan=45
+PercolatorAdapter_idparquet_in.idparquet	pep26.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep26.h0	3f91eb851eb851ec|ALKAAHPTASDFNVQR|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep26.h0.ev	sp|Q12774|ARHG5_HUMAN,F,L,114,123;
+PercolatorAdapter_idparquet_in.idparquet	pep26.h0.meta	COMET:IonFrac=d:3fd1c71c71c71c76;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c0102ea5cfe74cfd;COMET:lnNumSP=d:4023a90b3dbb9164;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff24189374bc6a8;MS:1002253=d:3fd6b851eb851eb8;MS:1002255=d:404e4ccccccccccd;MS:1002256=d:3ff0000000000000;MS:1002257=d:3f91eb851eb851ec;MS:1002258=s:5;MS:1002259=s:18;num_matched_peptides=s:18586;protein_references=s:unique;scan=i:45;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep27.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep27.rt	4086a73333333333
+PercolatorAdapter_idparquet_in.idparquet	pep27.mz	408162c2bf9c78f7
+PercolatorAdapter_idparquet_in.idparquet	pep27.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep27.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep27.ref	controllerType=0 controllerNumber=1 scan=17
+PercolatorAdapter_idparquet_in.idparquet	pep27.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep27.h0	3fef020c49ba5e35|SAAGHLASDFKQQASDFAL|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep27.h0.ev	sp|Q12774|ARHG5_HUMAN,K,L,1099,1108;
+PercolatorAdapter_idparquet_in.idparquet	pep27.h0.meta	COMET:IonFrac=d:3fbc71c71c71c714;COMET:deltCn=d:3fe10e5604189375;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfa01f8b7292c559;COMET:lnNumSP=d:40203727157e0ec2;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fe10e5604189375;MS:1002253=d:3fc4fdf3b645a1cb;MS:1002255=d:4022000000000000;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fef020c49ba5e35;MS:1002258=s:2;MS:1002259=s:18;num_matched_peptides=s:3320;protein_references=s:unique;scan=i:17;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep28.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep28.rt	4086b26666666666
+PercolatorAdapter_idparquet_in.idparquet	pep28.mz	40819e521fb410c3
+PercolatorAdapter_idparquet_in.idparquet	pep28.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep28.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep28.ref	controllerType=0 controllerNumber=1 scan=22
+PercolatorAdapter_idparquet_in.idparquet	pep28.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep28.h0	4018666666666666|GSYC(Carbamidomethyl)HSASDFGAFALKPI|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep28.h0.ev	sp|Q12774|ARHG5_HUMAN,A,F,187,197;
+PercolatorAdapter_idparquet_in.idparquet	pep28.h0.meta	COMET:IonFrac=d:0000000000000000;COMET:deltCn=d:3fc3d70a3d70a3d7;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3ffceec034df061c;COMET:lnNumSP=d:4022d4ef8a90f675;COMET:lnRankSP=d:40032ee3b77f374a;MS:1002252=d:3fc3d70a3d70a3d7;MS:1002253=d:3fbef9db22d0e560;MS:1002255=d:0000000000000000;MS:1002256=d:4026000000000000;MS:1002257=d:4018666666666666;MS:1002258=s:0;MS:1002259=s:20;num_matched_peptides=s:12282;protein_references=s:unique;scan=i:22;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep29.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep29.rt	4086b5999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep29.mz	408336ec5f80af6d
+PercolatorAdapter_idparquet_in.idparquet	pep29.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep29.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep29.ref	controllerType=0 controllerNumber=1 scan=24
+PercolatorAdapter_idparquet_in.idparquet	pep29.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep29.h0	3fa9e83e425aee63|KGRVRRASDFKKKRRKEEA|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep29.h0.ev	sp|Q12774|ARHG5_HUMAN,P,K,504,513;
+PercolatorAdapter_idparquet_in.idparquet	pep29.h0.meta	COMET:IonFrac=d:3fbc71c71c71c714;COMET:deltCn=d:3fdcfdf3b645a1cb;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c007ded479c5daa5;COMET:lnNumSP=d:402196f34affbc60;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fdcfdf3b645a1cb;MS:1002253=d:3fd5c28f5c28f5c3;MS:1002255=d:4027cccccccccccd;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fa9e83e425aee63;MS:1002258=s:2;MS:1002259=s:18;num_matched_peptides=s:6600;protein_references=s:unique;scan=i:24;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep30.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep30.rt	4086b9999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep30.mz	408246691fb84281
+PercolatorAdapter_idparquet_in.idparquet	pep30.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep30.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep30.ref	controllerType=0 controllerNumber=1 scan=26
+PercolatorAdapter_idparquet_in.idparquet	pep30.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep30.h0	3f9930be0ded288d|QTKASDFGTGASGSFKHHLAKY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep30.h0.ev	sp|Q12774|ARHG5_HUMAN,V,L,97,108;,V,L,94,105;,V,L,94,105;,V,L,95,106;,V,L,97,108;
+PercolatorAdapter_idparquet_in.idparquet	pep30.h0.meta	COMET:IonFrac=d:3fcd1745d1745d0d;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c00da3dbac319807;COMET:lnNumSP=d:402394031e55aa9b;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff12b020c49ba5e;MS:1002253=d:3fd45a1cac083127;MS:1002255=d:404cb33333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3f9930be0ded288d;MS:1002258=s:5;MS:1002259=s:22;num_matched_peptides=s:17838;protein_references=s:non-unique;scan=i:26;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep31.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep31.rt	4086bccccccccccd
+PercolatorAdapter_idparquet_in.idparquet	pep31.mz	407c7bf97f6b46d5
+PercolatorAdapter_idparquet_in.idparquet	pep31.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep31.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep31.ref	controllerType=0 controllerNumber=1 scan=28
+PercolatorAdapter_idparquet_in.idparquet	pep31.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep31.h0	3ff7ae147ae147ae|VVGANRASASDFHVVAAGGYY|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep31.h0.ev	sp|Q12774|ARHG5_HUMAN,F,R,974,982;
+PercolatorAdapter_idparquet_in.idparquet	pep31.h0.meta	COMET:IonFrac=d:3fd4000000000000;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3fd91737b269d454;COMET:lnNumSP=d:402260838dd2ef20;COMET:lnRankSP=d:3ff193ea7aad030c;MS:1002252=d:3ff322d0e5604189;MS:1002253=d:3faeb851eb851eb8;MS:1002255=d:405c59999999999a;MS:1002256=d:4008000000000000;MS:1002257=d:3ff7ae147ae147ae;MS:1002258=s:5;MS:1002259=s:16;num_matched_peptides=s:9784;protein_references=s:unique;scan=i:28;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep32.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep32.rt	4086be6666666666
+PercolatorAdapter_idparquet_in.idparquet	pep32.mz	408192863f9e91d6
+PercolatorAdapter_idparquet_in.idparquet	pep32.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep32.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep32.ref	controllerType=0 controllerNumber=1 scan=29
+PercolatorAdapter_idparquet_in.idparquet	pep32.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep32.h0	400199999999999a|FQSMKIILASDFLFQSMH|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep32.h0.ev	sp|Q12774|ARHG5_HUMAN,D,N,78,86;
+PercolatorAdapter_idparquet_in.idparquet	pep32.h0.meta	COMET:IonFrac=d:3fb0000000000000;COMET:deltCn=d:3fd6d916872b020c;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:3fe93b0aee21c2c7;COMET:lnNumSP=d:40225ef10a23c65f;COMET:lnRankSP=d:3ff193ea7aad030c;MS:1002252=d:3fd6d916872b020c;MS:1002253=d:3fc126e978d4fdf4;MS:1002255=d:3ffb333333333333;MS:1002256=d:4008000000000000;MS:1002257=d:400199999999999a;MS:1002258=s:1;MS:1002259=s:16;num_matched_peptides=s:9754;protein_references=s:unique;scan=i:29;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep33.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep33.rt	4086c5999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep33.mz	408176641fabad48
+PercolatorAdapter_idparquet_in.idparquet	pep33.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep33.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep33.ref	controllerType=0 controllerNumber=1 scan=33
+PercolatorAdapter_idparquet_in.idparquet	pep33.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep33.h0	3fe451eb851eb852|QQKGRLHSASDFYQQLLAG|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep33.h0.ev	sp|Q12774|ARHG5_HUMAN,W,],210,218;
+PercolatorAdapter_idparquet_in.idparquet	pep33.h0.meta	COMET:IonFrac=d:3fc0000000000000;COMET:deltCn=d:3fe70a3d70a3d70a;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfdd10787346e10e;COMET:lnNumSP=d:4023864831cd4dda;COMET:lnRankSP=d:3ff9c041f7ed8d32;MS:1002252=d:3fe70a3d70a3d70a;MS:1002253=d:3fd020c49ba5e354;MS:1002255=d:401ccccccccccccd;MS:1002256=d:4014000000000000;MS:1002257=d:3fe451eb851eb852;MS:1002258=s:2;MS:1002259=s:16;num_matched_peptides=s:17366;protein_references=s:unique;scan=i:33;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep34.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep34.rt	4086ce6666666666
+PercolatorAdapter_idparquet_in.idparquet	pep34.mz	4081064c9fba5b60
+PercolatorAdapter_idparquet_in.idparquet	pep34.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep34.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep34.ref	controllerType=0 controllerNumber=1 scan=37
+PercolatorAdapter_idparquet_in.idparquet	pep34.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep34.h0	4025666666666666|KAAPGHSRQASDFH|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep34.h0.ev	sp|Q12774|ARHG5_HUMAN,P,T,72,81;
+PercolatorAdapter_idparquet_in.idparquet	pep34.h0.meta	COMET:IonFrac=d:3fac71c71c71c75c;COMET:deltCn=d:3fc4dd2f1a9fbe77;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:4002f64259c939a0;COMET:lnNumSP=d:4023733d779ac8e7;COMET:lnRankSP=d:3ffcab0bfa2a1fec;MS:1002252=d:3fc4dd2f1a9fbe77;MS:1002253=d:3fb6c8b439581062;MS:1002255=d:4003333333333333;MS:1002256=d:4018000000000000;MS:1002257=d:4025666666666666;MS:1002258=s:1;MS:1002259=s:18;num_matched_peptides=s:16732;protein_references=s:unique;scan=i:37;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep35.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep35.rt	4086d1999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep35.mz	408381e3bfb9d529
+PercolatorAdapter_idparquet_in.idparquet	pep35.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep35.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep35.ref	controllerType=0 controllerNumber=1 scan=39
+PercolatorAdapter_idparquet_in.idparquet	pep35.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep35.h0	3fe410624dd2f1aa|SDYNEDASDFNLDYSTNGD|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep35.h0.ev	sp|Q12774|ARHG5_HUMAN,E,Y,307,316;
+PercolatorAdapter_idparquet_in.idparquet	pep35.h0.meta	COMET:IonFrac=d:3fbc71c71c71c714;COMET:deltCn=d:3fd9fbe76c8b4396;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bfdde031c22c9a12;COMET:lnNumSP=d:401badc19a670419;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fd9fbe76c8b4396;MS:1002253=d:3fc5810624dd2f1b;MS:1002255=d:402f333333333333;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fe410624dd2f1aa;MS:1002258=s:2;MS:1002259=s:18;num_matched_peptides=s:1012;protein_references=s:unique;scan=i:39;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep36.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep36.rt	4086d33333333333
+PercolatorAdapter_idparquet_in.idparquet	pep36.mz	40842d6abfa7a844
+PercolatorAdapter_idparquet_in.idparquet	pep36.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep36.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep36.ref	controllerType=0 controllerNumber=1 scan=40
+PercolatorAdapter_idparquet_in.idparquet	pep36.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep36.h0	3fd6f9db22d0e560|WIRITGASDFDEYGVVAD|3|0
+PercolatorAdapter_idparquet_in.idparquet	pep36.h0.ev	sp|Q12774|ARHG5_HUMAN,D,P,192,208;
+PercolatorAdapter_idparquet_in.idparquet	pep36.h0.meta	COMET:IonFrac=d:3fa0000000000000;COMET:deltCn=d:3fdda1cac083126f;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:bff06413be19e2d4;COMET:lnNumSP=d:4023d9136935759d;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3fdda1cac083126f;MS:1002253=d:3fd3020c49ba5e35;MS:1002255=d:4014666666666666;MS:1002256=d:3ff0000000000000;MS:1002257=d:3fd6f9db22d0e560;MS:1002258=s:2;MS:1002259=s:64;num_matched_peptides=s:20414;protein_references=s:unique;scan=i:40;target_decoy=s:decoy;
+PercolatorAdapter_idparquet_in.idparquet	pep37.run	0
+PercolatorAdapter_idparquet_in.idparquet	pep37.rt	4086e1999999999a
+PercolatorAdapter_idparquet_in.idparquet	pep37.mz	408156395faed296
+PercolatorAdapter_idparquet_in.idparquet	pep37.score_type	expect
+PercolatorAdapter_idparquet_in.idparquet	pep37.hsb	0
+PercolatorAdapter_idparquet_in.idparquet	pep37.ref	controllerType=0 controllerNumber=1 scan=45
+PercolatorAdapter_idparquet_in.idparquet	pep37.hits	1
+PercolatorAdapter_idparquet_in.idparquet	pep37.h0	3f91eb851eb851ec|ALKAAASDFHPTNVQR|2|0
+PercolatorAdapter_idparquet_in.idparquet	pep37.h0.ev	sp|Q12774|ARHG5_HUMAN,F,L,114,123;
+PercolatorAdapter_idparquet_in.idparquet	pep37.h0.meta	COMET:IonFrac=d:3fd1c71c71c71c76;COMET:deltCn=d:3ff0000000000000;COMET:deltLCn=d:0000000000000000;COMET:lnExpect=d:c0102ea5cfe74cfd;COMET:lnNumSP=d:4023a90b3dbb9164;COMET:lnRankSP=d:0000000000000000;MS:1002252=d:3ff24189374bc6a8;MS:1002253=d:3fd6b851eb851eb8;MS:1002255=d:404e4ccccccccccd;MS:1002256=d:3ff0000000000000;MS:1002257=d:3f91eb851eb851ec;MS:1002258=s:5;MS:1002259=s:18;num_matched_peptides=s:18586;protein_references=s:unique;scan=i:45;target_decoy=s:decoy;
+export_minimal	export_ok	1
+export_minimal	ok	1
+export_minimal	runs	1
+export_minimal	run0.id	unknown_1900-01-01T00:00:00
+export_minimal	run0.engine	
+export_minimal	run0.engine_version	
+export_minimal	run0.date	invalid
+export_minimal	run0.score_type	score
+export_minimal	run0.hsb	1
+export_minimal	run0.threshold	0000000000000000
+export_minimal	run0.enzyme	Trypsin
+export_minimal	run0.paths	/tmp/foo.mzML|
+export_minimal	run0.hits	0
+export_minimal	peps	1
+export_minimal	pep0.run	0
+export_minimal	pep0.rt	405ed9999999999a
+export_minimal	pep0.mz	4081bf1eb851eb85
+export_minimal	pep0.score_type	score
+export_minimal	pep0.hsb	1
+export_minimal	pep0.ref	scan=42
+export_minimal	pep0.hits	1
+export_minimal	pep0.h0	3fee666666666666|PEPTIDE|2|0
+export_minimal	pep0.h0.ev	sp|P12345|EXAMPLE,K,R,42,48;
+export_minimal	pep0.h0.meta	COMET:deltaCn=d:3fe0000000000000;reference_file_name=s:/tmp/foo.mzML;scan=i:42;target_decoy=s:target;
+export_decoy	export_ok	1
+export_decoy	ok	1
+export_decoy	runs	1
+export_decoy	run0.id	unknown_1900-01-01T00:00:00
+export_decoy	run0.engine	
+export_decoy	run0.engine_version	
+export_decoy	run0.date	invalid
+export_decoy	run0.score_type	score
+export_decoy	run0.hsb	1
+export_decoy	run0.threshold	0000000000000000
+export_decoy	run0.enzyme	unknown_enzyme
+export_decoy	run0.paths	
+export_decoy	run0.hits	0
+export_decoy	peps	1
+export_decoy	pep0.run	0
+export_decoy	pep0.rt	none
+export_decoy	pep0.mz	none
+export_decoy	pep0.score_type	score
+export_decoy	pep0.hsb	1
+export_decoy	pep0.ref	
+export_decoy	pep0.hits	1
+export_decoy	pep0.h0	3fb999999999999a|DECOYSEQ|2|0
+export_decoy	pep0.h0.ev	DECOY_sp|P99999|FAKE,X,X,-1,-1;
+export_decoy	pep0.h0.meta	target_decoy=s:decoy;
+export_multirank	export_ok	1
+export_multirank	ok	1
+export_multirank	runs	1
+export_multirank	run0.id	unknown_1900-01-01T00:00:00
+export_multirank	run0.engine	
+export_multirank	run0.engine_version	
+export_multirank	run0.date	invalid
+export_multirank	run0.score_type	score
+export_multirank	run0.hsb	1
+export_multirank	run0.threshold	0000000000000000
+export_multirank	run0.enzyme	unknown_enzyme
+export_multirank	run0.paths	
+export_multirank	run0.hits	0
+export_multirank	peps	1
+export_multirank	pep0.run	0
+export_multirank	pep0.rt	none
+export_multirank	pep0.mz	none
+export_multirank	pep0.score_type	score
+export_multirank	pep0.hsb	1
+export_multirank	pep0.ref	
+export_multirank	pep0.hits	3
+export_multirank	pep0.h0	3ff0000000000000|PEPTIDE|2|1
+export_multirank	pep0.h0.ev	sp|P1|RANK,X,X,-1,-1;
+export_multirank	pep0.h0.meta	rank=i:1;
+export_multirank	pep0.h1	3fe0000000000000|PPEPTIDE|2|2
+export_multirank	pep0.h1.ev	sp|P2|RANK,X,X,-1,-1;
+export_multirank	pep0.h1.meta	rank=i:2;
+export_multirank	pep0.h2	3fd5555555555555|PPPEPTIDE|2|3
+export_multirank	pep0.h2.ev	sp|P3|RANK,X,X,-1,-1;
+export_multirank	pep0.h2.meta	rank=i:3;

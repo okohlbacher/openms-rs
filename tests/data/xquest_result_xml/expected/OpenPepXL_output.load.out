@@ -1,0 +1,1017 @@
+status ok
+n_hits 24 min_score -1.0317234743130299 max_score 0
+protein_ids 1
+prot identifier=[] engine=[xQuest] version=[4.0.0] date=[2025-04-24 12:33:45] score_type=[] higher=1
+ runs 0
+ sp db=[/home/sachsenb/Development/OpenMS/src/tests/topp/OpenPepXL_input.fasta] charges=[2,3,4,5,6,7,8] enzyme=[Trypsin] missed=3 prec_tol=10 prec_ppm=1 frag_tol=0.20000000000000001 frag_ppm=0 mass_type=0 specificity=3
+ fixed [Carbamidomethyl (C)]
+ variable
+  sp meta cross_link:mass double 138.0680796
+  sp meta cross_link:mass_isoshift double 12.075321000000001
+  sp meta cross_link:mass_mass double 138.0680796
+  sp meta cross_link:mass_monolink doubleList [156.07864430999999,155.094628715]
+  sp meta cross_link:name string DSS
+  sp meta cross_link:residue1 stringList [K| N-term]
+  sp meta cross_link:residue2 stringList [K| N-term]
+  sp meta decoy_prefix int 1
+  sp meta decoy_string string decoy_
+  sp meta fragment:mass_tolerance_xlinks double 0.29999999999999999
+  sp meta input_mzML string OpenPepXL_input.mzML
+  sp meta precursor:max_charge int 8
+  sp meta precursor:min_charge int 2
+ meta SpectrumIdentificationProtocol string MS:1002494
+ hits 5
+ phit [Protein3] score=0 rank=0
+  meta target_decoy string target
+ phit [Protein1] score=0 rank=0
+  meta target_decoy string target
+ phit [Protein2] score=0 rank=0
+  meta target_decoy string target
+ phit [Protein4] score=0 rank=0
+  meta target_decoy string target
+ phit [Protein5] score=0 rank=0
+  meta target_decoy string target
+peptide_ids 12
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2129.23608398438 mz=467.94561767578102 hits=1
+ meta spectrum_reference string 101,63
+ hit seq=[GGVHVK(hydrolyzed DSS)LAHLSK] score=-0.091359180643107094 rank=0 charge=3 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string GGVHVKLAHLSK-K6-156
+  meta OpenPepXL:intsum double 3.02076792344451
+  meta OpenPepXL:match-odds double 0.70747886562210005
+  meta OpenPepXL:percTIC double 0.68248165801914396
+  meta OpenPepXL:score double -0.091359180643107094
+  meta OpenPepXL:structure string GGVHVKLAHLSK
+  meta OpenPepXL:wTIC double 0.68248165801914396
+  meta OpenPepXL:xlinkermass double 156.07864430999999
+  meta accessions_beta string -
+  meta delta_score double 0
+  meta matched_linear_alpha int 6
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 3
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 0.73832348492906397
+  meta prot1 string Protein3
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 471.97128295898398
+  meta spec_heavy_RT double 2110.98901367188
+  meta spectrum_index int 101
+  meta spectrum_index_heavy int 63
+  meta spectrum_input_file string 
+  meta spectrum_reference int 101
+  meta spectrum_reference_heavy int 63
+  meta target_decoy string target
+  meta xl_mass double 156.07864430999999
+  meta xl_pos1 int 5
+  meta xl_pos2 string -
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2132.47583007812 mz=721.08459472656295 hits=4
+ meta spectrum_reference string 107,18
+ hit seq=[FIVKASSGPR] score=-0.21504626984310601 rank=0 charge=3 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 6.4834269843995571
+  meta OpenPepXL:match-odds double 0.49274932472432798
+  meta OpenPepXL:percTIC double 0.86285767341771202
+  meta OpenPepXL:score double -0.21504626984310601
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.81044072816292601
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 1.120833910785749
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 4
+  meta matched_xlink_alpha int 5
+  meta matched_xlink_beta int 3
+  meta precursor_mz_error_ppm double 2.4498456585716002
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 725.10894775390602
+  meta spec_heavy_RT double 2089.55322265625
+  meta spectrum_index int 107
+  meta spectrum_index_heavy int 18
+  meta spectrum_input_file string 
+  meta spectrum_reference int 107
+  meta spectrum_reference_heavy int 18
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.24103115162813599 rank=0 charge=3 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a8-b1
+  meta OpenPepXL:intsum double 2.9068058826960619
+  meta OpenPepXL:match-odds double 0.97520497005115203
+  meta OpenPepXL:percTIC double 0.38685709996506301
+  meta OpenPepXL:score double -0.24103115162813599
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.32488371928054199
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 1.056821996077947
+  meta matched_linear_alpha int 3
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 4
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 7.8669883753206502
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 725.10894775390602
+  meta spec_heavy_RT double 2089.55322265625
+  meta spectrum_index int 107
+  meta spectrum_index_heavy int 18
+  meta spectrum_input_file string 
+  meta spectrum_reference int 107
+  meta spectrum_reference_heavy int 18
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 7
+  meta xl_pos2 int 0
+  meta xl_rank int 3
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.25472702278061299 rank=0 charge=3 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a7-b1
+  meta OpenPepXL:intsum double 3.1048981347121298
+  meta OpenPepXL:match-odds double 0.91065881633856605
+  meta OpenPepXL:percTIC double 0.41322053709606399
+  meta OpenPepXL:score double -0.25472702278061299
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.340440444578336
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 1.0384280603594094
+  meta matched_linear_alpha int 3
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 5
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 7.8669883753206502
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 725.10894775390602
+  meta spec_heavy_RT double 2089.55322265625
+  meta spectrum_index int 107
+  meta spectrum_index_heavy int 18
+  meta spectrum_input_file string 
+  meta spectrum_reference int 107
+  meta spectrum_reference_heavy int 18
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 6
+  meta xl_pos2 int 0
+  meta xl_rank int 4
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LMVEM(Oxidation)EKKLEK] score=-0.26451568818719901 rank=0 charge=3 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a8-b1
+  meta OpenPepXL:intsum double 2.3759784200228751
+  meta OpenPepXL:match-odds double 0.86716127894498896
+  meta OpenPepXL:percTIC double 0.31621104340723799
+  meta OpenPepXL:score double -0.26451568818719901
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.31071404031739203
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 0
+  meta matched_linear_alpha int 2
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 0
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 7.8669883753206502
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 725.10894775390602
+  meta spec_heavy_RT double 2089.55322265625
+  meta spectrum_index int 107
+  meta spectrum_index_heavy int 18
+  meta spectrum_input_file string 
+  meta spectrum_reference int 107
+  meta spectrum_reference_heavy int 18
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 7
+  meta xl_pos2 int 0
+  meta xl_rank int 5
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2132.47583007812 mz=721.08459472656295 hits=1
+ meta spectrum_reference string 107,92
+ hit seq=[FIVKASSGPR] score=-0.21329156246131101 rank=0 charge=3 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 7.8859681747853756
+  meta OpenPepXL:match-odds double 0.49709150025447002
+  meta OpenPepXL:percTIC double 0.89198098612277799
+  meta OpenPepXL:score double -0.21329156246131101
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.84849206712507597
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 0
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 4
+  meta matched_xlink_alpha int 4
+  meta matched_xlink_beta int 5
+  meta precursor_mz_error_ppm double 2.4498456585716002
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 725.10925292968795
+  meta spec_heavy_RT double 2125.5966796875
+  meta spectrum_index int 107
+  meta spectrum_index_heavy int 92
+  meta spectrum_input_file string 
+  meta spectrum_reference int 107
+  meta spectrum_reference_heavy int 92
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2132.78686523438 mz=541.06488037109398 hits=1
+ meta spectrum_reference string 108,32
+ hit seq=[FIVKASSGPR] score=-0.16008493745197899 rank=0 charge=4 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 4.4116854704916477
+  meta OpenPepXL:match-odds double 0.58285163916056604
+  meta OpenPepXL:percTIC double 0.74683383908816003
+  meta OpenPepXL:score double -0.16008493745197899
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.72796935182040501
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 0
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 5
+  meta matched_xlink_alpha int 1
+  meta matched_xlink_beta int 3
+  meta precursor_mz_error_ppm double 1.7373483701975101
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 544.084228515625
+  meta spec_heavy_RT double 2096.1025390625
+  meta spectrum_index int 108
+  meta spectrum_index_heavy int 32
+  meta spectrum_input_file string 
+  meta spectrum_reference int 108
+  meta spectrum_reference_heavy int 32
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2132.78686523438 mz=541.06488037109398 hits=2
+ meta spectrum_reference string 108,98
+ hit seq=[FIVKASSGPR] score=-0.160083568623408 rank=0 charge=4 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 4.407473879866302
+  meta OpenPepXL:match-odds double 0.58285562829478299
+  meta OpenPepXL:percTIC double 0.785013346059799
+  meta OpenPepXL:score double -0.160083568623408
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.76600584199675703
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 2.1868702525755772
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 5
+  meta matched_xlink_alpha int 0
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 1.7373483701975101
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 544.082763671875
+  meta spec_heavy_RT double 2128.08715820312
+  meta spectrum_index int 108
+  meta spectrum_index_heavy int 98
+  meta spectrum_input_file string 
+  meta spectrum_reference int 108
+  meta spectrum_reference_heavy int 98
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LEGTIDYQKL] score=-0.35008199414867203 rank=0 charge=4 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LEGTIDYQKL-LKPLIEK-a9-b2
+  meta OpenPepXL:intsum double 0.55778783373534702
+  meta OpenPepXL:match-odds double 0.58429187497880197
+  meta OpenPepXL:percTIC double 0.099347359890720993
+  meta OpenPepXL:score double -0.35008199414867203
+  meta OpenPepXL:structure string LEGTIDYQKL-LKPLIEK
+  meta OpenPepXL:wTIC double 0.096272924013713998
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein5
+  meta delta_score double 0
+  meta matched_linear_alpha int 2
+  meta matched_linear_beta int 3
+  meta matched_xlink_alpha int 0
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double -8.0870367120532993
+  meta prot1 string Protein1
+  meta prot2 string Protein5
+  meta sequence_beta string LKPLIEK
+  meta spec_heavy_MZ double 544.082763671875
+  meta spec_heavy_RT double 2128.08715820312
+  meta spectrum_index int 108
+  meta spectrum_index_heavy int 98
+  meta spectrum_input_file string 
+  meta spectrum_reference int 108
+  meta spectrum_reference_heavy int 98
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 8
+  meta xl_pos2 int 1
+  meta xl_rank int 3
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2180.57080077418 mz=671.84490966796898 hits=2
+ meta spectrum_reference string 152,142
+ hit seq=[TLADVEVNHLK(hydrolyzed DSS)C(Carbamidomethyl)DQFLVAHYR] score=-0.98761628346661601 rank=0 charge=4 evidences=1
+  ev [Protein5] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string TLADVEVNHLKCDQFLVAHYR-K11-156
+  meta OpenPepXL:intsum double 1.187869759975001
+  meta OpenPepXL:match-odds double 0.011023759380270001
+  meta OpenPepXL:percTIC double 0.99885780823719506
+  meta OpenPepXL:score double -0.98761628346661601
+  meta OpenPepXL:structure string TLADVEVNHLKCDQFLVAHYR
+  meta OpenPepXL:wTIC double 0.99885780823719506
+  meta OpenPepXL:xlinkermass double 156.07864430999999
+  meta accessions_beta string -
+  meta delta_score double 1.0446602507317861
+  meta matched_linear_alpha int 4
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 4
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 2.8692539783989002
+  meta prot1 string Protein5
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 674.863525390625
+  meta spec_heavy_RT double 2176.58422850855
+  meta spectrum_index int 152
+  meta spectrum_index_heavy int 142
+  meta spectrum_input_file string 
+  meta spectrum_reference int 152
+  meta spectrum_reference_heavy int 142
+  meta target_decoy string target
+  meta xl_mass double 156.07864430999999
+  meta xl_pos1 int 10
+  meta xl_pos2 string -
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+ hit seq=[TLADVEVNHLK(amidated DSS)C(Carbamidomethyl)DQFLVAHYR] score=-1.0317234743130299 rank=0 charge=4 evidences=1
+  ev [Protein5] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string TLADVEVNHLKCDQFLVAHYR-K11-155
+  meta OpenPepXL:intsum double 1.187869759975001
+  meta OpenPepXL:match-odds double 0.011023759380270001
+  meta OpenPepXL:percTIC double 0.99885780823719506
+  meta OpenPepXL:score double -1.0317234743130299
+  meta OpenPepXL:structure string TLADVEVNHLKCDQFLVAHYR
+  meta OpenPepXL:wTIC double 0.99885780823719506
+  meta OpenPepXL:xlinkermass double 155.094628715
+  meta accessions_beta string -
+  meta delta_score double 0
+  meta matched_linear_alpha int 4
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 4
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double -4.3394936732792599
+  meta prot1 string Protein5
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 674.863525390625
+  meta spec_heavy_RT double 2176.58422850855
+  meta spectrum_index int 152
+  meta spectrum_index_heavy int 142
+  meta spectrum_input_file string 
+  meta spectrum_reference int 152
+  meta spectrum_reference_heavy int 142
+  meta target_decoy string target
+  meta xl_mass double 155.094628715
+  meta xl_pos1 int 10
+  meta xl_pos2 string -
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2181.1560058523 mz=895.45660400390602 hits=2
+ meta spectrum_reference string 154,143
+ hit seq=[TLADVEVNHLK(hydrolyzed DSS)C(Carbamidomethyl)DQFLVAHYR] score=-0.17079659403490399 rank=0 charge=3 evidences=1
+  ev [Protein5] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string TLADVEVNHLKCDQFLVAHYR-K11-156
+  meta OpenPepXL:intsum double 5.5873212032020092
+  meta OpenPepXL:match-odds double 0.56770619491360497
+  meta OpenPepXL:percTIC double 0.88040406284403505
+  meta OpenPepXL:score double -0.17079659403490399
+  meta OpenPepXL:structure string TLADVEVNHLKCDQFLVAHYR
+  meta OpenPepXL:wTIC double 0.88040406284403505
+  meta OpenPepXL:xlinkermass double 156.07864430999999
+  meta accessions_beta string -
+  meta delta_score double 1.5921695611635787
+  meta matched_linear_alpha int 11
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 10
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 1.91887926505691
+  meta prot1 string Protein5
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 899.48358154296898
+  meta spec_heavy_RT double 2176.86767577418
+  meta spectrum_index int 154
+  meta spectrum_index_heavy int 143
+  meta spectrum_input_file string 
+  meta spectrum_reference int 154
+  meta spectrum_reference_heavy int 143
+  meta target_decoy string target
+  meta xl_mass double 156.07864430999999
+  meta xl_pos1 int 10
+  meta xl_pos2 string -
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+ hit seq=[TLADVEVNHLK(amidated DSS)C(Carbamidomethyl)DQFLVAHYR] score=-0.27193713817278697 rank=0 charge=3 evidences=1
+  ev [Protein5] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string TLADVEVNHLKCDQFLVAHYR-K11-155
+  meta OpenPepXL:intsum double 5.5873212032020092
+  meta OpenPepXL:match-odds double 0.56770619491360497
+  meta OpenPepXL:percTIC double 0.88040406284403505
+  meta OpenPepXL:score double -0.27193713817278697
+  meta OpenPepXL:structure string TLADVEVNHLKCDQFLVAHYR
+  meta OpenPepXL:wTIC double 0.88040406284403505
+  meta OpenPepXL:xlinkermass double 155.094628715
+  meta accessions_beta string -
+  meta delta_score double 0
+  meta matched_linear_alpha int 11
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 10
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double -5.2902307363196801
+  meta prot1 string Protein5
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 899.48358154296898
+  meta spec_heavy_RT double 2176.86767577418
+  meta spectrum_index int 154
+  meta spectrum_index_heavy int 143
+  meta spectrum_input_file string 
+  meta spectrum_reference int 154
+  meta spectrum_reference_heavy int 143
+  meta target_decoy string target
+  meta xl_mass double 155.094628715
+  meta xl_pos1 int 10
+  meta xl_pos2 string -
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2228.5029296310699 mz=656.05090332031295 hits=2
+ meta spectrum_reference string 195,180
+ hit seq=[EVIELPLK(amidated DSS)NPELFLR] score=-0.088343889431906103 rank=0 charge=3 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string EVIELPLKNPELFLR-K8-155
+  meta OpenPepXL:intsum double 3.3701772652566429
+  meta OpenPepXL:match-odds double 1.10847452837605
+  meta OpenPepXL:percTIC double 0.74767092236900601
+  meta OpenPepXL:score double -0.088343889431906103
+  meta OpenPepXL:structure string EVIELPLKNPELFLR
+  meta OpenPepXL:wTIC double 0.74767092236900601
+  meta OpenPepXL:xlinkermass double 155.094628715
+  meta accessions_beta string -
+  meta delta_score double 1.8762332149559822
+  meta matched_linear_alpha int 10
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 7
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double -3.6313620581525301
+  meta prot1 string Protein1
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 660.07244873046898
+  meta spec_heavy_RT double 2221.2338866623199
+  meta spectrum_index int 195
+  meta spectrum_index_heavy int 180
+  meta spectrum_input_file string 
+  meta spectrum_reference int 195
+  meta spectrum_reference_heavy int 180
+  meta target_decoy string target
+  meta xl_mass double 155.094628715
+  meta xl_pos1 int 7
+  meta xl_pos2 string -
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+ hit seq=[EVIELPLK(hydrolyzed DSS)NPELFLR] score=-0.165753739690541 rank=0 charge=3 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta OpenPepXL:id string EVIELPLKNPELFLR-K8-156
+  meta OpenPepXL:intsum double 3.3701772652566429
+  meta OpenPepXL:match-odds double 1.10847452837605
+  meta OpenPepXL:percTIC double 0.74767092236900601
+  meta OpenPepXL:score double -0.165753739690541
+  meta OpenPepXL:structure string EVIELPLKNPELFLR
+  meta OpenPepXL:wTIC double 0.74767092236900601
+  meta OpenPepXL:xlinkermass double 156.07864430999999
+  meta accessions_beta string -
+  meta delta_score double 0
+  meta matched_linear_alpha int 10
+  meta matched_linear_beta int 0
+  meta matched_xlink_alpha int 7
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 6.2116904001070399
+  meta prot1 string Protein1
+  meta prot2 string -
+  meta sequence_beta string -
+  meta spec_heavy_MZ double 660.07244873046898
+  meta spec_heavy_RT double 2221.2338866623199
+  meta spectrum_index int 195
+  meta spectrum_index_heavy int 180
+  meta spectrum_input_file string 
+  meta spectrum_reference int 195
+  meta spectrum_reference_heavy int 180
+  meta target_decoy string target
+  meta xl_mass double 156.07864430999999
+  meta xl_pos1 int 7
+  meta xl_pos2 string -
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string -
+  meta xl_type string mono-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2100.65356445312 mz=721.08465576171898 hits=1
+ meta spectrum_reference string 42,18
+ hit seq=[FIVKASSGPR] score=-0.26468426663488498 rank=0 charge=3 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 4.3346924185752869
+  meta OpenPepXL:match-odds double 0.38936795556017201
+  meta OpenPepXL:percTIC double 0.86618378911469696
+  meta OpenPepXL:score double -0.26468426663488498
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.80976435032397298
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 0
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 3
+  meta matched_xlink_beta int 2
+  meta precursor_mz_error_ppm double 2.5346073915835001
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 725.10894775390602
+  meta spec_heavy_RT double 2089.55322265625
+  meta spectrum_index int 42
+  meta spectrum_index_heavy int 18
+  meta spectrum_input_file string 
+  meta spectrum_reference int 42
+  meta spectrum_reference_heavy int 18
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2100.65356445312 mz=721.08465576171898 hits=3
+ meta spectrum_reference string 42,92
+ hit seq=[FIVKASSGPR] score=-0.23341265272223199 rank=0 charge=3 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 6.805892076343298
+  meta OpenPepXL:match-odds double 0.45526647390592101
+  meta OpenPepXL:percTIC double 0.89362561449834998
+  meta OpenPepXL:score double -0.23341265272223199
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.84342330773215901
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 1.2413014953715504
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 3
+  meta matched_xlink_alpha int 4
+  meta matched_xlink_beta int 7
+  meta precursor_mz_error_ppm double 2.5346073915835001
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 725.10925292968795
+  meta spec_heavy_RT double 2125.5966796875
+  meta spectrum_index int 42
+  meta spectrum_index_heavy int 92
+  meta spectrum_input_file string 
+  meta spectrum_reference int 42
+  meta spectrum_reference_heavy int 92
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.28973547486274698 rank=0 charge=3 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a8-b1
+  meta OpenPepXL:intsum double 3.242339413613081
+  meta OpenPepXL:match-odds double 0.77420773022067302
+  meta OpenPepXL:percTIC double 0.42572487462348302
+  meta OpenPepXL:score double -0.28973547486274698
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.34722224308115301
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 1.0337091390774902
+  meta matched_linear_alpha int 2
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 4
+  meta matched_xlink_beta int 2
+  meta precursor_mz_error_ppm double 7.9517496491650101
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 725.10925292968795
+  meta spec_heavy_RT double 2125.5966796875
+  meta spectrum_index int 42
+  meta spectrum_index_heavy int 92
+  meta spectrum_input_file string 
+  meta spectrum_reference int 42
+  meta spectrum_reference_heavy int 92
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 7
+  meta xl_pos2 int 0
+  meta xl_rank int 3
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.299502208280578 rank=0 charge=3 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a7-b1
+  meta OpenPepXL:intsum double 3.331790167838335
+  meta OpenPepXL:match-odds double 0.73730861490682797
+  meta OpenPepXL:percTIC double 0.43746991617207498
+  meta OpenPepXL:score double -0.299502208280578
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.35391642946568103
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 0
+  meta matched_linear_alpha int 2
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 5
+  meta matched_xlink_beta int 2
+  meta precursor_mz_error_ppm double 7.9517496491650101
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 725.10925292968795
+  meta spec_heavy_RT double 2125.5966796875
+  meta spectrum_index int 42
+  meta spectrum_index_heavy int 92
+  meta spectrum_input_file string 
+  meta spectrum_reference int 42
+  meta spectrum_reference_heavy int 92
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 6
+  meta xl_pos2 int 0
+  meta xl_rank int 4
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2101.32348632812 mz=541.06488037109398 hits=2
+ meta spectrum_reference string 44,32
+ hit seq=[FIVKASSGPR] score=-0.160083568623408 rank=0 charge=4 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 4.8153799278661609
+  meta OpenPepXL:match-odds double 0.58285562829478299
+  meta OpenPepXL:percTIC double 0.74808090417391704
+  meta OpenPepXL:score double -0.160083568623408
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.72635196228466903
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 1.6265433310984354
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 5
+  meta matched_xlink_alpha int 0
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 1.7373483701975101
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 544.084228515625
+  meta spec_heavy_RT double 2096.1025390625
+  meta spectrum_index int 44
+  meta spectrum_index_heavy int 32
+  meta spectrum_input_file string 
+  meta spectrum_reference int 44
+  meta spectrum_reference_heavy int 32
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 2
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.26038286096284302 rank=0 charge=4 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a8-b1
+  meta OpenPepXL:intsum double 0.78792689274996497
+  meta OpenPepXL:match-odds double 0.79553519583598198
+  meta OpenPepXL:percTIC double 0.122406346161877
+  meta OpenPepXL:score double -0.26038286096284302
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.099009401125738
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 0
+  meta matched_linear_alpha int 3
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 1
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 7.1544949466555101
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 544.084228515625
+  meta spec_heavy_RT double 2096.1025390625
+  meta spectrum_index int 44
+  meta spectrum_index_heavy int 32
+  meta spectrum_input_file string 
+  meta spectrum_reference int 44
+  meta spectrum_reference_heavy int 32
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 7
+  meta xl_pos2 int 0
+  meta xl_rank int 5
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+id identifier=[] score_type=[OpenPepXL:score] higher=1 rt=2101.32348632812 mz=541.06488037109398 hits=3
+ meta spectrum_reference string 44,98
+ hit seq=[FIVKASSGPR] score=-0.12250401508526899 rank=0 charge=4 evidences=1
+  ev [Protein1] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string FIVKASSGPR-SAVIKTSTR-a4-b5
+  meta OpenPepXL:intsum double 4.9428264899179339
+  meta OpenPepXL:match-odds double 0.70333781998429301
+  meta OpenPepXL:percTIC double 0.770152017538421
+  meta OpenPepXL:score double -0.12250401508526899
+  meta OpenPepXL:structure string FIVKASSGPR-SAVIKTSTR
+  meta OpenPepXL:wTIC double 0.74835878466057604
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein2
+  meta delta_score double 1.8474791296404556
+  meta matched_linear_alpha int 5
+  meta matched_linear_beta int 6
+  meta matched_xlink_alpha int 0
+  meta matched_xlink_beta int 4
+  meta precursor_mz_error_ppm double 1.7373483701975101
+  meta prot1 string Protein1
+  meta prot2 string Protein2
+  meta sequence_beta string SAVIKTSTR
+  meta spec_heavy_MZ double 544.082763671875
+  meta spec_heavy_RT double 2128.08715820312
+  meta spectrum_index int 44
+  meta spectrum_index_heavy int 98
+  meta spectrum_input_file string 
+  meta spectrum_reference int 44
+  meta spectrum_reference_heavy int 98
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 3
+  meta xl_pos2 int 4
+  meta xl_rank int 1
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.22632361116719399 rank=0 charge=4 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a8-b1
+  meta OpenPepXL:intsum double 0.91537345480173804
+  meta OpenPepXL:match-odds double 0.94323113545419202
+  meta OpenPepXL:percTIC double 0.142626231055175
+  meta OpenPepXL:score double -0.22632361116719399
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.109332517501518
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 1.0957881006979684
+  meta matched_linear_alpha int 4
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 1
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 7.1544949466555101
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 544.082763671875
+  meta spec_heavy_RT double 2128.08715820312
+  meta spectrum_index int 44
+  meta spectrum_index_heavy int 98
+  meta spectrum_input_file string 
+  meta spectrum_reference int 44
+  meta spectrum_reference_heavy int 98
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 7
+  meta xl_pos2 int 0
+  meta xl_rank int 3
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link
+ hit seq=[LM(Oxidation)VEMEKKLEK] score=-0.248002720024005 rank=0 charge=4 evidences=1
+  ev [Protein3] start=-1 end=-1 before=X after=X
+  meta BetaPepEv:end string -1
+  meta BetaPepEv:post string X
+  meta BetaPepEv:pre string X
+  meta BetaPepEv:start string -1
+  meta OpenPepXL:id string LMVEMEKKLEK-KELLK-a7-b1
+  meta OpenPepXL:intsum double 0.91537345480173804
+  meta OpenPepXL:match-odds double 0.84633545735119198
+  meta OpenPepXL:percTIC double 0.142626231055175
+  meta OpenPepXL:score double -0.248002720024005
+  meta OpenPepXL:structure string LMVEMEKKLEK-KELLK
+  meta OpenPepXL:wTIC double 0.109332517501518
+  meta OpenPepXL:xlinkermass double 138.0680796
+  meta accessions_beta string Protein4
+  meta delta_score double 0
+  meta matched_linear_alpha int 4
+  meta matched_linear_beta int 2
+  meta matched_xlink_alpha int 1
+  meta matched_xlink_beta int 0
+  meta precursor_mz_error_ppm double 7.1544949466555101
+  meta prot1 string Protein3
+  meta prot2 string Protein4
+  meta sequence_beta string KELLK
+  meta spec_heavy_MZ double 544.082763671875
+  meta spec_heavy_RT double 2128.08715820312
+  meta spectrum_index int 44
+  meta spectrum_index_heavy int 98
+  meta spectrum_input_file string 
+  meta spectrum_reference int 44
+  meta spectrum_reference_heavy int 98
+  meta target_decoy string target
+  meta xl_mass double 138.0680796
+  meta xl_mod string DSS
+  meta xl_pos1 int 6
+  meta xl_pos2 int 0
+  meta xl_rank int 4
+  meta xl_target_decoy_alpha string target
+  meta xl_target_decoy_beta string target
+  meta xl_term_spec_alpha string ANYWHERE
+  meta xl_term_spec_beta string ANYWHERE
+  meta xl_type string cross-link

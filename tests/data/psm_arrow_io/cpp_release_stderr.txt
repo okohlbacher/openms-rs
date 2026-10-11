@@ -1,0 +1,8 @@
+Setting an empty value for primary MS runs paths.
+QPXFile: reconstructed sequence for peptidoform 'AAAAPEPTIDER' has calculated m/z 620.812, but the row stores 500 (difference 120.812 Da). Unsupported modification data may have been lost.
+<Setting an empty value for primary MS runs paths.> occurred 3 times
+QPXFile: reconstructed sequence for peptidoform 'AAAAPEPTIDERR' has calculated m/z 698.863, but the row stores 500.1 (difference 198.763 Da). Unsupported modification data may have been lost.
+QPXFile: reconstructed sequence for peptidoform 'BBBBPEPTIDER' has calculated m/z 442.717, but the row stores 501 (difference 58.2833 Da). Unsupported modification data may have been lost.
+QPXFile: reconstructed sequence for peptidoform 'BBBBPEPTIDERR' has calculated m/z 520.767, but the row stores 501.1 (difference 19.6672 Da). Unsupported modification data may have been lost.
+Setting an empty value for primary MS runs paths.
+<Setting an empty value for primary MS runs paths.> occurred 3 times

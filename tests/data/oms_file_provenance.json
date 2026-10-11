@@ -1,0 +1,253 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OMSFile.h",
+   "sha256": "72ff8284575c4180baa1ab6214697b60155afe6e5b3fe0c14778973425b8183c",
+   "role": "The public class: seven operations, ported in src/format/oms_file.rs."
+  },
+  {
+   "path": "src/openms/source/FORMAT/OMSFile.cpp",
+   "sha256": "1bdd8a22056f775245440408fc6af3f7824a82964da6e7b92fc0232229074cb2",
+   "role": "Delegation to the helpers; exportToJSON's FileNotWritable."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OMSFileStore.h",
+   "sha256": "5305a9ad23caaf3fc6adafa3df081697c334464a07e12a6ce486ee191a34ac9d",
+   "role": "Internal writer, ported as src/format/oms_file/store.rs."
+  },
+  {
+   "path": "src/openms/source/FORMAT/OMSFileStore.cpp",
+   "sha256": "3326883b56b536bd0e1a21fc722d40546a8b79c4922896beb0c911a15403a3a8",
+   "role": "Read in full: every table definition, bind and insertion order."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/OMSFileLoad.h",
+   "sha256": "6ecd085e83502b4c5bf4008dd4d6df920cc3ab68c0e75d5996aa5ef7f1efd4ac",
+   "role": "Internal reader, ported as src/format/oms_file/load.rs."
+  },
+  {
+   "path": "src/openms/source/FORMAT/OMSFileLoad.cpp",
+   "sha256": "cdd8c10c6c2a817f1c36a92589c6651b1f9c594c7a21b67b9168796ed14417ba",
+   "role": "Read in full: every schema-version branch, makeDataValue_, exportToJSON."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/OMSFile_test.cpp",
+   "sha256": "7725d75ceb330c129f069f2aaada3aa69059f6a97e40bf7f7c960c4ea5509ab9",
+   "role": "All six sections, executed on the Release build by the oracle; their assertions are in tests/oms_file.rs."
+  }
+ ],
+ "package_revisions": {
+  "core": "bc9cc12",
+  "topp": "174b576",
+  "test-data": "0cb15f2"
+ },
+ "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:3664-3672 (TOPP_JSONExporter_1/2), 168-172 (IDMerger_6 inputs), core bc9cc12 src/tests/class_tests/openms/source/OMSFile_test.cpp",
+ "method": "JSON export: the retained outputs under the upstream FuzzyDiff contract. Load/store: the Release build loaded each input and stored it again; the port loads the same input and stores it with OmsLoadOptions::source/OmsStoreOptions::source; the canonical, foreign-key-invariant dumps (schema SQL and all rows but the version row) of both databases must be identical. The loaded maps are compared field by field with the Release build's loaded values.",
+ "evidence_tier": "1 (executed Release build, ibminode06) for load, store and export; 3 for the native options",
+ "external_reference_note": "The oracle drivers and scripts are C++, Python and shell kept beside the repository in ../oracle/F2-oms, F2-oms-noid and F2-oms-mztabm and never committed here; each results/hashes.txt records its driver, built binary, inputs, libOpenMS.so and outputs.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F2-oms/driver.cpp",
+   "sha256": "55d931cb6ab7406e7daf5b70d89a51b8f1ff58a1f0d83167255175d9eb8b0555",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms/remote_run.sh",
+   "sha256": "5d6572c1133cdd6e9cb1148ccc92e01a045a39f2dc30c87ddeecf53b082384e9",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms/run.sh",
+   "sha256": "ebd1eebd99fcef8e7aacc647cbe184e0d7ea58803f3a5f20d725002dd47d0a03",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms/results/hashes.txt",
+   "sha256": "cd7e1b2f84d3f507b76813c4a9aed0d3868d0febcf26fc9b2d83afb7aa67db59",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/driver.cpp",
+   "sha256": "b44523e358d5be81a7303102d70fbdec5a063c9be7793bf1ce64e9b3ac5a8d0d",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/remote_run.sh",
+   "sha256": "94019b23f8ddbc966a5d92ebe2613e81ad98cada76b099089b76f4ff81007b40",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/run.sh",
+   "sha256": "268812601ce818549ad68d95ddaf4519a8c7a09e7f5fb5a31f4c9c80c8b5a621",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-noid/results/hashes.txt",
+   "sha256": "317c83c73e53de35906571de9221e9715d8ffd9bace34abb83c1b7c4c32a0b33",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/driver.cpp",
+   "sha256": "47303458e4eb67990c668f02ada47f37d134e32a60880c5222eb40bf42003b29",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/remote_run.sh",
+   "sha256": "cd8b9c1c89e8c9a1c02d43efbcd4a922f82b5f15cad31b831a553e6d9836b39f",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/run.sh",
+   "sha256": "e41a41b28f30905ef152239d1249a86a4bc53634c32886a08a6346b96ddc8748",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/F2-oms-mztabm/results/hashes.txt",
+   "sha256": "5e16356243815f72defae5dff5e48f40d2b6155e4e0731e43a6794ee55ecaf50",
+   "origin_key": "method"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/oms_file/JSONExporter_protein.oms",
+   "sha256": "9e70860f7f9f7727decfddf8e2947ade92efc3e80ca50df54b1195db0d31e33f",
+   "bytes": 212992,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/JSONExporter_protein.oms (schema 3)"
+  },
+  {
+   "path": "tests/data/oms_file/JSONExporter_RNA.oms",
+   "sha256": "8f8f2e78a11a997b2e2484d1a35f8fe2d1d20a911b40168f03f957b32c17dc04",
+   "bytes": 188416,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/JSONExporter_RNA.oms (schema 3)"
+  },
+  {
+   "path": "tests/data/oms_file/JSONExporter_1_output.json",
+   "sha256": "497358adc39f7efced84e46a938a4f12808382d01f19f9d01d72c75a6d41fdcb",
+   "bytes": 12487,
+   "kind": "retained upstream output: test-data 0cb15f2 topp/JSONExporter_1_output.json"
+  },
+  {
+   "path": "tests/data/oms_file/JSONExporter_2_output.json",
+   "sha256": "55ea132a2aaf8c676b5225dc3aae14f5aaac33b14e4fcad93b4802546c8dd596",
+   "bytes": 12446,
+   "kind": "retained upstream output: test-data 0cb15f2 topp/JSONExporter_2_output.json"
+  },
+  {
+   "path": "tests/data/oms_file/IDMerger_6_input1.oms",
+   "sha256": "3cfc9e34feb8f2f63cf9ada256704c34ec56a207b2322b84f1414e1c9f6b8e60",
+   "bytes": 172032,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/IDMerger_6_input1.oms (schema 1)"
+  },
+  {
+   "path": "tests/data/oms_file/IDMerger_6_input2.oms",
+   "sha256": "4a92d1289be863ee7d9e5870ef8df4f80ef0a8ed82aa6e4d13ce9cf80276f28e",
+   "bytes": 172032,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/IDMerger_6_input2.oms (schema 1)"
+  },
+  {
+   "path": "tests/data/oms_file/release/idxml_whole.oms",
+   "sha256": "e768505b6fd87c68fc14b46672dc8cf712cbf03ee2182f60a1eb23ee85794bb9",
+   "bytes": 217088,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp sections 1-2 (IdXMLFile_whole.idXML, importIDs, Cl- adduct), OMSFile::store Run 2 differs from run 1 only in the random unique id the idXML import appends to each synthesised ID_InputFile name (UNKNOWN_INPUT_FILE_<engine>_<date>_<id>) and the rows referencing it; run 1's file is the fixture."
+  },
+  {
+   "path": "tests/data/oms_file/release/feature.oms",
+   "sha256": "db39058a3f37533335f45acf429a5f83bd227cc2701e73b6ae9359be0bede21b",
+   "bytes": 217088,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp section 3 (FeatureXMLFileOMStest_1.featureXML, importFeatureIDs), OMSFile::store Run 2 differs from run 1 only in the random unique id the idXML import appends to each synthesised ID_InputFile name (UNKNOWN_INPUT_FILE_<engine>_<date>_<id>) and the rows referencing it; run 1's file is the fixture."
+  },
+  {
+   "path": "tests/data/oms_file/release/consensus.oms",
+   "sha256": "decefdb7d0a6c7899b0a41c1a52b47f05aeacd05ddfd0e03ea4623cb8107c47b",
+   "bytes": 233472,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: OMSFile_test.cpp section 5 (ConsensusXMLFile_1.consensusXML, importConsensusIDs), OMSFile::store Run 2 differs from run 1 only in the random unique id the idXML import appends to each synthesised ID_InputFile name (UNKNOWN_INPUT_FILE_<engine>_<date>_<id>) and the rows referencing it; run 1's file is the fixture."
+  },
+  {
+   "path": "tests/data/oms_file/release/feature_loaded.tsv",
+   "sha256": "fae58691789bfff91dbcf80f77f6af5560cbb0eab71fb88693fc0d16b71864e0",
+   "bytes": 290,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: values of OMSFile::load(feature.oms, FeatureMap&)"
+  },
+  {
+   "path": "tests/data/oms_file/release/consensus_loaded.tsv",
+   "sha256": "1642e0e3ee79b7e696d1a244e5a8555a34803b9c12a26834b068d823801840d4",
+   "bytes": 1097,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: values of OMSFile::load(consensus.oms, ConsensusMap&)"
+  },
+  {
+   "path": "tests/data/oms_file/release/noid_outcome.tsv",
+   "sha256": "b2cea56196edaadad0c996195f7e1cd88e4cf40b7aa04b2915bd520bb9ec58cc",
+   "bytes": 190,
+   "kind": "Release C++ output (oracle/F2-oms-noid, ibminode06, run twice): OMSFile::store of the feature and consensus fixtures without identification data"
+  },
+  {
+   "path": "tests/data/oms_file/release/host.txt",
+   "sha256": "b7b2b23538d424b88059d5daa6ad2117bcba370b8802fe02c22dab2c61b1542c",
+   "bytes": 520,
+   "kind": "host, install and compiler of the oracle run"
+  },
+  {
+   "path": "tests/data/MzTabMFile_input_1.oms",
+   "sha256": "dc8ad5b7b08406a7decf7229d4e9de52d7e3e50a891657f5e76074906bf1bd09",
+   "bytes": 708608,
+   "kind": "unmodified class-test input: core bc9cc12 src/tests/class_tests/openms/data/MzTabMFile_input_1.oms (schema 1; also registered in tests/data/mztab_m_provenance.json)"
+  },
+  {
+   "path": "tests/data/oms_file/release/mztabm.rt.tables.tsv.gz",
+   "sha256": "e14d6ba56c5086ab7aa2efe0250424034fa9e5bc351de37666ddc80646ec7423",
+   "bytes": 94254,
+   "kind": "Release C++ output (oracle/F2-oms-mztabm, ibminode06, run twice): gzip -9 -n of dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of MzTabMFile_input_1.oms"
+  },
+  {
+   "path": "tests/data/oms_file/release/mztabm_outcome.tsv",
+   "sha256": "604e50f2040f8e2b1c51ff6d866ac0aa94eb4661db81f13c86dff156da3851e8",
+   "bytes": 51,
+   "kind": "Release C++ output (oracle/F2-oms-mztabm): record counts of the loaded MzTabMFile_input_1.oms"
+  },
+  {
+   "path": "tests/data/oms_file/release/id_JSONExporter_protein.rt.tables.tsv",
+   "sha256": "b81e1c9a79e751389f6e83a59fd369bfdffd35c6e5c6b2e68c435725ec616044",
+   "bytes": 23155,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (id_JSONExporter_protein.rt.oms)"
+  },
+  {
+   "path": "tests/data/oms_file/release/id_JSONExporter_RNA.rt.tables.tsv",
+   "sha256": "7133e56b36a79cf546c1b8600221953937ee226b5bceb079a64fe308b234b64c",
+   "bytes": 35519,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (id_JSONExporter_RNA.rt.oms)"
+  },
+  {
+   "path": "tests/data/oms_file/release/id_IDMerger_6_input1.rt.tables.tsv",
+   "sha256": "1227e8c49cbc71c4ca73ba9592bd2d3a1fa95727be5bdc90a65f069e711ae876",
+   "bytes": 88436,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (id_IDMerger_6_input1.rt.oms)"
+  },
+  {
+   "path": "tests/data/oms_file/release/id_IDMerger_6_input2.rt.tables.tsv",
+   "sha256": "e60a3b8232a51d5f06d170cef268450abc6acb933d36e8c0d625dc553e707269",
+   "bytes": 125320,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (id_IDMerger_6_input2.rt.oms)"
+  },
+  {
+   "path": "tests/data/oms_file/release/idxml_whole.rt.tables.tsv",
+   "sha256": "c68f4ffe03feeff30c4017336b4df90c3a7a80cc3e77727c0a19a8c45de5eea9",
+   "bytes": 24325,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (idxml_whole.rt.oms)"
+  },
+  {
+   "path": "tests/data/oms_file/release/feature.rt.tables.tsv",
+   "sha256": "7484705bc7c8ee463bf112b40aafc937aaf5ca400b85cf46109cbad80f9fb261",
+   "bytes": 24996,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (feature.rt.oms)"
+  },
+  {
+   "path": "tests/data/oms_file/release/consensus.rt.tables.tsv",
+   "sha256": "b86e9e28aa26995c7821d2f5eec8696068a55f70ae3fd23bfe6b9d3680e11474",
+   "bytes": 34552,
+   "kind": "Release C++ output: written by the Linux x86_64 Release build (openms4-release-bc9cc12-c19e494-174b576, ibminode06, gcc 14.4.0) in oracle/F2-oms, run twice: oracle/F2-oms/dump_tables.py of the database the Release build wrote by OMSFile::load then OMSFile::store of the corresponding input (consensus.rt.oms)"
+  }
+ ]
+}

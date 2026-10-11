@@ -1,0 +1,2 @@
+/scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp(67): While loading 'input.protXML': invalid character encountered( in line 9 column 207)
+Error: Unable to read file (While loading 'input.protXML': invalid character encountered( in line 9 column 207) in: input.protXML)

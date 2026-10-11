@@ -21,7 +21,7 @@ There is no new public API or dependency.
 | activation `MS:1000045`, collision energy | Floating metadata `collision energy`, with its unit |
 | activation `MS:1000412`, buffer gas | String metadata `buffer gas`, with any explicit unit |
 | activation `MS:1000419`, collision gas | String metadata `collision gas`, with any explicit unit |
-| activation `MS:1000138`, normalized collision energy | Floating metadata under the source's historical key `percent collision energy` |
+| activation `MS:1000138`, normalized collision energy | Floating metadata under the source's historical key `percent collision energy`; written back as a userParam, as the source writes it (below) |
 | activation `MS:1000869`, collision gas pressure | Floating metadata `collision gas pressure`, with its unit |
 | activation `MS:1002679`, supplemental collision-induced dissociation | String metadata of that name, also derives `ActivationMethod::Etcid` |
 | activation `MS:1002678`, supplemental beam-type collision-induced dissociation | String metadata of that name, also derives `ActivationMethod::Ethcd` |
@@ -40,6 +40,17 @@ it does not validate that a known term is physically appropriate for intensity.
 Known activation metadata is emitted as a CV parameter when its native type
 matches the source reader: floats for numeric terms and strings for text terms.
 `charge stripping` is promoted only for the exact unitless string `"true"`.
+`percent collision energy` is never promoted: the source writer reaches a
+cvParam only through `checkAndGetTermByName(key)` (`MzMLHandler.cpp:3666`), an
+exact lookup of the metadata key among term names, and the pinned CV names
+`MS:1000138` "normalized collision energy", so the source writes the key its own
+reader stored (`:1919-1922`) back as
+`<userParam name="percent collision energy" type="xsd:double" value="35.0"/>`.
+Measured on the Linux x86_64 Release build (`../oracle/F7a-record-cv`,
+FileConverter plain and `-process_lowmemory`, ibminode06, two identical runs);
+pinned by `record_level_cv_promotion_matches_the_release_streaming_writer` in
+`tests/ms_data_writing_consumer.rs`. Earlier revisions of this port wrote the
+`MS:1000138` cvParam instead.
 Other scalar types/values remain userParams, preserving their identity and type.
 Both spectrum and chromatogram precursors use the same native transport.
 

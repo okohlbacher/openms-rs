@@ -94,7 +94,8 @@ pub const SCHEMA_VERSION: &str = "1.05";
 /// Schema resource the source `MzDataFile` constructor names
 /// (`MzDataFile.cpp:18`). The crate carries that schema unchanged and
 /// validates against it with the `xml-schema` feature (`MzDataFile::is_valid`);
-/// semantic validation is not ported, see [`MzDataFile::is_semantically_valid`].
+/// semantic validation is `MzDataFile::is_semantically_valid`, with the
+/// `semantic-validation` feature.
 pub const SCHEMA_FILE: &str = "/SCHEMAS/mzData_1_05.xsd";
 
 /// `xsi:noNamespaceSchemaLocation` the writer emits, verbatim from
@@ -653,27 +654,36 @@ impl MzDataFile {
         store_with_progress(path, experiment, &self.write_options(), logger)
     }
 
-    /// Not ported: the source `isSemanticallyValid` validates a document
-    /// against `/MAPPING/mzdata-mapping.xml` and `/CV/psi-mzdata.obo`.
+    /// Checks whether a file is valid with respect to the mapping file and the
+    /// controlled vocabulary, source `isSemanticallyValid(filename, errors,
+    /// warnings)` (`MzDataFile.cpp:40-55`).
     ///
-    /// `MzDataFile_test.cpp:849-854` marks its own section `NOT_TESTABLE` with
-    /// the comment that this "is not officially supported - the mapping file
-    /// was hand-crafted", and neither resource ships with this crate. The
-    /// generic machinery exists in
-    /// `crate::format::semantic_validator` behind the
-    /// `semantic-validation` feature and can be pointed at an mzData mapping
-    /// by a caller that has one. Its two `@param[out]` lists, `errors` and
-    /// `warnings`, would be returned rather than filled in; the source's
-    /// `@exception Exception::FileNotFound` would be [`Error::Io`].
+    /// The source loads `/MAPPING/mzdata-mapping.xml` and, under the name
+    /// `PSI`, `/CV/psi-mzdata.obo`, and runs `MzDataValidator` over the file;
+    /// this runs [`MzDataValidator`](crate::format::semantic_validator::mzdata::MzDataValidator)
+    /// over unchanged bundled copies of both. The source's two `@param[out]`
+    /// lists are the report's `errors` and `warnings`, in the source's order,
+    /// and its `bool` is the report's `is_valid()`. Available with the
+    /// `semantic-validation` feature.
+    ///
+    /// `MzDataFile_test.cpp:849-854` marks the member `NOT_TESTABLE` ("not
+    /// officially supported - the mapping file was hand-crafted"); the
+    /// reports are instead the Release build's, message for message
+    /// (`tests/mzdata.rs`, `docs/MZDATA_SUPPORT.md`). The adapter's options
+    /// play no part, as the source's play none.
     ///
     /// # Errors
     ///
-    /// Always [`Error::Unsupported`].
-    pub fn is_semantically_valid(&self, _path: impl AsRef<Path>) -> Result<bool> {
-        Err(Error::Unsupported(
-            "mzData semantic validation needs the unshipped mzdata-mapping.xml and psi-mzdata.obo"
-                .into(),
-        ))
+    /// [`Error::Io`] when the file cannot be opened, where the source throws
+    /// `Exception::FileNotFound`; [`Error::Parse`] for a document that is not
+    /// well-formed XML, where the source throws `Exception::ParseError`; and
+    /// [`Error::InvalidValue`] when a validation ceiling is exceeded.
+    #[cfg(feature = "semantic-validation")]
+    pub fn is_semantically_valid(
+        &self,
+        path: impl AsRef<Path>,
+    ) -> Result<crate::format::semantic_validator::ValidationReport> {
+        crate::format::semantic_validator::mzdata::validate_semantics(path)
     }
 
     /// Validate a file against the bundled `mzData_1_05.xsd`, the

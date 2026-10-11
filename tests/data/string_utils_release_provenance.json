@@ -1,0 +1,78 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c0",
+ "evidence_tier": "executed differential (tier 1), against the OpenMS4 Linux x86_64 Release C++ build",
+ "method": "An oracle driver linked against the Release install at /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (conda-forge x86_64-conda-linux-gnu-g++ 14.4.0, libOpenMS core flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off) on ibminode06 calls StringUtils::toInt32, toFloat and toDouble on 82 edge inputs and ProteinIdentification::sort on seven hits with tied scores in both directions. It ran twice in fresh processes with a clean environment; both runs agreed byte for byte (results/differ.txt empty). Doubles are printed with %.17g, floats with %.9g, NaN as nan or -nan by its sign bit, and a thrown ConversionError as ERR:<what()>. This run is what made the port follow libstdc++'s std::from_chars: a nonzero literal that rounds to zero is a conversion error there, and nan(n-char-sequence) is accepted after a minus sign; the earlier behaviour followed the libc++ strtod fallback, which the Linux build does not compile.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h",
+   "sha256": "b793c628dce435a0432a73bbbcd7e028409707884a1ad2268b313af787ec2813"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/StringUtils.cpp",
+   "sha256": "910ed65de290698b0349afa956f518043a92d21402cd44feb250018aa378e668",
+   "note": "toInt32 136-166, toFloat 200-237, toDouble 239-276; parseFloat dispatches to std::from_chars on libstdc++ and to the strtod fallback only on libc++ (OPENMS_NO_FLOAT_FROM_CHARS)"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ProteinHit.h",
+   "sha256": "e6f6c1a7602221259d8ea7441e117a93bc617e10f51764a847021fd50031a14d",
+   "note": "ScoreMore 72-80 and ScoreLess 83-92 compare the tuple (score, accession)"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/ProteinIdentification.h",
+   "sha256": "539ca870452824774023ee96112f279d319a00053fa8ddc9c9ae8faa942f86be"
+  },
+  {
+   "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
+   "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585",
+   "note": "sort 649-659: stable_sort with ScoreMore or ScoreLess"
+  }
+ ],
+ "native_implementation": [
+  "src/data_structures/string_utils.rs",
+  "src/identification.rs"
+ ],
+ "native_tests": [
+  "tests/string_utils_release.rs",
+  "tests/identification.rs"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/string_utils_release/cpp_release_records.tsv",
+   "sha256": "08378206aea7cd80146021c8b7d664fde5b459b6a053673de6ca965ef555d3f0",
+   "rows": 248,
+   "kind": "executed Release C++ output (results/records.tsv of ../oracle/integ-F-stringutils)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/integ-F-stringutils/driver.cpp",
+   "sha256": "7bf19704a1c2991371a185d2240807e592b7398eb024758356e52e6c5c6fc499",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-stringutils/remote_run.sh",
+   "sha256": "338333326be55d24a32d439fe1a5298ef355a137df1bc31ea827aa7e0bca5cdb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-stringutils/run.sh",
+   "sha256": "8f36878520d5657d322b70c2d1876bf5adee7b9a68e2359ea94251bd410fd63e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The oracle driver and its build/run scripts are C++ and shell for the Release install; no C++ enters this repository, so they stay under ../oracle/integ-F-stringutils/ with their sha256 recorded here. The built driver binary hashed 93b82c2d17bb66155d0d66c7389ed95f35e11a2941902e1bbcab56e8007dccd1 on ibminode06.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

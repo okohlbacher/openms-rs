@@ -1,0 +1,53 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ChromeleonFile.h",
+      "sha256": "f79f87b369edf442885c82fd37bfb14a3e696e8cccb1c8bddd2d340ce05f5ad4",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/ChromeleonFile.cpp",
+      "sha256": "8c851527393560fe858dffbdb3c84946e7efd63fdcf58bcceb9d78e3134cbe48",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ChromeleonFile_test.cpp",
+      "sha256": "89e7db85c64c469163fa998bb0122141009bd5659a5c10b722ffa7e49e5d04fa",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/chromeleon_file/20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt",
+      "sha256": "a78b18b5bf9cabb273467d54905d08dec79fbe835282f19a08f69168b5e5a9bd",
+      "bytes": 86439,
+      "role": "Upstream class-test input, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt"
+    },
+    {
+      "path": "tests/data/chromeleon_file/ChromeleonFile_commas.txt",
+      "sha256": "710613a9a196aaa66b9eaf22bc7b723691e115159d0683b7fdb703bad5cad209",
+      "bytes": 1352,
+      "role": "Upstream class-test input, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/ChromeleonFile_commas.txt"
+    },
+    {
+      "path": "tests/data/chromeleon_file/ChromeleonFile_new_header.txt",
+      "sha256": "2b87d499ef80fa3b24ce1cdb0cc202baf264a725e9179a34129d5074f848bb9f",
+      "bytes": 1396,
+      "role": "Upstream class-test input, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/ChromeleonFile_new_header.txt"
+    }
+  ],
+  "native_implementation": [
+    "src/format/chromeleon.rs"
+  ],
+  "native_tests": [
+    "tests/chromeleon_file.rs"
+  ],
+  "support_document": "docs/CHROMELEON_FILE_SUPPORT.md",
+  "evidence": "Tier 3 source review: every START_SECTION of ChromeleonFile_test.cpp reproduced with its literals over the byte-identical upstream fixtures."
+}

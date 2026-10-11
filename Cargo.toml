@@ -73,11 +73,26 @@ mzml-schema = ["mzml", "xml-schema"]
 # binding, so it stays out of `default` like `mzml-schema` always has.
 xml-schema = ["dep:libxml", "dep:quick-xml", "file-compression"]
 cv-mapping = ["dep:quick-xml", "file-compression"]
-file-compression = ["dep:flate2", "dep:bzip2"]
+file-compression = ["dep:flate2", "dep:bzip2", "dep:zip"]
 sqlite = ["dep:rusqlite"]
 sqmass = ["sqlite", "mzml"]
+# Bruker timsTOF .d (TDF) reading: SQLite metadata plus zstd frames decoded by
+# the pure-Rust ruzstd (docs/THIRD_PARTY_CRATE_DECISIONS.md).
+bruker-tdf = ["sqlite", "dep:ruzstd"]
 parallel = ["dep:rayon"]
 network = ["dep:ureq"]
+# Apache Arrow tables and Parquet files: the FORMAT Arrow/Parquet family
+# (ArrowSchemaRegistry, ArrowIOHelpers, ParquetFile, the *ArrowIO classes) and
+# everything built on it. Kept out of `default` because ZSTD, the source's
+# default Parquet codec, compiles the C zstd library (see
+# docs/THIRD_PARTY_CRATE_DECISIONS.md). `numpress` because the OpenSWATH
+# Parquet files (.xic/.xim/.xipm) store MS-Numpress + zlib arrays.
+arrow = ["dep:arrow-array", "dep:arrow-schema", "dep:arrow-buffer", "dep:arrow-select", "dep:parquet", "numpress", "dep:blake2"]
+# Knowledge-base XML readers: PTMXML, Unimod XML (a runtime reader for the
+# modification data the default build flattens offline) and UniProtKB XML
+# (plain or gzip/bzip2). quick-xml is already a dependency of the default
+# formats; this only gathers the three dialects behind one switch.
+kb-xml = ["dep:quick-xml", "file-compression"]
 
 [dependencies]
 libxml = { version = "=0.3.14", optional = true }
@@ -88,12 +103,22 @@ quick-xml = { version = "=0.39.4", optional = true }
 base64 = { version = "=0.22.1", optional = true }
 flate2 = { version = "=1.1.9", optional = true }
 bzip2 = { version = "=0.6.1", optional = true }
+# ZIP containers: FORMAT/ZipIfstream (a single-entry archive read like a gzip
+# or bzip2 file) and FORMAT/ZipArchiveFile, replacing libzip. Only the archive
+# structure is used from this crate: entries are decoded with flate2 and bzip2
+# above and written stored, so no further codec is enabled. 6.0.0 declares
+# rust-version 1.83; see docs/THIRD_PARTY_CRATE_DECISIONS.md.
+zip = { version = "=6.0.0", default-features = false, features = ["deflate-flate2", "bzip2"], optional = true }
 serde_json = { version = "=1.0.150", features = ["float_roundtrip"], optional = true }
 # SQLite-backed formats: SqMass, OSW, OMSFile and the mzML SQLite handlers.
 # `bundled` vendors SQLite so there is no system dependency, at the cost of
 # compiling C - the same trade already accepted for libxml, and like libxml this
 # is kept out of `default` so an ordinary build needs no C toolchain.
 rusqlite = { version = "=0.40.2", default-features = false, features = ["bundled", "limits"], optional = true }
+# zstd decoding of Bruker TDF frames (`bruker-tdf`). Pure Rust. `hash` pulls the
+# pure-Rust twox-hash (xxhash64 only) so a frame's content checksum can be
+# verified, as libzstd does by default under the source's opentims.
+ruzstd = { version = "=0.8.1", default-features = false, features = ["std", "hash"], optional = true }
 # Data parallelism. OpenMS parallelises with OpenMP - 176 pragmas, ~100 of them
 # in ANALYSIS - and rayon maps onto the dominant `parallel for` shape directly.
 # Default-on, because a multithreaded core is the point; disabling the feature
@@ -118,6 +143,23 @@ fancy-regex = { version = "=0.19.2", default-features = false, features = ["std"
 # HTTP for SYSTEM/NetworkGetRequest and the update check. Pure Rust, blocking,
 # no async runtime. Its MSRV is exactly ours, so the pin is load-bearing.
 ureq = { version = "=3.4.1", optional = true }
+# Apache Arrow C++ and its Parquet reader/writer (the FORMAT Arrow/Parquet
+# family). The arrow-rs sub-crates rather than the `arrow` umbrella, which would
+# add arrow-arith, arrow-ord, arrow-row and arrow-string (regex) that nothing
+# here calls. 60.0 needs Rust 1.88; 59.3.0 is the last release declaring 1.85.
+# Codecs: every one ParquetWriteConfig names (SNAPPY, GZIP, LZ4, ZSTD) plus
+# BROTLI, so files other producers wrote can be read. `zstd` builds the C zstd
+# library through zstd-sys, the reason the feature stays out of `default`.
+arrow-array = { version = "=59.3.0", optional = true }
+arrow-schema = { version = "=59.3.0", optional = true }
+arrow-buffer = { version = "=59.3.0", optional = true }
+arrow-select = { version = "=59.3.0", optional = true }
+parquet = { version = "=59.3.0", default-features = false, features = ["arrow", "snap", "flate2-rust_backend", "lz4", "zstd", "brotli"], optional = true }
+# BLAKE2b with an 8-byte digest for the QPX row identities (QPXIdentity), which
+# the source vendors from RFC 7693. RustCrypto, pure Rust, MSRV 1.41; its
+# digest/crypto-common/block-buffer/subtle dependencies are already locked
+# through sha1. Enabled by `arrow`, the only feature that writes QPX.
+blake2 = { version = "=0.10.6", default-features = false, optional = true }
 
 [dev-dependencies]
 # Eigen's NonLinearOptimization Levenberg-Marquardt. Measured against the Eigen

@@ -1,0 +1,80 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/GNPSQuantificationFile.h",
+      "sha256": "759a7f90a5fe2256f69103139bb51f91356a46859d63073d5a466fb80d7e78b4",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/GNPSQuantificationFile.cpp",
+      "sha256": "d4d4a08625a2d77880f87a2bfd7a9deebd8eee9adcb22fdfff747b81fca96582",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/GNPSQuantificationFile_test.cpp",
+      "sha256": "962e435b18738b31432716351c1887b87e65868deda65be656d57a35b5bd7b41",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/GNPSMetaValueFile.h",
+      "sha256": "5ce7ae15ba5e08976e49ceaf4a4e9a5a706beeb4d5ed6ef3d61cd7507bbb91dd",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/GNPSMetaValueFile.cpp",
+      "sha256": "0ba5c8e2ad9aa9d64c72317a8ba18c6a967da14e96e59cb66632f139a69b10a3",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/GNPSMetaValueFile_test.cpp",
+      "sha256": "499ab05a292bf3fb0d3bb154e8bfb173cf7f8c2ce11113c548e609ddc01d8dcd",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/gnps_tables/GNPSExport_1_out_quant.txt",
+      "sha256": "7c0a969e91030eaad14d3629bf28e135eca150a8c659b3401cd217938b260683",
+      "bytes": 38443,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_1_out_quant.txt"
+    },
+    {
+      "path": "tests/data/gnps_tables/GNPSExport_4_out_meta_values.tsv",
+      "sha256": "443a4a5a45bf29674b92d653a1b44f418952f2744fa7bfa212d4b561b05ad55f",
+      "bytes": 54,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_4_out_meta_values.tsv"
+    },
+    {
+      "path": "tests/data/gnps_tables/GNPSExport_cons1.consensusXML",
+      "sha256": "3d655c7790643abdd89dfa231c96929d6169db23c3b8151ca4482068a568e824",
+      "bytes": 228970,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_cons1.consensusXML"
+    },
+    {
+      "path": "tests/data/gnps_tables/GNPSExport_cons2.consensusXML",
+      "sha256": "c3505df9713b807fa551edd074645625d101ede0f9d0058ea4b09dc3790d1865",
+      "bytes": 261645,
+      "role": "Upstream GNPSExport TOPP-test input or retained C++ output, byte-identical.",
+      "source_package": "OpenMS4-test-data@0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+      "source_path": "topp/GNPSExport_cons2.consensusXML"
+    }
+  ],
+  "native_implementation": [
+    "src/format/gnps_quantification.rs",
+    "src/format/gnps_meta_value.rs"
+  ],
+  "native_tests": [
+    "tests/gnps_tables.rs"
+  ],
+  "support_document": "docs/GNPS_TABLES_SUPPORT.md",
+  "evidence": "Tier 1 retained-output differential: GNPSExport_1 (out_quantification) and GNPSExport_4 (out_meta_values), test-data topp/CMakeLists.txt, compared line by line and number by identical f64; tier 3 for the class-test sections."
+}

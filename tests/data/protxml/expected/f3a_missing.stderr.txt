@@ -1,0 +1,2 @@
+Required attribute 'percent_coverage' missing
+Required attribute 'charge' missing

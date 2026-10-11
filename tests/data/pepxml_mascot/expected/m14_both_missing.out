@@ -1,0 +1,4 @@
+load m14_both_missing.pepXML
+status exception Parse Error: While loading 'm14_both_missing.pepXML': Required attribute 'mass' not present!
+Probable cause: The file suffix (pepXML) does not match the file content (unknown). Rename the file to fix this. in: m14_both_missing.pepXML
+peptides 0

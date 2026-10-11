@@ -20,6 +20,9 @@
 //! does not reproduce is listed in `docs/MASCOT_XML_SUPPORT.md`.
 
 use crate::chemistry::{AASequence, ModificationsDB, ProteaseDB};
+use crate::format::spectrum_meta_data_lookup::{
+    DEFAULT_SCAN_REGEXP, MetaDataFlags, SpectrumMetaData as LookupMetaData, SpectrumMetaDataLookup,
+};
 use crate::identification::{
     FlankingResidue, PeakMassType, PeptideEvidence, PeptideHit, PeptideIdentification, ProteinHit,
     ProteinIdentification, SearchParameters,
@@ -168,9 +171,11 @@ pub struct SpectrumMetaData {
 /// One of the spectrum-reference formats `MascotXMLFile::initializeLookup`
 /// registers.
 ///
-/// The source registers Boost regular expressions. This crate has no regular
-/// expression engine and may not add a dependency, so the three default
-/// formats are hand-coded and a caller-supplied `scan_regex` is refused; see
+/// The source registers Boost regular expressions. The three default formats
+/// are hand-coded equivalents of its three expressions; a caller-supplied
+/// `scan_regex` is a [`Self::Regex`] format, compiled by the crate's Boost
+/// regular-expression port and evaluated by
+/// [`crate::format::spectrum_meta_data_lookup`]; see
 /// `docs/MASCOT_XML_SUPPORT.md`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TitleReferenceFormat {
@@ -185,6 +190,14 @@ pub enum TitleReferenceFormat {
     /// precursor m/z and retention time joined by an underscore, as
     /// `MascotGenericFile` writes them.
     MzThenRt,
+    /// A caller-supplied Boost regular expression with named groups, the
+    /// `n`th registered with [`SpectrumTitleLookup::add_regex_reference_format`]
+    /// (the source's `addReferenceFormat(scan_regex)`). It is evaluated as
+    /// `SpectrumMetaDataLookup::getSpectrumMetaData` evaluates any format: the
+    /// `RT` and `MZ` groups supply values directly, and `INDEX0`, `INDEX1`,
+    /// `SCAN`, `ID` or `RT` locate a spectrum read with
+    /// [`SpectrumTitleLookup::read_spectra`] otherwise.
+    Regex(usize),
 }
 
 /// What one reference format extracted from a title.
@@ -210,6 +223,9 @@ pub struct SpectrumTitleLookup {
     by_native_id: BTreeMap<String, usize>,
     rts: Vec<(f64, usize)>,
     formats: Vec<TitleReferenceFormat>,
+    /// The same spectra, and the caller-supplied expressions, for the
+    /// [`TitleReferenceFormat::Regex`] formats.
+    regex: SpectrumMetaDataLookup,
     /// Half-width of the retention-time window a title-derived RT may match,
     /// the source `SpectrumLookup::rt_tolerance` default.
     pub rt_tolerance: f64,
@@ -262,6 +278,9 @@ impl SpectrumTitleLookup {
                 native_id: spectrum.native_id.clone(),
             });
         }
+        // `readSpectra(spectra)` with its defaults, for the expression formats.
+        self.regex
+            .read_spectra(&experiment.spectra, DEFAULT_SCAN_REGEXP, false)?;
         self.by_scan.clear();
         self.by_native_id.clear();
         self.rts.clear();
@@ -281,8 +300,29 @@ impl SpectrumTitleLookup {
     }
 
     /// Append a reference format, as `addReferenceFormat` does.
+    ///
+    /// A [`TitleReferenceFormat::Regex`] index that
+    /// [`Self::add_regex_reference_format`] did not hand out matches nothing.
     pub fn add_reference_format(&mut self, format: TitleReferenceFormat) {
         self.formats.push(format);
+    }
+
+    /// Append a caller-supplied Boost regular expression as a reference
+    /// format, as `addReferenceFormat(regexp)` does, and return the
+    /// [`TitleReferenceFormat::Regex`] it was registered as.
+    ///
+    /// # Errors
+    ///
+    /// [`InvalidValue`](crate::Error::InvalidValue) when `regexp` names none of
+    /// the groups `INDEX0`, `INDEX1`, `SCAN`, `ID` and `RT` as `?<NAME>` (the
+    /// source's `Exception::IllegalArgument`) or is not a valid Boost
+    /// expression (the source's `boost::regex_error`). Nothing is registered on
+    /// error.
+    pub fn add_regex_reference_format(&mut self, regexp: &str) -> Result<TitleReferenceFormat> {
+        let format = TitleReferenceFormat::Regex(self.regex.reference_formats().len());
+        self.regex.add_reference_format(regexp)?;
+        self.formats.push(format);
+        Ok(format)
     }
 
     /// Whether no spectra have been read. Mirrors `SpectrumLookup::empty`,
@@ -328,6 +368,27 @@ impl SpectrumTitleLookup {
     /// catches both and reports them as warnings.
     pub fn spectrum_meta_data(&self, title: &str, want_mz: bool) -> Result<SpectrumMetaData> {
         for &format in &self.formats {
+            if let TitleReferenceFormat::Regex(index) = format {
+                let mut flags = MetaDataFlags::RT;
+                if want_mz {
+                    flags |= MetaDataFlags::PRECURSOR_MZ;
+                }
+                let mut meta = LookupMetaData::default();
+                if self
+                    .regex
+                    .meta_data_with_format(index, title, &mut meta, flags)?
+                {
+                    return Ok(SpectrumMetaData {
+                        rt: meta.rt,
+                        precursor_mz: meta.precursor_mz,
+                        precursor_charge: meta.precursor_charge,
+                        ms_level: meta.ms_level,
+                        scan_number: meta.scan_number,
+                        native_id: meta.native_id,
+                    });
+                }
+                continue;
+            }
             // A format that matched but whose captured value does not convert is
             // an error, not a miss: the source returns after the first matching
             // expression, so the later formats are never tried.
@@ -452,6 +513,8 @@ fn match_title(title: &str, format: TitleReferenceFormat) -> Result<Option<Title
         TitleReferenceFormat::ScanNumber => match_scan_number(title),
         TitleReferenceFormat::DtaFileName => match_dta_name(title),
         TitleReferenceFormat::MzThenRt => match_mz_then_rt(title),
+        // Evaluated by the expression lookup in `spectrum_meta_data`.
+        TitleReferenceFormat::Regex(_) => Ok(None),
     }
 }
 
@@ -704,27 +767,28 @@ impl MascotXmlFile {
     /// are recognised as well as the m/z-underscore-RT form; without it only
     /// the last is, because it needs no spectrum to resolve.
     ///
-    /// `scan_regex` is the source's optional override. This port cannot compile
-    /// an arbitrary expression and refuses a non-empty one; pass `None` to use
-    /// the default formats, or build the lookup directly with
-    /// [`SpectrumTitleLookup::add_reference_format`].
+    /// `scan_regex` is the source's optional override: a non-empty expression
+    /// (even one of white space only, as in the source) replaces all three
+    /// default formats and is registered as the only one, a
+    /// [`TitleReferenceFormat::Regex`]. `None` and the empty string select the
+    /// defaults.
     ///
     /// # Errors
     ///
-    /// Returns [`Unsupported`](crate::Error::Unsupported) for a non-empty
-    /// `scan_regex`, and [`InvalidValue`](crate::Error::InvalidValue) when the
-    /// experiment exceeds the spectrum ceiling.
+    /// Returns [`InvalidValue`](crate::Error::InvalidValue) when the
+    /// experiment exceeds the spectrum ceiling, and for a `scan_regex` that
+    /// names none of the groups `INDEX0`, `INDEX1`, `SCAN`, `ID` and `RT` (the
+    /// source's `Exception::IllegalArgument`) or does not compile (its
+    /// `boost::regex_error`).
     pub fn initialize_lookup(
         experiment: &MSExperiment,
         scan_regex: Option<&str>,
     ) -> Result<(SpectrumTitleLookup, Vec<String>)> {
         let mut lookup = SpectrumTitleLookup::new();
         let warnings = lookup.read_spectra(experiment)?;
-        match scan_regex.map(str::trim).filter(|value| !value.is_empty()) {
-            Some(_) => {
-                return Err(Error::Unsupported(
-                    "a caller-supplied Mascot scan_regex needs a regular-expression engine, which this crate does not have; register a TitleReferenceFormat instead".into(),
-                ));
+        match scan_regex.filter(|value| !value.is_empty()) {
+            Some(expression) => {
+                lookup.add_regex_reference_format(expression)?;
             }
             None => {
                 // Raw data given, so a spectrum look-up is possible. Possible

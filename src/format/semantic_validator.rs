@@ -3,6 +3,10 @@
 // $Maintainer: OpenMS Rust contributors $
 //! General source CV mapping validation with operation-local XML and rule state.
 
+/// The mzData specialisation, source `MzDataValidator`.
+#[path = "mzdata_validator.rs"]
+pub mod mzdata;
+/// The mzML specialisation, source `MzMLValidator`.
 #[cfg(feature = "mzml-validation")]
 #[path = "mzml_validator.rs"]
 pub mod mzml;
@@ -29,6 +33,8 @@ pub struct ParsedCVTerm {
     pub has_unit_name: bool,
 }
 
+/// Resource ceilings of one validation, checked as the document is read; the
+/// source has none.
 #[derive(Clone, Copy, Debug)]
 pub struct ValidationLimits {
     pub max_input_bytes: usize,
@@ -99,12 +105,14 @@ impl Default for ValidationOptions {
 }
 
 /// Semantic failures are an ordinary report. XML, I/O and resource failures are Err.
+/// The source's `errors` and `warnings` output lists of `validate`.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ValidationReport {
     pub errors: Vec<String>,
     pub warnings: Vec<String>,
 }
 impl ValidationReport {
+    /// The source's returned `bool`: no error was found.
     pub fn is_valid(&self) -> bool {
         self.errors.is_empty()
     }
@@ -118,6 +126,8 @@ pub struct SemanticValidator<'a> {
     pub options: ValidationOptions,
 }
 impl<'a> SemanticValidator<'a> {
+    /// Source `SemanticValidator(mapping, cv)`: `cv` must hold all the
+    /// vocabularies the mapping needs. Unit checking starts off.
     pub fn new(mapping: &'a CVMappings, cv: &'a ControlledVocabulary) -> Self {
         Self {
             mapping,
@@ -125,9 +135,23 @@ impl<'a> SemanticValidator<'a> {
             options: ValidationOptions::default(),
         }
     }
+    /// Source `validate(filename, errors, warnings)`; the report carries the
+    /// two lists.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when the file cannot be opened, otherwise as
+    /// [`SemanticValidator::validate_reader`].
     pub fn validate(&self, path: impl AsRef<Path>) -> Result<ValidationReport> {
         self.validate_reader(super::path_io::open(path.as_ref())?)
     }
+    /// Validate a document read from `input`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Parse`] for input that is not well-formed XML or a term without
+    /// its accession or name, and [`Error::InvalidValue`] when a
+    /// [`ValidationLimits`] ceiling is exceeded.
     pub fn validate_reader(&self, input: impl BufRead) -> Result<ValidationReport> {
         let o = &self.options;
         let mut m = o.limits.meter();

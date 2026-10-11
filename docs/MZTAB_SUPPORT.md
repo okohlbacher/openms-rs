@@ -1,6 +1,6 @@
-# MzTab data model support
+# MzTab data model and exporter support
 
-Native Rust port of the MzTab **data model**: the shared cell vocabulary of
+Native Rust port of the MzTab **data model and export surface**: the shared cell vocabulary of
 `src/openms/include/OpenMS/FORMAT/MzTabBase.h` (385 header lines, 884
 implementation lines) and the record structs plus document type of
 `src/openms/include/OpenMS/FORMAT/MzTab.h` (889 header lines, 3,414
@@ -9,15 +9,20 @@ implementation lines), at source revision
 
 | Artifact | Path |
 |---|---|
-| Rust module | `src/format/mztab.rs` |
-| Integration test | `tests/mztab.rs` (62 tests) |
-| Provenance manifest | `tests/data/mztab_provenance.json` |
+| Rust modules | `src/format/mztab.rs` (data model), `src/format/mztab_export.rs` (export surface) |
+| Integration tests | `tests/mztab.rs` (62 tests), `tests/mztab_export.rs` (11 tests) |
+| Provenance manifests | `tests/data/mztab_provenance.json`, `tests/data/mztab_export_provenance.json` |
 
-This is stage 1 of the MzTab family. It is the data model only: it does not read
-or write `.mzTab` files (`MzTabFile.h`), it does not carry the metabolomics
-variant (`MzTabM.h`), and it does not export a `FeatureMap`, a `ConsensusMap` or
-an identification run to MzTab. Those are named in [Deferred](#deferred), with
-the exact source members each of them owns.
+The header is split in two Rust modules. `src/format/mztab.rs` is the data
+model: every cell type, record struct and the `MzTab` document.
+`src/format/mztab_export.rs` is the export surface — `exportFeatureMapToMzTab`,
+`exportIdentificationsToMzTab`, `exportConsensusMapToMzTab`,
+`extractModificationList`, the nested `IDMzTabStream` and `CMMzTabStream` and
+all 22 protected static helpers — added to `MzTab` as associated functions
+from the second module. Reading and writing `.mzTab` files is `MzTabFile.h`
+([its document](MZTAB_FILE_SUPPORT.md)), whose two streaming `store` overloads
+drain the streams defined here; the metabolomics variant is `MzTabM.h`
+([its document](MZTAB_M_SUPPORT.md)).
 
 ## What MzTab is
 
@@ -311,28 +316,54 @@ The seven `typedef std::vector<…Row> …Rows` become the type aliases
 | `static generateMzTabStringFromModifications()` | `modification_metadata` and `modification_metadata_with` | returns `ModificationMetaDataReport` so skipped names are visible |
 | `static generateMzTabStringFromVariableModifications()` | `variable_modification_metadata` | |
 | `static generateMzTabStringFromFixedModifications()` | `fixed_modification_metadata` | |
-| `static exportFeatureMapToMzTab()` | **not ported**: needs `FeatureMap` export, [deferred](#deferred) to the exporter stage | |
-| `static exportIdentificationsToMzTab()` | **not ported**: [deferred](#deferred) | |
-| `static extractModificationList()` | **not ported**: needs `PeptideHit`, [deferred](#deferred) | |
-| `static exportConsensusMapToMzTab()` | **not ported**: needs `ConsensusMap`, [deferred](#deferred) | |
-| `class MzTab::IDMzTabStream` | **not ported**: [deferred](#deferred). Its whole public surface — the constructor, `getMetaData`, `getProteinOptionalColumnNames`, `getPeptideOptionalColumnNames`, `getPSMOptionalColumnNames`, `nextPRTRow`, `nextPEPRow`, `nextPSMRow` — belongs to the exporter stage | |
-| `class MzTab::CMMzTabStream` | **not ported**: [deferred](#deferred), same public surface | |
+| `static exportFeatureMapToMzTab(const FeatureMap&, const std::string&)` | `MzTab::export_feature_map -> Result<MzTab>` | `mztab_export.rs`; tier 1 against `MzTabExporter_3_output.mzTab` |
+| `static exportIdentificationsToMzTab(prot_ids, peptide_ids, filename, first_run_inference_only, export_empty_pep_ids = false, export_all_psms = false, title = "ID export from OpenMS")` | `MzTab::export_identifications(&[ProteinIdentification], &[PeptideIdentification], &str, &IdentificationExportOptions) -> Result<MzTab>` | the four flags and the title are `IdentificationExportOptions`, whose `Default` carries the source defaults and `false` for the required `first_run_inference_only`; keeps the stream's null-sequence placeholder rows, as the source does here |
+| `static extractModificationList(const PeptideHit&, fixed_mods, localization_mods)` | `MzTab::extract_modification_list -> Result<MzTabModificationList>` | preserved: the fixed-modification test compares the *short* identifier, see [exporter conventions](#exporter-conventions) |
+| `static exportConsensusMapToMzTab(consensus_map, filename, first_run_inference_only, export_unidentified_features, export_unassigned_ids, export_subfeatures, export_empty_pep_ids = false, export_all_psms = false, title = "ConsensusMap export from OpenMS")` | `MzTab::export_consensus_map(&ConsensusMap, &str, &ConsensusMapExportOptions) -> Result<MzTab>` | drops placeholder PSM rows, as the source does here |
+| `class MzTab::IDMzTabStream` | `IdMzTabStream<'a>` | borrows the runs and identifications (the source keeps raw pointers) |
+| `IDMzTabStream(prot_ids, peptide_ids, filename, first_run_inference_only, export_empty_pep_ids, export_all_psms, title)` | `IdMzTabStream::new(&[&ProteinIdentification], &[&PeptideIdentification], &str, &IdentificationExportOptions) -> Result<Self>` | `filename` is accepted and unused, as in the source |
+| `getMetaData()` | `IdMzTabStream::meta_data` | |
+| `getProteinOptionalColumnNames()` / `getPeptideOptionalColumnNames()` / `getPSMOptionalColumnNames()` | `protein_optional_column_names` / `peptide_optional_column_names` / `psm_optional_column_names`, returning `&[String]` | the peptide list is always empty |
+| `bool nextPRTRow(MzTabProteinSectionRow&)` | `next_prt_row -> Result<Option<MzTabProteinSectionRow>>` | `None` replaces `false` and the out-parameter |
+| `bool nextPEPRow(MzTabPeptideSectionRow&)` | `next_pep_row -> Option<MzTabPeptideSectionRow>`, always `None` | the source always returns `false` |
+| `bool nextPSMRow(MzTabPSMSectionRow&)` | `next_psm_row -> Result<Option<MzTabPSMSectionRow>>` | a skipped identification yields a default row (null sequence), as the source |
+| `class MzTab::CMMzTabStream` | `ConsensusMapMzTabStream<'a>` | borrows the map |
+| `CMMzTabStream(consensus_map, filename, first_run_inference_only, export_unidentified_features, export_unassigned_ids, export_subfeatures, export_empty_pep_ids, export_all_psms, title)` | `ConsensusMapMzTabStream::new(&ConsensusMap, &str, &ConsensusMapExportOptions) -> Result<Self>` | |
+| `getMetaData()`, the three `get…OptionalColumnNames()`, `nextPRTRow`, `nextPEPRow`, `nextPSMRow` | `meta_data`, `protein_optional_column_names`, `peptide_optional_column_names`, `psm_optional_column_names`, `next_prt_row`, `next_pep_row -> Result<Option<_>>`, `next_psm_row` | as for `IdMzTabStream` |
+| private members of both streams | private fields | the source's unused `pg2prot_` and `run_to_search_engines_settings_` maps are computed by the source and never read; they are not kept |
 | — | `MzTab::MAX_ROWS`, `MzTab::MAX_OPTIONAL_COLUMNS` | native resource ceilings |
 
-The 22 protected static helpers of `MzTab` — `mapIDRunIdentifier2IDRunIndex_`,
-`PSMSectionRowFromPeptideID_`, `peptideSectionRowFromConsensusFeature_`,
-`peptideSectionRowFromFeature_`, `proteinSectionRowFromProteinHit_`,
-`nextProteinSectionRowFromProteinGroup_`,
-`nextProteinSectionRowFromIndistinguishableGroup_`, `addMSRunMetaData_`,
-`mapBetweenMSFileNameAndMSRunIndex_`, `getQuantStudyVariables_`,
-`getProteinScoreType_`, `getConsensusMapMetaValues_`, `getFeatureMapMetaValues_`,
-`getIdentificationMetaValues_`, `getMSRunSpectrumIdentifierType_`,
-`mapBetweenRunAndSearchEngines_`, `mapGroupsToProteins_`, `addSearchMetaData_`,
-`mapIDRunFileIndex2MSFileIndex_`, `getSearchModifications_`,
-`getModificationIdentifier_`, `checkSequenceUniqueness_` — and the two
-file-static helpers `remapTargetDecoyPSMAndPeptideSection_` and
-`remapTargetDecoyProteinSection_` are all **not ported**: they exist only to
-build the export streams and are [deferred](#deferred) with them.
+The 22 protected static helpers of `MzTab` and the two file-static helpers of
+`MzTab.cpp` are private functions of `src/format/mztab_export.rs`, one each,
+named after the source:
+
+| Source | Rust (private) |
+|---|---|
+| `mapIDRunIdentifier2IDRunIndex_` | `map_run_identifier_to_index` |
+| `PSMSectionRowFromPeptideID_` | `psm_row_from_peptide_id` |
+| `peptideSectionRowFromConsensusFeature_` | `peptide_row_from_consensus_feature` |
+| `peptideSectionRowFromFeature_` | `peptide_row_from_feature` |
+| `proteinSectionRowFromProteinHit_` | `protein_row_from_hit` |
+| `nextProteinSectionRowFromProteinGroup_` | `protein_row_from_group` |
+| `nextProteinSectionRowFromIndistinguishableGroup_` | `protein_row_from_indistinguishable_group` |
+| `addMSRunMetaData_` | `add_ms_run_meta_data` |
+| `mapBetweenMSFileNameAndMSRunIndex_` | `map_ms_file_names` |
+| `getQuantStudyVariables_` | `quant_study_variables` |
+| `getProteinScoreType_` | `protein_score_type` |
+| `getConsensusMapMetaValues_` (with the file-local `extractMetaValuesFromIDs`) | `consensus_map_meta_keys` |
+| `getFeatureMapMetaValues_` | `feature_map_meta_keys` |
+| `getIdentificationMetaValues_` (with `extractMetaValuesFromIDPointers`) | `identification_meta_keys` |
+| `getMSRunSpectrumIdentifierType_` | `ms_run_spectrum_identifier_type` |
+| `mapBetweenRunAndSearchEngines_` | `map_runs_and_search_engines` |
+| `mapGroupsToProteins_` | `map_groups_to_proteins` |
+| `addSearchMetaData_` | `add_search_meta_data` |
+| `mapIDRunFileIndex2MSFileIndex_` | `map_run_file_to_ms_file` |
+| `getSearchModifications_` | `search_modifications` |
+| `getModificationIdentifier_` | `modification_identifier` |
+| `checkSequenceUniqueness_` | `check_sequence_uniqueness` |
+| file-static `remapTargetDecoyPSMAndPeptideSection_` / `remapTargetDecoyProteinSection_` | `remap_target_decoy(opt, new_header)` |
+| file-local `applyAssayProteinQuantification` | `apply_assay_protein_quantification` |
+| the `goto`-based `PRT_STATE_` machine shared by both `nextPRTRow`s | `ProteinCursor::next` |
 
 ### Native additions
 
@@ -343,6 +374,8 @@ build the export streams and are [deferred](#deferred) with them.
 | `MzTabOptionalColumns` trait | replaces the protected `getOptionalColumnNames_` template's implicit requirement |
 | `ModificationMetaDataReport` | carries the modification names the registry could not resolve, which the source only writes to a log |
 | `MAX_CELL_BYTES`, `MAX_CELL_ITEMS`, `MAX_MODIFICATION_NAMES` | resource ceilings the source does not have |
+| `IdentificationExportOptions`, `ConsensusMapExportOptions` | the exporters' positional flags and title as one value, with the source defaults |
+| `DEFAULT_IDENTIFICATION_TITLE`, `DEFAULT_CONSENSUS_MAP_TITLE` | the source's default-argument titles as constants |
 
 ## Preserved source conventions
 
@@ -431,10 +464,94 @@ build the export streams and are [deferred](#deferred) with them.
 - **A modification metadata `site` of `X` means "any residue"**, because
   `ResidueModification` initialises `origin_` to `'X'`.
 
+### Exporter conventions
+
+The retained MzTabExporter outputs depend on every one of these, so each is
+preserved, including those that are source defects (listed again under
+[C++ defects](#c-defects-found-while-porting)):
+
+- **Target/decoy is renamed for PRIDE.** A `target_decoy` metadata column
+  becomes `opt_global_cv_MS:1002217_decoy_peptide` (`PEP`, `PSM`) or
+  `opt_global_cv_PRIDE:0000303_decoy_hit` (`PRT`), with `target` and
+  `target+decoy` mapped to `0` and `decoy` to `1` (MzTab.cpp:306-350). A
+  feature row without identifications returns before the remap, so a feature
+  map's `PEP` section can carry both the old and the new column
+  (`MzTabExporter_3_output.mzTab` does).
+- **An optional column is filled from the first row entry of its name**
+  (MzTabFile.cpp:2873), and names are `opt_global_` plus the key with spaces as
+  underscores. The identification stream lists identification keys *and* hit
+  keys, so a key present at both levels is two columns that both show the
+  identification's value.
+- **Fixed modifications are never filtered.** `extractModificationList`
+  compares `ResidueModification::getId()` (`Carbamidomethyl`) against the
+  search parameters' full identifiers (`Carbamidomethyl (C)`), MzTab.cpp:2555,
+  2572, 2596, so the `PEP` section reports fixed modifications although the
+  comment says it must not. `MzTabExporter_3_output.mzTab` shows `2-UNIMOD:4`.
+- **Protein-hit modifications are never written.** `proteinSectionRowFromProteinHit_`
+  builds an `MzTabModification` per modification and never adds it to the list
+  (MzTab.cpp:1555-1564); the `modifications` cell of a `protein_details` row is
+  always `null`.
+- **An indistinguishable group reports only its leader's last modification.**
+  The list is replaced inside the loop (MzTab.cpp:1725-1738).
+- **The native-ID format is decided by the first identification alone.**
+  `getMSRunSpectrumIdentifierType_` returns inside its loop on the first
+  iteration (MzTab.cpp:2167-2183).
+- **A run without MS-run paths maps to its run index, not an `ms_run` index**
+  (MzTab.cpp:1436), and a repeated path in a later run shifts the next
+  location: `msrunindex_2_msfilename.emplace` is attempted before the
+  new-path test (MzTab.cpp:1918), so the index a later new path receives already names the
+  repeated one. Both are reproduced.
+- **A spectrum reference to MS file `0` is dropped.** The release build of the
+  source compiles out `setMSFile`'s `assert(index >= 1)` and ignores the call;
+  the exporters do the same instead of failing.
+- **Unknown modification names leave gaps** in `fixed_mod[n]`/`variable_mod[n]`
+  (`fixed_mod[2]` without `fixed_mod[1]` in `MzTabExporter_7_output.mzTab`).
+- **The streaming consensus writer drops the subfeature columns.** With
+  `export_subfeatures` the `PEP` rows gain `opt_global_mass_to_charge_…` and
+  `opt_global_retention_time_…` entries, but `CMMzTabStream`'s peptide column
+  list never names them (MzTab.cpp:2866-2886), so `MzTabFile::store` for a
+  consensus map writes neither — MzTabExporter's default `-opt_columns
+  subfeatures` has no visible effect. `MzTab::export_consensus_map` keeps them,
+  because a document's column list comes from its rows.
+- **`MzTabString` trims** every metadata setting value, so `db_version:` with
+  an empty value is written `db_version:null`.
+- The crate version replaces `VersionInfo::getVersion()` in the
+  `[MS, MS:1000752, TOPP software, …]` entry; every upstream MzTabExporter
+  test whitelists that line.
+
 ## Native differences
 
 Each of these differs from the source on purpose, and each is documented at the
 Rust item as well.
+
+Exporter-specific differences (`src/format/mztab_export.rs`):
+
+- A run identifier that no run carries, a multi-file run without
+  `id_merge_index`, a consensus handle without a column header, and every
+  other `std::map::at` of the source that throws `std::out_of_range` is
+  `Error::MissingInformation`. Where the source has *undefined behaviour* —
+  dereferencing the first search engine of a run that has none
+  (MzTab.cpp:1312, reachable with `first_run_inference_only` when an
+  identification references the inference run), and indexing the empty hit
+  list of a consensus feature's identification (MzTab.cpp:1063, 1161,
+  3401) — the port returns an error. MzTabExporter removes empty
+  identifications before exporting a consensus map for exactly this reason.
+- `AASequence::getMZ` cannot fail in the source; `AASequence::mz` returns an
+  error for chemistry without a mass (an anonymous absolute mass tag on
+  `B`/`Z`/`X`), and the exporter propagates it.
+- A metadata value of the wrong type (`TaxID` not an integer, `GO` not a string
+  list, `localized_modifications` not a string list, a non-string
+  `InferenceEngine`) is `Error::InvalidValue`, as the source's `DataValue`
+  conversions throw `ConversionError`.
+- When two metadata keys of one record differ only by spaces versus underscores
+  they share a column. The source then lets the key that comes later in the
+  global `MetaInfoRegistry` win; the port lets the lexically later key win.
+- Row counts are bounded by `MzTab::MAX_ROWS` (inputs are preflighted before
+  anything is built).
+- The streaming stores render the whole file and then write it atomically; the
+  source truncates the destination first and writes as rows arrive.
+- `MzTabFile::store_consensus_map` honours `options.title`; the source's
+  overload has no title argument and always writes the default.
 
 1. **Correction to the earlier review: position rendering is compatible.**
    The source's `StringUtils.h:865–909` declares numeric string operators that
@@ -514,7 +631,7 @@ Rust item as well.
 | `MAX_CELL_BYTES` | 4 MiB | every `read_cell`, and every `from_cell_string` except `MzTabString`'s, before any split or allocation. `MzTabString::from_cell_string` is infallible, mirroring the source's infallible `MzTabString::set` (MzTabBase.cpp:423); its `read_cell` counterpart does charge the ceiling |
 | `MAX_CELL_ITEMS` | 100,000 | the separated entry count of every list cell, and the evidence list of `add_pep_evidence_to_rows` |
 | `MAX_MODIFICATION_NAMES` | 100,000 | the input list of the three modification-metadata generators |
-| `MzTab::MAX_ROWS` | 10,000,000 | `number_of_psms` and `optional_column_names` |
+| `MzTab::MAX_ROWS` | 10,000,000 | `number_of_psms`, `optional_column_names`, and every exporter: runs, identifications and features are counted before any row is built, and each exported section is capped |
 | `MzTab::MAX_OPTIONAL_COLUMNS` | 100,000 | distinct optional columns per section, and `add_meta_info_to_optional_columns` |
 
 Every ceiling is checked in a preflight before anything is allocated or mutated,
@@ -545,13 +662,53 @@ unchecked arithmetic on it:
 
 ### Evidence tier
 
-**Tier 3 (source review), with the class test transcribed.** `MzTab_test.cpp`
-is 307 lines and 7 `START_SECTION`s for 5,572 lines of C++, so source review
-carries most of the weight and the API table above is the primary deliverable.
-No full format implementation was built or executed and no format output was retained, so this is **not** a
-tier 1 differential. Transcribed C++ literals are tier-3 evidence.
+**Data model: tier 3 (source review), with the class test transcribed.**
+`MzTab_test.cpp` is 307 lines and 7 `START_SECTION`s, so for the data model
+source review carries most of the weight and the API table above is the primary
+deliverable.
 
-Class-test accounting — 7 sections, 5 ported, 0 mapped, 2 unaccounted:
+**Export surface: tier 1 (retained C++ output).** The upstream TOPP suite runs
+MzTabExporter on retained inputs and compares with retained outputs
+(test-data 0cb15f2 `topp/CMakeLists.txt:3382-3413`), under `${DIFF}` =
+`FuzzyDiff -ini FuzzyDiff.ini` (ratio 1.01, absdiff 0.01) with each test's
+`-whitelist`. `tests/mztab_export.rs` reproduces six of the eight invocations
+through the library, calling it exactly as the tool does (topp 174b576
+`src/MzTabExporter.cpp`: featureXML through `exportFeatureMapToMzTab` and
+`MzTabFile::store(MzTab)`; idXML through the streaming identification store;
+consensusXML through `IDFilter::removeEmptyIdentifications` and the streaming
+consensus store with unidentified features, unassigned IDs and subfeatures
+enabled), and compares with the same comparator, tolerances and whitelists:
+
+| Upstream test | Input | Retained output | Result |
+|---|---|---|---|
+| `TOPP_MzTabExporter_3` | `MzTabExporter_3_input.featureXML` | `MzTabExporter_3_output.mzTab` | passes |
+| `TOPP_MzTabExporter_4` | `Epifany_2_out.consensusXML` | `MzTabExporter_4_output.mzTab` | passes |
+| `TOPP_MzTabExporter_5` (`-first_run_inference_only`) | `MzTabExporter_5_in.consensusXML` | `MzTabExporter_5_output.mzTab` | passes |
+| `TOPP_MzTabExporter_6` | `MzTabExporter_6_input.idXML` | `MzTabExporter_6_output.mzTab` | passes |
+| `TOPP_MzTabExporter_7` | `MzTabExporter_7_input.consensusXML` | `MzTabExporter_7_output.mzTab` | passes |
+| `TOPP_MzTabExporter_8` (`-export_all_psms`) | `MzTabExporter_6_input.idXML` | `MzTabExporter_8_output.mzTab` | passes |
+| `TOPP_MzTabExporter_1`, `_2` | 24 MB consensusXML, 3.9 MB idXML | 10 MB, 1.2 MB | **not run**: too large for `tests/data` |
+
+Three reader defects had to be dealt with to get there, none of them in the
+exporter:
+
+1. The consensusXML/featureXML run reader rejected the source's all-zero run
+   date `0000-00-00T00:00:00`, which upstream fixtures carry (`Epifany_2_out`,
+   `MzTabExporter_5_in`, `MzTabExporter_3_input`). Fixed in
+   `identification_xml::date`.
+2. It rejected a protein-hit XML ID reused in a later run (`PH_0` in every run
+   of `MzTabExporter_5_in.consensusXML`), which the source's handler accepts
+   with a last-wins accession map. Fixed in `map_xml::read_run`.
+3. The idXML reader cannot read `MzTabExporter_6_input.idXML` (17 named
+   modifications) with the global modification registry: its fixed 50 M work
+   budget is charged a whole-registry scan for every *named* annotation
+   (`AASequence::parse_with_budget`), although a name is a map lookup. **Not
+   fixed here** (it is the chemistry module's budget model); the test reads
+   through a registry holding only the global registry's `Phospho`,
+   `Oxidation` and `Carbamidomethyl` records, which resolves every
+   modification to the same record.
+
+Class-test accounting — 7 sections, 7 ported, 0 mapped, 0 unaccounted:
 
 | Section | Assertion macros | Status |
 |---|---|---|
@@ -559,9 +716,9 @@ Class-test accounting — 7 sections, 5 ported, 0 mapped, 2 unaccounted:
 | `~MzTab()` | 0 | **ported** — `document_destruction_releases_a_populated_document`. The section only calls `delete`; drop is compiler-generated, so the test drops a populated document while an independent clone stays valid. |
 | `std::vector<std::string> getPSMOptionalColumnNames() const` | 2 | **ported** — `psm_optional_column_names_from_the_upstream_two_row_fixture`, with both literals (`rows.size() == 2`, `optional_columns.size() == 5`) and every cell of the fixture. |
 | `static void addMetaInfoToOptionalColumns(...)` | 7 | **ported** — `add_meta_info_to_optional_columns_matches_the_upstream_seven_assertions`, all seven literals including `[0.5, 1.4, -2.0, 0.1]`. |
-| `[EXTRA] exportIdentificationsToMzTab terminates with export_all_psms on empty-hit PeptideIdentification` | 1 | **unaccounted** — it calls `MzTab::exportIdentificationsToMzTab`, which this package does not port. The regression it pins lives in `IDMzTabStream::nextPSMRow`, whose advance condition underflowed for an empty hit list; nothing in `src/format/mztab.rs` contains that loop, so there is no Rust behaviour to assert. It must be ported with the exporter stage. |
+| `[EXTRA] exportIdentificationsToMzTab terminates with export_all_psms on empty-hit PeptideIdentification` | 1 | **ported** — `tests/mztab_export.rs::export_all_psms_terminates_on_an_identification_without_hits`, the same run, identification (RT 123.4, m/z 567.8, no hits) and flags, and the upstream assertion `psm rows <= 1`. The advance rule `current + 1 >= hits` is `advance_psm`. |
 | `[EXTRA] MzTabBoolean setNull / isNull polarity` | 4 | **ported** — `boolean_set_null_polarity`, all four literals plus two native extras (`value() == 0`, `to_cell_string() == "0"`). |
-| `[EXTRA] consensus-map assays use fraction-group/label grain and samples are study variables` | 18 | **unaccounted** — it calls `MzTab::exportConsensusMapToMzTab` and asserts assay/study-variable grain and abundance placement produced by `CMMzTabStream`. Those are 3,400 lines of `MzTab.cpp` plus `ConsensusMap` plumbing that this package does not port. It is above the five-macro threshold and must be ported, not mapped, when the exporter stage lands; it is listed here as unaccounted rather than claimed. |
+| `[EXTRA] consensus-map assays use fraction-group/label grain and samples are study variables` | 18 | **ported** — `tests/mztab_export.rs::consensus_assays_use_fraction_group_label_grain_and_samples_are_study_variables`, the same three column headers, handles, protein run and reversed parallel assay arrays, and all 18 assertions: two assays with `ms_run_ref` `[1, 2]` and `[3]`, one study variable with `assay_refs` `[1, 2]`, protein assay abundances 10 and 20 with a null study variable, peptide assay abundances 5 and 7 with a null study variable. `TEST_REAL_SIMILAR` is a 1e-5 comparison. |
 
 Beyond the class test, `tests/mztab.rs` has 62 tests covering every cell type's
 render/parse round trip, the null/`NaN`/`Inf` state machine, the source number
@@ -595,8 +752,13 @@ build on these shared types:
   variable_modification_metadata, fixed_modification_metadata}`
 - Ceilings: `crate::format::mztab::{MAX_CELL_BYTES, MAX_CELL_ITEMS,
   MAX_MODIFICATION_NAMES}` and `MzTab::{MAX_ROWS, MAX_OPTIONAL_COLUMNS}`
+- Exporters: `crate::format::mztab_export::{IdMzTabStream, ConsensusMapMzTabStream,
+  IdentificationExportOptions, ConsensusMapExportOptions,
+  DEFAULT_IDENTIFICATION_TITLE, DEFAULT_CONSENSUS_MAP_TITLE}` and the
+  associated functions `MzTab::{export_feature_map, export_identifications,
+  export_consensus_map, extract_modification_list}`.
 
-The module is not feature-gated: it needs no optional dependency and builds
+Neither module is feature-gated: they need no optional dependency and build
 under `--no-default-features`.
 
 ## C++ defects found while porting
@@ -647,20 +809,56 @@ not own that file.
    warning, despite a name that suggests it sets a file rather than a spectrum.
    An alias or ambiguous name alone is not a demonstrated defect; no distinct
    promised behavior has been established.
+8. **Protein-hit modifications are built and discarded.**
+   `proteinSectionRowFromProteinHit_` creates an `MzTabModification` for each
+   modification of the hit and never appends it (MzTab.cpp:1555-1564), so
+   every `protein_details` row reports `modifications` as `null`. Fix: push each
+   entry into `modifications`.
+9. **An indistinguishable group keeps only its leader's last modification.**
+   `modifications.set(mztab_mods)` runs inside the loop with a one-element
+   vector (MzTab.cpp:1725-1738). Fix: collect all entries, then set once.
+10. **Fixed modifications are compared by short ID against full IDs.**
+    `extractModificationList` tests `res_mod.getId()` against the search
+    parameters' `fixed_modifications` (MzTab.cpp:2555, 2572, 2596), which hold
+    full identifiers such as `Carbamidomethyl (C)`, so no modification is ever
+    recognised as fixed and the `PEP` section reports fixed modifications,
+    contrary to its own comment. Fix: compare `getFullId()`.
+11. **The native-ID format is decided by the first identification only.**
+    `getMSRunSpectrumIdentifierType_` has an unconditional `return p;` inside
+    its loop (MzTab.cpp:2167-2183). Fix: `continue` to the next identification
+    when the first has no recognised pattern.
+12. **A repeated MS-run path shifts the next `ms_run` location.**
+    `mapBetweenMSFileNameAndMSRunIndex_` calls
+    `msrunindex_2_msfilename.emplace(current, s)` before testing whether `s` is
+    new (MzTab.cpp:1918-1924); for a path seen in an earlier run the emplace
+    succeeds without the index advancing, and the next new path's `ms_run`
+    then carries the repeated path's location. Fix: emplace only when the
+    name was newly inserted.
+13. **`-opt_columns subfeatures` has no effect in the streaming consensus
+    export.** `CMMzTabStream` adds the subfeature entries to every `PEP` row
+    but never names them in `pep_optional_column_names_`
+    (MzTab.cpp:2866-2886), so `MzTabFile::store(filename, ConsensusMap, …)`
+    writes none of them. Fix: add their names in the constructor.
+14. **Undefined behaviour on a run without search engine and on empty
+    identifications in consensus features.** `*run_to_search_engines[run_index].begin()`
+    (MzTab.cpp:1312) dereferences the begin of a default-constructed empty
+    vector when an identification references a skipped inference run, and
+    `peptideSectionRowFromConsensusFeature_`/`checkSequenceUniqueness_` index
+    `getHits()[0]` without a check (MzTab.cpp:1063, 1161, 3401). Fix: check and
+    throw `MissingInformation`.
 
 ## Deferred
 
 The sibling [proteomics file adapter](MZTAB_FILE_SUPPORT.md) and
 [metabolomics records and writer](MZTAB_M_SUPPORT.md) are implemented.
 
-- **The export surface of `MzTab.h`**: `exportFeatureMapToMzTab`,
-  `exportIdentificationsToMzTab`, `exportConsensusMapToMzTab`,
-  `extractModificationList`, the nested `IDMzTabStream` and `CMMzTabStream`
-  classes and all 22 protected static helpers. These are roughly 2,900 of
-  `MzTab.cpp`'s 3,414 lines and depend on `FeatureMap`, `ConsensusMap`,
-  `ProteinIdentification`, `PeptideIdentification`, `PeptideHit`,
-  `ExperimentalDesign` and `IDFilter`. Two `MzTab_test.cpp` sections, including
-  the 18-macro consensus-map section, belong to that stage.
+Nothing of `MzTab.h` is deferred: the export surface is
+`src/format/mztab_export.rs`. Open items outside this header:
 
-The format integration records this module in the coverage ledger, rustdoc
-ratchet and minimum-feature CI tests. Exporter limitations above remain open.
+- `TOPP_MzTabExporter_1` and `_2` are not reproduced, only because their
+  inputs are 24 MB and 3.9 MB; they need the large-fixture mechanism the
+  integration uses elsewhere.
+- The idXML reader's sequence-parse budget (see *Evidence tier*) belongs to
+  `src/chemistry/sequence.rs`.
+- The MzTabExporter TOPP tool itself is not ported; its three branches are
+  reproduced in `tests/mztab_export.rs` as library calls.

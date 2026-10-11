@@ -1,0 +1,5 @@
+load m19_empty_peptide_fixed_nterm.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [.(Acetyl)] []

@@ -1,0 +1,17 @@
+protein identifier=OMSSA_2026-09-27 19:40:17 engine= version= score_type=OMSSA higher=0
+  params fragment_tol=0 precursor_tol=0 variable=
+  protein_hits 4
+  protein_hit acc=AAH11949 score=0
+  protein_hit acc=AAO85140 score=0
+  protein_hit acc=CAA27012 score=0
+  protein_hit acc=CRHU2 score=0
+peptide_ids 2
+id identifier=OMSSA_2026-09-27 19:40:17 score_type=OMSSA higher=0 threshold=0 rt=nan mz=nan
+  hits 1
+  hit seq=MSHHWGYGK score=0.00057756540321847103 rank=0 charge=1
+    evidence acc=CRHU2 start=-1 end=-1 before=88 after=72
+    evidence acc=AAO85140 start=-1 end=-1 before=88 after=88
+    evidence acc=AAH11949 start=-1 end=-1 before=88 after=88
+    evidence acc=CAA27012 start=-1 end=-1 before=88 after=88
+id identifier=OMSSA_2026-09-27 19:40:17 score_type=OMSSA higher=0 threshold=0 rt=4312.8562999999804 mz=555.76849365234398
+  hits 0

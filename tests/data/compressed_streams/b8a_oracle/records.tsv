@@ -1,0 +1,52 @@
+FeatureXMLFile::load	directory_only.zip	ERR:FileEmpty:the file 'ZIP archive contains no file entries' is empty
+FeatureXMLFile::loadSize	directory_only.zip	ERR:FileEmpty:the file 'ZIP archive contains no file entries' is empty
+MzMLFile::load	directory_only.zip	ERR:FileEmpty:the file 'ZIP archive contains no file entries' is empty
+MzMLFile::loadSize	directory_only.zip	ERR:Parse Error:- due to that error of type FileEmpty in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ZipIfstream.cpp@78-void OpenMS::ZipIfstream::open(const char*)
+FeatureXMLFile::load	empty_archive.zip	ERR:FileEmpty:the file 'ZIP archive contains no file entries' is empty
+FeatureXMLFile::loadSize	empty_archive.zip	ERR:FileEmpty:the file 'ZIP archive contains no file entries' is empty
+MzMLFile::load	empty_archive.zip	ERR:Parse Error:- due to that error of type FileEmpty in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ZipIfstream.cpp@78-void OpenMS::ZipIfstream::open(const char*)
+MzMLFile::loadSize	empty_archive.zip	ERR:Parse Error:- due to that error of type FileEmpty in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ZipIfstream.cpp@78-void OpenMS::ZipIfstream::open(const char*)
+FeatureXMLFile::load	featurexml_bad_crc.zip	ERR:Parse Error:zip_fread returned error in: error reading from zip entry
+FeatureXMLFile::loadSize	featurexml_bad_crc.zip	2
+MzMLFile::load	featurexml_bad_crc.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+MzMLFile::loadSize	featurexml_bad_crc.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+FeatureXMLFile::load	featurexml_bzip2.zip	2 rt=4039000000000000 mz=0000000000000000 uid=1000
+FeatureXMLFile::loadSize	featurexml_bzip2.zip	2
+MzMLFile::load	featurexml_bzip2.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+MzMLFile::loadSize	featurexml_bzip2.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+FeatureXMLFile::load	featurexml_deflate.zip	2 rt=4039000000000000 mz=0000000000000000 uid=1000
+FeatureXMLFile::loadSize	featurexml_deflate.zip	2
+MzMLFile::load	featurexml_deflate.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+MzMLFile::loadSize	featurexml_deflate.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+FeatureXMLFile::load	featurexml_lzma.zip	ERR:FileNotReadable:the file 'data/featurexml_lzma.zip' is not readable for the current user
+FeatureXMLFile::loadSize	featurexml_lzma.zip	ERR:FileNotReadable:the file '/scratch/kohlbach/B8a-oracle/zip-input/data/featurexml_lzma.zip' is not readable for the current user
+MzMLFile::load	featurexml_lzma.zip	ERR:FileNotReadable:the file 'data/featurexml_lzma.zip' is not readable for the current user
+MzMLFile::loadSize	featurexml_lzma.zip	ERR:Parse Error:- due to that error of type FileNotReadable in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ZipIfstream.cpp@94-void OpenMS::ZipIfstream::open(const char*)
+FeatureXMLFile::load	featurexml_stored.zip	2 rt=4039000000000000 mz=0000000000000000 uid=1000
+FeatureXMLFile::loadSize	featurexml_stored.zip	2
+MzMLFile::load	featurexml_stored.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+MzMLFile::loadSize	featurexml_stored.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+FeatureXMLFile::load	featurexml_with_directory.zip	2 rt=4039000000000000 mz=0000000000000000 uid=1000
+FeatureXMLFile::loadSize	featurexml_with_directory.zip	2
+MzMLFile::load	featurexml_with_directory.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+MzMLFile::loadSize	featurexml_with_directory.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+FeatureXMLFile::load	junk_local_header.zip	ERR:FileNotReadable:the file 'data/junk_local_header.zip' is not readable for the current user
+FeatureXMLFile::loadSize	junk_local_header.zip	ERR:FileNotReadable:the file '/scratch/kohlbach/B8a-oracle/zip-input/data/junk_local_header.zip' is not readable for the current user
+MzMLFile::load	junk_local_header.zip	ERR:FileNotReadable:the file 'data/junk_local_header.zip' is not readable for the current user
+MzMLFile::loadSize	junk_local_header.zip	ERR:Parse Error:- due to that error of type FileNotReadable in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ZipIfstream.cpp@56-void OpenMS::ZipIfstream::open(const char*)
+FeatureXMLFile::load	mzml_deflate.zip	ERR:Parse Error:While loading 'data/mzml_deflate.zip': Required attribute 'completion_time' not present! Probable cause: The file suffix (unknown) does not match the file content (mzML). Rename the file to fix this. in: data/mzml_deflate.zip
+FeatureXMLFile::loadSize	mzml_deflate.zip	ERR:Parse Error:While loading 'data/mzml_deflate.zip': Required attribute 'completion_time' not present! Probable cause: The file suffix (unknown) does not match the file content (mzML). Rename the file to fix this. in: data/mzml_deflate.zip
+MzMLFile::load	mzml_deflate.zip	1 spectra 0 chromatograms rt0=bff0000000000000 peaks0=3 id0=spectrum=0
+MzMLFile::loadSize	mzml_deflate.zip	1 0
+FeatureXMLFile::load	two_entries.zip	ERR:Parse Error:ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML in: 
+FeatureXMLFile::loadSize	two_entries.zip	ERR:Parse Error:ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML in: 
+MzMLFile::load	two_entries.zip	ERR:Parse Error:ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML in: 
+MzMLFile::loadSize	two_entries.zip	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/ZipIfstream.cpp@87-void OpenMS::ZipIfstream::open(const char*)
+FeatureXMLFile::load	featurexml_source_1.featureXML	2 rt=4039000000000000 mz=0000000000000000 uid=1000
+FeatureXMLFile::loadSize	featurexml_source_1.featureXML	2
+MzMLFile::load	featurexml_source_1.featureXML	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+MzMLFile::loadSize	featurexml_source_1.featureXML	ERR:Parse Error:- due to that error of type Parse Error in: /scratch/kohlbach/openms4-release-bench/src/core/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp@68-void OpenMS::Internal::XMLHandler::fatalError(ActionMode, const std::string&, OpenMS::UInt, OpenMS::UInt) const
+FeatureXMLFile::load	mzml_upstream_serum.mzML	ERR:Parse Error:While loading 'data/plain/mzml_upstream_serum.mzML': Required attribute 'completion_time' not present! in: data/plain/mzml_upstream_serum.mzML
+FeatureXMLFile::loadSize	mzml_upstream_serum.mzML	ERR:Parse Error:While loading 'data/plain/mzml_upstream_serum.mzML': Required attribute 'completion_time' not present! in: data/plain/mzml_upstream_serum.mzML
+MzMLFile::load	mzml_upstream_serum.mzML	1 spectra 0 chromatograms rt0=bff0000000000000 peaks0=3 id0=spectrum=0
+MzMLFile::loadSize	mzml_upstream_serum.mzML	1 0

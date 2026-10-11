@@ -1,0 +1,5 @@
+load m17_first_match_and_window.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [M(Oxidation)PEPNIDE] [MPEPNIDE]

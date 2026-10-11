@@ -1,0 +1,124 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTab.h",
+   "sha256": "5a1d37f0a750b5834d12f05db81ca561e04f671323bc04dd3ffa14e54a10364a",
+   "role": "The export declarations: exportFeatureMapToMzTab, exportIdentificationsToMzTab, extractModificationList, exportConsensusMapToMzTab, the nested IDMzTabStream and CMMzTabStream and the 22 protected statics (lines 540-872)."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTab.cpp",
+   "sha256": "41ca2dbb84ed035991570c48cef9a50e64c5179eaf6ac1d8b93ab21715df8807",
+   "role": "Read in full. Lines 306-350 (target/decoy remapping) and 698-3414 are the export surface ported into src/format/mztab_export.rs."
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzTabFile.h",
+   "sha256": "68f95d183392bdb6cbe022a9dea98bbfcbc6011ccee36615f066d2f28a604e63",
+   "role": "The two streaming store overloads."
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzTabFile.cpp",
+   "sha256": "d5952cb61e7fd28e3256f241fd1ed4e6686f79832c56cf98e60290832e4cc8fe",
+   "role": "Lines 2894-3125: the streaming store overloads, ported as MzTabFile::store_identifications and store_consensus_map."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzTab_test.cpp",
+   "sha256": "6bad52949dee31894b9d906d3b9dcd11d5bdad52204b498fcedb07268b38e828",
+   "role": "Lines 153-193 and 208-303: the two exporter sections, ported into tests/mztab_export.rs with every assertion."
+  }
+ ],
+ "package_revisions": {
+  "core": "bc9cc12",
+  "topp": "174b576",
+  "test-data": "0cb15f2"
+ },
+ "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:3382-3413 (TOPP_MzTabExporter_1..8); ${DIFF} = FuzzyDiff -ini FuzzyDiff.ini (topp/CMakeLists.txt:59; ratio 1.01, absdiff 0.01) with each test's -whitelist; tool body topp 174b576 src/MzTabExporter.cpp",
+ "method": "Each retained input is loaded with the crate's reader and passed through the library exactly as topp 174b576 src/MzTabExporter.cpp does (featureXML: MzTab::export_feature_map + MzTabFile store of the document; idXML: MzTabFile::store_identifications; consensusXML: remove_empty_consensus_identifications + MzTabFile::store_consensus_map with unidentified features, unassigned IDs and subfeatures), and the text is compared with the retained output by the ported FuzzyStringComparator under the upstream settings and whitelists.",
+ "evidence_tier": "1 (retained C++ output) for TOPP_MzTabExporter_3..8; 3 (transcribed literals) for the two MzTab_test.cpp exporter sections",
+ "fixtures": [
+  {
+   "path": "tests/data/mztab_export/Epifany_2_out.consensusXML",
+   "sha256": "7cb63480128e4f05f9329a5d43174618cf1fc7819198e2f4e54331fea7b40f41",
+   "bytes": 39060,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/Epifany_2_out.consensusXML (TOPP_MzTabExporter_4)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_3_input.featureXML",
+   "sha256": "34d7d4ebbd0d4e7e33f4663bd33b130f4eb0cf6140f8a36832ff7e222fbc3a54",
+   "bytes": 1251293,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/MzTabExporter_3_input.featureXML (TOPP_MzTabExporter_3)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_3_output.mzTab",
+   "sha256": "e711a2c81ad1311cd383c20b81c305b2e3243356a7c1e95d0f1abeb2befec4ce",
+   "bytes": 204384,
+   "kind": "retained C++ output: test-data 0cb15f2 topp/MzTabExporter_3_output.mzTab (TOPP_MzTabExporter_3_out)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_4_output.mzTab",
+   "sha256": "3fe40de5fa66cd152fa1d7447b2c828fa64f9e90f974a571e0e441bf0c9da466",
+   "bytes": 24271,
+   "kind": "retained C++ output: test-data 0cb15f2 topp/MzTabExporter_4_output.mzTab (TOPP_MzTabExporter_4_out)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_5_in.consensusXML",
+   "sha256": "2032ca7697ac0395576f96807facc0f138046d1be20c6102885a3cdc55e2a66c",
+   "bytes": 73688,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/MzTabExporter_5_in.consensusXML (TOPP_MzTabExporter_5)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_5_output.mzTab",
+   "sha256": "a65bf38fc64a461abd73b22e988c84725c4953b9910339dffd10ddeef5d8c44a",
+   "bytes": 27807,
+   "kind": "retained C++ output: test-data 0cb15f2 topp/MzTabExporter_5_output.mzTab (TOPP_MzTabExporter_5_out)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_6_input.idXML",
+   "sha256": "9eb8b59added4a16fe4bd5f37be6128ac1fb24026b0a971f1c5955e60c40408c",
+   "bytes": 16965,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/MzTabExporter_6_input.idXML (TOPP_MzTabExporter_6, TOPP_MzTabExporter_8)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_6_output.mzTab",
+   "sha256": "b4f5e0bb9cc8532f347cc8b9e4f9be2bd8096a8c32f87dc5520aec126ee5d96f",
+   "bytes": 9360,
+   "kind": "retained C++ output: test-data 0cb15f2 topp/MzTabExporter_6_output.mzTab (TOPP_MzTabExporter_6_out)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_7_input.consensusXML",
+   "sha256": "94ec27d389a1cf7f0c94d65ae44400dbf291f7ecad2fecc5b40beedb64e64822",
+   "bytes": 8434,
+   "kind": "retained upstream input: test-data 0cb15f2 topp/MzTabExporter_7_input.consensusXML (TOPP_MzTabExporter_7)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_7_output.mzTab",
+   "sha256": "501efe84a028a96920c65f5aa25f3b08cad09a5ca0b58e2cea64a0ab814ac566",
+   "bytes": 6982,
+   "kind": "retained C++ output: test-data 0cb15f2 topp/MzTabExporter_7_output.mzTab (TOPP_MzTabExporter_7_out)"
+  },
+  {
+   "path": "tests/data/mztab_export/MzTabExporter_8_output.mzTab",
+   "sha256": "58bca8c3c8e66f0d94448f184d0f9328d74cd65f6a61d613f797fa526a795548",
+   "bytes": 9857,
+   "kind": "retained C++ output: test-data 0cb15f2 topp/MzTabExporter_8_output.mzTab (TOPP_MzTabExporter_8_out)"
+  }
+ ],
+ "native_implementation": [
+  "src/format/mztab_export.rs",
+  "src/format/mztab_file.rs"
+ ],
+ "native_tests": [
+  "tests/mztab_export.rs"
+ ],
+ "support": "docs/MZTAB_SUPPORT.md",
+ "gaps": [
+  "TOPP_MzTabExporter_1 (24 MB consensusXML input) and TOPP_MzTabExporter_2 (3.9 MB idXML input) are not reproduced because the inputs are too large for tests/data.",
+  "The idXML reader cannot read MzTabExporter_6_input.idXML with the global modification registry (AASequence::parse_with_budget charges a whole-registry scan per named annotation against a fixed 50 M budget); the test reads through a registry of the global registry's Phospho, Oxidation and Carbamidomethyl records."
+ ],
+ "reader_fixes": [
+  "src/format/identification_xml.rs date(): the source's all-zero run date 0000-00-00T00:00:00 is accepted (Epifany_2_out, MzTabExporter_5_in, MzTabExporter_3_input carry it).",
+  "src/format/map_xml.rs read_run: a protein-hit XML ID reused in a later run is accepted with a last-wins accession map, as the source's ConsensusXMLHandler (MzTabExporter_5_in repeats PH_0)."
+ ]
+}

@@ -1,23 +1,74 @@
-# INTEG-F working notes (integrator, group F, worktree wf_97065d91-48e-4)
+# INTEG-F notes (integrator, group F)
 
-Base: main f0990c0. F1c is stacked on F1a (contains 8bb62562). All lanes ahead of base.
+Base: main f0990c06. Branch: worktree-wf_a10fdd71-2d2-14. dax slot integ-F (sweep integ-F-sweep).
+Scratch: /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad/integF
+(both.py = keep-both conflict resolver; lockmerge.py = Cargo.lock union; logs/).
+Guard quirks: one plain `git -C <wt>` per command, no loops; heredoc python + cd refused -> write script files.
 
-Lane branches (merge in this order; F1a then F1c is a fast chain):
-F1a worktree-wf_cd066dab-0a7-5 | F1b worktree-wf_cd066dab-0a7-42 | F1c worktree-wf_cd066dab-0a7-43
-F2 worktree-wf_a10fdd71-2d2-1 | F3a worktree-wf_cd066dab-0a7-7 | F3b worktree-wf_a10fdd71-2d2-2
-F4 worktree-wf_cd066dab-0a7-9 | F5 worktree-wf_a10fdd71-2d2-3 | F6 worktree-wf_cd066dab-0a7-11
-F7a worktree-wf_a10fdd71-2d2-4 | F7b worktree-wf_a10fdd71-2d2-5 | F7c worktree-wf_a10fdd71-2d2-6
+## PRIOR integ-F attempt (Sep 27) = branch worktree-wf_ee239125-5be-32 (NOT in any lane, NOT in main)
+Its NOTES (git show worktree-wf_ee239125-5be-32:NOTES.md) list fixes to re-apply where still relevant:
+- 23ad0e4/687c614 D1 string_utils collapse; 4bc5bf0 toDouble/toFloat Release from_chars (oracle ../oracle/integ-F-stringutils,
+  tests/string_utils_release.rs); f5f5111 ProteinIdentification::sort tie by accession;
+  2d6ad26 one Xerces SAX driver (F3a already carries its sax_xml.rs verbatim; F3b search_engine_xml still separate);
+  b7216a7 remove tests/data/search_engine_oracle/driver.cpp.txt (C++ in repo!); d940b3d arrow builds alone;
+  04c0d42 AcqusHandler false Release claim; ../oracle/integ-F-ptmxml.
 
-Reports: .planning/lane-reports/<lane>.md, fragments .planning/ledger-fragments/wave4/<lane>.json
-(read from the main checkout /Users/kohlbach/Claude/OpenMS/OpenMS4-Exploration/OpenMS4-R, or from the lane branch).
+## Merged (all 12 lanes, in order): F1b(+F1a+OA) e.. F1c e39e7181, F2 3ddf9817, F3a b9056b11, F3b 76190ade,
+F4 993fdd01, F5 f3c14e82, F6 877758b7 (took F3a/integ-F sax_xml.rs, gate any(idxml,kb-xml)), F7a eb3e44e7,
+F7b 30c01dae (Cargo.lock union-merged by hand: verify --locked!), F7c b44150c9, fmt 5a6fbd7e.
 
-## Progress
-- [ ] merge all 12 branches (commit each merge)
-- [ ] dax sweep: OPENMS_GATE_HOST=dax OPENMS_GATE_JOBS=96 ~/.local/bin/openms-ci-sweep.sh integ-F <logdir>  (background, poll)
-- [ ] collapse duplicated logic (shared Parquet writer helpers F1a/F1b/F1c; gzip/zip F7b vs others; mzML writer F7a vs F4 cached)
-- [ ] member-by-member check of every `complete`
-- [ ] consolidated INTEG-F.json fragment + INTEG-F.md report
-- [ ] delete NOTES.md in the final commit
+## Done after merge (commits)
+7fb53b93 D1 format::string_utils folded; 60e302c6 cherry-pick f5f51116 sort ties; cherry-pick 4bc5bf07 StringUtils
+Release from_chars (+tests/string_utils_release.rs); 978bdf89 cherry-pick 687c6145 PEFF/lookup; 0bf73090 Bruker imaging;
+1f64cd7a D2 SAX collapse (xtandem/omssa -> sax_xml; ptm oracle); 4ddbebe9 D4 PTMXML (ptm_xml_file removed);
+cccfe3e4 driver.cpp.txt removed; 266c174a D5 parseInt -> StringManager. clippy all-features: CLEAN (logs/c2.log).
+C++ reference at bc9cc12: .reference/openms4-core-bc9cc12 (scratch/core symlink; cpp.py prints lines).
+Audit scripts: scratch audit.py / audit_fn.py / gaps.py / frag.py. No complete-with-unported-member found so far;
+handlers inconsistent (PTMXMLHandler F3b complete vs F6 native_equivalent -> native_equivalent).
+Ledger rule: core_sdk_coverage.py accepts only complete/partial/native_equivalent; rust/tests/doc files must exist.
+'unmapped' entries (F1b ConsensusMapArrowExport/ProteinGroupArrowExport, F5 HDF5/Thermo) must NOT go in INTEG-F.json.
+Open: D6 stod duplicate (arrow_io_helpers::c_stod glibc-measured vs string_utils::stod) - collapse if time.
+
+## Duplicates to collapse
+- D1 string_utils: F3b src/data_structures/string_utils.rs vs F4 src/format/string_utils.rs (cli/context uses data_structures).
+- D2 SAX: F3b src/format/search_engine_xml.rs driver vs sax_xml.rs (X!Tandem/OMSSA).
+- D4 PTMXML: F3b src/format/ptm_xml_file.rs (idxml) vs F6 src/format/ptm_xml.rs (kb-xml).
+- D5 xerces_parse_int (sax_xml) vs F7b string_manager::parse_int.
+- D3 F7a MSDataCachedConsumer now unblocked by F4 cached_mzml_handler.
+- F7b ZIP input vs B8a zip_input.rs (cross-group, flag to lead).
+- F3b driver.cpp.txt must go.
+
+## Incarnation 3 progress (12:05-)
+- Verified: extcheck 249 artifacts OK; trial_register 36 new manifests OK (check_core_sdk); trial_ledger.py (scratch)
+  merges INTEG-F.json into reviewed-apis + core_sdk_coverage --write OK (core complete 130->215), restored.
+- Audit CHK items all mapped (InspectInfile max_ptm_size, XTandem max_valid_evalue, ParamXML write*, MGF updateMembers_
+  in doc, StringManager xerces ptrs = Rust ownership). AcqusHandler Release claim now TRUE (F5-xmass oracle populated).
+- 5bec6a37 collapse F4 clear_*_data -> kernel clear(false).
+- MSDataCachedConsumer ported (src/format/ms_data_cached_consumer.rs, tests/ms_data_cached_consumer.rs, doc, manifest,
+  ledger.py entry). Proposed ci_matrix mzml slice + ms_data_cached_consumer (uncommitted, --write done).
+  Gate g1 (scratch logs/g1.log) running; then commit.
+- sweep2 running on dax slot integ-F-sweep (logs/sweep2.out; remote .ci-line.N.log) - snapshot BEFORE the consumer port.
+
+## Incarnation 3, later (12:45)
+- Committed: 2392a81f MSDataCachedConsumer; 3d0e7897 empty test mod (clippy fail from 6ab21922); 5685ca4e doc links
+  (PEFF/PTMXML/Unimod module docs - 23 rustdoc errors; F6 never ran doc).
+- PSMArrowIO ported (src/format/psm_arrow_io.rs, tests/psm_arrow_io.rs 14 pass, doc ARROW_PARQUET_SUPPORT, manifest
+  arrow_parquet_provenance psm_arrow_io_note, ledger.py entry). Gates g9-g11 (clippy, doc, 1.85) running -> commit.
+- sweep2 = pre-fix snapshot: its clippy + doc lines WILL fail (fixed since). Needs sweep3 on final tree.
+
+## 12:57
+- 84a9860e PSMArrowIO committed. Oracle ../oracle/integ-F-psmarrowio ran OK (ibminode06, twice identical);
+  tests/data/psm_arrow_io/ (records, stderr, export_* bundles); 2 new differential tests pass (16 total) after
+  mapping rank meta<->field and documenting B/Z/X m/z warning native difference.
+- Report: harness refuses report .md files (Write) -> full report goes into the FINAL MESSAGE (brief fallback).
+  INTEG-F-lead-files.patch saved in .planning/lane-reports (regenerate at end).
 
 ## Next step
-1. Merge F1a, F1c, F1b ... then re-read each report.
+1. g14 (clippy) g15 (1.85) green -> commit differential. trial_register again (arrow manifest changed).
+2. sweep2 done -> sweep3 (same slot) on final tree; counts.sh integ-F-sweep sweep3/lines.tsv.
+3. Revert lead files, regenerate patch, delete NOTES.md, final commit, final message = report.
+
+## Incarnation 4 (wf_97065d91-48e-4, 2026-10-11): resumed from the above by merging worktree-wf_a10fdd71-2d2-14 (4d9800d6)
+Own worktree branch: worktree-wf_97065d91-48e-4. Scratch (old): see above; new scratch: /private/tmp/claude-501/-Users-kohlbach-Claude-OpenMS-OpenMS4-Exploration-OpenMS4-R/c1467273-2c73-458b-a0aa-f084054684de/scratchpad
+Existing artifacts of the earlier run in main checkout .planning: ledger-fragments/wave4/INTEG-F.json (Sep 29 13:01, predates PSMArrowIO + cached consumer diff?), lane-reports/INTEG-F-lead-files.patch.
+Verifier tasks still open: sweep on the merged tree (slot integ-F), complete-claim audit, evidence audit, final fragment+report.

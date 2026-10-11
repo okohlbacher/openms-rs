@@ -1,0 +1,9 @@
+load m28_reuse_first_throws.pepXML
+status exception Parse Error: While loading 'm28_reuse_first_throws.pepXML': Required attribute 'peptide' not present!
+Probable cause: The file suffix (pepXML) does not match the file content (unknown). Rename the file to fix this. in: m28_reuse_first_throws.pepXML
+peptides 0
+load m28_reuse_second.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [M(Oxidation)PEPTIDE] [MPEPTIDE]

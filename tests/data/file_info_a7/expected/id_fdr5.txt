@@ -1,0 +1,35 @@
+
+-- General information --
+
+File name: <FIX>/FalseDiscoveryRate_5_input.idXML
+File type: idXML
+Search Engine(s):
+  SimpleSearchEngine (version: 2.0.1)
+Number of:
+  runs:                       1
+  protein hits:               994
+  non-redundant protein hits: 994
+  (only hits that differ in the accession)
+
+  matched spectra:    311
+  peptide sequences:  291
+  PSMs / spectrum (ignoring unidentified spectra):    1
+  peptide hits:               311 (avg. length: 13)
+  modified top-hits:          75/311 (24.100000000000001%)
+  non-redundant peptide hits: 292
+  (only hits that differ in sequence and/or modifications)
+  Modification count (top-hits only): Carbamidomethyl (C) 50, Oxidation (M) 43
+-- Meta information --
+
+Document ID: 
+
+
+-- Data processing information --
+
+No information about data processing available!
+
+
+-- Statistics --
+
+
+
