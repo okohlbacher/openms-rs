@@ -26,3 +26,9 @@ pub mod percolator;
 pub mod percolator_feature_set_helper;
 /// `PercolatorTypes.h`: the in-process Percolator's input, output and model types.
 pub mod percolator_types;
+/// Fragment index for database search (`FragmentIndex.h`).
+pub mod fragment_index;
+/// Subset-neighbor peptide search (`NeighborSeq.h`).
+pub mod neighbor_seq;
+/// Minimal in-memory search engine (`SimpleSearchEngineAlgorithm.h`).
+pub mod simple_search_engine;
