@@ -1,0 +1,2256 @@
+OK	w_class
+F	w_class	library/metadata.json	w_class__library#metadata.json
+F	w_class	library/precursors.parquet	w_class__library#precursors.parquet
+F	w_class	library/transitions.parquet	w_class__library#transitions.parquet
+F	w_class	metadata.json	w_class__metadata.json
+F	w_class	runs/run_id=90/feature_precursor.parquet	w_class__runs#run_id=90#feature_precursor.parquet
+F	w_class	runs/run_id=90/feature_transition.parquet	w_class__runs#run_id=90#feature_transition.parquet
+F	w_class	runs/run_id=90/features.parquet	w_class__runs#run_id=90#features.parquet
+F	w_class	runs/runs.parquet	w_class__runs#runs.parquet
+E	w_class_incompatible	OpenMS::Exception::InvalidValue	the value '<WORK>/incompatible.oswpq/library' was used but is not valid; Existing OSWPQ library uses a different canonical precursor/transition ID domain. Please rebuild the archive or use a different output path.
+X	w_class_incompatible	run_dir_exists	0
+OK	w_rich_dir
+F	w_rich_dir	library/metadata.json	w_rich_dir__library#metadata.json
+F	w_rich_dir	library/precursors.parquet	w_rich_dir__library#precursors.parquet
+F	w_rich_dir	library/transitions.parquet	w_rich_dir__library#transitions.parquet
+F	w_rich_dir	metadata.json	w_rich_dir__metadata.json
+F	w_rich_dir	runs/run_id=42/feature_precursor.parquet	w_rich_dir__runs#run_id=42#feature_precursor.parquet
+F	w_rich_dir	runs/run_id=42/feature_transition.parquet	w_rich_dir__runs#run_id=42#feature_transition.parquet
+F	w_rich_dir	runs/run_id=42/features.parquet	w_rich_dir__runs#run_id=42#features.parquet
+F	w_rich_dir	runs/runs.parquet	w_rich_dir__runs#runs.parquet
+OK	w_rich_dir_append
+F	w_rich_dir_append	library/metadata.json	w_rich_dir_append__library#metadata.json
+F	w_rich_dir_append	library/precursors.parquet	w_rich_dir_append__library#precursors.parquet
+F	w_rich_dir_append	library/transitions.parquet	w_rich_dir_append__library#transitions.parquet
+F	w_rich_dir_append	metadata.json	w_rich_dir_append__metadata.json
+F	w_rich_dir_append	runs/run_id=42/feature_precursor.parquet	w_rich_dir_append__runs#run_id=42#feature_precursor.parquet
+F	w_rich_dir_append	runs/run_id=42/feature_transition.parquet	w_rich_dir_append__runs#run_id=42#feature_transition.parquet
+F	w_rich_dir_append	runs/run_id=42/features.parquet	w_rich_dir_append__runs#run_id=42#features.parquet
+F	w_rich_dir_append	runs/run_id=7/feature_precursor.parquet	w_rich_dir_append__runs#run_id=7#feature_precursor.parquet
+F	w_rich_dir_append	runs/run_id=7/feature_transition.parquet	w_rich_dir_append__runs#run_id=7#feature_transition.parquet
+F	w_rich_dir_append	runs/run_id=7/features.parquet	w_rich_dir_append__runs#run_id=7#features.parquet
+F	w_rich_dir_append	runs/runs.parquet	w_rich_dir_append__runs#runs.parquet
+E	w_rich_dir_again	OpenMS::Exception::InvalidValue	the value '<WORK>/w_rich_dir.oswpq/runs/run_id=7' was used but is not valid; Run output directory already exists
+OK	w_rich_zip
+Z	w_rich_zip	0	library/precursors.parquet
+Z	w_rich_zip	1	library/transitions.parquet
+Z	w_rich_zip	2	library/metadata.json
+Z	w_rich_zip	3	runs/runs.parquet
+Z	w_rich_zip	4	runs/run_id=42/feature_transition.parquet
+Z	w_rich_zip	5	runs/run_id=42/feature_precursor.parquet
+Z	w_rich_zip	6	runs/run_id=42/features.parquet
+Z	w_rich_zip	7	metadata.json
+Z	w_rich_zip	8	w_rich.oswpq.idx.json
+F	w_rich_zip	library/metadata.json	w_rich_zip__library#metadata.json
+F	w_rich_zip	library/precursors.parquet	w_rich_zip__library#precursors.parquet
+F	w_rich_zip	library/transitions.parquet	w_rich_zip__library#transitions.parquet
+F	w_rich_zip	metadata.json	w_rich_zip__metadata.json
+F	w_rich_zip	runs/run_id=42/feature_precursor.parquet	w_rich_zip__runs#run_id=42#feature_precursor.parquet
+F	w_rich_zip	runs/run_id=42/feature_transition.parquet	w_rich_zip__runs#run_id=42#feature_transition.parquet
+F	w_rich_zip	runs/run_id=42/features.parquet	w_rich_zip__runs#run_id=42#features.parquet
+F	w_rich_zip	runs/runs.parquet	w_rich_zip__runs#runs.parquet
+F	w_rich_zip	w_rich.oswpq.idx.json	w_rich_zip__w_rich.oswpq.idx.json
+X	w_rich_zip	zipstat	library/precursors.parquet comp_method=0 size=2447 comp_size=2447 enc=0
+X	w_rich_zip	zipstat	library/transitions.parquet comp_method=0 size=2816 comp_size=2816 enc=0
+X	w_rich_zip	zipstat	library/metadata.json comp_method=0 size=829 comp_size=829 enc=0
+X	w_rich_zip	zipstat	runs/runs.parquet comp_method=0 size=528 comp_size=528 enc=0
+X	w_rich_zip	zipstat	runs/run_id=42/feature_transition.parquet comp_method=0 size=9365 comp_size=9365 enc=0
+X	w_rich_zip	zipstat	runs/run_id=42/feature_precursor.parquet comp_method=0 size=1306 comp_size=1306 enc=0
+X	w_rich_zip	zipstat	runs/run_id=42/features.parquet comp_method=0 size=14305 comp_size=14305 enc=0
+X	w_rich_zip	zipstat	metadata.json comp_method=0 size=482 comp_size=482 enc=0
+X	w_rich_zip	zipstat	w_rich.oswpq.idx.json comp_method=0 size=313 comp_size=313 enc=0
+OK	w_rich_zip_preserve
+Z	w_rich_zip_preserve	0	library/precursors.parquet
+Z	w_rich_zip_preserve	1	library/transitions.parquet
+Z	w_rich_zip_preserve	2	library/metadata.json
+Z	w_rich_zip_preserve	3	runs/runs.parquet
+Z	w_rich_zip_preserve	4	runs/run_id=42/feature_transition.parquet
+Z	w_rich_zip_preserve	5	runs/run_id=42/feature_precursor.parquet
+Z	w_rich_zip_preserve	6	runs/run_id=42/features.parquet
+Z	w_rich_zip_preserve	7	metadata.json
+Z	w_rich_zip_preserve	8	w_rich.oswpq.idx.json
+Z	w_rich_zip_preserve	9	runs/run_id=7/feature_transition.parquet
+Z	w_rich_zip_preserve	10	runs/run_id=7/feature_precursor.parquet
+Z	w_rich_zip_preserve	11	runs/run_id=7/features.parquet
+F	w_rich_zip_preserve	library/metadata.json	w_rich_zip_preserve__library#metadata.json
+F	w_rich_zip_preserve	library/precursors.parquet	w_rich_zip_preserve__library#precursors.parquet
+F	w_rich_zip_preserve	library/transitions.parquet	w_rich_zip_preserve__library#transitions.parquet
+F	w_rich_zip_preserve	metadata.json	w_rich_zip_preserve__metadata.json
+F	w_rich_zip_preserve	runs/run_id=42/feature_precursor.parquet	w_rich_zip_preserve__runs#run_id=42#feature_precursor.parquet
+F	w_rich_zip_preserve	runs/run_id=42/feature_transition.parquet	w_rich_zip_preserve__runs#run_id=42#feature_transition.parquet
+F	w_rich_zip_preserve	runs/run_id=42/features.parquet	w_rich_zip_preserve__runs#run_id=42#features.parquet
+F	w_rich_zip_preserve	runs/run_id=7/feature_precursor.parquet	w_rich_zip_preserve__runs#run_id=7#feature_precursor.parquet
+F	w_rich_zip_preserve	runs/run_id=7/feature_transition.parquet	w_rich_zip_preserve__runs#run_id=7#feature_transition.parquet
+F	w_rich_zip_preserve	runs/run_id=7/features.parquet	w_rich_zip_preserve__runs#run_id=7#features.parquet
+F	w_rich_zip_preserve	runs/runs.parquet	w_rich_zip_preserve__runs#runs.parquet
+F	w_rich_zip_preserve	w_rich.oswpq.idx.json	w_rich_zip_preserve__w_rich.oswpq.idx.json
+X	w_rich_zip_preserve	zipstat	library/precursors.parquet comp_method=8 size=2447 comp_size=902 enc=0
+X	w_rich_zip_preserve	zipstat	library/transitions.parquet comp_method=8 size=2816 comp_size=1068 enc=0
+X	w_rich_zip_preserve	zipstat	library/metadata.json comp_method=8 size=829 comp_size=317 enc=0
+X	w_rich_zip_preserve	zipstat	runs/runs.parquet comp_method=8 size=559 comp_size=334 enc=0
+X	w_rich_zip_preserve	zipstat	runs/run_id=42/feature_transition.parquet comp_method=8 size=9365 comp_size=2238 enc=0
+X	w_rich_zip_preserve	zipstat	runs/run_id=42/feature_precursor.parquet comp_method=8 size=1306 comp_size=533 enc=0
+X	w_rich_zip_preserve	zipstat	runs/run_id=42/features.parquet comp_method=8 size=14305 comp_size=2950 enc=0
+X	w_rich_zip_preserve	zipstat	metadata.json comp_method=8 size=600 comp_size=264 enc=0
+X	w_rich_zip_preserve	zipstat	w_rich.oswpq.idx.json comp_method=0 size=490 comp_size=490 enc=0
+X	w_rich_zip_preserve	zipstat	runs/run_id=7/feature_transition.parquet comp_method=0 size=8264 comp_size=8264 enc=0
+X	w_rich_zip_preserve	zipstat	runs/run_id=7/feature_precursor.parquet comp_method=0 size=540 comp_size=540 enc=0
+X	w_rich_zip_preserve	zipstat	runs/run_id=7/features.parquet comp_method=0 size=12716 comp_size=12716 enc=0
+OK	w_rich_zip_replace
+Z	w_rich_zip_replace	0	library/precursors.parquet
+Z	w_rich_zip_replace	1	library/transitions.parquet
+Z	w_rich_zip_replace	2	library/metadata.json
+Z	w_rich_zip_replace	3	runs/run_id=8/feature_transition.parquet
+Z	w_rich_zip_replace	4	runs/run_id=8/feature_precursor.parquet
+Z	w_rich_zip_replace	5	runs/run_id=8/features.parquet
+Z	w_rich_zip_replace	6	runs/runs.parquet
+Z	w_rich_zip_replace	7	metadata.json
+Z	w_rich_zip_replace	8	w_rich.oswpq.idx.json
+F	w_rich_zip_replace	library/metadata.json	w_rich_zip_replace__library#metadata.json
+F	w_rich_zip_replace	library/precursors.parquet	w_rich_zip_replace__library#precursors.parquet
+F	w_rich_zip_replace	library/transitions.parquet	w_rich_zip_replace__library#transitions.parquet
+F	w_rich_zip_replace	metadata.json	w_rich_zip_replace__metadata.json
+F	w_rich_zip_replace	runs/run_id=8/feature_precursor.parquet	w_rich_zip_replace__runs#run_id=8#feature_precursor.parquet
+F	w_rich_zip_replace	runs/run_id=8/feature_transition.parquet	w_rich_zip_replace__runs#run_id=8#feature_transition.parquet
+F	w_rich_zip_replace	runs/run_id=8/features.parquet	w_rich_zip_replace__runs#run_id=8#features.parquet
+F	w_rich_zip_replace	runs/runs.parquet	w_rich_zip_replace__runs#runs.parquet
+F	w_rich_zip_replace	w_rich.oswpq.idx.json	w_rich_zip_replace__w_rich.oswpq.idx.json
+X	w_rich_zip_replace	zipstat	library/precursors.parquet comp_method=0 size=2447 comp_size=2447 enc=0
+X	w_rich_zip_replace	zipstat	library/transitions.parquet comp_method=0 size=2816 comp_size=2816 enc=0
+X	w_rich_zip_replace	zipstat	library/metadata.json comp_method=0 size=829 comp_size=829 enc=0
+X	w_rich_zip_replace	zipstat	runs/run_id=8/feature_transition.parquet comp_method=0 size=8264 comp_size=8264 enc=0
+X	w_rich_zip_replace	zipstat	runs/run_id=8/feature_precursor.parquet comp_method=0 size=540 comp_size=540 enc=0
+X	w_rich_zip_replace	zipstat	runs/run_id=8/features.parquet comp_method=0 size=12716 comp_size=12716 enc=0
+X	w_rich_zip_replace	zipstat	runs/runs.parquet comp_method=0 size=538 comp_size=538 enc=0
+X	w_rich_zip_replace	zipstat	metadata.json comp_method=0 size=483 comp_size=483 enc=0
+X	w_rich_zip_replace	zipstat	w_rich.oswpq.idx.json comp_method=0 size=309 comp_size=309 enc=0
+E	w_no_peptideref	OpenMS::Exception::MissingInformation	Feature missing PeptideRef meta value
+X	w_no_peptideref	run_dir_exists	1
+X	w_no_peptideref	runs_exists	0
+E	w_unknown_peptide	OpenMS::Exception::InvalidValue	the value '12' was used but is not valid; Feature references unknown peptide
+X	w_unknown_peptide	run_dir_exists	1
+X	w_unknown_peptide	runs_exists	0
+E	w_unknown_numeric	OpenMS::Exception::InvalidValue	the value '12345' was used but is not valid; Transition references unknown numeric id
+X	w_unknown_numeric	run_dir_exists	1
+X	w_unknown_numeric	runs_exists	0
+E	w_unknown_id	OpenMS::Exception::InvalidValue	the value 'abc' was used but is not valid; Transition references unknown id
+X	w_unknown_id	run_dir_exists	1
+X	w_unknown_id	runs_exists	0
+OK	w_runs_dup_first
+E	w_runs_dup	OpenMS::Exception::InvalidValue	the value '5' was used but is not valid; Run id already present in runs.parquet
+X	w_runs_dup	run_dir_exists	1
+E	w_existing_dup_precursor	OpenMS::Exception::InvalidValue	the value '0' was used but is not valid; Existing OSWPQ library contains duplicate precursor_id
+E	w_existing_dup_transition	OpenMS::Exception::InvalidValue	the value '2' was used but is not valid; Existing OSWPQ library contains duplicate transition_id
+OK	w_empty_fmap
+F	w_empty_fmap	library/metadata.json	w_empty_fmap__library#metadata.json
+F	w_empty_fmap	library/precursors.parquet	w_empty_fmap__library#precursors.parquet
+F	w_empty_fmap	library/transitions.parquet	w_empty_fmap__library#transitions.parquet
+F	w_empty_fmap	metadata.json	w_empty_fmap__metadata.json
+F	w_empty_fmap	runs/run_id=1/feature_precursor.parquet	w_empty_fmap__runs#run_id=1#feature_precursor.parquet
+F	w_empty_fmap	runs/run_id=1/feature_transition.parquet	w_empty_fmap__runs#run_id=1#feature_transition.parquet
+F	w_empty_fmap	runs/run_id=1/features.parquet	w_empty_fmap__runs#run_id=1#features.parquet
+F	w_empty_fmap	runs/runs.parquet	w_empty_fmap__runs#runs.parquet
+E	w_noncanonical	OpenMS::Exception::InvalidValue	the value 'PEP' was used but is not valid; Precursor ID must be a non-negative Int64 in canonical decimal form
+L	r_tworuns	0	8526288118651862652	4835329514588776807	2	101.00000029802322	25944.43359375	0	25944.433181762692	2	0	3	4835329514588776807_2_8526288118651862652
+L	r_tworuns	1	4217411878363957645	4835329514588776807	3	112.00710755586624	25850.63671875	0	25850.63826179504	2	0	3	4835329514588776807_3_4217411878363957645
+L	r_tworuns	2	474525871221756682	4835329514588776807	4	122.98587161302567	25378.611328125	0	25554.315395355228	2	0	3	4835329514588776807_4_474525871221756682
+L	r_tworuns	3	7683983653872390508	4835329514588776807	5	133.9916210770607	24809.1796875	0	25014.135274887089	2	0	3	4835329514588776807_5_7683983653872390508
+L	r_tworuns	4	5587969780757606314	4835329514588776807	6	145.3927144408226	23954.36328125	0	24172.710875749592	2	0	3	4835329514588776807_6_5587969780757606314
+L	r_tworuns	5	3023658190814908261	4835329514588776807	7	145.3927144408226	23954.36328125	0	24172.710875749592	2	0	3	4835329514588776807_7_3023658190814908261
+OK	r_tworuns/load
+PGC	r_tworuns/pg_ms2	ms2	0	ms2_apex_intensity
+PGC	r_tworuns/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_tworuns/pg_ms2	ms2	2	ms2_delta_im
+PGC	r_tworuns/pg_ms2	ms2	3	ms2_exp_im
+PGC	r_tworuns/pg_ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_tworuns/pg_ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_tworuns/pg_ms2	ms2	6	ms2_total_area_intensity
+PGC	r_tworuns/pg_ms2	ms2	7	ms2_total_mi
+PGC	r_tworuns/pg_ms2	ms2	8	var_ms2_bseries_score
+PGC	r_tworuns/pg_ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_tworuns/pg_ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_tworuns/pg_ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_tworuns/pg_ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_tworuns/pg_ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_tworuns/pg_ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_tworuns/pg_ms2	ms2	15	var_ms2_intensity_score
+PGC	r_tworuns/pg_ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_tworuns/pg_ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_tworuns/pg_ms2	ms2	18	var_ms2_library_corr
+PGC	r_tworuns/pg_ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_tworuns/pg_ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_tworuns/pg_ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_tworuns/pg_ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_tworuns/pg_ms2	ms2	23	var_ms2_library_sangle
+PGC	r_tworuns/pg_ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_tworuns/pg_ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_tworuns/pg_ms2	ms2	26	var_ms2_massdev_score
+PGC	r_tworuns/pg_ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_tworuns/pg_ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_tworuns/pg_ms2	ms2	29	var_ms2_mi_score
+PGC	r_tworuns/pg_ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_tworuns/pg_ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_tworuns/pg_ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_tworuns/pg_ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_tworuns/pg_ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_tworuns/pg_ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_tworuns/pg_ms2	ms2	36	var_ms2_yseries_score
+PG	r_tworuns/pg_ms2	0	8526288118651862652	4835329514588776807	2	101.00000029802322	2	0	3	4835329514588776807_2_8526288118651862652	25944.433181762692|25944.43359375|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84600478466387496|1.000000015879603|0.86570672242406999|0|0.99926008022886603|0.99980047953464202|0.019637780741463998|0.010101016944745|0.010910345268186|0.027598787005346001|0.75400783911166203|1.144638787902351|0.01057807653149|nan|nan|nan|0.014240302498742001|1.005000002980232|0|0|1|1	
+PG	r_tworuns/pg_ms2	1	4217411878363957645	4835329514588776807	3	112.00710755586624	2	0	3	4835329514588776807_3_4217411878363957645	25850.63826179504|25850.63671875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84234867416015702|1.0000000158634359|0.86090793382697695|0|0.999260080225017|0.99980047953367801|0.019637780788750999|0.010101016969576|0.010910345295007|0.027598787073905999|0.74994574205302|1.150778124385216|0.010556965295857999|nan|nan|nan|0.014211881198715999|1.114071075558662|0|0|1|1	
+PG	r_tworuns/pg_ms2	2	474525871221756682	4835329514588776807	4	122.98587161302567	2	0	3	4835329514588776807_4_474525871221756682	25554.315395355228|25378.611328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84226126617837804|0.99312428979168998|0.86079290186157997|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.73824258995210501|1.150924460147245|0.010535938158043|nan|nan|nan|0.014183573121193|1.2228587161302571|0|0|0.999999999999999|0.999999999999999	
+PG	r_tworuns/pg_ms2	3	7683983653872390508	4835329514588776807	5	133.9916210770607	2	0	3	4835329514588776807_5_7683983653872390508	25014.135274887089|24809.1796875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84217390856832497|0.99180648733167098|0.86067775577542904|0|0.99926008073502903|0.99980047966147301|0.019637774523341998|0.010101013679459999|0.010910341741275|0.027598777990348999|0.83198191115089404|1.1510706883970621|0.010514994616532001|nan|nan|nan|0.014155377590947|1.3319162107706071|0|0|0.999999999999999|1	
+PG	r_tworuns/pg_ms2	4	5587969780757606314	4835329514588776807	6	145.3927144408226	2	0	3	4835329514588776807_6_5587969780757606314	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	
+PG	r_tworuns/pg_ms2	5	3023658190814908261	4835329514588776807	7	145.3927144408226	2	0	3	4835329514588776807_7_3023658190814908261	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	
+OK	r_tworuns/pg_ms2
+PGC	r_tworuns/pg_ms1ms2	ms2	0	ms2_apex_intensity
+PGC	r_tworuns/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_tworuns/pg_ms1ms2	ms2	2	ms2_delta_im
+PGC	r_tworuns/pg_ms1ms2	ms2	3	ms2_exp_im
+PGC	r_tworuns/pg_ms1ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_tworuns/pg_ms1ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_tworuns/pg_ms1ms2	ms2	6	ms2_total_area_intensity
+PGC	r_tworuns/pg_ms1ms2	ms2	7	ms2_total_mi
+PGC	r_tworuns/pg_ms1ms2	ms2	8	var_ms2_bseries_score
+PGC	r_tworuns/pg_ms1ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_tworuns/pg_ms1ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_tworuns/pg_ms1ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_tworuns/pg_ms1ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_tworuns/pg_ms1ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_tworuns/pg_ms1ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_tworuns/pg_ms1ms2	ms2	15	var_ms2_intensity_score
+PGC	r_tworuns/pg_ms1ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_tworuns/pg_ms1ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_tworuns/pg_ms1ms2	ms2	18	var_ms2_library_corr
+PGC	r_tworuns/pg_ms1ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_tworuns/pg_ms1ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_tworuns/pg_ms1ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_tworuns/pg_ms1ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_tworuns/pg_ms1ms2	ms2	23	var_ms2_library_sangle
+PGC	r_tworuns/pg_ms1ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_tworuns/pg_ms1ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_tworuns/pg_ms1ms2	ms2	26	var_ms2_massdev_score
+PGC	r_tworuns/pg_ms1ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_tworuns/pg_ms1ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_tworuns/pg_ms1ms2	ms2	29	var_ms2_mi_score
+PGC	r_tworuns/pg_ms1ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_tworuns/pg_ms1ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_tworuns/pg_ms1ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_tworuns/pg_ms1ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_tworuns/pg_ms1ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_tworuns/pg_ms1ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_tworuns/pg_ms1ms2	ms2	36	var_ms2_yseries_score
+PGC	r_tworuns/pg_ms1ms2	ms1	0	ms1_apex_intensity
+PGC	r_tworuns/pg_ms1ms2	ms1	1	ms1_area_intensity
+PGC	r_tworuns/pg_ms1ms2	ms1	2	ms1_delta_im
+PGC	r_tworuns/pg_ms1ms2	ms1	3	ms1_exp_im
+PGC	r_tworuns/pg_ms1ms2	ms1	4	var_ms1_im_ms1_delta_score
+PGC	r_tworuns/pg_ms1ms2	ms1	5	var_ms1_isotope_correlation_score
+PGC	r_tworuns/pg_ms1ms2	ms1	6	var_ms1_isotope_overlap_score
+PGC	r_tworuns/pg_ms1ms2	ms1	7	var_ms1_massdev_score
+PGC	r_tworuns/pg_ms1ms2	ms1	8	var_ms1_mi_combined_score
+PGC	r_tworuns/pg_ms1ms2	ms1	9	var_ms1_mi_contrast_score
+PGC	r_tworuns/pg_ms1ms2	ms1	10	var_ms1_mi_score
+PGC	r_tworuns/pg_ms1ms2	ms1	11	var_ms1_xcorr_coelution
+PGC	r_tworuns/pg_ms1ms2	ms1	12	var_ms1_xcorr_coelution_combined
+PGC	r_tworuns/pg_ms1ms2	ms1	13	var_ms1_xcorr_coelution_contrast
+PGC	r_tworuns/pg_ms1ms2	ms1	14	var_ms1_xcorr_shape
+PGC	r_tworuns/pg_ms1ms2	ms1	15	var_ms1_xcorr_shape_combined
+PGC	r_tworuns/pg_ms1ms2	ms1	16	var_ms1_xcorr_shape_contrast
+PG	r_tworuns/pg_ms1ms2	0	8526288118651862652	4835329514588776807	2	101.00000029802322	2	0	3	4835329514588776807_2_8526288118651862652	25944.433181762692|25944.43359375|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84600478466387496|1.000000015879603|0.86570672242406999|0|0.99926008022886603|0.99980047953464202|0.019637780741463998|0.010101016944745|0.010910345268186|0.027598787005346001|0.75400783911166203|1.144638787902351|0.01057807653149|nan|nan|nan|0.014240302498742001|1.005000002980232|0|0|1|1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_tworuns/pg_ms1ms2	1	4217411878363957645	4835329514588776807	3	112.00710755586624	2	0	3	4835329514588776807_3_4217411878363957645	25850.63826179504|25850.63671875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84234867416015702|1.0000000158634359|0.86090793382697695|0|0.999260080225017|0.99980047953367801|0.019637780788750999|0.010101016969576|0.010910345295007|0.027598787073905999|0.74994574205302|1.150778124385216|0.010556965295857999|nan|nan|nan|0.014211881198715999|1.114071075558662|0|0|1|1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_tworuns/pg_ms1ms2	2	474525871221756682	4835329514588776807	4	122.98587161302567	2	0	3	4835329514588776807_4_474525871221756682	25554.315395355228|25378.611328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84226126617837804|0.99312428979168998|0.86079290186157997|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.73824258995210501|1.150924460147245|0.010535938158043|nan|nan|nan|0.014183573121193|1.2228587161302571|0|0|0.999999999999999|0.999999999999999	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_tworuns/pg_ms1ms2	3	7683983653872390508	4835329514588776807	5	133.9916210770607	2	0	3	4835329514588776807_5_7683983653872390508	25014.135274887089|24809.1796875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84217390856832497|0.99180648733167098|0.86067775577542904|0|0.99926008073502903|0.99980047966147301|0.019637774523341998|0.010101013679459999|0.010910341741275|0.027598777990348999|0.83198191115089404|1.1510706883970621|0.010514994616532001|nan|nan|nan|0.014155377590947|1.3319162107706071|0|0|0.999999999999999|1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_tworuns/pg_ms1ms2	4	5587969780757606314	4835329514588776807	6	145.3927144408226	2	0	3	4835329514588776807_6_5587969780757606314	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_tworuns/pg_ms1ms2	5	3023658190814908261	4835329514588776807	7	145.3927144408226	2	0	3	4835329514588776807_7_3023658190814908261	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_tworuns/pg_ms1ms2
+PGC	r_tworuns/pg_main	ms2	0	var_ms2_xcorr_shape
+PGC	r_tworuns/pg_main	ms2	1	ms2_apex_intensity
+PGC	r_tworuns/pg_main	ms2	2	ms2_area_intensity
+PGC	r_tworuns/pg_main	ms2	3	ms2_delta_im
+PGC	r_tworuns/pg_main	ms2	4	ms2_exp_im
+PGC	r_tworuns/pg_main	ms2	5	ms2_exp_im_leftwidth
+PGC	r_tworuns/pg_main	ms2	6	ms2_exp_im_rightwidth
+PGC	r_tworuns/pg_main	ms2	7	ms2_total_area_intensity
+PGC	r_tworuns/pg_main	ms2	8	ms2_total_mi
+PGC	r_tworuns/pg_main	ms2	9	var_ms2_bseries_score
+PGC	r_tworuns/pg_main	ms2	10	var_ms2_dotprod_score
+PGC	r_tworuns/pg_main	ms2	11	var_ms2_elution_model_fit_score
+PGC	r_tworuns/pg_main	ms2	12	var_ms2_im_delta_score
+PGC	r_tworuns/pg_main	ms2	13	var_ms2_im_log_intensity
+PGC	r_tworuns/pg_main	ms2	14	var_ms2_im_xcorr_coelution
+PGC	r_tworuns/pg_main	ms2	15	var_ms2_im_xcorr_shape
+PGC	r_tworuns/pg_main	ms2	16	var_ms2_intensity_score
+PGC	r_tworuns/pg_main	ms2	17	var_ms2_isotope_correlation_score
+PGC	r_tworuns/pg_main	ms2	18	var_ms2_isotope_overlap_score
+PGC	r_tworuns/pg_main	ms2	19	var_ms2_library_corr
+PGC	r_tworuns/pg_main	ms2	20	var_ms2_library_dotprod
+PGC	r_tworuns/pg_main	ms2	21	var_ms2_library_manhattan
+PGC	r_tworuns/pg_main	ms2	22	var_ms2_library_rmsd
+PGC	r_tworuns/pg_main	ms2	23	var_ms2_library_rootmeansquare
+PGC	r_tworuns/pg_main	ms2	24	var_ms2_library_sangle
+PGC	r_tworuns/pg_main	ms2	25	var_ms2_log_sn_score
+PGC	r_tworuns/pg_main	ms2	26	var_ms2_manhattan_score
+PGC	r_tworuns/pg_main	ms2	27	var_ms2_massdev_score
+PGC	r_tworuns/pg_main	ms2	28	var_ms2_massdev_score_weighted
+PGC	r_tworuns/pg_main	ms2	29	var_ms2_mi_ratio_score
+PGC	r_tworuns/pg_main	ms2	30	var_ms2_mi_score
+PGC	r_tworuns/pg_main	ms2	31	var_ms2_mi_weighted_score
+PGC	r_tworuns/pg_main	ms2	32	var_ms2_norm_rt_score
+PGC	r_tworuns/pg_main	ms2	33	var_ms2_xcorr_coelution
+PGC	r_tworuns/pg_main	ms2	34	var_ms2_xcorr_coelution_weighted
+PGC	r_tworuns/pg_main	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_tworuns/pg_main	ms2	36	var_ms2_yseries_score
+PG	r_tworuns/pg_main	0	8526288118651862652	4835329514588776807	2	101.00000029802322	2	0	3	4835329514588776807_2_8526288118651862652	0|25944.433181762692|25944.43359375|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84600478466387496|1.000000015879603|0.86570672242406999|0|0.99926008022886603|0.99980047953464202|0.019637780741463998|0.010101016944745|0.010910345268186|0.027598787005346001|0.75400783911166203|1.144638787902351|0.01057807653149|nan|nan|nan|0.014240302498742001|1.005000002980232|0|1|1	
+PG	r_tworuns/pg_main	1	4217411878363957645	4835329514588776807	3	112.00710755586624	2	0	3	4835329514588776807_3_4217411878363957645	0|25850.63826179504|25850.63671875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84234867416015702|1.0000000158634359|0.86090793382697695|0|0.999260080225017|0.99980047953367801|0.019637780788750999|0.010101016969576|0.010910345295007|0.027598787073905999|0.74994574205302|1.150778124385216|0.010556965295857999|nan|nan|nan|0.014211881198715999|1.114071075558662|0|1|1	
+PG	r_tworuns/pg_main	2	474525871221756682	4835329514588776807	4	122.98587161302567	2	0	3	4835329514588776807_4_474525871221756682	0|25554.315395355228|25378.611328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84226126617837804|0.99312428979168998|0.86079290186157997|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.73824258995210501|1.150924460147245|0.010535938158043|nan|nan|nan|0.014183573121193|1.2228587161302571|0|0.999999999999999|0.999999999999999	
+PG	r_tworuns/pg_main	3	7683983653872390508	4835329514588776807	5	133.9916210770607	2	0	3	4835329514588776807_5_7683983653872390508	0|25014.135274887089|24809.1796875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84217390856832497|0.99180648733167098|0.86067775577542904|0|0.99926008073502903|0.99980047966147301|0.019637774523341998|0.010101013679459999|0.010910341741275|0.027598777990348999|0.83198191115089404|1.1510706883970621|0.010514994616532001|nan|nan|nan|0.014155377590947|1.3319162107706071|0|0.999999999999999|1	
+PG	r_tworuns/pg_main	4	5587969780757606314	4835329514588776807	6	145.3927144408226	2	0	3	4835329514588776807_6_5587969780757606314	0|24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0.999999999999999|0.999999999999999	
+PG	r_tworuns/pg_main	5	3023658190814908261	4835329514588776807	7	145.3927144408226	2	0	3	4835329514588776807_7_3023658190814908261	0|24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0.999999999999999|0.999999999999999	
+OK	r_tworuns/pg_main
+PGC	r_tworuns/pg_main_missing	ms2	0	ms2_apex_intensity
+PGC	r_tworuns/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_tworuns/pg_main_missing	ms2	2	ms2_delta_im
+PGC	r_tworuns/pg_main_missing	ms2	3	ms2_exp_im
+PGC	r_tworuns/pg_main_missing	ms2	4	ms2_exp_im_leftwidth
+PGC	r_tworuns/pg_main_missing	ms2	5	ms2_exp_im_rightwidth
+PGC	r_tworuns/pg_main_missing	ms2	6	ms2_total_area_intensity
+PGC	r_tworuns/pg_main_missing	ms2	7	ms2_total_mi
+PGC	r_tworuns/pg_main_missing	ms2	8	var_ms2_bseries_score
+PGC	r_tworuns/pg_main_missing	ms2	9	var_ms2_dotprod_score
+PGC	r_tworuns/pg_main_missing	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_tworuns/pg_main_missing	ms2	11	var_ms2_im_delta_score
+PGC	r_tworuns/pg_main_missing	ms2	12	var_ms2_im_log_intensity
+PGC	r_tworuns/pg_main_missing	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_tworuns/pg_main_missing	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_tworuns/pg_main_missing	ms2	15	var_ms2_intensity_score
+PGC	r_tworuns/pg_main_missing	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_tworuns/pg_main_missing	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_tworuns/pg_main_missing	ms2	18	var_ms2_library_corr
+PGC	r_tworuns/pg_main_missing	ms2	19	var_ms2_library_dotprod
+PGC	r_tworuns/pg_main_missing	ms2	20	var_ms2_library_manhattan
+PGC	r_tworuns/pg_main_missing	ms2	21	var_ms2_library_rmsd
+PGC	r_tworuns/pg_main_missing	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_tworuns/pg_main_missing	ms2	23	var_ms2_library_sangle
+PGC	r_tworuns/pg_main_missing	ms2	24	var_ms2_log_sn_score
+PGC	r_tworuns/pg_main_missing	ms2	25	var_ms2_manhattan_score
+PGC	r_tworuns/pg_main_missing	ms2	26	var_ms2_massdev_score
+PGC	r_tworuns/pg_main_missing	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_tworuns/pg_main_missing	ms2	28	var_ms2_mi_ratio_score
+PGC	r_tworuns/pg_main_missing	ms2	29	var_ms2_mi_score
+PGC	r_tworuns/pg_main_missing	ms2	30	var_ms2_mi_weighted_score
+PGC	r_tworuns/pg_main_missing	ms2	31	var_ms2_norm_rt_score
+PGC	r_tworuns/pg_main_missing	ms2	32	var_ms2_xcorr_coelution
+PGC	r_tworuns/pg_main_missing	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_tworuns/pg_main_missing	ms2	34	var_ms2_xcorr_shape
+PGC	r_tworuns/pg_main_missing	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_tworuns/pg_main_missing	ms2	36	var_ms2_yseries_score
+PG	r_tworuns/pg_main_missing	0	8526288118651862652	4835329514588776807	2	101.00000029802322	2	0	3	4835329514588776807_2_8526288118651862652	25944.433181762692|25944.43359375|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84600478466387496|1.000000015879603|0.86570672242406999|0|0.99926008022886603|0.99980047953464202|0.019637780741463998|0.010101016944745|0.010910345268186|0.027598787005346001|0.75400783911166203|1.144638787902351|0.01057807653149|nan|nan|nan|0.014240302498742001|1.005000002980232|0|0|1|1	
+PG	r_tworuns/pg_main_missing	1	4217411878363957645	4835329514588776807	3	112.00710755586624	2	0	3	4835329514588776807_3_4217411878363957645	25850.63826179504|25850.63671875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84234867416015702|1.0000000158634359|0.86090793382697695|0|0.999260080225017|0.99980047953367801|0.019637780788750999|0.010101016969576|0.010910345295007|0.027598787073905999|0.74994574205302|1.150778124385216|0.010556965295857999|nan|nan|nan|0.014211881198715999|1.114071075558662|0|0|1|1	
+PG	r_tworuns/pg_main_missing	2	474525871221756682	4835329514588776807	4	122.98587161302567	2	0	3	4835329514588776807_4_474525871221756682	25554.315395355228|25378.611328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84226126617837804|0.99312428979168998|0.86079290186157997|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.73824258995210501|1.150924460147245|0.010535938158043|nan|nan|nan|0.014183573121193|1.2228587161302571|0|0|0.999999999999999|0.999999999999999	
+PG	r_tworuns/pg_main_missing	3	7683983653872390508	4835329514588776807	5	133.9916210770607	2	0	3	4835329514588776807_5_7683983653872390508	25014.135274887089|24809.1796875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84217390856832497|0.99180648733167098|0.86067775577542904|0|0.99926008073502903|0.99980047966147301|0.019637774523341998|0.010101013679459999|0.010910341741275|0.027598777990348999|0.83198191115089404|1.1510706883970621|0.010514994616532001|nan|nan|nan|0.014155377590947|1.3319162107706071|0|0|0.999999999999999|1	
+PG	r_tworuns/pg_main_missing	4	5587969780757606314	4835329514588776807	6	145.3927144408226	2	0	3	4835329514588776807_6_5587969780757606314	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	
+PG	r_tworuns/pg_main_missing	5	3023658190814908261	4835329514588776807	7	145.3927144408226	2	0	3	4835329514588776807_7_3023658190814908261	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	
+OK	r_tworuns/pg_main_missing
+TFC	r_tworuns/tf	0	var_im_delta_score
+TFC	r_tworuns/tf	1	var_im_log_intensity
+TFC	r_tworuns/tf	2	var_im_xcorr_coelution_combined
+TFC	r_tworuns/tf	3	var_im_xcorr_coelution_contrast
+TFC	r_tworuns/tf	4	var_im_xcorr_shape_combined
+TFC	r_tworuns/tf	5	var_im_xcorr_shape_contrast
+TFC	r_tworuns/tf	6	var_intensity_ratio_score
+TFC	r_tworuns/tf	7	var_intensity_score
+TFC	r_tworuns/tf	8	var_isotope_correlation_score
+TFC	r_tworuns/tf	9	var_isotope_overlap_score
+TFC	r_tworuns/tf	10	var_log_intensity
+TFC	r_tworuns/tf	11	var_log_sn_score
+TFC	r_tworuns/tf	12	var_massdev_score
+TFC	r_tworuns/tf	13	var_mi_ratio_score
+TFC	r_tworuns/tf	14	var_mi_score
+TFC	r_tworuns/tf	15	var_xcorr_coelution
+TFC	r_tworuns/tf	16	var_xcorr_shape
+TF	r_tworuns/tf	0	8526288118651862652	4835329514588776807	2	101.00000029802322	2	1	2	0	14151.5087890625	0	14151.50898742676	1436.1922607421875	101	0.019530859401002	nan	4835329514588776807_8526288118651862652_2_1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	1	8526288118651862652	4835329514588776807	2	101.00000029802322	2	2	2	0	7075.75439453125	100	7075.7544937133789	718.09613037109375	101	-0.012203370193466999	nan	4835329514588776807_8526288118651862652_2_2	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	2	8526288118651862652	4835329514588776807	2	101.00000029802322	2	3	2	0	4717.169921875	100	4717.1697006225586	478.73074340820312	101	0	nan	4835329514588776807_8526288118651862652_2_3	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	3	4217411878363957645	4835329514588776807	3	112.00710755586624	2	4	2	0	14100.34765625	0	14100.34812164307	1436.1922607421875	112	0.019491876427806001	nan	4835329514588776807_4217411878363957645_3_4	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	4	4217411878363957645	4835329514588776807	3	112.00710755586624	2	5	2	0	7050.173828125	100	7050.1740608215341	718.09613037109375	112	-0.012179019459768001	nan	4835329514588776807_4217411878363957645_3_5	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	5	4217411878363957645	4835329514588776807	3	112.00710755586624	2	6	2	0	4700.1162109375	100	4700.1160793304443	478.73074340820312	112	0	nan	4835329514588776807_4217411878363957645_3_6	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	6	474525871221756682	4835329514588776807	4	122.98587161302567	2	7	2	0	13842.87890625	0	13938.717468261721	1436.1922607421875	123	0.019453048762166001	nan	4835329514588776807_474525871221756682_4_7	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	7	474525871221756682	4835329514588776807	4	122.98587161302567	2	8	2	0	6921.439453125	100	6969.3587341308594	718.09613037109375	123	-0.012154765711964	nan	4835329514588776807_474525871221756682_4_8	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	8	474525871221756682	4835329514588776807	4	122.98587161302567	2	9	2	0	4614.29296875	100	4646.2391929626456	478.73074340820312	123	0	nan	4835329514588776807_474525871221756682_4_9	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	9	7683983653872390508	4835329514588776807	5	133.9916210770607	2	10	2	0	13532.2802734375	0	13644.073764801031	1436.1922607421875	134	0.019414375477812999	nan	4835329514588776807_7683983653872390508_5_10	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	10	7683983653872390508	4835329514588776807	5	133.9916210770607	2	11	2	0	6766.14013671875	100	6822.0368824005127	718.09613037109375	134	-0.012130608371783	nan	4835329514588776807_7683983653872390508_5_11	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	11	7683983653872390508	4835329514588776807	5	133.9916210770607	2	12	2	0	4510.76025390625	100	4548.0246276855469	478.73074340820312	134	0	nan	4835329514588776807_7683983653872390508_5_12	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	12	5587969780757606314	4835329514588776807	6	145.3927144408226	2	13	2	0	13066.0166015625	0	13185.11500167847	1436.1922607421875	145	0.019375855655829999	nan	4835329514588776807_5587969780757606314_6_13	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	13	5587969780757606314	4835329514588776807	6	145.3927144408226	2	14	2	0	6533.00830078125	100	6592.5575008392334	718.09613037109375	145	-0.012106546865540999	nan	4835329514588776807_5587969780757606314_6_14	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	14	5587969780757606314	4835329514588776807	6	145.3927144408226	2	15	2	0	4355.3388671875	100	4395.0383732318878	478.73074340820312	145	0	nan	4835329514588776807_5587969780757606314_6_15	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	15	3023658190814908261	4835329514588776807	7	145.3927144408226	2	16	2	0	13066.0166015625	0	13185.11500167847	1436.1922607421875	145	0.019375855655829999	nan	4835329514588776807_3023658190814908261_7_16	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	16	3023658190814908261	4835329514588776807	7	145.3927144408226	2	17	2	0	6533.00830078125	100	6592.5575008392334	718.09613037109375	145	-0.012106546865540999	nan	4835329514588776807_3023658190814908261_7_17	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_tworuns/tf	17	3023658190814908261	4835329514588776807	7	145.3927144408226	2	18	2	0	4355.3388671875	100	4395.0383732318878	478.73074340820312	145	0	nan	4835329514588776807_3023658190814908261_7_18	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_tworuns/tf
+UC	r_tworuns/u	ms2	0	ms2_apex_intensity
+UC	r_tworuns/u	ms2	1	ms2_area_intensity
+UC	r_tworuns/u	ms2	2	ms2_delta_im
+UC	r_tworuns/u	ms2	3	ms2_exp_im
+UC	r_tworuns/u	ms2	4	ms2_exp_im_leftwidth
+UC	r_tworuns/u	ms2	5	ms2_exp_im_rightwidth
+UC	r_tworuns/u	ms2	6	ms2_total_area_intensity
+UC	r_tworuns/u	ms2	7	ms2_total_mi
+UC	r_tworuns/u	ms2	8	var_ms2_bseries_score
+UC	r_tworuns/u	ms2	9	var_ms2_dotprod_score
+UC	r_tworuns/u	ms2	10	var_ms2_elution_model_fit_score
+UC	r_tworuns/u	ms2	11	var_ms2_im_delta_score
+UC	r_tworuns/u	ms2	12	var_ms2_im_log_intensity
+UC	r_tworuns/u	ms2	13	var_ms2_im_xcorr_coelution
+UC	r_tworuns/u	ms2	14	var_ms2_im_xcorr_shape
+UC	r_tworuns/u	ms2	15	var_ms2_intensity_score
+UC	r_tworuns/u	ms2	16	var_ms2_isotope_correlation_score
+UC	r_tworuns/u	ms2	17	var_ms2_isotope_overlap_score
+UC	r_tworuns/u	ms2	18	var_ms2_library_corr
+UC	r_tworuns/u	ms2	19	var_ms2_library_dotprod
+UC	r_tworuns/u	ms2	20	var_ms2_library_manhattan
+UC	r_tworuns/u	ms2	21	var_ms2_library_rmsd
+UC	r_tworuns/u	ms2	22	var_ms2_library_rootmeansquare
+UC	r_tworuns/u	ms2	23	var_ms2_library_sangle
+UC	r_tworuns/u	ms2	24	var_ms2_log_sn_score
+UC	r_tworuns/u	ms2	25	var_ms2_manhattan_score
+UC	r_tworuns/u	ms2	26	var_ms2_massdev_score
+UC	r_tworuns/u	ms2	27	var_ms2_massdev_score_weighted
+UC	r_tworuns/u	ms2	28	var_ms2_mi_ratio_score
+UC	r_tworuns/u	ms2	29	var_ms2_mi_score
+UC	r_tworuns/u	ms2	30	var_ms2_mi_weighted_score
+UC	r_tworuns/u	ms2	31	var_ms2_norm_rt_score
+UC	r_tworuns/u	ms2	32	var_ms2_xcorr_coelution
+UC	r_tworuns/u	ms2	33	var_ms2_xcorr_coelution_weighted
+UC	r_tworuns/u	ms2	34	var_ms2_xcorr_shape
+UC	r_tworuns/u	ms2	35	var_ms2_xcorr_shape_weighted
+UC	r_tworuns/u	ms2	36	var_ms2_yseries_score
+UC	r_tworuns/u	ms1	0	ms1_apex_intensity
+UC	r_tworuns/u	ms1	1	ms1_area_intensity
+UC	r_tworuns/u	ms1	2	ms1_delta_im
+UC	r_tworuns/u	ms1	3	ms1_exp_im
+UC	r_tworuns/u	ms1	4	var_ms1_im_ms1_delta_score
+UC	r_tworuns/u	ms1	5	var_ms1_isotope_correlation_score
+UC	r_tworuns/u	ms1	6	var_ms1_isotope_overlap_score
+UC	r_tworuns/u	ms1	7	var_ms1_massdev_score
+UC	r_tworuns/u	ms1	8	var_ms1_mi_combined_score
+UC	r_tworuns/u	ms1	9	var_ms1_mi_contrast_score
+UC	r_tworuns/u	ms1	10	var_ms1_mi_score
+UC	r_tworuns/u	ms1	11	var_ms1_xcorr_coelution
+UC	r_tworuns/u	ms1	12	var_ms1_xcorr_coelution_combined
+UC	r_tworuns/u	ms1	13	var_ms1_xcorr_coelution_contrast
+UC	r_tworuns/u	ms1	14	var_ms1_xcorr_shape
+UC	r_tworuns/u	ms1	15	var_ms1_xcorr_shape_combined
+UC	r_tworuns/u	ms1	16	var_ms1_xcorr_shape_contrast
+U	r_tworuns/u	0	4835329514588776807	0	2	0	4835329514588776807	src/tests/topp/OpenSwathWorkflow_1_input.mzML	101.00000029802322	0.49999999999998579	100.50000029802324	0.5	100.50000029802324	8526288118651862652	2	412.5	25944.43359375	nan	nan	11	191	nan	nan	nan	25944.433181762692|25944.43359375|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84600478466387496|1.000000015879603|0.86570672242406999|0|0.99926008022886603|0.99980047953464202|0.019637780741463998|0.010101016944745|0.010910345268186|0.027598787005346001|0.75400783911166203|1.144638787902351|0.01057807653149|nan|nan|nan|0.014240302498742001|1.005000002980232|0|0|1|1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_tworuns/u	1	4835329514588776807	0	3	0	4835329514588776807	src/tests/topp/OpenSwathWorkflow_1_input.mzML	112.00710755586624	0.60000000000000853	111.40710755586623	0.59999999999999998	111.40710755586625	4217411878363957645	2	437.5	25850.63671875	nan	nan	12	192	nan	nan	nan	25850.63826179504|25850.63671875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84234867416015702|1.0000000158634359|0.86090793382697695|0|0.999260080225017|0.99980047953367801|0.019637780788750999|0.010101016969576|0.010910345295007|0.027598787073905999|0.74994574205302|1.150778124385216|0.010556965295857999|nan|nan|nan|0.014211881198715999|1.114071075558662|0|0|1|1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_tworuns/u	2	4835329514588776807	0	4	0	4835329514588776807	src/tests/topp/OpenSwathWorkflow_1_input.mzML	122.98587161302567	0.70000000000000284	122.28587161302566	0.69999999999999996	122.28587161302566	474525871221756682	2	462.5	25378.611328125	nan	nan	33	193	nan	nan	nan	25554.315395355228|25378.611328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84226126617837804|0.99312428979168998|0.86079290186157997|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.73824258995210501|1.150924460147245|0.010535938158043|nan|nan|nan|0.014183573121193|1.2228587161302571|0|0|0.999999999999999|0.999999999999999	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_tworuns/u	3	4835329514588776807	0	5	0	4835329514588776807	src/tests/topp/OpenSwathWorkflow_1_input.mzML	133.9916210770607	0.80000000000001137	133.19162107706069	0.80000000000000004	133.19162107706069	7683983653872390508	2	487.5	24809.1796875	nan	nan	44	194	nan	nan	nan	25014.135274887089|24809.1796875|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84217390856832497|0.99180648733167098|0.86067775577542904|0|0.99926008073502903|0.99980047966147301|0.019637774523341998|0.010101013679459999|0.010910341741275|0.027598777990348999|0.83198191115089404|1.1510706883970621|0.010514994616532001|nan|nan|nan|0.014155377590947|1.3319162107706071|0|0|0.999999999999999|1	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_tworuns/u	4	4835329514588776807	0	6	0	4835329514588776807	src/tests/topp/OpenSwathWorkflow_1_input.mzML	145.3927144408226	0.80000000000001137	144.59271444082259	0.80000000000000004	144.59271444082259	5587969780757606314	2	510.05000000000001	23954.36328125	nan	nan	55	195	nan	nan	nan	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_tworuns/u	5	4835329514588776807	0	7	0	4835329514588776807	src/tests/topp/OpenSwathWorkflow_1_input.mzML	145.3927144408226	0.80000000000001137	144.59271444082259	0.80000000000000004	144.59271444082259	3023658190814908261	2	500.00999999999999	23954.36328125	nan	nan	55	195	nan	nan	nan	24172.710875749592|23954.36328125|nan|nan|nan|nan|0|nan|2633.0191345214844|0|nan|nan|nan|nan|nan|0.84208649949464698|0.99096726707662597|0.86056260765438597|0|0.99926008128973698|0.99980047980046804|0.019637767708855999|0.01010101010101|0.010910337876108|0.027598768110752001|0.81272075656674303|1.151216911796247|0.01049413417379|nan|nan|nan|0.014127293938112|1.445927144408226|0|0|0.999999999999999|0.999999999999999	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_tworuns/u
+L	r_class	0	1	90	0	10	100	0	0	2	0	1	90_0_1
+L	r_class	1	2	90	7	20	200	0	0	1	0	1	90_7_2
+OK	r_class/load
+PGC	r_class/pg_ms2	ms2	0	ms2_apex_intensity
+PGC	r_class/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_class/pg_ms2	ms2	2	ms2_delta_im
+PGC	r_class/pg_ms2	ms2	3	ms2_exp_im
+PGC	r_class/pg_ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_class/pg_ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_class/pg_ms2	ms2	6	ms2_total_area_intensity
+PGC	r_class/pg_ms2	ms2	7	ms2_total_mi
+PGC	r_class/pg_ms2	ms2	8	var_ms2_bseries_score
+PGC	r_class/pg_ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_class/pg_ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_class/pg_ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_class/pg_ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_class/pg_ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_class/pg_ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_class/pg_ms2	ms2	15	var_ms2_intensity_score
+PGC	r_class/pg_ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_class/pg_ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_class/pg_ms2	ms2	18	var_ms2_library_corr
+PGC	r_class/pg_ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_class/pg_ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_class/pg_ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_class/pg_ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_class/pg_ms2	ms2	23	var_ms2_library_sangle
+PGC	r_class/pg_ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_class/pg_ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_class/pg_ms2	ms2	26	var_ms2_massdev_score
+PGC	r_class/pg_ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_class/pg_ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_class/pg_ms2	ms2	29	var_ms2_mi_score
+PGC	r_class/pg_ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_class/pg_ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_class/pg_ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_class/pg_ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_class/pg_ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_class/pg_ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_class/pg_ms2	ms2	36	var_ms2_yseries_score
+PG	r_class/pg_ms2	0	1	90	0	10	2	0	1	90_0_1	nan|100|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_class/pg_ms2	1	2	90	7	20	1	0	1	90_7_2	nan|200|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_class/pg_ms2
+PGC	r_class/pg_ms1ms2	ms2	0	ms2_apex_intensity
+PGC	r_class/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_class/pg_ms1ms2	ms2	2	ms2_delta_im
+PGC	r_class/pg_ms1ms2	ms2	3	ms2_exp_im
+PGC	r_class/pg_ms1ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_class/pg_ms1ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_class/pg_ms1ms2	ms2	6	ms2_total_area_intensity
+PGC	r_class/pg_ms1ms2	ms2	7	ms2_total_mi
+PGC	r_class/pg_ms1ms2	ms2	8	var_ms2_bseries_score
+PGC	r_class/pg_ms1ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_class/pg_ms1ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_class/pg_ms1ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_class/pg_ms1ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_class/pg_ms1ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_class/pg_ms1ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_class/pg_ms1ms2	ms2	15	var_ms2_intensity_score
+PGC	r_class/pg_ms1ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_class/pg_ms1ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_class/pg_ms1ms2	ms2	18	var_ms2_library_corr
+PGC	r_class/pg_ms1ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_class/pg_ms1ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_class/pg_ms1ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_class/pg_ms1ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_class/pg_ms1ms2	ms2	23	var_ms2_library_sangle
+PGC	r_class/pg_ms1ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_class/pg_ms1ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_class/pg_ms1ms2	ms2	26	var_ms2_massdev_score
+PGC	r_class/pg_ms1ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_class/pg_ms1ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_class/pg_ms1ms2	ms2	29	var_ms2_mi_score
+PGC	r_class/pg_ms1ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_class/pg_ms1ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_class/pg_ms1ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_class/pg_ms1ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_class/pg_ms1ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_class/pg_ms1ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_class/pg_ms1ms2	ms2	36	var_ms2_yseries_score
+PGC	r_class/pg_ms1ms2	ms1	0	ms1_apex_intensity
+PGC	r_class/pg_ms1ms2	ms1	1	ms1_area_intensity
+PGC	r_class/pg_ms1ms2	ms1	2	ms1_delta_im
+PGC	r_class/pg_ms1ms2	ms1	3	ms1_exp_im
+PGC	r_class/pg_ms1ms2	ms1	4	var_ms1_im_ms1_delta_score
+PGC	r_class/pg_ms1ms2	ms1	5	var_ms1_isotope_correlation_score
+PGC	r_class/pg_ms1ms2	ms1	6	var_ms1_isotope_overlap_score
+PGC	r_class/pg_ms1ms2	ms1	7	var_ms1_massdev_score
+PGC	r_class/pg_ms1ms2	ms1	8	var_ms1_mi_combined_score
+PGC	r_class/pg_ms1ms2	ms1	9	var_ms1_mi_contrast_score
+PGC	r_class/pg_ms1ms2	ms1	10	var_ms1_mi_score
+PGC	r_class/pg_ms1ms2	ms1	11	var_ms1_xcorr_coelution
+PGC	r_class/pg_ms1ms2	ms1	12	var_ms1_xcorr_coelution_combined
+PGC	r_class/pg_ms1ms2	ms1	13	var_ms1_xcorr_coelution_contrast
+PGC	r_class/pg_ms1ms2	ms1	14	var_ms1_xcorr_shape
+PGC	r_class/pg_ms1ms2	ms1	15	var_ms1_xcorr_shape_combined
+PGC	r_class/pg_ms1ms2	ms1	16	var_ms1_xcorr_shape_contrast
+PG	r_class/pg_ms1ms2	0	1	90	0	10	2	0	1	90_0_1	nan|100|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_class/pg_ms1ms2	1	2	90	7	20	1	0	1	90_7_2	nan|200|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_class/pg_ms1ms2
+PGC	r_class/pg_main	ms2	0	var_ms2_xcorr_shape
+PGC	r_class/pg_main	ms2	1	ms2_apex_intensity
+PGC	r_class/pg_main	ms2	2	ms2_area_intensity
+PGC	r_class/pg_main	ms2	3	ms2_delta_im
+PGC	r_class/pg_main	ms2	4	ms2_exp_im
+PGC	r_class/pg_main	ms2	5	ms2_exp_im_leftwidth
+PGC	r_class/pg_main	ms2	6	ms2_exp_im_rightwidth
+PGC	r_class/pg_main	ms2	7	ms2_total_area_intensity
+PGC	r_class/pg_main	ms2	8	ms2_total_mi
+PGC	r_class/pg_main	ms2	9	var_ms2_bseries_score
+PGC	r_class/pg_main	ms2	10	var_ms2_dotprod_score
+PGC	r_class/pg_main	ms2	11	var_ms2_elution_model_fit_score
+PGC	r_class/pg_main	ms2	12	var_ms2_im_delta_score
+PGC	r_class/pg_main	ms2	13	var_ms2_im_log_intensity
+PGC	r_class/pg_main	ms2	14	var_ms2_im_xcorr_coelution
+PGC	r_class/pg_main	ms2	15	var_ms2_im_xcorr_shape
+PGC	r_class/pg_main	ms2	16	var_ms2_intensity_score
+PGC	r_class/pg_main	ms2	17	var_ms2_isotope_correlation_score
+PGC	r_class/pg_main	ms2	18	var_ms2_isotope_overlap_score
+PGC	r_class/pg_main	ms2	19	var_ms2_library_corr
+PGC	r_class/pg_main	ms2	20	var_ms2_library_dotprod
+PGC	r_class/pg_main	ms2	21	var_ms2_library_manhattan
+PGC	r_class/pg_main	ms2	22	var_ms2_library_rmsd
+PGC	r_class/pg_main	ms2	23	var_ms2_library_rootmeansquare
+PGC	r_class/pg_main	ms2	24	var_ms2_library_sangle
+PGC	r_class/pg_main	ms2	25	var_ms2_log_sn_score
+PGC	r_class/pg_main	ms2	26	var_ms2_manhattan_score
+PGC	r_class/pg_main	ms2	27	var_ms2_massdev_score
+PGC	r_class/pg_main	ms2	28	var_ms2_massdev_score_weighted
+PGC	r_class/pg_main	ms2	29	var_ms2_mi_ratio_score
+PGC	r_class/pg_main	ms2	30	var_ms2_mi_score
+PGC	r_class/pg_main	ms2	31	var_ms2_mi_weighted_score
+PGC	r_class/pg_main	ms2	32	var_ms2_norm_rt_score
+PGC	r_class/pg_main	ms2	33	var_ms2_xcorr_coelution
+PGC	r_class/pg_main	ms2	34	var_ms2_xcorr_coelution_weighted
+PGC	r_class/pg_main	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_class/pg_main	ms2	36	var_ms2_yseries_score
+PG	r_class/pg_main	0	1	90	0	10	2	0	1	90_0_1	nan|nan|100|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_class/pg_main	1	2	90	7	20	1	0	1	90_7_2	nan|nan|200|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_class/pg_main
+PGC	r_class/pg_main_missing	ms2	0	ms2_apex_intensity
+PGC	r_class/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_class/pg_main_missing	ms2	2	ms2_delta_im
+PGC	r_class/pg_main_missing	ms2	3	ms2_exp_im
+PGC	r_class/pg_main_missing	ms2	4	ms2_exp_im_leftwidth
+PGC	r_class/pg_main_missing	ms2	5	ms2_exp_im_rightwidth
+PGC	r_class/pg_main_missing	ms2	6	ms2_total_area_intensity
+PGC	r_class/pg_main_missing	ms2	7	ms2_total_mi
+PGC	r_class/pg_main_missing	ms2	8	var_ms2_bseries_score
+PGC	r_class/pg_main_missing	ms2	9	var_ms2_dotprod_score
+PGC	r_class/pg_main_missing	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_class/pg_main_missing	ms2	11	var_ms2_im_delta_score
+PGC	r_class/pg_main_missing	ms2	12	var_ms2_im_log_intensity
+PGC	r_class/pg_main_missing	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_class/pg_main_missing	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_class/pg_main_missing	ms2	15	var_ms2_intensity_score
+PGC	r_class/pg_main_missing	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_class/pg_main_missing	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_class/pg_main_missing	ms2	18	var_ms2_library_corr
+PGC	r_class/pg_main_missing	ms2	19	var_ms2_library_dotprod
+PGC	r_class/pg_main_missing	ms2	20	var_ms2_library_manhattan
+PGC	r_class/pg_main_missing	ms2	21	var_ms2_library_rmsd
+PGC	r_class/pg_main_missing	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_class/pg_main_missing	ms2	23	var_ms2_library_sangle
+PGC	r_class/pg_main_missing	ms2	24	var_ms2_log_sn_score
+PGC	r_class/pg_main_missing	ms2	25	var_ms2_manhattan_score
+PGC	r_class/pg_main_missing	ms2	26	var_ms2_massdev_score
+PGC	r_class/pg_main_missing	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_class/pg_main_missing	ms2	28	var_ms2_mi_ratio_score
+PGC	r_class/pg_main_missing	ms2	29	var_ms2_mi_score
+PGC	r_class/pg_main_missing	ms2	30	var_ms2_mi_weighted_score
+PGC	r_class/pg_main_missing	ms2	31	var_ms2_norm_rt_score
+PGC	r_class/pg_main_missing	ms2	32	var_ms2_xcorr_coelution
+PGC	r_class/pg_main_missing	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_class/pg_main_missing	ms2	34	var_ms2_xcorr_shape
+PGC	r_class/pg_main_missing	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_class/pg_main_missing	ms2	36	var_ms2_yseries_score
+PG	r_class/pg_main_missing	0	1	90	0	10	2	0	1	90_0_1	nan|100|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_class/pg_main_missing	1	2	90	7	20	1	0	1	90_7_2	nan|200|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_class/pg_main_missing
+TFC	r_class/tf	0	var_im_delta_score
+TFC	r_class/tf	1	var_im_log_intensity
+TFC	r_class/tf	2	var_im_xcorr_coelution_combined
+TFC	r_class/tf	3	var_im_xcorr_coelution_contrast
+TFC	r_class/tf	4	var_im_xcorr_shape_combined
+TFC	r_class/tf	5	var_im_xcorr_shape_contrast
+TFC	r_class/tf	6	var_intensity_ratio_score
+TFC	r_class/tf	7	var_intensity_score
+TFC	r_class/tf	8	var_isotope_correlation_score
+TFC	r_class/tf	9	var_isotope_overlap_score
+TFC	r_class/tf	10	var_log_intensity
+TFC	r_class/tf	11	var_log_sn_score
+TFC	r_class/tf	12	var_massdev_score
+TFC	r_class/tf	13	var_mi_ratio_score
+TFC	r_class/tf	14	var_mi_score
+TFC	r_class/tf	15	var_xcorr_coelution
+TFC	r_class/tf	16	var_xcorr_shape
+TF	r_class/tf	0	1	90	0	10	2	3	0	0	10	nan	nan	nan	nan	nan	nan	90_1_0_3	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_class/tf	1	2	90	7	20	1	100	0	0	20	nan	nan	nan	nan	nan	nan	90_2_7_100	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_class/tf
+UC	r_class/u	ms2	0	ms2_apex_intensity
+UC	r_class/u	ms2	1	ms2_area_intensity
+UC	r_class/u	ms2	2	ms2_delta_im
+UC	r_class/u	ms2	3	ms2_exp_im
+UC	r_class/u	ms2	4	ms2_exp_im_leftwidth
+UC	r_class/u	ms2	5	ms2_exp_im_rightwidth
+UC	r_class/u	ms2	6	ms2_total_area_intensity
+UC	r_class/u	ms2	7	ms2_total_mi
+UC	r_class/u	ms2	8	var_ms2_bseries_score
+UC	r_class/u	ms2	9	var_ms2_dotprod_score
+UC	r_class/u	ms2	10	var_ms2_elution_model_fit_score
+UC	r_class/u	ms2	11	var_ms2_im_delta_score
+UC	r_class/u	ms2	12	var_ms2_im_log_intensity
+UC	r_class/u	ms2	13	var_ms2_im_xcorr_coelution
+UC	r_class/u	ms2	14	var_ms2_im_xcorr_shape
+UC	r_class/u	ms2	15	var_ms2_intensity_score
+UC	r_class/u	ms2	16	var_ms2_isotope_correlation_score
+UC	r_class/u	ms2	17	var_ms2_isotope_overlap_score
+UC	r_class/u	ms2	18	var_ms2_library_corr
+UC	r_class/u	ms2	19	var_ms2_library_dotprod
+UC	r_class/u	ms2	20	var_ms2_library_manhattan
+UC	r_class/u	ms2	21	var_ms2_library_rmsd
+UC	r_class/u	ms2	22	var_ms2_library_rootmeansquare
+UC	r_class/u	ms2	23	var_ms2_library_sangle
+UC	r_class/u	ms2	24	var_ms2_log_sn_score
+UC	r_class/u	ms2	25	var_ms2_manhattan_score
+UC	r_class/u	ms2	26	var_ms2_massdev_score
+UC	r_class/u	ms2	27	var_ms2_massdev_score_weighted
+UC	r_class/u	ms2	28	var_ms2_mi_ratio_score
+UC	r_class/u	ms2	29	var_ms2_mi_score
+UC	r_class/u	ms2	30	var_ms2_mi_weighted_score
+UC	r_class/u	ms2	31	var_ms2_norm_rt_score
+UC	r_class/u	ms2	32	var_ms2_xcorr_coelution
+UC	r_class/u	ms2	33	var_ms2_xcorr_coelution_weighted
+UC	r_class/u	ms2	34	var_ms2_xcorr_shape
+UC	r_class/u	ms2	35	var_ms2_xcorr_shape_weighted
+UC	r_class/u	ms2	36	var_ms2_yseries_score
+UC	r_class/u	ms1	0	ms1_apex_intensity
+UC	r_class/u	ms1	1	ms1_area_intensity
+UC	r_class/u	ms1	2	ms1_delta_im
+UC	r_class/u	ms1	3	ms1_exp_im
+UC	r_class/u	ms1	4	var_ms1_im_ms1_delta_score
+UC	r_class/u	ms1	5	var_ms1_isotope_correlation_score
+UC	r_class/u	ms1	6	var_ms1_isotope_overlap_score
+UC	r_class/u	ms1	7	var_ms1_massdev_score
+UC	r_class/u	ms1	8	var_ms1_mi_combined_score
+UC	r_class/u	ms1	9	var_ms1_mi_contrast_score
+UC	r_class/u	ms1	10	var_ms1_mi_score
+UC	r_class/u	ms1	11	var_ms1_xcorr_coelution
+UC	r_class/u	ms1	12	var_ms1_xcorr_coelution_combined
+UC	r_class/u	ms1	13	var_ms1_xcorr_coelution_contrast
+UC	r_class/u	ms1	14	var_ms1_xcorr_shape
+UC	r_class/u	ms1	15	var_ms1_xcorr_shape_combined
+UC	r_class/u	ms1	16	var_ms1_xcorr_shape_contrast
+U	r_class/u	0	90	0	0	0	90	input.mzML	10	11	-1	10	-11	1	2	500	100	nan	nan	nan	nan	nan	nan	nan	nan|100|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_class/u	1	90	0	7	0	90	input.mzML	20	21	-1	20	-21	2	1	600	200	nan	nan	nan	nan	nan	nan	nan	nan|200|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_class/u
+L	r_rich_dir	0	5	42	0	100.25	1.1000000238418579	2.6749999999999998	1234567890123	2	0	2	42_0_5
+L	r_rich_dir	1	77	42	5	250	0	0	0	3	0	2	42_5_77
+L	r_rich_dir	2	3	42	9	101	5	0	0	2	1	2	42_9_3
+L	r_rich_dir	3	1000	7	5	10	7.5	0	0	3	0	2	7_5_1000
+OK	r_rich_dir/load
+PGC	r_rich_dir/pg_ms2	ms2	0	ms2_apex_intensity
+PGC	r_rich_dir/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_rich_dir/pg_ms2	ms2	2	ms2_delta_im
+PGC	r_rich_dir/pg_ms2	ms2	3	ms2_exp_im
+PGC	r_rich_dir/pg_ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_dir/pg_ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_dir/pg_ms2	ms2	6	ms2_total_area_intensity
+PGC	r_rich_dir/pg_ms2	ms2	7	ms2_total_mi
+PGC	r_rich_dir/pg_ms2	ms2	8	var_ms2_bseries_score
+PGC	r_rich_dir/pg_ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_dir/pg_ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_dir/pg_ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_dir/pg_ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_dir/pg_ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_dir/pg_ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_dir/pg_ms2	ms2	15	var_ms2_intensity_score
+PGC	r_rich_dir/pg_ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_dir/pg_ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_dir/pg_ms2	ms2	18	var_ms2_library_corr
+PGC	r_rich_dir/pg_ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_dir/pg_ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_dir/pg_ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_dir/pg_ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_dir/pg_ms2	ms2	23	var_ms2_library_sangle
+PGC	r_rich_dir/pg_ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_dir/pg_ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_dir/pg_ms2	ms2	26	var_ms2_massdev_score
+PGC	r_rich_dir/pg_ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_dir/pg_ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_dir/pg_ms2	ms2	29	var_ms2_mi_score
+PGC	r_rich_dir/pg_ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_dir/pg_ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_dir/pg_ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_dir/pg_ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_dir/pg_ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_dir/pg_ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_dir/pg_ms2	ms2	36	var_ms2_yseries_score
+PG	r_rich_dir/pg_ms2	0	1000	7	5	10	3	0	2	7_5_1000	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	
+PG	r_rich_dir/pg_ms2	1	5	42	0	100.25	2	0	2	42_0_5	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	
+PG	r_rich_dir/pg_ms2	2	77	42	5	250	3	0	2	42_5_77	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_dir/pg_ms2	3	3	42	9	101	2	1	2	42_9_3	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_dir/pg_ms2
+PGC	r_rich_dir/pg_ms1ms2	ms2	0	ms2_apex_intensity
+PGC	r_rich_dir/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_rich_dir/pg_ms1ms2	ms2	2	ms2_delta_im
+PGC	r_rich_dir/pg_ms1ms2	ms2	3	ms2_exp_im
+PGC	r_rich_dir/pg_ms1ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_dir/pg_ms1ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_dir/pg_ms1ms2	ms2	6	ms2_total_area_intensity
+PGC	r_rich_dir/pg_ms1ms2	ms2	7	ms2_total_mi
+PGC	r_rich_dir/pg_ms1ms2	ms2	8	var_ms2_bseries_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_dir/pg_ms1ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_dir/pg_ms1ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_dir/pg_ms1ms2	ms2	15	var_ms2_intensity_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	18	var_ms2_library_corr
+PGC	r_rich_dir/pg_ms1ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_dir/pg_ms1ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_dir/pg_ms1ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_dir/pg_ms1ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_dir/pg_ms1ms2	ms2	23	var_ms2_library_sangle
+PGC	r_rich_dir/pg_ms1ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	26	var_ms2_massdev_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_dir/pg_ms1ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	29	var_ms2_mi_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_dir/pg_ms1ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_dir/pg_ms1ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_dir/pg_ms1ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_dir/pg_ms1ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_dir/pg_ms1ms2	ms2	36	var_ms2_yseries_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	0	ms1_apex_intensity
+PGC	r_rich_dir/pg_ms1ms2	ms1	1	ms1_area_intensity
+PGC	r_rich_dir/pg_ms1ms2	ms1	2	ms1_delta_im
+PGC	r_rich_dir/pg_ms1ms2	ms1	3	ms1_exp_im
+PGC	r_rich_dir/pg_ms1ms2	ms1	4	var_ms1_im_ms1_delta_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	5	var_ms1_isotope_correlation_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	6	var_ms1_isotope_overlap_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	7	var_ms1_massdev_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	8	var_ms1_mi_combined_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	9	var_ms1_mi_contrast_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	10	var_ms1_mi_score
+PGC	r_rich_dir/pg_ms1ms2	ms1	11	var_ms1_xcorr_coelution
+PGC	r_rich_dir/pg_ms1ms2	ms1	12	var_ms1_xcorr_coelution_combined
+PGC	r_rich_dir/pg_ms1ms2	ms1	13	var_ms1_xcorr_coelution_contrast
+PGC	r_rich_dir/pg_ms1ms2	ms1	14	var_ms1_xcorr_shape
+PGC	r_rich_dir/pg_ms1ms2	ms1	15	var_ms1_xcorr_shape_combined
+PGC	r_rich_dir/pg_ms1ms2	ms1	16	var_ms1_xcorr_shape_contrast
+PG	r_rich_dir/pg_ms1ms2	0	1000	7	5	10	3	0	2	7_5_1000	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_rich_dir/pg_ms1ms2	1	5	42	0	100.25	2	0	2	42_0_5	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	123456.78901234567|0|4.9406564584124654e-324|1e-300|1.5|nan|nan|1e+308|nan|nan|42|2500|nan|nan|0.29999999999999999|nan|nan
+PG	r_rich_dir/pg_ms1ms2	2	77	42	5	250	3	0	2	42_5_77	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_rich_dir/pg_ms1ms2	3	3	42	9	101	2	1	2	42_9_3	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_dir/pg_ms1ms2
+PGC	r_rich_dir/pg_main	ms2	0	var_ms2_xcorr_shape
+PGC	r_rich_dir/pg_main	ms2	1	ms2_apex_intensity
+PGC	r_rich_dir/pg_main	ms2	2	ms2_area_intensity
+PGC	r_rich_dir/pg_main	ms2	3	ms2_delta_im
+PGC	r_rich_dir/pg_main	ms2	4	ms2_exp_im
+PGC	r_rich_dir/pg_main	ms2	5	ms2_exp_im_leftwidth
+PGC	r_rich_dir/pg_main	ms2	6	ms2_exp_im_rightwidth
+PGC	r_rich_dir/pg_main	ms2	7	ms2_total_area_intensity
+PGC	r_rich_dir/pg_main	ms2	8	ms2_total_mi
+PGC	r_rich_dir/pg_main	ms2	9	var_ms2_bseries_score
+PGC	r_rich_dir/pg_main	ms2	10	var_ms2_dotprod_score
+PGC	r_rich_dir/pg_main	ms2	11	var_ms2_elution_model_fit_score
+PGC	r_rich_dir/pg_main	ms2	12	var_ms2_im_delta_score
+PGC	r_rich_dir/pg_main	ms2	13	var_ms2_im_log_intensity
+PGC	r_rich_dir/pg_main	ms2	14	var_ms2_im_xcorr_coelution
+PGC	r_rich_dir/pg_main	ms2	15	var_ms2_im_xcorr_shape
+PGC	r_rich_dir/pg_main	ms2	16	var_ms2_intensity_score
+PGC	r_rich_dir/pg_main	ms2	17	var_ms2_isotope_correlation_score
+PGC	r_rich_dir/pg_main	ms2	18	var_ms2_isotope_overlap_score
+PGC	r_rich_dir/pg_main	ms2	19	var_ms2_library_corr
+PGC	r_rich_dir/pg_main	ms2	20	var_ms2_library_dotprod
+PGC	r_rich_dir/pg_main	ms2	21	var_ms2_library_manhattan
+PGC	r_rich_dir/pg_main	ms2	22	var_ms2_library_rmsd
+PGC	r_rich_dir/pg_main	ms2	23	var_ms2_library_rootmeansquare
+PGC	r_rich_dir/pg_main	ms2	24	var_ms2_library_sangle
+PGC	r_rich_dir/pg_main	ms2	25	var_ms2_log_sn_score
+PGC	r_rich_dir/pg_main	ms2	26	var_ms2_manhattan_score
+PGC	r_rich_dir/pg_main	ms2	27	var_ms2_massdev_score
+PGC	r_rich_dir/pg_main	ms2	28	var_ms2_massdev_score_weighted
+PGC	r_rich_dir/pg_main	ms2	29	var_ms2_mi_ratio_score
+PGC	r_rich_dir/pg_main	ms2	30	var_ms2_mi_score
+PGC	r_rich_dir/pg_main	ms2	31	var_ms2_mi_weighted_score
+PGC	r_rich_dir/pg_main	ms2	32	var_ms2_norm_rt_score
+PGC	r_rich_dir/pg_main	ms2	33	var_ms2_xcorr_coelution
+PGC	r_rich_dir/pg_main	ms2	34	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_dir/pg_main	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_dir/pg_main	ms2	36	var_ms2_yseries_score
+PG	r_rich_dir/pg_main	0	1000	7	5	10	3	0	2	7_5_1000	0|nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_dir/pg_main	1	5	42	0	100.25	2	0	2	42_0_5	12|1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|0.80000000000000004|nan	
+PG	r_rich_dir/pg_main	2	77	42	5	250	3	0	2	42_5_77	nan|nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_dir/pg_main	3	3	42	9	101	2	1	2	42_9_3	nan|nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_dir/pg_main
+PGC	r_rich_dir/pg_main_missing	ms2	0	ms2_apex_intensity
+PGC	r_rich_dir/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_rich_dir/pg_main_missing	ms2	2	ms2_delta_im
+PGC	r_rich_dir/pg_main_missing	ms2	3	ms2_exp_im
+PGC	r_rich_dir/pg_main_missing	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_dir/pg_main_missing	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_dir/pg_main_missing	ms2	6	ms2_total_area_intensity
+PGC	r_rich_dir/pg_main_missing	ms2	7	ms2_total_mi
+PGC	r_rich_dir/pg_main_missing	ms2	8	var_ms2_bseries_score
+PGC	r_rich_dir/pg_main_missing	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_dir/pg_main_missing	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_dir/pg_main_missing	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_dir/pg_main_missing	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_dir/pg_main_missing	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_dir/pg_main_missing	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_dir/pg_main_missing	ms2	15	var_ms2_intensity_score
+PGC	r_rich_dir/pg_main_missing	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_dir/pg_main_missing	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_dir/pg_main_missing	ms2	18	var_ms2_library_corr
+PGC	r_rich_dir/pg_main_missing	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_dir/pg_main_missing	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_dir/pg_main_missing	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_dir/pg_main_missing	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_dir/pg_main_missing	ms2	23	var_ms2_library_sangle
+PGC	r_rich_dir/pg_main_missing	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_dir/pg_main_missing	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_dir/pg_main_missing	ms2	26	var_ms2_massdev_score
+PGC	r_rich_dir/pg_main_missing	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_dir/pg_main_missing	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_dir/pg_main_missing	ms2	29	var_ms2_mi_score
+PGC	r_rich_dir/pg_main_missing	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_dir/pg_main_missing	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_dir/pg_main_missing	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_dir/pg_main_missing	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_dir/pg_main_missing	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_dir/pg_main_missing	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_dir/pg_main_missing	ms2	36	var_ms2_yseries_score
+PG	r_rich_dir/pg_main_missing	0	1000	7	5	10	3	0	2	7_5_1000	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	
+PG	r_rich_dir/pg_main_missing	1	5	42	0	100.25	2	0	2	42_0_5	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	
+PG	r_rich_dir/pg_main_missing	2	77	42	5	250	3	0	2	42_5_77	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_dir/pg_main_missing	3	3	42	9	101	2	1	2	42_9_3	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_dir/pg_main_missing
+TFC	r_rich_dir/tf	0	var_im_delta_score
+TFC	r_rich_dir/tf	1	var_im_log_intensity
+TFC	r_rich_dir/tf	2	var_im_xcorr_coelution_combined
+TFC	r_rich_dir/tf	3	var_im_xcorr_coelution_contrast
+TFC	r_rich_dir/tf	4	var_im_xcorr_shape_combined
+TFC	r_rich_dir/tf	5	var_im_xcorr_shape_contrast
+TFC	r_rich_dir/tf	6	var_intensity_ratio_score
+TFC	r_rich_dir/tf	7	var_intensity_score
+TFC	r_rich_dir/tf	8	var_isotope_correlation_score
+TFC	r_rich_dir/tf	9	var_isotope_overlap_score
+TFC	r_rich_dir/tf	10	var_log_intensity
+TFC	r_rich_dir/tf	11	var_log_sn_score
+TFC	r_rich_dir/tf	12	var_massdev_score
+TFC	r_rich_dir/tf	13	var_mi_ratio_score
+TFC	r_rich_dir/tf	14	var_mi_score
+TFC	r_rich_dir/tf	15	var_xcorr_coelution
+TFC	r_rich_dir/tf	16	var_xcorr_shape
+TF	r_rich_dir/tf	0	1000	7	5	10	3	11	1	0	3	nan	nan	nan	nan	nan	nan	7_1000_5_11	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_dir/tf	1	5	42	0	100.25	2	2	1	0	10	7.25	20	5	100.3	1.5	2.2000000000000002	42_5_0_2	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_dir/tf	2	5	42	0	100.25	2	2	1	0	10.5	1	7	5.5	nan	0.25	nan	42_5_0_2	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0.14285714285714299|nan|0.25|nan|nan|nan|nan
+TF	r_rich_dir/tf	3	5	42	0	100.25	2	4	2	0	11	nan	nan	nan	nan	-2.25	nan	42_5_0_4	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_dir/tf	4	5	42	0	100.25	2	4	2	0	12.5	3	nan	nan	nan	0.75	nan	42_5_0_4	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|3|nan|0.75|nan|nan|nan|nan
+TF	r_rich_dir/tf	5	5	42	0	100.25	2	7	1	0	14	nan	nan	nan	nan	nan	nan	42_5_0_7	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_dir/tf	6	5	42	0	100.25	2	20	1	1	99	nan	nan	nan	nan	nan	nan	42_5_0_20	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_dir/tf	7	77	42	5	250	3	11	1	0	1	nan	nan	nan	nan	3.5	nan	42_77_5_11	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_dir/tf	8	77	42	5	250	3	12	3	0	2	nan	nan	nan	nan	nan	nan	42_77_5_12	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_dir/tf
+UC	r_rich_dir/u	ms2	0	ms2_apex_intensity
+UC	r_rich_dir/u	ms2	1	ms2_area_intensity
+UC	r_rich_dir/u	ms2	2	ms2_delta_im
+UC	r_rich_dir/u	ms2	3	ms2_exp_im
+UC	r_rich_dir/u	ms2	4	ms2_exp_im_leftwidth
+UC	r_rich_dir/u	ms2	5	ms2_exp_im_rightwidth
+UC	r_rich_dir/u	ms2	6	ms2_total_area_intensity
+UC	r_rich_dir/u	ms2	7	ms2_total_mi
+UC	r_rich_dir/u	ms2	8	var_ms2_bseries_score
+UC	r_rich_dir/u	ms2	9	var_ms2_dotprod_score
+UC	r_rich_dir/u	ms2	10	var_ms2_elution_model_fit_score
+UC	r_rich_dir/u	ms2	11	var_ms2_im_delta_score
+UC	r_rich_dir/u	ms2	12	var_ms2_im_log_intensity
+UC	r_rich_dir/u	ms2	13	var_ms2_im_xcorr_coelution
+UC	r_rich_dir/u	ms2	14	var_ms2_im_xcorr_shape
+UC	r_rich_dir/u	ms2	15	var_ms2_intensity_score
+UC	r_rich_dir/u	ms2	16	var_ms2_isotope_correlation_score
+UC	r_rich_dir/u	ms2	17	var_ms2_isotope_overlap_score
+UC	r_rich_dir/u	ms2	18	var_ms2_library_corr
+UC	r_rich_dir/u	ms2	19	var_ms2_library_dotprod
+UC	r_rich_dir/u	ms2	20	var_ms2_library_manhattan
+UC	r_rich_dir/u	ms2	21	var_ms2_library_rmsd
+UC	r_rich_dir/u	ms2	22	var_ms2_library_rootmeansquare
+UC	r_rich_dir/u	ms2	23	var_ms2_library_sangle
+UC	r_rich_dir/u	ms2	24	var_ms2_log_sn_score
+UC	r_rich_dir/u	ms2	25	var_ms2_manhattan_score
+UC	r_rich_dir/u	ms2	26	var_ms2_massdev_score
+UC	r_rich_dir/u	ms2	27	var_ms2_massdev_score_weighted
+UC	r_rich_dir/u	ms2	28	var_ms2_mi_ratio_score
+UC	r_rich_dir/u	ms2	29	var_ms2_mi_score
+UC	r_rich_dir/u	ms2	30	var_ms2_mi_weighted_score
+UC	r_rich_dir/u	ms2	31	var_ms2_norm_rt_score
+UC	r_rich_dir/u	ms2	32	var_ms2_xcorr_coelution
+UC	r_rich_dir/u	ms2	33	var_ms2_xcorr_coelution_weighted
+UC	r_rich_dir/u	ms2	34	var_ms2_xcorr_shape
+UC	r_rich_dir/u	ms2	35	var_ms2_xcorr_shape_weighted
+UC	r_rich_dir/u	ms2	36	var_ms2_yseries_score
+UC	r_rich_dir/u	ms1	0	ms1_apex_intensity
+UC	r_rich_dir/u	ms1	1	ms1_area_intensity
+UC	r_rich_dir/u	ms1	2	ms1_delta_im
+UC	r_rich_dir/u	ms1	3	ms1_exp_im
+UC	r_rich_dir/u	ms1	4	var_ms1_im_ms1_delta_score
+UC	r_rich_dir/u	ms1	5	var_ms1_isotope_correlation_score
+UC	r_rich_dir/u	ms1	6	var_ms1_isotope_overlap_score
+UC	r_rich_dir/u	ms1	7	var_ms1_massdev_score
+UC	r_rich_dir/u	ms1	8	var_ms1_mi_combined_score
+UC	r_rich_dir/u	ms1	9	var_ms1_mi_contrast_score
+UC	r_rich_dir/u	ms1	10	var_ms1_mi_score
+UC	r_rich_dir/u	ms1	11	var_ms1_xcorr_coelution
+UC	r_rich_dir/u	ms1	12	var_ms1_xcorr_coelution_combined
+UC	r_rich_dir/u	ms1	13	var_ms1_xcorr_coelution_contrast
+UC	r_rich_dir/u	ms1	14	var_ms1_xcorr_shape
+UC	r_rich_dir/u	ms1	15	var_ms1_xcorr_shape_combined
+UC	r_rich_dir/u	ms1	16	var_ms1_xcorr_shape_contrast
+U	r_rich_dir/u	0	42	0	0	0	42	run\t"one".mzML	100.25	100.25	-0	100.5	-100.16666666666667	5	2	450.25	1.1000000238418579	0	123456.78901234567	99.5	101.25	0.10000000000000001	7	nan	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	123456.78901234567|0|4.9406564584124654e-324|1e-300|1.5|nan|nan|1e+308|nan|nan|42|2500|nan|nan|0.29999999999999999|nan|nan
+U	r_rich_dir/u	1	42	0	5	0	42	run\t"one".mzML	250	251	-1	250.25	nan	77	3	600.5	0	nan	nan	nan	nan	nan	nan	nan	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_rich_dir/u	2	42	0	9	1	42	run\t"one".mzML	101	102	-1	101	-102	3	2	450.5	5	nan	nan	nan	nan	nan	nan	nan	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_rich_dir/u	3	7	0	5	0	7	second.mzML	10	11	-1	250.25	-251.25	1000	3	600.5	7.5	nan	nan	nan	nan	nan	nan	nan	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_dir/u
+E	r_rich_zip/load	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+E	r_rich_zip/pg_ms2	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+E	r_rich_zip/pg_ms1ms2	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+E	r_rich_zip/pg_main	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+E	r_rich_zip/pg_main_missing	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+E	r_rich_zip/tf	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+E	r_rich_zip/u	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Failed to create parquet reader from RandomAccessFile
+L	r_rich_zip_first	0	5	42	0	100.25	1.1000000238418579	2.6749999999999998	1234567890123	2	0	2	42_0_5
+L	r_rich_zip_first	1	77	42	5	250	0	0	0	3	0	2	42_5_77
+L	r_rich_zip_first	2	3	42	9	101	5	0	0	2	1	2	42_9_3
+OK	r_rich_zip_first/load
+PGC	r_rich_zip_first/pg_ms2	ms2	0	ms2_apex_intensity
+PGC	r_rich_zip_first/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_rich_zip_first/pg_ms2	ms2	2	ms2_delta_im
+PGC	r_rich_zip_first/pg_ms2	ms2	3	ms2_exp_im
+PGC	r_rich_zip_first/pg_ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_zip_first/pg_ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_zip_first/pg_ms2	ms2	6	ms2_total_area_intensity
+PGC	r_rich_zip_first/pg_ms2	ms2	7	ms2_total_mi
+PGC	r_rich_zip_first/pg_ms2	ms2	8	var_ms2_bseries_score
+PGC	r_rich_zip_first/pg_ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_zip_first/pg_ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_first/pg_ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_zip_first/pg_ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_zip_first/pg_ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_first/pg_ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_first/pg_ms2	ms2	15	var_ms2_intensity_score
+PGC	r_rich_zip_first/pg_ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_first/pg_ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_first/pg_ms2	ms2	18	var_ms2_library_corr
+PGC	r_rich_zip_first/pg_ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_zip_first/pg_ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_zip_first/pg_ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_zip_first/pg_ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_first/pg_ms2	ms2	23	var_ms2_library_sangle
+PGC	r_rich_zip_first/pg_ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_zip_first/pg_ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_zip_first/pg_ms2	ms2	26	var_ms2_massdev_score
+PGC	r_rich_zip_first/pg_ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_first/pg_ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_zip_first/pg_ms2	ms2	29	var_ms2_mi_score
+PGC	r_rich_zip_first/pg_ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_zip_first/pg_ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_zip_first/pg_ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_zip_first/pg_ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_first/pg_ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_zip_first/pg_ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_first/pg_ms2	ms2	36	var_ms2_yseries_score
+PG	r_rich_zip_first/pg_ms2	0	5	42	0	100.25	2	0	2	42_0_5	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	
+PG	r_rich_zip_first/pg_ms2	1	77	42	5	250	3	0	2	42_5_77	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_zip_first/pg_ms2	2	3	42	9	101	2	1	2	42_9_3	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_zip_first/pg_ms2
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	0	ms2_apex_intensity
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	2	ms2_delta_im
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	3	ms2_exp_im
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	6	ms2_total_area_intensity
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	7	ms2_total_mi
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	8	var_ms2_bseries_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	15	var_ms2_intensity_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	18	var_ms2_library_corr
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	23	var_ms2_library_sangle
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	26	var_ms2_massdev_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	29	var_ms2_mi_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_first/pg_ms1ms2	ms2	36	var_ms2_yseries_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	0	ms1_apex_intensity
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	1	ms1_area_intensity
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	2	ms1_delta_im
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	3	ms1_exp_im
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	4	var_ms1_im_ms1_delta_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	5	var_ms1_isotope_correlation_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	6	var_ms1_isotope_overlap_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	7	var_ms1_massdev_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	8	var_ms1_mi_combined_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	9	var_ms1_mi_contrast_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	10	var_ms1_mi_score
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	11	var_ms1_xcorr_coelution
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	12	var_ms1_xcorr_coelution_combined
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	13	var_ms1_xcorr_coelution_contrast
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	14	var_ms1_xcorr_shape
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	15	var_ms1_xcorr_shape_combined
+PGC	r_rich_zip_first/pg_ms1ms2	ms1	16	var_ms1_xcorr_shape_contrast
+PG	r_rich_zip_first/pg_ms1ms2	0	5	42	0	100.25	2	0	2	42_0_5	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	123456.78901234567|0|4.9406564584124654e-324|1e-300|1.5|nan|nan|1e+308|nan|nan|42|2500|nan|nan|0.29999999999999999|nan|nan
+PG	r_rich_zip_first/pg_ms1ms2	1	77	42	5	250	3	0	2	42_5_77	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+PG	r_rich_zip_first/pg_ms1ms2	2	3	42	9	101	2	1	2	42_9_3	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_zip_first/pg_ms1ms2
+PGC	r_rich_zip_first/pg_main	ms2	0	var_ms2_xcorr_shape
+PGC	r_rich_zip_first/pg_main	ms2	1	ms2_apex_intensity
+PGC	r_rich_zip_first/pg_main	ms2	2	ms2_area_intensity
+PGC	r_rich_zip_first/pg_main	ms2	3	ms2_delta_im
+PGC	r_rich_zip_first/pg_main	ms2	4	ms2_exp_im
+PGC	r_rich_zip_first/pg_main	ms2	5	ms2_exp_im_leftwidth
+PGC	r_rich_zip_first/pg_main	ms2	6	ms2_exp_im_rightwidth
+PGC	r_rich_zip_first/pg_main	ms2	7	ms2_total_area_intensity
+PGC	r_rich_zip_first/pg_main	ms2	8	ms2_total_mi
+PGC	r_rich_zip_first/pg_main	ms2	9	var_ms2_bseries_score
+PGC	r_rich_zip_first/pg_main	ms2	10	var_ms2_dotprod_score
+PGC	r_rich_zip_first/pg_main	ms2	11	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_first/pg_main	ms2	12	var_ms2_im_delta_score
+PGC	r_rich_zip_first/pg_main	ms2	13	var_ms2_im_log_intensity
+PGC	r_rich_zip_first/pg_main	ms2	14	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_first/pg_main	ms2	15	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_first/pg_main	ms2	16	var_ms2_intensity_score
+PGC	r_rich_zip_first/pg_main	ms2	17	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_first/pg_main	ms2	18	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_first/pg_main	ms2	19	var_ms2_library_corr
+PGC	r_rich_zip_first/pg_main	ms2	20	var_ms2_library_dotprod
+PGC	r_rich_zip_first/pg_main	ms2	21	var_ms2_library_manhattan
+PGC	r_rich_zip_first/pg_main	ms2	22	var_ms2_library_rmsd
+PGC	r_rich_zip_first/pg_main	ms2	23	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_first/pg_main	ms2	24	var_ms2_library_sangle
+PGC	r_rich_zip_first/pg_main	ms2	25	var_ms2_log_sn_score
+PGC	r_rich_zip_first/pg_main	ms2	26	var_ms2_manhattan_score
+PGC	r_rich_zip_first/pg_main	ms2	27	var_ms2_massdev_score
+PGC	r_rich_zip_first/pg_main	ms2	28	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_first/pg_main	ms2	29	var_ms2_mi_ratio_score
+PGC	r_rich_zip_first/pg_main	ms2	30	var_ms2_mi_score
+PGC	r_rich_zip_first/pg_main	ms2	31	var_ms2_mi_weighted_score
+PGC	r_rich_zip_first/pg_main	ms2	32	var_ms2_norm_rt_score
+PGC	r_rich_zip_first/pg_main	ms2	33	var_ms2_xcorr_coelution
+PGC	r_rich_zip_first/pg_main	ms2	34	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_first/pg_main	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_first/pg_main	ms2	36	var_ms2_yseries_score
+PG	r_rich_zip_first/pg_main	0	5	42	0	100.25	2	0	2	42_0_5	12|1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|0.80000000000000004|nan	
+PG	r_rich_zip_first/pg_main	1	77	42	5	250	3	0	2	42_5_77	nan|nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_zip_first/pg_main	2	3	42	9	101	2	1	2	42_9_3	nan|nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_zip_first/pg_main
+PGC	r_rich_zip_first/pg_main_missing	ms2	0	ms2_apex_intensity
+PGC	r_rich_zip_first/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_rich_zip_first/pg_main_missing	ms2	2	ms2_delta_im
+PGC	r_rich_zip_first/pg_main_missing	ms2	3	ms2_exp_im
+PGC	r_rich_zip_first/pg_main_missing	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_zip_first/pg_main_missing	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_zip_first/pg_main_missing	ms2	6	ms2_total_area_intensity
+PGC	r_rich_zip_first/pg_main_missing	ms2	7	ms2_total_mi
+PGC	r_rich_zip_first/pg_main_missing	ms2	8	var_ms2_bseries_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_zip_first/pg_main_missing	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_first/pg_main_missing	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_first/pg_main_missing	ms2	15	var_ms2_intensity_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	18	var_ms2_library_corr
+PGC	r_rich_zip_first/pg_main_missing	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_zip_first/pg_main_missing	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_zip_first/pg_main_missing	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_zip_first/pg_main_missing	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_first/pg_main_missing	ms2	23	var_ms2_library_sangle
+PGC	r_rich_zip_first/pg_main_missing	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	26	var_ms2_massdev_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_first/pg_main_missing	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	29	var_ms2_mi_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_zip_first/pg_main_missing	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_zip_first/pg_main_missing	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_first/pg_main_missing	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_zip_first/pg_main_missing	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_first/pg_main_missing	ms2	36	var_ms2_yseries_score
+PG	r_rich_zip_first/pg_main_missing	0	5	42	0	100.25	2	0	2	42_0_5	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	
+PG	r_rich_zip_first/pg_main_missing	1	77	42	5	250	3	0	2	42_5_77	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+PG	r_rich_zip_first/pg_main_missing	2	3	42	9	101	2	1	2	42_9_3	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_zip_first/pg_main_missing
+TFC	r_rich_zip_first/tf	0	var_im_delta_score
+TFC	r_rich_zip_first/tf	1	var_im_log_intensity
+TFC	r_rich_zip_first/tf	2	var_im_xcorr_coelution_combined
+TFC	r_rich_zip_first/tf	3	var_im_xcorr_coelution_contrast
+TFC	r_rich_zip_first/tf	4	var_im_xcorr_shape_combined
+TFC	r_rich_zip_first/tf	5	var_im_xcorr_shape_contrast
+TFC	r_rich_zip_first/tf	6	var_intensity_ratio_score
+TFC	r_rich_zip_first/tf	7	var_intensity_score
+TFC	r_rich_zip_first/tf	8	var_isotope_correlation_score
+TFC	r_rich_zip_first/tf	9	var_isotope_overlap_score
+TFC	r_rich_zip_first/tf	10	var_log_intensity
+TFC	r_rich_zip_first/tf	11	var_log_sn_score
+TFC	r_rich_zip_first/tf	12	var_massdev_score
+TFC	r_rich_zip_first/tf	13	var_mi_ratio_score
+TFC	r_rich_zip_first/tf	14	var_mi_score
+TFC	r_rich_zip_first/tf	15	var_xcorr_coelution
+TFC	r_rich_zip_first/tf	16	var_xcorr_shape
+TF	r_rich_zip_first/tf	0	5	42	0	100.25	2	2	1	0	10	7.25	20	5	100.3	1.5	2.2000000000000002	42_5_0_2	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	1	5	42	0	100.25	2	2	1	0	10.5	1	7	5.5	nan	0.25	nan	42_5_0_2	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0.14285714285714299|nan|0.25|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	2	5	42	0	100.25	2	4	2	0	11	nan	nan	nan	nan	-2.25	nan	42_5_0_4	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	3	5	42	0	100.25	2	4	2	0	12.5	3	nan	nan	nan	0.75	nan	42_5_0_4	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|3|nan|0.75|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	4	5	42	0	100.25	2	7	1	0	14	nan	nan	nan	nan	nan	nan	42_5_0_7	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	5	5	42	0	100.25	2	20	1	1	99	nan	nan	nan	nan	nan	nan	42_5_0_20	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	6	77	42	5	250	3	11	1	0	1	nan	nan	nan	nan	3.5	nan	42_77_5_11	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+TF	r_rich_zip_first/tf	7	77	42	5	250	3	12	3	0	2	nan	nan	nan	nan	nan	nan	42_77_5_12	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_zip_first/tf
+UC	r_rich_zip_first/u	ms2	0	ms2_apex_intensity
+UC	r_rich_zip_first/u	ms2	1	ms2_area_intensity
+UC	r_rich_zip_first/u	ms2	2	ms2_delta_im
+UC	r_rich_zip_first/u	ms2	3	ms2_exp_im
+UC	r_rich_zip_first/u	ms2	4	ms2_exp_im_leftwidth
+UC	r_rich_zip_first/u	ms2	5	ms2_exp_im_rightwidth
+UC	r_rich_zip_first/u	ms2	6	ms2_total_area_intensity
+UC	r_rich_zip_first/u	ms2	7	ms2_total_mi
+UC	r_rich_zip_first/u	ms2	8	var_ms2_bseries_score
+UC	r_rich_zip_first/u	ms2	9	var_ms2_dotprod_score
+UC	r_rich_zip_first/u	ms2	10	var_ms2_elution_model_fit_score
+UC	r_rich_zip_first/u	ms2	11	var_ms2_im_delta_score
+UC	r_rich_zip_first/u	ms2	12	var_ms2_im_log_intensity
+UC	r_rich_zip_first/u	ms2	13	var_ms2_im_xcorr_coelution
+UC	r_rich_zip_first/u	ms2	14	var_ms2_im_xcorr_shape
+UC	r_rich_zip_first/u	ms2	15	var_ms2_intensity_score
+UC	r_rich_zip_first/u	ms2	16	var_ms2_isotope_correlation_score
+UC	r_rich_zip_first/u	ms2	17	var_ms2_isotope_overlap_score
+UC	r_rich_zip_first/u	ms2	18	var_ms2_library_corr
+UC	r_rich_zip_first/u	ms2	19	var_ms2_library_dotprod
+UC	r_rich_zip_first/u	ms2	20	var_ms2_library_manhattan
+UC	r_rich_zip_first/u	ms2	21	var_ms2_library_rmsd
+UC	r_rich_zip_first/u	ms2	22	var_ms2_library_rootmeansquare
+UC	r_rich_zip_first/u	ms2	23	var_ms2_library_sangle
+UC	r_rich_zip_first/u	ms2	24	var_ms2_log_sn_score
+UC	r_rich_zip_first/u	ms2	25	var_ms2_manhattan_score
+UC	r_rich_zip_first/u	ms2	26	var_ms2_massdev_score
+UC	r_rich_zip_first/u	ms2	27	var_ms2_massdev_score_weighted
+UC	r_rich_zip_first/u	ms2	28	var_ms2_mi_ratio_score
+UC	r_rich_zip_first/u	ms2	29	var_ms2_mi_score
+UC	r_rich_zip_first/u	ms2	30	var_ms2_mi_weighted_score
+UC	r_rich_zip_first/u	ms2	31	var_ms2_norm_rt_score
+UC	r_rich_zip_first/u	ms2	32	var_ms2_xcorr_coelution
+UC	r_rich_zip_first/u	ms2	33	var_ms2_xcorr_coelution_weighted
+UC	r_rich_zip_first/u	ms2	34	var_ms2_xcorr_shape
+UC	r_rich_zip_first/u	ms2	35	var_ms2_xcorr_shape_weighted
+UC	r_rich_zip_first/u	ms2	36	var_ms2_yseries_score
+UC	r_rich_zip_first/u	ms1	0	ms1_apex_intensity
+UC	r_rich_zip_first/u	ms1	1	ms1_area_intensity
+UC	r_rich_zip_first/u	ms1	2	ms1_delta_im
+UC	r_rich_zip_first/u	ms1	3	ms1_exp_im
+UC	r_rich_zip_first/u	ms1	4	var_ms1_im_ms1_delta_score
+UC	r_rich_zip_first/u	ms1	5	var_ms1_isotope_correlation_score
+UC	r_rich_zip_first/u	ms1	6	var_ms1_isotope_overlap_score
+UC	r_rich_zip_first/u	ms1	7	var_ms1_massdev_score
+UC	r_rich_zip_first/u	ms1	8	var_ms1_mi_combined_score
+UC	r_rich_zip_first/u	ms1	9	var_ms1_mi_contrast_score
+UC	r_rich_zip_first/u	ms1	10	var_ms1_mi_score
+UC	r_rich_zip_first/u	ms1	11	var_ms1_xcorr_coelution
+UC	r_rich_zip_first/u	ms1	12	var_ms1_xcorr_coelution_combined
+UC	r_rich_zip_first/u	ms1	13	var_ms1_xcorr_coelution_contrast
+UC	r_rich_zip_first/u	ms1	14	var_ms1_xcorr_shape
+UC	r_rich_zip_first/u	ms1	15	var_ms1_xcorr_shape_combined
+UC	r_rich_zip_first/u	ms1	16	var_ms1_xcorr_shape_contrast
+U	r_rich_zip_first/u	0	42	0	0	0	42	zip.mzML	100.25	100.25	-0	100.5	-100.16666666666667	5	2	450.25	1.1000000238418579	0	123456.78901234567	99.5	101.25	0.10000000000000001	7	nan	1234567890123|1.1000000238418579|nan|9007199254740992|0.10000000000000001|nan|2.6749999999999998|nan|7|nan|nan|nan|0.29999999999999999|nan|nan|nan|nan|nan|3|nan|nan|nan|nan|nan|nan|0.98765432198765402|nan|nan|nan|nan|nan|nan|nan|nan|12|0.80000000000000004|nan	123456.78901234567|0|4.9406564584124654e-324|1e-300|1.5|nan|nan|1e+308|nan|nan|42|2500|nan|nan|0.29999999999999999|nan|nan
+U	r_rich_zip_first/u	1	42	0	5	0	42	zip.mzML	250	251	-1	250.25	nan	77	3	600.5	0	nan	nan	nan	nan	nan	nan	nan	nan|0|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+U	r_rich_zip_first/u	2	42	0	9	1	42	zip.mzML	101	102	-1	101	-102	3	2	450.5	5	nan	nan	nan	nan	nan	nan	nan	nan|5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_zip_first/u
+L	r_rich_zip_replaced	0	1000	8	5	10	7.5	0	0	3	0	2	8_5_1000
+OK	r_rich_zip_replaced/load
+PGC	r_rich_zip_replaced/pg_ms2	ms2	0	ms2_apex_intensity
+PGC	r_rich_zip_replaced/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_rich_zip_replaced/pg_ms2	ms2	2	ms2_delta_im
+PGC	r_rich_zip_replaced/pg_ms2	ms2	3	ms2_exp_im
+PGC	r_rich_zip_replaced/pg_ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_zip_replaced/pg_ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_zip_replaced/pg_ms2	ms2	6	ms2_total_area_intensity
+PGC	r_rich_zip_replaced/pg_ms2	ms2	7	ms2_total_mi
+PGC	r_rich_zip_replaced/pg_ms2	ms2	8	var_ms2_bseries_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_zip_replaced/pg_ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_replaced/pg_ms2	ms2	15	var_ms2_intensity_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	18	var_ms2_library_corr
+PGC	r_rich_zip_replaced/pg_ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_zip_replaced/pg_ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_zip_replaced/pg_ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_zip_replaced/pg_ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_replaced/pg_ms2	ms2	23	var_ms2_library_sangle
+PGC	r_rich_zip_replaced/pg_ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	26	var_ms2_massdev_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_replaced/pg_ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	29	var_ms2_mi_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_zip_replaced/pg_ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_replaced/pg_ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_zip_replaced/pg_ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_replaced/pg_ms2	ms2	36	var_ms2_yseries_score
+PG	r_rich_zip_replaced/pg_ms2	0	1000	8	5	10	3	0	2	8_5_1000	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	
+OK	r_rich_zip_replaced/pg_ms2
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	0	ms2_apex_intensity
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	2	ms2_delta_im
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	3	ms2_exp_im
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	6	ms2_total_area_intensity
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	7	ms2_total_mi
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	8	var_ms2_bseries_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	15	var_ms2_intensity_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	18	var_ms2_library_corr
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	23	var_ms2_library_sangle
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	26	var_ms2_massdev_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	29	var_ms2_mi_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms2	36	var_ms2_yseries_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	0	ms1_apex_intensity
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	1	ms1_area_intensity
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	2	ms1_delta_im
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	3	ms1_exp_im
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	4	var_ms1_im_ms1_delta_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	5	var_ms1_isotope_correlation_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	6	var_ms1_isotope_overlap_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	7	var_ms1_massdev_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	8	var_ms1_mi_combined_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	9	var_ms1_mi_contrast_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	10	var_ms1_mi_score
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	11	var_ms1_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	12	var_ms1_xcorr_coelution_combined
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	13	var_ms1_xcorr_coelution_contrast
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	14	var_ms1_xcorr_shape
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	15	var_ms1_xcorr_shape_combined
+PGC	r_rich_zip_replaced/pg_ms1ms2	ms1	16	var_ms1_xcorr_shape_contrast
+PG	r_rich_zip_replaced/pg_ms1ms2	0	1000	8	5	10	3	0	2	8_5_1000	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_zip_replaced/pg_ms1ms2
+PGC	r_rich_zip_replaced/pg_main	ms2	0	var_ms2_xcorr_shape
+PGC	r_rich_zip_replaced/pg_main	ms2	1	ms2_apex_intensity
+PGC	r_rich_zip_replaced/pg_main	ms2	2	ms2_area_intensity
+PGC	r_rich_zip_replaced/pg_main	ms2	3	ms2_delta_im
+PGC	r_rich_zip_replaced/pg_main	ms2	4	ms2_exp_im
+PGC	r_rich_zip_replaced/pg_main	ms2	5	ms2_exp_im_leftwidth
+PGC	r_rich_zip_replaced/pg_main	ms2	6	ms2_exp_im_rightwidth
+PGC	r_rich_zip_replaced/pg_main	ms2	7	ms2_total_area_intensity
+PGC	r_rich_zip_replaced/pg_main	ms2	8	ms2_total_mi
+PGC	r_rich_zip_replaced/pg_main	ms2	9	var_ms2_bseries_score
+PGC	r_rich_zip_replaced/pg_main	ms2	10	var_ms2_dotprod_score
+PGC	r_rich_zip_replaced/pg_main	ms2	11	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_replaced/pg_main	ms2	12	var_ms2_im_delta_score
+PGC	r_rich_zip_replaced/pg_main	ms2	13	var_ms2_im_log_intensity
+PGC	r_rich_zip_replaced/pg_main	ms2	14	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_main	ms2	15	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_replaced/pg_main	ms2	16	var_ms2_intensity_score
+PGC	r_rich_zip_replaced/pg_main	ms2	17	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_replaced/pg_main	ms2	18	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_replaced/pg_main	ms2	19	var_ms2_library_corr
+PGC	r_rich_zip_replaced/pg_main	ms2	20	var_ms2_library_dotprod
+PGC	r_rich_zip_replaced/pg_main	ms2	21	var_ms2_library_manhattan
+PGC	r_rich_zip_replaced/pg_main	ms2	22	var_ms2_library_rmsd
+PGC	r_rich_zip_replaced/pg_main	ms2	23	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_replaced/pg_main	ms2	24	var_ms2_library_sangle
+PGC	r_rich_zip_replaced/pg_main	ms2	25	var_ms2_log_sn_score
+PGC	r_rich_zip_replaced/pg_main	ms2	26	var_ms2_manhattan_score
+PGC	r_rich_zip_replaced/pg_main	ms2	27	var_ms2_massdev_score
+PGC	r_rich_zip_replaced/pg_main	ms2	28	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_replaced/pg_main	ms2	29	var_ms2_mi_ratio_score
+PGC	r_rich_zip_replaced/pg_main	ms2	30	var_ms2_mi_score
+PGC	r_rich_zip_replaced/pg_main	ms2	31	var_ms2_mi_weighted_score
+PGC	r_rich_zip_replaced/pg_main	ms2	32	var_ms2_norm_rt_score
+PGC	r_rich_zip_replaced/pg_main	ms2	33	var_ms2_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_main	ms2	34	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_replaced/pg_main	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_replaced/pg_main	ms2	36	var_ms2_yseries_score
+PG	r_rich_zip_replaced/pg_main	0	1000	8	5	10	3	0	2	8_5_1000	0|nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan	
+OK	r_rich_zip_replaced/pg_main
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	0	ms2_apex_intensity
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	2	ms2_delta_im
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	3	ms2_exp_im
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	4	ms2_exp_im_leftwidth
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	5	ms2_exp_im_rightwidth
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	6	ms2_total_area_intensity
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	7	ms2_total_mi
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	8	var_ms2_bseries_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	9	var_ms2_dotprod_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	10	var_ms2_elution_model_fit_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	11	var_ms2_im_delta_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	12	var_ms2_im_log_intensity
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	13	var_ms2_im_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	14	var_ms2_im_xcorr_shape
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	15	var_ms2_intensity_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	16	var_ms2_isotope_correlation_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	17	var_ms2_isotope_overlap_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	18	var_ms2_library_corr
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	19	var_ms2_library_dotprod
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	20	var_ms2_library_manhattan
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	21	var_ms2_library_rmsd
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	22	var_ms2_library_rootmeansquare
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	23	var_ms2_library_sangle
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	24	var_ms2_log_sn_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	25	var_ms2_manhattan_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	26	var_ms2_massdev_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	27	var_ms2_massdev_score_weighted
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	28	var_ms2_mi_ratio_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	29	var_ms2_mi_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	30	var_ms2_mi_weighted_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	31	var_ms2_norm_rt_score
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	32	var_ms2_xcorr_coelution
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	33	var_ms2_xcorr_coelution_weighted
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	34	var_ms2_xcorr_shape
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	35	var_ms2_xcorr_shape_weighted
+PGC	r_rich_zip_replaced/pg_main_missing	ms2	36	var_ms2_yseries_score
+PG	r_rich_zip_replaced/pg_main_missing	0	1000	8	5	10	3	0	2	8_5_1000	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	
+OK	r_rich_zip_replaced/pg_main_missing
+TFC	r_rich_zip_replaced/tf	0	var_im_delta_score
+TFC	r_rich_zip_replaced/tf	1	var_im_log_intensity
+TFC	r_rich_zip_replaced/tf	2	var_im_xcorr_coelution_combined
+TFC	r_rich_zip_replaced/tf	3	var_im_xcorr_coelution_contrast
+TFC	r_rich_zip_replaced/tf	4	var_im_xcorr_shape_combined
+TFC	r_rich_zip_replaced/tf	5	var_im_xcorr_shape_contrast
+TFC	r_rich_zip_replaced/tf	6	var_intensity_ratio_score
+TFC	r_rich_zip_replaced/tf	7	var_intensity_score
+TFC	r_rich_zip_replaced/tf	8	var_isotope_correlation_score
+TFC	r_rich_zip_replaced/tf	9	var_isotope_overlap_score
+TFC	r_rich_zip_replaced/tf	10	var_log_intensity
+TFC	r_rich_zip_replaced/tf	11	var_log_sn_score
+TFC	r_rich_zip_replaced/tf	12	var_massdev_score
+TFC	r_rich_zip_replaced/tf	13	var_mi_ratio_score
+TFC	r_rich_zip_replaced/tf	14	var_mi_score
+TFC	r_rich_zip_replaced/tf	15	var_xcorr_coelution
+TFC	r_rich_zip_replaced/tf	16	var_xcorr_shape
+TF	r_rich_zip_replaced/tf	0	1000	8	5	10	3	11	1	0	3	nan	nan	nan	nan	nan	nan	8_1000_5_11	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_zip_replaced/tf
+UC	r_rich_zip_replaced/u	ms2	0	ms2_apex_intensity
+UC	r_rich_zip_replaced/u	ms2	1	ms2_area_intensity
+UC	r_rich_zip_replaced/u	ms2	2	ms2_delta_im
+UC	r_rich_zip_replaced/u	ms2	3	ms2_exp_im
+UC	r_rich_zip_replaced/u	ms2	4	ms2_exp_im_leftwidth
+UC	r_rich_zip_replaced/u	ms2	5	ms2_exp_im_rightwidth
+UC	r_rich_zip_replaced/u	ms2	6	ms2_total_area_intensity
+UC	r_rich_zip_replaced/u	ms2	7	ms2_total_mi
+UC	r_rich_zip_replaced/u	ms2	8	var_ms2_bseries_score
+UC	r_rich_zip_replaced/u	ms2	9	var_ms2_dotprod_score
+UC	r_rich_zip_replaced/u	ms2	10	var_ms2_elution_model_fit_score
+UC	r_rich_zip_replaced/u	ms2	11	var_ms2_im_delta_score
+UC	r_rich_zip_replaced/u	ms2	12	var_ms2_im_log_intensity
+UC	r_rich_zip_replaced/u	ms2	13	var_ms2_im_xcorr_coelution
+UC	r_rich_zip_replaced/u	ms2	14	var_ms2_im_xcorr_shape
+UC	r_rich_zip_replaced/u	ms2	15	var_ms2_intensity_score
+UC	r_rich_zip_replaced/u	ms2	16	var_ms2_isotope_correlation_score
+UC	r_rich_zip_replaced/u	ms2	17	var_ms2_isotope_overlap_score
+UC	r_rich_zip_replaced/u	ms2	18	var_ms2_library_corr
+UC	r_rich_zip_replaced/u	ms2	19	var_ms2_library_dotprod
+UC	r_rich_zip_replaced/u	ms2	20	var_ms2_library_manhattan
+UC	r_rich_zip_replaced/u	ms2	21	var_ms2_library_rmsd
+UC	r_rich_zip_replaced/u	ms2	22	var_ms2_library_rootmeansquare
+UC	r_rich_zip_replaced/u	ms2	23	var_ms2_library_sangle
+UC	r_rich_zip_replaced/u	ms2	24	var_ms2_log_sn_score
+UC	r_rich_zip_replaced/u	ms2	25	var_ms2_manhattan_score
+UC	r_rich_zip_replaced/u	ms2	26	var_ms2_massdev_score
+UC	r_rich_zip_replaced/u	ms2	27	var_ms2_massdev_score_weighted
+UC	r_rich_zip_replaced/u	ms2	28	var_ms2_mi_ratio_score
+UC	r_rich_zip_replaced/u	ms2	29	var_ms2_mi_score
+UC	r_rich_zip_replaced/u	ms2	30	var_ms2_mi_weighted_score
+UC	r_rich_zip_replaced/u	ms2	31	var_ms2_norm_rt_score
+UC	r_rich_zip_replaced/u	ms2	32	var_ms2_xcorr_coelution
+UC	r_rich_zip_replaced/u	ms2	33	var_ms2_xcorr_coelution_weighted
+UC	r_rich_zip_replaced/u	ms2	34	var_ms2_xcorr_shape
+UC	r_rich_zip_replaced/u	ms2	35	var_ms2_xcorr_shape_weighted
+UC	r_rich_zip_replaced/u	ms2	36	var_ms2_yseries_score
+UC	r_rich_zip_replaced/u	ms1	0	ms1_apex_intensity
+UC	r_rich_zip_replaced/u	ms1	1	ms1_area_intensity
+UC	r_rich_zip_replaced/u	ms1	2	ms1_delta_im
+UC	r_rich_zip_replaced/u	ms1	3	ms1_exp_im
+UC	r_rich_zip_replaced/u	ms1	4	var_ms1_im_ms1_delta_score
+UC	r_rich_zip_replaced/u	ms1	5	var_ms1_isotope_correlation_score
+UC	r_rich_zip_replaced/u	ms1	6	var_ms1_isotope_overlap_score
+UC	r_rich_zip_replaced/u	ms1	7	var_ms1_massdev_score
+UC	r_rich_zip_replaced/u	ms1	8	var_ms1_mi_combined_score
+UC	r_rich_zip_replaced/u	ms1	9	var_ms1_mi_contrast_score
+UC	r_rich_zip_replaced/u	ms1	10	var_ms1_mi_score
+UC	r_rich_zip_replaced/u	ms1	11	var_ms1_xcorr_coelution
+UC	r_rich_zip_replaced/u	ms1	12	var_ms1_xcorr_coelution_combined
+UC	r_rich_zip_replaced/u	ms1	13	var_ms1_xcorr_coelution_contrast
+UC	r_rich_zip_replaced/u	ms1	14	var_ms1_xcorr_shape
+UC	r_rich_zip_replaced/u	ms1	15	var_ms1_xcorr_shape_combined
+UC	r_rich_zip_replaced/u	ms1	16	var_ms1_xcorr_shape_contrast
+U	r_rich_zip_replaced/u	0	8	0	5	0	8	third.mzML	10	11	-1	250.25	-251.25	1000	3	600.5	7.5	nan	nan	nan	nan	nan	nan	nan	nan|7.5|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|0|nan|nan	nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan|nan
+OK	r_rich_zip_replaced/u
+X	r_tworuns	zipstat	metadata.json comp_method=0 size=795 comp_size=795 enc=0
+X	r_tworuns	zipstat	library/ comp_method=0 size=0 comp_size=0 enc=0
+X	r_tworuns	zipstat	library/metadata.json comp_method=0 size=885 comp_size=885 enc=0
+X	r_tworuns	zipstat	library/precursors.parquet comp_method=0 size=2723 comp_size=2723 enc=0
+X	r_tworuns	zipstat	library/transitions.parquet comp_method=0 size=3077 comp_size=3077 enc=0
+X	r_tworuns	zipstat	runs/ comp_method=0 size=0 comp_size=0 enc=0
+X	r_tworuns	zipstat	runs/run_id=6954376884417957960/ comp_method=0 size=0 comp_size=0 enc=0
+X	r_tworuns	zipstat	runs/run_id=6954376884417957960/feature_transition.parquet comp_method=0 size=4251 comp_size=4251 enc=0
+X	r_tworuns	zipstat	runs/run_id=6954376884417957960/features.parquet comp_method=0 size=6646 comp_size=6646 enc=0
+X	r_tworuns	zipstat	runs/runs.parquet comp_method=0 size=780 comp_size=780 enc=0
+X	r_tworuns	zipstat	runs/run_id=4835329514588776807/ comp_method=0 size=0 comp_size=0 enc=0
+X	r_tworuns	zipstat	runs/run_id=4835329514588776807/feature_transition.parquet comp_method=0 size=9235 comp_size=9235 enc=0
+X	r_tworuns	zipstat	runs/run_id=4835329514588776807/features.parquet comp_method=0 size=15157 comp_size=15157 enc=0
+F	r_minimal_files	library/precursors.parquet	r_minimal_files__library#precursors.parquet
+F	r_minimal_files	library/transitions.parquet	r_minimal_files__library#transitions.parquet
+F	r_minimal_files	runs/run_id=1/feature_transition.parquet	r_minimal_files__runs#run_id=1#feature_transition.parquet
+F	r_minimal_files	runs/run_id=1/features.parquet	r_minimal_files__runs#run_id=1#features.parquet
+F	r_minimal_files	runs/runs.parquet	r_minimal_files__runs#runs.parquet
+L	r_minimal	0	1	1	1	10	0	0	0	2	0	1	1_1_1
+L	r_minimal	1	2	1	1	11	0	0	0	2	0	1	1_1_2
+OK	r_minimal/load
+PG	r_minimal/pg_ms2	0	1	1	1	10	2	0	1	1_1_1		
+PG	r_minimal/pg_ms2	1	2	1	1	11	2	0	1	1_1_2		
+OK	r_minimal/pg_ms2
+PG	r_minimal/pg_ms1ms2	0	1	1	1	10	2	0	1	1_1_1		
+PG	r_minimal/pg_ms1ms2	1	2	1	1	11	2	0	1	1_1_2		
+OK	r_minimal/pg_ms1ms2
+PG	r_minimal/pg_main	0	1	1	1	10	2	0	1	1_1_1		
+PG	r_minimal/pg_main	1	2	1	1	11	2	0	1	1_1_2		
+OK	r_minimal/pg_main
+PG	r_minimal/pg_main_missing	0	1	1	1	10	2	0	1	1_1_1		
+PG	r_minimal/pg_main_missing	1	2	1	1	11	2	0	1	1_1_2		
+OK	r_minimal/pg_main_missing
+TF	r_minimal/tf	0	1	1	1	10	2	1	1	0	100	nan	nan	nan	nan	nan	nan	1_1_1_1	
+TF	r_minimal/tf	1	2	1	1	11	2	1	1	0	110	nan	nan	nan	nan	nan	nan	1_2_1_1	
+OK	r_minimal/tf
+U	r_minimal/u	0	1	0	1	0	1		10	nan	nan	nan	nan	1	2	500	nan	nan	nan	nan	nan	nan	nan	nan		
+U	r_minimal/u	1	1	0	1	0	1		11	nan	nan	nan	nan	2	2	500	nan	nan	nan	nan	nan	nan	nan	nan		
+OK	r_minimal/u
+F	r_ties_files	library/peptides.parquet	r_ties_files__library#peptides.parquet
+F	r_ties_files	library/precursor_peptide_mapping.parquet	r_ties_files__library#precursor_peptide_mapping.parquet
+F	r_ties_files	library/precursors.parquet	r_ties_files__library#precursors.parquet
+F	r_ties_files	library/transitions.parquet	r_ties_files__library#transitions.parquet
+F	r_ties_files	runs/run_id=1/feature_transition.parquet	r_ties_files__runs#run_id=1#feature_transition.parquet
+F	r_ties_files	runs/run_id=1/features.parquet	r_ties_files__runs#run_id=1#features.parquet
+F	r_ties_files	runs/run_id=3/feature_transition.parquet	r_ties_files__runs#run_id=3#feature_transition.parquet
+F	r_ties_files	runs/run_id=3/features.parquet	r_ties_files__runs#run_id=3#features.parquet
+F	r_ties_files	runs/runs.parquet	r_ties_files__runs#runs.parquet
+L	r_ties	0	100	3	2	nan	0	0	0	3	1	1	3_2_100
+L	r_ties	1	101	3	1	1	-1	0	0	2	0	1	3_1_101
+L	r_ties	2	102	3	1	2	-2	0	0	2	0	1	3_1_102
+L	r_ties	3	103	3	2	3	-3	0	0	3	1	1	3_2_103
+L	r_ties	4	104	3	1	0	-4	0	0	2	0	1	3_1_104
+L	r_ties	5	105	3	1	1	0	0	0	2	0	1	3_1_105
+L	r_ties	6	106	3	2	2	-6	0	0	3	1	1	3_2_106
+L	r_ties	7	107	3	1	nan	-7	0	0	2	0	1	3_1_107
+L	r_ties	8	108	3	1	0	-8	0	0	2	0	1	3_1_108
+L	r_ties	9	109	3	2	1	-9	0	0	3	1	1	3_2_109
+L	r_ties	10	110	3	1	2	0	0	0	2	0	1	3_1_110
+L	r_ties	11	111	3	1	3	-11	0	0	2	0	1	3_1_111
+L	r_ties	12	112	3	2	0	-12	0	0	3	1	1	3_2_112
+L	r_ties	13	113	3	1	1	-13	0	0	2	0	1	3_1_113
+L	r_ties	14	114	3	1	nan	-14	0	0	2	0	1	3_1_114
+L	r_ties	15	115	3	2	3	0	0	0	3	1	1	3_2_115
+L	r_ties	16	116	3	1	0	-16	0	0	2	0	1	3_1_116
+L	r_ties	17	117	3	1	1	-17	0	0	2	0	1	3_1_117
+L	r_ties	18	118	3	2	2	-18	0	0	3	1	1	3_2_118
+L	r_ties	19	119	3	1	3	-19	0	0	2	0	1	3_1_119
+L	r_ties	20	120	3	1	0	0	0	0	2	0	1	3_1_120
+L	r_ties	21	121	3	2	nan	-21	0	0	3	1	1	3_2_121
+L	r_ties	22	122	3	1	2	-22	0	0	2	0	1	3_1_122
+L	r_ties	23	123	3	1	3	-23	0	0	2	0	1	3_1_123
+L	r_ties	24	124	3	2	0	-24	0	0	3	1	1	3_2_124
+L	r_ties	25	125	3	1	1	0	0	0	2	0	1	3_1_125
+L	r_ties	26	126	3	1	2	-26	0	0	2	0	1	3_1_126
+L	r_ties	27	127	3	2	3	-27	0	0	3	1	1	3_2_127
+L	r_ties	28	128	3	1	nan	-28	0	0	2	0	1	3_1_128
+L	r_ties	29	129	3	1	1	-29	0	0	2	0	1	3_1_129
+L	r_ties	30	130	3	2	2	0	0	0	3	1	1	3_2_130
+L	r_ties	31	131	3	1	3	-31	0	0	2	0	1	3_1_131
+L	r_ties	32	132	3	1	0	-32	0	0	2	0	1	3_1_132
+L	r_ties	33	133	3	2	1	-33	0	0	3	1	1	3_2_133
+L	r_ties	34	134	3	1	2	-34	0	0	2	0	1	3_1_134
+L	r_ties	35	135	3	1	nan	0	0	0	2	0	1	3_1_135
+L	r_ties	36	136	3	2	0	-36	0	0	3	1	1	3_2_136
+L	r_ties	37	137	3	1	1	-37	0	0	2	0	1	3_1_137
+L	r_ties	38	138	3	1	2	-38	0	0	2	0	1	3_1_138
+L	r_ties	39	139	3	2	3	-39	0	0	3	1	1	3_2_139
+L	r_ties	40	5	1	2	1	0	0	0	3	1	1	1_2_5
+L	r_ties	41	6	1	1	1	0	0	0	2	0	1	1_1_6
+OK	r_ties/load
+PGC	r_ties/pg_ms2	ms2	0	ms2_alpha
+PGC	r_ties/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_ties/pg_ms2	ms2	2	var_ms2_zeta
+PG	r_ties/pg_ms2	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	
+PG	r_ties/pg_ms2	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	
+PG	r_ties/pg_ms2	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	
+PG	r_ties/pg_ms2	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	
+PG	r_ties/pg_ms2	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	
+PG	r_ties/pg_ms2	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	
+PG	r_ties/pg_ms2	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	
+PG	r_ties/pg_ms2	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	
+PG	r_ties/pg_ms2	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	
+PG	r_ties/pg_ms2	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	
+PG	r_ties/pg_ms2	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	
+PG	r_ties/pg_ms2	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	
+PG	r_ties/pg_ms2	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	
+PG	r_ties/pg_ms2	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	
+PG	r_ties/pg_ms2	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	
+PG	r_ties/pg_ms2	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	
+PG	r_ties/pg_ms2	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	
+PG	r_ties/pg_ms2	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	
+PG	r_ties/pg_ms2	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	
+PG	r_ties/pg_ms2	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	
+PG	r_ties/pg_ms2	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	
+PG	r_ties/pg_ms2	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	
+PG	r_ties/pg_ms2	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	
+PG	r_ties/pg_ms2	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	
+PG	r_ties/pg_ms2	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	
+PG	r_ties/pg_ms2	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	
+PG	r_ties/pg_ms2	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	
+PG	r_ties/pg_ms2	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	
+PG	r_ties/pg_ms2	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	
+PG	r_ties/pg_ms2	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	
+PG	r_ties/pg_ms2	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	
+PG	r_ties/pg_ms2	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	
+PG	r_ties/pg_ms2	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	
+PG	r_ties/pg_ms2	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	
+PG	r_ties/pg_ms2	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	
+PG	r_ties/pg_ms2	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	
+PG	r_ties/pg_ms2	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	
+PG	r_ties/pg_ms2	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	
+PG	r_ties/pg_ms2	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	
+PG	r_ties/pg_ms2	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	
+PG	r_ties/pg_ms2	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	
+PG	r_ties/pg_ms2	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	
+OK	r_ties/pg_ms2
+PGC	r_ties/pg_ms1ms2	ms2	0	ms2_alpha
+PGC	r_ties/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_ties/pg_ms1ms2	ms2	2	var_ms2_zeta
+PGC	r_ties/pg_ms1ms2	ms1	0	var_ms1_alpha
+PG	r_ties/pg_ms1ms2	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	nan
+PG	r_ties/pg_ms1ms2	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	nan
+PG	r_ties/pg_ms1ms2	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	2
+PG	r_ties/pg_ms1ms2	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	0.5
+PG	r_ties/pg_ms1ms2	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	18.5
+PG	r_ties/pg_ms1ms2	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	17.5
+PG	r_ties/pg_ms1ms2	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	16
+PG	r_ties/pg_ms1ms2	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	4
+PG	r_ties/pg_ms1ms2	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	14.5
+PG	r_ties/pg_ms1ms2	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	14
+PG	r_ties/pg_ms1ms2	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	10
+PG	r_ties/pg_ms1ms2	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	8
+PG	r_ties/pg_ms1ms2	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	12.5
+PG	r_ties/pg_ms1ms2	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	8.5
+PG	r_ties/pg_ms1ms2	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	6.5
+PG	r_ties/pg_ms1ms2	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	2.5
+PG	r_ties/pg_ms1ms2	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	17
+PG	r_ties/pg_ms1ms2	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	1
+PG	r_ties/pg_ms1ms2	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	11.5
+PG	r_ties/pg_ms1ms2	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	15.5
+PG	r_ties/pg_ms1ms2	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	3.5
+PG	r_ties/pg_ms1ms2	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	19
+PG	r_ties/pg_ms1ms2	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	11
+PG	r_ties/pg_ms1ms2	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	7
+PG	r_ties/pg_ms1ms2	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	13
+PG	r_ties/pg_ms1ms2	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	5
+PG	r_ties/pg_ms1ms2	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	5.5
+PG	r_ties/pg_ms1ms2	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	9.5
+PG	r_ties/pg_ms1ms2	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	12
+PG	r_ties/pg_ms1ms2	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	18
+PG	r_ties/pg_ms1ms2	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	6
+PG	r_ties/pg_ms1ms2	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	4.5
+PG	r_ties/pg_ms1ms2	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	0
+PG	r_ties/pg_ms1ms2	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	16.5
+PG	r_ties/pg_ms1ms2	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	3
+PG	r_ties/pg_ms1ms2	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	15
+PG	r_ties/pg_ms1ms2	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	13.5
+PG	r_ties/pg_ms1ms2	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	1.5
+PG	r_ties/pg_ms1ms2	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	10.5
+PG	r_ties/pg_ms1ms2	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	9
+PG	r_ties/pg_ms1ms2	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	19.5
+PG	r_ties/pg_ms1ms2	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	7.5
+OK	r_ties/pg_ms1ms2
+PGC	r_ties/pg_main	ms2	0	ms2_alpha
+PGC	r_ties/pg_main	ms2	1	ms2_area_intensity
+PGC	r_ties/pg_main	ms2	2	var_ms2_zeta
+PG	r_ties/pg_main	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	
+PG	r_ties/pg_main	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	
+PG	r_ties/pg_main	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	
+PG	r_ties/pg_main	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	
+PG	r_ties/pg_main	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	
+PG	r_ties/pg_main	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	
+PG	r_ties/pg_main	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	
+PG	r_ties/pg_main	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	
+PG	r_ties/pg_main	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	
+PG	r_ties/pg_main	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	
+PG	r_ties/pg_main	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	
+PG	r_ties/pg_main	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	
+PG	r_ties/pg_main	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	
+PG	r_ties/pg_main	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	
+PG	r_ties/pg_main	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	
+PG	r_ties/pg_main	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	
+PG	r_ties/pg_main	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	
+PG	r_ties/pg_main	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	
+PG	r_ties/pg_main	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	
+PG	r_ties/pg_main	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	
+PG	r_ties/pg_main	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	
+PG	r_ties/pg_main	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	
+PG	r_ties/pg_main	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	
+PG	r_ties/pg_main	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	
+PG	r_ties/pg_main	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	
+PG	r_ties/pg_main	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	
+PG	r_ties/pg_main	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	
+PG	r_ties/pg_main	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	
+PG	r_ties/pg_main	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	
+PG	r_ties/pg_main	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	
+PG	r_ties/pg_main	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	
+PG	r_ties/pg_main	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	
+PG	r_ties/pg_main	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	
+PG	r_ties/pg_main	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	
+PG	r_ties/pg_main	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	
+PG	r_ties/pg_main	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	
+PG	r_ties/pg_main	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	
+PG	r_ties/pg_main	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	
+PG	r_ties/pg_main	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	
+PG	r_ties/pg_main	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	
+PG	r_ties/pg_main	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	
+PG	r_ties/pg_main	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	
+OK	r_ties/pg_main
+PGC	r_ties/pg_main_missing	ms2	0	ms2_alpha
+PGC	r_ties/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_ties/pg_main_missing	ms2	2	var_ms2_zeta
+PG	r_ties/pg_main_missing	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	
+PG	r_ties/pg_main_missing	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	
+PG	r_ties/pg_main_missing	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	
+PG	r_ties/pg_main_missing	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	
+PG	r_ties/pg_main_missing	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	
+PG	r_ties/pg_main_missing	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	
+PG	r_ties/pg_main_missing	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	
+PG	r_ties/pg_main_missing	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	
+PG	r_ties/pg_main_missing	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	
+PG	r_ties/pg_main_missing	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	
+PG	r_ties/pg_main_missing	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	
+PG	r_ties/pg_main_missing	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	
+PG	r_ties/pg_main_missing	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	
+PG	r_ties/pg_main_missing	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	
+PG	r_ties/pg_main_missing	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	
+PG	r_ties/pg_main_missing	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	
+PG	r_ties/pg_main_missing	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	
+PG	r_ties/pg_main_missing	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	
+PG	r_ties/pg_main_missing	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	
+PG	r_ties/pg_main_missing	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	
+PG	r_ties/pg_main_missing	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	
+PG	r_ties/pg_main_missing	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	
+PG	r_ties/pg_main_missing	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	
+PG	r_ties/pg_main_missing	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	
+PG	r_ties/pg_main_missing	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	
+PG	r_ties/pg_main_missing	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	
+PG	r_ties/pg_main_missing	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	
+PG	r_ties/pg_main_missing	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	
+PG	r_ties/pg_main_missing	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	
+PG	r_ties/pg_main_missing	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	
+PG	r_ties/pg_main_missing	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	
+PG	r_ties/pg_main_missing	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	
+PG	r_ties/pg_main_missing	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	
+PG	r_ties/pg_main_missing	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	
+PG	r_ties/pg_main_missing	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	
+PG	r_ties/pg_main_missing	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	
+PG	r_ties/pg_main_missing	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	
+PG	r_ties/pg_main_missing	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	
+PG	r_ties/pg_main_missing	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	
+PG	r_ties/pg_main_missing	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	
+PG	r_ties/pg_main_missing	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	
+PG	r_ties/pg_main_missing	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	
+OK	r_ties/pg_main_missing
+TFC	r_ties/tf	0	var_a
+TFC	r_ties/tf	1	var_b
+TF	r_ties/tf	0	6	1	1	1	2	1	1	0	nan	nan	nan	nan	nan	nan	nan	1_6_1_1	nan|nan
+TF	r_ties/tf	1	5	1	2	1	3	3	1	0	nan	nan	nan	nan	nan	nan	nan	1_5_2_3	nan|nan
+TF	r_ties/tf	2	120	3	1	0	2	2	2	0	19	nan	nan	nan	nan	nan	nan	3_120_1_2	19|4.75
+TF	r_ties/tf	3	116	3	1	0	2	2	2	0	23	nan	nan	nan	nan	nan	nan	3_116_1_2	23|5.75
+TF	r_ties/tf	4	114	3	1	nan	2	2	2	0	25	nan	nan	nan	nan	nan	nan	3_114_1_2	25|6.25
+TF	r_ties/tf	5	108	3	1	0	2	2	2	0	31	nan	nan	nan	nan	nan	nan	3_108_1_2	31|7.75
+TF	r_ties/tf	6	107	3	1	nan	2	1	1	0	32	nan	nan	nan	nan	nan	nan	3_107_1_1	32|8
+TF	r_ties/tf	7	132	3	1	0	2	2	2	0	7	nan	nan	nan	nan	nan	nan	3_132_1_2	7|1.75
+TF	r_ties/tf	8	104	3	1	0	2	2	2	0	35	nan	nan	nan	nan	nan	nan	3_104_1_2	35|8.75
+TF	r_ties/tf	9	105	3	1	1	2	1	1	0	34	nan	nan	nan	nan	nan	nan	3_105_1_1	34|8.5
+TF	r_ties/tf	10	129	3	1	1	2	1	1	0	10	nan	nan	nan	nan	nan	nan	3_129_1_1	10|2.5
+TF	r_ties/tf	11	113	3	1	1	2	1	1	0	26	nan	nan	nan	nan	nan	nan	3_113_1_1	26|6.5
+TF	r_ties/tf	12	125	3	1	1	2	1	1	0	14	nan	nan	nan	nan	nan	nan	3_125_1_1	14|3.5
+TF	r_ties/tf	13	101	3	1	1	2	1	1	0	38	nan	nan	nan	nan	nan	nan	3_101_1_1	38|9.5
+TF	r_ties/tf	14	137	3	1	1	2	1	1	0	2	nan	nan	nan	nan	nan	nan	3_137_1_1	2|0.5
+TF	r_ties/tf	15	117	3	1	1	2	1	1	0	22	nan	nan	nan	nan	nan	nan	3_117_1_1	22|5.5
+TF	r_ties/tf	16	102	3	1	2	2	2	2	0	37	nan	nan	nan	nan	nan	nan	3_102_1_2	37|9.25
+TF	r_ties/tf	17	110	3	1	2	2	2	2	0	29	nan	nan	nan	nan	nan	nan	3_110_1_2	29|7.25
+TF	r_ties/tf	18	138	3	1	2	2	2	2	0	1	nan	nan	nan	nan	nan	nan	3_138_1_2	1|0.25
+TF	r_ties/tf	19	122	3	1	2	2	2	2	0	17	nan	nan	nan	nan	nan	nan	3_122_1_2	17|4.25
+TF	r_ties/tf	20	126	3	1	2	2	2	2	0	13	nan	nan	nan	nan	nan	nan	3_126_1_2	13|3.25
+TF	r_ties/tf	21	119	3	1	3	2	1	1	0	20	nan	nan	nan	nan	nan	nan	3_119_1_1	20|5
+TF	r_ties/tf	22	123	3	1	3	2	1	1	0	16	nan	nan	nan	nan	nan	nan	3_123_1_1	16|4
+TF	r_ties/tf	23	111	3	1	3	2	1	1	0	28	nan	nan	nan	nan	nan	nan	3_111_1_1	28|7
+TF	r_ties/tf	24	135	3	1	nan	2	1	1	0	4	nan	nan	nan	nan	nan	nan	3_135_1_1	4|1
+TF	r_ties/tf	25	134	3	1	2	2	2	2	0	5	nan	nan	nan	nan	nan	nan	3_134_1_2	5|1.25
+TF	r_ties/tf	26	128	3	1	nan	2	2	2	0	11	nan	nan	nan	nan	nan	nan	3_128_1_2	11|2.75
+TF	r_ties/tf	27	131	3	1	3	2	1	1	0	8	nan	nan	nan	nan	nan	nan	3_131_1_1	8|2
+TF	r_ties/tf	28	136	3	2	0	3	3	1	0	3	nan	nan	nan	nan	nan	nan	3_136_2_3	3|nan
+TF	r_ties/tf	29	109	3	2	1	3	3	1	0	30	nan	nan	nan	nan	nan	nan	3_109_2_3	30|nan
+TF	r_ties/tf	30	100	3	2	nan	3	3	1	0	39	nan	nan	nan	nan	nan	nan	3_100_2_3	39|nan
+TF	r_ties/tf	31	124	3	2	0	3	3	1	0	15	nan	nan	nan	nan	nan	nan	3_124_2_3	15|nan
+TF	r_ties/tf	32	112	3	2	0	3	3	1	0	27	nan	nan	nan	nan	nan	nan	3_112_2_3	27|nan
+TF	r_ties/tf	33	133	3	2	1	3	3	1	0	6	nan	nan	nan	nan	nan	nan	3_133_2_3	6|nan
+TF	r_ties/tf	34	106	3	2	2	3	3	1	0	33	nan	nan	nan	nan	nan	nan	3_106_2_3	33|nan
+TF	r_ties/tf	35	130	3	2	2	3	3	1	0	9	nan	nan	nan	nan	nan	nan	3_130_2_3	9|nan
+TF	r_ties/tf	36	103	3	2	3	3	3	1	0	36	nan	nan	nan	nan	nan	nan	3_103_2_3	36|nan
+TF	r_ties/tf	37	121	3	2	nan	3	3	1	0	18	nan	nan	nan	nan	nan	nan	3_121_2_3	18|nan
+TF	r_ties/tf	38	118	3	2	2	3	3	1	0	21	nan	nan	nan	nan	nan	nan	3_118_2_3	21|nan
+TF	r_ties/tf	39	127	3	2	3	3	3	1	0	12	nan	nan	nan	nan	nan	nan	3_127_2_3	12|nan
+TF	r_ties/tf	40	115	3	2	3	3	3	1	0	24	nan	nan	nan	nan	nan	nan	3_115_2_3	24|nan
+TF	r_ties/tf	41	139	3	2	3	3	3	1	0	0	nan	nan	nan	nan	nan	nan	3_139_2_3	0|nan
+OK	r_ties/tf
+UC	r_ties/u	ms2	0	ms2_alpha
+UC	r_ties/u	ms2	1	ms2_area_intensity
+UC	r_ties/u	ms2	2	var_ms2_zeta
+UC	r_ties/u	ms1	0	var_ms1_alpha
+U	r_ties/u	0	3	20	2	1	3	b.mzML	nan	nan	nan	13	-13	100	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|0	0
+U	r_ties/u	1	3	11	1	0	3	b.mzML	1	2	-1	12	-11.5	101	2	500	-1	nan	nan	nan	nan	nan	nan	nan	nan|-1|0.5	0.5
+U	r_ties/u	2	3	11	1	0	3	b.mzML	2	4	-2	12	-11	102	2	500	-2	nan	nan	nan	nan	nan	nan	nan	nan|-2|1	1
+U	r_ties/u	3	3	20	2	1	3	b.mzML	3	6	-3	13	-11.5	103	3	nan	-3	nan	nan	nan	nan	nan	nan	nan	nan|-3|1.5	1.5
+U	r_ties/u	4	3	11	1	0	3	b.mzML	0	4	-4	12	-10	104	2	500	-4	nan	nan	nan	nan	nan	nan	nan	nan|-4|2	2
+U	r_ties/u	5	3	11	1	0	3	b.mzML	1	nan	nan	12	-9.5	105	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|2.5	2.5
+U	r_ties/u	6	3	20	2	1	3	b.mzML	2	8	-6	13	-10	106	3	nan	-6	nan	nan	nan	nan	nan	nan	nan	nan|-6|3	3
+U	r_ties/u	7	3	11	1	0	3	b.mzML	nan	nan	-7	12	-8.5	107	2	500	-7	nan	nan	nan	nan	nan	nan	nan	nan|-7|3.5	3.5
+U	r_ties/u	8	3	11	1	0	3	b.mzML	0	8	-8	12	-8	108	2	500	-8	nan	nan	nan	nan	nan	nan	nan	nan|-8|4	4
+U	r_ties/u	9	3	20	2	1	3	b.mzML	1	10	-9	13	-8.5	109	3	nan	-9	nan	nan	nan	nan	nan	nan	nan	nan|-9|4.5	4.5
+U	r_ties/u	10	3	11	1	0	3	b.mzML	2	nan	nan	12	-7	110	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|5	5
+U	r_ties/u	11	3	11	1	0	3	b.mzML	3	14	-11	12	-6.5	111	2	500	-11	nan	nan	nan	nan	nan	nan	nan	nan|-11|5.5	5.5
+U	r_ties/u	12	3	20	2	1	3	b.mzML	0	12	-12	13	-7	112	3	nan	-12	nan	nan	nan	nan	nan	nan	nan	nan|-12|6	6
+U	r_ties/u	13	3	11	1	0	3	b.mzML	1	14	-13	12	-5.5	113	2	500	-13	nan	nan	nan	nan	nan	nan	nan	nan|-13|6.5	6.5
+U	r_ties/u	14	3	11	1	0	3	b.mzML	nan	nan	-14	12	-5	114	2	500	-14	nan	nan	nan	nan	nan	nan	nan	nan|-14|7	7
+U	r_ties/u	15	3	20	2	1	3	b.mzML	3	nan	nan	13	-5.5	115	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|7.5	7.5
+U	r_ties/u	16	3	11	1	0	3	b.mzML	0	16	-16	12	-4	116	2	500	-16	nan	nan	nan	nan	nan	nan	nan	nan|-16|8	8
+U	r_ties/u	17	3	11	1	0	3	b.mzML	1	18	-17	12	-3.5	117	2	500	-17	nan	nan	nan	nan	nan	nan	nan	nan|-17|8.5	8.5
+U	r_ties/u	18	3	20	2	1	3	b.mzML	2	20	-18	13	-4	118	3	nan	-18	nan	nan	nan	nan	nan	nan	nan	nan|-18|9	9
+U	r_ties/u	19	3	11	1	0	3	b.mzML	3	22	-19	12	-2.5	119	2	500	-19	nan	nan	nan	nan	nan	nan	nan	nan|-19|9.5	9.5
+U	r_ties/u	20	3	11	1	0	3	b.mzML	0	nan	nan	12	-2	120	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|10	10
+U	r_ties/u	21	3	20	2	1	3	b.mzML	nan	nan	-21	13	-2.5	121	3	nan	-21	nan	nan	nan	nan	nan	nan	nan	nan|-21|10.5	10.5
+U	r_ties/u	22	3	11	1	0	3	b.mzML	2	24	-22	12	-1	122	2	500	-22	nan	nan	nan	nan	nan	nan	nan	nan|-22|11	11
+U	r_ties/u	23	3	11	1	0	3	b.mzML	3	26	-23	12	-0.5	123	2	500	-23	nan	nan	nan	nan	nan	nan	nan	nan|-23|11.5	11.5
+U	r_ties/u	24	3	20	2	1	3	b.mzML	0	24	-24	13	-1	124	3	nan	-24	nan	nan	nan	nan	nan	nan	nan	nan|-24|12	12
+U	r_ties/u	25	3	11	1	0	3	b.mzML	1	nan	nan	12	0.5	125	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|12.5	12.5
+U	r_ties/u	26	3	11	1	0	3	b.mzML	2	28	-26	12	1	126	2	500	-26	nan	nan	nan	nan	nan	nan	nan	nan|-26|13	13
+U	r_ties/u	27	3	20	2	1	3	b.mzML	3	30	-27	13	0.5	127	3	nan	-27	nan	nan	nan	nan	nan	nan	nan	nan|-27|13.5	13.5
+U	r_ties/u	28	3	11	1	0	3	b.mzML	nan	nan	-28	12	2	128	2	500	-28	nan	nan	nan	nan	nan	nan	nan	nan|-28|14	14
+U	r_ties/u	29	3	11	1	0	3	b.mzML	1	30	-29	12	2.5	129	2	500	-29	nan	nan	nan	nan	nan	nan	nan	nan|-29|14.5	14.5
+U	r_ties/u	30	3	20	2	1	3	b.mzML	2	nan	nan	13	2	130	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|15	15
+U	r_ties/u	31	3	11	1	0	3	b.mzML	3	34	-31	12	3.5	131	2	500	-31	nan	nan	nan	nan	nan	nan	nan	nan|-31|15.5	15.5
+U	r_ties/u	32	3	11	1	0	3	b.mzML	0	32	-32	12	4	132	2	500	-32	nan	nan	nan	nan	nan	nan	nan	nan|-32|16	16
+U	r_ties/u	33	3	20	2	1	3	b.mzML	1	34	-33	13	3.5	133	3	nan	-33	nan	nan	nan	nan	nan	nan	nan	nan|-33|16.5	16.5
+U	r_ties/u	34	3	11	1	0	3	b.mzML	2	36	-34	12	5	134	2	500	-34	nan	nan	nan	nan	nan	nan	nan	nan|-34|17	17
+U	r_ties/u	35	3	11	1	0	3	b.mzML	nan	nan	nan	12	5.5	135	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|17.5	17.5
+U	r_ties/u	36	3	20	2	1	3	b.mzML	0	36	-36	13	5	136	3	nan	-36	nan	nan	nan	nan	nan	nan	nan	nan|-36|18	18
+U	r_ties/u	37	3	11	1	0	3	b.mzML	1	38	-37	12	6.5	137	2	500	-37	nan	nan	nan	nan	nan	nan	nan	nan|-37|18.5	18.5
+U	r_ties/u	38	3	11	1	0	3	b.mzML	2	40	-38	12	7	138	2	500	-38	nan	nan	nan	nan	nan	nan	nan	nan|-38|19	19
+U	r_ties/u	39	3	20	2	1	3	b.mzML	3	42	-39	13	6.5	139	3	nan	-39	nan	nan	nan	nan	nan	nan	nan	nan|-39|19.5	19.5
+U	r_ties/u	40	1	20	2	1	1	a.mzML	1	nan	nan	13	nan	5	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	1|nan|nan	nan
+U	r_ties/u	41	1	11	1	0	1	a.mzML	1	nan	nan	12	nan	6	2	500	nan	nan	nan	nan	nan	nan	nan	nan	2|nan|nan	nan
+OK	r_ties/u
+OK	r_ties_zip_build
+L	r_ties_zip	0	100	3	2	nan	0	0	0	3	1	1	3_2_100
+L	r_ties_zip	1	101	3	1	1	-1	0	0	2	0	1	3_1_101
+L	r_ties_zip	2	102	3	1	2	-2	0	0	2	0	1	3_1_102
+L	r_ties_zip	3	103	3	2	3	-3	0	0	3	1	1	3_2_103
+L	r_ties_zip	4	104	3	1	0	-4	0	0	2	0	1	3_1_104
+L	r_ties_zip	5	105	3	1	1	0	0	0	2	0	1	3_1_105
+L	r_ties_zip	6	106	3	2	2	-6	0	0	3	1	1	3_2_106
+L	r_ties_zip	7	107	3	1	nan	-7	0	0	2	0	1	3_1_107
+L	r_ties_zip	8	108	3	1	0	-8	0	0	2	0	1	3_1_108
+L	r_ties_zip	9	109	3	2	1	-9	0	0	3	1	1	3_2_109
+L	r_ties_zip	10	110	3	1	2	0	0	0	2	0	1	3_1_110
+L	r_ties_zip	11	111	3	1	3	-11	0	0	2	0	1	3_1_111
+L	r_ties_zip	12	112	3	2	0	-12	0	0	3	1	1	3_2_112
+L	r_ties_zip	13	113	3	1	1	-13	0	0	2	0	1	3_1_113
+L	r_ties_zip	14	114	3	1	nan	-14	0	0	2	0	1	3_1_114
+L	r_ties_zip	15	115	3	2	3	0	0	0	3	1	1	3_2_115
+L	r_ties_zip	16	116	3	1	0	-16	0	0	2	0	1	3_1_116
+L	r_ties_zip	17	117	3	1	1	-17	0	0	2	0	1	3_1_117
+L	r_ties_zip	18	118	3	2	2	-18	0	0	3	1	1	3_2_118
+L	r_ties_zip	19	119	3	1	3	-19	0	0	2	0	1	3_1_119
+L	r_ties_zip	20	120	3	1	0	0	0	0	2	0	1	3_1_120
+L	r_ties_zip	21	121	3	2	nan	-21	0	0	3	1	1	3_2_121
+L	r_ties_zip	22	122	3	1	2	-22	0	0	2	0	1	3_1_122
+L	r_ties_zip	23	123	3	1	3	-23	0	0	2	0	1	3_1_123
+L	r_ties_zip	24	124	3	2	0	-24	0	0	3	1	1	3_2_124
+L	r_ties_zip	25	125	3	1	1	0	0	0	2	0	1	3_1_125
+L	r_ties_zip	26	126	3	1	2	-26	0	0	2	0	1	3_1_126
+L	r_ties_zip	27	127	3	2	3	-27	0	0	3	1	1	3_2_127
+L	r_ties_zip	28	128	3	1	nan	-28	0	0	2	0	1	3_1_128
+L	r_ties_zip	29	129	3	1	1	-29	0	0	2	0	1	3_1_129
+L	r_ties_zip	30	130	3	2	2	0	0	0	3	1	1	3_2_130
+L	r_ties_zip	31	131	3	1	3	-31	0	0	2	0	1	3_1_131
+L	r_ties_zip	32	132	3	1	0	-32	0	0	2	0	1	3_1_132
+L	r_ties_zip	33	133	3	2	1	-33	0	0	3	1	1	3_2_133
+L	r_ties_zip	34	134	3	1	2	-34	0	0	2	0	1	3_1_134
+L	r_ties_zip	35	135	3	1	nan	0	0	0	2	0	1	3_1_135
+L	r_ties_zip	36	136	3	2	0	-36	0	0	3	1	1	3_2_136
+L	r_ties_zip	37	137	3	1	1	-37	0	0	2	0	1	3_1_137
+L	r_ties_zip	38	138	3	1	2	-38	0	0	2	0	1	3_1_138
+L	r_ties_zip	39	139	3	2	3	-39	0	0	3	1	1	3_2_139
+L	r_ties_zip	40	5	1	2	1	0	0	0	3	1	1	1_2_5
+L	r_ties_zip	41	6	1	1	1	0	0	0	2	0	1	1_1_6
+OK	r_ties_zip/load
+PGC	r_ties_zip/pg_ms2	ms2	0	ms2_alpha
+PGC	r_ties_zip/pg_ms2	ms2	1	ms2_area_intensity
+PGC	r_ties_zip/pg_ms2	ms2	2	var_ms2_zeta
+PG	r_ties_zip/pg_ms2	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	
+PG	r_ties_zip/pg_ms2	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	
+PG	r_ties_zip/pg_ms2	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	
+PG	r_ties_zip/pg_ms2	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	
+PG	r_ties_zip/pg_ms2	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	
+PG	r_ties_zip/pg_ms2	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	
+PG	r_ties_zip/pg_ms2	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	
+PG	r_ties_zip/pg_ms2	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	
+PG	r_ties_zip/pg_ms2	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	
+PG	r_ties_zip/pg_ms2	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	
+PG	r_ties_zip/pg_ms2	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	
+PG	r_ties_zip/pg_ms2	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	
+PG	r_ties_zip/pg_ms2	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	
+PG	r_ties_zip/pg_ms2	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	
+PG	r_ties_zip/pg_ms2	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	
+PG	r_ties_zip/pg_ms2	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	
+PG	r_ties_zip/pg_ms2	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	
+PG	r_ties_zip/pg_ms2	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	
+PG	r_ties_zip/pg_ms2	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	
+PG	r_ties_zip/pg_ms2	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	
+PG	r_ties_zip/pg_ms2	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	
+PG	r_ties_zip/pg_ms2	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	
+PG	r_ties_zip/pg_ms2	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	
+PG	r_ties_zip/pg_ms2	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	
+PG	r_ties_zip/pg_ms2	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	
+PG	r_ties_zip/pg_ms2	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	
+PG	r_ties_zip/pg_ms2	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	
+PG	r_ties_zip/pg_ms2	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	
+PG	r_ties_zip/pg_ms2	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	
+PG	r_ties_zip/pg_ms2	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	
+PG	r_ties_zip/pg_ms2	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	
+PG	r_ties_zip/pg_ms2	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	
+PG	r_ties_zip/pg_ms2	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	
+PG	r_ties_zip/pg_ms2	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	
+PG	r_ties_zip/pg_ms2	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	
+PG	r_ties_zip/pg_ms2	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	
+PG	r_ties_zip/pg_ms2	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	
+PG	r_ties_zip/pg_ms2	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	
+PG	r_ties_zip/pg_ms2	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	
+PG	r_ties_zip/pg_ms2	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	
+PG	r_ties_zip/pg_ms2	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	
+PG	r_ties_zip/pg_ms2	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	
+OK	r_ties_zip/pg_ms2
+PGC	r_ties_zip/pg_ms1ms2	ms2	0	ms2_alpha
+PGC	r_ties_zip/pg_ms1ms2	ms2	1	ms2_area_intensity
+PGC	r_ties_zip/pg_ms1ms2	ms2	2	var_ms2_zeta
+PGC	r_ties_zip/pg_ms1ms2	ms1	0	var_ms1_alpha
+PG	r_ties_zip/pg_ms1ms2	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	nan
+PG	r_ties_zip/pg_ms1ms2	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	nan
+PG	r_ties_zip/pg_ms1ms2	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	2
+PG	r_ties_zip/pg_ms1ms2	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	0.5
+PG	r_ties_zip/pg_ms1ms2	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	18.5
+PG	r_ties_zip/pg_ms1ms2	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	17.5
+PG	r_ties_zip/pg_ms1ms2	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	16
+PG	r_ties_zip/pg_ms1ms2	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	4
+PG	r_ties_zip/pg_ms1ms2	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	14.5
+PG	r_ties_zip/pg_ms1ms2	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	14
+PG	r_ties_zip/pg_ms1ms2	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	10
+PG	r_ties_zip/pg_ms1ms2	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	8
+PG	r_ties_zip/pg_ms1ms2	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	12.5
+PG	r_ties_zip/pg_ms1ms2	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	8.5
+PG	r_ties_zip/pg_ms1ms2	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	6.5
+PG	r_ties_zip/pg_ms1ms2	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	2.5
+PG	r_ties_zip/pg_ms1ms2	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	17
+PG	r_ties_zip/pg_ms1ms2	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	1
+PG	r_ties_zip/pg_ms1ms2	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	11.5
+PG	r_ties_zip/pg_ms1ms2	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	15.5
+PG	r_ties_zip/pg_ms1ms2	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	3.5
+PG	r_ties_zip/pg_ms1ms2	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	19
+PG	r_ties_zip/pg_ms1ms2	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	11
+PG	r_ties_zip/pg_ms1ms2	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	7
+PG	r_ties_zip/pg_ms1ms2	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	13
+PG	r_ties_zip/pg_ms1ms2	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	5
+PG	r_ties_zip/pg_ms1ms2	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	5.5
+PG	r_ties_zip/pg_ms1ms2	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	9.5
+PG	r_ties_zip/pg_ms1ms2	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	12
+PG	r_ties_zip/pg_ms1ms2	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	18
+PG	r_ties_zip/pg_ms1ms2	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	6
+PG	r_ties_zip/pg_ms1ms2	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	4.5
+PG	r_ties_zip/pg_ms1ms2	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	0
+PG	r_ties_zip/pg_ms1ms2	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	16.5
+PG	r_ties_zip/pg_ms1ms2	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	3
+PG	r_ties_zip/pg_ms1ms2	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	15
+PG	r_ties_zip/pg_ms1ms2	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	13.5
+PG	r_ties_zip/pg_ms1ms2	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	1.5
+PG	r_ties_zip/pg_ms1ms2	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	10.5
+PG	r_ties_zip/pg_ms1ms2	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	9
+PG	r_ties_zip/pg_ms1ms2	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	19.5
+PG	r_ties_zip/pg_ms1ms2	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	7.5
+OK	r_ties_zip/pg_ms1ms2
+PGC	r_ties_zip/pg_main	ms2	0	ms2_alpha
+PGC	r_ties_zip/pg_main	ms2	1	ms2_area_intensity
+PGC	r_ties_zip/pg_main	ms2	2	var_ms2_zeta
+PG	r_ties_zip/pg_main	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	
+PG	r_ties_zip/pg_main	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	
+PG	r_ties_zip/pg_main	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	
+PG	r_ties_zip/pg_main	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	
+PG	r_ties_zip/pg_main	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	
+PG	r_ties_zip/pg_main	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	
+PG	r_ties_zip/pg_main	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	
+PG	r_ties_zip/pg_main	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	
+PG	r_ties_zip/pg_main	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	
+PG	r_ties_zip/pg_main	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	
+PG	r_ties_zip/pg_main	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	
+PG	r_ties_zip/pg_main	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	
+PG	r_ties_zip/pg_main	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	
+PG	r_ties_zip/pg_main	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	
+PG	r_ties_zip/pg_main	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	
+PG	r_ties_zip/pg_main	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	
+PG	r_ties_zip/pg_main	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	
+PG	r_ties_zip/pg_main	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	
+PG	r_ties_zip/pg_main	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	
+PG	r_ties_zip/pg_main	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	
+PG	r_ties_zip/pg_main	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	
+PG	r_ties_zip/pg_main	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	
+PG	r_ties_zip/pg_main	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	
+PG	r_ties_zip/pg_main	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	
+PG	r_ties_zip/pg_main	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	
+PG	r_ties_zip/pg_main	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	
+PG	r_ties_zip/pg_main	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	
+PG	r_ties_zip/pg_main	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	
+PG	r_ties_zip/pg_main	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	
+PG	r_ties_zip/pg_main	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	
+PG	r_ties_zip/pg_main	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	
+PG	r_ties_zip/pg_main	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	
+PG	r_ties_zip/pg_main	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	
+PG	r_ties_zip/pg_main	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	
+PG	r_ties_zip/pg_main	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	
+PG	r_ties_zip/pg_main	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	
+PG	r_ties_zip/pg_main	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	
+PG	r_ties_zip/pg_main	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	
+PG	r_ties_zip/pg_main	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	
+PG	r_ties_zip/pg_main	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	
+PG	r_ties_zip/pg_main	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	
+PG	r_ties_zip/pg_main	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	
+OK	r_ties_zip/pg_main
+PGC	r_ties_zip/pg_main_missing	ms2	0	ms2_alpha
+PGC	r_ties_zip/pg_main_missing	ms2	1	ms2_area_intensity
+PGC	r_ties_zip/pg_main_missing	ms2	2	var_ms2_zeta
+PG	r_ties_zip/pg_main_missing	0	6	1	1	1	2	0	1	1_1_6	2|nan|nan	
+PG	r_ties_zip/pg_main_missing	1	5	1	2	1	3	1	1	1_2_5	1|nan|nan	
+PG	r_ties_zip/pg_main_missing	2	104	3	1	0	2	0	1	3_1_104	nan|-4|2	
+PG	r_ties_zip/pg_main_missing	3	101	3	1	1	2	0	1	3_1_101	nan|-1|0.5	
+PG	r_ties_zip/pg_main_missing	4	137	3	1	1	2	0	1	3_1_137	nan|-37|18.5	
+PG	r_ties_zip/pg_main_missing	5	135	3	1	nan	2	0	1	3_1_135	nan|nan|17.5	
+PG	r_ties_zip/pg_main_missing	6	132	3	1	0	2	0	1	3_1_132	nan|-32|16	
+PG	r_ties_zip/pg_main_missing	7	108	3	1	0	2	0	1	3_1_108	nan|-8|4	
+PG	r_ties_zip/pg_main_missing	8	129	3	1	1	2	0	1	3_1_129	nan|-29|14.5	
+PG	r_ties_zip/pg_main_missing	9	128	3	1	nan	2	0	1	3_1_128	nan|-28|14	
+PG	r_ties_zip/pg_main_missing	10	120	3	1	0	2	0	1	3_1_120	nan|nan|10	
+PG	r_ties_zip/pg_main_missing	11	116	3	1	0	2	0	1	3_1_116	nan|-16|8	
+PG	r_ties_zip/pg_main_missing	12	125	3	1	1	2	0	1	3_1_125	nan|nan|12.5	
+PG	r_ties_zip/pg_main_missing	13	117	3	1	1	2	0	1	3_1_117	nan|-17|8.5	
+PG	r_ties_zip/pg_main_missing	14	113	3	1	1	2	0	1	3_1_113	nan|-13|6.5	
+PG	r_ties_zip/pg_main_missing	15	105	3	1	1	2	0	1	3_1_105	nan|nan|2.5	
+PG	r_ties_zip/pg_main_missing	16	134	3	1	2	2	0	1	3_1_134	nan|-34|17	
+PG	r_ties_zip/pg_main_missing	17	102	3	1	2	2	0	1	3_1_102	nan|-2|1	
+PG	r_ties_zip/pg_main_missing	18	123	3	1	3	2	0	1	3_1_123	nan|-23|11.5	
+PG	r_ties_zip/pg_main_missing	19	131	3	1	3	2	0	1	3_1_131	nan|-31|15.5	
+PG	r_ties_zip/pg_main_missing	20	107	3	1	nan	2	0	1	3_1_107	nan|-7|3.5	
+PG	r_ties_zip/pg_main_missing	21	138	3	1	2	2	0	1	3_1_138	nan|-38|19	
+PG	r_ties_zip/pg_main_missing	22	122	3	1	2	2	0	1	3_1_122	nan|-22|11	
+PG	r_ties_zip/pg_main_missing	23	114	3	1	nan	2	0	1	3_1_114	nan|-14|7	
+PG	r_ties_zip/pg_main_missing	24	126	3	1	2	2	0	1	3_1_126	nan|-26|13	
+PG	r_ties_zip/pg_main_missing	25	110	3	1	2	2	0	1	3_1_110	nan|nan|5	
+PG	r_ties_zip/pg_main_missing	26	111	3	1	3	2	0	1	3_1_111	nan|-11|5.5	
+PG	r_ties_zip/pg_main_missing	27	119	3	1	3	2	0	1	3_1_119	nan|-19|9.5	
+PG	r_ties_zip/pg_main_missing	28	124	3	2	0	3	1	1	3_2_124	nan|-24|12	
+PG	r_ties_zip/pg_main_missing	29	136	3	2	0	3	1	1	3_2_136	nan|-36|18	
+PG	r_ties_zip/pg_main_missing	30	112	3	2	0	3	1	1	3_2_112	nan|-12|6	
+PG	r_ties_zip/pg_main_missing	31	109	3	2	1	3	1	1	3_2_109	nan|-9|4.5	
+PG	r_ties_zip/pg_main_missing	32	100	3	2	nan	3	1	1	3_2_100	nan|nan|0	
+PG	r_ties_zip/pg_main_missing	33	133	3	2	1	3	1	1	3_2_133	nan|-33|16.5	
+PG	r_ties_zip/pg_main_missing	34	106	3	2	2	3	1	1	3_2_106	nan|-6|3	
+PG	r_ties_zip/pg_main_missing	35	130	3	2	2	3	1	1	3_2_130	nan|nan|15	
+PG	r_ties_zip/pg_main_missing	36	127	3	2	3	3	1	1	3_2_127	nan|-27|13.5	
+PG	r_ties_zip/pg_main_missing	37	103	3	2	3	3	1	1	3_2_103	nan|-3|1.5	
+PG	r_ties_zip/pg_main_missing	38	121	3	2	nan	3	1	1	3_2_121	nan|-21|10.5	
+PG	r_ties_zip/pg_main_missing	39	118	3	2	2	3	1	1	3_2_118	nan|-18|9	
+PG	r_ties_zip/pg_main_missing	40	139	3	2	3	3	1	1	3_2_139	nan|-39|19.5	
+PG	r_ties_zip/pg_main_missing	41	115	3	2	3	3	1	1	3_2_115	nan|nan|7.5	
+OK	r_ties_zip/pg_main_missing
+TFC	r_ties_zip/tf	0	var_a
+TFC	r_ties_zip/tf	1	var_b
+TF	r_ties_zip/tf	0	6	1	1	1	2	1	1	0	nan	nan	nan	nan	nan	nan	nan	1_6_1_1	nan|nan
+TF	r_ties_zip/tf	1	5	1	2	1	3	3	1	0	nan	nan	nan	nan	nan	nan	nan	1_5_2_3	nan|nan
+TF	r_ties_zip/tf	2	120	3	1	0	2	2	2	0	19	nan	nan	nan	nan	nan	nan	3_120_1_2	19|4.75
+TF	r_ties_zip/tf	3	116	3	1	0	2	2	2	0	23	nan	nan	nan	nan	nan	nan	3_116_1_2	23|5.75
+TF	r_ties_zip/tf	4	114	3	1	nan	2	2	2	0	25	nan	nan	nan	nan	nan	nan	3_114_1_2	25|6.25
+TF	r_ties_zip/tf	5	108	3	1	0	2	2	2	0	31	nan	nan	nan	nan	nan	nan	3_108_1_2	31|7.75
+TF	r_ties_zip/tf	6	107	3	1	nan	2	1	1	0	32	nan	nan	nan	nan	nan	nan	3_107_1_1	32|8
+TF	r_ties_zip/tf	7	132	3	1	0	2	2	2	0	7	nan	nan	nan	nan	nan	nan	3_132_1_2	7|1.75
+TF	r_ties_zip/tf	8	104	3	1	0	2	2	2	0	35	nan	nan	nan	nan	nan	nan	3_104_1_2	35|8.75
+TF	r_ties_zip/tf	9	105	3	1	1	2	1	1	0	34	nan	nan	nan	nan	nan	nan	3_105_1_1	34|8.5
+TF	r_ties_zip/tf	10	129	3	1	1	2	1	1	0	10	nan	nan	nan	nan	nan	nan	3_129_1_1	10|2.5
+TF	r_ties_zip/tf	11	113	3	1	1	2	1	1	0	26	nan	nan	nan	nan	nan	nan	3_113_1_1	26|6.5
+TF	r_ties_zip/tf	12	125	3	1	1	2	1	1	0	14	nan	nan	nan	nan	nan	nan	3_125_1_1	14|3.5
+TF	r_ties_zip/tf	13	101	3	1	1	2	1	1	0	38	nan	nan	nan	nan	nan	nan	3_101_1_1	38|9.5
+TF	r_ties_zip/tf	14	137	3	1	1	2	1	1	0	2	nan	nan	nan	nan	nan	nan	3_137_1_1	2|0.5
+TF	r_ties_zip/tf	15	117	3	1	1	2	1	1	0	22	nan	nan	nan	nan	nan	nan	3_117_1_1	22|5.5
+TF	r_ties_zip/tf	16	102	3	1	2	2	2	2	0	37	nan	nan	nan	nan	nan	nan	3_102_1_2	37|9.25
+TF	r_ties_zip/tf	17	110	3	1	2	2	2	2	0	29	nan	nan	nan	nan	nan	nan	3_110_1_2	29|7.25
+TF	r_ties_zip/tf	18	138	3	1	2	2	2	2	0	1	nan	nan	nan	nan	nan	nan	3_138_1_2	1|0.25
+TF	r_ties_zip/tf	19	122	3	1	2	2	2	2	0	17	nan	nan	nan	nan	nan	nan	3_122_1_2	17|4.25
+TF	r_ties_zip/tf	20	126	3	1	2	2	2	2	0	13	nan	nan	nan	nan	nan	nan	3_126_1_2	13|3.25
+TF	r_ties_zip/tf	21	119	3	1	3	2	1	1	0	20	nan	nan	nan	nan	nan	nan	3_119_1_1	20|5
+TF	r_ties_zip/tf	22	123	3	1	3	2	1	1	0	16	nan	nan	nan	nan	nan	nan	3_123_1_1	16|4
+TF	r_ties_zip/tf	23	111	3	1	3	2	1	1	0	28	nan	nan	nan	nan	nan	nan	3_111_1_1	28|7
+TF	r_ties_zip/tf	24	135	3	1	nan	2	1	1	0	4	nan	nan	nan	nan	nan	nan	3_135_1_1	4|1
+TF	r_ties_zip/tf	25	134	3	1	2	2	2	2	0	5	nan	nan	nan	nan	nan	nan	3_134_1_2	5|1.25
+TF	r_ties_zip/tf	26	128	3	1	nan	2	2	2	0	11	nan	nan	nan	nan	nan	nan	3_128_1_2	11|2.75
+TF	r_ties_zip/tf	27	131	3	1	3	2	1	1	0	8	nan	nan	nan	nan	nan	nan	3_131_1_1	8|2
+TF	r_ties_zip/tf	28	136	3	2	0	3	3	1	0	3	nan	nan	nan	nan	nan	nan	3_136_2_3	3|nan
+TF	r_ties_zip/tf	29	109	3	2	1	3	3	1	0	30	nan	nan	nan	nan	nan	nan	3_109_2_3	30|nan
+TF	r_ties_zip/tf	30	100	3	2	nan	3	3	1	0	39	nan	nan	nan	nan	nan	nan	3_100_2_3	39|nan
+TF	r_ties_zip/tf	31	124	3	2	0	3	3	1	0	15	nan	nan	nan	nan	nan	nan	3_124_2_3	15|nan
+TF	r_ties_zip/tf	32	112	3	2	0	3	3	1	0	27	nan	nan	nan	nan	nan	nan	3_112_2_3	27|nan
+TF	r_ties_zip/tf	33	133	3	2	1	3	3	1	0	6	nan	nan	nan	nan	nan	nan	3_133_2_3	6|nan
+TF	r_ties_zip/tf	34	106	3	2	2	3	3	1	0	33	nan	nan	nan	nan	nan	nan	3_106_2_3	33|nan
+TF	r_ties_zip/tf	35	130	3	2	2	3	3	1	0	9	nan	nan	nan	nan	nan	nan	3_130_2_3	9|nan
+TF	r_ties_zip/tf	36	103	3	2	3	3	3	1	0	36	nan	nan	nan	nan	nan	nan	3_103_2_3	36|nan
+TF	r_ties_zip/tf	37	121	3	2	nan	3	3	1	0	18	nan	nan	nan	nan	nan	nan	3_121_2_3	18|nan
+TF	r_ties_zip/tf	38	118	3	2	2	3	3	1	0	21	nan	nan	nan	nan	nan	nan	3_118_2_3	21|nan
+TF	r_ties_zip/tf	39	127	3	2	3	3	3	1	0	12	nan	nan	nan	nan	nan	nan	3_127_2_3	12|nan
+TF	r_ties_zip/tf	40	115	3	2	3	3	3	1	0	24	nan	nan	nan	nan	nan	nan	3_115_2_3	24|nan
+TF	r_ties_zip/tf	41	139	3	2	3	3	3	1	0	0	nan	nan	nan	nan	nan	nan	3_139_2_3	0|nan
+OK	r_ties_zip/tf
+UC	r_ties_zip/u	ms2	0	ms2_alpha
+UC	r_ties_zip/u	ms2	1	ms2_area_intensity
+UC	r_ties_zip/u	ms2	2	var_ms2_zeta
+UC	r_ties_zip/u	ms1	0	var_ms1_alpha
+U	r_ties_zip/u	0	3	20	2	1	3	b.mzML	nan	nan	nan	13	-13	100	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|0	0
+U	r_ties_zip/u	1	3	11	1	0	3	b.mzML	1	2	-1	12	-11.5	101	2	500	-1	nan	nan	nan	nan	nan	nan	nan	nan|-1|0.5	0.5
+U	r_ties_zip/u	2	3	11	1	0	3	b.mzML	2	4	-2	12	-11	102	2	500	-2	nan	nan	nan	nan	nan	nan	nan	nan|-2|1	1
+U	r_ties_zip/u	3	3	20	2	1	3	b.mzML	3	6	-3	13	-11.5	103	3	nan	-3	nan	nan	nan	nan	nan	nan	nan	nan|-3|1.5	1.5
+U	r_ties_zip/u	4	3	11	1	0	3	b.mzML	0	4	-4	12	-10	104	2	500	-4	nan	nan	nan	nan	nan	nan	nan	nan|-4|2	2
+U	r_ties_zip/u	5	3	11	1	0	3	b.mzML	1	nan	nan	12	-9.5	105	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|2.5	2.5
+U	r_ties_zip/u	6	3	20	2	1	3	b.mzML	2	8	-6	13	-10	106	3	nan	-6	nan	nan	nan	nan	nan	nan	nan	nan|-6|3	3
+U	r_ties_zip/u	7	3	11	1	0	3	b.mzML	nan	nan	-7	12	-8.5	107	2	500	-7	nan	nan	nan	nan	nan	nan	nan	nan|-7|3.5	3.5
+U	r_ties_zip/u	8	3	11	1	0	3	b.mzML	0	8	-8	12	-8	108	2	500	-8	nan	nan	nan	nan	nan	nan	nan	nan|-8|4	4
+U	r_ties_zip/u	9	3	20	2	1	3	b.mzML	1	10	-9	13	-8.5	109	3	nan	-9	nan	nan	nan	nan	nan	nan	nan	nan|-9|4.5	4.5
+U	r_ties_zip/u	10	3	11	1	0	3	b.mzML	2	nan	nan	12	-7	110	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|5	5
+U	r_ties_zip/u	11	3	11	1	0	3	b.mzML	3	14	-11	12	-6.5	111	2	500	-11	nan	nan	nan	nan	nan	nan	nan	nan|-11|5.5	5.5
+U	r_ties_zip/u	12	3	20	2	1	3	b.mzML	0	12	-12	13	-7	112	3	nan	-12	nan	nan	nan	nan	nan	nan	nan	nan|-12|6	6
+U	r_ties_zip/u	13	3	11	1	0	3	b.mzML	1	14	-13	12	-5.5	113	2	500	-13	nan	nan	nan	nan	nan	nan	nan	nan|-13|6.5	6.5
+U	r_ties_zip/u	14	3	11	1	0	3	b.mzML	nan	nan	-14	12	-5	114	2	500	-14	nan	nan	nan	nan	nan	nan	nan	nan|-14|7	7
+U	r_ties_zip/u	15	3	20	2	1	3	b.mzML	3	nan	nan	13	-5.5	115	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|7.5	7.5
+U	r_ties_zip/u	16	3	11	1	0	3	b.mzML	0	16	-16	12	-4	116	2	500	-16	nan	nan	nan	nan	nan	nan	nan	nan|-16|8	8
+U	r_ties_zip/u	17	3	11	1	0	3	b.mzML	1	18	-17	12	-3.5	117	2	500	-17	nan	nan	nan	nan	nan	nan	nan	nan|-17|8.5	8.5
+U	r_ties_zip/u	18	3	20	2	1	3	b.mzML	2	20	-18	13	-4	118	3	nan	-18	nan	nan	nan	nan	nan	nan	nan	nan|-18|9	9
+U	r_ties_zip/u	19	3	11	1	0	3	b.mzML	3	22	-19	12	-2.5	119	2	500	-19	nan	nan	nan	nan	nan	nan	nan	nan|-19|9.5	9.5
+U	r_ties_zip/u	20	3	11	1	0	3	b.mzML	0	nan	nan	12	-2	120	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|10	10
+U	r_ties_zip/u	21	3	20	2	1	3	b.mzML	nan	nan	-21	13	-2.5	121	3	nan	-21	nan	nan	nan	nan	nan	nan	nan	nan|-21|10.5	10.5
+U	r_ties_zip/u	22	3	11	1	0	3	b.mzML	2	24	-22	12	-1	122	2	500	-22	nan	nan	nan	nan	nan	nan	nan	nan|-22|11	11
+U	r_ties_zip/u	23	3	11	1	0	3	b.mzML	3	26	-23	12	-0.5	123	2	500	-23	nan	nan	nan	nan	nan	nan	nan	nan|-23|11.5	11.5
+U	r_ties_zip/u	24	3	20	2	1	3	b.mzML	0	24	-24	13	-1	124	3	nan	-24	nan	nan	nan	nan	nan	nan	nan	nan|-24|12	12
+U	r_ties_zip/u	25	3	11	1	0	3	b.mzML	1	nan	nan	12	0.5	125	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|12.5	12.5
+U	r_ties_zip/u	26	3	11	1	0	3	b.mzML	2	28	-26	12	1	126	2	500	-26	nan	nan	nan	nan	nan	nan	nan	nan|-26|13	13
+U	r_ties_zip/u	27	3	20	2	1	3	b.mzML	3	30	-27	13	0.5	127	3	nan	-27	nan	nan	nan	nan	nan	nan	nan	nan|-27|13.5	13.5
+U	r_ties_zip/u	28	3	11	1	0	3	b.mzML	nan	nan	-28	12	2	128	2	500	-28	nan	nan	nan	nan	nan	nan	nan	nan|-28|14	14
+U	r_ties_zip/u	29	3	11	1	0	3	b.mzML	1	30	-29	12	2.5	129	2	500	-29	nan	nan	nan	nan	nan	nan	nan	nan|-29|14.5	14.5
+U	r_ties_zip/u	30	3	20	2	1	3	b.mzML	2	nan	nan	13	2	130	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|15	15
+U	r_ties_zip/u	31	3	11	1	0	3	b.mzML	3	34	-31	12	3.5	131	2	500	-31	nan	nan	nan	nan	nan	nan	nan	nan|-31|15.5	15.5
+U	r_ties_zip/u	32	3	11	1	0	3	b.mzML	0	32	-32	12	4	132	2	500	-32	nan	nan	nan	nan	nan	nan	nan	nan|-32|16	16
+U	r_ties_zip/u	33	3	20	2	1	3	b.mzML	1	34	-33	13	3.5	133	3	nan	-33	nan	nan	nan	nan	nan	nan	nan	nan|-33|16.5	16.5
+U	r_ties_zip/u	34	3	11	1	0	3	b.mzML	2	36	-34	12	5	134	2	500	-34	nan	nan	nan	nan	nan	nan	nan	nan|-34|17	17
+U	r_ties_zip/u	35	3	11	1	0	3	b.mzML	nan	nan	nan	12	5.5	135	2	500	nan	nan	nan	nan	nan	nan	nan	nan	nan|nan|17.5	17.5
+U	r_ties_zip/u	36	3	20	2	1	3	b.mzML	0	36	-36	13	5	136	3	nan	-36	nan	nan	nan	nan	nan	nan	nan	nan|-36|18	18
+U	r_ties_zip/u	37	3	11	1	0	3	b.mzML	1	38	-37	12	6.5	137	2	500	-37	nan	nan	nan	nan	nan	nan	nan	nan|-37|18.5	18.5
+U	r_ties_zip/u	38	3	11	1	0	3	b.mzML	2	40	-38	12	7	138	2	500	-38	nan	nan	nan	nan	nan	nan	nan	nan|-38|19	19
+U	r_ties_zip/u	39	3	20	2	1	3	b.mzML	3	42	-39	13	6.5	139	3	nan	-39	nan	nan	nan	nan	nan	nan	nan	nan|-39|19.5	19.5
+U	r_ties_zip/u	40	1	20	2	1	1	a.mzML	1	nan	nan	13	nan	5	3	nan	nan	nan	nan	nan	nan	nan	nan	nan	1|nan|nan	nan
+U	r_ties_zip/u	41	1	11	1	0	1	a.mzML	1	nan	nan	12	nan	6	2	500	nan	nan	nan	nan	nan	nan	nan	nan	2|nan|nan	nan
+OK	r_ties_zip/u
+F	r_err_unknown_precursor_files	library/precursors.parquet	r_err_unknown_precursor_files__library#precursors.parquet
+F	r_err_unknown_precursor_files	library/transitions.parquet	r_err_unknown_precursor_files__library#transitions.parquet
+F	r_err_unknown_precursor_files	runs/run_id=4/feature_transition.parquet	r_err_unknown_precursor_files__runs#run_id=4#feature_transition.parquet
+F	r_err_unknown_precursor_files	runs/run_id=4/features.parquet	r_err_unknown_precursor_files__runs#run_id=4#features.parquet
+F	r_err_unknown_precursor_files	runs/runs.parquet	r_err_unknown_precursor_files__runs#runs.parquet
+E	r_err_unknown_precursor/load	OpenMS::Exception::MissingInformation	Unknown precursor_id=2 for run_id=99
+E	r_err_unknown_precursor/pg_ms2	OpenMS::Exception::MissingInformation	Unknown precursor_id=2 for run_id=4
+E	r_err_unknown_precursor/pg_ms1ms2	OpenMS::Exception::MissingInformation	Unknown precursor_id=2 for run_id=4
+E	r_err_unknown_precursor/pg_main	OpenMS::Exception::MissingInformation	Unknown precursor_id=2 for run_id=4
+E	r_err_unknown_precursor/pg_main_missing	OpenMS::Exception::MissingInformation	Unknown precursor_id=2 for run_id=4
+E	r_err_unknown_precursor/tf	OpenMS::Exception::MissingInformation	Unknown precursor_id=2 for run_id=4
+U	r_err_unknown_precursor/u	0	4	0	2	0	4		1	nan	nan	nan	nan	1	0	nan	nan	nan	nan	nan	nan	nan	nan	nan		
+OK	r_err_unknown_precursor/u
+F	r_err_unknown_feature_files	library/precursors.parquet	r_err_unknown_feature_files__library#precursors.parquet
+F	r_err_unknown_feature_files	library/transitions.parquet	r_err_unknown_feature_files__library#transitions.parquet
+F	r_err_unknown_feature_files	runs/run_id=4/feature_transition.parquet	r_err_unknown_feature_files__runs#run_id=4#feature_transition.parquet
+F	r_err_unknown_feature_files	runs/run_id=4/features.parquet	r_err_unknown_feature_files__runs#run_id=4#features.parquet
+F	r_err_unknown_feature_files	runs/runs.parquet	r_err_unknown_feature_files__runs#runs.parquet
+L	r_err_unknown_feature	0	1	4	1	1	0	0	0	2	0	1	4_1_1
+OK	r_err_unknown_feature/load
+PG	r_err_unknown_feature/pg_ms2	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_feature/pg_ms2
+PG	r_err_unknown_feature/pg_ms1ms2	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_feature/pg_ms1ms2
+PG	r_err_unknown_feature/pg_main	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_feature/pg_main
+PG	r_err_unknown_feature/pg_main_missing	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_feature/pg_main_missing
+E	r_err_unknown_feature/tf	OpenMS::Exception::MissingInformation	feature_transition.parquet references unknown feature_id=2 for run_id=4
+U	r_err_unknown_feature/u	0	4	0	1	0	4		1	nan	nan	nan	nan	1	2	nan	nan	nan	nan	nan	nan	nan	nan	nan		
+OK	r_err_unknown_feature/u
+F	r_err_unknown_transition_files	library/precursors.parquet	r_err_unknown_transition_files__library#precursors.parquet
+F	r_err_unknown_transition_files	library/transitions.parquet	r_err_unknown_transition_files__library#transitions.parquet
+F	r_err_unknown_transition_files	runs/run_id=4/feature_transition.parquet	r_err_unknown_transition_files__runs#run_id=4#feature_transition.parquet
+F	r_err_unknown_transition_files	runs/run_id=4/features.parquet	r_err_unknown_transition_files__runs#run_id=4#features.parquet
+F	r_err_unknown_transition_files	runs/runs.parquet	r_err_unknown_transition_files__runs#runs.parquet
+L	r_err_unknown_transition	0	1	4	1	1	0	0	0	2	0	1	4_1_1
+OK	r_err_unknown_transition/load
+PG	r_err_unknown_transition/pg_ms2	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_transition/pg_ms2
+PG	r_err_unknown_transition/pg_ms1ms2	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_transition/pg_ms1ms2
+PG	r_err_unknown_transition/pg_main	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_transition/pg_main
+PG	r_err_unknown_transition/pg_main_missing	0	1	4	1	1	2	0	1	4_1_1		
+OK	r_err_unknown_transition/pg_main_missing
+E	r_err_unknown_transition/tf	OpenMS::Exception::MissingInformation	Unknown transition_id=5 for run_id=4
+U	r_err_unknown_transition/u	0	4	0	1	0	4		1	nan	nan	nan	nan	1	2	nan	nan	nan	nan	nan	nan	nan	nan	nan		
+OK	r_err_unknown_transition/u
+F	r_err_no_runs_files	library/precursors.parquet	r_err_no_runs_files__library#precursors.parquet
+F	r_err_no_runs_files	library/transitions.parquet	r_err_no_runs_files__library#transitions.parquet
+E	r_err_no_runs/load	OpenMS::Exception::FileNotFound	the file '<WORK>/r_err_no_runs.oswpq/runs/runs.parquet' could not be found
+E	r_err_no_runs/pg_ms2	OpenMS::Exception::FileNotFound	the file '<WORK>/r_err_no_runs.oswpq/runs/runs.parquet' could not be found
+E	r_err_no_runs/pg_ms1ms2	OpenMS::Exception::FileNotFound	the file '<WORK>/r_err_no_runs.oswpq/runs/runs.parquet' could not be found
+E	r_err_no_runs/pg_main	OpenMS::Exception::FileNotFound	the file '<WORK>/r_err_no_runs.oswpq/runs/runs.parquet' could not be found
+E	r_err_no_runs/pg_main_missing	OpenMS::Exception::FileNotFound	the file '<WORK>/r_err_no_runs.oswpq/runs/runs.parquet' could not be found
+E	r_err_no_runs/tf	OpenMS::Exception::MissingInformation	Missing required column 'charge'
+E	r_err_no_runs/u	OpenMS::Exception::FileNotFound	the file '<WORK>/r_err_no_runs.oswpq/runs/runs.parquet' could not be found

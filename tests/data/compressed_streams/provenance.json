@@ -1,0 +1,340 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "revision": "bc9cc12",
+  "license": "BSD-3-Clause",
+  "fixtures": [
+    {
+      "path": "tests/data/compressed_streams/Bzip2IfStream_1.bz2",
+      "source_path": "src/tests/class_tests/openms/data/Bzip2IfStream_1.bz2",
+      "sha256": "e4b7004e25f653d1cccdeb54e116eca163904399ddf9dcdf2dfbe4eca0170c51",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/Bzip2IfStream_1_corrupt.bz2",
+      "source_path": "src/tests/class_tests/openms/data/Bzip2IfStream_1_corrupt.bz2",
+      "sha256": "fc7235a44defa8139c1d90558431c80ff2db65649b7e913e30d380015cccf907",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/Deisotoper_input1.mzML",
+      "source_path": "src/tests/class_tests/openms/data/Deisotoper_input1.mzML",
+      "sha256": "8e5299bb8c3e67273eaf3c989436e38ac47e6332e4f7c5a369a6ea31bca4e11e",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/Deisotoper_input1.mzML.zip",
+      "source_path": "src/tests/class_tests/openms/data/Deisotoper_input1.mzML.zip",
+      "sha256": "f2653a7535ab6a23b5c9d5b4ba21a17f1e9a8b6bb4dd98a831077ae747b8040f",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/DirEntry.mzML.zip",
+      "source_path": "src/tests/class_tests/openms/data/DirEntry.mzML.zip",
+      "sha256": "1cf989fe191ab5d78158b3c32d803c18261c3d9aa335e22e3b52e1ed944a6891",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/Empty.zip",
+      "source_path": "src/tests/class_tests/openms/data/Empty.zip",
+      "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/GzipIfStream_1.gz",
+      "source_path": "src/tests/class_tests/openms/data/GzipIfStream_1.gz",
+      "sha256": "e5258b42ac87a7cb629f84515a4c8ec1d40ca421bf98d3c74ed08eb016ab65d2",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/GzipIfStream_1_corrupt.gz",
+      "source_path": "src/tests/class_tests/openms/data/GzipIfStream_1_corrupt.gz",
+      "sha256": "afa928ce1377ce578a1c085c2125b0876acb467f77019bf6d3d14109b6e38b87",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/MultiEntry.mzML.zip",
+      "source_path": "src/tests/class_tests/openms/data/MultiEntry.mzML.zip",
+      "sha256": "df45c16d2b2e3636ae380fd4322bef25ced626d765926ece3ea19029dc7d63a9",
+      "derivation": "Exact upstream bytes, unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/bad_crc.gz",
+      "sha256": "cfc76ef81331ac9c49977977ad3de6a5b3ba0e09a14f107208a1f9548f2decda",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/bad_len.gz",
+      "sha256": "94a09f3c011114078b59e03bfde3ce89f5ca80f16067e59e6af23a639e575393",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/bad_second.gz",
+      "sha256": "077818414186ad5ef28fcb2fed12d63d40d9a30f656d44aaa169db1d8f6728e3",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/empty.bin",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/extra.gz",
+      "sha256": "a9cbbe39a8da897f706caa99cf1e525711d4b46fbb05618979f24b4028d2d5dc",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/featurexml_bad_crc.zip",
+      "sha256": "6aeccb1d02d4d07fe11375f8dcd3d85eaea9fcac988656ae43b56d875c937d45",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/featurexml_bzip2.zip",
+      "sha256": "61e3393a656c3135f5636b24c41e70efa319778d89ebbc7d8a0dff843fcb884b",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/featurexml_lzma.zip",
+      "sha256": "c239b2fc8178ef3646d28ca0ff9c41abcbe7e036c9ee90e314f9cf28de8c8130",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/featurexml_stored.zip",
+      "sha256": "5260cf1811812c9b630c46bb4c700762a6a51fd4176cfd1e89fb41dd3b452383",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/hcrc_bad.gz",
+      "sha256": "7714a959eb7e2ad1959d74aca69e170ded7fd3331f481d0a592469490db00a2c",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/hcrc_good.gz",
+      "sha256": "251fe9e4630dd28332b424f1b98119a95f08afbd26639d90bfdcc3818de34a86",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/make_data.py",
+      "sha256": "b0c9b44984ca3e5eb7f11d38f95bb47dc2df47100219c2978789967855ac3d67",
+      "derivation": "Generator of the synthetic inputs of this directory (python3 make_data.py), copied from ../oracle/F7b-streams"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/members.gz",
+      "sha256": "52f3d5af077fa249c2578b75633e5291119477a9d6f36876cdc5fbab174d89bb",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/one.txt",
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/payload.bz2",
+      "sha256": "aff3ad4e5fb7a45e875e2cdd1e3601b115d4a5e9a50dcd619ab93e579e80c73d",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/payload.gz",
+      "sha256": "53c9c4dd6828e51b2590b969da2f8f57207692dce7cad1a21e89a9d8a4545c3a",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/plain.bz2",
+      "sha256": "87d4f13d28ecb3c112f0f8bbd4a4dce9aa4181f7e81fc4b96a6943040b7e2896",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/plain.txt",
+      "sha256": "cb83a5937258e6b0d7bb1438bb8a35a22b53d8e39cda37c7f397c8307d569387",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/records.tsv",
+      "sha256": "4ddb24802900e81b79904d9ab2903eb0942bcea4fb60d00148bb3a8f7bbd59b6",
+      "derivation": "Output of ../oracle/F7b-streams/driver.cpp compiled against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 and run twice on ibminode06 with identical records (zlib 1.3.2, bzip2 1.0.8, libzip 1.11.2); unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/reserved_flag.gz",
+      "sha256": "4c35879fd22588b448637f6b59ca86b86381150395a14b9997c94b4537b92444",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/traversal.zip",
+      "sha256": "9a4fcfde6e89efad7dad4ed45131c480f5cb1aba486ea878821444d2fd6c5774",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/trunc.bz2",
+      "sha256": "ae5d8884b14e79aefea24d68b2c0fe4c4f5a3401698cc79ddf820caa5479c60c",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/trunc_body.gz",
+      "sha256": "03794b17fa80f66ca3969c663ba00f4b96aabc9e9a4bcbb1376c1b2d12ddf755",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/trunc_trailer.gz",
+      "sha256": "20216fdd63e44674d39908ec3a8684b3be6ffb4e07955cfbbf68995c6b4635b1",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/f7b_oracle/two.bz2",
+      "sha256": "fd7515f6a8eb13a966ffd1c0fec212d3820c73f04e92fe9da9e1a2ccc4b134dc",
+      "derivation": "Synthetic, written by make_data.py (deterministic: gzip mtime 0, fixed levels)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/directory_only.zip",
+      "sha256": "52e6db1b1ded6c0e9b4d9452f2c331205add1396f33f73dfcfdf113f5996296a",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/empty_archive.zip",
+      "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_bad_crc.zip",
+      "sha256": "6aeccb1d02d4d07fe11375f8dcd3d85eaea9fcac988656ae43b56d875c937d45",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_bzip2.zip",
+      "sha256": "61e3393a656c3135f5636b24c41e70efa319778d89ebbc7d8a0dff843fcb884b",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_deflate.zip",
+      "sha256": "85643d6e14532bd0db6066f3a667835ece9792376247c7595d2c71024880280d",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_lzma.zip",
+      "sha256": "c239b2fc8178ef3646d28ca0ff9c41abcbe7e036c9ee90e314f9cf28de8c8130",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_source_1.featureXML",
+      "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_stored.zip",
+      "sha256": "5260cf1811812c9b630c46bb4c700762a6a51fd4176cfd1e89fb41dd3b452383",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/featurexml_with_directory.zip",
+      "sha256": "92f2cae484a3291aab9a25b3cc64fff53c05fa2ca1153512df2519069c9563c0",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/junk_local_header.zip",
+      "sha256": "0ee00ad239e5f96dd557614d2bd820bf53e647d35b4490ef37eef6d04f79eed4",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/mzml_deflate.zip",
+      "sha256": "1c1326a54fbe3bef29e9d366c9df18862f65509d35d70373d4d2e9683ea98678",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/mzml_upstream_serum.mzML",
+      "sha256": "8ae288b606b959b532791d36450dc546c72fa6903a5ffe69bd9ec0659eac9cc4",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/records.tsv",
+      "sha256": "fbcb674cb83ab1aee55754ebcb4d3336db1c0f89a630607d9e7d5fb1392a3682",
+      "derivation": "results/records.tsv of ../oracle/B8a-zip-input (lane B8a): driver compiled against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576, run twice on ibminode06 with identical records; unchanged"
+    },
+    {
+      "path": "tests/data/compressed_streams/b8a_oracle/two_entries.zip",
+      "sha256": "8035abcfacb3bf093239f6a3fa898ad75a099b4a98af28da7d9ffa08e22096d5",
+      "derivation": "Copied unchanged from ../oracle/B8a-zip-input/data (lane B8a's ZIP-input oracle inputs)"
+    }
+  ],
+  "reference_sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/GzipIfstream.h",
+      "sha256": "75b617cd04f71da4ae15ae6eeb5f5758d23e5669d4cf29ff19fca638a9b6c0a7"
+    },
+    {
+      "path": "src/openms/source/FORMAT/GzipIfstream.cpp",
+      "sha256": "84f2b32b3960626a833f34b83bfd2ccb2ec06b99f2fbc5e7604f76b0d82934b4"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/Bzip2Ifstream.h",
+      "sha256": "79d15e823e92f6d766c57501faa75aeab9ef940320a72a38f3b4d5a40943ce74"
+    },
+    {
+      "path": "src/openms/source/FORMAT/Bzip2Ifstream.cpp",
+      "sha256": "c98c3ab8b5e4f0ff15ec56eaa5c2306d73b9a555d44d569fc2352f198e82490d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ZipIfstream.h",
+      "sha256": "2e4ea2bb1d06a891578fed4bbddf2b968aa0e097f143205e4ed98664584d4f5c"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ZipIfstream.cpp",
+      "sha256": "b2a23d1ad9d947b7fdaf417e48d3f779cd53cf1446c5dae6b92347970952b4b0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/ZipArchiveFile.h",
+      "sha256": "0fc5e98cbe6f6072f6be08f5f608cebd0fbb181618f64c3675760129a3716f48"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ZipArchiveFile.cpp",
+      "sha256": "28dec95d506e2bacfd431015cdfcec48ab864b968662bc81327f4b7808124456"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/StringManager.h",
+      "sha256": "9fa601c48fa58deccffd54745f19deda0448b00f5152f5fd266c45761476e330"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/StringManager.cpp",
+      "sha256": "c64c659ce978639dab8e46ebb6747f8422b2849f84bed7183a3f3c3d6cab6ba8"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLAttributes.h",
+      "sha256": "65cb52fa8ba11833308d080f4af5f996aa6b44e4aca280ebc856b575ba1f095f"
+    },
+    {
+      "path": "src/openms/source/FORMAT/HANDLERS/XMLAttributes.cpp",
+      "sha256": "ce884e14ea79ccbbb325ea3a4a2de308217adf6196619a49173a6f5784eecd2f"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/GzipIfstream_test.cpp",
+      "sha256": "e18b5caaf492863a04e59ac8c3e298b927bb36920ddf01f6c4ad0f6be3a00946"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/Bzip2Ifstream_test.cpp",
+      "sha256": "19174634bc2a7b92d3c71e6e8ea9195f5c22d7010a2bc2e4c9b59f07f511bfd8"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ZipIfstream_test.cpp",
+      "sha256": "6f6eb5d454168efedb9c4747a9000fe21ab9e4915eec2ff7b7eb395bae451d93"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/XMLHandler_test.cpp",
+      "sha256": "e345992a046ca9f71665cea4dc1b70bd23e0527092590e712e8b5c3ae937438c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MzMLFile_test.cpp",
+      "sha256": "f8b49cc35915c8e45e5ffca9ba6525f95d36eec1f24a0c7216e127510a0924fe"
+    }
+  ],
+  "external_oracles": [
+    {
+      "path": "../oracle/F7b-streams",
+      "host": "ibminode06",
+      "build": "Linux x86_64 Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+      "records_sha256": "4ddb24802900e81b79904d9ab2903eb0942bcea4fb60d00148bb3a8f7bbd59b6"
+    },
+    {
+      "path": "../oracle/B8a-zip-input",
+      "host": "ibminode06",
+      "build": "Linux x86_64 Release, /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+      "records_sha256": "fbcb674cb83ab1aee55754ebcb4d3336db1c0f89a630607d9e7d5fb1392a3682"
+    }
+  ]
+}

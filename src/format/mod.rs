@@ -178,6 +178,22 @@ pub mod parquet_filter;
 /// Parquet files (`ProteinIdentificationArrowIO.h`).
 #[cfg(feature = "arrow")]
 pub mod protein_identification_arrow_io;
+/// Pull-style bzip2 decompression with `BZ2_bzRead` semantics (`Bzip2Ifstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod bzip2_ifstream;
+/// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod gzip_ifstream;
+/// UTF-16 string helpers of the XML handlers (`HANDLERS/StringManager.h`).
+pub mod string_manager;
+/// Read-only view over an element's attributes (`HANDLERS/XMLAttributes.h`).
+pub mod xml_attributes;
+/// Create, unpack, list, index and update ZIP archives (`ZipArchiveFile.h`).
+#[cfg(feature = "file-compression")]
+pub mod zip_archive_file;
+/// Streaming reader for the single file inside a ZIP archive (`ZipIfstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod zip_ifstream;
 
 use crate::{Error, Result};
 
@@ -214,3 +230,6 @@ pub mod traml;
 /// The TraML reader and writer (`HANDLERS/TraMLHandler.h`).
 #[cfg(feature = "traml")]
 pub mod traml_handler;
+/// File-system operations for directory-or-archive containers, re-exported
+/// from `system::file` for the OpenSWATH Parquet formats.
+pub mod container_io;
