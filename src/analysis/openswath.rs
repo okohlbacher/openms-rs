@@ -7,6 +7,8 @@
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
 
+/// Confidence scoring of features against an assay library, from `ANALYSIS/OPENSWATH/ConfidenceScoring.h`.
+pub mod confidence_scoring;
 /// Conversions between kernel and light records, from `ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h`.
 pub mod data_access_helper;
 /// Named numeric table writers, from `OPENSWATHALGO/DATAACCESS/DataFrameWriter.h`.
@@ -33,10 +35,24 @@ pub mod metabo_targeted_target_decoy;
 pub mod mock_objects;
 /// `MRMAssay`: assay generation (annotation, restriction, detecting and UIS transitions) from raw targeted experiments.
 pub mod mrm_assay;
+/// Iterative feature selection, from `ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h`.
+pub mod mrm_batch_feature_selector;
 /// `MRMDecoy`: reverse, pseudo-reverse and shuffle decoys for targeted assay libraries.
 pub mod mrm_decoy;
 /// Access-trait implementations over kernel types, from `ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h`.
 pub mod mrm_feature_access;
+/// Flagging and filtering of MRM features against QC bounds, from `ANALYSIS/OPENSWATH/MRMFeatureFilter.h`.
+pub mod mrm_feature_filter;
+/// Finding and scoring of MRM features, from `ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h`.
+pub mod mrm_feature_finder_scoring;
+/// Per-component and per-component-group picker parameters, from `ANALYSIS/OPENSWATH/MRMFeaturePicker.h`.
+pub mod mrm_feature_picker;
+/// Quality-control bounds for MRM components and component groups, from `ANALYSIS/OPENSWATH/MRMFeatureQC.h`.
+pub mod mrm_feature_qc;
+/// Selection of MRM features by linear programming, from `ANALYSIS/OPENSWATH/MRMFeatureSelector.h`.
+pub mod mrm_feature_selector;
+/// Metavalue conversions shared by the MRM feature modules.
+pub(crate) mod mrm_feature_support;
 /// `MRMIonSeries`: theoretical fragment ion series and transition annotation for assays and decoys.
 pub mod mrm_ion_series;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.

@@ -1,0 +1,6 @@
+Model fitting: 23 successes, 2 failures
+Imputing model failures with a linear model based on log(rawIntensities). Slope: 0.995932, Intercept: 0.489606
+Imputing model failures with a linear model based on log(rawIntensities). Slope: 1.00043, Intercept: 0.523976
+Imputing model failures with a linear model based on log(rawIntensities). Slope: 0.999899, Intercept: 0.418105
+<Model fitting: 23 successes, 2 failures> occurred 3 times
+Model fitting: 14 successes, 11 failures
