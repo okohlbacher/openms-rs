@@ -220,6 +220,53 @@ cannot; there the estimate is the Release build's own, measured as the
 sample's quotient leaves `int` range) and asserted in
 `tests/picker_noise_consumers.rs`.
 
+## Parameters and the source member map
+
+The source class is a `DefaultParamHandler`. Its eleven parameters are
+`PeakPickerChromatogram::defaults()` (source `getDefaults`), `to_param()`
+(`getParameters`) and `from_param()` / `from_param_with_warnings()`
+(`setParameters` followed by `updateMembers_`), in the source's declaration
+order with the source types, descriptions and valid strings:
+
+| Parameter | Default | Rust field |
+| --- | --- | --- |
+| `sgolay_frame_length` | 15 | `smoothing` or `inactive_smoothing`, `SavitzkyGolay { frame_length }` |
+| `sgolay_polynomial_order` | 3 | same, `polynomial_order` |
+| `gauss_width` | 50.0 | `smoothing` or `inactive_smoothing`, `Gaussian { width }` |
+| `use_gauss` | `true` | which of the two is `smoothing` |
+| `peak_width` | -1.0 | `peak_width`: `None` for every value not above zero |
+| `signal_to_noise` | 1.0 (at least 0) | `signal_to_noise` |
+| `sn_win_len` | 1000.0 | `noise_estimator.window_length` |
+| `sn_bin_count` | 30 | `noise_estimator.bin_count` |
+| `write_sn_log_messages` | `false` | `noise_estimator.write_log_messages`; the warnings are returned in `ChromatogramPickingResult::noise_log` |
+| `report_sn` | `false` | `report_sn` |
+| `remove_overlapping_peaks` | `false` | `remove_overlapping_peaks` |
+| `method` | `corrected` (valid `legacy`, `corrected`, `crawdad`) | `method`; `crawdad` is refused with the source's text, as the default build (`WITH_CRAWDAD` off) refuses it |
+
+`from_param` follows `updateMembers_`: both smoothers are configured whatever
+`use_gauss` says, so an invalid Savitzky-Golay order is refused even under the
+Gaussian filter (the filter's own `Exception::InvalidValue`), and the three
+noise parameters go through the estimator's own parameter check (`win_len` at
+least one, `bin_count` at least three). The seed picker keeps its S/N of one:
+the source copies `signal_to_noise` into `pp_` once, in the constructor, and
+`updateMembers_` never reaches it. Unknown keys are warnings, as in the source.
+A negative count is refused where the source casts it to `UInt`. The
+defaults' estimator writes no log messages, as the source constructor sets
+`write_log_messages` from `write_sn_log_messages` (the estimator's own default
+is `true`).
+
+| Source member | Rust |
+| --- | --- |
+| `pickChromatogram(chrom, picked)` and `pickChromatogram(chrom, picked, smoothed)` | `pick_chromatogram(&chrom) -> ChromatogramPickingResult` (both outputs) and `filter_chromatogram` |
+| enum `FLOATINDICES` (`IDX_FWHM` ... `IDX_SN`, `SIZE_OF_FLOATINDICES`) | associated constants `PeakPickerChromatogram::IDX_FWHM` ... `SIZE_OF_FLOATINDICES` |
+| `updateMembers_()` | `from_param` |
+| `operator=` (protected, declared but never defined) | `Clone` |
+| protected `pickChromatogram_`, `integratePeaks_`, `findClosestPeak_`, `removeOverlappingPeaks_` | private `extend_boundaries`, the inclusive raw sums, `closest_peak`, `adjust_overlaps` |
+| protected `pickChromatogramCrawdad_` | none (external backend; see above) |
+| members `sgolay_frame_length_` ... `method_`, `write_sn_log_messages_`, `report_sn_` | the fields in the table above |
+| temporaries `integrated_intensities_`, `left_width_`, `right_width_`, `apex_sn_` | per-call locals; the boundaries are `ChromatogramPickingResult::regions` |
+| members `pp_`, `sgolay_`, `gauss_`, `snt_` | built per call from `seed_*`, `smoothing` and `noise_estimator` |
+
 ## Validation, limits and remaining scope
 
 Coordinates must be finite and non-decreasing; intensities must be finite.
@@ -249,9 +296,11 @@ Storage is linear in input samples and output peaks, plus the existing smoothing
 and noise-estimation tables. No mutable picker cache survives a call. Returned
 errors leave an input passed to `filter_chromatogram` unchanged.
 
-Crawdad, transition-group peak selection, multi-transition alignment and
-cross-chromatogram consensus are separate remaining ports. This module picks
-one chromatogram and does not assign molecular identities or confidence values.
+Crawdad is not ported (an external library the default source build leaves
+out). Transition-group peak selection, multi-transition alignment and
+cross-chromatogram consensus are `MRMTransitionGroupPicker`
+(`docs/MRM_TRANSITION_GROUP_PICKER_SUPPORT.md`). This module picks one
+chromatogram and does not assign molecular identities or confidence values.
 
 ## Evidence
 
@@ -267,4 +316,14 @@ Focused tests cover irregular sampling, both smoothers, forced-width/noise
 interactions, shared valley endpoints, original indices, metadata and omitted
 arrays, empty input, validation and atomic numerical failures. Private source
 helpers also test rightward nearest ties, the end sentinel and the sequential
-overlap midpoint rule. No C++ code was built or executed.
+overlap midpoint rule. No C++ code was built or executed for these tests.
+
+`tests/openswath_peak_picking.rs` adds the parameter surface at OpenMS4-core
+`bc9cc12`: the eleven defaults against the source constructor, a full round
+trip, the source refusals (Crawdad, restrictions, the Savitzky-Golay order
+check), and `PeakPickerChromatogram_test.cpp:75-137` replayed through
+`getDefaults`/`setParameters` rather than through the struct fields. Every
+chromatogram the tier-1 `MRMTransitionGroupPicker` oracle picks
+(`tests/data/openswath_peak_picking_provenance.json`, 32 cases, bit-identical
+to the executed Release build) goes through this picker, under both methods,
+both smoothers and overlap removal.

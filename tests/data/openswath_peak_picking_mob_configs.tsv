@@ -1,0 +1,9 @@
+# case	mobilogram	settings
+m_classtest	classtest	method=s:corrected;use_gauss=s:false
+m_classtest_legacy	classtest	method=s:legacy
+m_classtest_width	classtest	peak_width=f:0.01
+m_classtest_gauss	classtest	use_gauss=s:true;gauss_width=f:0.01
+m_syn0	syn0	
+m_syn0_legacy	syn0	method=s:legacy;sgolay_frame_length=i:7
+m_syn1	syn1	
+m_syn1_gauss	syn1	use_gauss=s:true;gauss_width=f:0.008

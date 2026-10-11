@@ -15,12 +15,29 @@
 use super::checked_intensity;
 use super::peak_picking::{
     FwhmUnit, PeakPickerHiRes, PickedChromatogram, PickingCompatibility,
-    SignalToNoiseEstimatorMedian,
+    SignalToNoiseEstimatorMedian, flag, flag_entry, float, float_entry, int_entry, integer,
+    string_entry,
 };
 use super::smoothing::{GaussFilter, GaussianWidth, SavitzkyGolayFilter};
 use crate::kernel::{ChromatogramPeak, DataArray, MSChromatogram};
+use crate::param::{DefaultParamHandler, Param, ParamNode, ParamValue};
 use crate::{Error, Result};
 
+/// The source class name, `DefaultParamHandler("PeakPickerChromatogram")`,
+/// under which unknown-parameter warnings are reported.
+pub const PEAK_PICKER_CHROMATOGRAM_NAME: &str = "PeakPickerChromatogram";
+
+/// The source's exception text when `method` is `crawdad` in a build without
+/// `WITH_CRAWDAD` (`PeakPickerChromatogram.cpp:414-420`), the default build.
+const CRAWDAD_UNAVAILABLE: &str =
+    "PeakPickerChromatogram was not compiled with crawdad, please choose a different algorithm!";
+
+/// The source `method` parameter: which signal the peak boundaries are found on.
+///
+/// The source's third value, `crawdad`, wraps an external library that the
+/// default build leaves out (`WITH_CRAWDAD` is off); it has no variant here, and
+/// [`PeakPickerChromatogram::from_param`] refuses it with the source's own
+/// exception text, as that build's `updateMembers_` does.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ChromatogramPickingMethod {
     /// Find boundaries on the original, unsmoothed signal.
@@ -30,13 +47,34 @@ pub enum ChromatogramPickingMethod {
     Corrected,
 }
 
+impl ChromatogramPickingMethod {
+    /// The source parameter value: `legacy` or `corrected`.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Legacy => "legacy",
+            Self::Corrected => "corrected",
+        }
+    }
+}
+
+/// The smoother applied before seeding: the source `use_gauss` switch with the
+/// parameters of the selected filter.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ChromatogramSmoothing {
     /// Width in seconds, equal to eight Gaussian standard deviations.
-    Gaussian { width: f64 },
+    Gaussian {
+        /// Source `gauss_width`: Gaussian width in seconds, the estimated peak
+        /// size.
+        width: f64,
+    },
     /// Fits sample indices; even frame lengths are incremented, as in OpenMS.
     SavitzkyGolay {
+        /// Source `sgolay_frame_length`: the number of subsequent data points
+        /// used for smoothing. This number has to be uneven; if it is not, one
+        /// is added.
         frame_length: usize,
+        /// Source `sgolay_polynomial_order`: order of the polynomial that is
+        /// fitted.
         polynomial_order: usize,
     },
 }
@@ -49,13 +87,22 @@ impl Default for ChromatogramSmoothing {
 /// Indices into the original input. Both boundary indices are inclusive.
 /// Access original peaks to recover their full f64 RTs; the source metadata
 /// arrays leftWidth/rightWidth store rounded f32 RT values.
+///
+/// Native: the source keeps these as the protected `left_width_` and
+/// `right_width_` members and exposes only their `f32` retention times.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ChromatogramPeakRegion {
+    /// Sample closest to the seed apex (source `findClosestPeak_`).
     pub apex_index: usize,
+    /// First sample of the peak (source `left_width_[i]`).
     pub left_index: usize,
+    /// Last sample of the peak, inclusive (source `right_width_[i]`).
     pub right_index: usize,
 }
 
+/// What one [`PeakPickerChromatogram::pick_chromatogram`] call produces: the
+/// source's `picked_chrom` and `smoothed_chrom` out-parameters and the native
+/// integration regions.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ChromatogramPickingResult {
     /// Spline seeds and five source arrays. `boundaries` are the HiRes seed
@@ -64,21 +111,64 @@ pub struct ChromatogramPickingResult {
     pub picked: PickedChromatogram,
     /// Full original sampling and annotations, with smoothed intensities.
     pub smoothed: MSChromatogram,
+    /// One integration region per picked peak, in picked order.
     pub regions: Vec<ChromatogramPeakRegion>,
+    /// The boundary noise estimator's warnings (sparse windows, a median in
+    /// the rightmost histogram bin), returned only when
+    /// [`SignalToNoiseEstimatorMedian::write_log_messages`] is set, which the
+    /// source's `write_sn_log_messages` parameter controls. The source writes
+    /// them to its log stream; they are returned here. Empty when no noise
+    /// estimate ran.
+    pub noise_log: Vec<String>,
 }
 
-/// Native legacy/corrected PeakPickerChromatogram methods. Crawdad requires an
-/// external backend and is not represented by either native method.
+/// Finds peaks in a single chromatogram (source `PeakPickerChromatogram`).
+///
+/// It uses the [`PeakPickerHiRes`] internally to find interesting seed
+/// candidates. These candidates are then expanded and a right/left border of
+/// the peak is searched. Additionally, overlapping peaks can be removed.
+///
+/// The picked chromatogram's float data arrays report, per peak (indexed as
+/// [`IDX_FWHM`](Self::IDX_FWHM) to [`IDX_SN`](Self::IDX_SN), source enum
+/// `FLOATINDICES`): `FWHM`, `IntegratedIntensity`, `leftWidth`, `rightWidth`
+/// and `SN` (the apex signal-to-noise ratio, as estimated by the internal
+/// [`SignalToNoiseEstimatorMedian`]). `SN` is only populated with real values
+/// if [`report_sn`](Self::report_sn) is enabled or
+/// [`signal_to_noise`](Self::signal_to_noise) is above zero; otherwise it is
+/// filled with -1 for every peak.
+///
+/// Native legacy/corrected methods only. Crawdad requires an external backend
+/// and is not represented by either native method.
+///
+/// The source class is a `DefaultParamHandler`; its eleven parameters are
+/// [`PeakPickerChromatogram::defaults`], [`PeakPickerChromatogram::to_param`]
+/// and [`PeakPickerChromatogram::from_param`] (source `getDefaults`,
+/// `getParameters`, and `setParameters` with `updateMembers_`). The source's
+/// protected copy assignment operator is declared in the header but never
+/// defined; [`Clone`] copies every field.
 #[derive(Clone, Debug)]
 pub struct PeakPickerChromatogram {
+    /// Source `method`: `legacy` or `corrected` (default).
     pub method: ChromatogramPickingMethod,
+    /// Source `use_gauss` (default `true`) with `gauss_width` (default 50 s)
+    /// or `sgolay_frame_length` (default 15) and `sgolay_polynomial_order`
+    /// (default 3).
     pub smoothing: ChromatogramSmoothing,
+    /// The parameters of the smoother that [`smoothing`](Self::smoothing) does
+    /// not select, kept so that [`to_param`](Self::to_param) writes back the
+    /// values [`from_param`](Self::from_param) read: the source keeps all four
+    /// smoothing parameters whichever filter `use_gauss` selects. Picking never
+    /// reads this field. Default: Savitzky-Golay with frame 15 and order 3.
+    pub inactive_smoothing: ChromatogramSmoothing,
     /// Extend through nondecreasing intensities inside this RT distance from
     /// the spline apex. The S/N check still applies. None disables this rule.
     pub peak_width: Option<f64>,
     /// Boundary-extension S/N threshold. Zero disables the boundary S/N gate.
     pub signal_to_noise: f64,
-    /// Boundary and apex-report estimator; source window defaults to 1000 s.
+    /// Boundary and apex-report estimator (source `snt_`); the source window
+    /// defaults to 1000 s (`sn_win_len`), the bin count to 30
+    /// (`sn_bin_count`) and its log messages to off
+    /// (`write_sn_log_messages`).
     ///
     /// This estimator always runs under [`PickingCompatibility::source`], so
     /// its whole source profile applies whatever
@@ -97,10 +187,18 @@ pub struct PeakPickerChromatogram {
     pub noise_estimator: SignalToNoiseEstimatorMedian,
     /// Seed picking is independent: C++ configures HiRes once at S/N 1, with
     /// its 200 s default noise window, even after boundary settings change.
+    /// The source's constructor copies `signal_to_noise` into the seed picker
+    /// before any `setParameters` call and `updateMembers_` never updates it,
+    /// so [`from_param`](Self::from_param) leaves this at one.
     pub seed_signal_to_noise: f64,
+    /// Noise estimator of the seed [`PeakPickerHiRes`] (source `pp_`), at that
+    /// picker's defaults; no source parameter reaches it.
     pub seed_noise_estimator: SignalToNoiseEstimatorMedian,
-    /// Report apex S/N even when the boundary S/N gate is disabled.
+    /// Source `report_sn`: report apex S/N even when the boundary S/N gate is
+    /// disabled. Forces the noise estimate to run.
     pub report_sn: bool,
+    /// Source `remove_overlapping_peaks`: try to remove overlapping peaks
+    /// during peak picking.
     pub remove_overlapping_peaks: bool,
     /// Which source behaviours this picker adopts where the native default
     /// refuses; see [`PickingCompatibility`].
@@ -123,6 +221,7 @@ pub struct PeakPickerChromatogram {
     /// The internal noise estimate does not consult this field; see
     /// [`PeakPickerChromatogram::pick_chromatogram`].
     pub compatibility: PickingCompatibility,
+    /// Native ceiling on the input point count, checked before any work.
     pub max_points: usize,
     /// Per-stage work limit: conservative smoothing work, HiRes seed work,
     /// each noise estimate, and boundary/overlap/integration sample visits.
@@ -133,10 +232,18 @@ impl Default for PeakPickerChromatogram {
         Self {
             method: Default::default(),
             smoothing: Default::default(),
+            inactive_smoothing: ChromatogramSmoothing::SavitzkyGolay {
+                frame_length: 15,
+                polynomial_order: 3,
+            },
             peak_width: None,
             signal_to_noise: 1.0,
+            // Source constructor: `updateMembers_` hands `sn_win_len` (1000)
+            // and `write_sn_log_messages` (false) to `snt_`, whose own
+            // defaults are 200 and true.
             noise_estimator: SignalToNoiseEstimatorMedian {
                 window_length: 1000.0,
+                write_log_messages: false,
                 ..Default::default()
             },
             seed_signal_to_noise: 1.0,
@@ -147,6 +254,303 @@ impl Default for PeakPickerChromatogram {
             max_points: 1_000_000,
             max_work: 50_000_000,
         }
+    }
+}
+
+impl PeakPickerChromatogram {
+    /// Index of the `FWHM` array in a picked chromatogram (source
+    /// `FLOATINDICES::IDX_FWHM`).
+    pub const IDX_FWHM: usize = 0;
+    /// Index of the `IntegratedIntensity` array (source `IDX_ABUNDANCE`).
+    pub const IDX_ABUNDANCE: usize = 1;
+    /// Index of the `leftWidth` array (source `IDX_LEFTBORDER`).
+    pub const IDX_LEFTBORDER: usize = 2;
+    /// Index of the `rightWidth` array (source `IDX_RIGHTBORDER`).
+    pub const IDX_RIGHTBORDER: usize = 3;
+    /// Index of the `SN` array (source `IDX_SN`).
+    pub const IDX_SN: usize = 4;
+    /// Number of float data arrays in a picked chromatogram (source
+    /// `SIZE_OF_FLOATINDICES`).
+    pub const SIZE_OF_FLOATINDICES: usize = 5;
+
+    /// The source defaults (`getDefaults`): the eleven parameters the source
+    /// constructor declares, in declaration order, with their value types,
+    /// descriptions and restrictions: `sgolay_frame_length` (15),
+    /// `sgolay_polynomial_order` (3), `gauss_width` (50.0), `use_gauss`
+    /// (`true`), `peak_width` (-1.0), `signal_to_noise` (1.0, at least 0),
+    /// `sn_win_len` (1000.0), `sn_bin_count` (30), `write_sn_log_messages`
+    /// (`false`), `report_sn` (`false`), `remove_overlapping_peaks` (`false`)
+    /// and `method` (`corrected`; valid `legacy`, `corrected`, `crawdad`).
+    ///
+    /// # Errors
+    ///
+    /// Only a parameter-tree resource failure, which the constant tree cannot
+    /// trigger.
+    pub fn defaults() -> Result<Param> {
+        Self::default().to_param()
+    }
+
+    /// The parameters of this picker in the layout of
+    /// [`PeakPickerChromatogram::defaults`], carrying the current values
+    /// (source `getParameters`).
+    ///
+    /// `peak_width` is written as `-1` when [`peak_width`](Self::peak_width)
+    /// is `None`; the source treats every value that is not above zero alike.
+    /// The smoothing parameters come from [`smoothing`](Self::smoothing) and
+    /// [`inactive_smoothing`](Self::inactive_smoothing), whichever holds that
+    /// filter, and fall back to the source defaults when neither does.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a count does not fit the source's
+    /// 32-bit integer parameter.
+    pub fn to_param(&self) -> Result<Param> {
+        let (mut gauss_width, mut frame_length, mut polynomial_order) = (50.0, 15, 3);
+        for smoothing in [self.inactive_smoothing, self.smoothing] {
+            match smoothing {
+                ChromatogramSmoothing::Gaussian { width } => gauss_width = width,
+                ChromatogramSmoothing::SavitzkyGolay {
+                    frame_length: frame,
+                    polynomial_order: order,
+                } => {
+                    frame_length = frame;
+                    polynomial_order = order;
+                }
+            }
+        }
+        let int = |value: usize, key: &str| -> Result<i64> {
+            i32::try_from(value)
+                .map(i64::from)
+                .map_err(|_| invalid(&format!("'{key}' does not fit the source 32-bit parameter")))
+        };
+        let entries = vec![
+            int_entry(
+                "sgolay_frame_length",
+                int(frame_length, "sgolay_frame_length")?,
+                "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.",
+                false,
+                None,
+                None,
+            ),
+            int_entry(
+                "sgolay_polynomial_order",
+                int(polynomial_order, "sgolay_polynomial_order")?,
+                "Order of the polynomial that is fitted.",
+                false,
+                None,
+                None,
+            ),
+            float_entry(
+                "gauss_width",
+                gauss_width,
+                "Gaussian width in seconds, estimated peak size.",
+                false,
+                None,
+                None,
+            ),
+            string_entry(
+                "use_gauss",
+                if matches!(self.smoothing, ChromatogramSmoothing::Gaussian { .. }) {
+                    "true"
+                } else {
+                    "false"
+                },
+                "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)",
+                false,
+                &["false", "true"],
+            ),
+            float_entry(
+                "peak_width",
+                self.peak_width.unwrap_or(-1.0),
+                "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.",
+                false,
+                None,
+                None,
+            ),
+            float_entry(
+                "signal_to_noise",
+                self.signal_to_noise,
+                "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.",
+                false,
+                Some(0.0),
+                None,
+            ),
+            float_entry(
+                "sn_win_len",
+                self.noise_estimator.window_length,
+                "Signal to noise window length.",
+                false,
+                None,
+                None,
+            ),
+            int_entry(
+                "sn_bin_count",
+                int(self.noise_estimator.bin_count, "sn_bin_count")?,
+                "Signal to noise bin count.",
+                false,
+                None,
+                None,
+            ),
+            flag_entry(
+                "write_sn_log_messages",
+                self.noise_estimator.write_log_messages,
+                "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin",
+                false,
+            ),
+            flag_entry(
+                "report_sn",
+                self.report_sn,
+                "Also report the apex signal-to-noise ratio for each picked peak (as an additional 'SN' FloatDataArray on the picked chromatogram). Forces initialization of the S/N estimator even if 'signal_to_noise' is 0.",
+                false,
+            ),
+            string_entry(
+                "remove_overlapping_peaks",
+                if self.remove_overlapping_peaks {
+                    "true"
+                } else {
+                    "false"
+                },
+                "Try to remove overlapping peaks during peak picking",
+                false,
+                &["false", "true"],
+            ),
+            string_entry(
+                "method",
+                self.method.name(),
+                "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).",
+                false,
+                &["legacy", "corrected", "crawdad"],
+            ),
+        ];
+        Param::from_root(ParamNode {
+            name: String::new(),
+            description: String::new(),
+            entries,
+            nodes: Vec::new(),
+        })
+    }
+
+    /// Build a picker from parameters, as source `setParameters` followed by
+    /// `updateMembers_`.
+    ///
+    /// Missing parameters take their defaults. Unknown parameters are ignored,
+    /// as the source only warns; see
+    /// [`PeakPickerChromatogram::from_param_with_warnings`]. The native fields
+    /// ([`seed_signal_to_noise`](Self::seed_signal_to_noise),
+    /// [`seed_noise_estimator`](Self::seed_noise_estimator),
+    /// [`compatibility`](Self::compatibility) and the limits) keep their
+    /// defaults: the source configures its seed picker once, in the
+    /// constructor, and `updateMembers_` never reaches it.
+    ///
+    /// As in `updateMembers_`, the Savitzky-Golay and Gaussian filters are both
+    /// configured whichever `use_gauss` selects, so an invalid setting of the
+    /// unused filter is still refused, and `sn_win_len`, `sn_bin_count` and
+    /// `write_sn_log_messages` are handed to the noise estimator's own
+    /// parameters, whose restrictions (`win_len` at least one, `bin_count` at
+    /// least three) then apply. A `peak_width` that is not above zero,
+    /// including NaN, disables the forced width, as the source's
+    /// `peak_width_ > 0.0` test does.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a parameter has the wrong value type
+    /// or violates its restriction (the source `Exception::InvalidParameter`);
+    /// when `method` is `crawdad`, with the source's text, since this port, like
+    /// the default source build, has no Crawdad backend; when the polynomial
+    /// order is not below the (odd) frame length, as the Savitzky-Golay filter's
+    /// `Exception::InvalidValue`; and, as native refusals, when a count is
+    /// negative (the source casts it to `UInt`) or a filter setting exceeds the
+    /// native limits of [`SavitzkyGolayFilter::new`] or [`GaussFilter::new`].
+    pub fn from_param(parameters: &Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`PeakPickerChromatogram::from_param`], also returning the
+    /// unknown-parameter warnings the source logs.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerChromatogram::from_param`].
+    pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let mut handler = DefaultParamHandler::new(PEAK_PICKER_CHROMATOGRAM_NAME)?;
+        handler.set_defaults(Self::defaults()?)?;
+        handler.set_parameters_with(parameters, Self::from_complete_param)
+    }
+
+    /// Typed members from a parameter tree that already holds every default
+    /// (source `updateMembers_`).
+    fn from_complete_param(param: &Param) -> Result<Self> {
+        let count = |key: &str| -> Result<usize> {
+            usize::try_from(integer(param, key)?)
+                .map_err(|_| invalid(&format!("parameter '{key}' must not be negative")))
+        };
+        let frame_length = count("sgolay_frame_length")?;
+        let polynomial_order = count("sgolay_polynomial_order")?;
+        let gauss_width = float(param, "gauss_width")?;
+        let method = match param.value("method")?.as_str()? {
+            "legacy" => ChromatogramPickingMethod::Legacy,
+            "corrected" => ChromatogramPickingMethod::Corrected,
+            "crawdad" => return Err(invalid(CRAWDAD_UNAVAILABLE)),
+            _ => {
+                return Err(invalid(
+                    "Method needs to be one of: crawdad, corrected, legacy",
+                ));
+            }
+        };
+        // Source `sgolay_.setParameters` and `gauss_.setParameters` run for
+        // both filters (`PeakPickerChromatogram.cpp:399-406`).
+        SavitzkyGolayFilter::new(frame_length, polynomial_order)?;
+        GaussFilter::new(GaussianWidth::Absolute(gauss_width))?;
+        let gaussian = ChromatogramSmoothing::Gaussian { width: gauss_width };
+        let savitzky_golay = ChromatogramSmoothing::SavitzkyGolay {
+            frame_length,
+            polynomial_order,
+        };
+        let (smoothing, inactive_smoothing) = if flag(param, "use_gauss")? {
+            (gaussian, savitzky_golay)
+        } else {
+            (savitzky_golay, gaussian)
+        };
+        // Source `snt_.getParameters()`, three `setValue`s and
+        // `snt_.setParameters` (`PeakPickerChromatogram.cpp:408-412`).
+        let mut noise = Param::new();
+        noise.set_value(
+            "win_len",
+            ParamValue::Float(float(param, "sn_win_len")?),
+            "",
+            &[],
+        )?;
+        noise.set_value(
+            "bin_count",
+            ParamValue::Integer(integer(param, "sn_bin_count")?),
+            "",
+            &[],
+        )?;
+        noise.set_value(
+            "write_log_messages",
+            param.value("write_sn_log_messages")?.clone(),
+            "",
+            &[],
+        )?;
+        let defaults = Self::default();
+        let noise_estimator = SignalToNoiseEstimatorMedian {
+            max_points: defaults.noise_estimator.max_points,
+            max_bins: defaults.noise_estimator.max_bins,
+            max_work: defaults.noise_estimator.max_work,
+            ..SignalToNoiseEstimatorMedian::from_param(&noise)?
+        };
+        let peak_width = float(param, "peak_width")?;
+        Ok(Self {
+            method,
+            smoothing,
+            inactive_smoothing,
+            peak_width: (peak_width > 0.0).then_some(peak_width),
+            signal_to_noise: float(param, "signal_to_noise")?,
+            noise_estimator,
+            report_sn: flag(param, "report_sn")?,
+            remove_overlapping_peaks: flag(param, "remove_overlapping_peaks")?,
+            ..defaults
+        })
     }
 }
 
@@ -250,7 +654,7 @@ impl PeakPickerChromatogram {
             ChromatogramPickingMethod::Legacy => input,
             ChromatogramPickingMethod::Corrected => &smoothed,
         };
-        let noise = if self.signal_to_noise > 0.0 || self.report_sn {
+        let (noise, noise_log) = if self.signal_to_noise > 0.0 || self.report_sn {
             let mut estimator = self.noise_estimator.clone();
             estimator.max_points = estimator.max_points.min(self.max_points);
             estimator.max_work = estimator.max_work.min(self.max_work);
@@ -276,17 +680,14 @@ impl PeakPickerChromatogram {
             // hand-set histogram range can produce one.
             // Passing the peaks widens each `f32` with `cvtss2sd` semantics
             // rather than leaving a `f64::from` NaN payload to the compiler.
-            Some(
-                estimator
-                    .estimate_peaks(
-                        &boundary_signal.peaks,
-                        &PickingCompatibility::source(),
-                        None,
-                    )?
-                    .signal_to_noise,
-            )
+            let estimates = estimator.estimate_peaks(
+                &boundary_signal.peaks,
+                &PickingCompatibility::source(),
+                None,
+            )?;
+            (Some(estimates.signal_to_noise), estimates.log)
         } else {
-            None
+            (None, Vec::new())
         };
         let mut remaining = self.max_work;
         let (mut regions, apex_sn) = self.extend_boundaries(
@@ -327,11 +728,17 @@ impl PeakPickerChromatogram {
             picked,
             smoothed,
             regions,
+            noise_log,
         })
     }
 
     /// Replace the input only after the complete result succeeds. Use the
     /// returning method above to retain smoothing, bounds and omitted-array reports.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakPickerChromatogram::pick_chromatogram`]; the input is then
+    /// unchanged.
     pub fn filter_chromatogram(&self, input: &mut MSChromatogram) -> Result<()> {
         *input = self.pick_chromatogram(input)?.picked.chromatogram;
         Ok(())

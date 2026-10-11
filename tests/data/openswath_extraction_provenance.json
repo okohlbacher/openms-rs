@@ -1,0 +1,217 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "license": "BSD-3-Clause",
+ "group": "openswath_extraction",
+ "work_package": "O4a (Phase C wave 4): OpenSWATH extraction and SWATH windows",
+ "method": "Port of ANALYSIS/OPENSWATH ChromatogramExtractorAlgorithm, ChromatogramExtractor, PeakMapExtractor, SwathWindowLoader, SwathQC and (partially) SwathMapMassCorrection. Every class-test section at the pin is transcribed with its literals (TEST_REAL_SIMILAR replayed at relative/absolute 1e-5). An oracle driver linking the executed C++ Release build printed, as %.17g, every value of the class-test flows plus edge cases (top-hat walk quirks, SWATH-window files with blank lines, CRLF, extra and missing columns, the full isSubsampledSpectrum_ grid, charge distributions for five sample counts and two tolerances, estimateWindow over eight residual sets, the SwathMapMassCorrection defaults, findSwathMapsPasef); the Rust tests replay those records bit for bit, except where a documented native difference refuses a file the C++ misreads. The driver ran twice in fresh processes with a clean environment; both record streams are byte-identical (results/differ.txt is empty).",
+ "evidence_tier": "tier 1 (executed C++ Release on ibminode06, x86_64 Linux, gcc 14.4.0, install openms4-release-bc9cc12-c19e494-174b576: the oracle_* tests of tests/openswath_extraction.rs); tier 3 (transcribed class-test literals of the six *_test.cpp); tier 4 (native guards and derived invariants). ChromatogramExtractor_input.TraML is transcribed into a LightTargetedExperiment because TraMLFile and convertTargetedExp are not ported; the oracle prints the converted experiment and oracle_prepare_coordinates checks the transcription against it.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h",
+   "sha256": "c018b01af9baa99b5e84b9044df1276f6b123e58720da26b486d13b29217065d"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.cpp",
+   "sha256": "890ddd13ffe4b664038eff0c0550ba45dd778c74b3b823f6512c07622107b641"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h",
+   "sha256": "a87450ddfca0b992ef9c46d997bee10bce5160218bd3aca26b3c2c5f2fbb5b38"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/ChromatogramExtractor.cpp",
+   "sha256": "ba9d6ad8427fccd92a3f92a11a385c476471bf7da385d0019c37deab2310ea40"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h",
+   "sha256": "38fa7b336a3189fb2acbde2278dd188c495a3d78592d1821ecb0a3e453c2debe"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakMapExtractor.cpp",
+   "sha256": "bc5e78cc999b85712a2803f18969222844d184e7a6bf93075625a673efd64f3c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h",
+   "sha256": "f0d3ab93d3685038ffd8d8c874b4292ab84e5bdc5a88da93f44a4b297a74a53a"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/SwathWindowLoader.cpp",
+   "sha256": "d96feb6ed36d22f019640b96abcaaff168dc69d191c7e2eec90525ff98abbf42"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SwathQC.h",
+   "sha256": "500b7fc70af884478617a02df362a8161d655d24cd0e5a75f37ef55b654a255f"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/SwathQC.cpp",
+   "sha256": "66d60c26e1c5396b41724220af8b9d866bf15adc77527825380aeae149a45159"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h",
+   "sha256": "38115bbc9e6736432858e4a2bb7859aeffe380ced639437a9cc3526b2a60ee86"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/SwathMapMassCorrection.cpp",
+   "sha256": "3b90efaf3dfdab18a9e3b0cce76d91a71448a0d75d3bb4845de37dc3f9c0a3d2"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ChromatogramExtractorAlgorithm_test.cpp",
+   "sha256": "9ca762998468372b0887487da5e2eb84ab3b1d539d77abfff7125d09115723d9"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ChromatogramExtractor_test.cpp",
+   "sha256": "8f0d6f7fae4a24992bd4ee9d71efda854b46a61f0c2283d879d37779f3b4e710"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakMapExtractor_test.cpp",
+   "sha256": "198055de6a53c9781965203cc6a0a8cc6879328d4f9fd6ccff6649a0ac4b8237"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SwathWindowLoader_test.cpp",
+   "sha256": "e695e42b6054736287b442de66d23cc2fae9aa3b7c90492fab50e5fee54dcc28"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SwathQC_test.cpp",
+   "sha256": "cfb4bbf556566517d996de67c9ee3978f7205fc8a362922d91b74bca259ee162"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SwathMapMassCorrection_test.cpp",
+   "sha256": "6303da0fc38b0ad98c44cc03788a2a51e2120b0af1925ee85ff390a02381b7f6"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/openswath_extraction_ChromatogramExtractor_input.mzML",
+   "sha256": "f468bcb9d7f8a440482e0a26256f8920a32fd03747b85d83b7ed6dc8088fd52d",
+   "upstream": "src/tests/class_tests/openms/data/ChromatogramExtractor_input.mzML",
+   "kind": "upstream class-test data, byte-identical copy at the core pin"
+  },
+  {
+   "path": "tests/data/openswath_extraction_SwathWindowFile.txt",
+   "sha256": "6cfe87edba0067facd0be06e013aeb555ed96bb8dfeaeed5a013e2335bf624db",
+   "upstream": "src/tests/class_tests/openms/data/SwathWindowFile.txt",
+   "kind": "upstream class-test data, byte-identical copy at the core pin"
+  },
+  {
+   "path": "tests/data/openswath_extraction_SwathWindowFileNoHeader.txt",
+   "sha256": "45806bf02c28c9f9dc07c19cb3569fa0d0a7cbcff810fc94dd886317efb4d53f",
+   "upstream": "src/tests/class_tests/openms/data/SwathWindowFileNoHeader.txt",
+   "kind": "upstream class-test data, byte-identical copy at the core pin"
+  },
+  {
+   "path": "tests/data/openswath_extraction_PeakPickerHiRes_orbitrap_sn1_out.mzML",
+   "sha256": "b7072a01b91544f95d2b942ac8ef144d6bd047416d58f85b6f17e773a9173fd2",
+   "upstream": "src/tests/class_tests/openms/data/PeakPickerHiRes_orbitrap_sn1_out.mzML",
+   "kind": "upstream class-test data, byte-identical copy at the core pin"
+  },
+  {
+   "path": "tests/data/openswath_extraction_oracle.tsv",
+   "sha256": "578c1ebb89638649b101d5a44ee67676b55196c96714ba63d3329c3f822e5ff6",
+   "rows": 525,
+   "kind": "executed C++ output: results/records.tsv of ../oracle/O4a-extraction (run 1; run 2 byte-identical), driver built with x86_64-conda-linux-gnu-g++ 14.4.0 -O2 -DNDEBUG against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 and run on ibminode06"
+  }
+ ],
+ "external_reference_note": "The O4a oracle driver (C++), its node and launcher scripts, the edge-case SWATH-window files and the TraML input live outside this repository under ../oracle/O4a-extraction/ so that no C++ is committed here. Only the executed record stream (tests/data/openswath_extraction_oracle.tsv) and byte-identical upstream class-test data are in the crate. results/hashes.txt records the sha256 of the driver binary, libOpenMS.so and libOpenSwathAlgo.so of the Release install.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/O4a-extraction/driver.cpp",
+   "sha256": "e60d1747fbc2a39a69debf9f1deafac20d8e6c5b83ece53c30cb8a53dc60b7db",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/O4a-extraction/node.sh",
+   "sha256": "3edfd92e77bfd114fab744aae516b04c332d829136e2afa9f99f44af2de05648",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/O4a-extraction/run.sh",
+   "sha256": "1a7b919dbc7163691ace9780abd24d17c9e2fbec8d3859468d884519dfc59ced",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/O4a-extraction/results/hashes.txt",
+   "sha256": "553d5a4b3b28456e05a194383be31b1db706d0cd18d45e9f283b9da0dbf9d3c2",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/results/host.txt",
+   "sha256": "cd30634344416acef83a454f7e9afad3136d1fd1c252931057e6115b174be084",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/results/differ.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/ChromatogramExtractor_input.TraML",
+   "sha256": "8d2bb31638df9a67c78eb04f95f443b421a09c5b020b455f5b186c0e7f4bc64c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_blank_trailing.txt",
+   "sha256": "7f17a8841c5e1e9d3045ae054fb1b1fe3f1bcab299b1fd1d9d0e221c876a7366",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_blank_middle.txt",
+   "sha256": "9990a470e3204f7f4f1c0e9df05a8cf6470f713124f238c88b26d8e895b1d4a7",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_crlf.txt",
+   "sha256": "69fa28677eb3fc2dfa5b9098a842c8cd312c62f366a56f56b3651c5781b97acc",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_extra_cols.txt",
+   "sha256": "4b9d65941251368ac2d354977b513b5821ff3de9e582d2f9f9a23617c48d058e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_one_col.txt",
+   "sha256": "2d33a6ed1b4b395e8b59bbbcb2e21ca0cbbfab571bbad2ec0da4b421699deba6",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_inverted.txt",
+   "sha256": "eac1f7e706cf3fb514210f835838885922216eec8c37962560c292211ecb0fda",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O4a-extraction/fixtures/swath_garbage.txt",
+   "sha256": "b1a5101d7d538c1582f15ce0bbbfc63018fe53e65ea0fcda3c570ef79d334790",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/openswath/chromatogram_extractor_algorithm.rs",
+  "src/analysis/openswath/chromatogram_extractor.rs",
+  "src/analysis/openswath/peak_map_extractor.rs",
+  "src/analysis/openswath/swath_window_loader.rs",
+  "src/analysis/openswath/swath_qc.rs",
+  "src/analysis/openswath/swath_map_mass_correction.rs"
+ ],
+ "native_tests": [
+  "tests/openswath_extraction.rs"
+ ],
+ "support_document": [
+  "docs/OPENSWATH_EXTRACTION_SUPPORT.md"
+ ]
+}

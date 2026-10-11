@@ -1,0 +1,33 @@
+# case	group	settings
+g1_legacy	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40
+g1_default	g1	
+g1_bg_original	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;background_subtraction=s:original
+g1_bg_exact_simpson	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;background_subtraction=s:exact;PeakIntegrator:integration_type=s:simpson
+g1_bg_exact_trapezoid_max	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;background_subtraction=s:exact;PeakIntegrator:integration_type=s:trapezoid;PeakIntegrator:baseline_type=s:vertical_division_max
+g1_smoothed	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;peak_integration=s:smoothed
+g1_shape_mi	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;compute_peak_shape_metrics=s:true;compute_total_mi=s:true
+g1_min_width	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;min_peak_width=f:100
+g1_use_precursors	g1	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;use_precursors=s:true
+g2_consensus	g2	resample_boundary=f:1;PeakPickerChromatogram:gauss_width=f:10;PeakPickerChromatogram:peak_width=f:-1;PeakPickerChromatogram:signal_to_noise=f:1;PeakPickerChromatogram:method=s:corrected;use_consensus=s:true
+g2_noconsensus	g2	resample_boundary=f:1;PeakPickerChromatogram:gauss_width=f:10;PeakPickerChromatogram:peak_width=f:-1;PeakPickerChromatogram:signal_to_noise=f:1;PeakPickerChromatogram:method=s:corrected;use_consensus=s:false
+g2_widest	g2	resample_boundary=f:1;PeakPickerChromatogram:gauss_width=f:10;PeakPickerChromatogram:peak_width=f:-1;PeakPickerChromatogram:signal_to_noise=f:1;PeakPickerChromatogram:method=s:corrected;boundary_selection_method=s:widest
+g2_quality	g2	resample_boundary=f:1;PeakPickerChromatogram:gauss_width=f:10;PeakPickerChromatogram:peak_width=f:-1;PeakPickerChromatogram:signal_to_noise=f:1;PeakPickerChromatogram:method=s:corrected;compute_peak_quality=s:true
+g2_quality_minq	g2	resample_boundary=f:1;PeakPickerChromatogram:gauss_width=f:10;PeakPickerChromatogram:peak_width=f:-1;PeakPickerChromatogram:signal_to_noise=f:1;PeakPickerChromatogram:method=s:corrected;compute_peak_quality=s:true;minimal_quality=f:0.5
+g2_recalc	g2	resample_boundary=f:1;PeakPickerChromatogram:gauss_width=f:10;PeakPickerChromatogram:peak_width=f:-1;PeakPickerChromatogram:signal_to_noise=f:1;PeakPickerChromatogram:method=s:corrected;recalculate_peaks=s:true;recalculate_peaks_max_z=f:0.5
+g3_default	g3	
+g3_legacy_overlap	g3	PeakPickerChromatogram:method=s:legacy;PeakPickerChromatogram:peak_width=f:40;PeakPickerChromatogram:remove_overlapping_peaks=s:true
+g3_all_metrics	g3	compute_peak_quality=s:true;compute_peak_shape_metrics=s:true;compute_total_mi=s:true;resample_boundary=f:20
+g3_recalc	g3	recalculate_peaks=s:true
+g3_stop1	g3	stop_after_feature=i:1
+g3_ratio	g3	stop_after_intensity_ratio=f:0.2
+g3_widest	g3	boundary_selection_method=s:widest
+g3_smoothed	g3	peak_integration=s:smoothed
+g3_noconsensus	g3	use_consensus=s:false
+g3_sgolay	g3	PeakPickerChromatogram:use_gauss=s:false;PeakPickerChromatogram:sgolay_frame_length=i:9;PeakPickerChromatogram:sgolay_polynomial_order=i:3
+g3_bg_exact	g3	background_subtraction=s:exact
+g4_default	g4	
+g4_use_precursors	g4	use_precursors=s:true
+g4_noconsensus_precursors	g4	use_precursors=s:true;use_consensus=s:false
+g4_smoothed_precursors	g4	use_precursors=s:true;peak_integration=s:smoothed
+g5_precursors_only	g5	use_precursors=s:true
+g5_no_precursors	g5	

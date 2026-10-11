@@ -4,20 +4,29 @@
 
 //! Sampled peak integration, baseline estimates and shape metrics.
 //!
-//! Ported from `PeakIntegrator.h` at OpenMS4-core revision
-//! `7c029e8cdba6abab503708ecdd56f6ab55e38ce4`. Bounds include observed points
-//! without interpolation. Even-count Simpson integration can use a neighboring
-//! sample outside the bounds. Optional EMG fitting integrates the full fitted
-//! span, including extrapolated points, as in source EMGPreProcess_.
+//! Ported from `ANALYSIS/OPENSWATH/PeakIntegrator.h`, first at OpenMS4-core
+//! revision `7c029e8cdba6abab503708ecdd56f6ab55e38ce4` and completed at
+//! `bc9cc12` (the index-bounded overloads and the parameter surface). Bounds
+//! include observed points without interpolation. Even-count Simpson
+//! integration can use a neighboring sample outside the bounds. Optional EMG
+//! fitting integrates the full fitted span, including extrapolated points, as
+//! in source EMGPreProcess_. See `docs/PEAK_INTEGRATION_SUPPORT.md`.
 
 use crate::analysis::emg::EmgGradientDescent;
 use crate::error::{Error, Result};
 use crate::kernel::{MSChromatogram, MSSpectrum};
+use crate::param::{DefaultParamHandler, Param, ParamNode};
+use crate::processing::peak_picking::{flag, flag_entry, string_entry};
 use std::fmt;
 use std::ops::Range;
 use std::str::FromStr;
 
-/// Algorithm used for both peak integration and background area.
+/// The source class name, `DefaultParamHandler("PeakIntegrator")`, under
+/// which unknown-parameter warnings are reported.
+pub const PEAK_INTEGRATOR_NAME: &str = "PeakIntegrator";
+
+/// Algorithm used for both peak integration and background area (source
+/// parameter `integration_type`).
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum IntegrationMethod {
     /// Sum observed intensities, without weighting by coordinate spacing.
@@ -30,6 +39,7 @@ pub enum IntegrationMethod {
 }
 
 impl IntegrationMethod {
+    /// The source parameter value: `intensity_sum`, `trapezoid` or `simpson`.
     pub const fn name(self) -> &'static str {
         match self {
             Self::IntensitySum => "intensity_sum",
@@ -57,7 +67,8 @@ impl fmt::Display for IntegrationMethod {
     }
 }
 
-/// Baseline determined from the first and last selected intensities.
+/// Baseline determined from the first and last selected intensities (source
+/// parameter `baseline_type`).
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum BaselineType {
     /// Line connecting the sampled endpoints.
@@ -70,6 +81,10 @@ pub enum BaselineType {
 }
 
 impl BaselineType {
+    /// The source parameter value: `base_to_base`, `vertical_division_min` or
+    /// `vertical_division_max`. The source's fourth value,
+    /// `vertical_division`, parses as [`BaselineType::VerticalDivisionMin`],
+    /// whose name this returns.
     pub const fn name(self) -> &'static str {
         match self {
             Self::BaseToBase => "base_to_base",
@@ -97,8 +112,10 @@ impl fmt::Display for BaselineType {
     }
 }
 
+/// The result of an integration (source `PeakIntegrator::PeakArea`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PeakArea {
+    /// The peak's computed area.
     pub area: f64,
     /// First strictly positive maximum; zero if all selected intensities are nonpositive.
     pub height: f64,
@@ -108,24 +125,39 @@ pub struct PeakArea {
     pub hull_points: Vec<[f64; 2]>,
 }
 
+/// The result of a background estimation (source
+/// `PeakIntegrator::PeakBackground`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct PeakBackground {
+    /// The background area estimation.
     pub area: f64,
+    /// The background height (intensity) at the peak apex.
     pub height: f64,
 }
 
-/// Sampled shape measures; threshold positions are not interpolated.
+/// Sampled shape measures; threshold positions are not interpolated (source
+/// `PeakIntegrator::PeakShapeMetrics`, all fields zero by default).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct PeakShapeMetrics {
+    /// Width at 5% of the peak height.
     pub width_at_5: f64,
+    /// Width at 10% of the peak height.
     pub width_at_10: f64,
+    /// Width at 50% of the peak height.
     pub width_at_50: f64,
+    /// Start position at 5% of the peak height.
     pub start_position_at_5: f64,
+    /// Start position at 10% of the peak height.
     pub start_position_at_10: f64,
+    /// Start position at 50% of the peak height.
     pub start_position_at_50: f64,
+    /// End position at 5% of the peak height.
     pub end_position_at_5: f64,
+    /// End position at 10% of the peak height.
     pub end_position_at_10: f64,
+    /// End position at 50% of the peak height.
     pub end_position_at_50: f64,
+    /// The peak's total width: last minus first selected position.
     pub total_width: f64,
     /// Zero when the apex equals the sampled 5% start, as in the source.
     pub tailing_factor: f64,
@@ -135,22 +167,35 @@ pub struct PeakShapeMetrics {
     pub slope_of_baseline: f64,
     /// Baseline intensity difference divided by supplied height; zero for zero height.
     pub baseline_delta_2_height: f64,
+    /// Number of selected points across the baseline.
     pub points_across_baseline: usize,
+    /// Number of selected points at or above half the peak height.
     pub points_across_half_height: usize,
 }
 
-/// Read-only integration of a sorted spectrum or chromatogram.
+/// Read-only integration of a sorted spectrum or chromatogram (source
+/// `PeakIntegrator`).
 ///
 /// All methods validate finite input, bounds, ordering and parallel arrays. The
 /// source's finite negative areas are retained. Nonfinite calculated results and
 /// divisions with no defined source result return errors. No input is changed.
+///
+/// Each of the three operations exists for both containers and for both kinds
+/// of bound the source overloads on: positions (`integrate_chromatogram`) and
+/// sample indices (`integrate_chromatogram_between`, the source's
+/// `ConstIterator&` overloads). The source's `DefaultParamHandler` surface is
+/// [`PeakIntegrator::defaults`], [`PeakIntegrator::to_param`] and
+/// [`PeakIntegrator::from_param`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct PeakIntegrator {
+    /// Source `integration_type`, default `intensity_sum`.
     pub integration_method: IntegrationMethod,
+    /// Source `baseline_type`, default `base_to_base`.
     pub baseline_type: BaselineType,
-    /// Optional EMG preprocessing. Fit the requested inclusive bounds once per
-    /// operation, then use the full fitted span. Supplied shape height and apex
-    /// remain unchanged. `None` uses the observed samples directly.
+    /// Optional EMG preprocessing (source `fit_EMG`, default `false`). Fit the
+    /// requested inclusive bounds once per operation, then use the full fitted
+    /// span. Supplied shape height and apex remain unchanged. `None` uses the
+    /// observed samples directly.
     pub emg: Option<EmgGradientDescent>,
     /// Maximum whole-input point count, checked before validation or allocation.
     /// Must be positive. Work is linear in this count; hull storage is linear in
@@ -171,7 +216,138 @@ impl Default for PeakIntegrator {
 }
 
 impl PeakIntegrator {
+    /// Source constant `INTEGRATION_TYPE_INTENSITYSUM`.
+    pub const INTEGRATION_TYPE_INTENSITYSUM: &'static str = "intensity_sum";
+    /// Source constant `INTEGRATION_TYPE_TRAPEZOID`.
+    pub const INTEGRATION_TYPE_TRAPEZOID: &'static str = "trapezoid";
+    /// Source constant `INTEGRATION_TYPE_SIMPSON`.
+    pub const INTEGRATION_TYPE_SIMPSON: &'static str = "simpson";
+    /// Source constant `BASELINE_TYPE_BASETOBASE`.
+    pub const BASELINE_TYPE_BASETOBASE: &'static str = "base_to_base";
+    /// Source constant `BASELINE_TYPE_VERTICALDIVISION`, an alias of
+    /// [`PeakIntegrator::BASELINE_TYPE_VERTICALDIVISION_MIN`].
+    pub const BASELINE_TYPE_VERTICALDIVISION: &'static str = "vertical_division";
+    /// Source constant `BASELINE_TYPE_VERTICALDIVISION_MIN`.
+    pub const BASELINE_TYPE_VERTICALDIVISION_MIN: &'static str = "vertical_division_min";
+    /// Source constant `BASELINE_TYPE_VERTICALDIVISION_MAX`.
+    pub const BASELINE_TYPE_VERTICALDIVISION_MAX: &'static str = "vertical_division_max";
+
+    /// The source defaults (`getDefaultParameters`, `getDefaults`):
+    /// `integration_type` (`intensity_sum`; valid `intensity_sum`, `simpson`,
+    /// `trapezoid`), `baseline_type` (`base_to_base`; valid `base_to_base`,
+    /// `vertical_division`, `vertical_division_min`, `vertical_division_max`)
+    /// and `fit_EMG` (`false`), with the source descriptions.
+    ///
+    /// # Errors
+    ///
+    /// Only a parameter-tree resource failure, which the constant tree cannot
+    /// trigger.
+    pub fn defaults() -> Result<Param> {
+        Self::default().to_param()
+    }
+
+    /// The parameters of this integrator in the layout of
+    /// [`PeakIntegrator::defaults`], carrying the current values (source
+    /// `getParameters`).
+    ///
+    /// `fit_EMG` is written as whether [`emg`](Self::emg) is set; the fitter's
+    /// own limits have no source parameter (the source's `emg_` member is never
+    /// configured) and are not represented.
+    ///
+    /// # Errors
+    ///
+    /// Only a parameter-tree resource failure.
+    pub fn to_param(&self) -> Result<Param> {
+        let entries = vec![
+            string_entry(
+                "integration_type",
+                self.integration_method.name(),
+                "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.",
+                false,
+                &["intensity_sum", "simpson", "trapezoid"],
+            ),
+            string_entry(
+                "baseline_type",
+                self.baseline_type.name(),
+                "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).",
+                false,
+                &[
+                    "base_to_base",
+                    "vertical_division",
+                    "vertical_division_min",
+                    "vertical_division_max",
+                ],
+            ),
+            {
+                let mut entry = flag_entry(
+                    "fit_EMG",
+                    self.emg.is_some(),
+                    "Fit the chromatogram/spectrum to the EMG peak model.",
+                    false,
+                );
+                entry.valid_strings = vec!["false".into(), "true".into()];
+                entry
+            },
+        ];
+        Param::from_root(ParamNode {
+            name: String::new(),
+            description: String::new(),
+            entries,
+            nodes: Vec::new(),
+        })
+    }
+
+    /// Build an integrator from parameters, as source `setParameters` followed
+    /// by `updateMembers_`.
+    ///
+    /// Missing parameters take their defaults; unknown ones are ignored, as the
+    /// source only warns (see [`PeakIntegrator::from_param_with_warnings`]).
+    /// `fit_EMG = true` selects [`EmgGradientDescent::default`], the
+    /// configuration of the source's never-configured `emg_` member.
+    /// [`max_points`](Self::max_points) keeps its default.
+    ///
+    /// The source stores the two type strings and compares them only when an
+    /// operation runs, throwing `Exception::InvalidParameter` for an unknown
+    /// one there; since both parameters are restricted to their valid strings,
+    /// an unknown value is refused here instead.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] when a parameter has the wrong value type
+    /// or is not one of its valid strings (the source
+    /// `Exception::InvalidParameter`).
+    pub fn from_param(parameters: &Param) -> Result<Self> {
+        Ok(Self::from_param_with_warnings(parameters)?.0)
+    }
+
+    /// As [`PeakIntegrator::from_param`], also returning the unknown-parameter
+    /// warnings the source logs.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::from_param`].
+    pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
+        let mut handler = DefaultParamHandler::new(PEAK_INTEGRATOR_NAME)?;
+        handler.set_defaults(Self::defaults()?)?;
+        handler.set_parameters_with(parameters, |param| {
+            Ok(Self {
+                integration_method: param.value("integration_type")?.as_str()?.parse()?,
+                baseline_type: param.value("baseline_type")?.as_str()?.parse()?,
+                emg: flag(param, "fit_EMG")?.then(EmgGradientDescent::default),
+                ..Self::default()
+            })
+        })
+    }
+
     /// Integrate sampled m/z points in inclusive `[left, right]`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for bounds that are not finite and
+    /// ordered, an input above [`max_points`](Self::max_points), non-finite
+    /// input or results, EMG fitting failures, and a Simpson interval without
+    /// strictly increasing positions; [`Error::UnsortedData`] for a spectrum
+    /// not sorted by m/z (the source's `@note` precondition, unchecked there).
     pub fn integrate_spectrum(
         &self,
         input: &MSSpectrum,
@@ -182,6 +358,10 @@ impl PeakIntegrator {
     }
 
     /// Integrate sampled retention times in inclusive `[left, right]` (seconds).
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_spectrum`].
     pub fn integrate_chromatogram(
         &self,
         input: &MSChromatogram,
@@ -191,6 +371,23 @@ impl PeakIntegrator {
         self.integrate(Trace::Chromatogram(input), left, right)
     }
 
+    /// Estimate the background of a peak in inclusive m/z `[left, right]`,
+    /// with the peak apex at `apex`.
+    ///
+    /// Base-to-base computes the area of the trapezoid under the line joining
+    /// the first and last selected samples; the vertical divisions use a
+    /// rectangle at the smaller or larger boundary intensity. The area uses
+    /// the same formula family as [`integration_method`](Self::integration_method)
+    /// (a sum over samples for `intensity_sum`, a width-scaled area otherwise),
+    /// so callers should subtract it from an area integrated with the same
+    /// method, as the source advises.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_spectrum`], and
+    /// [`Error::InvalidValue`] when `apex` lies outside the bounds, when no
+    /// sample is selected, or when a base-to-base baseline has equal endpoint
+    /// positions.
     pub fn estimate_background_spectrum(
         &self,
         input: &MSSpectrum,
@@ -201,6 +398,12 @@ impl PeakIntegrator {
         self.background(Trace::Spectrum(input), left, right, apex)
     }
 
+    /// Estimate the background of a peak in inclusive retention time
+    /// `[left, right]`; see [`PeakIntegrator::estimate_background_spectrum`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::estimate_background_spectrum`].
     pub fn estimate_background_chromatogram(
         &self,
         input: &MSChromatogram,
@@ -211,6 +414,22 @@ impl PeakIntegrator {
         self.background(Trace::Chromatogram(input), left, right, apex)
     }
 
+    /// Calculate the peak's shape metrics in inclusive m/z `[left, right]` for
+    /// a peak of `height` at `apex`.
+    ///
+    /// The metrics are the start and end positions at 5%, 10% and 50% of the
+    /// height and the widths between them, the total width, the tailing and
+    /// asymmetry factors (USP formulas), the baseline slope and its ratio to
+    /// the height, and the number of points across the baseline and at half
+    /// height. An empty spectrum yields all zeros, as in the source.
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_spectrum`], and
+    /// [`Error::InvalidValue`] when `apex` is outside the bounds (the source
+    /// `Exception::InvalidRange`), when `height` is negative or not finite, or
+    /// when no selected sample lies at or above the apex (the source throws
+    /// `Exception::InvalidRange` for an empty selection).
     pub fn calculate_shape_metrics_spectrum(
         &self,
         input: &MSSpectrum,
@@ -222,6 +441,13 @@ impl PeakIntegrator {
         self.shape(Trace::Spectrum(input), left, right, height, apex)
     }
 
+    /// Calculate the peak's shape metrics in inclusive retention time
+    /// `[left, right]`; see
+    /// [`PeakIntegrator::calculate_shape_metrics_spectrum`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::calculate_shape_metrics_spectrum`].
     pub fn calculate_shape_metrics_chromatogram(
         &self,
         input: &MSChromatogram,
@@ -231,6 +457,125 @@ impl PeakIntegrator {
         apex: f64,
     ) -> Result<PeakShapeMetrics> {
         self.shape(Trace::Chromatogram(input), left, right, height, apex)
+    }
+
+    /// [`PeakIntegrator::integrate_chromatogram`] between the positions of
+    /// samples `left` and `right` (the source's `ConstIterator&` overload,
+    /// which reads `left->getRT()` and `right->getRT()`).
+    ///
+    /// Both indices name samples, so `right` is the last sample, not one past
+    /// it. As in the source, only the two positions are used: with duplicate
+    /// retention times the selection covers every sample at those positions.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when an index is not a sample of `input` (the
+    /// source dereferences the iterator unchecked), otherwise as
+    /// [`PeakIntegrator::integrate_chromatogram`].
+    pub fn integrate_chromatogram_between(
+        &self,
+        input: &MSChromatogram,
+        left: usize,
+        right: usize,
+    ) -> Result<PeakArea> {
+        let (left, right) = Trace::Chromatogram(input).positions(left, right)?;
+        self.integrate_chromatogram(input, left, right)
+    }
+
+    /// [`PeakIntegrator::integrate_spectrum`] between the m/z of peaks `left`
+    /// and `right` (the source's `ConstIterator&` overload); see
+    /// [`PeakIntegrator::integrate_chromatogram_between`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_chromatogram_between`].
+    pub fn integrate_spectrum_between(
+        &self,
+        input: &MSSpectrum,
+        left: usize,
+        right: usize,
+    ) -> Result<PeakArea> {
+        let (left, right) = Trace::Spectrum(input).positions(left, right)?;
+        self.integrate_spectrum(input, left, right)
+    }
+
+    /// [`PeakIntegrator::estimate_background_chromatogram`] between the
+    /// positions of samples `left` and `right` (the source's `ConstIterator&`
+    /// overload); see [`PeakIntegrator::integrate_chromatogram_between`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_chromatogram_between`] and
+    /// [`PeakIntegrator::estimate_background_chromatogram`].
+    pub fn estimate_background_chromatogram_between(
+        &self,
+        input: &MSChromatogram,
+        left: usize,
+        right: usize,
+        apex: f64,
+    ) -> Result<PeakBackground> {
+        let (left, right) = Trace::Chromatogram(input).positions(left, right)?;
+        self.estimate_background_chromatogram(input, left, right, apex)
+    }
+
+    /// [`PeakIntegrator::estimate_background_spectrum`] between the m/z of
+    /// peaks `left` and `right` (the source's `ConstIterator&` overload); see
+    /// [`PeakIntegrator::integrate_chromatogram_between`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_chromatogram_between`] and
+    /// [`PeakIntegrator::estimate_background_spectrum`].
+    pub fn estimate_background_spectrum_between(
+        &self,
+        input: &MSSpectrum,
+        left: usize,
+        right: usize,
+        apex: f64,
+    ) -> Result<PeakBackground> {
+        let (left, right) = Trace::Spectrum(input).positions(left, right)?;
+        self.estimate_background_spectrum(input, left, right, apex)
+    }
+
+    /// [`PeakIntegrator::calculate_shape_metrics_chromatogram`] between the
+    /// positions of samples `left` and `right` (the source's `ConstIterator&`
+    /// overload); see [`PeakIntegrator::integrate_chromatogram_between`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::integrate_chromatogram_between`] and
+    /// [`PeakIntegrator::calculate_shape_metrics_chromatogram`]. An empty
+    /// chromatogram has no sample to name, so it is refused here, where the
+    /// source would dereference an end iterator.
+    pub fn calculate_shape_metrics_chromatogram_between(
+        &self,
+        input: &MSChromatogram,
+        left: usize,
+        right: usize,
+        height: f64,
+        apex: f64,
+    ) -> Result<PeakShapeMetrics> {
+        let (left, right) = Trace::Chromatogram(input).positions(left, right)?;
+        self.calculate_shape_metrics_chromatogram(input, left, right, height, apex)
+    }
+
+    /// [`PeakIntegrator::calculate_shape_metrics_spectrum`] between the m/z of
+    /// peaks `left` and `right` (the source's `ConstIterator&` overload); see
+    /// [`PeakIntegrator::calculate_shape_metrics_chromatogram_between`].
+    ///
+    /// # Errors
+    ///
+    /// As [`PeakIntegrator::calculate_shape_metrics_chromatogram_between`].
+    pub fn calculate_shape_metrics_spectrum_between(
+        &self,
+        input: &MSSpectrum,
+        left: usize,
+        right: usize,
+        height: f64,
+        apex: f64,
+    ) -> Result<PeakShapeMetrics> {
+        let (left, right) = Trace::Spectrum(input).positions(left, right)?;
+        self.calculate_shape_metrics_spectrum(input, left, right, height, apex)
     }
 
     fn range(&self, trace: Trace<'_>, left: f64, right: f64) -> Result<Range<usize>> {
@@ -518,6 +863,14 @@ impl Trace<'_> {
             Self::Spectrum(input) => input.validate(),
             Self::Chromatogram(input) => input.validate(),
         }
+    }
+    /// The positions of two samples named by index, as the source's iterator
+    /// overloads dereference them.
+    fn positions(self, left: usize, right: usize) -> Result<(f64, f64)> {
+        if left >= self.len() || right >= self.len() {
+            return Err(invalid("peak bound index is not a sample of the input"));
+        }
+        Ok((self.point(left).0, self.point(right).0))
     }
     fn bound(self, position: f64, upper: bool) -> usize {
         // Select the same inclusive sample range as source PosBegin/PosEnd.

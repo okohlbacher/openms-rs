@@ -345,6 +345,53 @@ impl AASequence {
         self.formula_for_with_budget(fragment, charge, &mut 50_000_000, &mut (256 * 1024 * 1024))
     }
 
+    /// As [`Self::formula_for`], with an anonymous mass annotation contributing
+    /// no atoms, as in the source.
+    ///
+    /// A modification known only by its mass - an anonymous mass tag such as
+    /// `YIC[47.021464]DK`, which the source adds to its database as an "unknown
+    /// modification" - has no empirical formula. The source's `getFormula`
+    /// leaves it out and the mass shift is carried by the residue's weight
+    /// alone; [`Self::formula_for`] refuses such a sequence. Callers that
+    /// reproduce a source computation of an isotope pattern from the formula
+    /// (the MS1 isotope scores of OpenSWATH, the assays of
+    /// `FeatureFinderIdentification`) use this method. The formula of a sequence
+    /// without mass tags is [`Self::formula_for`]'s.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::formula_for`], for any other residue or annotation without
+    /// atoms (unresolved residues).
+    pub fn formula_for_source(
+        &self,
+        fragment: PeptideFragmentType,
+        charge: i32,
+    ) -> Result<EmpiricalFormula> {
+        let tagged = |slot: &Option<SequenceModification>| {
+            matches!(slot, Some(SequenceModification::MassTag(_)))
+        };
+        if !self.residue_modifications.iter().any(tagged)
+            && !tagged(&self.n_terminal)
+            && !tagged(&self.c_terminal)
+        {
+            return self.formula_for(fragment, charge);
+        }
+        let mut stripped = self.clone();
+        for slot in &mut stripped.residue_modifications {
+            if tagged(slot) {
+                *slot = None;
+            }
+        }
+        if tagged(&stripped.n_terminal) {
+            stripped.n_terminal = None;
+        }
+        if tagged(&stripped.c_terminal) {
+            stripped.c_terminal = None;
+        }
+        stripped.rebuild_chemistry()?;
+        stripped.formula_for(fragment, charge)
+    }
+
     /// Shared graph-query budget. Charges survive errors as well as success.
     pub(crate) fn formula_for_with_budget(
         &self,
