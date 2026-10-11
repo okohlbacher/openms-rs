@@ -1,0 +1,71 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h",
+      "sha256": "3585272c63f3963c4571b9e898de9ce5d016d8a875ae1bb2a0830fd193d85dc0"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionPQPFile.cpp",
+      "sha256": "c0663d5af5a30415c7711230599f82c70edc3cc62064bf5d570d3a8120ef9c56"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TransitionPQPFile_test.cpp",
+      "sha256": "8d938bd9a06eb4029e76f3958b757d5f840f2799d9fd54fcd7a8fdc087c3f768"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/transition_pqp_file.rs"
+  ],
+  "native_tests": [
+    "tests/transition_pqp_file.rs"
+  ],
+  "support": "docs/TRANSITION_PQP_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/traml/TargetedFileConverter_3_input.TraML",
+      "sha256": "02802efb65ed7a7065f15e71c16edcae5143f1a0724d21de02ef4511222af727",
+      "origin": "topp/TargetedFileConverter_3_input.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_10_input.pqp",
+      "sha256": "99071b3d579e0f7233eeb6e457d85d8c96fc3db4fad0f5cc431c2d559c4513a6",
+      "origin": "topp/TargetedFileConverter_10_input.pqp at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_10_output.tsv",
+      "sha256": "694c91f61afbae6578e59d6e950268d1e589778142095a22504673c3ae948cf2",
+      "origin": "topp/TargetedFileConverter_10_output.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_11_input.TraML",
+      "sha256": "341d4488a03ec6189c20cbe4c9ef6778b805fbcd9037737a4676ab58dc974abe",
+      "origin": "topp/TargetedFileConverter_11_input.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_12_input.TraML",
+      "sha256": "1fbb8b904283e42e5b7ee113ee5be5b23785746a02b7df0061711bf02c135894",
+      "origin": "topp/TargetedFileConverter_12_input.TraML at test-data 0cb15f2"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (retained C++ output): TargetedFileConverter 3, 4, 11 and 12 (TraML to PQP to TraML) and 10 (a C++-written PQP read with legacy ids, to TraML, to TSV) reproduce their retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1762-1851) via the heavy path of openswath e29e7ee TargetedFileConverter.cpp:229-276. Tier 3: TransitionPQPFile_test.cpp:71-137 and 163-206 heavy halves. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation,sqlite --test transition_pqp_file`: 7 passed.",
+  "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1762-1851",
+  "external_reference_artifacts": [
+    {
+      "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
+      "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed."
+}

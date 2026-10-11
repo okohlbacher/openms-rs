@@ -1,0 +1,176 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h",
+      "sha256": "b842f4caab6b2535fc50c5b653417fae68b71db718ecaaf80f98e7a4b95f3a25"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/TARGETED/TargetedExperimentHelper.cpp",
+      "sha256": "e34a122a70903ba72ec0d8e8db0ef338d4fab14eac833eacacdb0927845d0c02"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h",
+      "sha256": "3ed8343884751a4b3c350604c1bb2a0f36dbd3e0db5f63e8b48246dde0217166"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/MRM/ReactionMonitoringTransition.cpp",
+      "sha256": "9e20590c31415e6986b0e047ffc79f13383a65b8db44197f05bdae61047df0e7"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h",
+      "sha256": "c4d524d4c2a6a254b9f4c3f0b940706f62191200561b7b79059cb82e4b9405e6"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/TARGETED/IncludeExcludeTarget.cpp",
+      "sha256": "573e32b05044d26505efbf025f7dd3b37f28a495349a60b9aa261250ea55d79d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h",
+      "sha256": "965f7435d9a231e65e11402cb7716fa0cb99951356b4fb98d0d30ee449efbab9"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/TARGETED/TargetedExperiment.cpp",
+      "sha256": "53cdc73c061f68e44411df48cef6365b39bed9f43daaef2601a7456d0a7100e9"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/TARGETED/MRMMapping.h",
+      "sha256": "da109d4289b2a9732cb26196fc3503a3673079813453308809947f97ff19848f"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/TARGETED/MRMMapping.cpp",
+      "sha256": "b9860e5360d4234f5d7050f8500c37bf085052f80615b1aa0802a868a25f69a2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h",
+      "sha256": "5db4838460f8e1f5eb536390d615081b4b50527f1efd0cde7dfac2c539e6a1df"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.cpp",
+      "sha256": "be95d9e79ea7f1d23f0fc603055295c576cc2f3cf4492a9d3b70281a66bce079"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TargetedExperimentHelper_test.cpp",
+      "sha256": "d4937a1a250924dcf3ad6c3015447fa7691f77c2bd8303ec254b365f9ee11106"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ReactionMonitoringTransition_test.cpp",
+      "sha256": "04725a373a08c0ab7eb1d73b1afecd44122d5ac9571d3934ec7f815dbf02f15e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IncludeExcludeTarget_test.cpp",
+      "sha256": "17b90bfb06caaa953e77f8e6d672d1483748ae8a1adc5ce9d5166a49a10b7ff0"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TargetedExperiment_test.cpp",
+      "sha256": "896af38e533dc9b6c76433d7179383d40e4a81de6b3785c06610790faebfd620"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMMapping_test.cpp",
+      "sha256": "23e80214a09c95170a3d53c2d9f8085220cf1a3719e527a5d614e63e06fdc4ba"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/targeted_experiment_helper.rs",
+    "src/analysis/openswath/reaction_monitoring_transition.rs",
+    "src/analysis/openswath/include_exclude_target.rs",
+    "src/analysis/openswath/targeted_experiment.rs",
+    "src/analysis/openswath/mrm_mapping.rs",
+    "src/analysis/openswath/metabo_targeted_target_decoy.rs"
+  ],
+  "native_tests": [
+    "tests/targeted_experiment.rs"
+  ],
+  "support": "docs/TARGETED_EXPERIMENT_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/targeted_experiment/oracle_aaseq.stderr",
+      "sha256": "ab8b3a886eecff54febba4b3de320a1b4dc117ef09be58543b2fa4a72804f8bc",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stderr.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_aaseq.stdout",
+      "sha256": "7ab28b86e178c42c5c7e7510e774e44e33cbf2b305faa36637c3b0cb194c6a18",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stdout.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_invalidrefs.stderr",
+      "sha256": "9fd809f91a522d79d05842c2d3989230e7be10b251f906080c477d05391f36b2",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stderr.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_invalidrefs.stdout",
+      "sha256": "7e612d2c4d7ecab59cf82c7c2e8cfee37319f7131d036598ddd5ca1d5ff6b8b5",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stdout.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_mapping.stdout",
+      "sha256": "a746000238cbce50af437da84f85854322351d823e305a6eda0488fcc5ac039c",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stdout.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_metabo.stdout",
+      "sha256": "e8194ee55fae92d7142d8041988280245d61854fa2907b8ca87fda8ee245e976",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stdout.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_summary.stderr",
+      "sha256": "152896701b5b9bfa41a0cf6a4f86e48dcde3ad6f8c8e835bc14dc1797e66ad6d",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stderr.bin"
+    },
+    {
+      "path": "tests/data/targeted_experiment/oracle_summary.stdout",
+      "sha256": "cf1e5769187a34c773bb3ab1e1eaeed236e9a51055053734f4d7280a6eeebaf0",
+      "origin": "../oracle/O1a-targeted/results/cases/<case>/stdout.bin"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (executed differential) for getAASequence/setModification (7 peptides incl. the three TargetedExperiment_test.cpp peptides whose modified strings the class test leaves commented out), SummaryStatistics operator<< (3 mixes), containsInvalidReferences (verdicts and logged messages), MRMMapping::mapExperiment (annotations and the multiple-assay message) and all three MetaboTargetedTargetDecoy functions (mapping construction, 10 ppm / 4 ppm / 20 Da overlap resolution incl. the inclusive boundary, decoy generation): driver ../oracle/O1a-targeted/driver.cpp built with x86_64-conda-linux-gnu-g++ 14.4.0 -O3 -DNDEBUG against the Linux x86-64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c) on ibminode06, every case run twice in fresh processes with byte-identical stdout, stderr and exit (results/differ.txt empty). Tier 3 (source review) for every section of TargetedExperimentHelper_test.cpp, ReactionMonitoringTransition_test.cpp, IncludeExcludeTarget_test.cpp (accessor sections are TODO upstream), TargetedExperiment_test.cpp and MRMMapping_test.cpp. Tier 4 for the native checks.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O1a-targeted/driver.cpp",
+      "sha256": "2c91ca5df5532438e5ce2e8e0b0f44569df40c3f8eefdd01b408a50fae74b098",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O1a-targeted/remote_run.sh",
+      "sha256": "6c6d61b334e826bcfde4f5a0b5c566a3d36d6113288b074be4d425ef98d16fd1",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O1a-targeted/run.sh",
+      "sha256": "59e9ac966390965f56239bb9e348e902282b93559d325d058e671b835d6610b9",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O1a-targeted/cases.txt",
+      "sha256": "b496df285f435b71bfb0ca166847b912e7750e20e554754cd0b92f0ef9446e62",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O1a-targeted/results/hashes.txt",
+      "sha256": "13cfb347872106eb5cf68a750fecebc94441cdf5c82c872175635db231bb0cd1",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O1a-targeted/results/case_hashes.txt",
+      "sha256": "b0f591e0f5cb0c2367a890f771286bb183fe22756e7f4dccf35a52b16b056c3f",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    }
+  ],
+  "external_reference_note": "The C++ oracle driver and its run scripts live outside this repository (no C++ is committed); its retained stdout/stderr are the fixtures under tests/data/targeted_experiment/."
+}
