@@ -65,6 +65,18 @@
 //! assert_eq!(selected.features.len(), 1);
 //! assert_eq!(selected.features[0].unique_id, 2);
 //! ```
+//!
+//! [`MRMFeatureSelector`]: crate::analysis::openswath::mrm_feature_selector::MRMFeatureSelector
+//! [`MRMFeatureSelectorQMIP`]: crate::analysis::openswath::mrm_feature_selector::MRMFeatureSelectorQMIP
+//! [`MRMFeatureSelectorScore`]: crate::analysis::openswath::mrm_feature_selector::MRMFeatureSelectorScore
+//! [`SelectorParameters`]: crate::analysis::openswath::mrm_feature_selector::SelectorParameters
+//! [`LambdaScore`]: crate::analysis::openswath::mrm_feature_selector::LambdaScore
+//! [`SelectorParameters::segment_window_length`]: crate::analysis::openswath::mrm_feature_selector::SelectorParameters::segment_window_length
+//! [`SelectorParameters::segment_step_length`]: crate::analysis::openswath::mrm_feature_selector::SelectorParameters::segment_step_length
+//! [`SelectorParameters::optimal_threshold`]: crate::analysis::openswath::mrm_feature_selector::SelectorParameters::optimal_threshold
+//! [`LinearProgram`]: crate::analysis::openswath::mrm_feature_selector::LinearProgram
+//! [`LpSolver`]: crate::analysis::openswath::mrm_feature_selector::LpSolver
+//! [`PartitionSolver`]: crate::analysis::openswath::mrm_feature_selector::PartitionSolver
 
 use crate::analysis::openswath::mrm_feature_support::{meta_double, meta_string};
 use crate::kernel::{Feature, FeatureMap};
@@ -485,6 +497,10 @@ pub fn remove_spaces(text: &str) -> String {
     text.chars().filter(|&c| c != ' ').collect()
 }
 
+/// What [`construct_targ_trans_list`] returns: the `(assay retention time,
+/// name)` pairs in feature order and, per name, the candidate features.
+pub type TargTransList = (Vec<(f64, String)>, BTreeMap<String, Vec<Feature>>);
+
 /// Build the retention time / name list and the name to candidate map (source
 /// `constructTargTransList_`).
 ///
@@ -501,7 +517,7 @@ pub fn remove_spaces(text: &str) -> String {
 pub fn construct_targ_trans_list(
     features: &FeatureMap,
     select_transition_group: bool,
-) -> Result<(Vec<(f64, String)>, BTreeMap<String, Vec<Feature>>)> {
+) -> Result<TargTransList> {
     let mut time_to_name: Vec<(f64, String)> = Vec::new();
     let mut feature_name_map: BTreeMap<String, Vec<Feature>> = BTreeMap::new();
     let mut names: BTreeSet<String> = BTreeSet::new();

@@ -23,6 +23,11 @@
 //! let selected = batch_mrm_features_score(&FeatureMap::default(), &[], PartitionSolver).unwrap();
 //! assert!(selected.is_empty());
 //! ```
+//!
+//! [`MRMFeatureSelector`]: crate::analysis::openswath::mrm_feature_selector::MRMFeatureSelector
+//! [`batch_mrm_features`]: crate::analysis::openswath::mrm_batch_feature_selector::batch_mrm_features
+//! [`batch_mrm_features_score`]: crate::analysis::openswath::mrm_batch_feature_selector::batch_mrm_features_score
+//! [`batch_mrm_features_qmip`]: crate::analysis::openswath::mrm_batch_feature_selector::batch_mrm_features_qmip
 
 use crate::Result;
 use crate::analysis::openswath::mrm_feature_selector::{

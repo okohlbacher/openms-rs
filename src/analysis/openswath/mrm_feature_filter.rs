@@ -34,6 +34,9 @@
 //! The source writes `OPENMS_LOG_DEBUG` messages when a metavalue or the
 //! internal standard is missing; debug logging has no equivalent here and the
 //! messages are not produced.
+//!
+//! [`MRMFeatureFilter`]: crate::analysis::openswath::mrm_feature_filter::MRMFeatureFilter
+//! [`MRMFeatureQC`]: crate::analysis::openswath::mrm_feature_qc::MRMFeatureQC
 
 use crate::analysis::openswath::mrm_feature_qc::{
     ComponentGroupQCs, ComponentQCs, MRMFeatureQC, MetaValueBounds,

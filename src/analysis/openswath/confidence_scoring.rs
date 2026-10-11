@@ -57,6 +57,8 @@
 //! // pep_2 has its expected RT at the feature's RT: GLM score 0.5, FDR 0
 //! assert_eq!(features.features[1].quality, 1.0);
 //! ```
+//!
+//! [`ConfidenceScoring::score_map`]: crate::analysis::openswath::confidence_scoring::ConfidenceScoring::score_map
 
 use crate::analysis::openswath::mrm_feature_support::{meta_string, native_id};
 use crate::analysis::openswath::scoring::normalize_sum;
@@ -314,7 +316,7 @@ impl ConfidenceScoring {
         &self,
         assay: &Peptide,
         feature_rt: f64,
-        feature_intensities: &mut Vec<f64>,
+        feature_intensities: &mut [f64],
         transition_ids: &BTreeSet<String>,
     ) -> Result<f64> {
         let assay_rt = self.rt_norm.apply(self.get_assay_rt(assay)?);

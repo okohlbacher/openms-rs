@@ -64,8 +64,7 @@ fn library() -> TargetedExperiment {
 }
 
 fn feature(peptide_ref: Option<&str>, sub_native_id: Option<&str>) -> Feature {
-    let mut f = Feature::default();
-    f.rt = 60.0;
+    let mut f = Feature::new(60.0, 0.0, 0.0);
     f.quality = -1.0;
     if let Some(r) = peptide_ref {
         f.metadata.insert("PeptideRef".into(), r.into());
@@ -77,9 +76,7 @@ fn feature(peptide_ref: Option<&str>, sub_native_id: Option<&str>) -> Feature {
 }
 
 fn subordinate(native_id: Option<&str>) -> Feature {
-    let mut sub = Feature::default();
-    sub.intensity = 1.0;
-    sub.mz = 500.0;
+    let mut sub = Feature::new(0.0, 500.0, 1.0);
     if let Some(id) = native_id {
         sub.metadata.insert("native_id".into(), id.into());
     }
@@ -237,13 +234,10 @@ fn native_n_transitions_keeps_the_most_intense_peaks() {
         lib.add_transition(transition(id, "true", mz, intensity));
     }
     lib.add_transition(transition("o", "other", 500.0, 1.0));
-    let mut f = Feature::default();
-    f.rt = 50.0;
+    let mut f = Feature::new(50.0, 0.0, 0.0);
     f.metadata.insert("PeptideRef".into(), "true".into());
     for (id, mz, intensity) in [("a", 500.0, 5.0_f32), ("b", 600.0, 1.0), ("c", 700.0, 3.0)] {
-        let mut sub = Feature::default();
-        sub.mz = mz;
-        sub.intensity = intensity;
+        let mut sub = Feature::new(0.0, mz, intensity);
         sub.metadata.insert("native_id".into(), id.into());
         f.subordinates.push(sub);
     }
@@ -282,12 +276,9 @@ fn native_decoy_draws_are_reproducible() {
         ));
     }
     let make_features = || {
-        let mut f = Feature::default();
-        f.rt = 20.0;
+        let mut f = Feature::new(20.0, 0.0, 0.0);
         f.metadata.insert("PeptideRef".into(), "p2".into());
-        let mut sub = Feature::default();
-        sub.mz = 500.0;
-        sub.intensity = 7.0;
+        let mut sub = Feature::new(0.0, 500.0, 7.0);
         sub.metadata.insert("native_id".into(), "t2".into());
         f.subordinates.push(sub);
         FeatureMap::from_features(vec![f])

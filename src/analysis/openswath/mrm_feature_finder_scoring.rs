@@ -35,6 +35,12 @@
 //! The `MobilogramParquetConsumer` of the source is a
 //! [`MobilogramSink`]; the Parquet implementation is the backlog item of
 //! `FORMAT/DATAACCESS/MobilogramParquetConsumer.h`.
+//!
+//! [`MRMFeatureFinderScoring`]: crate::analysis::openswath::mrm_feature_finder_scoring::MRMFeatureFinderScoring
+//! [`MRMTransitionGroupPicker`]: crate::analysis::openswath::mrm_transition_group_picker::MRMTransitionGroupPicker
+//! [`OpenSwathScoring`]: crate::analysis::openswath::openswath_scoring::OpenSwathScoring
+//! [`FeatureMap`]: crate::kernel::FeatureMap
+//! [`MobilogramSink`]: crate::analysis::openswath::ion_mobility_scoring::MobilogramSink
 
 use crate::analysis::feature_finder_picked::glibc_libm;
 use crate::analysis::featurefinder::emg_scoring::EmgScoring;
@@ -1432,21 +1438,21 @@ impl MRMFeatureFinderScoring {
         let mut scored_feature_indices: Vec<usize> = Vec::new();
 
         let scoring_result = (|| -> Result<()> {
-            for feature_idx in 0..mrmfeatures.len() {
-                if mrmfeatures[feature_idx].feature.base.unique_id == 0 {
-                    mrmfeatures[feature_idx].feature.base.unique_id = self.ids_next();
+            for (feature_idx, current) in mrmfeatures.iter_mut().enumerate() {
+                if current.feature.base.unique_id == 0 {
+                    current.feature.base.unique_id = self.ids_next();
                 }
-                let feature_id = clear_sign_bit(mrmfeatures[feature_idx].feature.base.unique_id);
+                let feature_id = clear_sign_bit(current.feature.base.unique_id);
                 let precursor_mz: f64;
-                let mut scores = *mrmfeatures[feature_idx].scores();
+                let mut scores = *current.scores();
                 let xx_lda_prescore;
                 let mut overall_quality;
                 let mut masserror_ppm: Option<Vec<f64>> = None;
                 let mut id_target: Option<OpenSwathIndScores> = None;
                 let mut id_decoy: Option<OpenSwathIndScores> = None;
                 if ms1only {
-                    let imrmfeature = MRMFeatureOpenMS::new(&mrmfeatures[feature_idx]);
-                    precursor_mz = mrmfeatures[feature_idx].feature.base.mz;
+                    let imrmfeature = MRMFeatureOpenMS::new(&*current);
+                    precursor_mz = current.feature.base.mz;
                     // S/N scores
                     scores.sn_ratio =
                         MRMScoring::calc_sn_score(&imrmfeature, &ms1_signal_noise_estimators);
@@ -1457,20 +1463,19 @@ impl MRMFeatureFinderScoring {
                         log(scores.sn_ratio)
                     };
                     // RT scores: the score is the delta iRT
-                    let normalized_experimental_rt =
-                        trafo.apply(mrmfeatures[feature_idx].feature.base.rt)?;
+                    let normalized_experimental_rt = trafo.apply(current.feature.base.rt)?;
                     let rt_score = MRMScoring::calc_rt_score(&pep, normalized_experimental_rt);
                     scores.normalized_experimental_rt = normalized_experimental_rt;
                     scores.raw_rt_score = rt_score;
                     scores.norm_rt_score = rt_score / self.rt_normalization_factor;
                     // full spectra scores
                     if let Some(ms1) = self.ms1_map.as_ref().filter(|m| m.nr_spectra() > 0) {
-                        if mrmfeatures[feature_idx].feature.base.mz > 0.0 {
+                        if current.feature.base.mz > 0.0 {
                             scorer.calculate_precursor_dia_scores(
                                 Some(ms1),
                                 &self.diascoring,
                                 precursor_mz,
-                                mrmfeatures[feature_idx].feature.base.rt,
+                                current.feature.base.rt,
                                 &pep,
                                 im_range,
                                 &mut scores,
@@ -1481,7 +1486,7 @@ impl MRMFeatureFinderScoring {
                     overall_quality = xx_lda_prescore as f32;
                 } else {
                     let imrmfeature = MRMFeatureOpenMS::with_ids(
-                        &mrmfeatures[feature_idx],
+                        &*current,
                         &cache.transition_native_ids,
                         &cache.precursor_ids,
                     )?;
@@ -1494,8 +1499,7 @@ impl MRMFeatureFinderScoring {
                         &signal_noise_estimators,
                         &mut scores,
                     )?;
-                    let normalized_experimental_rt =
-                        trafo.apply(mrmfeatures[feature_idx].feature.base.rt)?;
+                    let normalized_experimental_rt = trafo.apply(current.feature.base.rt)?;
                     scorer.calculate_library_scores(
                         &imrmfeature,
                         group_detection.transitions(),
@@ -1521,15 +1525,15 @@ impl MRMFeatureFinderScoring {
                         )?);
                     }
                     let mut det_intensity_ratio_score = 0.0;
-                    let total_xic = float_meta(&mrmfeatures[feature_idx].feature, "total_xic")?;
+                    let total_xic = float_meta(&current.feature, "total_xic")?;
                     if total_xic > 0.0 {
                         det_intensity_ratio_score =
-                            f64::from(mrmfeatures[feature_idx].feature.base.intensity) / total_xic;
+                            f64::from(current.feature.base.intensity) / total_xic;
                     }
                     // mutual information scores
                     let mut det_mi_ratio_score = 0.0;
                     if self.su.use_mi_score && self.su.use_total_mi_score {
-                        let total_mi = float_meta(&mrmfeatures[feature_idx].feature, "total_mi")?;
+                        let total_mi = float_meta(&current.feature, "total_mi")?;
                         if total_mi > 0.0 {
                             det_mi_ratio_score = scores.mi_score / total_mi;
                         }
@@ -1574,7 +1578,7 @@ impl MRMFeatureFinderScoring {
                     if self.su.use_elution_model_score {
                         scores.elution_model_fit_score = self
                             .emgscoring
-                            .calc_elution_fit_score(&mrmfeatures[feature_idx], &group_detection)?;
+                            .calc_elution_fit_score(&*current, &group_detection)?;
                     }
                     xx_lda_prescore = self.lda_prescore(&scores);
                     overall_quality = xx_lda_prescore as f32;
@@ -1585,7 +1589,7 @@ impl MRMFeatureFinderScoring {
                     }
                     precursor_mz = detection_precursor_mz;
                 }
-                let mrmfeature = &mut mrmfeatures[feature_idx];
+                let mrmfeature = current;
                 mrmfeature.set_scores(scores);
                 mrmfeature.feature.base.quality = overall_quality;
                 if let Some(ppm) = masserror_ppm {
@@ -1823,7 +1827,7 @@ impl MRMFeatureFinderScoring {
             add_score(mrmfeature, "total_mi", total_mi);
         }
         if su.use_nr_peaks_score {
-            add_score(mrmfeature, "nr_peaks", f64::from(scores.nr_peaks));
+            add_score(mrmfeature, "nr_peaks", scores.nr_peaks);
         }
         if su.use_sn_score {
             add_score(mrmfeature, "sn_ratio", scores.sn_ratio);

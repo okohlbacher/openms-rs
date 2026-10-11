@@ -406,8 +406,9 @@ fn native_parameters_round_trip() {
 fn native_filter_mode_keeps_the_map_level_members() {
     // native (tier 4): filter mode replaces the features only. The source
     // assigns a fresh FeatureMap and so also drops the identifier.
-    let mut mrmff = MRMFeatureFilter::default();
-    mrmff.flag_or_filter = FlagOrFilter::Filter;
+    let mrmff = MRMFeatureFilter {
+        flag_or_filter: FlagOrFilter::Filter,
+    };
     let mut sub = with_meta(&[("native_id", "c1".into())]);
     sub.intensity = 10.0;
     let mut feature = with_meta(&[("PeptideRef", "g1".into())]);
@@ -531,8 +532,8 @@ fn section_9_filter_feature_map_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -544,8 +545,8 @@ fn section_9_filter_feature_map_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -557,8 +558,8 @@ fn section_9_filter_feature_map_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -576,8 +577,8 @@ fn section_9_filter_feature_map_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -589,8 +590,8 @@ fn section_9_filter_feature_map_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -861,8 +862,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -874,8 +875,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -887,8 +888,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1024,8 +1025,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1037,8 +1038,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1050,8 +1051,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 6.0;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1102,8 +1103,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1115,8 +1116,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1128,8 +1129,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 0.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 0.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1204,8 +1205,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1217,8 +1218,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1230,8 +1231,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 0.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 0.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1306,8 +1307,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1319,8 +1320,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1332,8 +1333,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1408,8 +1409,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1431,8 +1432,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1507,8 +1508,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1520,8 +1521,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from(""));
@@ -1533,8 +1534,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from(""));
@@ -1609,8 +1610,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1622,8 +1623,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1688,8 +1689,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1701,8 +1702,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1714,8 +1715,8 @@ fn section_10_filter_feature_map_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1804,8 +1805,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1817,8 +1818,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1830,8 +1831,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1843,8 +1844,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
         component_1.rt = 2.5;
-        component_1.intensity = 15000.0 as f32;
-        component_1.quality = 300.0 as f32;
+        component_1.intensity = 15000.0_f32;
+        component_1.quality = 300.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -1854,8 +1855,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 3.0;
-        subordinate.intensity = 1000.0 as f32;
-        subordinate.quality = 200.0 as f32;
+        subordinate.intensity = 1000.0_f32;
+        subordinate.quality = 200.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1867,8 +1868,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 3.0;
-        subordinate.intensity = 1000.0 as f32;
-        subordinate.quality = 400.0 as f32;
+        subordinate.intensity = 1000.0_f32;
+        subordinate.quality = 400.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1880,8 +1881,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 3.1;
-        subordinate.intensity = 2000.0 as f32;
-        subordinate.quality = 300.0 as f32;
+        subordinate.intensity = 2000.0_f32;
+        subordinate.quality = 300.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1893,8 +1894,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
         component_1.rt = 3.0;
-        component_1.intensity = 5000.0 as f32;
-        component_1.quality = 200.0 as f32;
+        component_1.intensity = 5000.0_f32;
+        component_1.quality = 200.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -1904,8 +1905,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.0;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -1917,8 +1918,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.0;
-        subordinate.intensity = 4000.0 as f32;
-        subordinate.quality = 150.0 as f32;
+        subordinate.intensity = 4000.0_f32;
+        subordinate.quality = 150.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1930,8 +1931,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.0;
-        subordinate.intensity = 1000.0 as f32;
-        subordinate.quality = 300.0 as f32;
+        subordinate.intensity = 1000.0_f32;
+        subordinate.quality = 300.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -1943,8 +1944,8 @@ fn section_11_estimate_default_mrm_feature_qc_values() {
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
         component_1.rt = 2.0;
-        component_1.intensity = 15000.0 as f32;
-        component_1.quality = 500.0 as f32;
+        component_1.intensity = 15000.0_f32;
+        component_1.quality = 500.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -2146,8 +2147,8 @@ fn section_12_estimate_perc_rsd() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2159,8 +2160,8 @@ fn section_12_estimate_perc_rsd() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2172,8 +2173,8 @@ fn section_12_estimate_perc_rsd() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2191,8 +2192,8 @@ fn section_12_estimate_perc_rsd() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2204,8 +2205,8 @@ fn section_12_estimate_perc_rsd() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2437,8 +2438,8 @@ fn section_13_estimate_background_interferences() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2450,8 +2451,8 @@ fn section_13_estimate_background_interferences() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2463,8 +2464,8 @@ fn section_13_estimate_background_interferences() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2482,8 +2483,8 @@ fn section_13_estimate_background_interferences() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2495,8 +2496,8 @@ fn section_13_estimate_background_interferences() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2726,8 +2727,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2739,8 +2740,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2752,8 +2753,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2765,8 +2766,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
         component_1.rt = 2.5;
-        component_1.intensity = 15000.0 as f32;
-        component_1.quality = 300.0 as f32;
+        component_1.intensity = 15000.0_f32;
+        component_1.quality = 300.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -2776,8 +2777,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 3.0;
-        subordinate.intensity = 1000.0 as f32;
-        subordinate.quality = 200.0 as f32;
+        subordinate.intensity = 1000.0_f32;
+        subordinate.quality = 200.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2789,8 +2790,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 3.0;
-        subordinate.intensity = 1000.0 as f32;
-        subordinate.quality = 400.0 as f32;
+        subordinate.intensity = 1000.0_f32;
+        subordinate.quality = 400.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2802,8 +2803,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 3.1;
-        subordinate.intensity = 2000.0 as f32;
-        subordinate.quality = 300.0 as f32;
+        subordinate.intensity = 2000.0_f32;
+        subordinate.quality = 300.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2815,8 +2816,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
         component_1.rt = 3.0;
-        component_1.intensity = 5000.0 as f32;
-        component_1.quality = 200.0 as f32;
+        component_1.intensity = 5000.0_f32;
+        component_1.quality = 200.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -2826,8 +2827,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.0;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -2839,8 +2840,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.0;
-        subordinate.intensity = 4000.0 as f32;
-        subordinate.quality = 150.0 as f32;
+        subordinate.intensity = 4000.0_f32;
+        subordinate.quality = 150.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2852,8 +2853,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.0;
-        subordinate.intensity = 1000.0 as f32;
-        subordinate.quality = 300.0 as f32;
+        subordinate.intensity = 1000.0_f32;
+        subordinate.quality = 300.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -2865,8 +2866,8 @@ fn section_14_accumulate_filter_values() {
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
         component_1.rt = 2.0;
-        component_1.intensity = 15000.0 as f32;
-        component_1.quality = 500.0 as f32;
+        component_1.intensity = 15000.0_f32;
+        component_1.quality = 500.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -3591,8 +3592,8 @@ fn section_17_filter_feature_map_perc_rsd_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -3604,8 +3605,8 @@ fn section_17_filter_feature_map_perc_rsd_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -3617,8 +3618,8 @@ fn section_17_filter_feature_map_perc_rsd_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -3636,8 +3637,8 @@ fn section_17_filter_feature_map_perc_rsd_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -3649,8 +3650,8 @@ fn section_17_filter_feature_map_perc_rsd_flag_and_filter() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -3925,8 +3926,8 @@ fn section_18_filter_feature_map_perc_rsd_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -3938,8 +3939,8 @@ fn section_18_filter_feature_map_perc_rsd_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -3951,8 +3952,8 @@ fn section_18_filter_feature_map_perc_rsd_individual_checks() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -4546,8 +4547,8 @@ fn section_19_filter_feature_map_background_interference() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -4559,8 +4560,8 @@ fn section_19_filter_feature_map_background_interference() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -4572,8 +4573,8 @@ fn section_19_filter_feature_map_background_interference() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component1.2.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -4584,7 +4585,7 @@ fn section_19_filter_feature_map_background_interference() {
         component_1
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group1"));
-        component_1.intensity = 5000.0 as f32;
+        component_1.intensity = 5000.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();
@@ -4592,8 +4593,8 @@ fn section_19_filter_feature_map_background_interference() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Heavy"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Heavy"));
@@ -4605,8 +4606,8 @@ fn section_19_filter_feature_map_background_interference() {
             .metadata
             .insert("native_id".into(), MetaValue::from("component2.1.Light"));
         subordinate.rt = 2.5;
-        subordinate.intensity = 5000.0 as f32;
-        subordinate.quality = 100.0 as f32;
+        subordinate.intensity = 5000.0_f32;
+        subordinate.quality = 100.0_f32;
         subordinate
             .metadata
             .insert("LabelType".into(), MetaValue::from("Light"));
@@ -4617,7 +4618,7 @@ fn section_19_filter_feature_map_background_interference() {
         component_1
             .metadata
             .insert("PeptideRef".into(), MetaValue::from("component_group2"));
-        component_1.intensity = 5000.0 as f32;
+        component_1.intensity = 5000.0_f32;
         component_1.subordinates = subordinates.clone();
         components.features.push(component_1.clone());
         subordinates.clear();

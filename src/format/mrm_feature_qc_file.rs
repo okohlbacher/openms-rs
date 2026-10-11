@@ -34,6 +34,8 @@
 //! assert_eq!(qc.component_qcs[0].retention_time_l, 1.5);
 //! assert_eq!(qc.component_qcs[0].meta_value_qc["sn_score"], (10.0, 1e12));
 //! ```
+//!
+//! [`MRMFeatureQC`]: crate::analysis::openswath::mrm_feature_qc::MRMFeatureQC
 
 use crate::analysis::openswath::mrm_feature_qc::{
     ComponentGroupQCs, ComponentQCs, DEFAULT_COUNT_UPPER_BOUND, DEFAULT_UPPER_BOUND, MRMFeatureQC,

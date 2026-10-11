@@ -35,6 +35,8 @@
 //! assert_eq!(qc.component_qcs[0].retention_time_u, 7.0);
 //! assert_eq!(qc.component_group_qcs[0].n_heavy_u, 100);
 //! ```
+//!
+//! [`MRMFeatureQC`]: crate::analysis::openswath::mrm_feature_qc::MRMFeatureQC
 
 use std::collections::BTreeMap;
 

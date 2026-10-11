@@ -838,16 +838,13 @@ fn confidence_matches_the_release_build() {
         library.add_transition(mk_transition("tr_20", "pep_2", 500.0, 500.0));
         let mut features = FeatureMap::default();
         for i in 0..2 {
-            let mut f = Feature::default();
-            f.rt = 60.0;
+            let mut f = Feature::new(60.0, 0.0, 0.0);
             f.metadata.insert(
                 "PeptideRef".into(),
                 if i == 0 { "pep_1" } else { "pep_2" }.into(),
             );
             f.quality = -1.0;
-            let mut sub = Feature::default();
-            sub.intensity = 1.0;
-            sub.mz = 500.0;
+            let mut sub = Feature::new(0.0, 500.0, 1.0);
             sub.metadata.insert(
                 "native_id".into(),
                 if i == 0 { "tr_10" } else { "tr_20" }.into(),
@@ -897,15 +894,13 @@ fn confidence_matches_the_release_build() {
             if i == 3 {
                 continue;
             }
-            let mut f = Feature::default();
-            f.rt = 10.0 * f64::from(i) + 1.5;
+            let mut f = Feature::new(10.0 * f64::from(i) + 1.5, 0.0, 0.0);
             f.metadata
                 .insert("PeptideRef".into(), format!("p{i}").into());
             f.quality = -1.0;
             for j in 0..3 {
-                let mut sub = Feature::default();
-                sub.intensity = ((j + 1) * 7 + i) as f32;
-                sub.mz = 400.0 + 50.0 * f64::from(j);
+                let mut sub =
+                    Feature::new(0.0, 400.0 + 50.0 * f64::from(j), ((j + 1) * 7 + i) as f32);
                 sub.metadata
                     .insert("native_id".into(), format!("t{i}_{j}").into());
                 f.subordinates.push(sub);
@@ -947,7 +942,8 @@ fn generic_transitions(identification: bool) -> TargetedExperiment {
         exp.add_peptide(p);
     }
     let on = Some((true, false, true));
-    let rows: Vec<(&str, &str, f64, f64, f64, Option<(bool, bool, bool)>)> = vec![
+    type Row<'a> = (&'a str, &'a str, f64, f64, f64, Option<(bool, bool, bool)>);
+    let rows: Vec<Row> = vec![
         ("tr1", "tr_gr1", 500.0, 628.435, 1.0, on),
         ("tr2", "tr_gr1", 500.0, 654.38, 2.0, on),
         ("tr3", "tr_gr2", 501.0, 618.31, 10000.0, on),

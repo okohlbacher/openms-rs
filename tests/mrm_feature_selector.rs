@@ -62,12 +62,14 @@ fn score_select_mrm_feature() {
     let feature_map = featurexml::load(data(FEATURES)).unwrap();
     assert_eq!(feature_map.len(), 210);
 
-    let mut parameters = SelectorParameters::default();
-    parameters.select_transition_group = true;
-    parameters.segment_window_length = -1;
-    parameters.segment_step_length = -1;
-    parameters.variable_type = VariableType::Integer;
-    parameters.optimal_threshold = 0.5;
+    let mut parameters = SelectorParameters {
+        select_transition_group: true,
+        segment_window_length: -1,
+        segment_step_length: -1,
+        variable_type: VariableType::Integer,
+        optimal_threshold: 0.5,
+        ..SelectorParameters::default()
+    };
     parameters.score_weights = [
         ("sn_ratio".to_owned(), LambdaScore::Log),
         ("peak_apices_sum".to_owned(), LambdaScore::Log),
@@ -225,9 +227,8 @@ impl LpSolver for Recorder {
 }
 
 fn candidate(group: &str, id: u64, rt: f64, assay_rt: f64, sn: f64) -> Feature {
-    let mut f = Feature::default();
+    let mut f = Feature::new(rt, 0.0, 0.0);
     f.unique_id = id;
-    f.rt = rt;
     f.metadata.insert("PeptideRef".into(), group.into());
     f.metadata
         .insert("assay_rt".into(), MetaValue::try_from(assay_rt).unwrap());
@@ -254,9 +255,11 @@ fn native_qmip_problem_has_the_source_shape() {
         candidate("B", 4, 2.3, 2.0, 9.0),
     ]);
     let (time_to_name, feature_name_map) = construct_targ_trans_list(&map, true).unwrap();
-    let mut parameters = SelectorParameters::default();
-    parameters.nn_threshold = 1;
-    parameters.variable_type = VariableType::Integer;
+    let mut parameters = SelectorParameters {
+        nn_threshold: 1,
+        variable_type: VariableType::Integer,
+        ..SelectorParameters::default()
+    };
     parameters
         .score_weights
         .insert("sn_ratio".into(), LambdaScore::Linear);
@@ -324,9 +327,11 @@ fn native_failed_solve_is_an_error() {
     // MRMFeatureSelector.cpp: the status check added for issue #9944; a failed
     // solve must not silently select nothing.
     let map = FeatureMap::from_features(vec![candidate("A", 1, 1.0, 1.0, 5.0)]);
-    let mut parameters = SelectorParameters::default();
-    parameters.segment_window_length = -1;
-    parameters.segment_step_length = -1;
+    let parameters = SelectorParameters {
+        segment_window_length: -1,
+        segment_step_length: -1,
+        ..SelectorParameters::default()
+    };
     let selector = MRMFeatureSelectorScore::new(Recorder(Default::default()));
     let err = selector.select_mrm_feature(&map, &parameters).unwrap_err();
     assert!(matches!(err, Error::InvalidValue(_)));
@@ -357,9 +362,11 @@ fn native_segments_follow_window_and_step() {
         .map(|i| candidate(&format!("g{i}"), i + 1, i as f64, i as f64, 1.0))
         .collect();
     let map = FeatureMap::from_features(features);
-    let mut parameters = SelectorParameters::default();
-    parameters.segment_window_length = 4;
-    parameters.segment_step_length = 3;
+    let mut parameters = SelectorParameters {
+        segment_window_length: 4,
+        segment_step_length: 3,
+        ..SelectorParameters::default()
+    };
     let counter = Count(Default::default());
     let selected = counter.select_mrm_feature(&map, &parameters).unwrap();
     assert!(selected.is_empty());
@@ -403,9 +410,11 @@ fn batch_applies_each_parameter_set_to_the_previous_output() {
         candidate("B", 3, 2.0, 2.0, 9.0),
         candidate("B", 4, 2.3, 2.0, 4.0),
     ]);
-    let mut p = SelectorParameters::default();
-    p.segment_window_length = -1;
-    p.segment_step_length = -1;
+    let mut p = SelectorParameters {
+        segment_window_length: -1,
+        segment_step_length: -1,
+        ..SelectorParameters::default()
+    };
     p.score_weights
         .insert("sn_ratio".into(), LambdaScore::Linear);
     let once = batch_mrm_features_score(&map, &[p.clone()], PartitionSolver).unwrap();
@@ -426,8 +435,10 @@ fn partition_solver_refuses_other_programs() {
     // PartitionSolver is exact only for sum(x) = 1 rows over disjoint columns.
     let map = FeatureMap::from_features(vec![candidate("A", 1, 1.0, 1.0, 5.0)]);
     let (time_to_name, feature_name_map) = construct_targ_trans_list(&map, true).unwrap();
-    let mut parameters = SelectorParameters::default();
-    parameters.nn_threshold = 1;
+    let parameters = SelectorParameters {
+        nn_threshold: 1,
+        ..SelectorParameters::default()
+    };
     let qmip = MRMFeatureSelectorQMIP::new(PartitionSolver);
     let two = FeatureMap::from_features(vec![
         candidate("A", 1, 1.0, 1.0, 5.0),
