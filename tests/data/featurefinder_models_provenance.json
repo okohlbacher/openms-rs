@@ -1,0 +1,430 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c06",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/BaseModel.h",
+   "sha256": "fe4dc019c640ca86040b000fc03cc5b9ed027812da84afcae67d64f3a0e23b89"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/BaseModel.cpp",
+   "sha256": "b437777be7e68962fc4b58004957cc753042d6728f1851524553c7c4c8e493fa"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BaseModel_test.cpp",
+   "sha256": "64a171e5469ebec79dde700587847e10fe07e8a0e324dbfcc48579362e627ac5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/BaseModel_impl.h",
+   "sha256": "31833cd1cbeb08429cb1ce5d907670e2e1a0d3f2c47901250b33883ee70179f4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/ModelDescription.h",
+   "sha256": "51a5dd979614b70830319a8a1e72e01518a505133d1cf93bfdd53df0fd194fb4"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/ModelDescription.cpp",
+   "sha256": "9ad33ae265b5489cddd9c8c069d6c92cdbeedc93d6268cda9174755747bfdd2d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ModelDescription_test.cpp",
+   "sha256": "3cf95bdf63a3a20ea40db46b77aa5b25950b834c9c94ea14e6b7c7572438294a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/InterpolationModel.h",
+   "sha256": "505562de250d7147641b57eeeb258f7f281257c57d138968a7f30c67d438794f"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/InterpolationModel.cpp",
+   "sha256": "749f1b8d69e9e3e782b9aeb3183ea85ebd158dfaba300eddcf2343d66aeecebf"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/InterpolationModel_test.cpp",
+   "sha256": "a20c7fe5919b54c0d808d92413cafa046b3ecf11eebb456a3fb27d30904d5b01"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/GaussModel.h",
+   "sha256": "57ed7b30d286c20f7489aee6ef819bf9ba1aa90d8568c682c9fd37fb0b140c97"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/GaussModel.cpp",
+   "sha256": "2344d544257f98fa8f7f25fdeaf774d4ea07abea94b22e3666cda45d95460012"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussModel_test.cpp",
+   "sha256": "a0a205a9b06744eeb05d4f87343710669b262fc5f04438f2f5ac175754eaff9f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/BiGaussModel.h",
+   "sha256": "599cb187b9c4c0414d6467bfb198d0f026f848b3ef43c908dacdb86c17e6522c"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/BiGaussModel.cpp",
+   "sha256": "48e46557ebe079df94966035a701ac067db853396de002d992d704aaee579cc5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BiGaussModel_test.cpp",
+   "sha256": "94220980335aa3f76da5b9958ce03d4d183519faf6c47d4ae687400dbbc3974e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/EmgModel.h",
+   "sha256": "ef499b27d81494d9d125c70b925020fb8693cf16cb3187476dbc25743d1cc2a8"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EmgModel.cpp",
+   "sha256": "a34ccc943fb2ff163a06a0b22b432d851a843aa2036d0e2f066288b00e77dbdc"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EmgModel_test.cpp",
+   "sha256": "bb8c5fb6a9c06f93407d0601f63e554e1b580ee38cb8657a86ab431630faf253"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/IsotopeModel.h",
+   "sha256": "791d8bd3a746fb7774733c4d011549e4f117c26f3ba73b769298849bb756d7a1"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/IsotopeModel.cpp",
+   "sha256": "8583c058765d3e287150c7e899f387d409f8dfb8e2d8ee54f55d85a36b0a2b18"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IsotopeModel_test.cpp",
+   "sha256": "df49996cbb574e6055ea270a86f695362b06d2d5e26613f6241e95e7878567c8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/ExtendedIsotopeModel.h",
+   "sha256": "4cdd039be60ad25cc8d50251a80af45078d3fd9f0b828ac356e1e5f0b1e38550"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/ExtendedIsotopeModel.cpp",
+   "sha256": "4ea176f25c8a79be11223e50533c1fa56730f5f4d1d5e33692ae71c63a1c0b7a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ExtendedIsotopeModel_test.cpp",
+   "sha256": "b3b12e2747a72701312bad4ad93944db45725523344ab01c2cd6f62770acd08c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/Fitter1D.h",
+   "sha256": "29b0bb30a42c6bca9bf9038e666b05023e9af18bd03796bc48ded9dd1024002f"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/Fitter1D.cpp",
+   "sha256": "b11eceba30f26bd750f936c647770046559263d8cad15b109006367d8436e95b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Fitter1D_test.cpp",
+   "sha256": "70bb5b1c79c3169f582f0c3cdfb5f1a6d0c05caea63d10ff53fb13e71085b81c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/LevMarqFitter1D.h",
+   "sha256": "ed28ea12cb85c5bb79b64042dd0edeeb2d95c57a7fbdaade284d073d89219c15"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/LevMarqFitter1D.cpp",
+   "sha256": "03a1b8ab962457699876bd451987e43f3af5d5417314ddce87d451be8342ce4d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LevMarqFitter1D_test.cpp",
+   "sha256": "70cce325f8fe2a193a3fcd5093a4fa7dde2e5ed99154ecf775f354b7dff77019"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MaxLikeliFitter1D.h",
+   "sha256": "4069efd474439a919c71a5066d1b623f83e80d82127d89d08c0d7a164983df6b"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MaxLikeliFitter1D.cpp",
+   "sha256": "da164113e5be4553d09264e82b07f76e6c6b92dea9416ff03f68d42ceeb4131e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MaxLikeliFitter1D_test.cpp",
+   "sha256": "82da95c53e9bd31c9893f0529f04b261acea41da6b804edfb40fd7198803fdd2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/GaussFitter1D.h",
+   "sha256": "cadb061163192d821b40f630bb926199bcdf6de7fd7fb22ff4c9e169db0db019"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/GaussFitter1D.cpp",
+   "sha256": "a8bd308a82ffc02ebd6aaaf9c972d8ec1b1872c8e2f11e2d09022de5b5382126"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussFitter1D_test.cpp",
+   "sha256": "461f942361a078850034cba1502b89f105ce6b7a787d398ee75e422b36dd3577"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/BiGaussFitter1D.h",
+   "sha256": "2a9285d14013affff03364ba79e316daa15f4adcef97fb8aeea8a5475c29b35e"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/BiGaussFitter1D.cpp",
+   "sha256": "a5238944827079f361c98b6d301ecb680b2caa87eb14855afb261d38cdd06a36"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BiGaussFitter1D_test.cpp",
+   "sha256": "ed0eb731c3c559af40b02c016f5490e22462e60945fd64a15e03cdb8d116e81e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/EmgFitter1D.h",
+   "sha256": "c5539723ceff6836d75d91cd20221694288f7f730f57f9819f2d56644064b7e7"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EmgFitter1D.cpp",
+   "sha256": "1e0a58ce297a079685bfad481180a851b22f93cf9ba5dba1e09420fad483a0ed"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EmgFitter1D_test.cpp",
+   "sha256": "2b9c2479d44d8e10de49567eee44fae895dbb17b04919e38ae340423014d3603"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/IsotopeFitter1D.h",
+   "sha256": "f3fc51e90210dd244b86536a2ce30d9abfb44a8dbbc17c6be86b909aa5007871"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/IsotopeFitter1D.cpp",
+   "sha256": "bfc4422f589c79969ccb80c21c04c96f706af60e80af51d207c1d568eeadeabf"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IsotopeFitter1D_test.cpp",
+   "sha256": "3a5c69bf9a9419fa2a7e236c5e65e3e686b1f5def13ca5afe7503858291acf2d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/ExtendedIsotopeFitter1D.h",
+   "sha256": "dc1bcb540648637955e5a79a2d7a1a697fe3a384efa329eedc85c2d380c17969"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/ExtendedIsotopeFitter1D.cpp",
+   "sha256": "4ddae8ee73d534375ca09e5cbf4008b0005b096753094cbae94282b8c8462a25"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ExtendedIsotopeFitter1D_test.cpp",
+   "sha256": "c5fd4b078174ac34634d1c821fb656281820be52661dd75078cca3b84c48bdef"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/EmgScoring.h",
+   "sha256": "bff6c250d89691214856831bfa1622d8579e1149683908ee52effcb43839d2bf"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/EmgScoring.cpp",
+   "sha256": "46c91e7573e88c4e982e7c4b866a92b823ee89c95401c9a2244fbe7567e12e92"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/EmgScoring_test.cpp",
+   "sha256": "3d8d6ae3549be150973889a2a55a8ab44f9538e25483d1345b8b7612edd70ade"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/PeakWidthEstimator.h",
+   "sha256": "7102d2dcf7715bf8739c5274245c41a59a0921af5627931055501c9679f7ae37"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/PeakWidthEstimator.cpp",
+   "sha256": "85c542fe5e6c6d40dfdca421ac80c6f3fa411d5fbe1ae85c28871e6819d4b081"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakWidthEstimator_test.cpp",
+   "sha256": "a2bc7034f79283ce6bf3d1eb214f430e5d0160bebc17ce03e7d6d68ae93082c3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/SeedListGenerator.h",
+   "sha256": "3e99ee6d4676c878e04e3d2cefc3066d9db3ed554f2892db94e2673b5148a937"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/SeedListGenerator.cpp",
+   "sha256": "817a5ac2e770a032623849be6122c3aa3d33d8bc6249885e46b89e3abf3eed0d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SeedListGenerator_test.cpp",
+   "sha256": "82096212e3221a226ae6c63b4a509d94a57d3eb3f8dbb79b4efb5444c1bd0a32"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithm.h",
+   "sha256": "8ddccced720a512075823de2125fcdef843ff5da18fd4dfc4930e7b6033f27f2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderDefs.h",
+   "sha256": "0760af479ef94a1704e540521952d7d38ee8015c9daa6122ff62213981ceba41"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/INTERPOLATION/LinearInterpolation.h",
+   "sha256": "6a31d8ce82a438a3ba7afce22f3a7f9a6f048353d72e63fa9ff6ed0591452a1e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LinearInterpolation_test.cpp",
+   "sha256": "2d995f831a67b09efaae6b8964de8354a28401ce68839780ee11644ae33950c5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/OpenSwathTestHelper.h",
+   "sha256": "e37ee51bda1e2c464b217f76477c7ee47e92b50d834b9053ee76d51d7e53197d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/PepXMLFile_test.mzML",
+   "sha256": "f59715fe0d154e728a685658abc7cf661a72deb8a6239fbd1fd2265070bbf51d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h",
+   "sha256": "24d0f9c4aae34061cc5d2ceb0003d9d4cd86b22c1448ae13bb4358ae0f626405"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/ConvexHull2D.h",
+   "sha256": "eecde18cc716756736ff8917084ca052e31a392a6dd6c65ce2237c3714d652a8"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/ConvexHull2D.cpp",
+   "sha256": "75181e622beebcde6020cafa816363342cd3e9ed9e18d3e5f8924cac3b1572a1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/ElutionModelFitter.h",
+   "sha256": "fcbdd7db84db5100d837548bd40c71f73bb152a6221f5b6fdf781823fcf4896b"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/ElutionModelFitter.cpp",
+   "sha256": "45a89bffa9f547fe4222434f6a3861b2b28020b66b6a500ff4b1ba7eab340dc4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ElutionModelFitter_test.cpp",
+   "sha256": "896223abbb5321d7e8351897ca44df227e7e8b5ce423e5037a7e1d060db1985b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/ElutionModelFitter_test.featureXML",
+   "sha256": "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f"
+  }
+ ],
+ "native_implementation": [
+  "src/math/ml/linear_interpolation.rs",
+  "src/analysis/featurefinder/base_model.rs",
+  "src/analysis/featurefinder/gauss_models.rs",
+  "src/analysis/featurefinder/isotope_model.rs",
+  "src/analysis/featurefinder/fitter1d.rs",
+  "src/analysis/featurefinder/fitters.rs",
+  "src/analysis/featurefinder/emg_scoring.rs",
+  "src/analysis/featurefinder/peak_width_estimator.rs",
+  "src/analysis/featurefinder/seed_list_generator.rs",
+  "src/analysis/featurefinder/feature_finder_algorithm.rs",
+  "src/analysis/featurefinder/elution_model_fitter.rs",
+  "src/analysis/featurefinder/glibc_logf.rs (logf transcribed from ibminode06 libm.so.6 sha256 fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0, glibc 2.39-0ubuntu8.9, __logf_fma)",
+  "src/kernel/geometry.rs (ConvexHull2D keep-first scan enlargement)"
+ ],
+ "native_tests": [
+  "tests/featurefinder_models.rs",
+  "tests/featurefinder_io.rs",
+  "tests/featurefinder_oracle.rs",
+  "tests/featurefinder_elution.rs"
+ ],
+ "support_document": "docs/FEATUREFINDER_MODELS_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/featurefinder_models/oracle.tsv",
+   "sha256": "cbad2469b087e16755c3fbc31639f2446d8c832c55abdc7ee60e66ed7b9b0f63",
+   "rows": 17746,
+   "kind": "executed C++ oracle: ../oracle/FF1-models/driver.cpp against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, run twice with identical output; the driver's stdout filtered to its tab-separated records (awk NF==3), the six OPENMS_LOG lines kept in oracle_log.txt",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/featurefinder_models/oracle_log.txt",
+   "sha256": "d5a7d911cb71a6420614289032460e95fb2bf9a5c196c3f87ad77217b615b11b",
+   "kind": "the oracle driver's OPENMS_LOG_INFO lines (ElutionModelFitter success counts and imputation slope/intercept), same run"
+  },
+  {
+   "path": "tests/data/featurefinder_models/ElutionModelFitter_test.featureXML",
+   "sha256": "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f",
+   "kind": "upstream class-test data (src/tests/class_tests/openms/data at bc9cc12), byte for byte; also the oracle's input"
+  },
+  {
+   "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML",
+   "sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+   "kind": "upstream class-test data (src/tests/class_tests/openms/data at bc9cc12), shared with the peak picker tests"
+  },
+  {
+   "path": "tests/data/consensusxml/ConsensusXMLFile_1.consensusXML",
+   "sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d",
+   "kind": "upstream class-test data (src/tests/class_tests/openms/data at bc9cc12), shared with the consensusXML tests"
+  }
+ ],
+ "class_test_review": {
+  "paths": [
+   "src/tests/class_tests/openms/source/BaseModel_test.cpp",
+   "src/tests/class_tests/openms/source/ModelDescription_test.cpp",
+   "src/tests/class_tests/openms/source/InterpolationModel_test.cpp",
+   "src/tests/class_tests/openms/source/GaussModel_test.cpp",
+   "src/tests/class_tests/openms/source/BiGaussModel_test.cpp",
+   "src/tests/class_tests/openms/source/EmgModel_test.cpp",
+   "src/tests/class_tests/openms/source/IsotopeModel_test.cpp",
+   "src/tests/class_tests/openms/source/ExtendedIsotopeModel_test.cpp",
+   "src/tests/class_tests/openms/source/Fitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/LevMarqFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/MaxLikeliFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/GaussFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/BiGaussFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/EmgFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/IsotopeFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/ExtendedIsotopeFitter1D_test.cpp",
+   "src/tests/class_tests/openms/source/EmgScoring_test.cpp",
+   "src/tests/class_tests/openms/source/PeakWidthEstimator_test.cpp",
+   "src/tests/class_tests/openms/source/SeedListGenerator_test.cpp",
+   "src/tests/class_tests/openms/source/LinearInterpolation_test.cpp",
+   "src/tests/class_tests/openms/source/ElutionModelFitter_test.cpp"
+  ],
+  "literal_extraction": "Every section transcribed into tests/featurefinder_models.rs and tests/featurefinder_io.rs with the ClassTest tolerances in force at its line; not transcribed: EmgFitter1D_test.cpp:120-141 (boost::mt19937 noise) and EmgModel_test.cpp:174-184 (ABORT_IF lines, no assertion). PepXMLFile_test.mzML is represented by its 13 transcribed (ms level, RT, precursor m/z) rows.",
+  "evidence_tier": 3
+ },
+ "cpp_oracle": {
+  "host": "ibminode06",
+  "platform": [
+   "ibminode06",
+   "Linux ibminode06 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux",
+   "ldd (Ubuntu GLIBC 2.39-0ubuntu8.9) 2.39"
+  ],
+  "build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "runs": 2,
+  "runs_identical": true,
+  "hashes": [
+   "da1fcd0de5903d345fd764864bc23e93967bb0129ee1ff6b3a7dc9632ca9f0e3  driver.cpp",
+   "bb0887cd1c3a0a337d2ed1a7876b218afabad2106d8e8f5a885a3019824e126f  build/ff1_driver",
+   "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f  data/ElutionModelFitter_test.featureXML",
+   "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
+   "7e891a8301e9c5751275bd27d739dadc3ac41181051d92bdfd36fa33617cee7c  results/oracle.tsv"
+  ]
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/FF1-models/driver.cpp",
+   "sha256": "da1fcd0de5903d345fd764864bc23e93967bb0129ee1ff6b3a7dc9632ca9f0e3",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF1-models/remote_run.sh",
+   "sha256": "70d45a59cfe448c6a80793b8943c1ac522be3f234868dd63b379e7172f2c3e38",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF1-models/run.sh",
+   "sha256": "2b9929f18ff26d0a2edf9b5052d5a4548e92f8597b6d1a659c9d74ae740d707c",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF1-models/fetch.sh",
+   "sha256": "2510f722ea3a0ec1b44c791f0ec915d89d27be0edbc1747b1bf474c9e7146b0e",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF1-models/data/ElutionModelFitter_test.featureXML",
+   "sha256": "9e65e02aac093d7a7881e9831552d3d37a097706acf150bfe53c5dc3c41f9d3f",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver and scripts live outside this repository under ../oracle/ so that no C++ is committed here.",
+ "license": "BSD-3-Clause for source-derived code and literals; statrs (existing dependency) for the Cauchy density",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
