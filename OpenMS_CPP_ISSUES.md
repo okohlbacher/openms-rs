@@ -2,7 +2,7 @@
 
 This is the ongoing upstream issue log for the Rust port. Findings below were
 checked against **OpenMS4-core `82ce5b373c97f934ffd9b1ffd80215ca66473d0b`**.
-They are open in that source revision. **Fixes are proposed C++ changes, not
+They are open in that source revision. Each entry carries its status against OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11), checked by reading the current source; "Resolved" means the described defect is gone there. **Fixes are proposed C++ changes, not
 claims that the upstream repository has been patched.** Rust behavior is noted
 separately. Findings first logged here: 2026-09-11.
 
@@ -16,9 +16,9 @@ are not classified as confirmed defects here.
 | --- | --- | --- | --- |
 | CPP-001 | DateTime silently replaces early dates after failed libc conversion | Executed, macOS | Open |
 | CPP-002 | DateTime fractional normalization has signed integer overflow | Executed, UBSan | Open |
-| CPP-003 | Stale system configuration discards repaired defaults | Source-reviewed | Open |
+| CPP-003 | Stale system configuration discards repaired defaults | Source-reviewed | Resolved in 3.7 |
 | CPP-004 | Isotope left-trimming retains every peak when all are below cutoff | Source-reviewed | Open |
-| CPP-005 | Fragment isotope truncation writes beyond the result container | Source-reviewed | Open |
+| CPP-005 | Fragment isotope truncation writes beyond the result container | Source-reviewed | Resolved in 3.7 |
 | CPP-006 | Non-preprocessed interpolation prepends unwanted zero coordinates | Source-reviewed | Open |
 | CPP-007 | EMG evaluation produces NaN from finite tail inputs | Source-reviewed; independent numerical regression | Open |
 | CPP-008 | ProForma modified ranges silently lose residue modifications | Source-reviewed | Open |
@@ -54,9 +54,9 @@ are not classified as confirmed defects here.
 | CPP-038 | ProForma crosslink spectra count resolved linker mass twice | Source-reviewed; public AST trigger | Open |
 | CPP-039 | SemanticValidator rejects allowed descendant units | Source-reviewed; custom vocabulary trigger | Open |
 | CPP-040 | Failed semantic validation leaves stale XML paths and rule counts | Source-reviewed; repeated-call trigger | Open |
-| CPP-041 | mzML header strings are inserted into attributes without escaping | Source-reviewed; ordinary text trigger | Open |
-| CPP-042 | XLMS linear suffix losses divide the mass by charge twice | Source-reviewed; charge-two trigger | Open |
-| CPP-043 | XLMS precursor isotope companions omit precursor charge division | Source-reviewed; charge-two trigger | Open |
+| CPP-041 | mzML header strings are inserted into attributes without escaping | Source-reviewed; ordinary text trigger | Partly resolved in 3.7 |
+| CPP-042 | XLMS linear suffix losses divide the mass by charge twice | Source-reviewed; charge-two trigger | Resolved in 3.7 |
+| CPP-043 | XLMS precursor isotope companions omit precursor charge division | Source-reviewed; charge-two trigger | Resolved in 3.7 |
 | CPP-044 | Missing-path CV lookup changes behavior after validation | Source-reviewed; call-order trigger | Open |
 | CPP-045 | PeptideEvidence rejects valid first-residue limits and accepts invalid ranges | Source-reviewed; zero-based range trigger | Open |
 | CPP-046 | Semantic date validation applies date-time syntax to xsd:date | Source-reviewed; XSD lexical contract | Open |
@@ -71,9 +71,11 @@ are not classified as confirmed defects here.
 | CPP-055 | SIMD Base64 decoding accepts characters outside the Base64 alphabet | Source-reviewed; malformed numeric payload trigger | Open |
 | CPP-056 | mzML writing drops spectrum mobility when acquisition records are empty | Source-reviewed; synthetic scan branch | Open |
 | CPP-057 | Spectrum settings equality omits both ion-mobility state fields | Source-reviewed; distinct mobility-state trigger | Open |
-| CPP-058 | Floating DataValue casts read an inactive union member for strings and lists | Source-reviewed; public numeric-cast trigger | Open |
+| CPP-058 | Floating DataValue casts read an inactive union member for strings and lists | Source-reviewed; public numeric-cast trigger | Resolved in 3.7 |
 
 ## CPP-001 — DateTime ignores failed calendar conversion
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DateTime.cpp:48-78 addSecsToFields_ still uses timegm/gmtime_r and never checks the (time_t)-1 / conversion result
 
 **Affected file:** [`src/openms/source/DATASTRUCTURES/DateTime.cpp`, lines 48–83](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/DateTime.cpp#L48), `addSecsToFields_`.
 
@@ -105,6 +107,8 @@ month-stepping expectations; they are not counted as C++ matches.
 
 ## CPP-002 — Fractional seconds overflow signed int during normalization
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DateTime.cpp:229-230,254-255,585-586 still scale millisecond *= 10 in int after sscanf %d with digit count; no overflow guard
+
 **Affected file:** [`DateTime.cpp`, lines 230, 255 and 586](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/DateTime.cpp#L230), the duplicated fractional parsing branches in `set` and `fromString`.
 
 **Issue and reproduction:** Parsing `2000-01-01T00:00:00. 2147483647` assigns a
@@ -132,6 +136,8 @@ retains source clear-first error behavior; partial setters remain atomic.
 
 ## CPP-003 — Configuration repair is computed and discarded
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. SystemSettings.cpp:129-147 getSystemParameters now builds defaults and update()s file values onto them; fixed by #10307 (3e90b87aa3)
+
 **Affected file:** [`src/openms/source/SYSTEM/FileConfig.cpp`, lines 128–160](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/SYSTEM/FileConfig.cpp#L128), `File::getSystemParameters`.
 
 **Issue and reproduction:** Supply a readable `OpenMS.ini` containing only an
@@ -155,6 +161,8 @@ documented in [system-file support](docs/SYSTEM_FILE_SUPPORT.md).
 
 ## CPP-004 — trimLeft does nothing when every peak is below cutoff
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IsotopeDistribution.cpp:210-220 trimLeft still erases only when a peak >= cutoff is found; all-below leaves distribution intact
+
 **Affected file:** [`src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp`, lines 210–220](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.cpp#L210).
 
 **Issue and reproduction:** For intensities `[0.1, 0.2]`, `trimLeft(0.5)` retains
@@ -173,6 +181,8 @@ first-qualifying and exact-cutoff cases.
 **Rust handling:** Clears the distribution when every intensity is below cutoff.
 
 ## CPP-005 — Truncated fragment distribution is indexed at full input length
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. CoarseIsotopePatternGenerator.cpp:510 loop now bounded by r_max; fixed by #10411 (ad08892438)
 
 **Affected file:** [`src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp`, lines 450–520](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.cpp#L450), `calcFragmentIsotopeDist_`.
 
@@ -196,6 +206,8 @@ including empty precursor selections.
 
 ## CPP-006 — Interpolation overload resizes and then appends coordinates
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. TransformationModelInterpolated.cpp:226-231 pair-vector ctor still resize(data.size()) then push_back
+
 **Affected file:** [`src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.cpp`, lines 209–234](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.cpp#L209), the `vector<pair<double,double>>` constructor with `preprocess = false`.
 
 **Issue and reproduction:** With sorted anchors `(1,10), (2,20), (3,30)`, the
@@ -215,6 +227,8 @@ and assert identical anchor counts and interpolation results.
 reproduce this allocation defect. See [transformation support](docs/TRANSFORMATIONS_SUPPORT.md).
 
 ## CPP-007 — EMG tail expression overflows before its asymptotic branch
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. EmgGradientDescent.cpp:431-442 emg_point unchanged: exp(pow(...)) in z<=6.71e7 branch still overflows for large z
 
 **Affected file:** [`src/openms/source/MATH/MISC/EmgGradientDescent.cpp`, lines 419–441](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/MATH/MISC/EmgGradientDescent.cpp#L419), `emg_point`; related derivative expressions in the same file also require review.
 
@@ -241,6 +255,8 @@ it does not yet substitute a different scientific EMG formula.
 
 ## CPP-008 — ProForma modified ranges omit their residue annotations
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:1960-1967 mass, 2115-2119 resolve and 2523-2535 issue check still skip range->elements modifications
+
 **Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2113): resolution at 2113–2117, mass accumulation at 1958–1965, and mass issue checking at 2521–2532. Parser handling at 1145–1175 stores these inner annotations.
 
 **Issue and reproduction:** `(M[UNIMOD:35]A)[+1]` retains the oxidation annotation
@@ -263,6 +279,8 @@ omission explicitly. [Mass support](docs/PROFORMA_MASS_SUPPORT.md) documents the
 policy; [direct regressions](tests/proforma_mass.rs) retain the affected range.
 
 ## CPP-009 — Ambiguous mass checks ignore modifications on candidates
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:1953-1958 mass uses first candidate only; 2508-2522 validation compares residue masses only, ignores mods
 
 **Affected file:** [`ProForma.cpp`, lines 2506–2519](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2506), ambiguous-region mass validation; accumulation at 1949–1956.
 
@@ -287,6 +305,8 @@ omissions, with [direct regressions](tests/proforma_mass.rs) and an explicit
 [compatibility policy](docs/PROFORMA_MASS_SUPPORT.md).
 
 ## CPP-010 — Integer mass decomposition can loop without progress
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IntegerMassDecomposer.h:360-375 witness counters only advanced for first residue in inner loop; getDecomposition:420-431 has no progress guard
 
 **Affected file:** [`src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IntegerMassDecomposer.h#L355), witness creation at 355–367 and consumption at 420–430.
 
@@ -316,6 +336,8 @@ durable independent reproduction here also covers the sorted 73-Da case.
 
 ## CPP-011 — Mass trace detection reuses stale metadata-array state
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MassTraceDetection.cpp:96-110 getIMIndices_ only sets has_* flags true, never resets; run_:481-484 reuses members; reads at 517-530 index stale idx
+
 **Affected files:** [`src/openms/source/FEATUREFINDER/MassTraceDetection.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FEATUREFINDER/MassTraceDetection.cpp#L80), discovery at 80–144, invocation at 482–485 and reads at 518–531; [`MassTraceDetection.h`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/FEATUREFINDER/MassTraceDetection.h#L181), member initialization at 181–184 and 204–206.
 
 **Issue and reproduction:** Reuse one detector. First process spectra with an
@@ -338,6 +360,8 @@ inputs; checked failures preserve detector/output state. See
 [mass trace detection support](docs/MASS_TRACE_DETECTION_SUPPORT.md).
 
 ## CPP-012 — Smoothed area accumulation uses raw peak intensities
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MassTrace.cpp:61-79 computeSmoothedPeakArea still uses raw trace_peaks_ intensities after first point and indexes smoothed_intensities_[0] unguarded
 
 **Affected files:** [`src/openms/source/KERNEL/MassTrace.cpp`, lines 61–78](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/KERNEL/MassTrace.cpp#L61), `computeSmoothedPeakArea`; public description in [`MassTrace.h`, lines 241–247](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/KERNEL/MassTrace.h#L241).
 
@@ -363,6 +387,8 @@ be explicit and must not silently change existing reference results.
 
 ## CPP-013 — Feature finding does not guard zero normalization intensity
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureFindingMetabo.cpp:764,778 divide by total_intensity (sum at 911-915) with no zero guard
+
 **Affected file:** [`src/openms/source/FEATUREFINDER/FeatureFindingMetabo.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FEATUREFINDER/FeatureFindingMetabo.cpp#L759), scores at 759–778 and total intensity at 911–915.
 
 **Issue and reproduction:** Call the public feature finder directly with a
@@ -386,6 +412,8 @@ IDs or changing caller-visible processing state. See
 
 ## CPP-014 — Addition can reduce the cached maximum residue count
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MassDecomposition.cpp:186-196 operator+ still compares to this->number_of_max_aa_ then overwrites d.number_of_max_aa_
+
 **Affected file:** [`src/openms/source/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.cpp`, lines 177–200](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.cpp#L177), `operator+`; compare `operator+=` at 70–94 and the maximum getter at 203–205.
 
 **Issue and reproduction:** `MassDecomposition("A1") + MassDecomposition("B10 C5")`
@@ -406,6 +434,8 @@ new-key and existing-key combinations.
 [mass decomposition support](docs/MASS_DECOMPOSITION_SUPPORT.md).
 
 ## CPP-015 — Cross-link mass depends on endpoint traversal order
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:1929-1940 addModMass still reserves crosslink id on first encounter regardless of carriesChemistry_ (defined 1881 but unused here)
 
 **Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 1927–1938](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L1927), `addModMass`; modification fallback at 1889–1909 and shared cross-link set at 2589–2598.
 
@@ -429,6 +459,8 @@ and an explicit [compatibility policy](docs/PROFORMA_MASS_SUPPORT.md).
 
 ## CPP-016 — Count-only mzML loading can still decode peak arrays
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:1437-1451 normal enqueue/populate path unchanged; missing-RT spectrum in count mode (2371-2375 only counts on RT term) still decoded
+
 **Affected file:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L1401), normal spectrum enqueue at 1401–1427, binary population at 203–217, error propagation at 244 and accepted-RT count handling at 2341–2351.
 
 **Issue and reproduction:** Use `loadSize` with an active MS1 filter, a passing
@@ -451,6 +483,8 @@ It retains the reviewed missing-RT count convention. See
 [mzML count support](docs/MZML_COUNTS_SUPPORT.md).
 
 ## CPP-017 — The chromatogram skip option activates a global callback guard
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:160 setOptions sets skip_chromatogram_ from option and :881 start-element guard returns on it for all elements
 
 **Affected file:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L149), `setOptions` at 149 and start-element guard at 870.
 
@@ -480,6 +514,8 @@ spectrum processing/counting. See [mzML count support](docs/MZML_COUNTS_SUPPORT.
 
 ## CPP-018 — Centroid inspection leaves reader options changed after failure
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLFile.cpp:235-271 getCentroidInfo sets FillData(true) and restores only after transform returns normally; no RAII
+
 **Affected file:** [`src/openms/source/FORMAT/MzMLFile.cpp`, lines 233–283](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/MzMLFile.cpp#L233), `getCentroidInfo`.
 
 **Issue and reproduction:** Set `FillData(false)`, then call `getCentroidInfo`
@@ -502,6 +538,8 @@ the original options and their vector allocation remain unchanged.
 
 ## CPP-019 — Declared processing count includes records that are not written
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:5197-5207 count adds every float array unconditionally while 5229 emits only non-empty histories
+
 **Affected file:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 5160–5196](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L5160), `dataProcessingList` count and auxiliary-array history emission.
 
 **Issue and reproduction:** Write one spectrum with one float auxiliary array
@@ -520,6 +558,8 @@ multiple arrays and the empty-experiment fallback.
 **Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) derives declaration counts from its emitted processing registry, including auxiliary histories and the mandatory empty-history placeholder. Native round trips and independent XSD checks cover both writers.
 
 ## CPP-020 — Formula interning can separate mass validation from calculation
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:2644-2649 tryGetMonoWeight resolves copy, then getMassCalculationIssues(:2493-2494) copies+re-resolves; mass uses first copy
 
 **Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2642), try-mass copy/validation/calculation at 2642–2647, issue-check copy/resolution at 2491–2492 and formula identity creation at 1661–1673.
 
@@ -552,6 +592,8 @@ until a deliberate scientific correction is adopted.
 
 ## CPP-021 — CV XML formatting ignores the value's actual unit
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ControlledVocabulary.cpp:127-130 toXMLString(DataValue) still writes *(units.begin()) when value.hasUnit(), not the value's own unit; UB on empty units
+
 **Affected file:** [`src/openms/source/FORMAT/ControlledVocabulary.cpp`, lines 120–135](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ControlledVocabulary.cpp#L120), typed `CVTerm::toXMLString`.
 
 **Issue and reproduction:** Give a term allowed units `UO:0000010` (second) and
@@ -575,6 +617,8 @@ remains a separate vocabulary constraint.
 
 ## CPP-022 — Legacy binary xref parsing removes the wrong prefix length
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ControlledVocabulary.cpp:471-481 xref/xref_analog binary-data-type branch still does substr(line_wo_spaces, 22) for both spellings
+
 **Affected file:** [`src/openms/source/FORMAT/ControlledVocabulary.cpp`, lines 465–478](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ControlledVocabulary.cpp#L465), binary data type xref parsing.
 
 **Issue and reproduction:** Read a term with
@@ -595,6 +639,8 @@ handling while retaining the ordinary source branch semantics.
 
 ## CPP-023 — Vocabulary printing splits output between two streams
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ControlledVocabulary.cpp:631 is_a lines still written to cout instead of os
+
 **Affected file:** [`src/openms/source/FORMAT/ControlledVocabulary.cpp`, lines 616–628](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ControlledVocabulary.cpp#L616), output-stream operator.
 
 **Issue and reproduction:** Write a vocabulary with a parent relationship to an
@@ -612,6 +658,8 @@ separately in a regression, verifying complete output and no console write.
 requested destination or an owned returned string.
 
 ## CPP-024 — CV parameter rendering does not escape every XML attribute
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ControlledVocabulary.cpp:110,122 accession id and cvRef/unit ids concatenated unescaped (only name/value use writeXMLEscape)
 
 **Affected file:** [`src/openms/source/FORMAT/ControlledVocabulary.cpp`, lines 108–135](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ControlledVocabulary.cpp#L108), both `CVTerm::toXMLString` overloads.
 
@@ -635,6 +683,8 @@ is not rejected merely because it is not suitable for XML.
 
 ## CPP-025 — A later processing method can omit its required action term
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:3885 'bool written' still declared outside the per-method loop (3886), fallback 3976 depends on earlier methods
+
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 3848–3942](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3848), `writeDataProcessing_`; required per-method transformation rule in [`share/OpenMS/MAPPING/ms-mapping.xml`, lines 99–101](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/share/OpenMS/MAPPING/ms-mapping.xml#L99).
 
 **Issue and reproduction:** Write two processing methods: the first has peak
@@ -655,6 +705,8 @@ checking each emitted method against the required semantic rule.
 **Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) tracks actions per method and emits an independently reversible fallback for each empty action set. Multi-method round trips cover the correction.
 
 ## CPP-026 — Processing step order is always written as zero
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:3889 processingMethod order="0" still hard-coded for every method
 
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3852](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3852), processing method output; order contract in [`share/OpenMS/SCHEMAS/mzML_1_10.xsd`, lines 460–462](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/share/OpenMS/SCHEMAS/mzML_1_10.xsd#L460).
 
@@ -678,6 +730,8 @@ input using the attribute's documented contract.
 **Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) emits distinct sequential indices. Reading retains source XML encounter order explicitly; tests cover both conventions.
 
 ## CPP-027 — mzML writing discards processing completion seconds
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:3984 completion time still written with toString("yyyy-MM-dd+hh:mm"), dropping seconds
 
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3947](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3947), completion-time output; reader at lines 3246–3249; full timestamp contract in [`src/openms/include/OpenMS/METADATA/DataProcessing.h`, lines 111–120](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/METADATA/DataProcessing.h#L111).
 
@@ -706,6 +760,8 @@ fractional-second coverage where supported.
 
 ## CPP-028 — Recognized software metadata can throw during mzML writing
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:3824 writeUserParam_ still passes /mzML/Software/cvParam/@accession; mapping only has softwareList/software path (ms-mapping.xml:94); SemanticValidator.cpp:538 rules_.at
+
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3787](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3787), software metadata output and validation at lines 3595 and 3668–3673; [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, line 538](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L538); mapping in [`share/OpenMS/MAPPING/ms-mapping.xml`, line 94](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/share/OpenMS/MAPPING/ms-mapping.xml#L94).
 
 **Issue and reproduction:** Add an ordinary software metadata key recognized
@@ -726,6 +782,8 @@ promotion or user-parameter fallback respectively without an exception.
 **Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) uses the pinned software mapping path and checked lookup. Regressions cover recognized names and path-specific user-parameter fallback.
 
 ## CPP-029 — Annotation-only brackets pass conversion checks but fail conversion
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:2196-2202 issue collection skips non-chemistry brackets but toAASequence:2308-2313 throws for any null resolved_mod under FAIL_ON_LOSS
 
 **Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2194–2200](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2194), issue collection; representability at 2268–2270 and strict attachment at 2307–2311.
 
@@ -749,6 +807,8 @@ documented as a deliberate change to the conversion policy.
 
 ## CPP-030 — Strict AASequence conversion silently drops terminal crosslinks
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:2231-2262 terminal issue loops check chemistry/alternatives only, no CROSSLINK label check (unlike residues at 2208-2214)
+
 **Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2220–2260](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2220), terminal issue collection; terminal attachment at 2337–2346. Ordinary-residue crosslink detection is at 2206–2213.
 
 **Issue and reproduction:** Construct a public peptidoform containing M and
@@ -769,6 +829,8 @@ both termini, label-only brackets and resolved chemistry bearing a link label.
 terminal omission with an explicit regression and compatibility note.
 
 ## CPP-031 — An empty ambiguous region shifts the conversion attachment index
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:2290-2293 emits no residue for empty AmbiguousRegion but :2335 still does seq_pos++ for every region
 
 **Affected files:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2288–2293](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2288), residue emission; attachment cursor at 2330–2331; bounds check in [`src/openms/source/CHEMISTRY/AASequence.cpp`, lines 1442–1449](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/AASequence.cpp#L1442).
 
@@ -795,6 +857,8 @@ index rule with checked errors and a direct public-AST regression.
 
 ## CPP-032 — CV mapping namespace stripping mishandles path segments
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. CVMappingFile.cpp:83-98 expects split.empty() for unprefixed segment but StringUtils.h:605-608 returns one item, so fatalError; attribute '@' still lost
+
 **Affected files:** [`src/openms/source/FORMAT/CVMappingFile.cpp`, lines 68–102](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/CVMappingFile.cpp#L68), namespace stripping; [`src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h`, lines 603–609](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h#L603), delimiter-free split behavior.
 
 **Issue and reproduction:** Load a mapping with element path
@@ -820,6 +884,8 @@ separate `scopePath` behavior.
 
 ## CPP-033 — Failed CV mapping loads contaminate later loads
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. CVMappingFile.cpp:36-42 members cleared only after successful parse_; no reset on failure, so stale cv_references_/rules_ leak into next load
+
 **Affected files:** [`src/openms/source/FORMAT/CVMappingFile.cpp`, lines 29–42](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/CVMappingFile.cpp#L29), load/publication/cleanup and callbacks at 52–65; cleanup dispatch in [`src/openms/source/FORMAT/XMLFile.cpp`, lines 41–55 and 116–120](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/XMLFile.cpp#L41); empty inherited [`XMLHandler::reset`, lines 37–39](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp#L37).
 
 **Issue and reproduction:** Reuse one `CVMappingFile`. First load
@@ -842,6 +908,8 @@ followed by an empty and a valid load using the same reader.
 state and atomic destination publication; its reader can be reused after error.
 
 ## CPP-034 — CV reference bulk assignment can invalidate its input iterator
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. CVMappings.cpp:68-75 setCVReferences still loops over input while push_back to cv_references_vector_ that getCVReferences() (77-80) returns
 
 **Affected files:** [`src/openms/source/DATASTRUCTURES/CVMappings.cpp`, lines 68–75](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/CVMappings.cpp#L68), `setCVReferences`; public const-reference getter at lines 77–80.
 
@@ -868,6 +936,8 @@ replacement operation supplies actual replacement.
 
 ## CPP-035 — Invalid CV mapping enums silently select different rules
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. CVMappingFile.cpp:121-124,149-152 unknown requirementLevel/combinationLogic branches still only '// throw Exception' comments
+
 **Affected file:** [`src/openms/source/FORMAT/CVMappingFile.cpp`, lines 103–157](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/CVMappingFile.cpp#L103), requirement-level and combination-logic attribute parsing.
 
 **Issue and reproduction:** Supply otherwise complete rule attributes with
@@ -887,6 +957,8 @@ fallbacks with explicit tests and documentation. Stricter rejection would be
 a deliberate compatibility change rather than a hidden parser difference.
 
 ## CPP-036 — XML compression sniffing reads uninitialized short-file bytes
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. XMLFile.cpp:148-151 char tmp_bz[3] uninitialized, read(tmp_bz,2) unchecked, then std::string(tmp_bz)
 
 **Affected file:** [`src/openms/source/FORMAT/XMLFile.cpp`, lines 141–159](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/XMLFile.cpp#L141), the shared XML file loader's compression-prefix probe.
 
@@ -913,6 +985,8 @@ five-header conversion group.
 
 ## CPP-037 — ProForma combination discards a formula's charge contribution
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:1736-1740 combineOnOneResidue_ sums formulas incl. charge, checks mass agreement, then re-interns formula_sum.toString() (charge-free); no charge check
+
 **Affected files:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 1734–1738](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L1734), formula combination and re-interning; [`src/openms/source/CHEMISTRY/EmpiricalFormula.cpp`, lines 47–54 and 258–276](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/EmpiricalFormula.cpp#L47), charge-dependent mass and charge-free canonical text.
 
 **Issue and reproduction:** Directly construct M with two pre-resolved
@@ -938,6 +1012,8 @@ consequence explicitly and includes a charged-formula regression. A scientific
 correction remains a separately documented compatibility decision.
 
 ## CPP-038 — ProForma crosslink spectra count resolved linker mass twice
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:2822-2834 linker_mass from findCrossLink passed as cross_linker_mass while toAASequence(BEST_EFFORT) of chains still attaches resolved endpoint modification
 
 **Affected files:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2820–2833](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2820), crosslink extraction and sequence conversion; modification attachment at 2305–2316; [`src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp`, lines 920–925 and 967–971](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp#L920), combined precursor mass.
 
@@ -975,6 +1051,8 @@ upstream scientific correction is claimed.
 
 ## CPP-039 — SemanticValidator compares descendant units with the measured term
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SemanticValidator.cpp:334 descendant callback still compares child with parsed_term.accession instead of unit_accession
+
 **Affected file:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 326–348](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L326), descendant-unit fallback in `handleTerm_`.
 
 **Issue and reproduction:** Enable unit checking and define a measurement term
@@ -998,6 +1076,8 @@ an unrelated known unit using a small independent vocabulary.
 **Rust handling:** The [native SemanticValidator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) compares descendants with the supplied unit accession. Dedicated exact/descendant/unrelated-unit cases cover the correction. Source-name checking remains separate.
 
 ## CPP-040 — Failed semantic validation contaminates later document paths
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SemanticValidator.cpp:96-98 validate() clears only errors_/warnings_; open_tags_/counters not reset after failed parse
 
 **Affected files:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 96–102 and 111–121](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L96), per-call initialization and start callbacks; end callbacks at 141–224; inherited cleanup in [`src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp`, lines 37–39](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp#L37).
 
@@ -1025,6 +1105,8 @@ followed by valid and semantically invalid documents on the same validator.
 
 ## CPP-041 — The mzML header writer does not escape several string attributes
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Partly resolved. Fraction id now escaped (MzMLHandler.cpp:5263, #10406 a2408e7c03); software version (:3802) and SHA-1/MD5 checksum values (:3834,3838) still written unescaped
+
 **Affected file:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, line 3765](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L3765), software version; checksum output at 3797/3801 and fraction identifier at 5226.
 
 **Issue and reproduction:** Set a software version to `v"&1` or an experiment's
@@ -1048,6 +1130,8 @@ any checksum content restrictions separately from XML escaping.
 **Rust handling:** The [native header writer](docs/MZML_HEADER_SUPPORT.md) uses the checked XML attribute encoder. Version and fraction quote/ampersand values round-trip through both writers and XSD validation. Invalid digest strings retain the separate checksum content guard. No upstream patch is claimed.
 
 ## CPP-042 — XLMS linear suffix losses divide the mass by charge twice
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. TheoreticalSpectrumGeneratorXLMS.cpp:305-311 passes mono_weight (not pos) to addLinearIonLosses_; fixed by #10150 (fb30400868 'CPP-042')
 
 **Affected file:** [`src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp`, lines 302–311](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp#L302), linear suffix generation; loss helper at 560–599.
 
@@ -1073,6 +1157,8 @@ and a separately calculated correct chemical expectation. The support document
 makes this compatibility behavior explicit. No upstream correction is claimed.
 
 ## CPP-043 — XLMS precursor isotope companions omit charge normalization
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. TheoreticalSpectrumGeneratorXLMS.cpp:624,655,685 now (mono_pos + C13C12_MASSDIFF_U)/charge; fixed by #10194 (be85c260bf)
 
 **Affected file:** [`src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp`, lines 609–624](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.cpp#L609), intact precursor and isotope companion; corresponding water/ammonia paths at 639–654 and 668–683.
 
@@ -1100,6 +1186,8 @@ upstream scientific correction is claimed.
 
 ## CPP-044 — Unmapped CV lookup depends on earlier validation calls
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SemanticValidator.cpp:147,277 still use rules_[path] (inserts) in callbacks while locateTerm:538 uses rules_.at(path)
+
 **Affected file:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, line 147](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L147), insertion of empty rule lists during closing callbacks; analogous insertion at 279; const lookup at 538.
 
 **Issue and reproduction:** Construct a validator with no mapping for
@@ -1122,6 +1210,8 @@ Test the same unmapped query before and after validation of different documents.
 **Rust handling:** The [native validator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) builds a fresh bounded mapping index per call. An absent locate_term path consistently returns a checked error before or after unrelated validation. This deliberately removes incidental source cache state.
 
 ## CPP-045 — PeptideEvidence misclassifies valid and invalid position limits
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PeptideEvidence.cpp:79-85 hasValidLimits still rejects end==N_TERMINAL_POSITION (0) and does not check start<=end or other negatives
 
 **Affected file:** [`src/openms/source/METADATA/PeptideEvidence.cpp`, lines 79–84](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/METADATA/PeptideEvidence.cpp#L79), `hasValidLimits`; zero-based inclusive endpoint contract in the corresponding header.
 
@@ -1157,6 +1247,8 @@ executed or confirmed finding without verification.
 
 ## CPP-046 — Semantic date validation applies date-time syntax to xsd:date
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SemanticValidator.cpp:502-513 xsd:date still validated via DateTime::set, which needs 6 fields (DateTime.cpp:264,296) so date-only fails and timestamp passes
+
 **Affected files:** [`src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 502–516](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp#L502), XSD_DATE value branch; [`src/openms/source/DATASTRUCTURES/DateTime.cpp`, lines 188–335](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/DateTime.cpp#L188), general date-time parser.
 
 **Issue and reproduction:** Define an allowed CV term with `xref: value-type:xsd\:date`
@@ -1182,6 +1274,8 @@ parser alone would still accept invalid date-time lexemes here.
 **Rust handling:** The [native SemanticValidator](docs/SEMANTIC_VALIDATOR_SUPPORT.md) retains the source value conversion for compatibility, with explicit date-only rejection and timestamp-acceptance tests. Its value checks do not claim complete XSD lexical conformance. No upstream patch has been applied.
 
 ## CPP-047 — ProForma XLMS link positions ignore preceding flattened sections
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProForma.cpp:2019-2044 findCrossLink increments position only for SequenceElement sections, skipping ModifiedRange/AmbiguousRegion residues
 
 **Affected file:** [`src/openms/source/CHEMISTRY/ProForma.cpp`, lines 2017–2041](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/CHEMISTRY/ProForma.cpp#L2017), `findCrossLink`; flattened sequence construction at 2280–2288; two-chain spectrum construction at 2820–2835.
 
@@ -1213,6 +1307,8 @@ still apply. No upstream fix has been applied.
 
 ## CPP-048 — Zero centroid-inspection limit depends on the first spectrum type
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLFile.cpp:238-263 unsigned first_n_spectra_only_remaining decremented before zero test; limit 0 wraps, unknown-first stops after one
+
 **Affected files:** [`src/openms/source/FORMAT/MzMLFile.cpp`, lines 233–268](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/MzMLFile.cpp#L233), `getCentroidInfo`; public limit contract in `src/openms/include/OpenMS/FORMAT/MzMLFile.h`, lines 180–193; unsigned `Size` definition in `src/openms/include/OpenMS/CONCEPT/Types.h`, line 97.
 
 **Issue and reproduction:** Call `getCentroidInfo(filename, 0)` on a valid file.
@@ -1243,6 +1339,8 @@ including Unknown interleaving and multiple MS levels. No upstream fix is claime
 
 ## CPP-049 — Indexed mzML output writes a constant placeholder checksum
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandlerHelper.cpp:340-341 indexed footer still writes constant sha1_checksum = "0"
+
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 127–134](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp#L127), indexed footer output; checksum contract in `share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`, lines 1185–1189.
 
 **Issue and reproduction:** Write an indexed mzML document through the source
@@ -1271,6 +1369,8 @@ hashlib tests cover UTF-8, escaping, partial writes and SHA-1 block boundaries.
 No upstream fix has been applied.
 
 ## CPP-050 — Empty indexed mzML declares zero indices but emits a dummy index
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandlerHelper.cpp:306,327-331 indexList count=indexlists (0) still followed by dummy index with offset -1
 
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 80–123](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp#L80), `writeFooter_`; index-count and offset contracts in `share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`, lines 1119–1154.
 
@@ -1301,6 +1401,8 @@ Tests verify unchanged output; explicit ordinary mzML still accepts empty input.
 No upstream fix has been applied.
 
 ## CPP-051 — mzML semantic validation reuses parameter groups from earlier documents
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLValidator.cpp:50,83 param_groups_ (MzMLValidator.h:66) never cleared; SemanticValidator::validate (:97-98) clears only errors_/warnings_
 
 **Affected files:** [`src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp`, lines 47–84](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/VALIDATORS/MzMLValidator.cpp#L47), group definition/reference callbacks; `src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp`, lines 86–108, inherited `validate` initialization.
 
@@ -1333,6 +1435,8 @@ fix has been applied.
 
 ## CPP-052 — mzML schema selection depends on the first four physical lines
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLFile.cpp:62-67 isValid still loads TextFile(filename,true,4) and searches first four lines for "<indexedmzML"
+
 **Affected files:** [`src/openms/source/FORMAT/MzMLFile.cpp`, lines 58–80](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/MzMLFile.cpp#L58), `isValid`; `src/openms/source/FORMAT/TextFile.cpp`, lines 24–81, and `src/openms/include/OpenMS/FORMAT/TextFile.h`, line 54, four-line loading with empty/comment skipping disabled.
 
 **Issue and reproduction:** Insert three XML comment lines after the XML
@@ -1362,6 +1466,8 @@ cover delayed and prefixed roots, UTF-16 input and malformed namespaces. No
 upstream fix is claimed.
 
 ## CPP-053 — Chromatogram array promotion mismatches values and their physical role
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:645-654 still renames pressure/flow/detector arrays to "intensity array" and sets selector per array; computeDataProperties_ (Helper.cpp:519-531) first match
 
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 634–650](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L634), chromatogram population; `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 268–281, `computeDataProperties_`; `MzMLHandler.cpp`, lines 5614–5619 and 5693–5695, output role selection.
 
@@ -1396,6 +1502,8 @@ writer families; see [typed transport](docs/MZML_TYPED_TRANSPORT_SUPPORT.md).
 
 ## CPP-054 — Shipped indexed mzML schema leaves index references unchecked
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd:1192-1199 KEY_ID_IDX/FKNID still use .//dx:indexedmzML/... selectors and field @id for offsets
+
 **Affected files:** [`share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd`, lines 1193–1200](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/share/OpenMS/SCHEMAS/mzML_idx_1_10.xsd#L1193), `KEY_ID_IDX` and `FKNID`; lines 1147–1155, `OffsetType`.
 
 **Issue and reproduction:** Change the original indexed mzML fixture's offset
@@ -1427,6 +1535,8 @@ ID/offset correspondence and checksum. The upstream schema has not been patched.
 
 ## CPP-055 — Base64 SIMD decoding does not validate its alphabet
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Base64.cpp:93-104 SIMD decode classifies bytes with only upper-bound compares ('9'+1,'Z'+1,'z'+1); no invalid-character check
+
 **Affected files:** [`src/openms/source/FORMAT/Base64.cpp`, lines 83–110 and 166–208](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/Base64.cpp#L83), `registerDecoder_` and `stringSimdDecoder_`; `src/openms/include/OpenMS/FORMAT/Base64.h`, lines 310–350, numeric uncompressed decoding; `src/openms/source/FORMAT/HANDLERS/MzMLHandlerHelper.cpp`, lines 138–195, mzML numeric decoding.
 
 **Issue and reproduction:** Pass 16 exclamation marks to the uncompressed
@@ -1456,6 +1566,8 @@ both option settings. No upstream fix has been applied.
 
 ## CPP-056 — Synthetic mzML scans omit spectrum ion mobility
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:5547-5551 synthetic scan for empty AcquisitionInfo emits only RT/scan attributes; drift time terms only in loop at 5483-5515
+
 **Affected files:** [`src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 5393–5435](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp#L5393), `writeSpectrum_`; lines 5468–5500, the fallback for empty acquisition information.
 
 **Issue and reproduction:** Construct a spectrum with drift time 1.5 and
@@ -1482,6 +1594,8 @@ The native writer will use the same first-scan path for explicit and synthetic
 acquisitions. No implemented native correction is claimed at this checkpoint.
 
 ## CPP-057 — Spectrum equality ignores ion-mobility format and peak type
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumSettings.cpp:23-39 operator== still omits im_type_ and im_peak_type_ (declared SpectrumSettings.h:170-171)
 
 **Affected files:** [`src/openms/source/METADATA/SpectrumSettings.cpp`, lines 23–43](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/METADATA/SpectrumSettings.cpp#L23), equality and inequality; `src/openms/include/OpenMS/METADATA/SpectrumSettings.h`, lines 170–171, mobility fields; `src/openms/source/KERNEL/MSSpectrum.cpp`, lines 514–529, spectrum equality.
 
@@ -1510,6 +1624,8 @@ its represented fields in record equality and add direct regressions. No
 upstream patch or completed spectrum mobility implementation is claimed here.
 
 ## CPP-058 — Nonnumeric DataValue casts read an inactive union member
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. DataValue.cpp:452-492 floating conversions now throw ConversionError unless Double/Int; fixed by #10507 (a8fbd1082e)
 
 **Affected files:** [`src/openms/source/DATASTRUCTURES/DataValue.cpp`, lines 452–491](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/DATASTRUCTURES/DataValue.cpp#L452), conversion to long double, double and float; `src/openms/include/OpenMS/DATASTRUCTURES/DataValue.h`, lines 159–184 and 409–417, conversion contract and tagged union; `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, lines 1400–1403, elution-time fallback.
 
@@ -1542,6 +1658,8 @@ tests cover consumed nonnumeric values, explicit scan RT precedence and the
 source ordering before primary-array metadata merges. No upstream fix is claimed.
 
 ## CPP-059 — Short experimental-design rows are read past the end of the row vector
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ExperimentalDesignFile.cpp:246,397,447 width checked before cell reads; ExperimentalDesign.cpp:986,1019 getFactorValue bounds-checked; #10152 (033123d26e)
 
 **Affected files:** [`src/openms/source/FORMAT/ExperimentalDesignFile.cpp`, lines 226–237](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ExperimentalDesignFile.cpp#L226), one-table content rows; the same file, lines 411–419, two-table sample rows; [`src/openms/source/METADATA/ExperimentalDesign.cpp`, lines 940–962](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/METADATA/ExperimentalDesign.cpp#L940), both `SampleSection::getFactorValue` overloads.
 
@@ -1588,6 +1706,8 @@ short-row section. No upstream fix is claimed.
 
 ## CPP-060 — Negative design indices wrap to large unsigned values
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ExperimentalDesignFile.cpp:253-256,297 and 402-406 still toInt32 into unsigned members; label>1 guard on signed value; no negative check.
+
 **Affected files:** [`src/openms/source/FORMAT/ExperimentalDesignFile.cpp`, lines 226–256](https://github.com/okohlbacher/OpenMS4-core/blob/82ce5b373c97f934ffd9b1ffd80215ca66473d0b/src/openms/source/FORMAT/ExperimentalDesignFile.cpp#L226), one-table `Label`/`Fraction`/`Fraction_Group`; the same file, lines 386–392, the two-table equivalents.
 
 **Issue and reproduction:** Load a design containing `Fraction` `-1`. Both
@@ -1618,6 +1738,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-061 — SpectrumHelper::makePeakPositionUnique discards the whole spectrum record
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumHelper.h:146-203 makePeakPositionUnique still ends std::swap(p_new,p) with default-constructed p_new; warning only mentions data arrays.
+
 **Affected files:** `src/openms/include/OpenMS/KERNEL/SpectrumHelper.h`, line 196.
 
 **Issue and reproduction:** `makePeakPositionUnique` ends with `std::swap(p_new, p)` where `p_new` is default constructed and only ever received merged peaks. The result therefore loses retention time, MS level, name, native identifier, precursors, instrument settings and metadata. The `OPENMS_LOG_WARN` at line 150 announces only that the data arrays are dropped, so a caller is told about a smaller loss than actually occurs. Trigger: any non-empty spectrum with a retention time set.
@@ -1629,6 +1751,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `make_peak_position_unique` keeps every record field by default; `UniquePositionOptions::reset_metadata` selects the source behaviour explicitly.
 
 ## CPP-062 — SpectrumRangeManager::byMSLevel(0) can only throw
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumRangeManager.h:~111 byMSLevel(UInt ms_level = 0) still throws InvalidValue as level 0 is never in ms_level_ranges_.
 
 **Affected files:** `src/openms/include/OpenMS/KERNEL/SpectrumRangeManager.h`, lines 82-101 and 124-127.
 
@@ -1642,6 +1766,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-063 — MSExperiment::updateRanges registers no per-level entry for MS level 0
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSExperiment.cpp:721-727 extendUnsafe(*it, it->getMSLevel()) routes level 0 to the base; SpectrumRangeManager extend(ms_level==0) creates no per-level entry.
+
 **Affected files:** `src/openms/source/KERNEL/MSExperiment.cpp`, lines 698-699, with `SpectrumRangeManager.h` line 84.
 
 **Issue and reproduction:** A spectrum at MS level 0 extends the global ranges twice and never creates a per-level entry, so `SpectrumRangeManager::getMSLevels()` omits level 0 although `MSExperiment::getMSLevels()` reports it. The two level lists disagree for the same run.
@@ -1653,6 +1779,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Replicated, with the disagreement recorded in `docs/RANGES_SUPPORT.md`.
 
 ## CPP-064 — RangeBase accepts NaN and infinity and breaks its own emptiness invariant
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. RangeManager.h:113-124,157-163 setMin/setMax/extend(double) have no finiteness check.
 
 **Affected files:** `src/openms/include/OpenMS/KERNEL/RangeManager.h`, lines 113-124, 157-171 and 235-251.
 
@@ -1666,6 +1794,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-065 — RangeUtils energy and isolation predicates contradict their own notes for MS1 spectra
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. RangeUtils.h:517-518,570,615 notes say 'return true' for MS1/no CE; bodies at 542,557,595,640 return false.
+
 **Affected files:** `src/openms/include/OpenMS/KERNEL/RangeUtils.h`, notes at lines 517-518, 570 and 615 against the bodies at 542, 557, 595 and 640.
 
 **Issue and reproduction:** The notes for `IsInCollisionEnergyRange`, `IsInIsolationWindowSizeRange` and `IsInIsolationWindow` state that MS1 spectra, and spectra with no collision energy, return true. The bodies return false in those cases regardless of the `reverse` flag. The code is what the `remove_if` callers need; the documentation describes the opposite filter.
@@ -1677,6 +1807,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The code behaviour is preserved; each predicate's rustdoc states the early return and the mismatch.
 
 ## CPP-066 — BinnedSpectrum default construction leaves a null bin matrix
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. BinnedSpectrum.h:93 default ctor leaves bins_{nullptr}; BinnedSpectrum.cpp:191-194 getBinIntensity derefs bins_ unchecked (operator== now handles null).
 
 **Affected files:** `src/openms/include/OpenMS/KERNEL/BinnedSpectrum.h`, line 93; `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 191.
 
@@ -1690,6 +1822,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-067 — BinnedSpectrum::getBinIntensity mutates the spectrum it reads
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. BinnedSpectrum.cpp:191-194 getBinIntensity still non-const and uses bins_->coeffRef.
+
 **Affected files:** `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 191.
 
 **Issue and reproduction:** The method is non-const and uses Eigen's `coeffRef`, which inserts an explicit zero coefficient for every miss. Reading an absent bin therefore changes `nonZeros()` and can change the result of `operator==`, so two equal spectra stop comparing equal after one of them is read.
@@ -1701,6 +1835,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Bin lookup is read-only and takes `&self`.
 
 ## CPP-068 — BinnedSpectrum::operator== ignores the bin offset
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. BinnedSpectrum.cpp:125-157 operator== compares unit_ppm_,bin_size_,bin_spread_,precursors_,bins but not offset_.
 
 **Affected files:** `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 125.
 
@@ -1714,6 +1850,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-069 — BinnedSpectrum left-boundary guard relies on unsigned wraparound
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. BinnedSpectrum.cpp:117 still guards with static_cast<int>(idx - j - 1) >= 0 on size_t idx.
+
 **Affected files:** `src/openms/source/KERNEL/BinnedSpectrum.cpp`, line 88.
 
 **Issue and reproduction:** The guard `static_cast<int>(idx - j - 1) >= 0` computes an unsigned difference that wraps, then truncates it to `int`. For `idx >= 2^31` the truncation changes sign and the guard admits an out-of-range index.
@@ -1725,6 +1863,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Uses `saturating_sub`, so the boundary cannot wrap.
 
 ## CPP-070 — FeatureHandle::asMutable casts away constness of a possibly const object
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureHandle.h:148-153 asMutable() const still const_casts *this; 'TODO use const_cast' comment remains.
 
 **Affected files:** `src/openms/include/OpenMS/KERNEL/FeatureHandle.h`, line 148.
 
@@ -1738,6 +1878,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-071 — DRange default constructor contradicts its documentation
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DRange.h:66-71 default ctor still documented 'all coordinates zero' while calling Base() (empty sentinel).
+
 **Affected files:** `src/openms/include/OpenMS/KERNEL/../DATASTRUCTURES/DRange.h`, lines 69-77.
 
 **Issue and reproduction:** The default constructor is documented as creating a range with all coordinates zero, but it calls the base constructor, which produces the empty sentinel with minimum `+DBL_MAX` and maximum `-DBL_MAX`. A caller trusting the comment gets the opposite of an all-zero range.
@@ -1749,6 +1891,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `Default` is the empty sentinel, as the body does, and the rustdoc says so.
 
 ## CPP-072 — DRange::united of two empty ranges returns the universal range
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DRange.h:178-195 united() still passes inverted sentinel corners to setMinMax, whose normalize_() swaps them (DIntervalBase.h:342).
 
 **Affected files:** `src/openms/include/OpenMS/DATASTRUCTURES/DRange.h`, lines 178-195.
 
@@ -1762,6 +1906,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-073 — DRange::extend comment contradicts the collapse it performs
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DRange.h:310 @param still says invalid min/max not fixed automatically; body 313-325 collapses to centre.
+
 **Affected files:** `src/openms/include/OpenMS/DATASTRUCTURES/DRange.h`, line 310.
 
 **Issue and reproduction:** The `@param` text states that resulting invalid minima and maxima are not fixed automatically, while the body collapses an inverted dimension to its centre. The class test asserts the collapse, so the comment is stale rather than the code.
@@ -1773,6 +1919,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The collapse is ported and documented.
 
 ## CPP-074 — DIntervalBase default constructor documented as infinite corners
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DIntervalBase.h:~51 default ctor doc still says 'corners at infinity' but uses maxPositive()/minNegative().
 
 **Affected files:** `src/openms/include/OpenMS/DATASTRUCTURES/DIntervalBase.h`, line 51.
 
@@ -1786,6 +1934,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-075 — Class tests with unreachable or duplicated assertions
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureHandle_test.cpp:188-190 sets lhs uid twice; StandardTypes_test.cpp duplicates PeakSpectrum/PeakMap, no Chromatogram; BinnedSpectrum_test.cpp:47 omits bool unit_ppm.
+
 **Affected files:** `src/tests/class_tests/openms/source/FeatureHandle_test.cpp`, `StandardTypes_test.cpp`, `BinnedSpectrum_test.cpp`.
 
 **Issue and reproduction:** The `FeatureHandle` `IndexLess` section sets `lhs.setUniqueId` twice and never sets `rhs`, so the ordering it claims to test is not exercised. `StandardTypes_test.cpp` constructs `PeakSpectrum` and `PeakMap` twice and never `Chromatogram`. The `BinnedSpectrum` constructor section title omits the `bool unit_ppm` parameter.
@@ -1797,6 +1947,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The Rust tests set both operands, cover all three aliases and name every parameter.
 
 ## CPP-076 — rasterizeIMFrame clears the caller's image before the check that can throw
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.cpp:~896-913 std::fill of output precedes the im_data.size()!=size() Precondition throw.
 
 **Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:895-912 (total_pixels, std::fill, empty early return, then the IM/peak size Precondition)
 
@@ -1810,6 +1962,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-077 — rasterizeIMFrame multiplies the bin counts without an overflow check
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.cpp:~895 'im_bins * mz_bins' unchecked size_t product; no overflow check.
+
 **Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:895 (`const Size total_pixels = im_bins * mz_bins;`), :898 (std::fill), :951 (pixel_idx)
 
 **Issue and reproduction:** `im_bins * mz_bins` is unchecked `size_t` arithmetic. With bin counts whose product overflows, `total_pixels` wraps to a small value, `std::fill` clears only that prefix, and the per-peak write at line 951 computes `mz_bin * im_bins + im_bin` from the *unwrapped* bin counts and writes far outside whatever the caller allocated — a heap buffer overflow. Trigger: `spec.rasterizeIMFrame(buf, 1ull << 33, 1ull << 33, …)` on a 64-bit build, or any pair whose product exceeds SIZE_MAX; the bin counts come straight from a viewer's zoom level or a Python caller.
@@ -1821,6 +1975,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `ImFrameRaster::pixels` uses `checked_mul` and returns `Error::InvalidValue` on overflow; `ImFrameRaster::validate` additionally caps the product at `MSSpectrum::MAX_RASTER_PIXELS` (16 777 216, i.e. 64 MiB of f32). Both are asserted in `rasterize_im_frame_rejects_invalid_grids_and_arrays`.
 
 ## CPP-078 — rasterizeIMFrame casts a non-finite coordinate to Int64
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.cpp:~925-935 range filter has no isfinite check; NaN reaches static_cast<Int64>; no lower clamp.
 
 **Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:925-941 (range filter and `static_cast<Int64>`)
 
@@ -1834,6 +1990,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-079 — sortByPositionPresorted handles an incomplete chunk list differently in its two branches
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.cpp:397-441 sortByPositionPresorted still ignores chunks in no-array branch; no chunk-list validation.
+
 **Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:397-441 (the no-data-array stable_sort at 405-408 versus the chunk-driven path at 409-440)
 
 **Issue and reproduction:** When the spectrum has no float, string or integer data arrays the function ignores `chunks` entirely and stable-sorts the whole peak list. When it has any data array it sorts only inside the given chunks and merges only `[chunks.front().start, chunks.back().end)`, then applies the resulting permutation with selectUnchecked — so any peak outside that span keeps its position and stays unsorted. The same chunk list therefore produces a fully sorted spectrum or a partially sorted one depending on whether a data array happens to be attached. The early return at line 401 (`chunks.size() == 1 && chunks[0].is_sorted`) compounds it: a single sorted chunk covering only part of the spectrum leaves the rest unsorted in both branches. Trigger: call `sortByPositionPresorted` with a chunk list built before the last batch of peaks was appended, once with and once without a data array attached.
@@ -1845,6 +2003,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `MSSpectrum::sort_by_position_presorted` performs exactly that validation and returns `Error::InvalidValue` for a gap, an overlap, a reversed run or a list that stops short of the peak count. With the tiling guaranteed, the two source branches produce the same permutation, so the port keeps only the chunk-aware one. Asserted by `presorted_sort_matches_plain_sort_and_rejects_bad_chunks`.
 
 ## CPP-080 — sortByPositionPresorted trusts is_sorted and feeds std::inplace_merge an unsorted range
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.cpp:~415-438 chunks flagged is_sorted never verified before inplace_merge.
 
 **Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:415-438 (per-chunk stable_sort for !is_sorted, then the recursive inplace_merge)
 
@@ -1858,6 +2018,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-081 — Chunks::add can record a chunk whose start exceeds its end
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.h:80-83 Chunks::add unchanged (no size check); sortByPositionPresorted does not validate start<=end.
+
 **Affected files:** src/openms/include/OpenMS/KERNEL/MSSpectrum.h:80-83 (`Chunks::add`), used at src/openms/source/KERNEL/MSSpectrum.cpp:415-419 and 433
 
 **Issue and reproduction:** `add` records `{previous_end, spec_.size(), is_sorted}` from a `const MSSpectrum&` captured at construction. Nothing requires the spectrum to have grown: if peaks were removed (pop_back, erase, clear, select with a subset) between two `add` calls, `spec_.size()` is below the previous chunk's end and the new chunk has `start > end`. Both `Size` members are unsigned, so the inversion is not detectable by sign. `sortByPositionPresorted` then forms `select_indices.begin() + chunk.start` and `select_indices.begin() + chunk.end` and passes that inverted pair to `std::stable_sort` and `std::inplace_merge`, which is undefined behaviour; `chunk.start` can also exceed the vector's size outright, so the iterator is past the end. Trigger: `Chunks c(spec); …; c.add(true); spec.pop_back(); c.add(true); spec.sortByPositionPresorted(c.getChunks());`.
@@ -1869,6 +2031,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `Chunks::add` takes the spectrum as an argument (Rust cannot hold a shared reference across the mutation the source performs) and returns `Error::InvalidValue` when the spectrum has shrunk below the previous run's end. `sort_by_position_presorted` independently rejects `end < start`. Asserted by `presorted_sort_matches_plain_sort_and_rejects_bad_chunks`.
 
 ## CPP-082 — An empty ion-mobility array makes isSortedByIM report true and sortByIonMobility a silent no-op
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSSpectrum.cpp:383-395,506-512 getIMData() name-only check; empty IM array gives vacuous is_sorted / no-op sort; no size check vs peak count.
 
 **Affected files:** src/openms/source/KERNEL/MSSpectrum.cpp:383-395 (sortByIonMobility), :506-512 (isSortedByIM), :20-37 (checkDataArraySizes_, which permits an empty array)
 
@@ -1882,6 +2046,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-083 — mergePeaks leaves the inherited range cache too narrow, undocumented
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSChromatogram.cpp:548-565 mergePeaks still assigns peaks without updateRanges()/clearRanges(); no @note in header.
+
 **Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 548-565; contrast src/openms/include/OpenMS/KERNEL/MSChromatogram.h, lines 439-441
 
 **Issue and reproduction:** mergePeaks replaces the peak vector without calling updateRanges() and without clearing the inherited RangeManager, so a chromatogram whose ranges were current afterwards reports a range that no longer contains its own points. select() documents the opposite, benign direction ('selecting a subset can leave them too wide -- call updateRanges()'); mergePeaks documents nothing. Trigger: a.updateRanges(); a.mergePeaks(b); a.getMaxRT() still returns a's pre-merge maximum although a now holds b's later points, and getMaxIntensity() misses every summed point. Any consumer that trusts getRange() after a merge, for example a plotting axis or a range-based filter, silently drops data.
@@ -1893,6 +2059,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** There is no cache: MSChromatogram::range_manager() recomputes from the current points on every call, so the state cannot exist. Recorded under 'Native differences' in docs/CHROMATOGRAM_MERGE_SUPPORT.md and asserted by tests/chromatogram_merge.rs::source_update_ranges.
 
 ## CPP-084 — mergePeaks leaves the destination's data arrays mis-sized, so a later sort or select throws
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSChromatogram.cpp:548-565 mergePeaks leaves data arrays untouched; header MSChromatogram.h:472 note unchanged.
 
 **Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 548-553; header @note at src/openms/include/OpenMS/KERNEL/MSChromatogram.h, line 472; checkDataArraySizes_ at MSChromatogram.cpp, lines 355-373
 
@@ -1906,6 +2074,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-085 — setSumSimilarUnion has external linkage at global namespace scope
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSChromatogram.cpp:477 setSumSimilarUnion still defined at global scope without static/anon namespace.
+
 **Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 474-515
 
 **Issue and reproduction:** The merge helper is defined at global scope (outside namespace OpenMS, after a file-level `using namespace OpenMS;`) with no `static` and no anonymous namespace, so it has external linkage under the plain name ::setSumSimilarUnion. It is used only by MSChromatogram::mergePeaks in the same translation unit. Any other translation unit in the program that defines a global setSumSimilarUnion with a different body but the same signature is an ODR violation the linker will not diagnose, and the symbol is needlessly exported from libOpenMS. Trigger: link a second object file defining `OpenMS::MSChromatogram::Iterator setSumSimilarUnion(...)` at global scope; which definition mergePeaks calls is unspecified.
@@ -1917,6 +2087,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The equivalent union is written inline in MSChromatogram::merge_peaks_with_options in src/kernel/chromatogram_merge.rs; Rust has no global namespace and no ODR hazard.
 
 ## CPP-086 — mergePeaks takes a non-const reference to a chromatogram it only reads
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSChromatogram.h:479 mergePeaks(MSChromatogram& other, ...) still non-const.
 
 **Affected files:** src/openms/include/OpenMS/KERNEL/MSChromatogram.h, line 479; src/openms/source/KERNEL/MSChromatogram.cpp, lines 548-564
 
@@ -1930,6 +2102,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-087 — The chromatogram stream operator prints an always-empty settings block
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ChromatogramSettings.cpp:149-154 operator<< still prints only BEGIN/END banners (arg unnamed).
+
 **Affected files:** src/openms/source/METADATA/ChromatogramSettings.cpp, lines 149-154, reached from src/openms/source/KERNEL/MSChromatogram.cpp, line 24
 
 **Issue and reproduction:** `std::ostream& operator<<(std::ostream& os, const ChromatogramSettings& /*spec*/)` takes its argument unnamed and writes only '-- CHROMATOGRAMSETTINGS BEGIN --' and '-- CHROMATOGRAMSETTINGS END --'. MSChromatogram's operator<< streams the settings between its own banners, so every chromatogram dump advertises a settings section that has never contained a single setting: not the native id, the chromatogram type, the precursor, the product or any meta value. Trigger: build a chromatogram with a product m/z and a native id, stream it, and observe the two delimiters with nothing between them. A developer reading the dump concludes the record carries no settings.
@@ -1941,6 +2115,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Display for MSChromatogram reproduces the layout exactly, delimiters included, because the class test matches on the surrounding text; the reason is documented at the impl and in docs/CHROMATOGRAM_MERGE_SUPPORT.md, and tests/chromatogram_merge.rs::source_stream_layout pins the full string.
 
 ## CPP-088 — updateRanges warns that ranges were already up to date on its very first call
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSChromatogram.cpp:517-546 OPENMS_ASSERTIONS check unchanged; empty ranges read as 0 so first call warns.
 
 **Affected files:** src/openms/source/KERNEL/MSChromatogram.cpp, lines 517-546 (the OPENMS_ASSERTIONS blocks at 519-524 and 533-545)
 
@@ -1954,6 +2130,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-089 — BaseFeature::sortPeptideIdentifications comparator is not a strict weak ordering
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. BaseFeature.cpp:124-165 sortPeptideIdentifications now stable_sort with hit-presence guard (empty never precedes); fixed by cc90d1d17b PR #10156 (CPP-089).
+
 **Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:125-143 (the lambda; the empty branch is 128-131)
 
 **Issue and reproduction:** The comparator returns true whenever its left argument is empty, regardless of the right one. For two empty PeptideIdentifications both comp(a,b) and comp(b,a) are true, so asymmetry — and therefore the strict weak ordering std::sort requires — is violated, which is undefined behaviour; libstdc++'s unguarded insertion sort relies on the ordering being sane and can walk past the end of the range. Trigger: a BaseFeature whose peptides_ holds two or more identifications without hits (exactly what the class test's own `ids.resize(n)` produces, and what featureXML yields for a PeptideIdentification element with no hits) and then sortPeptideIdentifications().
@@ -1965,6 +2143,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** sort_peptide_identifications orders on an explicit total key (hits present before hits absent, then best score) with a stable slice::sort_by, so several empty identifications are fine and keep their relative order. Asserted in tests/feature_identification.rs::sort_peptide_identifications_is_checked_and_atomic.
 
 ## CPP-090 — The same comparator mutates its arguments, so hits are sorted only where the sort happens to compare
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. BaseFeature.cpp:129-133 hits sorted in a separate pass; comparator takes const refs; fixed by cc90d1d17b PR #10156.
 
 **Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:126-127
 
@@ -1978,6 +2158,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-091 — Mixed isHigherScoreBetter flags make the sort comparator asymmetric
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. BaseFeature.cpp:140-148 higher_score_better read once from first identification with hits and used for all comparisons; cc90d1d17b PR #10156.
+
 **Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:136-142
 
 **Issue and reproduction:** The score direction is read from the left operand only. If identification A has isHigherScoreBetter() true and B false, comp(A,B) and comp(B,A) can both be true, again violating the strict weak ordering and giving undefined behaviour. The header comment says the identifications are assumed to share a score type, but nothing checks it, and nothing prevents a caller from attaching identifications from two search engines to one feature.
@@ -1989,6 +2171,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** sort_peptide_identifications returns Error::InvalidValue when the non-empty identifications disagree on higher_score_better, leaving the feature untouched. Asserted in sort_peptide_identifications_is_checked_and_atomic.
 
 ## CPP-092 — updateIDReferences / updateAllIDReferences lose identification matches on a throwing translation
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. BaseFeature.cpp:271-283 still swaps id_matches_ out then translates one by one; Feature.cpp:209-216 updates tree as it descends.
 
 **Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:247-259 and src/openms/source/KERNEL/Feature.cpp:209-216
 
@@ -2002,6 +2186,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-093 — ConsensusFeature::Ratio default constructor leaves ratio_value_ indeterminate
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ConsensusFeature.h:92-111 Ratio() empty body, double ratio_value_ uninitialised, virtual destructor retained.
+
 **Affected files:** src/openms/include/OpenMS/KERNEL/ConsensusFeature.h:92-111
 
 **Issue and reproduction:** Ratio() is user-provided with an empty body and no member has a default member initialiser, so `double ratio_value_` is default-initialised, i.e. holds an indeterminate value. `ConsensusFeature::Ratio r; use(r.ratio_value_);` — or `ratios_.resize(n)` followed by reading the new elements — is undefined behaviour and in practice reads whatever was in that memory. The struct also carries a virtual destructor with no virtual functions while being stored by value in std::vector<Ratio>, which costs a vtable pointer per ratio and invites slicing.
@@ -2013,6 +2199,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Ratio derives Default, so ratio_value is a defined 0.0 and there is no vtable; add_ratio and set_ratios additionally reject a non-finite value. Asserted in ratios_are_checked_and_replaced_atomically.
 
 ## CPP-094 — ConsensusFeature::setRatios takes a non-const lvalue reference for a copy-in setter
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ConsensusFeature.h:265 setRatios(std::vector<Ratio>& rs) still non-const lvalue ref; .cpp:321-324 plain copy.
 
 **Affected files:** src/openms/include/OpenMS/KERNEL/ConsensusFeature.h:265 and src/openms/source/KERNEL/ConsensusFeature.cpp:321-324
 
@@ -2026,6 +2214,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-095 — getAnnotationState reports MULTIPLE_SAME when only one identification actually has hits
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. BaseFeature.cpp:~175-192 getAnnotationState: seqs.size()==1 still maps to MULTIPLE_SAME even when only one identification has hits.
+
 **Affected files:** src/openms/source/KERNEL/BaseFeature.cpp:154-177
 
 **Issue and reproduction:** The `peptides_.size() == 1` shortcut requires non-empty hits, but the fallback loop skips identifications without hits and then maps `seqs.size() == 1` to FEATURE_ID_MULTIPLE_SAME. A feature carrying one annotated identification plus one empty one therefore reports 'multiple IDs (identical)' although exactly one ID exists, which is inconsistent with the shortcut immediately above it. Trigger: `ids.resize(2); ids[0].setHits(std::vector<PeptideHit>(1, hit));` then getAnnotationState(). Consumers that render the state string or branch on SINGLE see the wrong category.
@@ -2037,6 +2227,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Preserved deliberately, because tools may depend on the existing state, and documented at BaseFeature::annotation_state and in docs/FEATURE_IDENTIFICATION_SUPPORT.md. Asserted in annotation_state_counts_only_identifications_that_have_hits.
 
 ## CPP-096 — Feature::getConvexHull() is a const method that lazily mutates the object and hands out a mutable reference
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Feature.h:99 getConvexHull() const returns non-const ConvexHull2D&, backed by mutable convex_hull_/convex_hulls_modified_ (176-179).
 
 **Affected files:** src/openms/include/OpenMS/KERNEL/Feature.h:99 and 175-179; src/openms/source/KERNEL/Feature.cpp:93-137
 
@@ -2050,6 +2242,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-097 — MRMFeature lookup by unknown key mutates the map and returns the first feature
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMFeature.cpp:82-85 and 125-128 non-const getFeature/getPrecursorFeature still use feature_map_[key].
+
 **Affected files:** src/openms/source/KERNEL/MRMFeature.cpp lines 82-85 (getFeature) and 125-128 (getPrecursorFeature), non-const overloads
 
 **Issue and reproduction:** Both non-const accessors read `features_.at(feature_map_[key])`. `std::map::operator[]` default-inserts `key -> 0` when the key is absent, so a read accessor silently mutates the map and then returns feature 0 — an unrelated feature — or throws std::out_of_range when the list happens to be empty. Trigger: `MRMFeature f; Feature a; f.addFeature(a, "chromatogram1"); f.getFeature("typo");` returns the feature stored under "chromatogram1", and a subsequent getFeatureIDs() now reports two ids, one of which was never added. The const overloads use .at() and throw, so the same call is an error or a wrong answer depending only on the constness of the receiver.
@@ -2061,6 +2255,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `MRMFeature::feature` / `feature_mut` / `precursor_feature` / `precursor_feature_mut` return `Error::MissingInformation` for an unknown key and never mutate. Covered by tests/mrm.rs::unknown_keys_are_missing_information.
 
 ## CPP-098 — MRMFeature::addFeature strands a feature when a key repeats, while the sibling class throws
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMFeature.cpp:70-80,105-115 addFeature/addPrecursorFeature still push_back then feature_map_[key]= (no duplicate check).
 
 **Affected files:** src/openms/source/KERNEL/MRMFeature.cpp lines 70-80 (addFeature) and 105-115 (addPrecursorFeature)
 
@@ -2074,6 +2270,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-099 — MRMTransitionGroup::isInternallyConsistent cannot report an inconsistent group in a release build
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMTransitionGroup.h:291-297 isInternallyConsistent still only OPENMS_PRECONDITIONs then return true (Macros.h:91 empty without assertions).
+
 **Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h lines 291-297, with src/openms/include/OpenMS/CONCEPT/Macros.h line 91
 
 **Issue and reproduction:** The function's three checks — equal transition/chromatogram counts, equal map sizes, and isMappingConsistent_() — are all OPENMS_PRECONDITION, which expands to nothing unless OPENMS_ASSERTIONS is defined. In an ordinary release build the body reduces to `return true;`, so the function declared `bool isInternallyConsistent() const` can never return false, and isMappingConsistent_() is never called. In an assertions build a violation throws Exception::Precondition instead of returning false, so there is no build in which the boolean result is meaningful. Trigger: a group with one addTransition and no addChromatogram returns true from any release build.
@@ -2085,6 +2283,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `is_internally_consistent` evaluates the three conditions and returns the answer; one pass over the chromatogram key map. Covered by tests/mrm.rs::internal_consistency_detects_every_source_condition and the ported class-test section group_is_internally_consistent.
 
 ## CPP-100 — IDScoresAsMetaValue writes the transition_names meta value twice
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMFeature.cpp:~142 and ~152 still both setMetaValue(id + "transition_names", ...).
 
 **Affected files:** src/openms/source/KERNEL/MRMFeature.cpp lines 142 and 152
 
@@ -2098,6 +2298,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-101 — getLibraryIntensity clamps entries the caller already had in the output vector
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMTransitionGroup.h:319-333 getLibraryIntensity still clamps over result.size() (whole caller vector), not from the starting size.
+
 **Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h lines 319-333
 
 **Issue and reproduction:** The function appends the transitions' library intensities to the caller's vector and then runs its negative-to-zero clamp over `result.size()` — the whole vector, not just the appended range. Any negative value the caller had put in the vector before the call is silently overwritten with zero. Trigger: `std::vector<double> r; r.push_back(-5.0); group.getLibraryIntensity(r);` leaves r[0] == 0.0 even for an empty group. The class test always passes a fresh vector, so this never shows up upstream.
@@ -2109,6 +2311,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `library_intensity` returns a fresh `Vec<f64>` and clamps only its own entries; the difference is documented at the item and in docs/MRM_SUPPORT.md. Covered by the ported class-test section group_get_library_intensity.
 
 ## CPP-102 — subset re-keys precursor chromatograms by nativeID and throws on a group the class's own test builds
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMTransitionGroup.h:~355-359 subset still addPrecursorChromatogram(pc, pc.getNativeID()).
 
 **Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h lines 355-359, with src/tests/class_tests/openms/source/MRMTransitionGroup_test.cpp lines 200-213
 
@@ -2122,6 +2326,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-103 — subsetDependent indexes chromatogram_map_.at() without the guard subset uses
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMTransitionGroup.h:~397 subsetDependent still calls chromatogram_map_.at() with no hasChromatogram guard.
+
 **Affected files:** src/openms/include/OpenMS/KERNEL/MRMTransitionGroup.h line 397, compared with lines 348-351 in subset
 
 **Issue and reproduction:** subset guards the chromatogram transfer with `if (this->hasChromatogram(tr.getNativeID()))`; subsetDependent calls `chromatograms_[chromatogram_map_.at(tr_it->getNativeID())]` unconditionally. A selected transition with no chromatogram under its native ID therefore raises an uncaught std::out_of_range, which escapes as a bare STL exception rather than an OpenMS Exception, so the TOPP top-level handler reports it without file, line or function context. Trigger: a group with addTransition(t, "t1") where t.getNativeID() == "t1" and no addChromatogram, then subsetDependent({"t1"}). This is never exercised upstream (see the next issue).
@@ -2133,6 +2339,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `subset_dependent` returns `Error::MissingInformation` naming the key, and builds into a temporary so the receiver is untouched. Covered by tests/mrm.rs::subset_dependent_keeps_whole_features_and_drops_precursors.
 
 ## CPP-104 — The subsetDependent class-test section tests subset, leaving subsetDependent with no coverage
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MRMTransitionGroup_test.cpp:328-352 subsetDependent section still calls mrmtrgroup.subset(transition_ids).
 
 **Affected files:** src/tests/class_tests/openms/source/MRMTransitionGroup_test.cpp lines 328-352
 
@@ -2146,6 +2354,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-105 — IndexedMzMLHandler copy constructor silently drops both native-id maps
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IndexedMzMLHandler.cpp:76-88 copy ctor still omits spectra_native_ids_ and chromatograms_native_ids_.
+
 **Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:76-88 (member list at IndexedMzMLHandler.h:57-64); consumer at src/openms/include/OpenMS/KERNEL/OnDiscMSExperiment.h:97-103
 
 **Issue and reproduction:** The copy constructor's initialiser list copies filename_, spectra_offsets_, chromatograms_offsets_, index_offset_, spectra_before_chroms_, a freshly reopened filestream_, parsing_success_ and skip_xml_checks_, but omits spectra_native_ids_ and chromatograms_native_ids_, which are therefore default-constructed empty. Every getMSSpectrumByNativeId / getMSChromatogramByNativeId call on a copied handler throws Exception::IllegalArgument for every identifier, while getNrSpectra and index-based access still work, so the failure looks like a missing spectrum rather than a broken copy. The class is meant to be copied: the comment at line 82 says reopening rather than copying the stream 'is critical for parallel access to the same file', OnDiscMSExperiment's copy constructor copies indexed_mzml_file_ by value, and OnDiscMSExperiment.h:65-67 recommends '#pragma omp parallel for firstprivate(ondisc_map)'. Trigger: copy a handler (or an OnDiscMSExperiment) opened on any indexed mzML and call getSpectrumByNativeId with an id the original resolves.
@@ -2157,6 +2367,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Not reproduced. There is no copy constructor; an independent reader is an independent IndexedMzMLHandler::open, and the ordered identifier maps are ordinary owned state built in open_with_limits. tests/indexed_mzml_handler.rs::a_second_handler_on_one_file_reads_the_same_data asserts that the second handler resolves both native identifiers, which is exactly the assertion the source would fail.
 
 ## CPP-106 — IndexedMzMLHandler::openFile accumulates index state instead of replacing it
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IndexedMzMLHandler.cpp:20-62,92-101 parseFooter_/openFile still push_back/emplace without clearing offsets or native-id maps.
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:20-62 (parseFooter_) and :92-101 (openFile)
 
@@ -2170,6 +2382,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-107 — Record read length is unchecked in both directions and the read result is never inspected
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IndexedMzMLHandler.cpp:139-168,199-228 still new char[readl+1] with no start<=end/file-size check and no gcount check.
+
 **Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:139-168 (getChromatogramById_helper_) and :199-228 (getSpectrumById_helper_)
 
 **Issue and reproduction:** Both helpers compute std::streampos readl = endidx - startidx from two values that come straight out of the file's own footer index, then call new char[readl + std::streampos(1)]. Nothing checks that endidx >= startidx, that either offset lies inside the file, or that the difference is a plausible record size. A decreasing pair makes the length negative, so the new-expression throws std::bad_array_new_length — not an OpenMS exception, so it escapes every Exception:: handler a caller installed. An oversized pair is an unbounded allocation driven by untrusted input. Worse, filestream_.seekg/read are issued without checking gcount() or the stream state: when the range runs past the end of the file the read stops early, the tail of the buffer keeps the indeterminate values left by new char[], only buffer[readl] is set to '\0', and std::string text(buffer) then scans that indeterminate memory. Trigger: any indexed mzML whose <indexList> offsets are corrupt, truncated or hostile — precisely the untrusted input this class exists to read.
@@ -2181,6 +2395,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Reproduced as checked errors. record_range rejects a decreasing pair (Error::Parse 'index offsets do not increase across the record'), an end past the file length (Error::Parse 'record byte range extends past the end of the file') and a span above RecordReadLimits::max_record_bytes (Error::InvalidValue), all before any allocation; read_range then uses try_reserve_exact and verifies the byte count actually read. open_with_limits additionally rejects an indexListOffset or index entry beyond the file. Covered by decreasing_index_offsets_are_rejected_before_allocating, offsets_past_the_end_of_the_file_are_rejected and an_oversized_record_range_is_refused_before_reading, which also asserts the handler is unchanged after the refusal.
 
 ## CPP-108 — Chromatogram out-of-range message reports the spectrum count
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IndexedMzMLHandler.cpp:132-137 chromatogram check message still says 'number of spectra' and reports getNrSpectra().
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:132-137 (and the same off-by-one wording at :192-197)
 
@@ -2194,6 +2410,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-109 — Record XML parse errors are discarded, and the handler always feeds the parser ill-formed input for the last record
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSpectrumDecoder.cpp:527-556 domParseString_ still has no setErrorHandler; last-record byte range still includes trailing content.
+
 **Affected files:** src/openms/source/FORMAT/HANDLERS/MzMLSpectrumDecoder.cpp:536-556 (domParseString_); ranges produced at src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:142-155 and :202-215
 
 **Issue and reproduction:** domParseString_ constructs a XercesDOMParser and calls parse() without ever calling setErrorHandler, so well-formedness errors go to the default handler and are silently dropped; only a null document element is caught. This is not a latent risk but a permanent condition: the handler's byte range for the last record of each kind deliberately runs to the start of the other list or to <indexList>, so the text handed to the parser ends with '</spectrum></spectrumList><chromatogramList ...>' or '</chromatogram></chromatogramList></run></mzML>'. Every such fetch parses input with content after the root element. The same silence means a genuinely truncated, mis-indexed or corrupt record yields an empty MSSpectrum with no peaks and no error, indistinguishable from a legitimately empty scan. Trigger: getMSSpectrumById for the last spectrum of any indexed mzML, and any file whose index offsets do not land exactly on a record.
@@ -2205,6 +2423,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Reproduced as a loud failure. record_xml requires the range to start with the expected element and trims it at the matching closing tag, then the assembled single-record document goes through src/format/mzml.rs, whose errors are returned rather than discarded; an unterminated record is Error::Parse 'record is not closed inside its byte range'. Covered by the_last_record_is_trimmed_at_its_own_closing_tag (asserting the trimmed spectrum contains no '</spectrumList>' and the trimmed chromatogram no '</run>') and an_offset_that_is_not_a_record_start_is_rejected.
 
 ## CPP-110 — getMSChromatogramById(int) recomputes ranges twice
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IndexedMzMLHandler.cpp:278-284 getMSChromatogramById(int) still calls c.updateRanges() after the by-reference overload already did (line ~297).
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/IndexedMzMLHandler.cpp:278-284, with the inner call at :297-302
 
@@ -2218,6 +2438,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-111 — MapConversion::convert(PeakMap) sorts and indexes past the end of its vector
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ConversionHelper.cpp:~26-45 n now clamped against tmp.size() after get2DData; fixed by a7744ef51c PR #10155 (CPP-111).
+
 **Affected files:** src/openms/source/KERNEL/ConversionHelper.cpp:24-44, src/openms/source/KERNEL/MSExperiment.cpp:744, src/openms/include/OpenMS/KERNEL/MSExperiment.h:171
 
 **Issue and reproduction:** n is clamped against MSExperiment::getSize(), which sums the peaks of every spectrum plus every chromatogram point, but the vector that is then partially sorted comes from get2DData, which skips every spectrum whose MS level is not 1. With any MS2 spectrum or chromatogram present the middle iterator of std::partial_sort is past the end (undefined behaviour) and the following loop reads tmp[element_index] past the end. The default argument Size(-1) reaches this path on every call that does not pass n explicitly, so any DDA run converted with the default triggers it.
@@ -2229,6 +2451,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** MapConversion::peak_map_to_consensus clamps against the number of points actually collected; tests/conversion_helper.rs::peak_map_to_consensus_clamps_against_collected_points asserts 12 elements for a 12-MS1-peak run that also holds an MS2 spectrum and a chromatogram (getSize() would be 14).
 
 ## CPP-112 — FeatureMap::swap and ConsensusMap::swap do not swap the meta values
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureMap.cpp:323-342 and ConsensusMap.cpp:393-421 swap still do not swap MetaInfoInterface.
 
 **Affected files:** src/openms/source/KERNEL/FeatureMap.cpp:323, src/openms/source/KERNEL/ConsensusMap.cpp:393
 
@@ -2242,6 +2466,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-113 — ConsensusMap::split indexes its result vector with the map index
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ConsensusMap.cpp:~717-860 split() now indexes fmaps via index_to_position/positionOf (throws ElementNotFound); fixed by 10763117e9 PR #10153 (CPP-113).
+
 **Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:702, 780, 801
 
 **Issue and reproduction:** fmaps is sized by column_description_.size() but indexed by the feature handle's and the identification's map_index. The two agree only when the column headers happen to be keyed 0..n-1. A consensusXML whose headers are keyed sparsely (which nothing forbids, and which setPrimaryMSRunPath can itself create) makes fmaps[it->first] read and write past the end of the vector.
@@ -2253,6 +2479,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** ConsensusMap::split maps every index through check_column and returns Error::InvalidValue for one that does not name a column; tests/map_operations.rs::cm_split_error_paths covers it.
 
 ## CPP-114 — ConsensusMap::split dereferences an empty map in the isobaric branch
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ConsensusMap.cpp:~763-771 iso_analyze path throws ElementNotFound unless min_index==0, so empty new_feats is never dereferenced at :775; guard is pre-existing (5c5845666b), not a PR fix.
 
 **Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:741
 
@@ -2266,6 +2494,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-115 — ConsensusMap::appendRows pairs column headers by position, not by column index
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ConsensusMap.cpp:85-92 appendRows still advances it/it2 in lockstep and renames/sums by ordinal position.
+
 **Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:85-92
 
 **Issue and reproduction:** After merging rhs's headers, the loop advances an iterator over the merged map and a second over rhs's map in lockstep and sets getColumnHeaders()[it->first].size = it->second.size + it2->second.size. The two iterators are at the same ordinal position, not at the same column index, so a merge adds the size of an unrelated column and renames only the first min(|merged|, |rhs|) headers to mergedConsensusXMLFile. The remaining headers keep a filename that no longer describes their contents.
@@ -2277,6 +2507,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** ConsensusMap::append_rows reproduces the positional zip and documents it; tests/map_operations.rs::cm_append_rows asserts that header 0 is renamed while header 1 keeps "m2".
 
 ## CPP-116 — ConsensusMap::setPrimaryMSRunPath writes by position through a default-inserting map
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Partly resolved. ConsensusMap.cpp:508-545 now walks existing columns by key (fixed by 1741425efc), but an empty column map still accepts any number of paths and creates columns[i].
 
 **Affected files:** src/openms/source/KERNEL/ConsensusMap.cpp:518-536
 
@@ -2290,6 +2522,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-117 — MSExperiment::getPrimaryMSRunPath joins using the unstripped file:/// path
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSExperiment.cpp:972-975 actual_path strips file:/// only for separator choice; ms_run_location still built from original path.
+
 **Affected files:** src/openms/source/KERNEL/MSExperiment.cpp:922-925
 
 **Issue and reproduction:** actual_path strips a leading file:/// only to decide whether the separator should be a backslash or a slash; the location that is pushed is then built from the original path, so a source file whose path is file:///C:/data yields file:///C:/data/run.mzML. FeatureMap::setPrimaryMSRunPath and ConsensusMap::setPrimaryMSRunPath pass that string straight to File::exists, which cannot find it, so the fallback list is silently used instead of the experiment's own run path.
@@ -2301,6 +2535,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The private usable_experiment_run_path helper reproduces the spelling so the existence test sees what the source tests, and records the defect in its doc comment and in tests/data/map_operations_provenance.json.
 
 ## CPP-118 — UniqueIdIndexer::resolveUniqueIdConflicts can loop forever
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. UniqueIdIndexer.h:~138-163 resolveUniqueIdConflicts still has unbounded while(contains) redraw loop; ensureUniqueId assignments not counted.
 
 **Affected files:** src/openms/include/OpenMS/CONCEPT/UniqueIdIndexer.h:138-163
 
@@ -2314,6 +2550,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-119 — FeatureMap::getPrimaryMSRunPath does not clear its output argument
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureMap.cpp:452-464 getPrimaryMSRunPath still assigns toFill only if spectra_data exists; caller's prior contents survive.
+
 **Affected files:** src/openms/source/KERNEL/FeatureMap.cpp:452-464
 
 **Issue and reproduction:** toFill is only assigned when the spectra_data meta value exists; otherwise the caller's previous contents survive, and the UNKNOWN placeholder is appended only when the result is empty. A caller that reuses one StringList across maps therefore reads the previous map's paths back as if they belonged to the current one, with no diagnostic.
@@ -2325,6 +2563,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** FeatureMap::primary_ms_run_path returns a fresh Vec, so the question cannot arise; the source behaviour is stated in the item's rustdoc.
 
 ## CPP-120 — mzML list `count` attribute drives an unvalidated container reserve
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:979/996/1016/1034/1039 still pass attributeAsInt_(count) unvalidated to reserveSpaceSpectra/Chromatograms and bin_data_.reserve
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:965, :978, :996, :1012, :1017; src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h:393-398, :538-543; src/openms/source/FORMAT/HANDLERS/StringManager.cpp:109-112; src/openms/source/KERNEL/MSExperiment.cpp:520-523
 
@@ -2338,6 +2578,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-121 — rasterizeRTMZ's SUM aggregation is not reproducible across thread counts
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSExperiment.cpp:436-545 still per-thread float buffers, schedule(dynamic), merged with += in float; SUM depends on thread count
+
 **Affected files:** src/openms/source/KERNEL/MSExperiment.cpp:355-518
 
 **Issue and reproduction:** rasterizeRTMZ chooses between a single-threaded branch (`if (num_threads <= 1)` at :355, writing straight into the output) and an OpenMP branch (:401-517) from a heuristic over omp_get_max_threads(), a 4 MB memory budget and sqrt(num_spectra) (:344-352). For RasterAggregation::MAX the two agree, because a maximum is associative and commutative. For SUM they do not: each thread accumulates its own f32 partial sum into a per-thread buffer (:460) and the merge adds those partials into the pixel (:499), so the f32 summation order — and the rounded pixel value — depends on how the spectra happened to be distributed. The same input therefore rasterizes to different SUM images on machines with different core counts, and differently again from the single-threaded branch. Nothing in the header's documentation warns of this, and the class test does not exercise the parallel branch's SUM output against the serial one.
@@ -2349,6 +2591,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The port is serial and reproduces the single-threaded branch exactly, so its SUM output is deterministic. The difference is stated rather than hidden: src/kernel/experiment_mobility.rs:41-50 and docs/EXPERIMENT_MOBILITY_SUPPORT.md:310-322 say the serial image matches the source only for Max, and name the two lines that make Sum order-dependent.
 
 ## CPP-122 — rasterizeRTMZ's two negative-bin guards are dead code that mask an unchecked precondition
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSExperiment.cpp:396,410,422,459,487,506 still carry rt_bin<0 / mz_bin>=0 guards; no sortedness check or throw in rasterizeRTMZ
 
 **Affected files:** src/openms/source/KERNEL/MSExperiment.cpp:362, :376, :388, :425-428, :453, :472
 
@@ -2362,6 +2606,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-123 — None found — no new C++ source defect
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Unconfirmed. Entry records no C++ defect ('None found'); nothing to verify
+
 **Affected files:** n/a
 
 **Issue and reproduction:** This was a documentation- and test-accuracy task; no upstream C++ behaviour was re-examined, so nothing new is reportable for OpenMS_CPP_ISSUES.md. The four defects docs/ON_DISC_EXPERIMENT_SUPPORT.md already records for OnDiscMSExperiment.h/.cpp are unchanged and were not re-litigated.
@@ -2373,6 +2619,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** n/a
 
 ## CPP-124 — .ibd array reads are sized from the declared count with no comparison against the file's length
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLHandlerHelper.cpp:127-136,206 validateCount_ checks only MAX_IBD_ARRAY_ELEMENTS, then out.resize(count)/tmp(count) before fread; no file-length check
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandlerHelper.cpp:122-186 (readMzArray), :190-262 (readFloatVector_)
 
@@ -2386,6 +2634,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-125 — ImzMLMeta::mz_data_type and int_data_type stay empty on an index-only load
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLHandler.cpp:241-244 mz_data_type/int_data_type still set only inside the decode branch (decode_ibd_), so index-only load leaves them empty
+
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:248-252; src/openms/include/OpenMS/FORMAT/HANDLERS/ImzMLHandlerHelper.h:64-70; src/openms/source/FORMAT/ImzMLFile.cpp (loadSpectraIndex path)
 
 **Issue and reproduction:** The two fields are assigned inside the `if (handler_.ibd_ && handler_.decode_ibd_ && ...)` decode branch of ImzMLInterceptConsumer::consumeSpectrum. ImzMLFile::loadSpectraIndex passes decode_ibd = false, so an index-only load returns an ImzMLMeta whose mz_data_type and int_data_type are empty strings even though every spectrum's XML declared MS:1000521. The header documents them as "first occurrence, dataset-level summary" with no caveat, and the value is available from the parse, not from the decode: ArrayMeta::dt is already set at endElement("binaryDataArray"). A caller that reads the index to decide how to allocate cannot learn the element width without decoding a spectrum it does not want.
@@ -2397,6 +2647,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** read_index sets ImzMLMeta::mz_data_type / int_data_type from the first spectrum in document order that declares a type, so a metadata-only parse is informative; documented at the fields and under native difference 4 of docs/IMZML_HANDLER_SUPPORT.md. Both fixtures report Float32 either way, so this does not change any upstream expectation.
 
 ## CPP-126 — An unnamed external auxiliary array vanishes from the index with no trace
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLHandler.cpp:366-371 still silently omits unnamed aux from index entry; no count kept; warn only at decode (:256-260)
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:264-269 (warn at decode) and :374-390 (omit from the index entry)
 
@@ -2410,6 +2662,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-127 — verifyIbdUuid_ carries two contradictory doc comments, one describing behaviour the function does not have
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLFile.cpp:77-87 still has both the 'reject loudly' and the advisory comment blocks stacked above verifyIbdUuid_
+
 **Affected files:** src/openms/source/FORMAT/ImzMLFile.cpp:77-87
 
 **Issue and reproduction:** Two comment blocks sit immediately above the same function. The first says the .ibd "must begin with the 16-byte UUID declared in the .imzML XML" and that a mismatch means the files do not belong together, so it should "reject loudly instead of silently decoding garbage offsets". The second, added later, says the check is advisory and is "reported as a loud WARNING rather than a hard error so that legacy / non-conformant datasets still load". The code does the second. A reader who stops at the first comment will believe a mismatched pair is rejected and will not add the check their own caller needs.
@@ -2421,6 +2675,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** ImzMLHandler::uuid_status returns UuidStatus::{Match, Mismatch, NotDeclared, IbdTooShort} and open* rejects none of them, which keeps the source's actual tolerance while making the verdict available; the rustdoc states that the source warns and loads anyway. Covered by both_fixtures_ibd_headers_match_their_declared_uuid and a_mismatched_or_missing_uuid_is_reported_not_rejected.
 
 ## CPP-128 — The declared .ibd checksums are parsed and mirrored but never verified on any read path
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLFile.cpp:154-160 only mirrors ibd_sha1/md5 as MetaValues; no digest verification anywhere (only UUID header check :90-)
 
 **Affected files:** src/openms/source/FORMAT/ImzMLFile.cpp:148-160 (attachImzMLMeta_); src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:703-704
 
@@ -2434,6 +2690,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-129 — OnDiscImzMLExperiment::open re-derives the .ibd path in a branch that cannot be taken
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. OnDiscImzMLExperiment.cpp:238-246 still has the inline `if (ibd_path_.empty())` re-derivation of the .ibd path
+
 **Affected files:** src/openms/source/KERNEL/OnDiscImzMLExperiment.cpp:238-246; src/openms/source/FORMAT/ImzMLFile.cpp:568-570
 
 **Issue and reproduction:** open() sets ibd_path_ from the override or from meta_.ibd_file_path, then re-implements ImzMLFile::inferIbdPath_ inline for the case where that string is empty. It is never empty: loadImpl_ resolves the path as override-or-inferIbdPath_ and assigns meta_.ibd_file_path unconditionally before parsing. The inline copy is unreachable duplicated logic; a future change to inferIbdPath_ would leave it silently behind.
@@ -2445,6 +2703,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** One derivation only: `infer_ibd_path` in src/format/imzml_handler.rs, called by `OnDiscImzMLExperiment::open`; `open_with_ibd`/`open_with_limits` take the path explicitly. Documented on `open` and in docs/ON_DISC_IMZML_SUPPORT.md.
 
 ## CPP-130 — IonImage allocates width * height from unvalidated file-supplied image dimensions
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IonImage.cpp:21-28 resize() assigns width*height doubles+mask with no ceiling; no MAX_IMAGE_PIXELS anywhere in IMAGING
 
 **Affected files:** src/openms/source/IMAGING/IonImage.cpp:21-28; src/openms/include/OpenMS/IMAGING/IonImageExtraction.h:89; src/openms/source/FORMAT/ImzMLFile.cpp:380-385
 
@@ -2458,6 +2718,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-131 — MSImagingRegion::fromMask computes the far corner in wrapping UInt arithmetic
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSImagingRegion.cpp:52-53 max_x_=origin_x+width-1 still unchecked UInt arithmetic
+
 **Affected files:** src/openms/source/IMAGING/MSImagingRegion.cpp:52-53
 
 **Issue and reproduction:** max_x_ = origin_x + width - 1 and max_y_ = origin_y + height - 1 are evaluated in UInt. For an origin near the top of the range the sum wraps, producing a bounding box whose maximum is below its minimum — the exact state rectangle() rejects. contains() then answers false everywhere, intersects() reports no overlap with anything, and area() (bbox path) is not reached only because the shape is Mask; getBBoxWidth() underflows instead. The region is silently inert rather than rejected.
@@ -2469,6 +2731,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** `ImagingRegion::from_mask` computes the corner with `checked_add` and returns `Error::InvalidRange` on overflow; tested by the `u32::MAX` origin case in `a_mask_covers_only_its_set_bits`.
 
 ## CPP-132 — ImzMLWriter::store cannot write a metadata-only continuous dataset
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLWriter.cpp:485-491 clear(false) under MetadataOnly and :738-746 throws InvalidParameter for continuous mode when spectraShareMz_ sees all-empty spectra
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:485-491 (applyStoreOptions_ clear(false)), :692-754 (spectraShareMz_ / isContinuousMode_), :1410-1415 (store)
 
@@ -2482,6 +2746,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-133 — ImzMLWriter::store leaks the ProgressLogger recursion depth on every throw
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLWriter.cpp:1437 startProgress, :1519 endProgress only on success path; no scope guard or catch
+
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:1437 (startProgress), :1519 (endProgress)
 
 **Issue and reproduction:** logger.startProgress(0, work.size() + 2, ...) is called at line 1437 and logger.endProgress() only on the success path at line 1519. Every throw in between -- UnableToCreateFile on either path, ParseError from the array writers, the UUID header write or the fflush -- leaves ProgressLogger's recursion depth incremented, so later progress output in the same process is indented wrongly and, at the depth cap, suppressed. Source review only.
@@ -2493,6 +2759,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** store_with_options ends the progress range before propagating, so the nesting depth is balanced on every path; stated in the # Arguments prose for the logger parameter.
 
 ## CPP-134 — A failed ImzMLWriter::store leaves a truncated .ibd with no .imzML
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLWriter.cpp:1440-1517 .ibd streamed before .imzML; no temp+rename or unlink on failure
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:1440-1511 (the fopen'd .ibd block), :1517 (the .imzML written last)
 
@@ -2506,6 +2774,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-135 — ImzMLFile_1_Example_Continuous.imzML is not schema-valid mzML 1.1.0, so ImzMLFile::isValid would reject its own reference fixture
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Fixture ImzMLFile_1_Example_Continuous.imzML in develop has identical sha256 a358a807...; cvParams lack cvRef, scanSettingsList (:35) precedes softwareList (:57)
+
 **Affected files:** src/tests/class_tests/openms/data/ImzMLFile_1_Example_Continuous.imzML (sha256 a358a80751cfd014dc86d5a18ee04c21b98063d3523c0f03f29c375f49c6b0cc); consumed by src/tests/class_tests/openms/source/ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp; validated by ImzMLFile::isValid -> Internal::XMLFile::isValid against resources/schemas/mzML_1_10.xsd
 
 **Issue and reproduction:** Validating the fixture against the mzML 1.1.0 schema that ImzMLFile's own constructor registers produces eleven errors: ten cvParam elements omit the required cvRef attribute, and scanSettingsList (line 35) precedes softwareList (line 57) while the schema sequence is softwareList, scanSettingsList, instrumentConfigurationList, dataProcessingList. The same misordering makes a single-pass mzML reader see the dataProcessing softwareRef="sw1" as a forward reference. The C++ suite never notices because its only isValid section validates a file it has just written, and Xerces validation is disabled on the read path (fgSAX2CoreValidation false, ImzMLFile.cpp:576).
@@ -2517,6 +2787,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Not a blocker: openms::format::imzml_file and imzml_handler scan only the IMS vocabulary and read the fixture correctly, and all ported sections pass against it unmodified. ImzMLFile::is_valid reports the eleven diagnostics faithfully, and the misordering is one of the three reasons format::mzml cannot currently read the fixture (recorded in docs/IMZML_FILE_SUPPORT.md under 'the mzML metadata gap'). The fixture was not modified.
 
 ## CPP-136 — ImzMLFile_2_Example_Processed.imzML declares mzML version="1.1" instead of 1.1.0 and is ISO-8859-1 with Latin-1 bytes
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Fixture ImzMLFile_2_Example_Processed.imzML in develop has identical sha256 06667159...; ISO-8859-1 declaration unchanged
 
 **Affected files:** src/tests/class_tests/openms/data/ImzMLFile_2_Example_Processed.imzML (sha256 066671590f01d4820b7ac5bd1f669d23dca04a91e40c08a35f7d0c6d6c729480), line 2 root attribute version="1.1", XML declaration encoding="ISO-8859-1"; consumed by ImzMLFile_test.cpp and ImzMLFile_all_modes_test.cpp
 
@@ -2530,6 +2802,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-137 — ImzMLFile's two buildImagingGeometry overloads, documented as the same source of truth, disagree on the pixel-size condition and on the skip-reason ordering
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLFile.cpp:365 (exists-only) vs :474 (both >0) pixel-size condition, and z test order :279/:294 vs :399/:403 still differ
+
 **Affected files:** src/openms/source/FORMAT/ImzMLFile.cpp:240-369 (the MSExperiment overload) and :371-476 (the index overload); specifically :277 vs :397 and :363 vs :472. Both are declared static public in src/openms/include/OpenMS/FORMAT/ImzMLFile.h
 
 **Issue and reproduction:** The header calls the index overload 'the source-of-truth path' and says the MetaValue path exists for experiments already loaded, implying they agree. Two differences: (1) the MetaValue overload copies the pixel size when imzml:pixel_size_x and imzml:pixel_size_y merely exist (:363) where the index overload copies it only when both are strictly positive (:472), and MSImagingGeometry::setPixelSize validates nothing (MSImagingGeometry.cpp:28-33), so for a dataset declaring IMS:1000046/047 as 0 the two builders return geometries whose getPixelSizeX() differs (0 versus the default) and any physical-distance computation differs with it; (2) the MetaValue overload tests x<1||y<1 before reading imzml:z (:277) while the index overload tests z!=1 first (:397), so a spectrum at (0,0,2) is warned about as a non-conformant coordinate on one path and skipped silently on the other. The second is cosmetic; the first changes returned data.
@@ -2541,6 +2815,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Both differences are reproduced deliberately, because they are observable, and both are documented at build_imaging_geometry_from_experiment and in docs/IMZML_FILE_SUPPORT.md. The ordering difference is asserted in the_meta_value_geometry_builder_reports_every_kind_of_unplaceable_spectrum, which checks that the index builder reports other_plane_count 1 and non_positive_count 0 for the same entry the MetaValue builder reports as non-positive. the_geometry_builders_agree_on_the_upstream_fixtures pins that the two agree on width, height and every pixel for both real fixtures. ImagingGeometry::set_pixel_size rejects only a non-finite size, as the source rejects nothing.
 
 ## CPP-138 — ClassTest::isRealSimilar reports any two infinities as similar, including +inf against -inf
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ClassTest.cpp:364-489 has no isinf/isfinite handling; inf vs -inf gives ratio NaN and falls through to 'ratio of numbers is small' true
 
 **Affected files:** src/testframework/source/CONCEPT/ClassTest.cpp:364-489 (quotient at :438, sign test at :439, ratio test at :467)
 
@@ -2554,6 +2830,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-139 — ClassTest::isRealSimilar is asymmetric — the quotient underflows to -0.0 and defeats its own opposite-sign branch
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ClassTest.cpp:438-451 unchanged: ratio=number_1/number_2 then ratio<0 test, so -0.0 underflow case still asymmetric
+
 **Affected files:** src/testframework/source/CONCEPT/ClassTest.cpp:438-451 (ratio = number_1 / number_2; if (ratio < 0.))
 
 **Issue and reproduction:** The opposite-sign test is `ratio < 0.`, read off the quotient rather than the operands. When the magnitudes are far enough apart the quotient underflows to negative zero, and `-0.0 < 0.` is false, so the branch is skipped. `-0.0 < 1.` is then true, so the reciprocal step sets ratio = 1. / -0.0 = -inf, and `-inf > ratio_max_allowed` is false — so the function returns true for two numbers of opposite sign that differ by 600 orders of magnitude. isRealSimilar(1e-300, -1e300) is true while isRealSimilar(-1e300, 1e-300) is false, and isRealSimilar(1.0, -inf) is true while isRealSimilar(-inf, 1.0) is false. The same-sign pair isRealSimilar(1e-300, 1e300) is correctly false, which shows this is a defect and not a deliberate tolerance. Confirmed by compiling and running the transcribed control flow, not by reading it.
@@ -2566,6 +2844,8 @@ fraction. No upstream fix is claimed.
 
 ## CPP-140 — ImzMLHandler's non-external peak fill is dead code: MzMLHandler throws first on a mixed spectrum
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLHandler.cpp:212-232 non-external fill still present; MzMLHandler.cpp:423 still throws on decoded-size mismatch first; structure unchanged (static reading)
+
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLHandler.cpp:198-234 and :608-610; src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:407-413
 
 **Issue and reproduction:** ImzMLInterceptConsumer::consumeSpectrum is written to handle a spectrum with exactly one external peak array: it enters its decode block on `(ims->mz_meta.is_ext || ims->int_meta.is_ext)` (:198), reads the external side from the .ibd, and fills the non-external side from the peaks MzMLHandler decoded — `mz_vec[i] = s[i].getMZ()` (:214-218), `int_vec[i] = s[i].getIntensity()` (:228-232) — so the mismatch throw at :234 should be reachable only for genuine corruption. It never runs. For such a spectrum the inline side's <binary> decodes to N values while the external side's placeholder <binary/> decodes to none, and MzMLHandler::populateSpectraWithData_ compares those two DECODED sizes at :410 and calls fatalError(LOAD, "The length of m/z and integer values of spectrum '...' differ ... Not reading spectrum!"), which throws Exception::ParseError. ImzMLHandler::onEndElement's two mitigations do not help: zeroing default_array_length_ (:608-610) only affects the defaultArrayLength comparison at :415-429, which populateSpectraWithData_ repairs rather than throws on, and zeroing bin_data_.back().size (:550-553) touches the declared length, not the decoded vector. So the fill at :214-232 is latent in the in-memory loader. The on-disc loader cannot reach it either, for an unrelated reason: ImzMLSpectrumIndex carries no is_ext field (ImzMLHandlerHelper.h:102-139), so Impl::readMz_/readInt_ gate on `mz_length`/`int_length != 0` (OnDiscImzMLExperiment.cpp:180-199) and an inline array, having no IMS:1000103, is silently empty — which then trips the on-disc mismatch throw at :75. Not exploitable and not reachable from a conformant imzML 1.1.0, which stores both peak arrays externally; the cost is dead code that reads as a supported path and a confusing error (a base-class message about a spectrum length, for a file whose real problem is a missing IMS:1000101).
@@ -2577,6 +2857,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** The Rust port implements the interception layer, not MzMLHandler, so it follows option (a) as :214-232 describes it: src/format/imzml_handler.rs retains the inline base64 of a non-external peak array during the index scan (ImzMLSpectrumIndex::mz_inline / int_inline) and decodes it in spectrum() and in mz_array/intensity_array where the .ibd read would otherwise be, keeping the length check as the corruption guard. It also carries the is_ext pair the C++ index lacks (mz_external / int_external), which is what lets both Rust read paths agree. The consequence — Rust accepts a non-conformant file both C++ loaders reject, in a different class and with a different message — is stated in docs/IMZML_HANDLER_SUPPORT.md:340-355, in the DecodedSpectrum::inline_peaks and ImzMLHandler::spectrum rustdoc, and as a gap in tests/data/imzml_handler_provenance.json, with source anchors at ImzMLHandler.cpp:198/214/228/608, MzMLHandler.cpp:410 and ImzMLHandlerHelper.h:102.
 
 ## CPP-141 — DataValue::operator double() reads the union's double member for a non-numeric value
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. DataValue.cpp:466-478 operator double/float/long double now throw ConversionError for non DOUBLE/INT; fixed by #10507 (a8fbd1082e)
 
 **Duplicate tracking:** This is the imzML call-site instance of [CPP-058](#cpp-058--nonnumeric-datavalue-casts-read-an-inactive-union-member). The stable ID and original evidence are retained; it is not an additional distinct DataValue defect.
 
@@ -2591,6 +2873,8 @@ fraction. No upstream fix is claimed.
 **Rust handling:** Not reproducible in the port — MetaValue is a tagged enum and MetaValue::as_f64 returns Err for every non-numeric variant, so there is no union to misread. dataset_meta therefore returns Error::InvalidValue for a non-numeric size, which is the one place it is deliberately stricter than extractMeta_. Pinned by dataset_meta_reads_every_key_and_refuses_the_wrong_type and the_numeric_keys_stay_strict_and_a_size_accepts_an_integer, the latter also asserting that an integer size is still accepted because the source accepts one. Recorded as cpp_issue_candidate 4 in tests/data/imzml_writer_provenance.json and under Source findings in docs/IMZML_WRITER_SUPPORT.md; unconfirmed against running C++.
 
 ## CPP-142 — ImzMLWriter::store treats one misaligned FloatDataArray as skippable or fatal depending on an unrelated PeakFileOptions flag
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ImzMLWriter.cpp:440-480 applyStoreOptions_ still calls sortByPosition/select before the per-peak skip at :522-531; MSSpectrum checkDataArraySizes_ still throws
 
 **Affected files:** src/openms/source/FORMAT/HANDLERS/ImzMLWriter.cpp:454, 468, 475, 522-531; src/openms/source/KERNEL/MSSpectrum.cpp:20-38, 40-66, 444-460; src/openms/include/OpenMS/KERNEL/MSSpectrum.h:364-376
 
@@ -2613,6 +2897,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-143 — Negative CHEMMOD identifiers fail modification-cell parsing
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTab.cpp:142-147 MzTabModification::fromCellString still splits on every '-' and throws ConversionError unless fields.size()==2 (negative CHEMMOD)
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `MzTabModification::fromCellString` in [src/openms/source/FORMAT/MzTab.cpp:130](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTab.cpp#L130).
@@ -2628,6 +2914,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Preserves source rejection of negative CHEMMOD strings. No native grammar correction is claimed. See [src/format/mztab.rs](src/format/mztab.rs), [tests/mztab.rs](tests/mztab.rs) and [MZTAB_SUPPORT.md](docs/MZTAB_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-144 — Quoted commas split a MzTab modification-list entry
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTab.cpp MzTabModificationList::fromCellString (~:262-290) still only protects commas when in_param_bracket && !in_quotes; quoted commas split
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2645,6 +2933,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-145 — MzTab parameter rendering fails to quote a bare comma
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabBase.cpp MzTabParameter::toCellString (~:327-350) still quotes name/value only if they contain ", " (comma-space), not a bare comma
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `MzTabParameter::toCellString` in [src/openms/source/FORMAT/MzTabBase.cpp:327](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabBase.cpp#L327).
@@ -2660,6 +2950,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Preserves source comma-space-only quoting rule. Bare comma rendering remains source-compatible and non-round-trippable. See [src/format/mztab.rs](src/format/mztab.rs), [tests/mztab.rs](tests/mztab.rs) and [MZTAB_SUPPORT.md](docs/MZTAB_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-146 — MzTab score-by-run header order differs from row order
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabFile.cpp:2030-2037 header loops run-outer/score-inner; row at :2113-2120 loops score-outer/run-inner; order still differs
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2677,6 +2969,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-147 — MzTab PSM optional columns are dropped on load
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabFile.cpp:1287 PSM header still matches cells[i]=="opt_" exactly (protein/peptide/SML use hasPrefix at :819,:1119,:1459)
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `MzTabFile::load` in [src/openms/source/FORMAT/MzTabFile.cpp:1278](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabFile.cpp#L1278).
@@ -2692,6 +2986,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native reader recognizes named optional columns. See [src/format/mztab_file.rs](src/format/mztab_file.rs), [tests/mztab_file.rs](tests/mztab_file.rs) and [MZTAB_FILE_SUPPORT.md](docs/MZTAB_FILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-148 — MzTab column-unit metadata parses its key as an index
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabFile.cpp:683-699 colunit-protein/peptide/psm still parse key via extractBracketIndex(meta_key_fields[0],"colunit[") and index vector
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2709,6 +3005,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-149 — MzTab-M assay custom metadata is written under ms_run
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabMFile.cpp:228-230 assay custom still written as "ms_run["+assay.first+"]-custom[..."
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `MzTabMFile::generateMzTabMMetaDataSection_` in [src/openms/source/FORMAT/MzTabMFile.cpp:222](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabMFile.cpp#L222).
@@ -2724,6 +3022,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Correct by default; source_assay_custom_key opts into source spelling. See [src/format/mztab_m.rs](src/format/mztab_m.rs), [tests/mztab_m.rs](tests/mztab_m.rs) and [MZTAB_M_SUPPORT.md](docs/MZTAB_M_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-150 — MzTab-M column-unit families share an incorrect output key
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabMFile.cpp:347-361 feature and evidence column units still all emitted as "colunit_small_molecule"
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2741,6 +3041,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-151 — MzTab-M exporter changes metadata keys before lookup
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzTabM.cpp:105-109 getFeatureMapMetaValues_ still substitutes ' '->'_' in keys; later lookup at :88 uses the altered key on original meta
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `MzTabM::getFeatureMapMetaValues_` in [src/openms/source/FORMAT/MzTabM.cpp:103](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MzTabM.cpp#L103).
@@ -2756,6 +3058,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** substitute_keys_before_lookup default false, preserving raw key lookup. See [src/format/mztab_m.rs](src/format/mztab_m.rs), [tests/mztab_m.rs](tests/mztab_m.rs) and [MZTAB_M_SUPPORT.md](docs/MZTAB_M_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-152 — pepXML end_scan mismatch check reads start_scan twice
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PepXMLFile.cpp:955 `Size endscan = attributeAsInt_(attributes, "start_scan")` still reads start_scan twice
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2773,6 +3077,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-153 — pepXML drops a uniquely resolved undeclared modification
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PepXMLFile.cpp:1793-1800 uniquely resolved undeclared mod (mods.size()==1) still not appended; only mods.size()>1 branch pushes
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `PepXMLFile::onStartElement` in [src/openms/source/FORMAT/PepXMLFile.cpp:1725](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PepXMLFile.cpp#L1725).
@@ -2788,6 +3094,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native reader installs uniquely resolved match. See [src/format/pepxml.rs](src/format/pepxml.rs), [tests/pepxml.rs](tests/pepxml.rs) and [PEPXML_SUPPORT.md](docs/PEPXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-154 — pepXML fixed protein C-terminal modification misses terminal branch
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PepXMLFile.cpp:2179 fixed-mod C-term branch still tests PROTEIN_N_TERM instead of PROTEIN_C_TERM
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2805,6 +3113,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-155 — qcML loses units across its own store/load
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. QcMLFile.cpp:88-94,199-205 writer emits unitRef/unitAcc while reader :825-826,:854-855 reads unitCvRef/unitAccession
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `QcMLFile::QualityParameter::toXMLString` in [src/openms/source/FORMAT/QcMLFile.cpp:81](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L81); `QcMLFile::onStartElement` in [src/openms/source/FORMAT/QcMLFile.cpp:820](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L820).
@@ -2820,6 +3130,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Reader accepts both legacy and schema unit spellings. Default writer uses schema spelling; WriteOptions::source() selects legacy output. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-156 — qcML table writer discards its normalized row copy
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. QcMLFile.cpp:236-243 builds copy_row with space->underscore but concatenates *it (original row)
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2837,6 +3149,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-157 — qcML removeAllAttachments omits set-only entries
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. QcMLFile.cpp:511-517 removeAllAttachments iterates only runQualityAts_, not setQualityAts_
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `QcMLFile::removeAllAttachments` in [src/openms/source/FORMAT/QcMLFile.cpp:511](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L511).
@@ -2852,6 +3166,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Preserves run-map-only iteration. Sets are reached only through a matching run attachment-map key. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-158 — qcML map2csv emits misaligned rows when a column is missing
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. QcMLFile.cpp:680-715 map2csv still skips separator/cell when a column is absent (`//TODO else throw error`), misaligning rows
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2869,6 +3185,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-159 — qcML writer and reader disagree on set-member CV accession
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. QcMLFile.cpp:2086 writer emits set members as QC:0000005 but reader :834-848 only treats MS:1000577 (and QC:0000058) as set member
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `QcMLFile::onEndElement` in [src/openms/source/FORMAT/QcMLFile.cpp:940](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L940); `QcMLFile::store` in [src/openms/source/FORMAT/QcMLFile.cpp:2072](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/QcMLFile.cpp#L2072).
@@ -2884,6 +3202,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Reader also recognizes QC:0000005 membership while retaining the parameter. Writer checks representability; source policy can select original drops. See [src/format/qcml.rs](src/format/qcml.rs), [tests/qcml.rs](tests/qcml.rs) and [QCML_SUPPORT.md](docs/QCML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-160 — qcML TIC slump percentage truncates before multiplication
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. QcMLFile.cpp:1296 value = toStr((100 / exp.size()) * below_10k) still integer division before multiplication
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2901,6 +3221,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-161 — Percolator loader requires FileName through an unchecked map lookup
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PercolatorInfile.cpp:235,286 raw_file_name defaults "UNKNOWN" but map_filename_to_idx.at(raw_file_name) throws std::out_of_range when no FileName column
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `PercolatorInfile::load` in [src/openms/source/FORMAT/PercolatorInfile.cpp:239](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L239).
@@ -2916,6 +3238,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native Error::MissingInformation names absent column. See [src/format/percolator_infile.rs](src/format/percolator_infile.rs), [tests/percolator_infile.rs](tests/percolator_infile.rs) and [PERCOLATOR_INFILE_SUPPORT.md](docs/PERCOLATOR_INFILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-162 — Percolator enzyme features use unmapped protein-terminal markers
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PercolatorInfile.cpp:540-542 enzN/enzC computed from raw aa_before/aa_after; '[' ']' only mapped to '-' afterwards (:575-576); isEnz_ (:699) knows only '-'
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2933,6 +3257,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-163 — Percolator writer and loader disagree on trailing protein-list width
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PercolatorInfile.cpp:565 writer joins Proteins with "\t" while load rejects rows with row.size()!=pin_header.size() (:251); loader splits Proteins on ';' (:326)
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `PercolatorInfile::load` in [src/openms/source/FORMAT/PercolatorInfile.cpp:234](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L234); `PercolatorInfile::stampPinFeaturesOnHits (feature tracking overload)` in [src/openms/source/FORMAT/PercolatorInfile.cpp:544](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/PercolatorInfile.cpp#L544).
@@ -2948,6 +3274,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native writer preserves tabs and reader explicitly reports source incompatibility. See [src/format/percolator_infile.rs](src/format/percolator_infile.rs), [tests/percolator_infile.rs](tests/percolator_infile.rs) and [PERCOLATOR_INFILE_SUPPORT.md](docs/PERCOLATOR_INFILE_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-164 — Mascot query index guard accepts one-past-end
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MascotXMLHandler.cpp:54-58 guard is `peptide_identification_index_ > id_data_.size()` so index==size passes and later indexes out of range
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2965,6 +3293,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-165 — Mascot RT failure test treats zero as failure and NaN as success
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MascotXMLHandler.cpp:~117 `if (!id_data_[idx].getRT())` still treats RT 0 as failure and NaN as success
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::MascotXMLHandler::onEndElement` in [src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp:108](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MascotXMLHandler.cpp#L108).
@@ -2980,6 +3310,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native lookup reports absent information explicitly; zero RT retained. See [src/format/mascot_xml.rs](src/format/mascot_xml.rs), [tests/mascot_xml.rs](tests/mascot_xml.rs) and [MASCOT_XML_SUPPORT.md](docs/MASCOT_XML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-166 — Mascot MGF loader carries precursor and RT fields between blocks
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. MascotGenericFile.h:159 getNextSpectrum_ now does spectrum.clear(true) per BEGIN IONS block; fixed by 975b6509fb (#10151)
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -2997,6 +3329,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-167 — mzIdentML writer places C-terminal modification at last-residue location
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzIdentMLHandler.cpp:1371 (and :1766) C-terminal Modification still written with location=sequence.size() instead of size()+1
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::MzIdentMLHandler::writePeptideHit` in [src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp:1363](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzIdentMLHandler.cpp#L1363).
@@ -3012,6 +3346,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native writer uses terminal location convention and tests modified peptides. See [src/format/mzidentml.rs](src/format/mzidentml.rs), [tests/mzidentml.rs](tests/mzidentml.rs) and [MZIDENTML_SUPPORT.md](docs/MZIDENTML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-168 — mzIdentML reader dereferences missing PeptideSequence child
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. MzIdentMLDOMHandler.cpp:2506-2527 uses getTextContent() and throws ParseError on empty PeptideSequence; fixed by 37057b2d53 (#10154)
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3029,6 +3365,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-169 — mzIdentML substitution position is used as unchecked string index
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. MzIdentMLDOMHandler.cpp:2550-2562 range-checks SubstitutionModification location (1..as.size()) and empty replacementResidue; fixed by 1e7e31da5a
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::MzIdentMLDOMHandler::parsePeptideSiblings_` in [src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp:2491](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzIdentMLDOMHandler.cpp#L2491).
@@ -3044,6 +3382,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Native parser checks positions and rejects invalid substitutions. See [src/format/mzidentml.rs](src/format/mzidentml.rs), [tests/mzidentml.rs](tests/mzidentml.rs) and [MZIDENTML_SUPPORT.md](docs/MZIDENTML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-170 — mzData checks missing and short arrays after unsafe indexing
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. MzDataHandler.cpp:541-560 requires >=2 arrays before reading precisions_ and clamps peak count to the shorter array; fixed by #10432 (68f3b54df3)
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3061,6 +3401,8 @@ change or a claim that the Rust behavior was corrected.
 
 ## CPP-171 — mzData writer emits scan modes its reader does not recognize
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. MzDataHandler.cpp:967-976 writer and :1180-1192 reader both map ABSORPTION/EMC/TDF (PhotodiodeArrayDetector etc.); fixed by #10418 (fe7b9cc0e5)
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::MzDataHandler::writeTo` in [src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp:919](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp#L919); `Internal::MzDataHandler::cvParam_` in [src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp:1088](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzDataHandler.cpp#L1088).
@@ -3076,6 +3418,8 @@ change or a claim that the Rust behavior was corrected.
 **Rust handling:** Default writer refuses scan modes that cannot round-trip through the source-compatible mapping. Parser updates the current spectrum, not the previous spectrum, for unknown MSn modes. It does not add recognition of these three spellings. See [src/format/mzdata.rs](src/format/mzdata.rs), [tests/mzdata.rs](tests/mzdata.rs) and [MZDATA_SUPPORT.md](docs/MZDATA_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-172 — mzML writers emit `dataProcessingRef` and `sourceFileRef` the header never declares
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:5290-5309 writeSpectrum_ still writes sf_sp_<s> unconditionally and compares dps by pointer (:5300-5305) while writeHeader_ dedups by content (:5102)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -3115,6 +3459,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 
 ## CPP-173 — mzXML release decode reads beyond short peak payload
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzXMLHandler.cpp:1175 and :1202 still only assert(data.size()==2*peak_count_) before the unchecked data[n+1] loop
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::MzXMLHandler::doPopulateSpectraWithData_` in [src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp:1162](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/HANDLERS/MzXMLHandler.cpp#L1162).
@@ -3130,6 +3476,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 **Rust handling:** Native runtime shape check rejects mismatch in all builds. See [src/format/mzxml.rs](src/format/mzxml.rs), [tests/mzxml.rs](tests/mzxml.rs) and [MZXML_SUPPORT.md](docs/MZXML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-174 — mzXML precursor value and window width depend on SAX chunking
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzXMLHandler.cpp:562-575 precursorMz onCharacters still sets m/z and halves window width per chunk; no accumulation to closing tag
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3147,6 +3495,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 
 ## CPP-175 — SVOutStream probe stream remains poisoned after non-newline manipulator
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SVOutStream.cpp:~102-118 still probes ss_.str()=="\n" with no reset when not equal, so a NUL (std::ends) poisons the probe
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `SVOutStream::operator<<(std::ostream& (*)(std::ostream&))` in [src/openms/source/FORMAT/SVOutStream.cpp:102](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SVOutStream.cpp#L102).
@@ -3162,6 +3512,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 **Rust handling:** Native named end_line/newline avoid manipulator-detection state. See [src/format/sv_out_stream.rs](src/format/sv_out_stream.rs), [tests/sv_out_stream.rs](tests/sv_out_stream.rs) and [SV_OUT_STREAM_SUPPORT.md](docs/SV_OUT_STREAM_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-176 — TrafoXML omits unsupported parameter types after a non-fatal diagnostic
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. TransformationXMLFile.cpp:~158 unsupported Param type still only error(LOAD,...) (non-fatal) and the parameter is dropped; contract question remains open
 
 **Status and source:** source-reviewed behavior; unconfirmed defect / API error-policy difference. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3179,6 +3531,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 
 ## CPP-177 — Linear transformation accepts symmetric_regression but never uses it
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. TransformationModelLinear.cpp:34 reads symmetric_ but the fit path (:50-70) never uses it; header still documents y-x/y+x regression
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `TransformationModelLinear::TransformationModelLinear` in [src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp:18](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLinear.cpp#L18).
@@ -3194,6 +3548,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 **Rust handling:** Native fitting behavior remains same; setting retained as documented source limitation. See [src/format/transformation_xml.rs](src/format/transformation_xml.rs), [tests/transformation_xml.rs](tests/transformation_xml.rs) and [TRANSFORMATION_XML_SUPPORT.md](docs/TRANSFORMATION_XML_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-178 — MSstats missing design pair silently uses sample0
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSstatsFile.cpp:440 and :701 still use path_label_to_sample[tpl1] (operator[]) with no membership check; reachability not demonstrated
 
 **Status and source:** source-reviewed unchecked lookup; unconfirmed reachable defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3211,6 +3567,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 
 ## CPP-179 — MSstats unknown summarization method writes zero intensities
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSstatsFile.cpp:174-194 intensity=0 with if/else-if on max/min/mean/sum and no else/validation, so unknown method writes 0 intensities
+
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `MSstatsFile::constructFile_` in [src/openms/source/FORMAT/MSstatsFile.cpp:174](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/MSstatsFile.cpp#L174).
@@ -3226,6 +3584,8 @@ A chromatogram is the silent form of the same defect: `writeChromatogram_` (`MzM
 **Rust handling:** Typed RetentionTimeSummarization rejects unknown names. See [src/format/msstats.rs](src/format/msstats.rs), [tests/msstats.rs](tests/msstats.rs) and [MSSTATS_SUPPORT.md](docs/MSSTATS_SUPPORT.md). Rust regression execution is recorded separately in the wave validation record.
 
 ## CPP-180 — MSstats aggregation collapses equal intensities at distinct times
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSstatsFile.cpp:147 still collects intensities in std::set<MSstatsFile::Intensity>, so equal intensities at distinct RTs collapse (insert at :159).
 
 **Status and source:** source-reviewed defect; no C++ execution of this defect. Revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3277,6 +3637,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-181 — SqliteConnector permits copying an owned database handle
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.h: no deleted copy ctor/assignment declared; only default ctor deleted, db_ is a raw void* so implicit copy double-closes.
+
 **Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Implicit copy constructor/assignment and ~SqliteConnector` in [src/openms/include/OpenMS/FORMAT/SqliteConnector.h:40](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/include/OpenMS/FORMAT/SqliteConnector.h#L40). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
@@ -3290,6 +3652,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** SqliteConnector owns a rusqlite Connection and implements neither Clone nor Copy. Dropping an uncommitted connection rolls back through SQLite ownership; no duplicate raw handle API is exposed.
 
 ## CPP-182 — SqliteConnector does not close a handle when opening fails
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.cpp:48-54 stores db handle then throws SqlOperationFailed without sqlite3_close; destructor does not run.
 
 **Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3305,6 +3669,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-183 — SQLite bound statements leak on bind or step errors
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.cpp:171,181 still throw before sqlite3_finalize with "TODO this is a mem-leak" comments.
+
 **Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::SqliteHelper::executeBindStatement` in [src/openms/source/FORMAT/SqliteConnector.cpp:156](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L156). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
@@ -3318,6 +3684,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Prepared statements are owned RAII values. Excess bindings, constraint errors and returned rows report errors and release the statement. Native regression tests verify that subsequent queries and bindings remain usable.
 
 ## CPP-184 — SQLite table-name helpers interpolate names as SQL syntax
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.cpp:100,121 still concatenate table/column names unescaped into PRAGMA/SELECT; countTableRows :81 likewise.
 
 **Status and source:** Reproduced in an adapted C++ probe on kim at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; not a full SDK build.
 
@@ -3333,6 +3701,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-185 — SQLite query helpers ignore step errors and can leak statements
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.cpp:83-89,103,123 ignore sqlite3_step result; countTableRows throws on NULL at :86 before finalize at :89.
+
 **Status and source:** Reproduced in an adapted C++ probe on kim at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; not a full SDK build.
 
 **Affected files and functions:** `SqliteConnector::countTableRows; Internal::SqliteHelper::tableExists and columnExists` in [src/openms/source/FORMAT/SqliteConnector.cpp:77](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L77). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
@@ -3346,6 +3716,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Every query checks rusqlite preparation and row-step results; errors propagate as Error::Io rather than false. Owned statements clean up on all exits. Native locked-query tests cover all three operations and successful reuse after unlocking.
 
 ## CPP-186 — SQLite string extraction truncates embedded NUL bytes
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.cpp:222 builds std::string from sqlite3_column_text C string, truncating at embedded NUL.
 
 **Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3361,6 +3733,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-187 — SQLite integer-to-string extraction narrows to 32 bits
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqliteConnector.cpp:265 extractValueIntStr still uses sqlite3_column_int (32-bit).
+
 **Status and source:** Source-reviewed candidate; not reproduced in running C++, revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `Internal::SqliteHelper::extractValueIntStr` in [src/openms/source/FORMAT/SqliteConnector.cpp:261](https://github.com/okohlbacher/OpenMS4-core/blob/bc9cc12514c768385ce121d6ca4bb710fe1983c4/src/openms/source/FORMAT/SqliteConnector.cpp#L261). Public/private declarations are pinned in [the SQLite review manifest](tests/data/sqlite_connector_review.json).
@@ -3375,6 +3749,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-188 — MSDataWritingConsumer class test is disabled and calls a nonexistent constructor
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. executables.cmake:238 still has MSDataWritingConsumer_test commented out; test at MSDataWritingConsumer_test.cpp calls MSDataWritingConsumer() though header:80 requires filename.
+
 **Status and source:** Source-reviewed test-coverage issue at `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; no compiler reproduction claimed.
 
 **Affected files and functions:** `src/tests/class_tests/openms/source/MSDataWritingConsumer_test.cpp:25–29`, constructor section; `src/tests/class_tests/openms/executables.cmake:239`, test registration; `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h:76`, constructor declaration. All three files are hashed in [the consumer manifest](tests/data/ms_data_writing_consumer_provenance.json).
@@ -3386,6 +3762,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The native consumer suite is enabled and exercises settings, counts, streaming and output checks. Its expectations are source-derived and independent Rust checks; the disabled C++ test is not an executed oracle.
 
 ## CPP-189 — SqliteConnector row-count documentation names the wrong exception
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. SqliteConnector.h now documents @throws IllegalArgument for unknown table in countTableRows; fixed by 358d6c4312 (#10244 Correct sqMass/SQLite documentation contracts).
 
 **Status and source:** Reproduced in an adapted C++ probe on kim at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; not a full SDK build.
 
@@ -3399,6 +3777,8 @@ implementation. They do not count as completed Rust functionality.
 
 **Rust handling:** The native rustdoc and support document state the source mismatch and specify Error::Io with an underlying SQLite cause for an absent table. The source class-test expectation is mapped to a native error regression.
 ## CPP-190 — Default handler writing reads an uninitialized SQL batch size
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.h:238 `int sql_batch_size_;` has no initializer and ctor (.cpp:287-295) does not init it; compared at .cpp:1281,1492.
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3416,6 +3796,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-191 — Array hydration lacks pair length and role validation
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Partly resolved. Length mismatch now throws (.cpp:203-206,228-231,252-256; #10471 8ca1ae7918) but cont_data (:213,238,274-280) still only counts rows >=2, so duplicate roles pass.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:196` (`populateContainer_sub_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:255` (`populateContainer_sub_`).
@@ -3431,6 +3813,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Not implemented in S0. Validate roles and equal lengths before constructing any returned spectrum/chromatogram.
 
 ## CPP-192 — Blob hydration assigns objects by SQL row encounter order instead of record identity
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.cpp:122-135 maps SQL id to container index by encounter order; blob SELECTs (:581-589) have no ORDER BY/ID map.
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3448,6 +3832,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-193 — Spectrum/chromatogram IDs and peptide sequence remain unescaped SQL values
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.cpp:1187-1188 and 1423 interpolate native IDs (and peptide_sequence ~1215) into SQL text without escaping.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1167` (`MzMLSqliteHandler::writeSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1194` (`MzMLSqliteHandler::writeSpectra`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1405` (`MzMLSqliteHandler::writeChromatograms`).
@@ -3463,6 +3849,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Not implemented in S0. Use typed rusqlite parameters throughout; test apostrophes and embedded NULs.
 
 ## CPP-194 — Metadata failures leave committed DATA rows and advanced writer counters
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.cpp:1287,1301 run DATA executeBindStatement before BEGIN TRANSACTION (:1304); spec_id_++ at :1279 advances before metadata commit.
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3480,6 +3868,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-195 — Product and precursor indexes are accidentally built on DATA
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.cpp:1065-1069 product_chr_idx/product_sp_idx/precursor_chr_idx/precursor_sp_idx still CREATE INDEX ... ON DATA.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:1047` (`MzMLSqliteHandler::createIndices_`).
@@ -3495,6 +3885,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Not implemented in S0. Create correct table indexes and assert sqlite_master targets; do not require performance differences in correctness fixtures.
 
 ## CPP-196 — SWATH selection stops at a matching chromatogram precursor NULL ID
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteSwathHandler.cpp:92-105 readSpectraForWindow still selects SPECTRUM_ID with no IS NOT NULL filter and stops on NULL column-0.
 
 **Status and source:** Reproduced with an adapted C++ probe; source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3512,6 +3904,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-197 — SWATH window docs promise distinct centers but query deduplicates full bounds tuples
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteSwathHandler.cpp:30-37 still DISTINCT over center,lower,upper while header.h docs promise one entry per distinct isolation centre.
+
 **Status and source:** Reproduced with an adapted C++ probe; source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h:57` (`MzMLSqliteSwathHandler::readSwathWindows documentation`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp:30` (`MzMLSqliteSwathHandler::readSwathWindows`).
@@ -3527,6 +3921,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** S1 preserves distinct tuples, including equal centers with differing bounds, and describes that behavior explicitly. Native regression tests compare both windows.
 
 ## CPP-198 — Recreating tables on a used handler retains counters from the deleted database
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.cpp:957-1070 createTables deletes/recreates the DB but never resets spec_id_/chrom_id_.
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3544,6 +3940,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-199 — Metadata readers accept invalid negative activation enum values below -1
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.cpp:727-728 and 871-872 still only exclude -1 and check < SIZE_OF_ACTIVATIONMETHOD, so -2 passes the cast.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:708` (`MzMLSqliteHandler::prepareChroms_`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:852` (`MzMLSqliteHandler::prepareSpectra_`).
@@ -3559,6 +3957,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Not implemented in S0. Use checked enum conversion with a deliberate NULL/-1 unset policy.
 
 ## CPP-200 — SqMassFile transform issues an extra empty selected-read batch
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SqMassFile.cpp:52 and :74 still loop `batch_idx <= count/batch_size`, producing a final empty indices vector passed to readSpectra/readChromatograms (precondition !indices.empty()).
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3576,6 +3976,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-201 — Full metadata recovery promise omits auxiliary-array loss
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteHandler.h:~116 setConfig doc still says write_full_meta "allows complete recovery"; .cpp:932,938 clear(false) still drops auxiliary arrays.
+
 **Status and source:** Unconfirmed documentation/contract candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h:116` (`MzMLSqliteHandler::setConfig documentation`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp:904` (`MzMLSqliteHandler::writeRunLevelInformation`); `src/openms/source/KERNEL/MSSpectrum.cpp:203` (`MSSpectrum::clear`); `src/openms/source/KERNEL/MSChromatogram.cpp:335` (`MSChromatogram::clear`).
@@ -3591,6 +3993,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Not implemented in S0. Choose and document an explicit auxiliary-array policy before advertising full experiment recovery. No handling implemented yet.
 
 ## CPP-202 — Read accessors create an empty database when the input path is missing
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteSwathHandler.cpp:26,61,89 construct SqliteConnector(filename_) with default READWRITE_OR_CREATE (SqliteConnector.h ctor default), so missing path creates a DB.
 
 **Status and source:** Reproduced with an adapted C++ probe; source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3608,6 +4012,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-203 — SWATH accessors can return partial success after SQLite step errors
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLSqliteSwathHandler.cpp:40-50,70-76,99-105 still ignore sqlite3_step codes and treat NULL column as end of results.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; the SQLite error trigger is executed in a Rust regression, not a C++ reproduction.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLSqliteSwathHandler.cpp`: `readSwathWindows` (lines 39–53), `readMS1Spectra` (69–79), and `readSpectraForWindow` (98–108).
@@ -3623,6 +4029,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Every fallible row advance propagates SQLite failure as `Error::Io`; the locally accumulated vector is discarded on failure and the transaction/connection close through ownership.
 
 ## CPP-204 — MSDataSqlConsumer owning raw pointer leaks during failed construction and can be shallow-copied
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSDataSqlConsumer.h:~85 keeps raw MzMLSqliteHandler* handler_ with no deleted copy; .cpp:18-26 news handler then createTables() may throw, leaking.
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3641,6 +4049,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-205 — MSDataSqlConsumer destructor lets I/O exceptions escape noexcept destruction
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSDataSqlConsumer.cpp:29-43 destructor calls flush() and writeRunLevelInformation() with no try/catch; delete handler_ skipped on throw.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:29` (`MSDataSqlConsumer::~MSDataSqlConsumer`, `flush`, `writeRunLevelInformation`); `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h` (`~MSDataSqlConsumer override`).
@@ -3657,6 +4067,8 @@ implementation. They do not count as completed Rust functionality.
 
 
 ## CPP-206 — MSDataSqlConsumer changes buffered records to the next run ID
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSDataSqlConsumer.cpp:45-58 addRun/setRunId change handler run id without flushing spectra_/chromatograms_ buffers first.
 
 **Status and source:** Unconfirmed buffered-run ownership contract candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3675,6 +4087,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-207 — SpectrumAccessSqMass unchecked view positions permit out-of-bounds access
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumAccessSqMass.cpp:43 checks only upper bound (negative passes); :75 and :106 index sidx_[id] unchecked.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp:27` (`SpectrumAccessSqMass(parent,indices)`, `getSpectrumById`, `getSpectrumMetaById`).
@@ -3691,6 +4105,8 @@ implementation. They do not count as completed Rust functionality.
 
 
 ## CPP-208 — SpectrumAccessSqMass bulk read does not preserve the configured view order or duplicates
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumAccessSqMass.cpp:137 getAllSpectra passes sidx_ to readSpectra (SQL IN, no view-order/duplicate reconstruction).
 
 **Status and source:** Source-reviewed defect; ordering additionally lacks sql guarantee at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3709,6 +4125,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-209 — SpectrumAccessSqMass metadata index stays zero for every spectrum
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumAccessSqMass.cpp:114-118 and 153-157 set id/RT/ms_level only; SpectrumMeta::index stays 0.
+
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp:114` (`getSpectrumMetaById`, `getAllSpectra`); `src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h:156` (`OSSpectrumMeta::index/default constructor`).
@@ -3725,6 +4143,8 @@ implementation. They do not count as completed Rust functionality.
 
 
 ## CPP-210 — SpectrumAccessSqMass class test repeats one out-of-range index instead of testing 50
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SpectrumAccessSqMass_test.cpp:101-103 builds indices2={50} but TEST_EXCEPTION still passes `indices`.
 
 **Status and source:** Source-reviewed test defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3743,6 +4163,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-211 — SpectrumAccessSqMass installed example omits required handler run ID
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. SpectrumAccessSqMass.h:67 example now uses `MzMLSqliteHandler handler(file, 0)`; fixed by 358d6c4312 (#10244).
+
 **Status and source:** Source-reviewed documentation defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h` (`SpectrumAccessSqMass_example documentation`); `src/openms/include/OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h` (`MzMLSqliteHandler(filename,run_id)`).
@@ -3759,6 +4181,8 @@ implementation. They do not count as completed Rust functionality.
 
 
 ## CPP-212 — OpenSwath drift filtering dereferences missing or misaligned mobility arrays
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ISpectrumAccess.h:100-117 filterByDrift guards still commented out; dereferences im_arr unconditionally; SqMass spectra have no drift array.
 
 **Status and source:** Source-reviewed defect at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3777,6 +4201,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-213 — SqMassFile store documentation hides unconditional replacement of an existing database
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. SqMassFile.h:114-116 now has @warning that store() writes a fresh DB replacing an existing file non-atomically; fixed by 358d6c4312 (#10244).
+
 **Status and source:** Unconfirmed replacement-documentation candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/include/OpenMS/FORMAT/SqMassFile.h` (`SqMassFile::store documentation`); `src/openms/source/FORMAT/SqMassFile.cpp:27` (`SqMassFile::store`).
@@ -3793,6 +4219,8 @@ implementation. They do not count as completed Rust functionality.
 
 
 ## CPP-214 — MSDataSqlConsumer full metadata discards supplied experimental settings and addRun suppresses accumulated snapshot
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSDataSqlConsumer.cpp:107 setExperimentalSettings is still a no-op; addRun (:49-52) writes empty meta and sets wrote_any_run_ so destructor skips peak_meta_.
 
 **Status and source:** Source-reviewed loss; contract candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3811,6 +4239,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-215 — MSDataSqlConsumer accepts negative signed buffer size before unsigned allocation
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSDataSqlConsumer.h ctor takes `int buffer_size`; .cpp:16-23 converts to size_t flush_after_ and reserves without validating negatives.
+
 **Status and source:** Unconfirmed input-validation candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp:16` (`MSDataSqlConsumer constructor`); `src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h` (`constructor buffer_size argument`).
@@ -3827,6 +4257,8 @@ implementation. They do not count as completed Rust functionality.
 
 
 ## CPP-216 — SpectrumAccessSqMass zero-width RT documentation differs from delegated first-at-or-after behavior
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. SpectrumAccessSqMass.h:170-177 now documents that deltaRT==0 returns first spectrum at or after RT, matching code; 358d6c4312 (#10244).
 
 **Status and source:** Source-reviewed documentation mismatch candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3845,6 +4277,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-217 — OpenSwath getMultipleSpectra count parameter can return more than requested
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ISpectrumAccess.h:71-80 now documents the sequence (closest + n/2 per side, even n one more, <2 only closest) matching ISpectrumAccess.cpp:42-52; 358d6c4312 (#10244).
+
 **Status and source:** Source-reviewed algorithm/documentation candidate at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Affected files and functions:** `src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.cpp` (`ISpectrumAccess::getMultipleSpectra both overloads`).
@@ -3860,6 +4294,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Shared interface not implemented yet; choose explicit bounded count contract after interface test audit.
 
 ## CPP-218 — Positive-accuracy Numpress encoding destroys one- and two-point coordinate arrays
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSNumpress.cpp:242-245 optimalLinearFixedPointMass still returns 0 for dataSize<3; MSNumpressCoder.cpp:133-138 only falls back on <0.
 
 **Status and source:** Reproduced through the exact standalone raw C++ codec at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The MSNumpressCoder/sqMass calling paths are source-reviewed, not executed as a full SDK.
 
@@ -3879,6 +4315,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-219 — Chromatogram precursor reload drops supplemental activation metadata
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:2013-2024 handles MS:1002678/9/80 only in the spectrum branch; chromatogram activation branch has no routes.
+
 **Status and source:** Source-reviewed read/write mismatch at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; no executed C++ reproduction.
 
 **Affected files and functions:** `src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp`, spectrum activation CV branch (1990–2009), chromatogram activation CV branch (2033–2158), shared `writePrecursor_` (4736 onward).
@@ -3895,6 +4333,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-220 — Negative initial linear-Numpress coordinates can wrap during sqMass writing
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSNumpress.cpp:326-339 stores low 32 bits of negative quantized ints; decodeLinear :441,456 ORs unsigned init so negatives decode as large unsigned.
+
 **Status and source:** Unconfirmed C++ defect candidate from source review and independent arithmetic at revision `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; no executed C++ reproduction for this trigger.
 
 **Affected files and functions:** `src/openms/source/FORMAT/MSNUMPRESS/MSNumpress.cpp` (`encodeLinear`, first two values at 326–341, and `decodeLinear` at 443–458); `src/openms/source/FORMAT/MSNumpressCoder.cpp` (`encodeNPRaw`); `src/openms/source/FORMAT/HANDLERS/MzMLSqliteHandler.cpp` (`writeSpectra`, `writeChromatograms`).
@@ -3910,6 +4350,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The storage adapter checks the initial quantized values, returns an error without changing rows or counters, and allows explicit lossless retry. The public raw codec's documented source behavior is unchanged.
 
 ## CPP-221 — Gumbel result declares eval without defining it
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. GumbelDistributionFitter.h:51 declares GumbelDistributionFitResult::eval; GumbelDistributionFitter.cpp has no definition (only GaussFitter.cpp:132 defines eval).
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3929,6 +4371,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-222 — Gumbel least-squares fitter advertises an undefined weighted fit
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. GumbelDistributionFitter.h:81 declares fitWeighted; no GumbelDistributionFitter::fitWeighted definition exists in MATH/STATISTICS sources.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed missing public definition; C++ link failure inferred, not executed.
@@ -3946,6 +4390,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `src/math/fitters/gumbel.rs` explicitly documents this missing source operation; the separate `gumbel_max_likelihood` module supplies the separately defined maximum-likelihood class. The weighted-histogram public contract remains unimplemented, not fulfilled by that other module.
 
 ## CPP-223 — Distribution-fitter documentation names nonexistent gnuplot members
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. GaussFitter.h:30, GumbelDistributionFitter.h:29, GumbelMaxLikelihoodFitter.h:27 still reference nonexistent getGnuplotFormula().
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -3965,6 +4411,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-224 — Gumbel maximum-likelihood fitting reads beyond a short weight vector
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. GumbelMaxLikelihoodFitter.cpp:58-63 iterates data with wit++ unchecked; fitWeighted (:74-83) does not validate x.size()==w.size().
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed memory-safety defect; out-of-bounds access not executed.
@@ -3982,6 +4430,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `src/math/fitters/gumbel_max_likelihood.rs::fit_weighted` rejects unequal lengths with `Error::InvalidValue` before iteration and leaves initial parameters unchanged. Existing `mismatched_weights_are_refused` unit coverage is present; not rerun here.
 
 ## CPP-225 — Memory-usage delta overwrites its minus sign
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SysInfo.cpp:329-331 appends "-" then reassigns `s =` the magnitude, dropping the sign.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4001,6 +4451,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-226 — Update notification announces the local version instead of the offered update
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. UpdateCheck.cpp:143 prints local `version` in "Version ... is available" instead of server_version.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed user-visible reporting defect.
@@ -4018,6 +4470,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `src/system/update_check.rs::run` deliberately preserves the local-version notice, documents it, and returns the server response for callers. Existing `tests/update_check.rs` assertions pin local-version messages. This defect is **not corrected in the native notice**; neither a fix nor C++ execution is claimed.
 
 ## CPP-227 — Download filename selection does not prevent concurrent overwrite
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Network.cpp:40-46 fs::exists check then plain std::ofstream open at :61 (truncating); no atomic exclusive create.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4037,6 +4491,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-228 — Squaring Gumbel negative log likelihood can change the optimum
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Unconfirmed. GumbelMaxLikelihoodFitter.cpp:53-66 still returns residual [NLL,0] (squared by LM); whether the optimum shifts is an execution question.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** **Unconfirmed scientific-defect candidate.** Objective structure is source-reviewed; an actual failed fit versus a valid independent MLE remains to be demonstrated.
@@ -4054,6 +4510,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `src/math/fitters/gumbel_max_likelihood.rs` deliberately retains the `[NLL, 0]` residual with the native LM solver. Its API documents driving NLL toward zero. The suspected optimization issue remains shared, not fixed.
 
 ## CPP-229 — Download collision-suffix counter lacks an overflow guard
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Network.cpp:43-46 still uses an unguarded signed int suffix counter with no finite limit.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4073,6 +4531,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-230 — FuzzyStringComparator reports the last above-one ratio as the maximum
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyStringComparator.cpp:665-682 updates recorded max lines on ratio>ratio_max_ but raises ratio_max_ (:678) only in the failure branch.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`, whose comparator source is byte-identical.
 
 **Status:** Executed. Report defect; the verdict is unaffected.
@@ -4090,6 +4550,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `tests/support/fuzzy_string_comparator.rs` is test support for FuzzyDiff parity and reproduces the source report; every oracle case except the hexadecimal one of CPP-233 matches in verdict and log bytes.
 
 ## CPP-231 — A reused FuzzyStringComparator keeps its raised ratio maximum
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyStringComparator.cpp:805 compareStreams resets only is_status_success_; ratio_max_/absdiff_max_ not reset.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4109,6 +4571,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-232 — A negative ratio that underflows to -0.0 passes the sign and ratio tests
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyStringComparator.cpp:645-659 still tests sign via `ratio < 0` on the quotient, so -0.0 from underflow passes.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4126,6 +4590,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Reproduced in the test support; the oracle case matches.
 
 ## CPP-233 — The libc++ number fallback accepts hexadecimal floats, so verdicts depend on the standard library
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyStringComparator.cpp:162-210 libc++ fallback still uses strtod (accepts hex floats) and accepts underflow differently from from_chars.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (AppleClang, libc++).
 
@@ -4145,6 +4611,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-234 — A missing second input is reported as the first input file
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyStringComparator.cpp:896 openInputFileStream_ still always logs "Error opening first input file".
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed. Diagnostic defect.
@@ -4162,6 +4630,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Reproduced: both open failures report "Error opening first input file".
 
 ## CPP-235 — A NaN relative tolerance accepts every ratio
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyStringComparator.cpp:299-303 setAcceptableRelative only checks `< 1.0`, so NaN is stored unchecked.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4181,6 +4651,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-236 — FuzzyDiff -sort defeats the same-file check
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FuzzyDiff.cpp:137-191 sorts into uniquely named temp files and compares those, bypassing compareFiles' same-name check (FuzzyStringComparator.cpp:866).
+
 **Source revision:** topp `174b576e244e100f2345ca57a8e79aaa607156df` (`src/FuzzyDiff.cpp`) with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`src/testframework`). Executed with the product-SDK FuzzyDiff.
 
 **Status:** Executed.
@@ -4198,6 +4670,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `fuzzy_diff` sorts in memory with the same verdict and exit code, so the self-comparison passes as in the source.
 
 ## CPP-237 — FeatureFinderCentroided's intensity filter keeps zero and subnormal intensities
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureFinderCentroided.cpp:183 uses std::numeric_limits<RP_TYPE>::min() with no numeric_limits<DPosition> specialisation anywhere in src, so lower bound is 0.
 
 **Source revision:** topp `174b576e244e100f2345ca57a8e79aaa607156df` (`src/FeatureFinderCentroided.cpp`) with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`DPosition.h`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4217,6 +4691,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-238 — A FAIMS voltage of -1 V is indistinguishable from an unset drift time
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IMTypes.h:93 DRIFTTIME_NOT_SET=-1.0 still the sentinel; FAIMSHelper.cpp:50 erases -1 V as missing.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed for the reader and format query; the FAIMSHelper consequence is source-reviewed.
@@ -4234,6 +4710,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port keeps the source's -1 sentinel (`metadata::ImTypes::DRIFTTIME_NOT_SET`), so it shares the collision; `tests/mzml_mobility.rs` matches the oracle row.
 
 ## CPP-239 — The precursor drift-time writer has no FAIMS case
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandler.cpp:4637-4670 precursor drift-time switch still has only MILLISECOND/VSSC/CCS; FAIMS falls to default warn+milliseconds.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4253,6 +4731,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-240 — Upstream FAIMS fixtures spell the volt unit UO:000218
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/tests/topp/FAIMS_CV-60C_V-45_Interleaved.mzML and FAIMS_test_data.mzML still spell unitAccession="UO:000218" (lines 324.. / 171, 213); no UO:0000218 in either.
+
 **Source revision:** test-data `0cb15f23fccc6ea196bfafcfbbf020958f36c3a3`.
 
 **Status:** Source-reviewed fixture defect.
@@ -4270,6 +4750,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The mzML reader accepts `UO:000218` as volts for the FAIMS voltage only (native difference 3 in `docs/MZML_MOBILITY_SUPPORT.md`); the writer emits `UO:0000218`.
 
 ## CPP-241 — computeIntensityProfile dereferences begin() of an empty MassTraces
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.cpp:196-198 dereferences this->begin() with no empty() check.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4289,6 +4771,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-242 — computeIntensityProfile never terminates on a NaN retention time
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureFinderAlgorithmPickedHelperStructs.cpp:210-236 while loop still has only >, <, == branches; NaN RT advances neither iterator.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Executed (2026-09-16).
@@ -4306,6 +4790,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Returns `Error::InvalidValue`; a NaN that is only copied or appended passes through as in the source. Refused at exactly that merge (`MassTraces::intensity_profile`); the endless runs are replayed as refusals; a debug run records a `NeverReturns` termination with the hanging seed's plot number after the seed's log lines, so a caller writes only the flushed log, which equals the executed file byte for byte, as do the seed map and the feature files (`a_seed_loop_that_never_returns_keeps_what_the_executed_process_had_written`).
 
 ## CPP-243 — updateBaseline leaves the baseline indeterminate when no trace holds a peak
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureFinderAlgorithmPickedHelperStructs.cpp:82-85 ctor inits only max_trace; updateBaseline:135-158 leaves baseline unset when traces hold no peak (only empty case sets 0).
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4325,6 +4811,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-244 — getCompensationVoltages lets a NaN into std::set<double>
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/IONMOBILITY/FAIMSHelper.cpp:45 inserts getDriftTime() into std::set<double> with no NaN check.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4342,6 +4830,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `FaimsHelper::get_compensation_voltages` returns `Error::InvalidValue` naming the spectrum index.
 
 ## CPP-245 — filterPeptidesByFAIMSCV silently accepts parameters that can never match
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FAIMSHelper.cpp:71 still uses strict abs(pep_cv-target_cv) < cv_tolerance with no parameter validation.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4361,6 +4851,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-246 — PeakTypeEstimator's comment states an 80% threshold for a 75% test
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/include/OpenMS/FORMAT/PeakTypeEstimator.h:149 still reads `evidence_ratio > 0.75 // 80% are profile`.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed documentation defect; behaviour is unaffected.
@@ -4376,6 +4868,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port uses 0.75, and its documentation states 0.75.
 
 ## CPP-247 — FeatureFinderAlgorithmPicked's abundance override keeps a stray (0, 1) peak
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:166-168 inserts into default-constructed IsotopeDistribution, whose ctor (IsotopeDistribution.cpp:29-32) holds (0,1); insert() is push_
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4395,6 +4889,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-248 — CoarseIsotopePatternGenerator::run gives different bits in different runs of one binary
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. EmpiricalFormula.h:66,341 formula_ still std::map<const Element*, SignedSize>, ordered by pointer.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed 200 times on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4413,6 +4909,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-249 — ElementDB builds iridium from rhenium's tables
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ElementDB.cpp:512 now passes iridium_abundance, iridium_mass; fixed by 6c7bd42667 (PR #10502).
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4428,6 +4926,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port uses the declared iridium table (`docs/CHEMISTRY_SUPPORT.md`); a test asserts that its `Os3Ir3` bits differ from every SDK run.
 
 ## CPP-250 — -instance cannot be used
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. -instance option removed: TOPPBase.cpp:196-200 getToolPrefix fixed to ':1:', no 'instance' option registered; commit e4ab73c9d3 (#10126).
 
 **Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` (`source/APPLICATIONS/TOPPBase.cpp`) with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4` (`Param.cpp`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4447,6 +4947,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-251 — common: values override instance values for subsection parameters
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. src/openms_cli/source/APPLICATIONS/TOPPBase.cpp:425-430 param_common_.removeAll(tool_name_+':') plus Param::merge keeping existing values; e4ab73c9d3 (#10126).
+
 **Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4464,6 +4966,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port reproduces the source precedence.
 
 ## CPP-252 — A common:<tool>: value for a top-level parameter is rejected
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. TOPPBase.cpp:423-430 common:<Tool>: copied with prefix stripped into param_common_tool_ and removed from param_common_; e4ab73c9d3 (#10126).
 
 **Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4483,6 +4987,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-253 — StringUtils::number silently cuts its text at 63 bytes
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/DATASTRUCTURES/StringUtils.cpp:661-666 still formats into char buf[64] via snprintf and returns it unchecked.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`, and by a probe that compiles a verbatim copy of the pinned function.
 
 **Status:** Executed.
@@ -4500,6 +5006,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `format::file_info::text_format::fixed` refuses a value whose text the source would cut; `fixed_truncated` reproduces the source bytes for the tool path.
 
 ## CPP-254 — StringUtils::number turns a digit count of 2^31 or more into a negative precision
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. StringUtils.cpp:664 still static_cast<int>(n) with no range check.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`, and by a probe that compiles a verbatim copy of the pinned function.
 
@@ -4519,6 +5027,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-255 — StringUtils::toStr documents significant digits but writes fraction digits
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. StringUtils.h:118-122 still documents 6-/15-digit output while appendNumeric uses fixed to_chars with precision (StringUtils.cpp:118-122).
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The behaviour is executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Documentation defect. The behaviour is executed; whether the comments or the code state the intended precision is unconfirmed.
@@ -4534,6 +5044,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `to_str` and `to_str_f32` reproduce the source behaviour, not the comments.
 
 ## CPP-256 — SignalToNoiseEstimatorMedian's AUTOMAXBYPERCENT mode reads and writes out of bounds
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present; fix proposed in OpenMS/OpenMS#10504 (open). src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:208 comparator still '>' (returns min), :211 bin_size=maxInt/100, :216 unchecked index, :209 empty container deref.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The crash is executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (C1).
 
@@ -4553,6 +5065,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-257 — SignalToNoiseEstimatorMedian converts an unbounded bin quotient to int
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present; fix proposed in OpenMS/OpenMS#10504 (open). src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h:297 and :308 still (int)(intensity/bin_size) before std::min clamp.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`: 8 `cpp257_*` cases (`../oracle/sne-completion`), including `PeakPickerHiRes::pick`; the 32-bit `cvttsd2si` at `libOpenMS.so` `0x186c5d0`/`0x186c64d` gives `INT_MIN`, which the clamp sends to bin 0.
@@ -4570,6 +5084,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `BinIndexConversion::X86_64Release` (`PickingCompatibility::source()`, the TOPP tools) reproduces bin 0; the native profile's `ClampBeforeTruncation` clamps first (the last bin, arm64's and the parameter description's answer).
 
 ## CPP-258 — PeakPickerHiRes's FWHM bisection can loop forever
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp:396-408 and :421-434 do/while (fabs(int_mid-fwhm_int) > threshold) still without iteration limit.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4589,6 +5105,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-259 — PeakPickerHiRes weights ion mobility with samples its spline discards
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp:247-260,:290-299,:333-342,:446 std::map overwrite with unconditional weighted_im += unchanged.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4606,6 +5124,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The default refuses duplicate positions; `PickingCompatibility::source()` reproduces the source result bit for bit.
 
 ## CPP-260 — Orphaned PeakPickerHiRes class-test fixtures no longer match the code
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/tests/class_tests/openms/data/PeakPickerHiRes_{orbitrap,ftms}_{sn0_out,ppmax,sn4_out_ppmax}.mzML still present and unreferenced by PeakPickerHiRes_test.cpp; content mismatch not executed.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4625,6 +5145,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-261 — PeakPickerHiRes FTMS class-test files repeat a spectrum id
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. All six PeakPickerHiRes_ftms*.mzML in src/tests/class_tests/openms/data still contain two spectra with id="spectrum=1".
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Test-data defect; source-reviewed.
@@ -4642,6 +5164,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The native mzML reader refuses duplicate record ids, so P1 commits copies with only the second id renamed (`*.unique_ids.mzML`, recorded as adapted in `tests/data/peak_picking_provenance.json`).
 
 ## CPP-262 — Dangling mzML software and data-processing references are silently default-constructed
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp:931,935,959,963,1057,1287,1311 still resolve refs with operator[].
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4661,6 +5185,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-263 — MzMLSplitter's parts carry no processing record
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/topp/MzMLSplitter.cpp:146-147 addDataProcessing_ runs on the part before spectra/chromatograms are added (:154-169).
+
 **Source revision:** topp `174b576e244e100f2345ca57a8e79aaa607156df` (`src/MzMLSplitter.cpp`) with cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` (`TOPPBase.cpp`). Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4678,6 +5204,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port reproduces the call order, so its parts carry no record either (`tests/topp_mzml_splitter.rs`).
 
 ## CPP-264 — ParamXMLFile declares ISO-8859-1 but writes UTF-8 bytes
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FORMAT/ParamXMLFile.cpp:66 still writes encoding="ISO-8859-1" with UTF-8 std::string bytes.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4697,6 +5225,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-265 — XML files are opened twice, so a FIFO given as input blocks
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FORMAT/XMLFile.cpp:147-152 peeks via ifstream, then reopens via LocalFileInputSource at :169.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4714,6 +5244,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port reads the file once and completes; `docs/TOPP_CLI_SUPPORT.md` records this as a deliberate difference.
 
 ## CPP-266 — An INI that exists but cannot be opened is reported as an internal error
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Unconfirmed. TextFile.cpp:46 still throws IOException, but TOPPBase now loads INI via ParamXMLFile/XMLFile, not TextFile; resulting exit code for an unopenable INI needs execution.
 
 **Source revision:** cli `c19e49414bcd9ebdea42f89b3f74d2823205892c` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4733,6 +5265,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-267 — FileInfo::Result declares fields that run never fills
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FileInfo.h:194-198,220-236 still declare experiment_meta, statistics, corruption, detail, schema_version; FileInfo.cpp never assigns them.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed.
@@ -4750,6 +5284,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `model::FileInfoResult` keeps the fields and leaves them empty, as the source does (`docs/FILE_INFO_SUPPORT.md`).
 
 ## CPP-268 — FileInfo computes the FAIMS compensation voltages twice per peak file
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FORMAT/FileInfo.cpp:1673 and :1742 still call FAIMSHelper::getCompensationVoltages twice.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4769,6 +5305,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-269 — FileInfo_test copies to a fixed temporary file name
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/tests/class_tests/openms/source/FileInfo_test.cpp:134 still uses fixed getTempDirectory()+"/test_forced_type.tmp".
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Test defect; source-reviewed.
@@ -4786,6 +5324,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `class_test_forced_type_selects_the_parse_branch` uses its own `TempDir`.
 
 ## CPP-270 — Retained FileInfo outputs keep a stale intensity padding
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/tests/topp/FileInfo_3_output.txt:11 and FileInfo_7_output.txt:14 keep six spaces after 'intensity:'; FileInfo.cpp:140,189 writes one.
 
 **Source revision:** test-data `0cb15f23fccc6ea196bfafcfbbf020958f36c3a3` with core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4805,6 +5345,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-271 — mass_trace:min_spectra = 1 silently finds nothing
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:48-49 min 1 still allowed, :1116 min_spectra_ = floor(v*0.5) = 0.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -4822,6 +5364,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `Error::InvalidValue`; whether the port follows the source is open for the lead (`docs/FEATURE_FINDER_PICKED_SUPPORT.md`).
 
 ## CPP-272 — The overall seed score depends on the platform's powf
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:506 still std::pow(float,float 1/3) (powf) for overall_score.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` (macOS arm64). Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576` as well.
 
@@ -4841,6 +5385,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-273 — write_debug reads an undeclared parameter and throws
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present; fix proposed in OpenMS/OpenMS#10505 (open). src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:2141 still reads "debug:pseudo_rt_shift"; declared parameter is advanced:pseudo_rt_shift (:124).
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Executed (Linux x86_64 Release, `bc9cc12-c19e494-174b576`).
@@ -4858,6 +5404,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** Ported: `PseudoRtShiftKey::Source` stops with `Error::Unsupported` at that seed, and the tool exits 8 after writing what the executed run wrote. `PseudoRtShiftKey::Declared` reads `advanced:pseudo_rt_shift`. A numeric shift, infinite and NaN included, writes the executed files byte for byte (glibc's `-nan` in the `.plot` formulas).
 
 ## CPP-274 — A single retention time or m/z makes the intensity score undefined
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:244-245 steps can be 0 and :1841-1842 divide by them with no guard.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK (Debug) at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85` and on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -4877,6 +5425,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-275 — charge_low above charge_high wraps the charge count
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1110-1112 updateMembers_ throws InvalidParameter for charge_low > charge_high; cc9272f79c (#10506); charge_count now Size (:197).
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Executed (Linux x86_64 Release, `bc9cc12-c19e494-174b576`).
@@ -4894,6 +5444,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** `Settings::charge_count` refuses every wrapping count with `Error::InvalidValue`, whatever the `Limits` (the out-of-bounds cases as undefined, `-2` and `-3` before their allocation); counts up to `2^31 - 2` stay behind the native `Limits::max_charges`; `charge_low == charge_high + 1` gives zero charges, as in the source; the counts `-2` and `-3` stay refused unconditionally (lead decision D13 of wave 5); where the source writes out of bounds the run records a `DebugTermination` at `TerminationPoint::ScoreArrays`, as long as the one allocation between the wrap and that write - the first spectrum's `(3 + 2n) mod 2^32` arrays of 88 bytes each - is at most the bytes of 1,000,000,003 arrays (a crate constant, not a `Limits` field, so no caller can move it: lead decision D12) - the largest count measured to die on the reference node with the memory that node has, raised in the round-6 minors from the 1 GiB that round 6 read off runs under the harness's 16 GB address-space cap; above that line the executed outcome depends on the memory the process may have and nothing is recorded, as lead decision D6 has it for the isotope windows (executed: a reused object's `debug/log.txt` is left at the first run's flushed prefix after 4/2, `INT_MAX`/498 and 2141382846/1, and complete after 7/2's `std::bad_alloc`) (`charge_count_wraps_are_refused_whatever_the_limits`, `boundary_cases_match_the_linux_release_build`, `a_wrapped_score_array_count_records_its_termination_up_to_the_documented_ceiling`, `a_reused_instance_leaves_the_executed_log_at_every_later_termination`).
 
 ## CPP-276 — isotopeScore_ stops trying shorter isotope tails after a better fit
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1763 inner loop still starts at best_end, which :1791 raises inside the loop.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -4913,6 +5465,8 @@ implementation. They do not count as completed Rust functionality.
 
 ## CPP-277 — FeatureFinderAlgorithmPicked's empty-input message names ranges
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1069-1071 still checks getSize()==0 and throws 'needs updated ranges'.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Message defect; source-reviewed.
@@ -4930,6 +5484,8 @@ implementation. They do not count as completed Rust functionality.
 **Rust handling:** The port keeps the message verbatim on the same check.
 
 ## CPP-278 — splitByFAIMSCV groups carry no ranges, so FeatureFinderCentroided fails on FAIMS input
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. IMDataConverter.cpp:100-103 calls kv.second.updateRanges() per group; merged as 764b2b2803 (PR #10500).
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -4988,6 +5544,8 @@ unique id 0 when the merge runs.
 
 ## CPP-279 — splitByFAIMSCV destroys the chromatograms of FAIMS input
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/IONMOBILITY/IMDataConverter.cpp:95 exp.clear(true) still drops chromatograms; groups get spectra only.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -5005,6 +5563,8 @@ unique id 0 when the merge runs.
 **Rust handling:** `FaimsSplit::dropped_chromatograms` and `skipped_spectra` return them. `FeatureFinderCentroided` loads MS level 1 only and uses no chromatogram, so it discards them as the source does; no output of that tool can show the difference.
 
 ## CPP-280 — splitByFAIMSCV groups NaN voltages unpredictably
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IMDataConverter.cpp:31 still takes CVs from getCompensationVoltages (std::set<double>/std::map<double,...>) without NaN rejection.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -5024,6 +5584,8 @@ unique id 0 when the merge runs.
 
 ## CPP-281 — splitByFAIMSCV's information message says "Not" for "No"
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. IMDataConverter.cpp:35 message still reads 'Not FAIMS compensation voltages found'.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Message defect; source-reviewed.
@@ -5041,6 +5603,8 @@ unique id 0 when the merge runs.
 **Rust handling:** `ImDataConverter::NO_COMPENSATION_VOLTAGES_INFO` keeps the text verbatim.
 
 ## CPP-282 — mergeFAIMSFeatures removes every FAIMS feature without a unique ID
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present; fix proposed in OpenMS/OpenMS#10501 (open). src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:205,:271,:281 still track removal by getUniqueId() in removed_uids, so unique id 0 features are all erased.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -5060,6 +5624,8 @@ unique id 0 when the merge runs.
 
 ## CPP-283 — FeatureOverlapFilter merges already removed features again
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:207-209 inner loop does not skip candidates already in removed_uids.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -5077,6 +5643,8 @@ unique id 0 when the merge runs.
 **Rust handling:** Reproduced exactly by `FeatureOverlapFilter::merge_faims_features` and by the executed case `c2_three_cvs` (1900 and 1700). Package B11 added `FaimsMergeFidelity::Corrected` beside it, which skips a candidate already marked removed and tests a candidate's voltage against the voltages the survivor already stands for (`merged_centroid_IMs`) rather than against a `FAIMS_CV` the first merge removed, so 1000, 900 and 800 at three voltages become one feature of 2700. `FeatureFinderCentroided` runs the corrected merge; the source one stays available and stays tested.
 
 ## CPP-284 — FeatureOverlapFilter's float boxes miss pairs within tolerance
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:146-171,:188 still Box<float> boxes (zero-width for tolerance 0) with strict quadtree intersection.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -5096,6 +5664,8 @@ unique id 0 when the merge runs.
 
 ## CPP-285 — Trace-level overlap compares only start times and drops some traces
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:70-85 rt_max search walks the outline from its end, which is the first scan; start/end logic unchanged.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -5113,6 +5683,8 @@ unique id 0 when the merge runs.
 **Rust handling:** Reproduced exactly.
 
 ## CPP-286 — FeatureOverlapFilter aborts a Debug build on valid feature maps
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:141,:173-189 extent from fmap ranges (updateRanges skips empty hulls) vs getBox from hull bounding boxes; no hull-less rejection.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK (Debug) at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
@@ -5132,6 +5704,8 @@ unique id 0 when the merge runs.
 
 ## CPP-287 — FeatureOverlapFilter leaves the map changed when it throws
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/PROCESSING/FEATURE/FeatureOverlapFilter.cpp:143 sorts before getFeatureBounds (:199) can throw; mergeFAIMSFeatures moves features out at :410-419 before the callback.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the product SDK at core `4fdec46b205459b92e7d3b9e56df5d8e912d5c85`.
 
 **Status:** Executed.
@@ -5149,6 +5723,8 @@ unique id 0 when the merge runs.
 **Rust handling:** Every error leaves the map exactly as it was (a journal of the overwritten values, or a copy where a later failure is possible).
 
 ## CPP-288 — FeatureOverlapFilter has undefined behaviour on reachable inputs
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Partly resolved. FAIMS_CV (double) on string/list now throws (a8fbd1082e, #10507); FOF:43-44 hull index/front() and :121 find()->second deref still unchecked.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5168,6 +5744,8 @@ unique id 0 when the merge runs.
 
 ## CPP-289 — GaussTraceFitter's copy leaves region_rt_span_ uninitialised
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:25-46 copy ctor and operator= still do not copy region_rt_span_ (GaussTraceFitter.h:67).
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed; not executed.
@@ -5185,6 +5763,8 @@ unique id 0 when the merge runs.
 **Rust handling:** Every field of the model is cloned; `region_rt_span` is part of the fitted state.
 
 ## CPP-290 — GaussTraceFitter's Jacobian carries 0.125 in the sigma column
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:199 Jacobian sigma column still carries 0.125.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5204,6 +5784,8 @@ unique id 0 when the merge runs.
 
 ## CPP-291 — An all-zero intensity profile "fits" with a NaN sigma
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:253,:283-291 alpha NaN when height_ is 0 passes the alpha>=1 guard; TraceFitter.cpp:129 unchanged.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Executed.
@@ -5222,6 +5804,8 @@ unique id 0 when the merge runs.
 
 ## CPP-292 — The trace fitters read empty traces and index theoretical peaks unchecked
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/GaussTraceFitter.cpp:228-258 and src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:345-368 index smoothed[max_index]/rbegin() with empty profile; no UnableToFit guard.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed; not executed.
@@ -5239,6 +5823,8 @@ unique id 0 when the merge runs.
 **Rust handling:** `Error::InvalidValue` (`UnableToFit-FinalSet`) before anything is read, in both fitters and in `compute_theoretical`.
 
 ## CPP-293 — ParamEntry::isValid narrows a 64-bit integer before its range check
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/DATASTRUCTURES/Param.cpp:122 still `int tmp = value;` before range check; ParamValue.cpp:445-452 returns narrowed ssize_.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5260,6 +5846,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-294 — TraceFitter documents both RT-span checks backwards and calls maxfev an iteration count
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. TraceFitter.h:32 and :170-191 still document both span checks and max_iteration in the old sense; TraceFitter.cpp:121,129 unchanged.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed (documentation).
@@ -5277,6 +5865,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** The port documents the implemented sense, names the field `max_iteration` with the `maxfev` meaning stated, and reproduces the "gaussian" wording verbatim in both fitters so the executed message comparison holds.
 
 ## CPP-295 — EGHTraceFitter::setInitialParameters_ has no alpha >= 1 guard
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:401-411 computes log(alpha) with no alpha>=1 guard.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5296,6 +5886,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-296 — EGHTraceFitter::setInitialParameters_ reads an empty trace
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:345-368 no empty-profile check before smoothed[max_index]/advance/rbegin.
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed; not executed.
@@ -5313,6 +5905,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** `Error::InvalidValue` (`UnableToFit-FinalSet`).
 
 ## CPP-297 — EGHTraceFunctor drops the baseline in one branch and takes |sigma| in one of two places
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/EGHTraceFitter.cpp:70 fegh = 0.0 without baseline, :88 fabs(sigma) in df vs signed sigma in operator(), :286 gnuplot ': 0'.
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5332,6 +5926,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-298 — extendMassTraces_ compares a pattern index with a trace index
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1470-1479 still compares pattern index p with traces.max_trace (0 until the max trace is pushed).
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed; the resulting output is executed.
@@ -5349,6 +5945,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** Reproduced exactly, because it decides which traces a feature keeps.
 
 ## CPP-299 — The better-seed search re-reads a moving m/z
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1435 still findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ()) while starting_peak moves; window uses captured mz (:1
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5368,6 +5966,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-300 — The monoisotopic m/z correction uses the proton mass and a trace index
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:783 still uses PROTON_MASS_U/c * (getTheoreticalmaxPosition()+trimmed_left)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source-reviewed; the reported value is executed.
@@ -5385,6 +5985,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** Reproduced exactly, with the constant named in the module documentation.
 
 ## CPP-301 — The final feature intensity picks the isotope window by m/z, not by mass
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:790 still getIsotopeDistribution_(f.getMZ()) while windows are built over mass (:356, :460 uses mz*c)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5404,6 +6006,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-302 — aborts_ is written from inside the OpenMP region without synchronisation
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1133-1143 abort_ writes aborts_ and abort_reasons_ with no omp critical; called inside omp parallel for (:595)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Executed.
@@ -5421,6 +6025,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** The port returns `RunOutput::aborts` from the serial merge of per-seed results, so the counts are deterministic at every thread count (asserted byte-identical at `-threads` 1/2/4/8/0); `abort_reasons_` and the debug log are collected in seed order as well. Giving the single-thread result for this race is the one documented exception to wave 5's undefined-behaviour rule (lead decision D11), because the determinism contract requires parallel output to equal serial output.
 
 ## CPP-303 — MorphologicalFilter leaves the last output sample unwritten for a one-sample element
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MorphologicalFilter.h:386-425 higher-margin block still never writes output[size-1] when struc_size_half==0; fallback at :341 only for size<=5
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
 
@@ -5440,6 +6046,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-304 — MorphologicalFilter::filterRange's static scratch buffer leaks between calls
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MorphologicalFilter.h:171 filterRange still has function-local static buffer and CPP-303 stale last sample is unfixed
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
 
 **Status:** Executed.
@@ -5457,6 +6065,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** Reproduced deliberately, so the executed comparison holds; the behaviour and its history dependence are documented in `docs/MORPHOLOGICAL_FILTER_SUPPORT.md`.
 
 ## CPP-305 — The indexedmzML indexListOffset addresses the byte before <indexList
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandlerHelper.cpp:302-303 tellp() taken before os << "\n", offset still one byte before <indexList
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
 
@@ -5476,6 +6086,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-306 — Converting a 32-bit time array from minutes narrows the result back to float
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MzMLHandlerHelper.cpp:447-453 32-bit branch still assigns it*unit_multiplier into float&
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
 
 **Status:** Executed.
@@ -5494,6 +6106,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 
 ## CPP-307 — The XML writers print doubles at 15 significant digits, so their own output does not round-trip
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. XMLFile.cpp:366,373 and MzMLFile.cpp:170 still precision(writtenDigits(double())) = digits10 = 15 (Types.h:189-191)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576` (gcc 14.4, `-O3 -DNDEBUG`).
 
 **Status:** Executed.
@@ -5511,6 +6125,8 @@ The same narrowing runs on the reading side: `updateMembers_` reads the members 
 **Rust handling:** This port writes the shortest round-tripping text and round-trips its own output 40,856 of 40,856, so a decoded comparison against the C++ shows the 1-to-2-ULP spread above on retention times while the binary arrays are bit-identical. The difference is recorded as a native difference in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md` and in `docs/BENCHMARKS.md` §3.6, so nobody later "fixes" the Rust text to match.
 
 ## CPP-308 — MapNormalizer divides every MS1 intensity by an unguarded maximum
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/topp/MapNormalizer.cpp:94-102 still divides by unguarded exp.getMaxIntensity()/100.0
 
 **Source revision:** TOPP `174b576e244e100f2345ca57a8e79aaa607156df`, the TOPP tree of the Release build `openms4-release-bc9cc12-c19e494-174b576` that the behaviour below was executed on. The source text was read from the two local TOPP checkouts `d0234cc` and `6f8eb94`, which agree line for line at the lines cited.
 
@@ -5535,6 +6151,8 @@ Severity is low — these are degenerate inputs — but the first two are silent
 **Rust handling:** The port refuses a non-positive or underflowed scale with exit 6 and reproduces the C++'s refusal on the empty range (that refusal was itself **executed** against the C++ after an earlier pass reasoned, wrongly, that the source treated it as a no-op). One residual difference is deliberate and recorded rather than hidden: the port reaches exit 6 through `Error::InvalidRange`, where `TOPPBase` reaches 8, so a pipeline that branches on TOPP exit codes sees a different code for the same refusal. Not an issue in this entry, and not a defect of the C++: **the combined-maximum semantics itself is correct and intended**. `updateRanges()` including chromatograms is self-consistent, and `FileInfo` prints the combined, spectrum, per-MS-level and chromatogram ranges separately, so the source knows exactly what it is doing. Whether normalising MS1 peaks against a chromatogram point is scientifically right is a question for the tool's maintainer; the port must match it either way, and now does — all 87,492 intensity arrays of the 1.2 GB benchmark run agree bitwise with the C++ tool's.
 
 ## CPP-309 — DTAFile::load and DTAFile::store use different proton masses
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DTAFile.h:120 uses PROTON_MASS_U in load, :204 still uses literal 1.0 in store
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -5566,6 +6184,8 @@ A store-then-load round trip therefore shifts the precursor by `(charge - 1) x 7
 
 ## CPP-310 — DTAFile::store writes two different 15-digit rules on one line, both past their type's precision
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DTAFile.h:184 precision(15) for intensity and :215 DPosition operator<< via precisionWrapper/toStr (DPosition.h:412-418) unchanged
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the C++ Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5589,6 +6209,8 @@ The inconsistency is accidental rather than chosen — it follows from `DPositio
 
 ## CPP-311 — MzMLSplitter writes parts whose precursor spectrumRef does not resolve
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/topp/MzMLSplitter.cpp:68 "precursor" flag still commented out; precursors copied unchanged
+
 **Source revision:** TOPP `174b576e244e100f2345ca57a8e79aaa607156df`, executed on the Release build `openms4-release-bc9cc12-c19e494-174b576`. Source text read from the local TOPP checkouts `d0234cc` and `6f8eb94`, which agree.
 
 **Status:** Executed.
@@ -5606,6 +6228,8 @@ The inconsistency is accidental rather than chosen — it follows from `DPositio
 **Rust handling:** The port's mzML writer used to refuse a precursor reference that does not name a spectrum in the file being written, which is why `MzMLSplitter` could not process real input at all in wave 3 ("precursor spectrum reference does not name an output spectrum" on every repetition). Matching the executed C++ was the right call for a port, so the writer now emits the dangling reference as the source does, under a tool-side option — the library default stays strict and `FileHandler` does not enable it (lead decision of 2026-09-15, decision D10). The rule and the schema file are described in `docs/MZML_SUPPORT.md`. With that, all four parts are bitwise equal to the C++ tool's on every decoded array.
 
 ## CPP-312 — FeatureFinderAlgorithmPicked divides a zero-width retention-time range by intensity:bins
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:244-245 steps still divided by intensity_bins_ with no zero-width check
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on both the Debug product SDK and the Release build.
 
@@ -5634,6 +6258,8 @@ and neither numerator is checked for being zero. With `maxRT == minRT` the step 
 
 ## CPP-313 — FeatureXMLHandler caps its feature reservation at 1e5 on a premise current data exceeds
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureXMLHandler.cpp:321 still reserve(min(Size(1e5), count)) with the same comment
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Release build.
 
 **Status:** Executed (the premise), source-reviewed (the effect).
@@ -5658,6 +6284,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-314 — FeatureFinderAlgorithmPicked converts NaN, infinite and huge doubles to Size without a check
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:357 and :1204 still convert double to Size unchecked
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5676,6 +6304,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-315 — FeatureFinderDefs is defined in two headers, so a translation unit including both does not compile
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FeatureFinderAlgorithmPicked.h:24 and FeatureFinderDefs.h:19 both still define struct FeatureFinderDefs
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Compiled with the Release install's GCC 14.
 
 **Status:** Executed (compile).
@@ -5693,6 +6323,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** One definition in `src/analysis/feature_finder_picked/defs.rs`, whose `ChargedIndexSet` compares its index sets only, as the source's inherited `std::set` operators do (executed: `../oracle/ffap-complete-fix1/drivers/defs_eq_probe.cpp`).
 
 ## CPP-316 — A reused FeatureFinderAlgorithmPicked instance carries four kinds of state into its next run
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:231 log_.open, :361/:378 isotope_distributions_ and abort_reasons_ (:1142) never cleared at start of run
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5722,6 +6354,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-317 — FeatureFinderAlgorithmPicked's step 4 computes a charge remainder without a zero check
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:936 and :945 still do charge % charge without zero/INT_MIN guard
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5739,6 +6373,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** Refused at that pair (`resolution::resolve_overlaps`) with a `DebugTermination` (`TerminationPoint::OverlapResolution`, `TerminationKind::ArithmeticTrap`) for runs with and without `write_debug`.
 
 ## CPP-318 — DefaultParamHandler::setParameters assigns param_ before checkDefaults throws
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. DefaultParamHandler.cpp:49 param_ = tmp still before checkDefaults at :65
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5758,6 +6394,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-319 — ParamValue::operator double() returns the union's double member for a string or list value
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. ParamValue.cpp:397-408 operator double/float now throw ConversionError for non-numeric; fixed by #10507 (a8fbd1082e)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5775,6 +6413,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** The port's debug writer reproduces every shift the value of which is reproducible, and the address-dependent band is refused, not invented: `RejectedParameters::Shown` is the default and the heap-address bound is scoped to the reference platform (lead decision D8 of wave 5). The 304 non-finite shift files outside that band are byte for byte.
 
 ## CPP-320 — The debug comment at FeatureFinderAlgorithmPicked.cpp:1047 names the wrong erased array
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1047-1051 comment still says "without overall score" while erasing float data array 2 (local_max)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5794,6 +6434,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-321 — FeatureFinderAlgorithmPicked's step 1 silently drops scans with a non-finite drift time
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:261 step 1 still iterates map_.areaBeginConst(min_rt,max_rt,min_mz,max_mz) (mobility-filtered)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5811,6 +6453,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** `IntensityThresholds::compute` applies the same filter (`RangeBase::contains` on the full range); the mzML reader refuses non-finite drift times, so only library callers reach it.
 
 ## CPP-322 — FeatureFinderAlgorithmPicked dereferences an empty best isotope pattern when feature:min_isotope_fit is 0
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:625 now aborts the seed when best_pattern.peak.empty(); extendMassTraces_ skips peak<0 (:1340); fixed by #10506 (cc9272f79c)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5830,6 +6474,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-323 — Heavy averagine windows are silently empty
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Unconfirmed. averagine underflow depends on float arithmetic in CoarseIsotopePatternGenerator::estimateFromPeptideWeight; needs execution
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5847,6 +6493,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** The crate-private `CoarseIsotopePatternGenerator::estimate_from_peptide_weight_source` reports the case, and step 2.5 empties the window as the source does; the public generator functions keep their error.
 
 ## CPP-324 — A NaN isotopic_pattern:intensity_percentage_optional is accepted and empties every isotope window
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Param.cpp:146 range check false for NaN (no isnan) and src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:372-374 trims with NaN unchecked
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5866,6 +6514,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-325 — An unsorted input with a mis-sized data array leaves the caller's map partly sorted
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1081-1086 still sorts input_map in place via sortSpectra/sortChromatograms with no prior array-size check
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5883,6 +6533,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** The same order and text (`Error::InvalidValue`); `run` consumes the experiment, so the partial sort is not observable.
 
 ## CPP-326 — FeatureFinderAlgorithmPicked's step-1 progress range wraps modulo 2^32
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:241 startProgress(0, intensity_bins_ * intensity_bins_) still UInt product
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5902,6 +6554,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-327 — Large retention times silently give features of infinite width and intensity
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:742 setWidth(fitter->getFWHM()) and :790 setIntensity still narrow double to float without range check
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5919,6 +6573,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** FeatureFinderAlgorithmPicked stores the same values (the width field, the crate-private `MetaValue::source_float`), bit for bit; `BaseFeature::validate` and `MetaValue::validate` still refuse such features, while the featureXML writer writes them as the source writes them since `fix/featurexml-nonfinite`, so the port's `FeatureFinderCentroided` exits 0 and writes the document the C++ build writes (TOPP native difference 16, closed; `infinite_feature_values_are_written_as_the_release_build_writes_them`).
 
 ## CPP-328 — A trace of zero intensities terminates FeatureFinderAlgorithmPicked
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmPicked.cpp:1932 0.05*intensity/ *it still 0/0 for zero quantile; NaN m/z reaches getIsotopeDistribution_ (:790, no catch in omp region)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5938,6 +6594,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-329 — SignalToNoiseEstimatorMedian leaves its percentage members uninitialised and operator= keeps stale ones
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SignalToNoiseEstimatorMedian.h:434-436 members uninitialised, ctors :80-140 do not set them, copy/assign do not copy
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Source-reviewed.
@@ -5955,6 +6613,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** The port's `NoiseEstimates` is stateless: both percentages are returned with the estimates of the run that computed them, so there is nothing to read early or to carry over.
 
 ## CPP-330 — SignalToNoiseEstimatorMedian's empty-median-bin fallback is dead code and its comment is wrong
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SignalToNoiseEstimatorMedian.h:350-353 dead else branch and wrong comment unchanged
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -5974,6 +6634,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-331 — SignalToNoiseEstimatorMedian divides zero by zero for an empty container
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SignalToNoiseEstimatorMedian.h:373-374 percent * 100 / window_count with no empty-container guard
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -5991,6 +6653,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** `NoiseCompatibility::nan_for_empty_input` reproduces the NaN bit pattern under `PickingCompatibility::source()`; the native profile reports the empty input instead.
 
 ## CPP-332 — estimateNoiseFromRandomScans ignores its ms_level filter and can read out of bounds
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SignalToNoiseEstimator.cpp:42-50 still exp[scan] not exp[spec_indices[scan]], size()-1 scaling, unchecked idx
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -6010,6 +6674,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-333 — SignalToNoiseEstimatorMedian's int counters overflow beyond INT_MAX points
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. SignalToNoiseEstimatorMedian.h:220-228 int elements_below_percentile/elements_seen, :280 int window_count unchanged
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. The `:220` conversion is executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Source-reviewed, with the `:220` path executed.
@@ -6027,6 +6693,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** `:220`'s `INT_MIN` is reproduced. The signed-overflow sites stay refused with `Error::Unsupported` naming the line, as a stated cost/benefit decision of the lead: each needs more than `2^31` points per spectrum and 64-90 GB per evidence run. `docs/SIGNAL_TO_NOISE_SUPPORT.md` records that, and the beyond-`INT_MAX` full-path evidence lives outside CI in `../oracle/sne-fix/harness`; unit tests pin the helpers at `n = 2^31`.
 
 ## CPP-334 — Param accepts NaN for a bounded double
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. Param.cpp:146-160 bounded double check still only tmp<min||tmp>max, NaN passes
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
@@ -6046,6 +6714,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-335 — FileInfo declares CorruptionInfo and DetailInfo and never fills them
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FileInfo.h:206-234 declares CorruptionInfo/DetailInfo; FileInfo.cpp never assigns r.corruption or r.detail
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`.
 
 **Status:** Executed.
@@ -6064,6 +6734,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 
 ## CPP-336 — FileInfo's `-d` listing reads front() and back() of an SRM chromatogram unchecked
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FileInfo.cpp:1792 ms.front()/ms.back() on SRM chromatogram still unchecked
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
 **Status:** Source review (the input that triggers it cannot be produced by any pinned loader).
@@ -6081,6 +6753,8 @@ The comment's premise — that a declared count above 1e5 is "most likely an inv
 **Rust handling:** Refused with `Error::InvalidValue` naming the chromatogram, because there is no defined behaviour to reproduce (native difference 2 of `docs/FILE_INFO_CHECKS_SUPPORT.md`), with a unit test in `src/format/file_info/checks.rs`.
 
 ## CPP-337 — IndexedMzMLDecoder skips the first child of every `<index>` element
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. IndexedMzMLDecoder.cpp:286-288 now for-loop from getFirstChild() to nullptr; fixed by 3b085ac716 (2026-10-10)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576` (`FileInfo` sha256 `5d82c8a7248c9ccb37c6f4e64a0ed2202f375418befd095261590935de1172dc`), on `ibminode06`.
 
@@ -6127,6 +6801,8 @@ Note under the same entry, with no number of its own because the source's behavi
 
 ## CPP-338 — FeatureFinderCentroided crashes intermittently at `-threads 32`
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Unconfirmed. intermittent SIGSEGV at 32 threads, not diagnosed; needs execution
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Observed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, binary sha256 `2781dd7cab48f482118375754038644251705c8bafab1958e310e4063dffb323`.
 
 **Status:** Observed once, on the Release build. **Not diagnosed** — no faulting code identified, no reproduction under a debugger attempted.
@@ -6144,6 +6820,8 @@ Note under the same entry, with no number of its own because the source's behavi
 **Rust handling:** Not applicable — this is a defect observation against the pinned C++ Release build, not a portability decision. For the record, neither Rust build (`+fma` default and the `-fma` opt-out) failed in any of its 24 executions of this cell, and none of the port's 186 measured repetitions in the run (96 `rust-release` + 90 `rust-nofma`) failed. Of the run's 282 measured repetitions, 281 succeeded; the one that did not is this C++ crash.
 
 ## CPP-339 — MzMLFile::transform's first pass leaves a ProgressLogger running, so every low-memory TOPP path fails on an mzML with both spectra and chromatograms
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. MzMLHandler.cpp:1013-1027 now ends the progress loggers before throwing EndParsingSoftly in LD_RAWCOUNTS; fixed with #10271 (5fd4850135)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -6166,6 +6844,8 @@ having written nothing. An input with only one record kind never takes the early
 **Rust handling:** The port's `mzml::transform` carries no shared progress logger — the crate has no progress logging on this path at all — so `PeakPickerHiRes -processOption lowmemory` completes on every one of those inputs, including the 2.3 GB one. Recorded as native difference 4 in `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`.
 
 ## CPP-340 — MSDataWritingConsumer never checks its output stream, so a low-memory TOPP run whose output cannot be created exits 0 having written nothing
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. MSDataWritingConsumer.cpp:44 ofs_.open never checked and :183 close unchecked
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -6190,6 +6870,8 @@ Two controls that do **not** reach the consumer, because the framework's pre-che
 **Rust handling:** `MSDataWritingConsumer::create` returns `Error::Io` when the file cannot be created, and `run_low_memory` propagates it, so the port answers `Error: Unexpected internal error (Is a directory (os error 21))` with `UNKNOWN_ERROR` in **both** process options. This is the one row of that tool's low-memory divergence table the port deliberately does not reproduce, because reproducing it means swallowing an I/O error on the one file the run exists to produce; recorded as native difference 13 of `docs/TOPP_PEAK_PICKER_HI_RES_SUPPORT.md`, with the two controls that agree exactly, and pinned by `an_out_that_names_a_directory_is_reported_in_both_modes`.
 
 ## CPP-341 — FileInfo indexes a per-peptide occurrence vector with the consensus map's *id* instead of its position, which is out of bounds whenever a consensusXML numbers its maps from one
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present; fix proposed in OpenMS/OpenMS#10496 (open). FileInfo.cpp:1176-1183 still sizes vector by getColumnHeaders().size() and indexes with getMapIndex(); PRs #10496-#10499 fix not in develop for this
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -6239,6 +6921,8 @@ Both consensus features hold a sub-feature in map 1 *and* one in map 2, and each
 
 ## CPP-342 — FileInfo reads `proteins[0]` of an identification file before establishing that a run exists, while its own structured block guards the same access
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FileInfo.cpp:1337-1341 TSV export still reads proteins[0] with no emptiness guard
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
 **Status:** Executed.
@@ -6264,6 +6948,8 @@ os_tsv << "general: database"
 **Rust handling:** the file is refused, but **one layer before this branch**. The shared idXML reader rejects it itself with `idXML needs at least one IdentificationRun` (`src/format/idxml.rs:310`), an `Error::Parse`, and the tool exits **3**. `src/format/file_info/identifications.rs` does carry the matching guard — `data.proteins.first()` returning `Error::InvalidValue` naming both line ranges, under lead decision D1, which would exit 6 — but no input reaches it: `src/format/mzidentml.rs:1596-1598` rejects a document with no `SpectrumIdentification` element just as early, and the branch has no entry that does not load from a file. The guard is therefore a defence with no executed coverage, kept so the branch cannot index an empty vector if a reader ever hands it one. Measured refusal pinned by `identifications_without_a_run_are_refused`, which asserts the reader's variant and message.
 
 ## CPP-343 — FileInfo reads `getHits()[0]` behind a guard that `PeptideIdentification::empty()` can never satisfy for a loaded file, so any identification file with a hit-less spectrum crashes it
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. FileInfo.cpp:1347 now guards on getHits().empty(); fixed by ddfe82e4fe (2026-10-10)
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -6302,6 +6988,8 @@ Worse, the guard is unreachable in practice: `IdXMLFile::load` gives every `Pept
 
 ## CPP-344 — FileInfo's consensusXML statistics summarise the qualities and widths of twice as many values as there are consensus features, half of them zero
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Resolved. FileInfo.cpp:2263-2266 qualities/widths now empty with reserve(size); fixed by 5805d7d57f (2026-10-10)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
 **Status:** Executed.
@@ -6333,6 +7021,8 @@ The defect is visible in the project's own reference output: `topp/FileInfo_7_ou
 
 ## CPP-345 — FileInfo's `-m`, `-p` and `-s` have no mzIdentML arm, so an mzIdentML input is reported against an MSExperiment that was never loaded
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FileInfo.cpp:1990, :2105, :2373 still test only FileTypes::IDXML, no MZIDENTML arm (content branch :1312 has both)
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
 **Status:** Executed.
@@ -6350,6 +7040,8 @@ The defect is visible in the project's own reference output: `topp/FileInfo_7_ou
 **Rust handling:** Reproduced verbatim, as the behaviour is well defined. `src/format/file_info/identifications.rs` calls `peaks::write_meta` with a default `MSExperiment` rather than writing the text out again, so the peak-file rendering and its fall-through copy cannot drift apart. Pinned by `identifications_mzidentml_and_its_peak_file_fall_through`.
 
 ## CPP-346 — FileInfo's FASTA duplicate detection overwrites each hash bucket instead of appending to it, so a hash collision hides a duplicate
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present; fix proposed in OpenMS/OpenMS#10499 (open). FileInfo.cpp:931 and :949 still assign m_headers[id_hash]/m_seqs[id_seq] = {index} instead of push_back
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -6377,6 +7069,8 @@ The reported counts are consequently a function of the standard library's string
 **Rust handling:** Reproduced, including the hash: `src/format/file_info/fasta.rs::string_hash` implements libstdc++'s `_Hash_bytes` (the 64-bit Murmur variant, multiplier `0xc6a4a7935bd1e995`, seed `0xc70f6907`, 47-bit shift-mix) so that the counts agree with the reference build even on a collision, and the bucket is a `BTreeMap<u64, usize>` holding the single last index, as the source's assignment does. 28 of the probe's 60 values are asserted by `string_hash_matches_the_reference_libstdcxx`; the duplicate counts and the warning text by `fasta_duplicate_warnings_match_the_source_log` and `fasta_three_identical_entries_count_two_duplicates`.
 
 ## CPP-347 — FileInfo reads order statistics positionally out of a `std::sort`ed sample whose elements `operator<` calls equivalent, so the consensusXML `-s` minimum, quartiles and maximum depend on the order of the values in the file
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. FileInfo.cpp:2310-2317 unguarded ratio/1.0 into NaN and StatisticFunctions.h:948 sort(data) unchanged
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
@@ -6453,6 +7147,8 @@ What that buys, measured: all five frozen oracle cases are now compared line for
 
 ## CPP-348 — All three re-exposed peak-picker parameters forward an unrestricted value into a restricted one, so NaN silently suppresses every S/N gate and an out-of-range value aborts with a message naming a class the user never mentioned
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. PeakPickerIterative.h:92-100 and PeakPickerChromatogram.cpp:33-34 re-expose sn params with no min restrictions
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`, `libOpenMS.so` sha256 `abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c`.
 
 **Status:** Executed.
@@ -6475,6 +7171,8 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-349 — The CTD writer escapes only the first of two adjacent special characters, and escapes a tab twice, so `-write_ctd` can write malformed XML
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ParamCTDFile.cpp:358-368 replace() still does i += replace_with.size() plus loop ++i; escapeXML per-char unchanged
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`, `libOpenMS.so` sha256 `abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c`.
 
 **Status:** Executed.
@@ -6492,6 +7190,8 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 **Rust handling:** Reproduced, because the CTD is the product a workflow system consumes: `ParamCtdFile` writes the same bytes (`tests/param_ctd.rs::escaping_matches_the_release_build_byte_for_byte`). No ported tool's parameters reach the defects.
 
 ## CPP-350 — `-write_cwl` and `-write_json` empty the target file before discovering they cannot write it
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ParamJSONFile.cpp:254 opens file before writeToStream throws TDL-unavailable (:403); ParamCWLFile.cpp:59 same
 
 **Source revision:** as CPP-349; `cli` `c19e494`.
 
@@ -6511,6 +7211,8 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-351 — Every `.ttd` tool is registered by name, so two external tools (which have none) collide, and the duplicate message lacks its closing quote
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Not applicable (code absent from 3.7). ToolDescriptionFile/ToolDescriptionHandler (.ttd) absent; registry rewritten in src/openms_cli ToolHandler.cpp (#10216) with closed-quote duplicate message
+
 **Source revision:** `cli` `c19e494`; core as CPP-349.
 
 **Status:** Executed.
@@ -6528,6 +7230,8 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 **Rust handling:** Reproduced (`tests/topp_cli_completion.rs::the_internal_tool_registry_behaves_as_in_the_release_build`).
 
 ## CPP-352 — `checkParam_`'s exemption for the tool's own section never applies, so every `common:<tool>:` subsection value draws an "Unknown subsection" warning
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. openms_cli TOPPBase.cpp:478 still passes "common:"+tool+"::" while checkParam_ :2030 tests location=="common::"
 
 **Source revision:** `cli` `c19e494`.
 
@@ -6547,6 +7251,8 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 
 ## CPP-353 — Usage text on a console narrower than its option column is not broken, and a line that ends exactly at the console edge is followed by an empty line
 
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ConsoleUtils.cpp:129 still console_width_ - indentation unsigned wrap; :145 still can yield zero-length first line
+
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`; `cli` `c19e494`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
 **Status:** Executed.
@@ -6564,6 +7270,8 @@ Second, and worse, `ParamEntry::isValid` compares with `tmp < min_float` and ski
 **Rust handling:** Reproduced, because the usage text is what a user sees (`tests/topp_cli_console.rs::usage_is_shaped_to_columns_as_the_release_build_shapes_it`, `src/cli/console.rs::break_string`).
 
 ## CPP-354 — A progress section an exception leaves open stays in `ProgressLogger`'s static depth for the rest of the process, indenting every later section of every object
+
+**OpenMS 3.7 `develop` (91ba9e762a, 2026-10-11):** Still present. ProgressLogger.cpp:233-239,264-271 static recursion_depth_ only decremented by endProgress; destructor :192-195 does not unwind
 
 **Source revision:** `bc9cc12514c768385ce121d6ca4bb710fe1983c4`. Executed on the Linux x86_64 Release build `openms4-release-bc9cc12-c19e494-174b576`, on `ibminode06`.
 
