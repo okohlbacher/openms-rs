@@ -26,9 +26,10 @@
 //!    and not `rand`'s widening multiply;
 //! 3. the source's descending loop `for i = n-1 .. 1: swap(a[i], a[d(0, i)])`.
 //!
-//! The crate-private `DecoyRandom` engine of the decoy generator implements the
-//! same three pieces with a draw budget; see `docs/RANSAC_SUPPORT.md` for why
-//! the two are not yet one type.
+//! The crate-private `DecoyRandom` engine of the decoy generator adds a draw
+//! budget on top of the same engine; it shares this module's descending loop
+//! (`descending_fisher_yates`) and bucket size (`bucket_size`), so the source's
+//! mapping exists once.
 
 pub use rand_mt::Mt64;
 
@@ -136,13 +137,40 @@ impl RandomShuffler {
     /// cost more, with probability below `(i + 1) / 2^64` per draw, so the cost
     /// is linear in the length.
     pub fn portable_random_shuffle<T>(&mut self, data: &mut [T]) {
-        for end in (1..data.len()).rev() {
-            // usize is at most 64 bits on every supported target, so the index
-            // and the drawn value (at most `end`) convert without loss.
-            let selected = bounded(&mut self.engine, end as u64) as usize;
-            data.swap(end, selected);
-        }
+        // usize is at most 64 bits on every supported target, so the index and
+        // the drawn value (at most `end`) convert without loss.
+        let _: Result<(), std::convert::Infallible> = descending_fisher_yates(data, |end| {
+            Ok(bounded(&mut self.engine, end as u64) as usize)
+        });
     }
+}
+
+/// The source's descending Fisher-Yates loop,
+/// `for i = n-1 .. 1: swap(a[i], a[select(i)])`, shared by every shuffle in the
+/// crate that must reproduce `Math::RandomShuffler`: this module's
+/// [`RandomShuffler`] and the decoy generators' budgeted engine.
+///
+/// `select(end)` returns the index drawn from `[0, end]`; a larger value is
+/// clamped to `end`, so a faulty selector cannot index out of range. Empty and
+/// one-element slices never call it. An error from `select` stops the loop with
+/// the earlier swaps already applied.
+pub(crate) fn descending_fisher_yates<T, E>(
+    data: &mut [T],
+    mut select: impl FnMut(usize) -> Result<usize, E>,
+) -> Result<(), E> {
+    for end in (1..data.len()).rev() {
+        let selected = select(end)?;
+        data.swap(end, selected.min(end));
+    }
+    Ok(())
+}
+
+/// Boost's `uniform_int(0, high)` bucket size over a full-range 64-bit engine:
+/// `floor(2^64 / (high + 1))`, computed in `u128` so that `2^64` is
+/// representable. For `high >= 1` the quotient fits a nonzero `u64`; `high` of
+/// zero is the caller's special case (Boost consumes no word for it).
+pub(crate) fn bucket_size(high: u64) -> u64 {
+    ((1_u128 << 64) / (u128::from(high) + 1)) as u64
 }
 
 /// Boost `uniform_int(0, high)` over a full-range 64-bit engine.
@@ -155,7 +183,7 @@ fn bounded(engine: &mut Mt64, high: u64) -> u64 {
     if high == 0 {
         return 0;
     }
-    let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
+    let bucket = bucket_size(high);
     loop {
         let result = engine.next_u64() / bucket;
         if result <= high {

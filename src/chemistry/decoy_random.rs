@@ -18,6 +18,7 @@
 //! range mapping and slice shuffle choose different values and would change
 //! every decoy.
 
+use crate::math::random_shuffler::{bucket_size, descending_fisher_yates};
 use crate::{Error, Result};
 use rand_mt::Mt64;
 
@@ -80,14 +81,12 @@ fn shuffle_from<T>(
     data: &mut [T],
     remaining_draws: &mut usize,
 ) -> Result<()> {
-    for end in (1..data.len()).rev() {
+    descending_fisher_yates(data, |end| {
         let high = u64::try_from(end)
             .map_err(|_| Error::InvalidValue("decoy shuffle range exceeds u64".into()))?;
-        let selected = bounded_from(&mut next, high, remaining_draws)? as usize;
         // selected <= end, so the native usize conversion cannot truncate.
-        data.swap(end, selected);
-    }
-    Ok(())
+        Ok(bounded_from(&mut next, high, remaining_draws)? as usize)
+    })
 }
 
 // Boost uniform_int(0, high) uses bucket division/rejection, not modulo.
@@ -100,7 +99,7 @@ fn bounded_from(
     if high == 0 {
         return Ok(0);
     }
-    let bucket = ((1_u128 << 64) / (u128::from(high) + 1)) as u64;
+    let bucket = bucket_size(high);
     loop {
         *remaining_draws = remaining_draws
             .checked_sub(1)
