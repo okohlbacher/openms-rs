@@ -12,15 +12,18 @@
 //! `boost::heap`) and a `BulkData` body the head points to. Here a cluster owns
 //! its body; a consumer that needs cheap handles keeps clusters in a vector and
 //! heaps their indices. The source keeps the per-map neighbours in
-//! `std::unordered_map`s; here they are ordered by map index, which changes
-//! two observable things, both documented where they arise: the order of
-//! `QTCluster::all_neighbors` and `QTCluster::elements`, and the order in
-//! which neighbour distances are summed for the quality.
+//! `std::unordered_map`s, whose iteration order decides the order of
+//! [`QTCluster::all_neighbors`] and [`QTCluster::elements`] and the order in
+//! which neighbour distances are summed for the quality (floating-point
+//! addition is not associative). The port keeps them in
+//! [`StdHashMap`](crate::math::hash_order::StdHashMap), which reproduces
+//! libstdc++'s order for `size_t` keys.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::grid_feature::{GridFeature, SourceOrderedSequence};
 use crate::chemistry::AASequence;
+use crate::math::hash_order::StdHashMap;
 
 /// All neighbouring features of one map with their distances, ascending by
 /// distance, equal distances in insertion order (source `NeighborList`, a
@@ -56,11 +59,12 @@ pub struct BulkData<'a> {
     center_point: &'a GridFeature<'a>,
     /// Unique id of the cluster (source `id_`).
     id: usize,
-    /// The best current feature of each map (source `neighbors_`).
-    neighbors: BTreeMap<usize, Neighbor<'a>>,
+    /// The best current feature of each map (source `neighbors_`, a
+    /// `std::unordered_map<Size, Neighbor>`).
+    neighbors: StdHashMap<Neighbor<'a>>,
     /// All neighbours of each map while the cluster is being filled (source
-    /// `tmp_neighbors_`).
-    tmp_neighbors: BTreeMap<usize, NeighborList<'a>>,
+    /// `tmp_neighbors_`, a `std::unordered_map<Size, NeighborList>`).
+    tmp_neighbors: StdHashMap<NeighborList<'a>>,
     /// Largest distance a point may have and still belong to the cluster
     /// (source `max_distance_`).
     max_distance: f64,
@@ -91,8 +95,8 @@ impl<'a> BulkData<'a> {
         Self {
             center_point,
             id,
-            neighbors: BTreeMap::new(),
-            tmp_neighbors: BTreeMap::new(),
+            neighbors: StdHashMap::new(),
+            tmp_neighbors: StdHashMap::new(),
             max_distance,
             num_maps,
             x_coord,
@@ -242,7 +246,10 @@ impl<'a> QTCluster<'a> {
         }
 
         if self.collect_annotations && map_index != center_point.map_index() {
-            let list = self.data.tmp_neighbors.entry(map_index).or_default();
+            let list = self
+                .data
+                .tmp_neighbors
+                .get_or_insert_with(map_index, Vec::new);
             // `std::multimap::insert`: after every element not greater.
             let position = list.partition_point(|&(key, _)| !(distance < key));
             list.insert(position, (distance, element));
@@ -250,7 +257,7 @@ impl<'a> QTCluster<'a> {
         }
 
         if map_index != center_point.map_index() {
-            let replace = match self.data.neighbors.get(&map_index) {
+            let replace = match self.data.neighbors.get(map_index) {
                 None => true,
                 Some(current) => distance < current.distance,
             };
@@ -267,9 +274,8 @@ impl<'a> QTCluster<'a> {
         }
     }
 
-    /// The clustered elements: the neighbours, then the centre (source
-    /// `getElements`). The neighbours come in ascending map index, where the
-    /// source lists them in its hash map's order.
+    /// The clustered elements: the neighbours in the order of the source's
+    /// `std::unordered_map`, then the centre (source `getElements`).
     pub fn elements(&self) -> Elements<'a> {
         let mut elements = self.all_neighbors();
         elements.push(Element {
@@ -297,10 +303,10 @@ impl<'a> QTCluster<'a> {
             return false;
         }
         for element in removed {
-            if let Some(current) = self.data.neighbors.get(&element.map_index) {
+            if let Some(current) = self.data.neighbors.get(element.map_index) {
                 if std::ptr::eq(current.feature, element.feature) {
                     self.changed = true;
-                    self.data.neighbors.remove(&element.map_index);
+                    self.data.neighbors.remove(element.map_index);
                 }
             }
         }
@@ -317,9 +323,8 @@ impl<'a> QTCluster<'a> {
     /// comes from the best annotation instead (see
     /// [`annotations`](Self::annotations)).
     ///
-    /// The neighbour distances are summed in ascending map index; the source
-    /// sums them in its hash map's order, so with three or more neighbours the
-    /// last bit of the quality can differ.
+    /// The neighbour distances are summed in the iteration order of the
+    /// source's `std::unordered_map`, as the source does.
     pub fn quality(&mut self) -> f64 {
         if self.changed {
             self.compute_quality();
@@ -386,13 +391,13 @@ impl<'a> QTCluster<'a> {
         self.data.tmp_neighbors.clear();
     }
 
-    /// All current neighbours, in ascending map index (source
-    /// `getAllNeighbors`, which lists them in hash map order).
+    /// All current neighbours, in the iteration order of the source's
+    /// `std::unordered_map` (source `getAllNeighbors`).
     pub fn all_neighbors(&self) -> Elements<'a> {
         self.data
             .neighbors
             .iter()
-            .map(|(&map_index, neighbor)| Element {
+            .map(|(map_index, neighbor)| Element {
                 map_index,
                 feature: neighbor.feature,
             })
@@ -475,17 +480,12 @@ impl<'a> QTCluster<'a> {
     /// feature compatible with the annotations (sharing one, or having none).
     fn recompute_neighbors(&mut self) {
         self.data.neighbors.clear();
-        for (&map_index, list) in &self.data.tmp_neighbors {
+        let data = &mut self.data;
+        for (map_index, list) in data.tmp_neighbors.iter() {
             for &(distance, feature) in list {
                 let current = feature.annotations();
-                if current.is_empty()
-                    || current
-                        .intersection(&self.data.annotations)
-                        .next()
-                        .is_some()
-                {
-                    self.data
-                        .neighbors
+                if current.is_empty() || current.intersection(&data.annotations).next().is_some() {
+                    data.neighbors
                         .insert(map_index, Neighbor { distance, feature });
                     break;
                 }
@@ -507,7 +507,7 @@ impl<'a> QTCluster<'a> {
                 .or_insert(distance);
         };
         let unannotated = SourceOrderedSequence(AASequence::default());
-        for (&map_index, list) in &self.data.tmp_neighbors {
+        for (map_index, list) in self.data.tmp_neighbors.iter() {
             for &(distance, feature) in list {
                 for sequence in feature.annotations() {
                     record(sequence, map_index, distance);

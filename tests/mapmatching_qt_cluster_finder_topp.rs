@@ -4,8 +4,7 @@
 
 //! Evidence tier 1 for `FeatureGroupingAlgorithmQT` and `QTClusterFinder`:
 //! the algorithm path of the upstream `TOPP_FeatureLinkerUnlabeledQT_1`,
-//! `_3`, `_4` and `_6` tests, compared with the retained C++ outputs (`_5`
-//! is the named tie-order gap, see below).
+//! `_3`, `_4`, `_5` and `_6` tests, compared with the retained C++ outputs.
 //!
 //! Upstream definition: `topp/CMakeLists.txt:2907-2925` at test-data revision
 //! 0cb15f2 runs `FeatureLinkerUnlabeledQT -test` with the case's parameters
@@ -243,13 +242,27 @@ fn topp_feature_linker_unlabeled_qt_4() {
     );
 }
 
-// `TOPP_FeatureLinkerUnlabeledQT_5` is not reproduced: its three clusters have
-// exactly equal quality (0.974444) and identical handle keys (every input
-// feature has unique ID 0), so the retained order is the extraction order of
-// the source's `boost::heap::fibonacci_heap` over Boost's hash-ordered grid.
-// This port breaks such ties by cluster id and yields the RT-300 cluster
-// first where the retained file has RT 500. That tie order is the named gap
-// of `QTClusterFinder` in `docs/FEATURE_GROUPING_SUPPORT.md`.
+// `TOPP_FeatureLinkerUnlabeledQT_5`: three clusters of exactly equal quality
+// (0.974444) and identical handle keys (every input feature has unique ID 0),
+// so the retained order is the extraction order of the source's
+// `boost::heap::fibonacci_heap` over Boost's hash-ordered grid. It is
+// reproduced since `FibonacciHeap`, the Boost grid order and the libstdc++
+// hash-map orders are emulated (see `docs/FEATURE_GROUPING_SUPPORT.md`).
+#[test]
+fn topp_feature_linker_unlabeled_qt_5() {
+    let mut param = ini_algorithm("feature_linker_unlabeled_qt_1_parameters.ini");
+    set(
+        &mut param,
+        "distance_RT:max_difference",
+        ParamValue::Float(200.0),
+    );
+    run(
+        &param,
+        &QT_5,
+        "feature_linker_unlabeled_qt_5_output.consensusXML",
+        "QT_5",
+    );
+}
 
 #[test]
 fn topp_feature_linker_unlabeled_qt_6() {

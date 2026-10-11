@@ -39,16 +39,22 @@
 //! # Order
 //!
 //! The source keeps its clusters in a `boost::heap::fibonacci_heap` ordered by
-//! quality, visits grid cells in Boost's hash order, and keeps neighbours in
-//! hash maps. Here the heap is a binary heap of (quality, cluster id) entries
-//! whose ties go to the **lower** cluster id, the grid is visited in ascending
-//! cell order ([`HashGrid`](crate::math::ml::clustering::hash_grid::HashGrid)), and neighbours are ordered by map index. Clusters
-//! of exactly equal quality that compete for the same features are therefore
-//! resolved deterministically, where the source resolves them by its heap's
-//! internal layout; the mirror-image clusters of a feature pair, the common case
-//! of a tie, contain the same elements either way.
+//! quality, visits grid cells in Boost's hash order, keeps each cell's
+//! features in a `boost::unordered_multimap`, and keeps a cluster's neighbours
+//! and the clusters of a feature in libstdc++ hash containers. Which of
+//! several clusters of exactly equal quality is extracted first, which of
+//! several equally near features becomes a cluster's neighbour, and the
+//! order in which a neighbour distances are summed are all decided by those
+//! containers' layouts. This port reproduces them: the heap is
+//! [`FibonacciHeap`](crate::math::fibonacci_heap::FibonacciHeap), the grid is
+//! [`HashGrid`](crate::math::ml::clustering::hash_grid::HashGrid) with Boost's
+//! iteration order, and the per-map neighbours and the per-feature cluster sets
+//! are [`StdHashMap`](crate::math::hash_order::StdHashMap)s. The source's
+//! order of extraction is therefore reproduced exactly, as the
+//! executed-C++ differential `tests/mapmatching_qt_tie_order_oracle.rs`
+//! checks.
 
-use std::collections::{BTreeMap, BTreeSet, BinaryHeap};
+use std::collections::{BTreeMap, BTreeSet};
 
 use super::base_group_finder::BaseGroupFinder;
 use super::feature_distance::FeatureDistance;
@@ -62,6 +68,8 @@ use crate::concept::constants::user_param::{
 };
 use crate::error::{Error, Result};
 use crate::kernel::features::{BaseFeature, ConsensusFeature, ConsensusMap, FeatureMap};
+use crate::math::fibonacci_heap::FibonacciHeap;
+use crate::math::hash_order::StdHashMap;
 use crate::math::ml::clustering::hash_grid::HashGrid;
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param};
@@ -176,36 +184,6 @@ struct RunSettings {
     max_diff_rt: f64,
     max_diff_mz: f64,
     distance: FeatureDistance,
-}
-
-/// One heap entry: a snapshot of a cluster's quality. Newer snapshots replace
-/// older ones through `version`.
-#[derive(Clone, Copy, Debug)]
-struct HeapEntry {
-    quality: f64,
-    id: usize,
-    version: u64,
-}
-
-impl PartialEq for HeapEntry {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == std::cmp::Ordering::Equal
-    }
-}
-impl Eq for HeapEntry {}
-impl PartialOrd for HeapEntry {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-impl Ord for HeapEntry {
-    /// Higher quality first, then the lower cluster id.
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.quality
-            .total_cmp(&other.quality)
-            .then_with(|| other.id.cmp(&self.id))
-            .then_with(|| self.version.cmp(&other.version))
-    }
 }
 
 /// Identity of a grid feature: `(map index, feature index)`.
@@ -497,8 +475,7 @@ impl QTClusterFinder {
             grid_features: &grid_features,
             already_used: BTreeSet::new(),
             clusters: Vec::new(),
-            versions: Vec::new(),
-            heap: BinaryHeap::new(),
+            heap: FibonacciHeap::new(),
             element_mapping: BTreeMap::new(),
         };
         state.compute_clustering(num_maps)?;
@@ -723,11 +700,13 @@ struct Clustering<'s, 'a> {
     already_used: BTreeSet<FeatureKey>,
     /// All clusters by id (the source's `BulkData` vector plus heap handles).
     clusters: Vec<QTCluster<'a>>,
-    /// The version of each cluster's current heap entry.
-    versions: Vec<u64>,
-    heap: BinaryHeap<HeapEntry>,
-    /// Which clusters contain which feature (source `ElementMapping`).
-    element_mapping: BTreeMap<FeatureKey, BTreeSet<usize>>,
+    /// The heap of cluster heads (source `Heap`); heap node `i` is cluster
+    /// `i`, since the clusters are pushed in id order.
+    heap: FibonacciHeap,
+    /// Which clusters contain which feature (source `ElementMapping`, a map to
+    /// `std::unordered_set<Size>`). Only the order inside each set matters;
+    /// the outer map is keyed by pointer in the source and only looked up.
+    element_mapping: BTreeMap<FeatureKey, StdHashMap<()>>,
 }
 
 impl<'a> Clustering<'_, 'a> {
@@ -746,19 +725,20 @@ impl<'a> Clustering<'_, 'a> {
             let data = BulkData::new(&grid_features[index], num_maps, max_distance, x, y, id);
             let mut cluster = QTCluster::new(data, self.finder.use_identifications);
             self.add_cluster_elements(&mut cluster)?;
-            for element in cluster.elements() {
+            let elements = cluster.elements();
+            self.clusters.push(cluster);
+            let clusters = &self.clusters;
+            let node = self
+                .heap
+                .push(&mut |a, b| clusters[a].current_quality() < clusters[b].current_quality());
+            debug_assert_eq!(node, id);
+            // Register the new cluster for all its elements.
+            for element in elements {
                 self.element_mapping
                     .entry(key(&element))
                     .or_default()
-                    .insert(id);
+                    .insert(id, ());
             }
-            self.heap.push(HeapEntry {
-                quality: cluster.current_quality(),
-                id,
-                version: 0,
-            });
-            self.clusters.push(cluster);
-            self.versions.push(0);
         }
         Ok(())
     }
@@ -809,28 +789,27 @@ impl<'a> Clustering<'_, 'a> {
         Ok(())
     }
 
-    /// The id of the best cluster still in the heap, dropping stale entries.
-    fn pop_top(&mut self) -> Option<usize> {
-        while let Some(entry) = self.heap.pop() {
-            if self.versions[entry.id] == entry.version {
-                return Some(entry.id);
-            }
-        }
-        None
-    }
-
     /// Source `makeConsensusFeature_` with `updateClustering_`: extract the
     /// best valid cluster as a consensus feature, or `None` when none is left.
+    ///
+    /// The source pops invalid clusters from the top until a valid one is on
+    /// top (if the heap runs out, no feature is made), builds the consensus
+    /// feature from the top cluster, and `updateClustering_` first pops it.
     fn make_consensus_feature(&mut self) -> Result<Option<ConsensusFeature>> {
         let best_id = loop {
-            let Some(id) = self.pop_top() else {
+            let Some(top) = self.heap.top() else {
                 return Ok(None);
             };
-            if self.clusters[id].is_invalid() {
-                self.remove_from_element_mapping(id);
-                continue;
+            if !self.clusters[top].is_invalid() {
+                break top;
             }
-            break id;
+            self.remove_from_element_mapping(top);
+            let clusters = &self.clusters;
+            self.heap
+                .pop(&mut |a, b| clusters[a].current_quality() < clusters[b].current_quality());
+            if self.heap.is_empty() {
+                return Ok(None);
+            }
         };
         let elements = self.clusters[best_id].elements();
         let quality = self.clusters[best_id].current_quality();
@@ -839,12 +818,14 @@ impl<'a> Clustering<'_, 'a> {
         Ok(Some(feature))
     }
 
-    /// Source `removeFromElementMapping_`.
+    /// Source `removeFromElementMapping_`: erase the id from the sets of every
+    /// element the cluster holds.
     fn remove_from_element_mapping(&mut self, id: usize) {
         for element in self.clusters[id].elements() {
-            if let Some(ids) = self.element_mapping.get_mut(&key(&element)) {
-                ids.remove(&id);
-            }
+            self.element_mapping
+                .entry(key(&element))
+                .or_default()
+                .remove(id);
         }
     }
 
@@ -897,20 +878,26 @@ impl<'a> Clustering<'_, 'a> {
         Ok(feature)
     }
 
-    /// Source `updateClustering_`: remove the best cluster's elements from
-    /// every other cluster holding them, refill those clusters, and invalidate
-    /// clusters whose centre was taken.
+    /// Source `updateClustering_`: pop the best cluster, then remove its
+    /// elements from every other cluster holding them, refill those clusters,
+    /// and invalidate clusters whose centre was taken.
     fn update_clustering(&mut self, elements: &[Element<'a>], best_id: usize) -> Result<()> {
+        {
+            // `cluster_heads.pop()`: remove the current best from the heap
+            // and consolidate the heap from previous lazy updates.
+            let clusters = &self.clusters;
+            self.heap
+                .pop(&mut |a, b| clusters[a].current_quality() < clusters[b].current_quality());
+        }
         for element in elements {
             let feature_key = key(element);
-            let ids: Vec<usize> = match self.element_mapping.get_mut(&feature_key) {
-                Some(ids) => {
-                    ids.remove(&best_id);
-                    ids.iter().copied().collect()
-                }
-                None => Vec::new(),
+            // `element_mapping[curr_feature]`, then `erase(best_id)`.
+            let ids: Vec<usize> = {
+                let set = self.element_mapping.entry(feature_key).or_default();
+                set.remove(best_id);
+                set.keys().collect()
             };
-            let mut tmp_mapping: BTreeMap<FeatureKey, BTreeSet<usize>> = BTreeMap::new();
+            let mut tmp_mapping: BTreeMap<FeatureKey, StdHashMap<()>> = BTreeMap::new();
             for id in ids {
                 if self.clusters[id].is_invalid() || !self.clusters[id].update(elements) {
                     continue;
@@ -919,18 +906,22 @@ impl<'a> Clustering<'_, 'a> {
                 let mut cluster = self.clusters[id].clone();
                 self.add_cluster_elements(&mut cluster)?;
                 self.clusters[id] = cluster;
-                self.versions[id] += 1;
-                self.heap.push(HeapEntry {
-                    quality: self.clusters[id].current_quality(),
-                    id,
-                    version: self.versions[id],
+                let clusters = &self.clusters;
+                self.heap.update_lazy(id, &mut |a, b| {
+                    clusters[a].current_quality() < clusters[b].current_quality()
                 });
                 for neighbor in self.clusters[id].elements() {
-                    tmp_mapping.entry(key(&neighbor)).or_default().insert(id);
+                    tmp_mapping
+                        .entry(key(&neighbor))
+                        .or_default()
+                        .insert(id, ());
                 }
             }
-            for (feature, ids) in tmp_mapping {
-                self.element_mapping.entry(feature).or_default().extend(ids);
+            for (feature, set) in tmp_mapping {
+                let target = self.element_mapping.entry(feature).or_default();
+                for id in set.keys() {
+                    target.insert(id, ());
+                }
             }
         }
         Ok(())
