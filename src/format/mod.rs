@@ -168,10 +168,16 @@ pub mod arrow_io_helpers;
 /// validation (`ArrowSchemaRegistry.h`).
 #[cfg(feature = "arrow")]
 pub mod arrow_schema_registry;
+/// Pull-style bzip2 decompression with `BZ2_bzRead` semantics (`Bzip2Ifstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod bzip2_ifstream;
 /// The features table of a FeatureMap as an Arrow table
 /// (`FeatureMapArrowIO.h`, features half).
 #[cfg(feature = "arrow")]
 pub mod feature_map_arrow_io;
+/// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
+#[cfg(feature = "file-compression")]
+pub mod gzip_ifstream;
 /// Shared Parquet read/write helpers and type-coercing column accessors
 /// (`ParquetFile.h`).
 #[cfg(feature = "arrow")]
@@ -182,12 +188,6 @@ pub mod parquet_filter;
 /// Parquet files (`ProteinIdentificationArrowIO.h`).
 #[cfg(feature = "arrow")]
 pub mod protein_identification_arrow_io;
-/// Pull-style bzip2 decompression with `BZ2_bzRead` semantics (`Bzip2Ifstream.h`).
-#[cfg(feature = "file-compression")]
-pub mod bzip2_ifstream;
-/// Pull-style gzip decompression with zlib `gzread` semantics (`GzipIfstream.h`).
-#[cfg(feature = "file-compression")]
-pub mod gzip_ifstream;
 /// UTF-16 string helpers of the XML handlers (`HANDLERS/StringManager.h`).
 pub mod string_manager;
 /// Read-only view over an element's attributes (`HANDLERS/XMLAttributes.h`).
@@ -228,12 +228,12 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+/// File-system operations for directory-or-archive containers, re-exported
+/// from `system::file` for the OpenSWATH Parquet formats.
+pub mod container_io;
 /// HUPO PSI TraML transition lists (`TraMLFile.h`).
 #[cfg(feature = "traml")]
 pub mod traml;
 /// The TraML reader and writer (`HANDLERS/TraMLHandler.h`).
 #[cfg(feature = "traml")]
 pub mod traml_handler;
-/// File-system operations for directory-or-archive containers, re-exported
-/// from `system::file` for the OpenSWATH Parquet formats.
-pub mod container_io;
