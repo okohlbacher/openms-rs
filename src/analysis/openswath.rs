@@ -61,6 +61,8 @@ pub(crate) mod mrm_feature_support;
 pub mod mrm_ion_series;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
 pub mod mrm_mapping;
+/// `MRMRTNormalizer`: outlier removal and RT coverage for iRT normalization.
+pub mod mrm_rt_normalizer;
 /// Cross-correlation, library, S/N and mutual-information scores of SRM/MRM peak groups, from `ANALYSIS/OPENSWATH/MRMScoring.h`.
 pub mod mrm_scoring;
 /// Peak-group picking across the chromatograms of one precursor, from `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`.
@@ -102,6 +104,8 @@ pub mod swath_window_loader;
 pub mod targeted_experiment;
 /// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
 pub mod targeted_experiment_helper;
+/// `TargetedSpectraExtractor`: annotate, pick, score and select spectra against a target list.
+pub mod targeted_spectra_extractor;
 /// The light targeted experiment, from `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h`.
 pub mod transition_experiment;
 /// Transition grouping and compound lookup, from `OPENSWATHALGO/DATAACCESS/TransitionHelper.h`.
