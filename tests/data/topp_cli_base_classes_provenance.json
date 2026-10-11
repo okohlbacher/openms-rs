@@ -1,0 +1,2688 @@
+{
+ "group": "topp_cli_base_classes",
+ "package": "B7 (Phase 3 wave 4, CLI-01..05): TOPPExternalToolBase, INIUpdater, TOPPBase_defs, MapAlignerBase, SearchEngineBase; manifest written at integration (INTEG-B)",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPExternalToolBase.h",
+   "revision": "c19e494",
+   "sha256": "7901fb1bb4c28cf6ae24c5e5323eed2b71d96c97049e9a4fec68ca2a56615b19"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/TOPPExternalToolBase.cpp",
+   "revision": "c19e494",
+   "sha256": "5477907340f16db5fb0e12ba70aa4c3686cbf8231769eaa191f9cae2e2c498be"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/INIUpdater.h",
+   "revision": "c19e494",
+   "sha256": "0b810704ff24de7d0da8180be4a7dc6883b8d894facd596ae3ee5fccb54da504"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/INIUpdater.cpp",
+   "revision": "c19e494",
+   "sha256": "37b3ab589f68d1541ce0bb745c870e05b80055da8fa4a43a89fd115cc4704220"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/MapAlignerBase.h",
+   "revision": "c19e494",
+   "sha256": "af4f89694c2f861f75334e3eadcb94f81427b0c43537a4ddcbb16714f821f8e0"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/MapAlignerBase.cpp",
+   "revision": "c19e494",
+   "sha256": "5eccfbc8fa5c67e6f89e8e5248e26a5feb515eb7c015b6fd7d88a9201d624204"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/SearchEngineBase.h",
+   "revision": "c19e494",
+   "sha256": "d1b9dca8c2a22b72e345f3d557ad2e6845c8d64a508d98a147aae32add71dacb"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/source/APPLICATIONS/SearchEngineBase.cpp",
+   "revision": "c19e494",
+   "sha256": "066b7be4ec454e766f8f07eefa7fd43524e3b854b5c1cf8bf17f0d6488b31e6a"
+  },
+  {
+   "path": "OpenMS4-tests/packages/cli/include/OpenMS/APPLICATIONS/TOPPBase_defs.h",
+   "revision": "c19e494",
+   "sha256": "ee8bfe722d663132e0449d6813a7eeffc124ea06a03bd1131298fd6efc651ded"
+  }
+ ],
+ "native_implementation": [
+  "src/cli/external_tool.rs",
+  "src/cli/info_stream.rs",
+  "src/cli/ini_updater.rs",
+  "src/cli/defs.rs",
+  "src/cli/map_aligner.rs",
+  "src/cli/search_engine.rs"
+ ],
+ "native_tests": [
+  "tests/topp_cli_base_classes.rs"
+ ],
+ "support_document": "docs/TOPP_CLI_SUPPORT.md",
+ "evidence_tier": "oracle-generated (tier 1 executed differential): 75 cases and the INIUpdater table run twice by ../oracle/B7-cli; the two runs differ only in the progress timing of ma_none_transform and ma_none_transform_store (results/differ.txt)",
+ "oracle": {
+  "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "host": "ibminode06",
+  "build_type": "Release",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp"
+ },
+ "fixtures": [
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_both_streams/argv.txt",
+   "sha256": "ee6a01ebce6eb45ba94ca1830f00890d4ce1fa32fd86edb8065722a416b95780",
+   "bytes": 143,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_both_streams/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_both_streams/cwd/cap.stderr",
+   "sha256": "21bd1079810239a316c68b7c2f15d1bf7b2e01e91b34c5bd1ecefc1c7cb20f52",
+   "bytes": 84,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_both_streams/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_both_streams/cwd/cap.stdout",
+   "sha256": "6e555d20346f6ac6a47cea7cfe6702daa029bab42670420547f5891451d7fc38",
+   "bytes": 69,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_both_streams/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_both_streams/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_both_streams/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_both_streams/stderr.txt",
+   "sha256": "bdc3f30192af31a834b6fa525d3084423b860646da5a5645c0f7a704fd73fcdc",
+   "bytes": 188,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_both_streams/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_both_streams/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_both_streams/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken/argv.txt",
+   "sha256": "a540c428edc1f76ff21faca1f9f55c8938d1d841f88be65dc07a04681633c81a",
+   "bytes": 92,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken/cwd/cap.stderr",
+   "sha256": "a856d08c128d9abfbb6640ac5b07a80788fc7bb3f3ef79aba14d92164915d31d",
+   "bytes": 161,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken/cwd/cap.stdout",
+   "sha256": "77fc80c9e37fa5b198cbeb53f2944fba326d50a0c5b6810050f314c63fd60aa4",
+   "bytes": 15,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken/stderr.txt",
+   "sha256": "e61f4c75e30636ca2d2668804c5bfde575c17f8967d36802ddfe041ff882fc7a",
+   "bytes": 211,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/argv.txt",
+   "sha256": "a2858433685dd9820cde19a7119faa32c8c8ca6dc0ec54cc23f46beba979b128",
+   "bytes": 193,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/cwd/cap.stderr",
+   "sha256": "a856d08c128d9abfbb6640ac5b07a80788fc7bb3f3ef79aba14d92164915d31d",
+   "bytes": 161,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/cwd/cap.stdout",
+   "sha256": "77fc80c9e37fa5b198cbeb53f2944fba326d50a0c5b6810050f314c63fd60aa4",
+   "bytes": 15,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/run.log.masked",
+   "sha256": "c752bcd1f981be3f9ce6f1eab6350c6b868aaba6f031d9a50726ec2f8be85b78",
+   "bytes": 1207,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/run.log.masked verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/stderr.txt",
+   "sha256": "e61f4c75e30636ca2d2668804c5bfde575c17f8967d36802ddfe041ff882fc7a",
+   "bytes": 211,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug1_log/stdout.txt",
+   "sha256": "ee5fb258fce1f75b09d42022da74f927d4c336769e5b6a730d8edd27ea7407ec",
+   "bytes": 114,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug1_log/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug4/argv.txt",
+   "sha256": "bb56b456b7aa17350fd91188a2062c9e8a53be006ef2d941bd37ceda67f38836",
+   "bytes": 108,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug4/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug4/cwd/cap.stderr",
+   "sha256": "a856d08c128d9abfbb6640ac5b07a80788fc7bb3f3ef79aba14d92164915d31d",
+   "bytes": 161,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug4/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug4/cwd/cap.stdout",
+   "sha256": "77fc80c9e37fa5b198cbeb53f2944fba326d50a0c5b6810050f314c63fd60aa4",
+   "bytes": 15,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug4/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug4/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug4/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug4/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug4/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_debug4/stdout.txt",
+   "sha256": "b2c55b3e607f520c9c11c15a74b7ae04c5656320db17bc6a64bf9591d5f9c1e8",
+   "bytes": 201,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_debug4/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_first/argv.txt",
+   "sha256": "ad345c562b625d47e84edff75cf82363b6e6a2b79c32c1fee69c5bbaee84ecdd",
+   "bytes": 37,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_first/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_first/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_first/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_first/stderr.txt",
+   "sha256": "e61f4c75e30636ca2d2668804c5bfde575c17f8967d36802ddfe041ff882fc7a",
+   "bytes": 211,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_first/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_first/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_first/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/argv.txt",
+   "sha256": "1f4dc7898b45cc72a2079921f18afaa0d0e8b0d41c9f7f62cad28bf6024b2735",
+   "bytes": 170,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/cwd/cap.stderr",
+   "sha256": "a856d08c128d9abfbb6640ac5b07a80788fc7bb3f3ef79aba14d92164915d31d",
+   "bytes": 161,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/cwd/cap.stdout",
+   "sha256": "77fc80c9e37fa5b198cbeb53f2944fba326d50a0c5b6810050f314c63fd60aa4",
+   "bytes": 15,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/run.log.masked",
+   "sha256": "cbf5827e55f8e7a02c30c4137b84c32e5c9b9dfa81043254c8afca8131f84111",
+   "bytes": 263,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/run.log.masked verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/stderr.txt",
+   "sha256": "e61f4c75e30636ca2d2668804c5bfde575c17f8967d36802ddfe041ff882fc7a",
+   "bytes": 211,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_broken_log/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_broken_log/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_crash/argv.txt",
+   "sha256": "786c0a7531775d0992189699861dff9c33c1a5bccc6849b9ceb1f43c268687a2",
+   "bytes": 106,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_crash/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_crash/cwd/cap.stderr",
+   "sha256": "fe6a035a9f40b4bd48230a5a597a6f44134fb1a4c63c6e04a2c632ac5e3d73d7",
+   "bytes": 65,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_crash/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_crash/cwd/cap.stdout",
+   "sha256": "eb6c2d20bd0ff4aedee8b8b024b99ceae602ea558178590ddae8d21bc68adbb2",
+   "bytes": 29,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_crash/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_crash/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_crash/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_crash/stderr.txt",
+   "sha256": "bbcb3420436c855645eed33363b2a68f8c0b179fde1bc01394419e0d3a7c8b36",
+   "bytes": 129,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_crash/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_crash/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_crash/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_echo_debug4/argv.txt",
+   "sha256": "3f71e58037f5202a5631ea11b40c32a1f21919b2b3b2f3f8c5da4c59bddd70f1",
+   "bytes": 117,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_echo_debug4/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_echo_debug4/cwd/cap.stderr",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_echo_debug4/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_echo_debug4/cwd/cap.stdout",
+   "sha256": "38546436b63db4ba11929a938e0928f660ebce61c3f45b8e8b18677ee0a3e5e4",
+   "bytes": 68,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_echo_debug4/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_echo_debug4/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_echo_debug4/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_echo_debug4/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_echo_debug4/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_echo_debug4/stdout.txt",
+   "sha256": "a3f6b7f1c8ba6728e847a98775b7df3b0e614fc4556f6bb36629445014594cc9",
+   "bytes": 93,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_echo_debug4/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_env/argv.txt",
+   "sha256": "5abe5edb6cc94372a0603237bfd3ee78c61ef55215e1ee45c6dd227ad2ba3b62",
+   "bytes": 130,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_env/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_env/cwd/cap.stderr",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_env/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_env/cwd/cap.stdout",
+   "sha256": "7f736ed9745af79416547af118dbf112b49238b73e3d34164093c3a20bb9fcf1",
+   "bytes": 65,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_env/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_env/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_env/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_env/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_env/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_env/stdout.txt",
+   "sha256": "ba304a78f43c5a0ac7b1831e6ca904532c9c3eb8b6938fd7ba4c763f1d146cde",
+   "bytes": 90,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_env/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing/argv.txt",
+   "sha256": "80c7d6e29d7f9390928e3bb3cd0bfb7b9b194fcf0855122dbbabdf73e161be07",
+   "bytes": 107,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing/cwd/cap.stderr",
+   "sha256": "b64f3302f22362a8f46e7ebc558489bc169ffd0f75b3c8c8e606609665037a9c",
+   "bytes": 86,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing/cwd/cap.stdout",
+   "sha256": "1de19bf34da4af7d85024dc809bd22097ed4edd57970700d159b9b8e61f17750",
+   "bytes": 35,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing/exit_code.txt",
+   "sha256": "9a92adbc0cee38ef658c71ce1b1bf8c65668f166bfb213644c895ccb1ad07a25",
+   "bytes": 3,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing/stderr.txt",
+   "sha256": "1db017d32c1f64c801223feab382e4e07dc30ed98f9491c18d772c610a21b374",
+   "bytes": 156,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_debug4/argv.txt",
+   "sha256": "7a0acebd072288840f24a56e134d441bfbc376b76049d9bc03415f476657c430",
+   "bytes": 123,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_debug4/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_debug4/cwd/cap.stderr",
+   "sha256": "b64f3302f22362a8f46e7ebc558489bc169ffd0f75b3c8c8e606609665037a9c",
+   "bytes": 86,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_debug4/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_debug4/cwd/cap.stdout",
+   "sha256": "1de19bf34da4af7d85024dc809bd22097ed4edd57970700d159b9b8e61f17750",
+   "bytes": 35,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_debug4/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_debug4/exit_code.txt",
+   "sha256": "9a92adbc0cee38ef658c71ce1b1bf8c65668f166bfb213644c895ccb1ad07a25",
+   "bytes": 3,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_debug4/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_debug4/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_debug4/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_debug4/stdout.txt",
+   "sha256": "330b55307786006f545218ccff4ade1f2fdf9b624e718cc013949ec6ef36cc38",
+   "bytes": 146,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_debug4/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_first/argv.txt",
+   "sha256": "a522688a536ec91a1925412dad54ba533f407fe1c40c1bd0f6d743abaa0b1931",
+   "bytes": 51,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_first/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_first/exit_code.txt",
+   "sha256": "9a92adbc0cee38ef658c71ce1b1bf8c65668f166bfb213644c895ccb1ad07a25",
+   "bytes": 3,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_first/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_first/stderr.txt",
+   "sha256": "1db017d32c1f64c801223feab382e4e07dc30ed98f9491c18d772c610a21b374",
+   "bytes": 156,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_first/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_missing_first/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_missing_first/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_no_newline/argv.txt",
+   "sha256": "262ef97b90196df5ad917805ebef17732d8ae3315a737546f14583af232f302f",
+   "bytes": 132,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_no_newline/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_no_newline/cwd/cap.stderr",
+   "sha256": "6a158a85744cf3d576b53b96d724d252025cf4a3ce24d50a59b5801fd15927d9",
+   "bytes": 82,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_no_newline/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_no_newline/cwd/cap.stdout",
+   "sha256": "ebe1a811e417a2d7b3412d70836dc5283a02eeb76b4325f1237c9f9ad3b487d5",
+   "bytes": 53,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_no_newline/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_no_newline/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_no_newline/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_no_newline/stderr.txt",
+   "sha256": "2363973252d9dbd7c82396b6297b11beeedc6e963f4585bbd3f248aeb8055f13",
+   "bytes": 170,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_no_newline/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_no_newline/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_no_newline/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok/argv.txt",
+   "sha256": "df1a462c4c55fabea2f404d27aee54aa4809292069c898503dfd76077f55c9ee",
+   "bytes": 92,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok/cwd/cap.stderr",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok/cwd/cap.stdout",
+   "sha256": "af08d874cc985e9a9a999e8059b5c059da73144bb70dcf2b3989f385488f05aa",
+   "bytes": 97,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok_first/argv.txt",
+   "sha256": "676a0615b174078fe6fba091bc066208c67968eb9e17e250c1270b11c670da54",
+   "bytes": 41,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok_first/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok_first/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok_first/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok_first/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok_first/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_ok_first/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_ok_first/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_debug4/argv.txt",
+   "sha256": "9962c57b06b2a4cc80eff7da64ed995485bc8abd77d9de56c7acffe6ab7511f3",
+   "bytes": 140,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_debug4/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_debug4/cwd/cap.stderr",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_debug4/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_debug4/cwd/cap.stdout",
+   "sha256": "1037f49e1af4df07732f45de8d753eaa338f83a120230d3c736afc0f3e1dad16",
+   "bytes": 82,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_debug4/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_debug4/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_debug4/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_debug4/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_debug4/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_debug4/stdout.txt",
+   "sha256": "835cd53177c1ddddb0a7bac4bf5cf4f3d35a5fd7a7eb1ff0ee6be29da651188d",
+   "bytes": 124,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_debug4/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_fail/argv.txt",
+   "sha256": "d56504696001b54b0bc2e780431d3878b66cca1e2ff66c97de4fc66687be0e67",
+   "bytes": 135,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_fail/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_fail/cwd/cap.stderr",
+   "sha256": "e66f8b4b2025cdec63b132b637a851de67842ee8e3151d235d7b6fafe2b7bcf3",
+   "bytes": 89,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_fail/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_fail/cwd/cap.stdout",
+   "sha256": "7e7acf9a3ac81e11480a051a7d17bb6312be180e53b03a5b58a1eec268674497",
+   "bytes": 52,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_fail/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_fail/exit_code.txt",
+   "sha256": "2e6d31a5983a91251bfae5aefa1c0a19d8ba3cf601d0e8a706b4cfa9661a6b8a",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_fail/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_fail/stderr.txt",
+   "sha256": "cbd2cfe00aa1ed026789257d09d58d59f39469b37727bd52e3723debc0380555",
+   "bytes": 176,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_fail/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_repeat_fail/stdout.txt",
+   "sha256": "d8b7c622ebae95942d579ac0ec3faf8ae3e8b4f353447a8747dd446fe51257b7",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_repeat_fail/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_workdir/argv.txt",
+   "sha256": "1a0ac210d099d054b3b53f8d10c3b15a2be55ced767d9abb37d0b6807b3294a8",
+   "bytes": 105,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_workdir/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_workdir/cwd/cap.stderr",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_workdir/cwd/cap.stderr verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_workdir/cwd/cap.stdout",
+   "sha256": "05e807f6dd6607bf6a593e6af016cabc83e102d2a9a64cd4900dbe7787ea0cc2",
+   "bytes": 44,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_workdir/cwd/cap.stdout verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_workdir/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_workdir/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_workdir/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_workdir/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ext_workdir/stdout.txt",
+   "sha256": "90a0a2adb3a2da3385c9f74af6526ba9dd5b099a0b9e2e44faf653e3f5bab23c",
+   "bytes": 69,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ext_workdir/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_type/argv.txt",
+   "sha256": "b1afb03f4f2475e811bc7ad83fff5297c7afe41813c8e4f30123a7effebd01ca",
+   "bytes": 396,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_type/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_type/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_type/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_type/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_type/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_type/stdout.txt",
+   "sha256": "68f0c53b4114b83b43c09312bc2841eb4829216bd1934d4e99b83ec4c1a411b9",
+   "bytes": 31,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_type/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_write_ini/argv.txt",
+   "sha256": "178d1532b550e36e095a6b1be813e0e2664f33d39bd90aa40b71f9bc3a71d17e",
+   "bytes": 99,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_write_ini/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_write_ini/cwd/out.ini",
+   "sha256": "f2f42ff395dca72a9613a7a2726f7f9303c4a1cd335eeef51d4c52c3809240f4",
+   "bytes": 3604,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_write_ini/cwd/out.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_write_ini/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_write_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_write_ini/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_flexible_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_flexible_write_ini/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_mixed/argv.txt",
+   "sha256": "ee0eabbcc2f994d8de8b05bf9492acdda824404e08139e43ed120bb200cfcb72",
+   "bytes": 302,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_mixed/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_mixed/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_mixed/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_mixed/stderr.txt",
+   "sha256": "46701370a36d408d847111f218a480d6f2cd2151749ef4f173f737bacacd362d",
+   "bytes": 67,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_mixed/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_mixed/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_mixed/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_no_out/argv.txt",
+   "sha256": "63f99bd59768aae284bddaa8de4c5dcbe704629d6a5a839b3c6cfc5969299bf3",
+   "bytes": 148,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_no_out/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_no_out/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_no_out/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_no_out/stderr.txt",
+   "sha256": "22f8aa89b9e8305edf74fae668753a6d1f3e8574d1d2632e52d28a43e807811a",
+   "bytes": 101,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_no_out/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_no_out/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_no_out/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_ok/argv.txt",
+   "sha256": "4b28607223591a7d651661e9d2551cc9f55318d41592e15df3c3edf1b80477f0",
+   "bytes": 295,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_ok/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_ok/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_ok/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_ok/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_ok/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_ok/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_ok/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_out_count/argv.txt",
+   "sha256": "ff3c196aac599bb0854a9807b2dcc8258ab4427d9c332e9cb0901aaaf5584840",
+   "bytes": 230,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_out_count/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_out_count/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_out_count/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_out_count/stderr.txt",
+   "sha256": "3a2cf9ba3d4f65726ab5c96dfe39ddb24b3e334dc7ff8282c165a91b9d77bc72",
+   "bytes": 89,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_out_count/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_out_count/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_out_count/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_reference/argv.txt",
+   "sha256": "bde6abc43f70103a3187a1f88384dd4ab85f7e755207d5716b84090d61bc2dab",
+   "bytes": 185,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_reference/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_reference/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_reference/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_reference/stderr.txt",
+   "sha256": "2b2bac14c642eb82eb8bfd7805893093ef749aed27361ad8da2dfa72745c9552",
+   "bytes": 1913,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_reference/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_reference/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_reference/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_in/argv.txt",
+   "sha256": "b44fb741b65328fa060616d3f9768be46376cd7876932018ce36a6c4ddea6436",
+   "bytes": 395,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_in/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_in/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_in/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_in/stderr.txt",
+   "sha256": "346fc2b9d57601d604e3409608c34423c462ea36d71fa77724616dc722824fb7",
+   "bytes": 128,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_in/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_in/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_in/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_only_out/argv.txt",
+   "sha256": "1a9579e9161c963e8fadfd23826a6d2966cfd79f170f593651a0e4759dcfb083",
+   "bytes": 270,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_only_out/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_only_out/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_only_out/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_only_out/stderr.txt",
+   "sha256": "346fc2b9d57601d604e3409608c34423c462ea36d71fa77724616dc722824fb7",
+   "bytes": 128,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_only_out/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_only_out/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_only_out/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_out/argv.txt",
+   "sha256": "7d3bb3f603aa5811f40fc4ca858e11ead1817d1fd2c8bb0448fc6552963d5c84",
+   "bytes": 551,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_out/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_out/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_out/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_out/stderr.txt",
+   "sha256": "3d7e4183e3a8b96177e402bac71ceb6194918466c67c6b0cdd06be5e39f74fd0",
+   "bytes": 128,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_out/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_spectra_out/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_spectra_out/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_trafo_count/argv.txt",
+   "sha256": "729a77d9b9b762660af67209e4783e36a6d569b8828bd274ce66d19249a61118",
+   "bytes": 236,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_trafo_count/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_trafo_count/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_trafo_count/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_trafo_count/stderr.txt",
+   "sha256": "82e3e159e861a8ed0e0b9b9367c4bfc12c31c801c8a62ce830e6e8989c1e3eca",
+   "bytes": 110,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_trafo_count/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_trafo_count/stdout.txt",
+   "sha256": "6798e7820cdd9304f0d57b77e7e7994f904010cadd9c1d67286c361f65031cab",
+   "bytes": 27,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_trafo_count/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform/argv.txt",
+   "sha256": "7873dd9450d9d405377b0c07cb93df1f922e5bb12b367f5468c984c721a938c8",
+   "bytes": 622,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform/cwd/a.mzML",
+   "sha256": "4f8ce79da4ad9cf4c0f507c9d89c09ca895ab50657af548047e95f6b5f312fc8",
+   "bytes": 16189,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform/cwd/a.mzML verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform/cwd/b.mzML",
+   "sha256": "17489b77b4f8f8bacebf0742cb6b6aeb414ab08275cfa5cc2db091c2844e0b3e",
+   "bytes": 14812,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform/cwd/b.mzML verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform/stdout.txt",
+   "sha256": "b106268803e88b6a4c358a39007164fc7a459b3951d5f465a85aa9723a86d0ae",
+   "bytes": 686,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform_store/argv.txt",
+   "sha256": "6fd2282d91f8540224b75604d5c79840b24669059eeb7bc3f843651dc9ce9801",
+   "bytes": 665,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform_store/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform_store/cwd/a.mzML",
+   "sha256": "e61c18f6ba35830ba77158db947b5cadc67470454408fcc0323407299565e781",
+   "bytes": 16392,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform_store/cwd/a.mzML verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform_store/cwd/b.mzML",
+   "sha256": "9926baa0d66c8280271a1524a68ac2fd6553bd532d069c3994860efbba46fdb0",
+   "bytes": 15015,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform_store/cwd/b.mzML verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform_store/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform_store/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform_store/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform_store/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_transform_store/stdout.txt",
+   "sha256": "9f661f8ddd165825ed7fcc32f65dd787f8bc68260ae4a1a7fe38417fff1c1b4a",
+   "bytes": 687,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_transform_store/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_write_ini/argv.txt",
+   "sha256": "440f7dae2c1b886585191898058ed49b075666f1d32c024f63fd4ff23662b32b",
+   "bytes": 91,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_write_ini/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_write_ini/cwd/out.ini",
+   "sha256": "462905d5891c71c114705a87eb96d7256dc56e757b9bfb16d1e9d885d828d1fd",
+   "bytes": 2975,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_write_ini/cwd/out.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_write_ini/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_write_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_write_ini/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_none_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_none_write_ini/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_both/argv.txt",
+   "sha256": "846a49aa05a1275866fba351d8dc654031f42b237c23f500add06dbe01121353",
+   "bytes": 420,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_both/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_both/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_both/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_both/stderr.txt",
+   "sha256": "f01106f26e5ec4a1c429c1e6e6ab235e8fad29dbcb1df9c44eaee62b97d61434",
+   "bytes": 81,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_both/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_both/stdout.txt",
+   "sha256": "f4f8f974c0c585536f5478fe71d44c2a52d1f23951ea75f0e9e4722cd952e30b",
+   "bytes": 33,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_both/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_file_ok/argv.txt",
+   "sha256": "e72a63fb9e1d9a6a51d338656f6f1b7c8cbc1725a78bcd2456339bcfd66593d6",
+   "bytes": 407,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_file_ok/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_file_ok/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_file_ok/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_file_ok/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_file_ok/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_file_ok/stdout.txt",
+   "sha256": "f4f8f974c0c585536f5478fe71d44c2a52d1f23951ea75f0e9e4722cd952e30b",
+   "bytes": 33,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_file_ok/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_help/argv.txt",
+   "sha256": "26d76b8dfce34d057c560ae8b047b930ca2a6c695abdc70aceebdafa597b9776",
+   "bytes": 21,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_help/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_help/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_help/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_help/stderr.txt",
+   "sha256": "5ab38eb2d733c7a5b8e08ae81325adcad8fde7387021588ffaccb99fc3809c56",
+   "bytes": 2334,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_help/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_help/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_help/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_helphelp/argv.txt",
+   "sha256": "6dee9358913040a14e1e9c0eabd303fe8e15e7dd46b4a65753f718f621827dfb",
+   "bytes": 25,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_helphelp/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_helphelp/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_helphelp/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_helphelp/stderr.txt",
+   "sha256": "210c726e194e2e828f1c01f4f48c9728ae7c90536ea69a755005f0951d37332c",
+   "bytes": 3356,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_helphelp/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_helphelp/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_helphelp/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_eq/argv.txt",
+   "sha256": "6609eeb488bed38afc8d387a7dba42eb3b5cf8c463d811639d9036ac676913d9",
+   "bytes": 344,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_eq/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_eq/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_eq/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_eq/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_eq/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_eq/stdout.txt",
+   "sha256": "f4f8f974c0c585536f5478fe71d44c2a52d1f23951ea75f0e9e4722cd952e30b",
+   "bytes": 33,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_eq/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_high/argv.txt",
+   "sha256": "06d33e946568a73dc38e637f505666bdca5e8a3bd3f4a8e80dff3317a22964e1",
+   "bytes": 348,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_high/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_high/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_high/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_high/stderr.txt",
+   "sha256": "444be11ddf044cb888d8a2a73407303a3880ce7ec044c9a82a851737bf710984",
+   "bytes": 94,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_high/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_high/stdout.txt",
+   "sha256": "f4f8f974c0c585536f5478fe71d44c2a52d1f23951ea75f0e9e4722cd952e30b",
+   "bytes": 33,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_high/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_neg/argv.txt",
+   "sha256": "bc151b35f4422f1582a83f76970bd8f5ec7c9553753a991b20d47beb6d5e44ea",
+   "bytes": 347,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_neg/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_neg/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_neg/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_neg/stderr.txt",
+   "sha256": "eaa251f28e27c3c111b4c7711524a3968479dffbd76ab3eea5e0377901020653",
+   "bytes": 248,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_neg/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_index_neg/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_index_neg/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_type/argv.txt",
+   "sha256": "5b3b2b9e0b522f8016ac5d0ebbc4dac393f10440d41fb57dd55af38825056a14",
+   "bytes": 402,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_type/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_type/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_type/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_type/stderr.txt",
+   "sha256": "91c498df59ed0d55ac08a995f29b2c540cbd06acbcbb2275f79cb114a954ea80",
+   "bytes": 104,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_type/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_type/stdout.txt",
+   "sha256": "f4f8f974c0c585536f5478fe71d44c2a52d1f23951ea75f0e9e4722cd952e30b",
+   "bytes": 33,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_type/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_write_ini/argv.txt",
+   "sha256": "bafca2d917e40c63dd15f56d446e154c77bf1a2dad084ee1c21035d86ee82874",
+   "bytes": 103,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_write_ini/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_write_ini/cwd/out.ini",
+   "sha256": "7f7769ff357820176252436a91c61826f4b87c640ee9c62a996e31dd97048257",
+   "bytes": 3651,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_write_ini/cwd/out.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_write_ini/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_write_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_write_ini/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/ma_restricted_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/ma_restricted_write_ini/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank/argv.txt",
+   "sha256": "660fbd4d39b5138ba5bca29fd707605f0eab161a3ba8eb5e54d88a971f8f2bb6",
+   "bytes": 79,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank/stderr.txt",
+   "sha256": "d557a0ad381f7bc020006f367cedfbd2628b5195a962629c28cb14d9271c885d",
+   "bytes": 193,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank_ns/argv.txt",
+   "sha256": "26463a675359c6ce4112d25e8b6321b56fef5e949b15e4111a8389c1478eeb25",
+   "bytes": 82,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank_ns/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank_ns/stderr.txt",
+   "sha256": "d557a0ad381f7bc020006f367cedfbd2628b5195a962629c28cb14d9271c885d",
+   "bytes": 193,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_blank_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_blank_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data/argv.txt",
+   "sha256": "d8c29cde8ff2da4732c48c64378fe5805d9bad2f15ffbefd68106253e267f465",
+   "bytes": 100,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data/stderr.txt",
+   "sha256": "50ed918318e03ee7f36fde00c8367053d572011a6a4f3eb84e5c30ee457af213",
+   "bytes": 246,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot/argv.txt",
+   "sha256": "4e29b26b4d22090c154aca3029db41be4a657d768431d44442959f0d568f4bcd",
+   "bytes": 113,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot/stderr.txt",
+   "sha256": "bba9f86ea51531efa8172d7cbb6d53e60b89bbf22806365b55d3492830237dce",
+   "bytes": 259,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot_ns/argv.txt",
+   "sha256": "5dde797897d9162c82a55d092f141785806eb0c757fd4515d9e5e0517c037dc8",
+   "bytes": 116,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot_ns/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot_ns/stderr.txt",
+   "sha256": "bba9f86ea51531efa8172d7cbb6d53e60b89bbf22806365b55d3492830237dce",
+   "bytes": 259,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_dotdot_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_dotdot_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_ns/argv.txt",
+   "sha256": "0f0006b7a6bcff409c6af31e0ac188607a3382f95f64e7624018af2740de2a29",
+   "bytes": 103,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_ns/exit_code.txt",
+   "sha256": "06e9d52c1720fca412803e3b07c4b228ff113e303f4c7ab94665319d832bbfb7",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_ns/stderr.txt",
+   "sha256": "50ed918318e03ee7f36fde00c8367053d572011a6a4f3eb84e5c30ee457af213",
+   "bytes": 246,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_data_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_data_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir/argv.txt",
+   "sha256": "e59279fe830c8c36687f8735d2d73724cf89c37bed7adef81a4bec81ba5df825",
+   "bytes": 89,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir/home/.config/OpenMS/OpenMS.ini",
+   "sha256": "fd5261ada574bcbbd59e387af6d40d07a698e5a40c66964c19d2675eae504fec",
+   "bytes": 1059,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir/home/.config/OpenMS/OpenMS.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir/stderr.txt",
+   "sha256": "373d30e4d0180766ed33a857425dbce7072e1d22b9c40c247961b0a922a3c13c",
+   "bytes": 137,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir/stdout.txt",
+   "sha256": "1bd851a578aac77ce172edee95046cb65f7da8a9106d1529eee0bbbeefab5e40",
+   "bytes": 284,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing/argv.txt",
+   "sha256": "814faff64766abeb92d1f5942b136a1ba20707a57e02ac8f743ee341803d87e9",
+   "bytes": 91,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing/home/.config/OpenMS/OpenMS.ini",
+   "sha256": "fd5261ada574bcbbd59e387af6d40d07a698e5a40c66964c19d2675eae504fec",
+   "bytes": 1059,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing/home/.config/OpenMS/OpenMS.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing/stderr.txt",
+   "sha256": "fb22ab76f42dd7341f39f9be328941a5629c330965ca902ffca9ae963e1d0127",
+   "bytes": 1231,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing_ns/argv.txt",
+   "sha256": "9be5aace33eb1876ba89be791b1e64b99b3f911f0e024eddfd581516bded3462",
+   "bytes": 94,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing_ns/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing_ns/home/.config/OpenMS/OpenMS.ini",
+   "sha256": "fd5261ada574bcbbd59e387af6d40d07a698e5a40c66964c19d2675eae504fec",
+   "bytes": 1059,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing_ns/home/.config/OpenMS/OpenMS.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing_ns/stderr.txt",
+   "sha256": "fb22ab76f42dd7341f39f9be328941a5629c330965ca902ffca9ae963e1d0127",
+   "bytes": 1231,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_missing_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_missing_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_ns/argv.txt",
+   "sha256": "ac14a14ef37f60ee9c0868bcb98844d5e45433d8045e3bbc2ac4d6e992a4c080",
+   "bytes": 92,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_ns/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_ns/home/.config/OpenMS/OpenMS.ini",
+   "sha256": "fd5261ada574bcbbd59e387af6d40d07a698e5a40c66964c19d2675eae504fec",
+   "bytes": 1059,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_ns/home/.config/OpenMS/OpenMS.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_ns/stderr.txt",
+   "sha256": "373d30e4d0180766ed33a857425dbce7072e1d22b9c40c247961b0a922a3c13c",
+   "bytes": 137,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_ns/stdout.txt",
+   "sha256": "656abe9c70ac6d5d4dadbd7f7e3fd57da358686d2c5b00726a4840fcf4760b54",
+   "bytes": 287,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub/argv.txt",
+   "sha256": "81b7d450f1dcba618116f23c9b69ca1e325551a3ef13c08a5bedac4c029b351a",
+   "bytes": 92,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub/home/.config/OpenMS/OpenMS.ini",
+   "sha256": "fd5261ada574bcbbd59e387af6d40d07a698e5a40c66964c19d2675eae504fec",
+   "bytes": 1059,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub/home/.config/OpenMS/OpenMS.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub/stderr.txt",
+   "sha256": "373d30e4d0180766ed33a857425dbce7072e1d22b9c40c247961b0a922a3c13c",
+   "bytes": 137,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub/stdout.txt",
+   "sha256": "c1faf0bbcadea1ae148958bb6e154f5344f211185a67da1e6dc2ebf439d02680",
+   "bytes": 293,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub_ns/argv.txt",
+   "sha256": "021014e9f86c28ac2cf3c84e862b2983e04d5a036f602b1aa69959ce9a8c180a",
+   "bytes": 95,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub_ns/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub_ns/home/.config/OpenMS/OpenMS.ini",
+   "sha256": "fd5261ada574bcbbd59e387af6d40d07a698e5a40c66964c19d2675eae504fec",
+   "bytes": 1059,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub_ns/home/.config/OpenMS/OpenMS.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub_ns/stderr.txt",
+   "sha256": "373d30e4d0180766ed33a857425dbce7072e1d22b9c40c247961b0a922a3c13c",
+   "bytes": 137,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_iddir_sub_ns/stdout.txt",
+   "sha256": "e4952c44bbb6b95d9ab7002a9792db3e29007fb4f1b742d21217bfe834d22de9",
+   "bytes": 296,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_iddir_sub_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing/argv.txt",
+   "sha256": "9326b23d7e079e9bfcdd79ddcfb2d31ef738974c2b38ccffff6a2bbc71e05d63",
+   "bytes": 98,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing/stderr.txt",
+   "sha256": "3148774bee25b3d63cebb03540af3fca7e560ee1140e4c1fc73e5a0198f491aa",
+   "bytes": 1252,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log/argv.txt",
+   "sha256": "44d5523b2e8f0cd117c45ae80d2397d23353d3a5ca6a64eacc5c5cc4733e4fac",
+   "bytes": 175,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log/run.log.masked",
+   "sha256": "706ad080f45a26ff99279b91ce0a4ff6d2d869c139062cedb834f0de38d68b5d",
+   "bytes": 524,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log/run.log.masked verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log/stderr.txt",
+   "sha256": "3148774bee25b3d63cebb03540af3fca7e560ee1140e4c1fc73e5a0198f491aa",
+   "bytes": 1252,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log_ns/argv.txt",
+   "sha256": "b42132fafbf8672cce422dc4fbd664498290adaafd8d132b24664c6c97f26ab0",
+   "bytes": 181,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log_ns/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log_ns/run.log.masked",
+   "sha256": "706ad080f45a26ff99279b91ce0a4ff6d2d869c139062cedb834f0de38d68b5d",
+   "bytes": 524,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log_ns/run.log.masked verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log_ns/stderr.txt",
+   "sha256": "3148774bee25b3d63cebb03540af3fca7e560ee1140e4c1fc73e5a0198f491aa",
+   "bytes": 1252,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_log_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_log_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_ns/argv.txt",
+   "sha256": "0e7baaeadf80ea8ff32953e3fbf91f61d65dbffeacccfa0aa41f64903184ddb9",
+   "bytes": 101,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_ns/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_ns/stderr.txt",
+   "sha256": "3148774bee25b3d63cebb03540af3fca7e560ee1140e4c1fc73e5a0198f491aa",
+   "bytes": 1252,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_db_missing_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_db_missing_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms1/argv.txt",
+   "sha256": "26d37d555f9eb3c3e7fb47646c85d6c90e42d57d78a3334b12630cb8f68a7b22",
+   "bytes": 140,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms1/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms1/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms1/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms1/stderr.txt",
+   "sha256": "41841565c0f7cd46183507e7a610cb9e679fb95912cba4378f22001c8482453a",
+   "bytes": 188,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms1/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms1/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms1/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms2/argv.txt",
+   "sha256": "3b4de5090811bd24cb354aa906364c641c9bc834c8615317017312c2d29d0550",
+   "bytes": 128,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms2/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms2/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms2/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms2/stderr.txt",
+   "sha256": "b85f547dfaf09c3250aaee9507fc0745246581efeadb3b9fa6e0223b0fc9717e",
+   "bytes": 194,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms2/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_dta_ms2/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_dta_ms2/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty/argv.txt",
+   "sha256": "7be987b23e67bc2edb6a393c7dca775986b4b46bc47f497470c3bb336c95411e",
+   "bytes": 119,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty/stderr.txt",
+   "sha256": "6e7c86cccdf28518ed1bea23c81de0c14a316e0b07b6f3edf4c75e4f7fb35b10",
+   "bytes": 188,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force/argv.txt",
+   "sha256": "cb150cf9e927309b588981e5dcbf1f53dd5583dae8261bbe143c263f68532f18",
+   "bytes": 126,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force/stderr.txt",
+   "sha256": "373d30e4d0180766ed33a857425dbce7072e1d22b9c40c247961b0a922a3c13c",
+   "bytes": 137,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force/stdout.txt",
+   "sha256": "b68243c02706bbdcb597df4a9e8b34704253d430102ad7bda61477e996629071",
+   "bytes": 133,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force_ns/argv.txt",
+   "sha256": "9f773d394431ad796b2653d53ff2d5852ef7012e441fa2d25fb030f3f3b7c887",
+   "bytes": 129,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force_ns/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force_ns/stderr.txt",
+   "sha256": "373d30e4d0180766ed33a857425dbce7072e1d22b9c40c247961b0a922a3c13c",
+   "bytes": 137,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_force_ns/stdout.txt",
+   "sha256": "5f275c1b0f467261e93db6687800e762fca8fc36528394277c94672b7fd9c370",
+   "bytes": 136,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_force_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_ns/argv.txt",
+   "sha256": "6c0c1e8145b6dabd830e15d3e397eeb98127a5ffb84e360f78f510c36183e5a1",
+   "bytes": 122,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_ns/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_ns/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_ns/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_ns/stderr.txt",
+   "sha256": "6e7c86cccdf28518ed1bea23c81de0c14a316e0b07b6f3edf4c75e4f7fb35b10",
+   "bytes": 188,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_ns/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_empty_ns/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_empty_ns/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_help/argv.txt",
+   "sha256": "c36ddc4c1b0bc2f22a193ba7f0e4809e41d0292a63411c5fcb13968d2b0706f1",
+   "bytes": 10,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_help/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_help/cwd/pi_defaults.ini",
+   "sha256": "0f400fe23712eccd4dcc45602a488d86a52471963a13a2efca3584e6e8f3a5f3",
+   "bytes": 4533,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_help/cwd/pi_defaults.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_help/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_help/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_help/stderr.txt",
+   "sha256": "959c63fca4e4ffcea926a8b332ed4e13501973aa2c5e97c1e62e844c7a0980a3",
+   "bytes": 1778,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_help/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_help/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_help/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mgf/argv.txt",
+   "sha256": "d62bd5a26fd151829cc7cc603832fd3d212ef994636729d79ace26e5bf0a4cb5",
+   "bytes": 130,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mgf/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mgf/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mgf/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mgf/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mgf/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mgf/stdout.txt",
+   "sha256": "d159060ad2a0702e144f2d74d5f66a027a549ef0411d0f5efbe78346d729a7de",
+   "bytes": 144,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mgf/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms1/argv.txt",
+   "sha256": "7282ddec246987ad38beeaa1406917860567d9485a769152e5c7bf941f6ed05c",
+   "bytes": 144,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms1/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms1/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms1/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms1/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms1/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms1/stdout.txt",
+   "sha256": "9cfe1b95ea7b4fdbc675c0cad1c9ad00ad55aeacf7ee5d34696e91ba2ded53cf",
+   "bytes": 146,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms1/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms2/argv.txt",
+   "sha256": "72f3821ce11927aeffdae253642d42c72c701114e3f4ed5926e4d1cd887a9330",
+   "bytes": 132,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms2/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms2/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms2/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms2/stderr.txt",
+   "sha256": "b85f547dfaf09c3250aaee9507fc0745246581efeadb3b9fa6e0223b0fc9717e",
+   "bytes": 194,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms2/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mower_ms2/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mower_ms2/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml/argv.txt",
+   "sha256": "37b942dd09c18938cf475eb57b61e6a686ae1a3ca7f579c6eb1214a4a4b63cce",
+   "bytes": 129,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml/stderr.txt",
+   "sha256": "4e8cc224f06511d5a6e29692799d49a37d608cfff6efc7f1830b926f6ad02807",
+   "bytes": 160,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml/stdout.txt",
+   "sha256": "44158d7eba7075bc0abff1fbb859618d733ed336d0ac4155600a4eb5356546f9",
+   "bytes": 143,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml_twice/argv.txt",
+   "sha256": "69f20e6c8ebcd8c7076bb1f05a989a3cd56effd4c8ec34eea214f5be0f87d039",
+   "bytes": 138,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml_twice/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml_twice/exit_code.txt",
+   "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml_twice/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml_twice/stderr.txt",
+   "sha256": "64e5b371054e729748238164d966c6b5da5685e0b10a82d719247cd071dc25f8",
+   "bytes": 1386,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml_twice/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_mzxml_twice/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_mzxml_twice/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile/argv.txt",
+   "sha256": "f36c0a4bde974b01c5e9afef7133a2ce87d24d0edc0db07c4422000d360ee8dd",
+   "bytes": 131,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile/exit_code.txt",
+   "sha256": "aa67a169b0bba217aa0aa88a65346920c84c42447c36ba5f7ea65f422c1fe5d8",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile/stderr.txt",
+   "sha256": "b85f547dfaf09c3250aaee9507fc0745246581efeadb3b9fa6e0223b0fc9717e",
+   "bytes": 194,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_force/argv.txt",
+   "sha256": "007e47b41926852eb5d9f6e616bcccacb07f80f84184ef8f531bccd3aa64f81a",
+   "bytes": 138,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_force/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_force/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_force/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_force/stderr.txt",
+   "sha256": "c16d96192f3409313f05a075f1b6ba71a900cc2b6bc06201b821cf96f8241d90",
+   "bytes": 282,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_force/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_force/stdout.txt",
+   "sha256": "45993674b39e7f3001cedf37dceaa7cd9adfe7bb4dd5eed15079998159746ae6",
+   "bytes": 145,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_force/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms0/argv.txt",
+   "sha256": "04c049a117e85fd7596e9c1d6ec6b015cf356e4b1f940763f57a85ce0a2aba83",
+   "bytes": 143,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms0/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms0/exit_code.txt",
+   "sha256": "7de1555df0c2700329e815b93b32c571c3ea54dc967b89e81ab73b9972b72d1d",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms0/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms0/stderr.txt",
+   "sha256": "da69c294cfe98e49f905aad27908ab4b123acb77397bba2748216541ed6a776b",
+   "bytes": 77,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms0/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms0/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms0/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms1/argv.txt",
+   "sha256": "be37e44c8e7d17438d4fec97fc6d4499c2abe5d85b736f1ba5d14e6411d532e8",
+   "bytes": 143,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms1/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms1/exit_code.txt",
+   "sha256": "7de1555df0c2700329e815b93b32c571c3ea54dc967b89e81ab73b9972b72d1d",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms1/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms1/stderr.txt",
+   "sha256": "1057345d8a837faa90ef3fe07e4a33fd95c7b561ff8967a2fe36730ee140b1a4",
+   "bytes": 77,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms1/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_ms1/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_ms1/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_msneg/argv.txt",
+   "sha256": "4dafbc86d392bb14e219a2b4b6cbf3a2165630d6a4f688fefaef7706b4940179",
+   "bytes": 144,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_msneg/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_msneg/exit_code.txt",
+   "sha256": "7de1555df0c2700329e815b93b32c571c3ea54dc967b89e81ab73b9972b72d1d",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_msneg/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_msneg/stderr.txt",
+   "sha256": "e3a4368fa2e692e5e0a406ea85460f556829e3572e735a52ec080117af1dafe5",
+   "bytes": 78,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_msneg/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_profile_msneg/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_profile_msneg/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_write_ini/argv.txt",
+   "sha256": "acd8c59b71b9c91961bb9661df329b66adb99590edc7c4063f8c0369e448b906",
+   "bytes": 81,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_write_ini/argv.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_write_ini/cwd/out.ini",
+   "sha256": "72bfcb958d12077b4ac5c36481dd160771e3a7d14d512288c68bd4c3150374f4",
+   "bytes": 6548,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_write_ini/cwd/out.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_write_ini/cwd/pi_defaults.ini",
+   "sha256": "0f400fe23712eccd4dcc45602a488d86a52471963a13a2efca3584e6e8f3a5f3",
+   "bytes": 4533,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_write_ini/cwd/pi_defaults.ini verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_write_ini/exit_code.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_write_ini/exit_code.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_write_ini/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_write_ini/stderr.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/cases/se_write_ini/stdout.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/cases/se_write_ini/stdout.txt verbatim (the per-case home/ and cwd/ scratch directories are not retained)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/iniupdater.tsv",
+   "sha256": "a428e2412c9cb13e0ad0b6bf658e7329b57027b5a74cc1d98046c6e6e4899af6",
+   "bytes": 1512,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B7-cli/results/iniupdater.run1.tsv verbatim (run2 identical)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/ConsensusXMLFile_1.consensusXML",
+   "sha256": "771a84b7b2c9ffdc484e84660c8cfedb902418257c68440d1bd35640eb60cd7d",
+   "bytes": 7904,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/ConsensusXMLFile_1.consensusXML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/MascotGenericFile_GNPS.mgf",
+   "sha256": "f4501242e6ef27dca90e11fde93bc76b7a2dfdff6530ec76dcb83fbb5f0ff2b3",
+   "bytes": 1153,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/MascotGenericFile_GNPS.mgf (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/MzXMLFile_2_minimal.mzXML",
+   "sha256": "53caef66a653301f65e8667f0a6a0de5b2d9de14477129cb07687efc5977500e",
+   "bytes": 596,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/MzXMLFile_2_minimal.mzXML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/Single_MS2_profileMode.mzML",
+   "sha256": "b7a61ed2da3a74f4fd9e33544dc74bf1b901acc7bbe8c71f6e2f1efaebbd852d",
+   "bytes": 15037,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/Single_MS2_profileMode.mzML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/dbs/tiny.fasta",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/dbs/tiny.fasta (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/dta_extractor_input.mzML",
+   "sha256": "da6175cbdb6e82e46ab55094e467dee3fc71468870b06f0f5a920ca25e1886e0",
+   "bytes": 13939,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/dta_extractor_input.mzML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/empty.fasta",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/empty.fasta (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/empty_spec.mzML",
+   "sha256": "dc441b930d3b7b44779de8fcb63a21334c2231cfbacdcfb7626223cd02331c1d",
+   "bytes": 7559,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/empty_spec.mzML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/empty_spec_ns.mzML",
+   "sha256": "2d85bc98b3803561d9f9b54c87d7a1d0212bc74b0a5c87e96b27a08610877fc6",
+   "bytes": 7595,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/empty_spec_ns.mzML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/featurexml_source_1.featureXML",
+   "sha256": "f3e6a6c6fb14a22a457b94fd8465c1e3847f094555bd7798f11b446e5823993a",
+   "bytes": 6652,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/featurexml_source_1.featureXML (the oracle's input, upstream test data or derived from it)"
+  },
+  {
+   "path": "tests/data/topp_cli_base_classes/inputs/window_mower_tool_input.mzML",
+   "sha256": "df641949fbb0a1370333a4d49a11317da9e4f9fa2e295acfda6b2dd4614d8afe",
+   "bytes": 15021,
+   "evidence_tier": 1,
+   "kind": "input: ../oracle/B7-cli/data/window_mower_tool_input.mzML (the oracle's input, upstream test data or derived from it)"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B7-cli/driver.cpp",
+   "sha256": "e40259ebd6735859a93da3a30c653deb2332f9b4cb320e6165a6adb8c51eefba",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/cases.tsv",
+   "sha256": "2e104b541a8de2e0bc0b92ebfee5fb2ff1f20ad5e2860e67e421e5c1f4998520",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/run.sh",
+   "sha256": "a987e4abc4952af874ff0dc2790e1180b5ce1fd01f0884743c7e3548e886e794",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/compare_runs.py",
+   "sha256": "5a5e3c667f54ef22dfb79eba03ba141072b136a887c01acf8caaf018e5080caa",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/compare_ns.py",
+   "sha256": "3927cdaf99678fe2d1a126c0ce726bdd529070151e3ceb21e04a6da2fe223a6f",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/host.txt",
+   "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/flags.txt",
+   "sha256": "0daf0f2e6321cec902f1cbefc942f45463aa45bad1ac6d308207f5e4ad3ee39e",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/differ.txt",
+   "sha256": "4f0b81a63c08ee2b46b85a9deae2e625b25d73df209bb8bfba8893b554d3c916",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/hashes.txt",
+   "sha256": "57a6339783f2839a4028ceac68cd78d2b9349bff8872966990a1ea3e5ee979fc",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/summary.tsv",
+   "sha256": "07640e71405f63653f4bf317395fe0caf561f6398c5210b675282ce72c158add",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/B7-cli/results/cases.sha256",
+   "sha256": "596a7b7e0f2d39e03766a20925790d0e11408846781e4cdca71b4c68b79f6a96",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "results/host.txt of ../oracle/B7-cli names ibminode06 (Linux x86_64); the driver links the Release install above."
+}

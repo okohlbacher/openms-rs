@@ -1,0 +1,6 @@
+Running: sh -c echo a; echo a; echo b; echo a
+a
+a
+b
+a
+Executed 'sh' successfully!

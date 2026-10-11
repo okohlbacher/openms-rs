@@ -1,0 +1,101 @@
+{
+ "group": "mzml_im_peak_type",
+ "package": "B8a (Phase 3 wave 4): MzMLFile.h ion-mobility peak type, selected-ion mobility, other dissociation methods",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MzMLFile.h",
+   "sha256": "afea184c76be31c629b0c5f845211e99c086d10743db49ded63604ede1b56d20"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/MzMLHandler.cpp",
+   "sha256": "8546ea20bbfd478e5464001e0a3e0cb931142eed250c244f4f19113159d9198a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/SpectrumSettings.h",
+   "sha256": "adf1f2f327a7bc9149a61a90adf5db16970446fcf69f3397421a4bb0c38eddc6"
+  },
+  {
+   "path": "src/openms/source/KERNEL/SpectrumHelper.cpp",
+   "sha256": "0cfdd04ed006acfddf0d7f52efc2841a18337094dedbe5f0d5a74b19203fd0b7"
+  }
+ ],
+ "native_implementation": [
+  "src/format/mzml.rs",
+  "src/format/mzml_precursor.rs",
+  "src/kernel.rs"
+ ],
+ "native_tests": [
+  "tests/mzml_im_peak_type.rs"
+ ],
+ "support_document": "docs/MZML_MOBILITY_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/mzml_im_peak_type/oracle.tsv",
+   "sha256": "d2ebbac54db1001f7d2e68df2035f0e33f2a8a7dd78f6cf35fb386fcdedf77df",
+   "bytes": 19740,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/B8a-mzml-im/results/records.tsv verbatim; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), each driver run twice in fresh processes with byte-identical output"
+  },
+  {
+   "path": "tests/data/mzml_im_peak_type/im_peak_type.mzML",
+   "sha256": "87ad56adcb12a94229a3dec9800db58b5676649feb5dc4fa11063b227998d022",
+   "bytes": 9552,
+   "evidence_tier": 1,
+   "kind": "synthetic: ../oracle/B8a-mzml-im/make_inputs.py"
+  },
+  {
+   "path": "tests/data/mzml_im_peak_type/selected_ion_drift.mzML",
+   "sha256": "091cad82910a027f0c16882ce3c0a0a3262945fb6d0f1f11198d16f23391e7b8",
+   "bytes": 14858,
+   "evidence_tier": 1,
+   "kind": "synthetic: ../oracle/B8a-mzml-im/make_inputs.py"
+  },
+  {
+   "path": "tests/data/mzml_im_peak_type/activation_children.mzML",
+   "sha256": "a80bb55000e66132b4dad62b2900845fba0178200466c17251af289a6fb5d5d2",
+   "bytes": 11470,
+   "evidence_tier": 1,
+   "kind": "synthetic: ../oracle/B8a-mzml-im/make_inputs.py"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B8a-mzml-im/driver.cpp",
+   "sha256": "f4d50d06bad59506e0930f36c74a13594ff55afea5e8f7c37ec83610fa837179",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-mzml-im/remote_run.sh",
+   "sha256": "6be9800e3672d14958171b05a590f17804c45723a441bb86ac165a64a16a2321",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-mzml-im/make_inputs.py",
+   "sha256": "896b17a0680d6303774309c655cdbe1828fe89384a18b199f3495899f03ab823",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-mzml-im/results/records.tsv",
+   "sha256": "d2ebbac54db1001f7d2e68df2035f0e33f2a8a7dd78f6cf35fb386fcdedf77df",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/B8a-mzml-im/results/hashes.txt",
+   "sha256": "c9ff9ae7f7464c926cafaf3ed7826987055a700798bce9d2daacb6278453eb2a",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "C++ drivers, their run scripts and their outputs live outside this repository under ../oracle/, so that no C++ is committed here. Recorded, not re-verified by the in-repo gate."
+}

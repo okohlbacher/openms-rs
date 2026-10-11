@@ -1,0 +1,199 @@
+count	33
+iter	0	Arg-C/P	(?<=[RX])		[R]|[X]	12	6	-1		H1	H1O1	Arg-C/P cleaves after R residues.
+iter	1	Asp-N	(?=[DBX])	asp_n	[X]|[BD]	6	-1	12	MS:1001304	H1	H1O1	Asp-N cleaves before D(or B).
+iter	2	Asp-N/B	(?=[DX])		[X]|[D]	16	7	-1		H1	H1O1	Asp-N/B cleaves before D(while B is ignored).
+iter	3	Asp-N_ambic	(?=[DBEZX])		[X]|[DE]	17	-1	19	MS:1001305	H1	H1O1	Asp-N Ammonium bicarbonate cleaves before D(or B) or E(or Z).
+iter	4	Chymotrypsin	(?<=[FYWLJX])(?!P)		[FYWL]|{P}	10	-1	3	MS:1001306	H1	H1O1	Chymotrypsin cleaves following F, Y, W or L(or J) residue unless the next residue is P.
+iter	5	Clostripain/P	(?<=[RX])			31	-1	-1				Clostripain/P cuts after R.
+iter	6	elastase-trypsin-chymotrypsin	(?<=[ALIVKRWFYX])(?!P)			32	-1	-1				elastase-trypsin-chymotrypsin cuts after A,L,I(or J),V,K,R,W,F,Y unless followed by P.
+iter	7	no cleavage	()	no_cut	[Z]|[Z]	11	9	11	MS:1001955	H1	H1O1	no cleavage.
+iter	8	unspecific cleavage	(?<=[A-Z])	no_enzyme|nonspecific	[X]|[X]	0	0	17	MS:1001956	H1	H1O1	unspecific cleavage cuts at every site.
+iter	9	Trypsin	(?<=[KRX])(?!P)		[KR]|{P}	1	-1	0	MS:1001251	H1	H1O1	Trypsin cleaves following a K or R residue unless the next residue is P.
+iter	10	Arg-C	(?<=[RX])(?!P)	Clostripain|arg_c|argc	[R]|{P}	5	-1	1	MS:1001303	H1	H1O1	Arg-C cleaves following R residue unless the next residue is P.
+iter	11	Chymotrypsin/P	(?<=[FYWLJX])		[FYWL]|[X]	15	2	-1		H1	H1O1	Chymotrypsin cleaves following F, Y, W or L(or J) residue.
+iter	12	CNBr	(?<=[MX])		[M]|[X]	7	-1	2	MS:1001307	H1	H1O1	CNBr cleaves following M.
+iter	13	Formic_acid	(?<=[DBX])(?=[DBX])		[D]|[D]	18	-1	4	MS:1001308	H1	H1O1	Formic_acid cuts after D(or B) and next residue is D (or B).
+iter	14	Lys-C	(?<=[KX])(?!P)	lys_c	[K]|{P}	3	-1	5	MS:1001309	H1	H1O1	Lys-C cuts after K if not followed by P.
+iter	15	Lys-N	(?=[KX])	lys_n	[X]|[K]	4	4	-1		H1	H1O1	Lys-N cuts before K.
+iter	16	Lys-C/P	(?<=[KX])		[K]|[X]	13	3	6	MS:1001310	H1	H1O1	Lys-C/P cuts after K.
+iter	17	PepsinA	(?<=[FLJX])		[FL]|[X]	9	-1	7	MS:1001311	H1	H1O1	PepsinA cuts after F or L(or J).
+iter	18	TrypChymo	(?<=[FYWLJKRX])(?!P)		[FYWLKR]|{P}	19	-1	9	MS:1001312	H1	H1O1	TrypChymo cuts after F, Y, W, L(or J), K or R if not followed by P.
+iter	19	Trypsin/P	(?<=[KRX])		[KR]|[X]	2	1	10	MS:1001313	H1	H1O1	Trypsin/P cuts after K or R.
+iter	20	V8-DE	(?<=[DBEZX])(?!P)		[BDEZ]|{P}	20	-1	-1	MS:1001314	H1	H1O1	V8-DE cuts after D(or B) or E(or Z) if not followed by P.
+iter	21	V8-E	(?<=[EZX])(?!P)		[EZ]|{P}	21	-1	-1	MS:1001315	H1	H1O1	V8-E cuts after E(or Z) if not followed by P.
+iter	22	leukocyte elastase	(?<=[ALIJVX])(?!P)		[ALIV]|{P}	14	-1	-1	MS:1001915	H1	H1O1	leukocyte elastase cuts after A or L or I(or J) or V if not followed by P.
+iter	23	proline endopeptidase	(?<=[HKRX][PX])(?!P)			22	-1	-1	MS:1001916	H1	H1O1	proline endopeptidase cuts after HP, KP or RP if not followed by P.
+iter	24	glutamyl endopeptidase	(?<=[DBEZX])	Glu-C|glu_c|staphylococcal protease	[DE]|[X]	8	5	20	MS:1001917	H1	H1O1	glutamyl endopeptidase cuts after D(or B) or E(or Z).
+iter	25	Alpha-lytic protease	(?<=[TASVX])		[ASTV]|[X]	23	8	-1		H1	H1O1	Alpha-lytic protease (aLP) cuts after T, A, S, or V.
+iter	26	2-iodobenzoate	(?<=[WX])		[W]|[X]	24	-1	-1	MS:1001918	H1	H1O1	2-iodobenzoate cuts after W.
+iter	27	iodosobenzoate	(?<=W)			25	-1	-1				iodosobenzoate cuts after W.
+iter	28	staphylococcal protease/D	(?<=[EZX])	Glu-C/D|staphylococcal protease/D		26	-1	-1				staphylococcal protease/D cuts after E(or Z).
+iter	29	proline-endopeptidase/HKR	(?<=[PX])			27	-1	-1				proline-endopeptidase/HKR cuts after P.
+iter	30	Glu-C+P	(?<=[DBEZX])(?!P)	Glu-C+P|staphylococcal protease+P		28	-1	-1				Glu-C+P cuts after D(or B) or E(or Z) unless followed by P.
+iter	31	PepsinA + P	(?<=[FLJX])(?!P)			29	-1	-1				PepsinA + P cuts after F or L(or J) unless followed by P.
+iter	32	cyanogen-bromide	(?<=[MX])			30	-1	-1				cyanogen-bromide cuts after M.
+all_names	Arg-C/P|Asp-N|Asp-N/B|Asp-N_ambic|Chymotrypsin|Clostripain/P|elastase-trypsin-chymotrypsin|no cleavage|unspecific cleavage|Trypsin|Arg-C|Chymotrypsin/P|CNBr|Formic_acid|Lys-C|Lys-N|Lys-C/P|PepsinA|TrypChymo|Trypsin/P|V8-DE|V8-E|leukocyte elastase|proline endopeptidase|glutamyl endopeptidase|Alpha-lytic protease|2-iodobenzoate|iodosobenzoate|staphylococcal protease/D|proline-endopeptidase/HKR|Glu-C+P|PepsinA + P|cyanogen-bromide
+xtandem_names	Arg-C/P|Asp-N|Asp-N/B|Asp-N_ambic|Chymotrypsin|no cleavage|unspecific cleavage|Trypsin|Arg-C|Chymotrypsin/P|CNBr|Formic_acid|Lys-C|Lys-N|Lys-C/P|PepsinA|TrypChymo|Trypsin/P|V8-DE|V8-E|leukocyte elastase|glutamyl endopeptidase|Alpha-lytic protease|2-iodobenzoate
+comet_names	Arg-C/P|Asp-N|Asp-N/B|Asp-N_ambic|Chymotrypsin|Clostripain/P|elastase-trypsin-chymotrypsin|no cleavage|unspecific cleavage|Trypsin|Arg-C|Chymotrypsin/P|CNBr|Formic_acid|Lys-C|Lys-N|Lys-C/P|PepsinA|TrypChymo|Trypsin/P|V8-DE|V8-E|leukocyte elastase|proline endopeptidase|glutamyl endopeptidase|Alpha-lytic protease|2-iodobenzoate|iodosobenzoate|staphylococcal protease/D|proline-endopeptidase/HKR|Glu-C+P|PepsinA + P|cyanogen-bromide
+omssa_names	Asp-N|Asp-N_ambic|Chymotrypsin|no cleavage|unspecific cleavage|Trypsin|Arg-C|CNBr|Formic_acid|Lys-C|Lys-C/P|PepsinA|TrypChymo|Trypsin/P|glutamyl endopeptidase
+msgf_names	Arg-C/P|Asp-N/B|no cleavage|unspecific cleavage|Chymotrypsin/P|Lys-N|Lys-C/P|Trypsin/P|glutamyl endopeptidase|Alpha-lytic protease
+key		0	!ElementNotFound
+key	2-IODOBENZOATE	0	!ElementNotFound
+key	2-iodobenzoate	1	2-iodobenzoate
+key	ALPHA-LYTIC PROTEASE	0	!ElementNotFound
+key	ARG-C	0	!ElementNotFound
+key	ARG-C/P	0	!ElementNotFound
+key	ARGC	0	!ElementNotFound
+key	ARG_C	0	!ElementNotFound
+key	ASP-N	0	!ElementNotFound
+key	ASP-N/B	0	!ElementNotFound
+key	ASP-N_AMBIC	0	!ElementNotFound
+key	ASP_N	0	!ElementNotFound
+key	Alpha-lytic protease	1	Alpha-lytic protease
+key	Arg-C	1	Arg-C
+key	Arg-C/P	1	Arg-C/P
+key	Asp-N	1	Asp-N
+key	Asp-N/B	1	Asp-N/B
+key	Asp-N_ambic	1	Asp-N_ambic
+key	CHYMOTRYPSIN	0	!ElementNotFound
+key	CHYMOTRYPSIN/P	0	!ElementNotFound
+key	CLOSTRIPAIN	0	!ElementNotFound
+key	CLOSTRIPAIN/P	0	!ElementNotFound
+key	CNBR	0	!ElementNotFound
+key	CNBr	1	CNBr
+key	CYANOGEN-BROMIDE	0	!ElementNotFound
+key	Chymotrypsin	1	Chymotrypsin
+key	Chymotrypsin/P	1	Chymotrypsin/P
+key	Clostripain	1	Arg-C
+key	Clostripain/P	1	Clostripain/P
+key	DOESNOTEXIST	0	!ElementNotFound
+key	ELASTASE-TRYPSIN-CHYMOTRYPSIN	0	!ElementNotFound
+key	FORMIC_ACID	0	!ElementNotFound
+key	Formic_acid	1	Formic_acid
+key	GLU-C	0	!ElementNotFound
+key	GLU-C+P	0	!ElementNotFound
+key	GLU-C/D	0	!ElementNotFound
+key	GLUTAMYL ENDOPEPTIDASE	0	!ElementNotFound
+key	GLU_C	0	!ElementNotFound
+key	Glu-C	1	glutamyl endopeptidase
+key	Glu-C+P	1	Glu-C+P
+key	Glu-C/D	1	staphylococcal protease/D
+key	IODOSOBENZOATE	0	!ElementNotFound
+key	LEUKOCYTE ELASTASE	0	!ElementNotFound
+key	LYS-C	0	!ElementNotFound
+key	LYS-C/P	0	!ElementNotFound
+key	LYS-N	0	!ElementNotFound
+key	LYS_C	0	!ElementNotFound
+key	LYS_N	0	!ElementNotFound
+key	Lys-C	1	Lys-C
+key	Lys-C/P	1	Lys-C/P
+key	Lys-N	1	Lys-N
+key	NO CLEAVAGE	0	!ElementNotFound
+key	NONSPECIFIC	0	!ElementNotFound
+key	NO_CUT	0	!ElementNotFound
+key	NO_ENZYME	0	!ElementNotFound
+key	PEPSINA	0	!ElementNotFound
+key	PEPSINA + P	0	!ElementNotFound
+key	PROLINE ENDOPEPTIDASE	0	!ElementNotFound
+key	PROLINE-ENDOPEPTIDASE/HKR	0	!ElementNotFound
+key	PepsinA	1	PepsinA
+key	PepsinA + P	1	PepsinA + P
+key	STAPHYLOCOCCAL PROTEASE	0	!ElementNotFound
+key	STAPHYLOCOCCAL PROTEASE+P	0	!ElementNotFound
+key	STAPHYLOCOCCAL PROTEASE/D	0	!ElementNotFound
+key	TRYPCHYMO	0	!ElementNotFound
+key	TRYPSIN	0	!ElementNotFound
+key	TRYPSIN/P	0	!ElementNotFound
+key	Try	0	!ElementNotFound
+key	TrypChymo	1	TrypChymo
+key	Trypsin	1	Trypsin
+key	Trypsin 	0	!ElementNotFound
+key	Trypsin/P	1	Trypsin/P
+key	Tryptryp	0	!ElementNotFound
+key	UNSPECIFIC CLEAVAGE	0	!ElementNotFound
+key	V8-DE	1	V8-DE
+key	V8-E	1	V8-E
+key	alpha-lytic protease	1	Alpha-lytic protease
+key	arg-c	1	Arg-C
+key	arg-c/p	1	Arg-C/P
+key	arg_c	1	Arg-C
+key	argc	1	Arg-C
+key	asp-n	1	Asp-N
+key	asp-n/b	1	Asp-N/B
+key	asp-n_ambic	1	Asp-N_ambic
+key	asp_n	1	Asp-N
+key	chymotrypsin	1	Chymotrypsin
+key	chymotrypsin/p	1	Chymotrypsin/P
+key	clostripain	0	!ElementNotFound
+key	clostripain/p	1	Clostripain/P
+key	cnbr	1	CNBr
+key	cyanogen-bromide	1	cyanogen-bromide
+key	elastase-trypsin-chymotrypsin	1	elastase-trypsin-chymotrypsin
+key	formic_acid	1	Formic_acid
+key	glu-c	0	!ElementNotFound
+key	glu-c+p	1	Glu-C+P
+key	glu-c/d	0	!ElementNotFound
+key	glu_c	1	glutamyl endopeptidase
+key	glutamyl endopeptidase	1	glutamyl endopeptidase
+key	iodosobenzoate	1	iodosobenzoate
+key	leukocyte elastase	1	leukocyte elastase
+key	lys-c	1	Lys-C
+key	lys-c/p	1	Lys-C/P
+key	lys-n	1	Lys-N
+key	lys_c	1	Lys-C
+key	lys_n	1	Lys-N
+key	no cleavage	1	no cleavage
+key	no_cut	1	no cleavage
+key	no_enzyme	1	unspecific cleavage
+key	nonspecific	1	unspecific cleavage
+key	pepsina	1	PepsinA
+key	pepsina + p	1	PepsinA + P
+key	proline endopeptidase	1	proline endopeptidase
+key	proline-endopeptidase/HKR	1	proline-endopeptidase/HKR
+key	proline-endopeptidase/hkr	1	proline-endopeptidase/HKR
+key	staphylococcal protease	1	glutamyl endopeptidase
+key	staphylococcal protease+P	1	Glu-C+P
+key	staphylococcal protease+p	0	!ElementNotFound
+key	staphylococcal protease/D	1	staphylococcal protease/D
+key	staphylococcal protease/d	1	staphylococcal protease/D
+key	trypchymo	1	TrypChymo
+key	trypsin	1	Trypsin
+key	trypsin/p	1	Trypsin/P
+key	unspecific cleavage	1	unspecific cleavage
+key	v8-de	1	V8-DE
+key	v8-e	1	V8-E
+regex		0	!IllegalArgument:Enzyme with regex  was not registered in Enzyme DB, register first!
+regex	()	1	no cleavage
+regex	(?<=W)	1	iodosobenzoate
+regex	(?<=[A-Z])	1	unspecific cleavage
+regex	(?<=[ALIJVX])(?!P)	1	leukocyte elastase
+regex	(?<=[ALIVKRWFYX])(?!P)	1	elastase-trypsin-chymotrypsin
+regex	(?<=[DBEZX])	1	glutamyl endopeptidase
+regex	(?<=[DBEZX])(?!P)	1	Glu-C+P
+regex	(?<=[DBX])(?=[DBX])	1	Formic_acid
+regex	(?<=[EZX])	1	staphylococcal protease/D
+regex	(?<=[EZX])(?!P)	1	V8-E
+regex	(?<=[FLJX])	1	PepsinA
+regex	(?<=[FLJX])(?!P)	1	PepsinA + P
+regex	(?<=[FYWLJKRX])(?!P)	1	TrypChymo
+regex	(?<=[FYWLJX])	1	Chymotrypsin/P
+regex	(?<=[FYWLJX])(?!P)	1	Chymotrypsin
+regex	(?<=[HKRX][PX])(?!P)	1	proline endopeptidase
+regex	(?<=[KRX])	1	Trypsin/P
+regex	(?<=[KRX])(?!P)	1	Trypsin
+regex	(?<=[KX])	1	Lys-C/P
+regex	(?<=[KX])(?!P)	1	Lys-C
+regex	(?<=[MX])	1	cyanogen-bromide
+regex	(?<=[PX])	1	proline-endopeptidase/HKR
+regex	(?<=[P])(?!P)	0	!IllegalArgument:Enzyme with regex (?<=[P])(?!P) was not registered in Enzyme DB, register first!
+regex	(?<=[RX])	1	Clostripain/P
+regex	(?<=[RX])(?!P)	1	Arg-C
+regex	(?<=[TASVX])	1	Alpha-lytic protease
+regex	(?<=[WX])	1	2-iodobenzoate
+regex	(?=[DBEZX])	1	Asp-N_ambic
+regex	(?=[DBX])	1	Asp-N
+regex	(?=[DX])	1	Asp-N/B
+regex	(?=[KX])	1	Lys-N
+has_ptr	registered	1
+has_ptr	copy	0
+has_ptr	other	0

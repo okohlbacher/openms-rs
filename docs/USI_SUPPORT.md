@@ -13,7 +13,7 @@ Tests: [`tests/usi.rs`](../tests/usi.rs), every `START_SECTION` of `USI_test.cpp
 | `enum class IndexType { SCAN, INDEX, NATIVEID }` | `IndexType::{Scan, Index, NativeId}` | Declaration order kept; `Default` is `Scan`. |
 | `USI()` | `Usi::default()` | Every string empty, `Scan`. |
 | `USI(collection, ms_run, index_type, index, interpretation = "")` | `Usi::new(...)` | Rust has no default arguments; pass `""`. |
-| `explicit USI(const std::string&)` | `Usi::parse(&str) -> Result<Usi>`, `FromStr` | `Exception::ParseError` becomes `Error::InvalidValue`. |
+| `explicit USI(const std::string&)` | `Usi::parse(&str) -> Result<Usi>`, `FromStr` | `Exception::ParseError` is `Error::Parse` with the source text `Invalid USI format in: <text>` (executed, below). |
 | copy/move constructors and assignments, `~USI()` | `Clone`, moves, `Drop` | |
 | `operator==`, `operator!=` | derived `PartialEq`/`Eq` | All five fields. |
 | `operator<` | derived `PartialOrd`/`Ord` | Field order collection, MS run, index type, index, interpretation — the source's comparison chain; strings compare byte-wise in both. |
@@ -28,9 +28,10 @@ Tests: [`tests/usi.rs`](../tests/usi.rs), every `START_SECTION` of `USI_test.cpp
 | `static createFromNativeID(dataset_id, filename, native_id)` | `Usi::from_native_id(&str, &str, &str) -> Result<Usi>` | `Result` only for the regular-expression budget. |
 | `static std::optional<int> extractScanNumberFromNativeID(const std::string&)` | `Usi::extract_scan_number_from_native_id(&str) -> Result<Option<i32>>` | As above. |
 | `static indexTypeToString(IndexType)` | `IndexType::as_str()`, `Display` | The unreachable `default: "scan"` arm has no counterpart. |
-| `static indexTypeFromString(const std::string&)` | `IndexType::parse(&str)`, `FromStr` | `Exception::InvalidValue` becomes `Error::InvalidValue`. |
+| `static indexTypeFromString(const std::string&)` | `IndexType::parse(&str)`, `FromStr` | `Exception::InvalidValue` is `Error::InvalidValue` with the source text (`the value '<text>' was used but is not valid; Invalid USI index type`). |
 | `static extractBasename(const std::string&)` | `Usi::extract_basename(&str) -> String` | |
 | `static getCVAccession()`, `static getCVName()` | `CV_ACCESSION`, `CV_NAME` | |
+| (none) | `Usi::LOCAL_COLLECTION` | Native: the `"local"` default argument of the `PeptideIdentification::buildUSI` overloads. |
 | protected `USI_PREFIX`, `CV_ACCESSION`, `CV_NAME` | `USI_PREFIX`, `CV_ACCESSION`, `CV_NAME` | Public constants. |
 | `operator<<(std::ostream&, const USI&)` | `Display` | Writes `to_usi_string()`. |
 
@@ -65,11 +66,32 @@ Tests: [`tests/usi.rs`](../tests/usi.rs), every `START_SECTION` of `USI_test.cpp
 
 ## Consumers
 
-`TextExporter` is the one TOPP consumer at the pin. It is not ported yet; this
-module gives it the complete type.
+`PeptideIdentification::build_usi` and `build_usi_with_mapping`
+(`identification::peptide_identification`, see
+[PEPTIDE_IDENTIFICATION_SUPPORT.md](PEPTIDE_IDENTIFICATION_SUPPORT.md)) return
+this type. `TextExporter` is the one TOPP consumer at the pin. It is not ported
+yet; this module gives it the complete type.
 
 ## Evidence
 
-Tier 3: every class-test literal is transcribed unchanged. The partial-fill,
-trailing-colon, ordering and WIFF cases are derived from `USI.cpp` and say so
-at their tests. No C++ was executed for this module.
+Tier 1 (executed differential): `../oracle/B8b-peptide-id/driver.cpp`, case
+`usi_class`, compiled with libOpenMS's Release flags against the Linux x86_64
+Release install `openms4-release-bc9cc12-c19e494-174b576` and run twice on
+ibminode06 with byte-identical results. It covers 20 parse inputs (including
+partial state and error text), nine index-type names, 15 basenames, 32 native
+IDs, the three factory functions, the CV constants, a 7x7 `operator<` matrix
+and `operator<<`; `tests/peptide_identification.rs` compares every row against
+this module. Cases `usi_build` and `usi_mapping` exercise USI through
+`buildUSI`. Fixture: `tests/data/peptide_identification_oracle.tsv`; hashes in
+`tests/data/peptide_identification_provenance.json`.
+
+Tier 3: every class-test literal of `USI_test.cpp` is transcribed unchanged in
+`tests/usi.rs` (36 sections, the ten accessor sections gathered in one test)
+and, again, in `usi_class_test_literals`. The partial-fill, trailing-colon,
+ordering and WIFF cases of `tests/usi.rs` are derived from `USI.cpp` and say so
+at their tests; the executed rows above cover the same behaviour.
+
+Duplicate collapsed at integration: group B had ported the class a second time
+as `identification::usi` (literal prefix matching instead of the regular
+expressions). That module was removed; `identification` uses this one, and the
+executed rows run against it.

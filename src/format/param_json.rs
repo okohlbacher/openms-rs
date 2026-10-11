@@ -17,12 +17,13 @@
 //! here. The command line refuses
 //! `-write_json` for the same reason (see `src/cli.rs`).
 //!
-//! The document is parsed by `serde_json`, and every rule after the parse is
-//! the source's (`ParamJSONFile.cpp:38-167` at core pin `bc9cc12`), including
-//! the conversions of the `nlohmann::json` 3.11.2 accessors it calls
-//! (`src/openms/extern/nlohmann_json` at the same pin) and their error texts.
-//! See `docs/TOPP_CLI_SUPPORT.md` ("JSON INI files") for the one difference
-//! that remains, the wording of most syntax errors.
+//! Whether the document is JSON, and the exception text when it is not, is
+//! `nlohmann::json` 3.11.2's (`src/openms/extern/nlohmann_json` at the same
+//! pin), through a port of its scanner and parser; the values are read by
+//! `serde_json`, and every rule after the parse is the source's
+//! (`ParamJSONFile.cpp:38-167` at core pin `bc9cc12`), including the
+//! conversions of the `nlohmann::json` accessors it calls and their error
+//! texts. See `docs/TOPP_CLI_SUPPORT.md` ("JSON INI files").
 
 use crate::data_structures::ToolInfo;
 use crate::param::{MAX_PARAM_BYTES, Param, ParamValue};
@@ -30,6 +31,8 @@ use crate::{Error, Result};
 use serde_json::Value;
 use std::io::{Read, Write};
 use std::path::Path;
+
+mod nlohmann;
 
 /// The message of the `std::runtime_error` the Release build's
 /// `ParamJSONFile::writeToStream` throws, built without TDL
@@ -171,98 +174,44 @@ fn read_bounded(path: &Path) -> Result<Vec<u8>> {
     Ok(bytes)
 }
 
-/// `json::parse` (`ParamJSONFile.cpp:63`), with what `nlohmann::json` 3.11.2
-/// does differently from `serde_json` put back:
+/// `json::parse` (`ParamJSONFile.cpp:63`): `nlohmann::json` 3.11.2 decides
+/// whether the document is JSON and words the exception when it is not
+/// ([`nlohmann::check`]: `parse_error.101` with the source's line, column and
+/// message, or `out_of_range.406` for a number beyond `double`); `serde_json`
+/// then reads the values, with what `nlohmann::json` does differently put
+/// back:
 ///
 /// * a UTF-8 byte order mark is skipped, where `serde_json` refuses it;
-/// * `-0` is the integer 0, where `serde_json` reads the float `-0.0`
-///   ([`negative_zero_as_zero`]);
-/// * a document without a single byte, such as an empty file or `/dev/null`,
-///   and a float beyond `f64` get the source's messages (oracle cases
-///   `w_pphr_empty` and `w_pphr_inf` of `../oracle/json-ini`).
+/// * a NUL byte after the value ends the document, as the source's scanner
+///   takes it for the end of input;
+/// * `-0` is the integer 0, where `serde_json` reads the float `-0.0`: the
+///   scanner reports each such number token
+///   ([`nlohmann::Checked::negative_zeros`]) and its `-` becomes a space,
+///   which keeps every later byte in place.
 ///
-/// Any other syntax error keeps `serde_json`'s wording; the source's names
-/// the same position differently (`docs/TOPP_CLI_SUPPORT.md`).
+/// A byte of the source's `last read: '...'` that is not UTF-8 is written as
+/// U+FFFD, since the message is text here.
 fn parse(bytes: &[u8]) -> Result<Value> {
-    let bytes = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
-    if bytes.is_empty() {
-        return Err(parse_error(
-            "[json.exception.parse_error.101] parse error at line 1, column 1: syntax error while parsing value - unexpected end of input; expected '[', '{', or a literal",
-        ));
-    }
-    let normalised = negative_zero_as_zero(bytes);
-    let bytes = normalised.as_deref().unwrap_or(bytes);
-    serde_json::from_slice(bytes).map_err(|error| {
-        let message = error.to_string();
-        if message.starts_with("number out of range") {
-            if let Some(lexeme) = number_before(bytes, error.line(), error.column()) {
-                return parse_error(format!(
-                    "[json.exception.out_of_range.406] number overflow parsing '{lexeme}'"
-                ));
-            }
-        }
-        Error::Parse {
-            line: error.line(),
-            message,
-        }
-    })
-}
-
-/// The document with every number token `-0` written ` 0`, or `None` when it
-/// has none. `nlohmann::json` reads `-0` as the integer 0 and `-0.0` as the
-/// float -0.0; `serde_json` reads both as -0.0, which a floating-point
-/// parameter would keep. The space keeps every later byte in place. A `-`
-/// inside a string or after an exponent's `e` is left alone.
-fn negative_zero_as_zero(bytes: &[u8]) -> Option<Vec<u8>> {
-    let mut copy: Option<Vec<u8>> = None;
-    let (mut in_string, mut escaped) = (false, false);
-    for (index, &byte) in bytes.iter().enumerate() {
-        if in_string {
-            if escaped {
-                escaped = false;
-            } else if byte == b'\\' {
-                escaped = true;
-            } else if byte == b'"' {
-                in_string = false;
-            }
-            continue;
-        }
-        if byte == b'"' {
-            in_string = true;
-            continue;
-        }
-        let token = byte == b'-'
-            && bytes.get(index + 1) == Some(&b'0')
-            && !matches!(bytes.get(index + 2), Some(b'0'..=b'9' | b'.' | b'e' | b'E'))
-            && !matches!(index.checked_sub(1).map(|at| bytes[at]), Some(b'e' | b'E'));
-        if token {
-            copy.get_or_insert_with(|| bytes.to_vec())[index] = b' ';
-        }
-    }
-    copy
-}
-
-/// The number that ends at `serde_json`'s error position (one-based line,
-/// column of its last byte), as `nlohmann::json` quotes it.
-fn number_before(bytes: &[u8], line: usize, column: usize) -> Option<String> {
-    let start_of_line = if line <= 1 {
-        0
-    } else {
+    let checked =
+        nlohmann::check(bytes).map_err(|what| parse_error(String::from_utf8_lossy(&what)))?;
+    let bytes = &bytes[..checked.end];
+    let mut normalised = Vec::new();
+    let bytes = if checked.negative_zeros.is_empty() {
         bytes
-            .iter()
-            .enumerate()
-            .filter(|(_, byte)| **byte == b'\n')
-            .nth(line - 2)
-            .map(|(index, _)| index + 1)?
+    } else {
+        normalised.extend_from_slice(bytes);
+        for &at in &checked.negative_zeros {
+            if let Some(minus) = normalised.get_mut(at) {
+                *minus = b' ';
+            }
+        }
+        &normalised[..]
     };
-    let end = (start_of_line + column).min(bytes.len());
-    let part = |byte: &u8| matches!(byte, b'0'..=b'9' | b'-' | b'+' | b'.' | b'e' | b'E');
-    let start = bytes[..end]
-        .iter()
-        .rposition(|byte| !part(byte))
-        .map_or(0, |index| index + 1);
-    let lexeme = std::str::from_utf8(&bytes[start..end]).ok()?;
-    (!lexeme.is_empty()).then(|| lexeme.to_owned())
+    let bytes = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
+    serde_json::from_slice(bytes).map_err(|error| Error::Parse {
+        line: error.line(),
+        message: error.to_string(),
+    })
 }
 
 fn parse_error(message: impl Into<String>) -> Error {

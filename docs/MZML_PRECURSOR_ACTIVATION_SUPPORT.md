@@ -28,6 +28,7 @@ There is no new public API or dependency.
 | activation `MS:1002680`, supplemental collision energy | Floating metadata `supplemental collision energy`, with its unit |
 | activation `MS:1000509`, activation energy | Existing separate `Precursor.activation_energy`, in electronvolts |
 | Other existing activation-method CVs | Existing `Precursor.activation_methods` set; unchanged |
+| activation, any other pinned-CV descendant of `MS:1000044` (`cv_.isChildOf`, `MzMLHandler.cpp:2026-2029`): ultraviolet photodissociation `MS:1003246`, negative electron transfer dissociation `MS:1003247`, electron activated dissociation `MS:1003294`, combined dissociation method `MS:1003181` | String metadata under the term's CV name, holding the term's value text and unit; written back as that CV term (lane B8a) |
 | Scalar precursor userParam | Existing typed `cv_terms.metadata`; unchanged except conflicting intensity-unit sources now reject |
 
 Collision energy metadata is distinct from the typed activation-energy field.
@@ -71,7 +72,24 @@ intensity CV, retaining a nondefault unit even at zero. The C++ writer normally
 writes intensity only if positive or its legacy metadata key is present.
 
 Unknown activation CV parameters retain the surrounding reader's established
-policy; this change does not introduce generic CV preservation. Invalid or
+policy; this change does not introduce generic CV preservation.
+
+The `isChildOf(MS:1000044)` route (lane B8a) covers what the typed members do
+not: `read_other_dissociation_method` in `src/format/mzml_precursor.rs` stores
+the term under its pinned-CV name with the value `cvParamToValue` builds for a
+term without a value type (`XMLHandler.cpp:167`, `:285-301`: the value text,
+usually empty, and the unit), and the writer promotes such a text meta value
+back to the term, as `writeUserParam_` does for a key naming a term the mapping
+allows under `activation` (`MzMLHandler.cpp:3665-3673`). Two differences: the
+source's chromatogram branch has no such route and drops the term with
+"Unhandled cvParam" (`:2150-2153`), where this reader keeps it on the
+chromatogram precursor as it keeps the supplemental terms (CPP-219); and the
+cvParams are written in name order, where the source follows its
+`MetaInfoRegistry` key order. An accession the pinned CV does not know stays
+ignored, as the source's "Unknown cvParam" path drops it. Tier 1 against
+`../oracle/B8a-mzml-im` (Linux x86_64 Release, ibminode06),
+`tests/mzml_im_peak_type.rs::other_dissociation_methods_become_precursor_metadata`:
+load, the written terms and the reload of six spectra and one chromatogram. Invalid or
 nonfinite recognized numeric values return an error rather than the source's
 warning-and-skip conversion behavior. Charge stripping follows the source's
 boolean-presence convention, but rejects units that would otherwise be dropped.

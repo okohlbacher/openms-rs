@@ -1,0 +1,1 @@
+[json.exception.parse_error.101] parse error at line 1, column 9: syntax error while parsing value - invalid string: control character U+0001 (SOH) must be escaped to \u0001; last read: '"a<U+0001>' in: 

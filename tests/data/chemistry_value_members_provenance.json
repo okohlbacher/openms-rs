@@ -200,7 +200,7 @@
   "Iridium keeps its declared table (CPP-249), so its isotope elements, stream text and hash differ from the SDK and are not compared.",
   "Negative counts on the binomial branch of calculateTheoreticalIsotopesNumber are refused instead of wrapping to unsigned.",
   "Multi-element lightest-isotope sums follow the port's entry order; the SDK sums in element address order, compared within four ulps.",
-  "set_source_specificity refuses SPEC_UNKNOWN, SPEC_NOCTERM and SPEC_NONTERM."
+  "ProteaseDigestion::digest refuses SPEC_UNKNOWN, SPEC_NOCTERM and SPEC_NONTERM, as ProteaseDigestion.cpp:93-98 does."
  ],
  "license": "OpenMS BSD-3-Clause; source attribution retained through this manifest and repository notices."
 }

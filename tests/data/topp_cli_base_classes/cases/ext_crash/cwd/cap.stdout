@@ -1,0 +1,1 @@
+Running: sh -c kill -SEGV $$

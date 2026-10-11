@@ -31,6 +31,10 @@ pub mod text;
 pub use csv::CsvFile;
 pub use text::TextFile;
 
+/// The Common Workflow Language writer (`ParamCWLFile`), as the Release build
+/// (without TDL) has it.
+#[cfg(feature = "paramxml")]
+pub mod param_cwl;
 /// Parameter values from a JSON document onto a known tree (`ParamJSONFile`).
 #[cfg(feature = "paramxml")]
 pub mod param_json;
@@ -192,3 +196,6 @@ fn single_line(value: &str) -> bool {
 /// Unimod XML modification files and their data provider.
 #[cfg(feature = "unimod-xml")]
 pub mod unimod_xml;
+/// One-entry ZIP input behind `path_io::open`, the `PK` branch of `XMLFile::parse_`.
+#[cfg(feature = "file-compression")]
+pub(crate) mod zip_input;

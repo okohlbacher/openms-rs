@@ -217,12 +217,7 @@ fn finite_double(text: &str, line: usize, label: &str) -> Result<f64> {
 /// are conversion errors, and so is a second `+`, which `std::from_chars`
 /// refuses even though Rust's own parser accepts it.
 fn source_int32(text: &str) -> Option<i32> {
-    let text = trim(text);
-    let body = text.strip_prefix('+').unwrap_or(text);
-    if body.starts_with('+') {
-        return None;
-    }
-    body.parse::<i32>().ok()
+    crate::concept::string_conversion::to_int32(text).ok()
 }
 
 /// `std::stoi`, used only by the source's `MSLEVEL=` branch: leading
@@ -1020,39 +1015,7 @@ fn ostream_double(value: f64) -> String {
 /// already carries a `TITLE` meta value has its `PEPMASS=` and `RTINSECONDS=`
 /// written in this significant-digit form instead.
 fn ostream_g(value: f64, precision: u32) -> String {
-    if value.is_nan() {
-        return "nan".into();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.into();
-    }
-    if value == 0.0 {
-        return "0".into();
-    }
-    let digits = i32::try_from(precision.max(1)).unwrap_or(6);
-    let mantissa_decimals = usize::try_from(digits - 1).unwrap_or(0);
-    let scientific = format!("{value:.mantissa_decimals$e}");
-    let Some((mantissa, exponent)) = scientific.split_once('e') else {
-        return scientific;
-    };
-    let Ok(exponent) = exponent.parse::<i32>() else {
-        return scientific;
-    };
-    if !(-4..digits).contains(&exponent) {
-        let mantissa = strip_trailing_zeros(mantissa);
-        let sign = if exponent < 0 { '-' } else { '+' };
-        format!("{mantissa}e{sign}{:02}", exponent.unsigned_abs())
-    } else {
-        let decimals = usize::try_from(digits - 1 - exponent).unwrap_or(0);
-        strip_trailing_zeros(&format!("{value:.decimals$}"))
-    }
-}
-fn strip_trailing_zeros(text: &str) -> String {
-    if !text.contains('.') {
-        return text.to_owned();
-    }
-    let trimmed = text.trim_end_matches('0');
-    trimmed.strip_suffix('.').unwrap_or(trimmed).to_owned()
+    crate::concept::numeric_formatting::ostream_g(value, precision)
 }
 
 /// `precisionWrapper`: `StringUtils::toStr(value, true)`, 15 significant digits
@@ -1298,24 +1261,6 @@ fn filtered_filename(filename: &str) -> String {
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_default();
     stem.chars().filter(char::is_ascii_alphanumeric).collect()
-}
-
-/// Every UniMod-backed modification identifier, as
-/// `ModificationsDB::getAllSearchModifications` returns it: the full IDs of
-/// records carrying a UniMod record ID, sorted case-insensitively with the
-/// shorter of two otherwise-equal names first.
-fn all_search_modifications(database: &ModificationsDB) -> Vec<String> {
-    let mut names: Vec<String> = database
-        .entries()
-        .iter()
-        .filter(|record| record.record_id().is_some_and(|id| id > 0))
-        .map(|record| record.full_id().to_owned())
-        .collect();
-    // The source comparator lower-cases character by character and falls back
-    // to the shorter string; this key is the same order and a total one, which
-    // Rust's sort requires.
-    names.sort_by_cached_key(|name| (name.to_lowercase(), name.len()));
-    names
 }
 
 /// `updateMembers_`: expand `special_modifications` into the per-residue map.
@@ -2051,7 +1996,7 @@ impl MascotGenericFile {
 /// The source constructor's `defaults_`, including the `internal:` section that
 /// is deliberately not shown to TOPP users.
 fn defaults(database: &ModificationsDB) -> Result<Param> {
-    let modifications = all_search_modifications(database);
+    let modifications = database.all_search_modifications();
     let advanced = [String::from("advanced")];
     let none: [String; 0] = [];
     let mut param = Param::new();

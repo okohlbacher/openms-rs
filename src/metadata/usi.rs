@@ -111,7 +111,7 @@ impl IndexType {
             "index" => Ok(Self::Index),
             "nativeid" => Ok(Self::NativeId),
             _ => Err(Error::InvalidValue(format!(
-                "Invalid USI index type: '{type_string}'"
+                "the value '{type_string}' was used but is not valid; Invalid USI index type"
             ))),
         }
     }
@@ -161,6 +161,10 @@ pub struct Usi {
 }
 
 impl Usi {
+    /// The collection the source's `buildUSI` overloads default to for
+    /// unpublished data (their `dataset_id = "local"` default argument).
+    pub const LOCAL_COLLECTION: &'static str = "local";
+
     /// Construct a USI from its components (the source's five-argument
     /// constructor, whose `interpretation` defaults to empty).
     ///
@@ -185,16 +189,18 @@ impl Usi {
     ///
     /// # Errors
     ///
-    /// [`Error::InvalidValue`] when [`Usi::set_from_string`] rejects the text,
-    /// where the source throws `Exception::ParseError` ("Invalid USI format").
+    /// [`Error::Parse`] with the source message `Invalid USI format in:
+    /// <text>` when [`Usi::set_from_string`] rejects the text (the source
+    /// throws `Exception::ParseError`).
     pub fn parse(usi_string: &str) -> Result<Self> {
         let mut usi = Self::default();
         if usi.set_from_string(usi_string) {
             Ok(usi)
         } else {
-            Err(Error::InvalidValue(format!(
-                "{usi_string}: Invalid USI format"
-            )))
+            Err(Error::Parse {
+                line: 0,
+                message: format!("Invalid USI format in: {usi_string}"),
+            })
         }
     }
 

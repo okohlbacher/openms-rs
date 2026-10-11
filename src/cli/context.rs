@@ -8,6 +8,7 @@
 //!
 //! See `docs/TOPP_CLI_SUPPORT.md` for the supported source subset.
 
+use super::info_stream::InfoStream;
 use super::logging::ToolLog;
 use super::parameter::ExitCode;
 use super::processing::{self, AddDataProcessing};
@@ -52,6 +53,8 @@ pub struct ToolContext {
     threads: i64,
     log: Arc<ToolLog>,
     refusals: Arc<Mutex<Vec<Refusal>>>,
+    unterminated_warning: Arc<Mutex<String>>,
+    info_stream: Arc<Mutex<InfoStream>>,
 }
 
 /// An accessor refusal the source raises as an exception of its own, kept so
@@ -78,7 +81,7 @@ impl ToolContext {
         log: Arc<ToolLog>,
     ) -> Self {
         let int = |key: &str, fallback: i64| match param.value(key) {
-            Ok(ParamValue::Integer(value)) => *value,
+            Ok(ParamValue::Integer(value)) => source_int(*value),
             _ => fallback,
         };
         let flag =
@@ -100,7 +103,80 @@ impl ToolContext {
             threads,
             log,
             refusals: Arc::default(),
+            unterminated_warning: Arc::default(),
+            info_stream: Arc::default(),
         }
+    }
+
+    /// Write `text` to the run's info log stream as the source's
+    /// `OPENMS_LOG_INFO << text` does, with no line break added.
+    ///
+    /// The source's stream prints a line once it is complete and passes it
+    /// through a two-line repetition cache: a line equal to one of the two
+    /// printed last is counted, not printed, and `<line> occurred N times`
+    /// follows once it leaves the cache. The lifecycle writes the closing
+    /// `<tool> took … .` line to the same stream at the end of the run, which
+    /// then reports the repeated lines still cached and prints unfinished
+    /// text, as the source's stream does at the end of the process
+    /// (`src/cli/info_stream.rs`). Nothing reaches the `-log` file.
+    ///
+    /// Text a tool writes to `out` directly bypasses this stream, and so its
+    /// cache; only [`run_external_process`](Self::run_external_process) writes
+    /// here so far.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when `out` fails.
+    pub fn write_info_stream(&self, out: &mut dyn Write, text: &str) -> Result<()> {
+        let mut stream = self
+            .info_stream
+            .lock()
+            .map_err(|_| bad("the info log stream is poisoned"))?;
+        stream.write(out, text)?;
+        Ok(())
+    }
+
+    /// End the run's info log stream with `closing` as its last line, when
+    /// anything was written to it; `false` when nothing was, so the caller
+    /// prints `closing` itself.
+    pub(crate) fn finish_info_stream(&self, out: &mut dyn Write, closing: Option<&str>) -> bool {
+        let Ok(mut stream) = self.info_stream.lock() else {
+            return false;
+        };
+        if !stream.used() {
+            return false;
+        }
+        let _ = stream.finish(out, closing);
+        true
+    }
+
+    /// Text the source writes to `OPENMS_LOG_WARN` without a line break.
+    ///
+    /// The source's log stream passes a line on only when it is flushed, so
+    /// such text stays in the warning stream's buffer and reaches standard
+    /// error when the process ends, after everything else the run printed
+    /// (Release build, oracle `se_mzxml_twice` of `../oracle/B7-cli`: the
+    /// warning follows the error lines of a failed run). The lifecycle
+    /// writes what was kept here as the last warning line of the run, once
+    /// the tool body has ended, as the source's stream does at exit; texts
+    /// kept twice are joined, as they are in the stream's buffer.
+    ///
+    /// The source would also put the text in front of the next warning line
+    /// that is flushed; a tool that writes such a line after calling this has
+    /// no counterpart of that joined line (no ported caller does).
+    pub fn write_log_warn_unterminated(&self, text: &str) {
+        if let Ok(mut pending) = self.unterminated_warning.lock() {
+            pending.push_str(text);
+        }
+    }
+
+    /// The text [`write_log_warn_unterminated`](Self::write_log_warn_unterminated)
+    /// kept, emptied.
+    pub(crate) fn take_unterminated_warning(&self) -> String {
+        self.unterminated_warning
+            .lock()
+            .map(|mut pending| std::mem::take(&mut *pending))
+            .unwrap_or_default()
     }
 
     /// `error`, recorded as the source's exception that ends a run with
@@ -126,7 +202,7 @@ impl ToolContext {
         self.refuse(
             bad(format!("parameter '{name}' was not registered")),
             ExitCode::InternalError,
-            format!("Internal error: Request for unregistered parameter '{name}'"),
+            super::defs::unregistered_parameter_text(name),
         )
     }
 
@@ -137,7 +213,7 @@ impl ToolContext {
         self.refuse(
             bad(message),
             ExitCode::InternalError,
-            format!("Internal error: Request for parameter with wrong type '{name}'"),
+            super::defs::wrong_parameter_type_text(name),
         )
     }
 
@@ -452,7 +528,9 @@ impl ToolContext {
             _ => Err(self.wrong_type(name, format!("parameter '{name}' is not a string"))),
         }
     }
-    /// An integer option, as `getIntOption_`.
+    /// An integer option, as `getIntOption_`: a value beyond 32 bits, which
+    /// only a JSON `-ini` can set, is its low 32 bits, as the source's `Int`
+    /// (the private `source_int`).
     ///
     /// # Errors
     ///
@@ -461,8 +539,9 @@ impl ToolContext {
     pub fn int(&self, name: &str) -> Result<i64> {
         match self.value(name)? {
             ParamValue::Integer(value) => {
+                let value = source_int(*value);
                 self.write_debug(&format!("Value of int option '{name}': {value}"), 1);
-                Ok(*value)
+                Ok(value)
             }
             _ => Err(self.wrong_type(name, format!("parameter '{name}' is not an integer"))),
         }
@@ -907,158 +986,43 @@ pub(crate) fn output_file_problem(
     ))
 }
 
-/// The source's four whitespace characters, skipped from `index` on.
-fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
-    while bytes
-        .get(index)
-        .is_some_and(|b| matches!(*b, b' ' | b'\t' | b'\n' | b'\r'))
-    {
-        index += 1;
-    }
-    index
+/// The source's `(Int)` cast of an integer `ParamValue`: `operator int`
+/// returns the 64-bit value as an `int` and so keeps its low 32 bits
+/// (`ParamValue.cpp:445-451` at core `bc9cc12`). `getParamAsInt_`
+/// (`TOPPBase.cpp:1741-1756` at cli `c19e494`), and through it
+/// `getIntOption_` and the `-instance`, `-debug` and `-threads` values, read
+/// every integer parameter this way, so a JSON `-ini` value beyond 32 bits
+/// (`1e30`, stored as `-9223372036854775808`) is `0` to the tool, as on the
+/// Release build (`tests/data/topp_json_ini/r_pphr_huge`).
+pub(crate) fn source_int(value: i64) -> i64 {
+    i64::from(value as i32)
 }
 
-/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`), returning the
-/// source's `ConversionError` message as the error.
-///
-/// Leading and trailing space, tab, newline and carriage return are skipped,
-/// one `+` may precede the number, and the rest must be a complete decimal
-/// `i32`. Like `std::from_chars` after the source strips `+`, a `-` may still
-/// follow it.
+/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166` at core
+/// `bc9cc12`), which `TOPPBase` calls for an `int` value, restriction bound and
+/// list item (`TOPPBase.cpp:2072-2079`, `2367`, `2390` at cli `c19e494`):
+/// [`string_utils::to_int32`](crate::data_structures::string_utils::to_int32),
+/// with the source's `ConversionError` message as the error.
 pub(crate) fn to_int32(text: &str) -> std::result::Result<i32, String> {
-    let bytes = text.as_bytes();
-    let not_converted = || format!("Could not convert string '{text}' to an integer value");
-    let mut cursor = skip_whitespace(bytes, 0);
-    if cursor == bytes.len() {
-        return Err(not_converted());
-    }
-    if bytes[cursor] == b'+' {
-        cursor += 1;
-    }
-    let number_start = cursor;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let digits_start = cursor;
-    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-        cursor += 1;
-    }
-    if cursor == digits_start {
-        return Err(not_converted());
-    }
-    let value = text
-        .get(number_start..cursor)
-        .and_then(|digits| digits.parse::<i32>().ok())
-        .ok_or_else(not_converted)?;
-    let after = skip_whitespace(bytes, cursor);
-    if after != bytes.len() {
-        return Err(format!(
-            "Prefix of string '{text}' successfully converted to an int32 value. Additional characters found at position {}",
-            after + 1
-        ));
-    }
-    Ok(value)
+    crate::data_structures::string_utils::to_int32(text).map_err(conversion_message)
 }
 
-/// Length of a case-insensitive ASCII `word` at `bytes[index..]`, if present.
-fn word_at(bytes: &[u8], index: usize, word: &str) -> Option<usize> {
-    let candidate = bytes.get(index..index.checked_add(word.len())?)?;
-    candidate
-        .eq_ignore_ascii_case(word.as_bytes())
-        .then_some(word.len())
-}
-
-/// Source `StringUtils::toDouble` (`StringUtils.cpp:239-276`), returning the
-/// source's `ConversionError` message as the error.
-///
-/// Whitespace is skipped on both sides and `nan`, optionally followed by a
-/// parenthesised payload, is accepted before anything else. Then one `+` may
-/// precede a `std::from_chars` general-format number: an optional `-`, digits
-/// with an optional fraction and exponent, or `inf`/`infinity`. A finite
-/// literal that overflows is an error, as `result_out_of_range` is; underflow
-/// rounds, as the oracle's libc++ fallback accepts it. Hexadecimal floats are
-/// rejected, following `std::from_chars` rather than the `strtod` fallback the
-/// source uses on libc++.
+/// Source `StringUtils::toDouble` (`StringUtils.cpp:239-276` at core
+/// `bc9cc12`), which `TOPPBase` calls for a `double` value, restriction bound
+/// and list item (`TOPPBase.cpp:2034-2041`, `2372`, `2402` at cli `c19e494`):
+/// [`string_utils::to_double`](crate::data_structures::string_utils::to_double),
+/// with the source's `ConversionError` message as the error. As on the Linux
+/// Release build (libstdc++ `std::from_chars`), a literal that rounds to zero
+/// (`1e-400`) is refused and `-nan` keeps its sign bit.
 pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
-    let bytes = text.as_bytes();
-    let not_converted = || format!("Could not convert string '{text}' to a double value");
-    let first = skip_whitespace(bytes, 0);
-    if first == bytes.len() {
-        return Err(not_converted());
+    crate::data_structures::string_utils::to_double(text).map_err(conversion_message)
+}
+
+/// The text of a `StringUtils` conversion refusal, which is the source's
+/// `ConversionError` message.
+fn conversion_message(error: Error) -> String {
+    match error {
+        Error::InvalidValue(message) => message,
+        other => other.to_string(),
     }
-    if let Some(length) = word_at(bytes, first, "nan") {
-        let mut end = first + length;
-        if bytes.get(end) == Some(&b'(') {
-            match bytes[end..].iter().position(|b| *b == b')') {
-                Some(close) => end += close + 1,
-                None => end = first,
-            }
-        }
-        if end != first && skip_whitespace(bytes, end) == bytes.len() {
-            return Ok(f64::NAN);
-        }
-    }
-    let mut start = first;
-    if bytes[start] == b'+' {
-        start += 1;
-    }
-    let mut cursor = start;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let infinity = word_at(bytes, cursor, "infinity").or_else(|| word_at(bytes, cursor, "inf"));
-    let nan = word_at(bytes, cursor, "nan");
-    if let Some(length) = infinity.or(nan) {
-        cursor += length;
-    } else {
-        let integer_start = cursor;
-        while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-            cursor += 1;
-        }
-        let mut digits = cursor - integer_start;
-        if bytes.get(cursor) == Some(&b'.') {
-            let fraction_start = cursor + 1;
-            let mut fraction_end = fraction_start;
-            while bytes.get(fraction_end).is_some_and(u8::is_ascii_digit) {
-                fraction_end += 1;
-            }
-            if digits > 0 || fraction_end > fraction_start {
-                digits += fraction_end - fraction_start;
-                cursor = fraction_end;
-            }
-        }
-        if digits == 0 {
-            return Err(not_converted());
-        }
-        if matches!(bytes.get(cursor), Some(b'e' | b'E')) {
-            let mut exponent = cursor + 1;
-            if matches!(bytes.get(exponent), Some(b'+' | b'-')) {
-                exponent += 1;
-            }
-            let exponent_digits = exponent;
-            while bytes.get(exponent).is_some_and(u8::is_ascii_digit) {
-                exponent += 1;
-            }
-            if exponent > exponent_digits {
-                cursor = exponent;
-            }
-        }
-    }
-    let literal = text.get(start..cursor).ok_or_else(not_converted)?;
-    let value: f64 = if nan.is_some() && infinity.is_none() {
-        f64::NAN
-    } else {
-        literal.parse().map_err(|_| not_converted())?
-    };
-    if value.is_infinite() && infinity.is_none() {
-        return Err(not_converted());
-    }
-    let after = skip_whitespace(bytes, cursor);
-    if after != bytes.len() {
-        return Err(format!(
-            "Prefix of string '{text}' successfully converted to a double value. Additional characters found at position {}",
-            after + 1
-        ));
-    }
-    Ok(value)
 }

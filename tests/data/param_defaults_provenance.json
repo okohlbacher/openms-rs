@@ -1,0 +1,489 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "maintainer": "OpenMS Rust contributors",
+ "reference_tests": [
+  "tests/default_param_handling.rs",
+  "tests/theoretical_parameter_intensities.rs",
+  "tests/theoretical_fine_reference.rs"
+ ],
+ "evidence_tier": "executed differential (tier 1), against the OpenMS4 Release C++ build",
+ "method": "Two oracle drivers link libOpenMS of the Release install. ../oracle/B6-param-defaults writes, for every DefaultParamHandler class the lane ports, getDefaults() and getParameters() of a default-constructed object through ParamXMLFile (<Name>.defaults.ini), and getParameters() after setParameters with one unknown key, with an empty tree, and with the refused values of the set_* cases, recording each case's stdout (exception name and message), stderr (the source's warnings) and exit code in oracle_outcomes.json. ../oracle/B6-tsg-intensity configures TheoreticalSpectrumGenerator through setParameters with double intensities that f32 cannot represent (b_intensity 0.7, relative_loss_intensity 0.9) and prints every generated peak (m/z %.17g, the float intensity's bits, ion name, charge) to tsg_intensity/<case>.tsv, plus three setParameters/updateMembers_ probes of the chemistry contracts (tsg_intensity/*.stdout.txt and *.after.ini). Every case ran twice, each in a fresh process with a clean environment; both runs agreed byte for byte on stdout, stderr, exit code and every written file (results/differ.txt empty).",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/FILTERING/NLargest.h",
+   "sha256": "ec43f1c62aeedf7f928540bdc4098cefb9256c9131e6d0c0ed3d097853dc733b"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FILTERING/NLargest.cpp",
+   "sha256": "3468e81da9c3a2accadae0001ec07c609ca29cf0689359ee1adef94e49481201"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/NLargest_test.cpp",
+   "sha256": "5bde667117c17603f2976ae3f0b66bb93f9cd2dceaf2fd7e21430e3fb9bc9850"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/FILTERING/ThresholdMower.h",
+   "sha256": "4fd27a71c2ebfe56b9ff362c4a30fe7222a11246b47927aae18d11209e63c636"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FILTERING/ThresholdMower.cpp",
+   "sha256": "8dba1681f4a8562d83025a373fbc2e082175ca209e135eef3462f710321d3403"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ThresholdMower_test.cpp",
+   "sha256": "5d9d068397c61bde415c403465d674fc7134b1fe48b6c5224a607d97f6172633"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/FILTERING/WindowMower.h",
+   "sha256": "662c4207dd2219882fe30b479828a219d68d2ab2a73b07cec57dc3ce12b2d329"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/FILTERING/WindowMower.cpp",
+   "sha256": "259677eecf80585ac695fc04fb14c507ab7768b1a35b2009d7c5a94d4140be36"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/WindowMower_test.cpp",
+   "sha256": "3e19352664680abe65eade5b4fbd8362ac66055470891b8cf396ffb6e1f9c74a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SCALING/Normalizer.h",
+   "sha256": "a0f6bc469c47a5a98d6f169850acbc8e2c0b31097a758c0d3eadd25197fdf533"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SCALING/Normalizer.cpp",
+   "sha256": "fde59fda31d0fcc69e9c8cfa8b276e679d36059363fed21a5b46b4bb356382a9"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Normalizer_test.cpp",
+   "sha256": "c106735c5f48f9cd5786d1ba38150d73628e43c1c8f65d9e1940cc647d52137e"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SCALING/RankScaler.h",
+   "sha256": "539f3cf779a8088cd559cfcfe1e3e577e17d64dc271cdfc1824ea3bdc205852e"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SCALING/RankScaler.cpp",
+   "sha256": "590f68791d5887675ad3514c91a10f5f4c9a67f42a76d813ad7f429b5b4e9ae5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/RankScaler_test.cpp",
+   "sha256": "1e6258adf5d0b5e0630dc61377b450c45572f2039e848ca5fce4b1e3711028a0"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SCALING/SqrtScaler.h",
+   "sha256": "6bdce93bd563675011754c84c1de0c915c562dd412255829e18335231d1ae3f2"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SCALING/SqrtScaler.cpp",
+   "sha256": "48daade6a0f1592026700322e822e1a685dd5370669862e84353c8cc1a57d225"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SqrtScaler_test.cpp",
+   "sha256": "987e5dc75e9aa20da4e7f62b6c670505a142394c5a4dc90f52b156e995caaf8d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/GaussFilter.h",
+   "sha256": "a2f5796b76b79f647dabe8662181ac631d969af4ccdc61ae7eed57854b2d6541"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp",
+   "sha256": "8d6ddcd32c7825f6f1157580f92be0ceb9214017e28ece00d54aa8f667d8f3df"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/GaussFilter_test.cpp",
+   "sha256": "6023e19373d69d2b64a09aa7108f52fa240c1312a29b436e34516e89ab183e31"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+   "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SMOOTHING/SavitzkyGolayFilter.cpp",
+   "sha256": "db318702abe049da5d85046bd7574b8689a7768972fe958846900d688402d668"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SavitzkyGolayFilter_test.cpp",
+   "sha256": "c6caeb480127df0875dc9b4919b7cc550e4fe1831d0487f7ba94e54167fe3bb6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
+   "sha256": "e56ee678f5b984b0f4ed81a7e24521e7e5c3607a5a92e07472539f4a7743e536"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/RESAMPLING/LinearResamplerAlign.cpp",
+   "sha256": "9df02a81eb53f10d0cfd4f26cfe8c8e8525d93eac475b29b85e85c621f884265"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LinearResamplerAlign_test.cpp",
+   "sha256": "1df75cd50af4003b1a14d663d8855dd309abfafdfaefc04c05f63a037cde8c63"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerIterative.h",
+   "sha256": "3fcb1c5347d13c0a6c72fe14f853afcca2d08bedb3709eeb8bfb96630690220c"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerIterative.cpp",
+   "sha256": "503b71b5c1a4c0e14a7c2542c06b85005ee98fb5e0475c27748ac5569df9d164"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakPickerIterative_test.cpp",
+   "sha256": "9e48c32bb151b973b70b16b1ff2e402ef5cab06c410c6770ec18650f0c6d1ce4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h",
+   "sha256": "a40d2e48a7d24df3ebfb6e9ff5a0df5df3886ca8ddc8d83ef6f6a3f7c5b50d77"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+   "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakPickerHiRes_test.cpp",
+   "sha256": "3b2e2b892787f07885d300a4c5ef8608760aee12aad643f13616719d30298ca9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h",
+   "sha256": "702fc1891272baddc88301fab7276ca7a01d0fc1d7078b116f3457ea4755e55b"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.cpp",
+   "sha256": "5f4eddc9a18a60108c4bdcca3c3f18b8d7a99792684e8a1cf6f5925b060eb9c0"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimatorMeanIterative_test.cpp",
+   "sha256": "b4e2c62e3f91014d7e4dd488df657078af1430ac36f76cd02ad1d959eb55c82b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h",
+   "sha256": "f6f81757669c754484cec642bffe9763bb03140f45163f70c13280301a10f54c"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.cpp",
+   "sha256": "7fa69b64c6275000db58f7b453cf103ae90ebeeb2368788ad3f188d88a222330"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SignalToNoiseEstimatorMedian_test.cpp",
+   "sha256": "321ce370b2ed89216b004d07ced62629e95dba861fec15439976cc4bda5bcb80"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h",
+   "sha256": "c0f8fc0213c7a9103f3e3ebeb305d498a79666afdb189b2b3b36c7d129cc81c9"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/TheoreticalSpectrumGenerator.cpp",
+   "sha256": "763d7e37041d3bed8f0b9fb122e43b5d6890fc699753e0f877ee3c50f2698325"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TheoreticalSpectrumGenerator_test.cpp",
+   "sha256": "8fc12ab3cea2f804e1374fdc43368ad82588f465e01423753d03babb4c4a77e1"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/SpectrumAnnotator.h",
+   "sha256": "932baab6305f9a365cd1710ba661d71a7bc136212b75cdcb0a7a8a387e3be021"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/SpectrumAnnotator.cpp",
+   "sha256": "35e2add302b5c830461539b8743cad51bee285182abf64b20b494c60faa1fe3d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SpectrumAnnotator_test.cpp",
+   "sha256": "31a94b73cf1960e56a5d0fe567116a0a7c0fcc2acb7a4ade53268b0017e28633"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/NucleicAcidSpectrumGenerator.h",
+   "sha256": "64bc6d66df30683afd6a9d0ada5a807be22a01ed437659fb4c6326ce6b02bb35"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/NucleicAcidSpectrumGenerator.cpp",
+   "sha256": "0ec036f987d0b3cd5dc20575993eb28dab657373a358c2463fec60f1d10bd225"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/NucleicAcidSpectrumGenerator_test.cpp",
+   "sha256": "481fa0557b9ac892030acb91411a8dda223ea28eb93ec6855f7c20a2b01ea200"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/DefaultParamHandler.h",
+   "sha256": "f51df94cda9975bf4b2e29b974a82a4e754a9aaf1f14b880021971fcc968e9b4"
+  },
+  {
+   "path": "src/openms/source/DATASTRUCTURES/DefaultParamHandler.cpp",
+   "sha256": "20a4f3386a4fd3b9a203ed36008d7dccb35d2b7c5f0e42b556b4bc8995eecb53"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/DefaultParamHandler_test.cpp",
+   "sha256": "ca5212b206178f3ea34a476b006aa970fdb847d3ca8dbd9ef23c78574e59e24f"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/B6-param-defaults/driver.cpp",
+   "sha256": "29c77b548528d4852a1858fde5bd4894a2262b1b266322a332d926943859443b"
+  },
+  {
+   "path": "../oracle/B6-param-defaults/cases.txt",
+   "sha256": "8449a0765ee2e8e42a1ec16da6a533f47546385af4724c945bb73225e8f2042e"
+  },
+  {
+   "path": "../oracle/B6-param-defaults/run.sh",
+   "sha256": "935be8dcd546f9633e7f49bcef88e5d4e2312de72d7094099b2d89c15e0d8b1d"
+  },
+  {
+   "path": "../oracle/B6-param-defaults/remote_run.sh",
+   "sha256": "64ac1887fc721e9a1f990bb2424aac5716b5e9cd74512bcf9e53e46437fe58f9"
+  },
+  {
+   "path": "../oracle/B6-param-defaults/results/hashes.txt",
+   "sha256": "7abea8ebab40b9537a6d58a9f39370fda117450ba5ab4c04c89800e6518454cd"
+  },
+  {
+   "path": "../oracle/B6-param-defaults/results/case_hashes.txt",
+   "sha256": "cfbd8ca87343b9219c5d177221f8b718bfc031c307e1bb765a6b881b13dace38"
+  },
+  {
+   "path": "../oracle/B6-tsg-intensity/driver.cpp",
+   "sha256": "3e986d1e31b4a3584cdfebda7903583cd9fb5fbc2eb6e915c239a361b6a42e31"
+  },
+  {
+   "path": "../oracle/B6-tsg-intensity/cases.txt",
+   "sha256": "ee30428d8546d9f130305dbeb4a595316510c3c211f6eb0a834895e561571f7c"
+  },
+  {
+   "path": "../oracle/B6-tsg-intensity/run.sh",
+   "sha256": "fc752018d8bdb5fb09d39dd0a58272fba03b503abfa7e3576fa57f0789808e6f"
+  },
+  {
+   "path": "../oracle/B6-tsg-intensity/remote_run.sh",
+   "sha256": "ab4bf9392402db7052de75e35ff00b21276fcee1bed6648c1520b3ed2109f60e"
+  },
+  {
+   "path": "../oracle/B6-tsg-intensity/results/hashes.txt",
+   "sha256": "801572530bae1535db9e7e229c41989761bc126c10eabf3f8d57fcff4df2640b"
+  },
+  {
+   "path": "../oracle/B6-tsg-intensity/results/case_hashes.txt",
+   "sha256": "b97e2521dfd61fba2e00a8aca87f0ba083f1a19667c812a7222352aa72caef40"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/param_defaults/GaussFilter.defaults.ini",
+   "sha256": "dc12d5fb303a528c501e94abcacda2401447daffdb7c038cd68d1c0f78663e38"
+  },
+  {
+   "path": "tests/data/param_defaults/LinearResamplerAlign.defaults.ini",
+   "sha256": "fb3e37acb9a8a31f9b70de2ef1119f1dafdd5683dc2e65b0d1e6735592a8e284"
+  },
+  {
+   "path": "tests/data/param_defaults/NLargest.defaults.ini",
+   "sha256": "d89e05d446a6a358dda6e06c62ae6d691bb5c6b3dae8d96dd651b8867706f08a"
+  },
+  {
+   "path": "tests/data/param_defaults/Normalizer.defaults.ini",
+   "sha256": "e9aec243e4ea5245c1b19753a5d41a725fccca7cb0874fdb940c77a25f54c6a0"
+  },
+  {
+   "path": "tests/data/param_defaults/NucleicAcidSpectrumGenerator.defaults.ini",
+   "sha256": "1e2b47da15c5af60ba4c1a628334ec3219cf02dd6add0713674ef6bb3fd1ce84"
+  },
+  {
+   "path": "tests/data/param_defaults/PeakPickerHiRes.defaults.ini",
+   "sha256": "adf0400e910c5419aa730cff4f25f92f58ed8a2368369c5e487f57d7ba14080d"
+  },
+  {
+   "path": "tests/data/param_defaults/PeakPickerIterative.defaults.ini",
+   "sha256": "dbffc9bcaa4dcc03eecff3028ef8fc19c77664b8aa3fa2ce24923f92195a3d6c"
+  },
+  {
+   "path": "tests/data/param_defaults/RankScaler.defaults.ini",
+   "sha256": "606cd176c07ea0abb47adff5573a4401c321784198066be8f683d4511875a8eb"
+  },
+  {
+   "path": "tests/data/param_defaults/SavitzkyGolayFilter.defaults.ini",
+   "sha256": "d30fa48f0a55f7f5354bc05707a94c86af807b6f0a81ce3cb2ab4a71c688ff6f"
+  },
+  {
+   "path": "tests/data/param_defaults/SignalToNoiseEstimatorMeanIterative.defaults.ini",
+   "sha256": "ba3b3706071c95ae761730fa91c2c58409db87a23ae23be17e9a2181b3dbfb76"
+  },
+  {
+   "path": "tests/data/param_defaults/SignalToNoiseEstimatorMedian.defaults.ini",
+   "sha256": "07e0df1812b632fda2caf9eb0cf830cdef7483d7143b329b206912e9b9bad6f5"
+  },
+  {
+   "path": "tests/data/param_defaults/SpectrumAnnotator.defaults.ini",
+   "sha256": "aa9dfe3aef627ebff4416750d159fb1d8b613848ce0dd307dd2546ad28b3c2b2"
+  },
+  {
+   "path": "tests/data/param_defaults/SqrtScaler.defaults.ini",
+   "sha256": "606cd176c07ea0abb47adff5573a4401c321784198066be8f683d4511875a8eb"
+  },
+  {
+   "path": "tests/data/param_defaults/TheoreticalSpectrumGenerator.defaults.ini",
+   "sha256": "c1899697ed8533e6aa38f13fcbc0f11c96e3ef6bd47a3b8e70c0dc4a5fe3308b"
+  },
+  {
+   "path": "tests/data/param_defaults/ThresholdMower.defaults.ini",
+   "sha256": "c5e6ecc7831dc9406803c4493cdd479898c6f6b8fed466b610381de543697daf"
+  },
+  {
+   "path": "tests/data/param_defaults/WindowMower.defaults.ini",
+   "sha256": "28969a03966a9710fdba32238333e4660e5bc6d10b7a202e24061718e4ab13b4"
+  },
+  {
+   "path": "tests/data/param_defaults/ctor_NLargest7.ini",
+   "sha256": "5366a360b85f8973d8357441137357e22bada78d5ad85f14a9d0cb081a43e4e3"
+  },
+  {
+   "path": "tests/data/param_defaults/empty_RankScaler.ini",
+   "sha256": "606cd176c07ea0abb47adff5573a4401c321784198066be8f683d4511875a8eb"
+  },
+  {
+   "path": "tests/data/param_defaults/empty_SqrtScaler.ini",
+   "sha256": "606cd176c07ea0abb47adff5573a4401c321784198066be8f683d4511875a8eb"
+  },
+  {
+   "path": "tests/data/param_defaults/oracle_outcomes.json",
+   "sha256": "ffe0c876e5c26c5f38f8b5ec4ca380dd16b703b636fad3e4380f8cf63941908b"
+  },
+  {
+   "path": "tests/data/param_defaults/set_GaussFilter_negative.ini",
+   "sha256": "b9e3e943a5f6a5c837f2f92ce607a003d0ce8f6beb9b9580550a6e226a70c4c5"
+  },
+  {
+   "path": "tests/data/param_defaults/set_Normalizer_bad_method.ini",
+   "sha256": "67e11f8c789c4b4303e63d28d04335c06f2549831921fd0a2262e74f41912e83"
+  },
+  {
+   "path": "tests/data/param_defaults/set_PeakPickerIterative_zero_iterations.ini",
+   "sha256": "31067ea8a4ee2f9691221277e5dfbdfc82a229c7f4cbbec7e203f7a971babde2"
+  },
+  {
+   "path": "tests/data/param_defaults/set_SavitzkyGolayFilter_even.ini",
+   "sha256": "4084b57de25049f30f5b455855a5de10d626bd50fa64ceeb0644504c72383da1"
+  },
+  {
+   "path": "tests/data/param_defaults/set_SavitzkyGolayFilter_order.ini",
+   "sha256": "b9bb1cfee0c822011be81868500192a701084fa0f217645efd70cee624258d4d"
+  },
+  {
+   "path": "tests/data/param_defaults/set_TheoreticalSpectrumGenerator_loss.ini",
+   "sha256": "4457221f1ea8a55318b3de97af67d81a789296255eab5f7d775eac4a18ff7a55"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/annotator_negative_topN.after.ini",
+   "sha256": "f4692b4906e2ff2bd78bc9c251f21dfb4eac68c454f4b21ef58ef5170bfe7fd1"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/annotator_negative_topN.stdout.txt",
+   "sha256": "9ba2f2fc6775fdbfb2916931d00eb3739a00f5713acbd221cbcc6a1046c89be5"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/fine_AA.tsv",
+   "sha256": "8dfc2524ba2cb26d4a206d692292abaab2596acbfcd4d1cbd1f3a2411eaf787b"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/fine_SG.tsv",
+   "sha256": "142f0a9cbbf5e12c92a0f6870fa266bf8e2e9ce5db4940647e29f72658c12928"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/nasg_unrestricted.after.ini",
+   "sha256": "1bd2751c0f857c5f03c61766a0d2959a4ae7b16665a5899c6fd4401e59492da2"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/nasg_unrestricted.stdout.txt",
+   "sha256": "7c88701880f98bf6494f521ab0f7071467103ac07d2aa0bf9781a8ecba68b689"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/plain_losses.tsv",
+   "sha256": "00addb69b482a9bb8f6fa2f87a38dc7d4f4a1c26f2bcb2d4a84356e8ca47fb69"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/tsg_negative_max_isotope.after.ini",
+   "sha256": "77275791d62bfd58b82def34c76eb4bdeb2873e7e46051dc4a1b57d0c8c7a0d9"
+  },
+  {
+   "path": "tests/data/param_defaults/tsg_intensity/tsg_negative_max_isotope.stdout.txt",
+   "sha256": "7c88701880f98bf6494f521ab0f7071467103ac07d2aa0bf9781a8ecba68b689"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_GaussFilter.ini",
+   "sha256": "0c5c5e868a3af14bae0347109f74bc17fef23db496178680dad28121b241533c"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_LinearResamplerAlign.ini",
+   "sha256": "55ab54c6dac2cb7a98ba199f7f295bc3731e8e320fb6f0323379a4ae6b0f5e6f"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_NLargest.ini",
+   "sha256": "040bf5a89f9cc3730bdd2eb41f7f894c07842219cae59b65198bd9f36d5b4bb6"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_Normalizer.ini",
+   "sha256": "3ba1995bde17622a14f3e565fbeb25bf66efa02d22c959f0f5ea48f9014d459d"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_NucleicAcidSpectrumGenerator.ini",
+   "sha256": "641e81fcf2532732eb569280a27672c5158d7dcd247fa445de0dfff38666dce8"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_PeakPickerHiRes.ini",
+   "sha256": "84d61d69f06719676efd5106c71c5cd14b120dea01fc98cc6526edba27c92967"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_PeakPickerIterative.ini",
+   "sha256": "f412c0f601207bc347332e0f4b2ae1f579ec4f5d9c1d2152b8965e31513ba034"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_RankScaler.ini",
+   "sha256": "be66288d799f24911b524c8983775149114ba3fbeb0acc86ce1bb5767950ce8c"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_SavitzkyGolayFilter.ini",
+   "sha256": "26b5c82d51c5239de02ebb61800ddb896ddf78731f2004beb0b26fac5b8e51c7"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_SignalToNoiseEstimatorMeanIterative.ini",
+   "sha256": "c1a0388a2181ceddac966ca25d28ef01ec4a4e8e35ede0331c8b28b3965dd1ec"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_SignalToNoiseEstimatorMedian.ini",
+   "sha256": "9fd6ff69486e91406a7a7d01840b43e3d1df5a7fe14191a37a88fffcd7bd8372"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_SpectrumAnnotator.ini",
+   "sha256": "6ed80afef722f11704123f530c2f52722ecead3e5d20454cffcbdf975e5a494a"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_SqrtScaler.ini",
+   "sha256": "be66288d799f24911b524c8983775149114ba3fbeb0acc86ce1bb5767950ce8c"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_TheoreticalSpectrumGenerator.ini",
+   "sha256": "aba1cc8c0af953d2eaefe4376166d0e9eca53f1a495b602036e35c02433ae347"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_ThresholdMower.ini",
+   "sha256": "aebb81d85a53ac73d149f0a1f51e3aba9d101e5153ac427e5b6e7df9f71c469b"
+  },
+  {
+   "path": "tests/data/param_defaults/unknown_WindowMower.ini",
+   "sha256": "98885cb24e7d4778b21b57fdbfbfc71adf7591d03bdf8c5dab9d75e3373dd589"
+  }
+ ],
+ "execution": {
+  "node": "ibminode06 (Linux 6.8.0-124-generic x86_64, Ubuntu 24.04); never ibminode05",
+  "cpp_build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (Release, -O3 -DNDEBUG; core bc9cc12, cli c19e494, topp 174b576)",
+  "libOpenMS.so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "driver_flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "environment": "env -i PATH=/usr/bin:/bin HOME=<case dir> OPENMS_HOME_PATH=<case dir> OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<prefix>/share/OpenMS/4.0.0",
+  "binaries": {
+   "B6-param-defaults/build/b6_driver": "578a097212eb5bad400c06d6faa71261bb0cf6c68c83a6607c29a0b0f6229c06",
+   "B6-tsg-intensity/build/b6_tsg": "c0eb15346bb2e7e014e27e2ee21ea5bac30f09d14599a512964dbf72aa794bd9"
+  },
+  "repeats": "every case twice in fresh processes, compared byte for byte; no case differed"
+ },
+ "dropped_case": "SignalToNoiseEstimatorMeanIterative<MSChromatogram> does not compile at the pin (SignalToNoiseEstimatorMeanIterative.h calls getMZ() on ChromatogramPeak), so only the MSSpectrum instantiation was dumped; its parameter contract does not depend on the container."
+}

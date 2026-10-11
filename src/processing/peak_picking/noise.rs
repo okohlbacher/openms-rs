@@ -30,7 +30,9 @@
 use super::{PickingCompatibility, SignalPoint, bad};
 use crate::concept::progress_logger::ProgressLogger;
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};
-use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
+use crate::param::{
+    DefaultParamHandler, DefaultParamHandling, Param, ParamEntry, ParamNode, ParamValue,
+};
 use crate::processing::noise_estimation::{GaussianEstimate, SignalToNoiseEstimator, x86};
 use crate::{Error, Result};
 
@@ -527,6 +529,33 @@ fn stream_double(value: f64) -> String {
     }
 }
 
+/// The source `DefaultParamHandler` base of `SignalToNoiseEstimatorMedian`;
+/// the inherent [`SignalToNoiseEstimatorMedian::defaults`] documents the
+/// parameters.
+impl DefaultParamHandling for SignalToNoiseEstimatorMedian {
+    const NAME: &'static str = SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME;
+    fn defaults() -> Result<Param> {
+        SignalToNoiseEstimatorMedian::defaults()
+    }
+    fn to_param(&self) -> Result<Param> {
+        SignalToNoiseEstimatorMedian::to_param(self)
+    }
+    fn update_members(param: &Param) -> Result<Self> {
+        Self::from_complete_param(param)
+    }
+    /// Keeps the native ceilings [`max_points`](SignalToNoiseEstimatorMedian::max_points),
+    /// [`max_bins`](SignalToNoiseEstimatorMedian::max_bins) and
+    /// [`max_work`](SignalToNoiseEstimatorMedian::max_work).
+    fn keep_native_members(&self, updated: Self) -> Self {
+        Self {
+            max_points: self.max_points,
+            max_bins: self.max_bins,
+            max_work: self.max_work,
+            ..updated
+        }
+    }
+}
+
 const MANUAL_MESSAGE: &str = "auto_mode is on MANUAL! max_intensity is <=0. Needs to be positive! Use setMaxIntensity(<value>) or enable auto_mode!";
 const PERCENTILE_MESSAGE: &str = "auto_mode is on AUTOMAXBYPERCENT! auto_max_percentile is not in [0,100]. Use setAutoMaxPercentile(<value>) to change it!";
 
@@ -722,11 +751,7 @@ impl SignalToNoiseEstimatorMedian {
     pub fn from_param_with_handler(
         parameters: &Param,
     ) -> Result<(Self, DefaultParamHandler, Vec<String>)> {
-        let mut handler = DefaultParamHandler::new(SIGNAL_TO_NOISE_ESTIMATOR_MEDIAN_NAME)?;
-        handler.set_defaults(Self::defaults()?)?;
-        let (estimator, warnings) =
-            handler.set_parameters_with(parameters, Self::from_complete_param)?;
-        Ok((estimator, handler, warnings))
+        <Self as DefaultParamHandling>::from_param_with_handler(parameters)
     }
 
     /// Replace the parameter values of this estimator, as source
@@ -740,14 +765,7 @@ impl SignalToNoiseEstimatorMedian {
     ///
     /// As [`SignalToNoiseEstimatorMedian::from_param`].
     pub fn set_parameters(&mut self, parameters: &Param) -> Result<Vec<String>> {
-        let (updated, warnings) = Self::from_param_with_warnings(parameters)?;
-        *self = Self {
-            max_points: self.max_points,
-            max_bins: self.max_bins,
-            max_work: self.max_work,
-            ..updated
-        };
-        Ok(warnings)
+        <Self as DefaultParamHandling>::set_parameters(self, parameters)
     }
 
     /// Typed members from a parameter tree that already holds every default.

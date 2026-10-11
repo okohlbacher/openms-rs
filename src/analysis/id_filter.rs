@@ -2,12 +2,47 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Native subset of OpenMS PROCESSING/ID/IDFilter.
+//! Identification filters, ported from `PROCESSING/ID/IDFilter.h` (core
+//! `bc9cc12`); `docs/ID_FILTER_SUPPORT.md` maps every source member.
 //!
 //! Filters validate all affected records before mutation. Retained records and
 //! ties keep their input order unless score sorting is explicitly required.
 //! Hit filters leave empty identifications and stored hit ranks intact. Cleanup
 //! of identifications, evidence and protein groups is always explicit.
+//!
+//! The source's predicate functors and higher-order filters are in
+//! [`predicates`](self#reexports) (re-exported here), the digestion predicates
+//! in [`PeptideDigestionFilter`] and [`DigestionFilter`], and the
+//! `IdentificationData` filters in [`keep_best_match_per_observation`],
+//! [`filter_observation_matches_by_score`] and [`remove_decoys`].
+
+mod digestion;
+mod identification_data;
+mod predicates;
+mod selection;
+
+pub use digestion::{DigestionFilter, PeptideDigestionFilter};
+pub use identification_data::{
+    filter_observation_matches_by_score, keep_best_match_per_observation, remove_decoys,
+};
+pub use predicates::{
+    AccessionSet, GetMatchingItems, HasDecoyAnnotation, HasGoodScore, HasLowMZError, HasMZInRange,
+    HasMatchingAccession, HasMatchingModification, HasMatchingSequence, HasMaxMetaValue,
+    HasMetaValue, HasMinCharge, HasMinMetaValue, HasMinPeptideLength, HasNoEvidence, HasNoHits,
+    HasRTInRange, Identification, IdentificationHit, PeptideIdentificationMap,
+    filter_peptide_evidences, keep_matching_items, keep_matching_items_unroll,
+    keep_matching_peptide_hits, move_matching_items, remove_matching_items,
+    remove_matching_items_unroll, remove_matching_peptide_hits,
+    remove_matching_peptide_identifications, try_filter_peptide_evidences, try_keep_matching_items,
+    try_remove_matching_items,
+};
+pub use selection::{
+    BEST_PER_PEPTIDE, annotate_best_per_peptide, annotate_best_per_peptide_per_run,
+    annotate_best_per_peptide_per_run_in_map, best_hit, count_hits, extract_unassigned_proteins,
+    filter_groups_by_score, filter_peptides_by_rt_predict_p_value, keep_best_per_peptide,
+    keep_best_per_peptide_per_run, keep_best_per_peptide_per_run_in_map,
+    remove_dangling_consensus_references_to_run, remove_peptides_with_matching_regex,
+};
 
 use crate::chemistry::AASequence;
 use crate::comparison::Tolerance;
@@ -20,9 +55,13 @@ use crate::{Error, Result};
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Whether a matching filter keeps or removes the matching hits (the
+/// source's paired `keep...`/`remove...` functions).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MatchAction {
+    /// Keep the matching hits (`keep...`).
     Keep,
+    /// Remove the matching hits (`remove...`).
     Remove,
 }
 impl MatchAction {
@@ -31,6 +70,8 @@ impl MatchAction {
     }
 }
 
+/// What makes two peptide hits duplicates in [`remove_duplicate_peptide_hits`]
+/// (the source's `seq_only` flag).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum DuplicatePolicy {
     /// Compare the entire hit, including score, charge, evidence and metadata.
@@ -263,6 +304,14 @@ pub fn filter_peptides_by_accessions(
     })
 }
 
+/// Keeps or removes the protein hits whose accession is in `accessions`
+/// (`keepHitsMatchingProteins`, `removeHitsMatchingProteins` for protein
+/// identifications).
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for an invalid identification, before anything is
+/// removed.
 pub fn filter_proteins_by_accessions(
     ids: &mut [ProteinIdentification],
     accessions: &BTreeSet<String>,
@@ -555,6 +604,13 @@ pub fn update_protein_groups(groups: &mut Vec<ProteinGroup>, hits: &[ProteinHit]
     Ok(valid)
 }
 
+/// Keeps the protein hits whose accession is a member of any group
+/// (`removeUngroupedProteins`).
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for an invalid group or hit, before anything is
+/// removed.
 pub fn remove_ungrouped_proteins(
     groups: &[ProteinGroup],
     hits: &mut Vec<ProteinHit>,

@@ -47,3 +47,5 @@ pub mod spectrum_lookup;
 /// Spectrum meta data by lookup, and adding it to identifications
 /// (`METADATA/SpectrumMetaDataLookup.h`).
 pub mod spectrum_meta_data_lookup;
+/// `DataValue::toString(bool)`: the source text of a `MetaValue`.
+mod value_text;

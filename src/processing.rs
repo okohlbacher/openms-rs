@@ -29,6 +29,8 @@ pub mod mean_noise;
 /// The signal-to-noise estimator base and the random-scan noise estimate
 /// (`SignalToNoiseEstimator.h`).
 pub mod noise_estimation;
+/// The `DefaultParamHandler` contracts of the filters defined in this module.
+mod parameters;
 /// High-resolution centroiding (`PeakPickerHiRes.h`) and median noise
 /// estimation (`SignalToNoiseEstimatorMedian.h`).
 pub mod peak_picking;
@@ -122,6 +124,11 @@ pub enum NormalizationMethod {
 }
 
 /// Spectrum-wise maximum or total-ion-current normalization.
+///
+/// Filtering borrows the normalizer shared (`&self`), as the source's
+/// `filterPeakSpectrum`/`filterPeakMap` are `const`: one `Normalizer` can serve
+/// several threads at once. The source's `method` parameter maps through
+/// [`DefaultParamHandling`](crate::param::DefaultParamHandling).
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Normalizer {
     /// Select maximum or TIC normalization.
@@ -220,17 +227,61 @@ impl SpectrumFilter for NLargest {
     }
 }
 
+/// The diagnostic `SqrtScaler::filterSpectrum` writes to `std::cerr` once per
+/// call that clamped at least one negative intensity to zero
+/// (`SqrtScaler.h`, including its trailing `std::endl`).
+pub const SQRT_SCALER_NEGATIVE_WARNING: &str = "Warning negative intensities were set to zero\n";
+
 /// Square-root intensities, clamping negative values to zero as OpenMS does.
+///
+/// The source prints [`SQRT_SCALER_NEGATIVE_WARNING`] to `std::cerr` once for
+/// every spectrum that held a negative intensity.
+/// [`SpectrumFilter::filter_spectrum`] writes it to the process's standard
+/// error stream as the source does, and
+/// [`SqrtScaler::filter_spectrum_with_diagnostic`] writes it to a stream the
+/// caller supplies, so a library user can capture or silence it.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SqrtScaler;
 
-impl SpectrumFilter for SqrtScaler {
-    fn filter_spectrum(&self, spectrum: &mut MSSpectrum) -> Result<()> {
+impl SqrtScaler {
+    /// Square-root the intensities of `spectrum`, writing the source's
+    /// negative-intensity warning to `diagnostic` when a clamp happened.
+    ///
+    /// The result is the same as [`SpectrumFilter::filter_spectrum`], which
+    /// passes the standard error stream. A failing `diagnostic` stream is
+    /// ignored, as an `std::cerr` write failure is in the source.
+    ///
+    /// # Errors
+    ///
+    /// Returns the error of the spectrum's validation; the spectrum is then
+    /// unchanged and nothing is written.
+    pub fn filter_spectrum_with_diagnostic(
+        &self,
+        spectrum: &mut MSSpectrum,
+        diagnostic: &mut dyn std::io::Write,
+    ) -> Result<()> {
         spectrum.validate()?;
+        let mut warning = false;
         for peak in &mut spectrum.peaks {
-            peak.intensity = f64::from(peak.intensity).max(0.0).sqrt() as f32;
+            let mut intensity = f64::from(peak.intensity);
+            if intensity < 0.0 {
+                intensity = 0.0;
+                warning = true;
+            }
+            peak.intensity = intensity.sqrt() as f32;
+        }
+        if warning {
+            // Source: the write is unchecked; the stream state is not consulted.
+            let _ = diagnostic.write_all(SQRT_SCALER_NEGATIVE_WARNING.as_bytes());
+            let _ = diagnostic.flush();
         }
         Ok(())
+    }
+}
+
+impl SpectrumFilter for SqrtScaler {
+    fn filter_spectrum(&self, spectrum: &mut MSSpectrum) -> Result<()> {
+        self.filter_spectrum_with_diagnostic(spectrum, &mut std::io::stderr())
     }
 }
 

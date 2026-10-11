@@ -1,0 +1,8 @@
+ext
+-exe
+sh
+-args
+@-c
+kill -SEGV $$
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_crash/cwd/cap

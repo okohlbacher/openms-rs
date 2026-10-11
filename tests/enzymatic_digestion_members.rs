@@ -12,7 +12,8 @@
 //! bc9cc12/c19e494/174b576; tier 1) for the name lookups, the specificity
 //! names and the missed-cleavage filter.
 
-use openms::chemistry::digestion::{DigestionSpecificity, ProteaseDB, ProteaseDigestion};
+use openms::chemistry::AASequence;
+use openms::chemistry::digestion::{ProteaseDB, ProteaseDigestion};
 use openms::chemistry::enzymatic_digestion::{
     NAMES_OF_SPECIFICITY, NO_CLEAVAGE, SIZE_OF_SPECIFICITY, Specificity, UNSPECIFIC_CLEAVAGE,
 };
@@ -44,28 +45,22 @@ fn specificity_values_and_names() {
 }
 
 #[test]
-fn source_specificity_round_trip_and_refusals() {
+fn unsupported_specificities_are_held_and_the_digest_refuses_them() {
+    // `EnzymaticDigestion::setSpecificity` stores any value; ProteaseDigestion::digest
+    // refuses SPEC_UNKNOWN, SPEC_NOCTERM and SPEC_NONTERM (ProteaseDigestion.cpp:93-98).
     let mut digestion = ProteaseDigestion::default();
-    assert_eq!(digestion.source_specificity(), Specificity::Full);
-    digestion.set_source_specificity(Specificity::Semi).unwrap();
-    assert_eq!(digestion.specificity, DigestionSpecificity::Semi);
+    assert_eq!(digestion.specificity, Specificity::Full);
+    let protein = "ACKDERFGK".parse::<AASequence>().unwrap();
+    digestion.specificity = Specificity::Semi;
+    assert!(digestion.digest(&protein).is_ok());
     for unsupported in [
         Specificity::Unknown,
         Specificity::NoCTerm,
         Specificity::NoNTerm,
     ] {
-        assert!(digestion.set_source_specificity(unsupported).is_err());
-        assert_eq!(digestion.specificity, DigestionSpecificity::Semi);
-    }
-    for supported in [
-        DigestionSpecificity::None,
-        DigestionSpecificity::Semi,
-        DigestionSpecificity::Full,
-    ] {
-        assert_eq!(
-            DigestionSpecificity::try_from(Specificity::from(supported)).unwrap(),
-            supported
-        );
+        digestion.specificity = unsupported;
+        assert_eq!(digestion.specificity.value(), unsupported.value());
+        assert!(digestion.digest(&protein).is_err(), "{unsupported}");
     }
 }
 

@@ -1,0 +1,219 @@
+{
+ "group": "paramxml_zip_input",
+ "package": "INTEG-B (Phase 3 wave 4 integration, group B): ZIP input of ParamXMLFile.h through B8a's path_io/zip_input",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ParamXMLFile.h",
+   "sha256": "dca159fa413138db18bb391fa9a128110a075cf80baf7ec2f56a499bf4a8dbf2"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ParamXMLFile.cpp",
+   "sha256": "d4a90be0706c3462bb4690f756dc0b34043dabb4d93b5fbe6453a13d545f0605"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ZipIfstream.cpp",
+   "sha256": "b2a23d1ad9d947b7fdaf417e48d3f779cd53cf1446c5dae6b92347970952b4b0"
+  }
+ ],
+ "native_implementation": [
+  "src/format/paramxml.rs",
+  "src/format/path_io.rs",
+  "src/format/zip_input.rs"
+ ],
+ "native_tests": [
+  "tests/paramxml_zip_input.rs"
+ ],
+ "support_document": "docs/PARAMXML_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/paramxml_zip_input/advanced_deflate.zip",
+   "sha256": "b5179a13ccce041f3e43566f83def0a5852b069932499b093869103552ad9c54",
+   "bytes": 845,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/oracle.tsv",
+   "sha256": "ecf042c08d46c984f2ee461c87e477fcb07cedfcd8b9899a2d3d790ee994235a",
+   "bytes": 587,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/records.tsv verbatim; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/param_bzip2.zip",
+   "sha256": "bc263ecb1ab1cc98ff644bc3ccb630c63e859e28c36a9fe26dab11cbd2005652",
+   "bytes": 896,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/param_deflate.zip",
+   "sha256": "372530d2815e68004e68855ed61eb2bfa1017cce233beaa69b005d80e77c14ff",
+   "bytes": 794,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/param_empty.zip",
+   "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+   "bytes": 22,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/param_stored.zip",
+   "sha256": "90b49bd0c62da1997f95005b0129f14ed47967672cbca0486d152f1e4932a7d9",
+   "bytes": 2592,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/param_two_entries.zip",
+   "sha256": "fe6d657f62374fe59d00ae61bc27521eadf7d9c2a5b06de86e7ea8b10dab39d5",
+   "bytes": 1617,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/param_with_directory.zip",
+   "sha256": "80ec0a97a928678b9d283969b5df81c671cdfa77f1b4265044755164b7cdda2f",
+   "bytes": 888,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/pre16_deflate.zip",
+   "sha256": "956e7d7019fe364ca9a5bc3dd75a85d3b89077c17ba128f9e449b5cee1bc5674",
+   "bytes": 775,
+   "evidence_tier": 1,
+   "kind": "synthetic: written by ../oracle/integ-B-paramxml-zip/make_inputs.py with Python zipfile (fixed timestamp) from tests/data/paramxml/ (upstream ParamXMLFile_test_writeXMLToStream.xml, Param_advanced_no_required.ini, Param_pre16_update.ini)"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/ParamXMLFile_test_writeXMLToStream.xml.xml",
+   "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454",
+   "bytes": 2418,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/ParamXMLFile_test_writeXMLToStream.xml.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/Param_advanced_no_required.ini.xml",
+   "sha256": "aafde6afbc0eb486ce3c09f0a5775e84e0d6b010208b677194e3dc31f36add3e",
+   "bytes": 1896,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/Param_advanced_no_required.ini.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/Param_pre16_update.ini.xml",
+   "sha256": "e01e053bdfeb15454a97723db7c4a04366161f4c052107c418d66d43975a64b7",
+   "bytes": 1680,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/Param_pre16_update.ini.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/advanced_deflate.zip.xml",
+   "sha256": "aafde6afbc0eb486ce3c09f0a5775e84e0d6b010208b677194e3dc31f36add3e",
+   "bytes": 1896,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/advanced_deflate.zip.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/param_bzip2.zip.xml",
+   "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454",
+   "bytes": 2418,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/param_bzip2.zip.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/param_deflate.zip.xml",
+   "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454",
+   "bytes": 2418,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/param_deflate.zip.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/param_stored.zip.xml",
+   "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454",
+   "bytes": 2418,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/param_stored.zip.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/param_with_directory.zip.xml",
+   "sha256": "4242668c0c15208f7e9058f11aac5e07fba7c65dc681a6898a15553d827bb454",
+   "bytes": 2418,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/param_with_directory.zip.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  },
+  {
+   "path": "tests/data/paramxml_zip_input/release/pre16_deflate.zip.xml",
+   "sha256": "e01e053bdfeb15454a97723db7c4a04366161f4c052107c418d66d43975a64b7",
+   "bytes": 1680,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-paramxml-zip/results/out/pre16_deflate.zip.xml, ParamXMLFile::writeXMLToStream of the Param ParamXMLFile::load read; Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records and written XML"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/integ-B-paramxml-zip/driver.cpp",
+   "sha256": "9b21a0fd38cca456fe765be07776a3de8e99facb6cbfb149d7ef2e3de97f807f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/make_inputs.py",
+   "sha256": "bbeba0e5a62b8172e62b65122b9979713a6fc1fb4be99b83772978c8852193f1",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/remote_run.sh",
+   "sha256": "eb731103d9c37ff356ced6722828f7879346d42c27d0a67adefbffae9bd52c28",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/run.sh",
+   "sha256": "3f746c55386a49692340e85f4ad75f922053c89be23f8802890175da6811ac04",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/results/records.tsv",
+   "sha256": "ecf042c08d46c984f2ee461c87e477fcb07cedfcd8b9899a2d3d790ee994235a",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/results/hashes.txt",
+   "sha256": "8db968af48cf2ee4fbc00204807dd59ddc43862c3b26b1b21403bfb877f50165",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/results/host.txt",
+   "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/results/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-paramxml-zip/results/differ.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The oracle directory lives beside the repository (../oracle/integ-B-paramxml-zip); results/host.txt names ibminode06 and the Release install, results/differ.txt is empty."
+}

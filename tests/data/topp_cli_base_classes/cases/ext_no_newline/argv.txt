@@ -1,0 +1,8 @@
+ext
+-exe
+sh
+-args
+@-c
+printf abc; printf def >&2; exit 1
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_no_newline/cwd/cap

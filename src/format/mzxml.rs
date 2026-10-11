@@ -193,34 +193,10 @@ fn finite(value: f64, label: &str) -> Result<f64> {
 /// Used only when [`WriteOptions::significant_digits`] is `Some`. Nonfinite
 /// input never reaches here; the writer's preflight rejects it.
 fn general_format(value: f64, digits: usize) -> String {
-    let digits = digits.max(1);
-    if value == 0.0 {
-        return if value.is_sign_negative() {
-            "-0".into()
-        } else {
-            "0".into()
-        };
-    }
-    let scientific = format!("{:.*e}", digits - 1, value);
-    let (mantissa, exponent) = match scientific.split_once('e') {
-        Some(parts) => parts,
-        // `{:e}` always emits an exponent; this branch cannot be reached.
-        None => return scientific,
-    };
-    let exponent: i32 = exponent.parse().unwrap_or(0);
-    if exponent < -4 || exponent >= digits as i32 {
-        let sign = if exponent < 0 { '-' } else { '+' };
-        return format!("{}e{sign}{:02}", trim_zeros(mantissa), exponent.abs());
-    }
-    let decimals = usize::try_from(digits as i32 - 1 - exponent).unwrap_or(0);
-    trim_zeros(&format!("{value:.decimals$}")).to_owned()
-}
-fn trim_zeros(text: &str) -> &str {
-    if text.contains('.') {
-        text.trim_end_matches('0').trim_end_matches('.')
-    } else {
-        text
-    }
+    // A precision above 800 gives the same text as 800: no double has more
+    // than 767 significant digits.
+    let precision = u32::try_from(digits.clamp(1, 800)).unwrap_or(800);
+    crate::concept::numeric_formatting::ostream_g(value, precision)
 }
 
 // ---------------------------------------------------------------------------

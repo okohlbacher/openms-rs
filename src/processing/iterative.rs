@@ -26,6 +26,8 @@ use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress
 use crate::kernel::{DataArray, MSExperiment, MSSpectrum, Peak1D, SpectrumType};
 use crate::math::source_sort::{TemporaryBuffer, source_sort_by, source_stable_sort_permutation};
 use crate::math::{libstdcxx, x86_64};
+use crate::param::handler::{flag_parameter, int_parameter, set_flag};
+use crate::param::{DefaultParamHandling, Param, ParamValue};
 use crate::{Error, Result};
 
 /// The progress label of source `pickExperiment` (`PeakPickerIterative.h:384`).
@@ -145,6 +147,173 @@ impl Default for PeakPickerIterative {
             clear_meta_data: false,
             max_points: 1_000_000,
             max_work: 50_000_000,
+        }
+    }
+}
+
+/// Source `PeakPickerIterative`'s `DefaultParamHandler` base, declared by the
+/// constructor (`PeakPickerIterative.h:88-112`) and read by `updateMembers_`
+/// (`:114-124`) and `pickExperiment` (`ms1_only`, `clear_meta_data`, `:380-381`).
+///
+/// | Parameter | Default | Field |
+/// |---|---|---|
+/// | `signal_to_noise_` | 1.0 | [`signal_to_noise`](PeakPickerIterative::signal_to_noise) |
+/// | `peak_width` | 0.0 | [`peak_width`](PeakPickerIterative::peak_width) |
+/// | `spacing_difference` (advanced) | 1.5 | [`spacing_difference`](PeakPickerIterative::spacing_difference) |
+/// | `sn_bin_count_` (advanced) | 30 | [`noise_estimator`](PeakPickerIterative::noise_estimator)`.bin_count` |
+/// | `nr_iterations_` (advanced, min 1) | 5 | [`iterations`](PeakPickerIterative::iterations) |
+/// | `sn_win_len_` (advanced) | 20.0 | [`noise_estimator`](PeakPickerIterative::noise_estimator)`.window_length` |
+/// | `check_width_internally` (advanced) | `false` | [`check_width_internally`](PeakPickerIterative::check_width_internally) |
+/// | `ms1_only` | `false` | [`ms1_only`](PeakPickerIterative::ms1_only) |
+/// | `clear_meta_data` | `false` | [`clear_meta_data`](PeakPickerIterative::clear_meta_data) |
+///
+/// The trailing underscores of four names are the source's spelling.
+impl DefaultParamHandling for PeakPickerIterative {
+    const NAME: &'static str = "PeakPickerIterative";
+
+    fn defaults() -> Result<Param> {
+        let advanced = ["advanced".to_owned()];
+        let mut defaults = Param::new();
+        defaults.set_value(
+            "signal_to_noise_",
+            ParamValue::Float(1.0),
+            "Signal to noise value, each peak is required to be above this value (turn off by setting it to 0.0)",
+            &[],
+        )?;
+        defaults.set_value(
+            "peak_width",
+            ParamValue::Float(0.0),
+            "Expected peak width half width in Dalton - peaks will be extended until this half width is reached (even if the intensitity is increasing). In conjunction with check_width_internally it will also be used to remove peaks whose spacing is larger than this value.",
+            &[],
+        )?;
+        defaults.set_value(
+            "spacing_difference",
+            ParamValue::Float(1.5),
+            "Difference between peaks in multiples of the minimal difference to continue. The higher this value is set, the further apart peaks are allowed to be to still extend a peak. E.g. if the value is set to 1.5 and in a current peak the minimal spacing between peaks is 10 mDa, then only peaks at most 15 mDa apart will be added to the peak.",
+            &advanced,
+        )?;
+        defaults.set_value(
+            "sn_bin_count_",
+            ParamValue::Integer(30),
+            "Bin count for the Signal to Noise estimation.",
+            &advanced,
+        )?;
+        defaults.set_value(
+            "nr_iterations_",
+            ParamValue::Integer(5),
+            "Nr of iterations to perform (how many times the peaks are re-centered).",
+            &advanced,
+        )?;
+        defaults.set_min_int("nr_iterations_", 1)?;
+        defaults.set_value(
+            "sn_win_len_",
+            ParamValue::Float(20.0),
+            "Window length for the Signal to Noise estimation.",
+            &advanced,
+        )?;
+        set_flag(
+            &mut defaults,
+            "check_width_internally",
+            false,
+            "Delete peaks where the spacing is larger than the peak width (should be set to true to avoid artefacts)",
+            &advanced,
+        )?;
+        set_flag(&mut defaults, "ms1_only", false, "Only do MS1", &[])?;
+        set_flag(
+            &mut defaults,
+            "clear_meta_data",
+            false,
+            "Delete meta data about peak width",
+            &[],
+        )?;
+        Ok(defaults)
+    }
+
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when [`iterations`](PeakPickerIterative::iterations)
+    /// or the noise estimator's bin count exceeds the source's 32-bit `int`.
+    fn to_param(&self) -> Result<Param> {
+        let mut param = Self::defaults()?;
+        param.replace_value("signal_to_noise_", ParamValue::Float(self.signal_to_noise))?;
+        param.replace_value("peak_width", ParamValue::Float(self.peak_width))?;
+        param.replace_value(
+            "spacing_difference",
+            ParamValue::Float(self.spacing_difference),
+        )?;
+        param.replace_value(
+            "sn_bin_count_",
+            int_parameter(self.noise_estimator.bin_count, "sn_bin_count_")?,
+        )?;
+        param.replace_value(
+            "nr_iterations_",
+            int_parameter(self.iterations, "nr_iterations_")?,
+        )?;
+        param.replace_value(
+            "sn_win_len_",
+            ParamValue::Float(self.noise_estimator.window_length),
+        )?;
+        param.replace_value(
+            "check_width_internally",
+            flag_parameter(self.check_width_internally),
+        )?;
+        param.replace_value("ms1_only", flag_parameter(self.ms1_only))?;
+        param.replace_value("clear_meta_data", flag_parameter(self.clear_meta_data))?;
+        Ok(param)
+    }
+
+    /// Source `updateMembers_` plus the two flags `pickExperiment` reads.
+    ///
+    /// `sn_win_len_` and `sn_bin_count_` configure
+    /// [`noise_estimator`](PeakPickerIterative::noise_estimator), whose other
+    /// members keep the median estimator's defaults: the source's `pick` builds
+    /// a default `SignalToNoiseEstimatorMedian` and sets only `win_len` and
+    /// `bin_count` on it. That estimator's own restrictions (`win_len >= 1`,
+    /// `bin_count >= 3`), which the source checks at each `pick` with a
+    /// positive `signal_to_noise_`, are checked by the estimator when it runs.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a negative `sn_bin_count_`, which the
+    /// estimator's `bin_count` cannot hold; the source refuses it at the first
+    /// `pick` with a positive `signal_to_noise_` and accepts it otherwise.
+    fn update_members(param: &Param) -> Result<Self> {
+        let count = |key: &str| -> Result<usize> {
+            usize::try_from(param.value(key)?.to_i64()?)
+                .map_err(|_| Error::InvalidValue(format!("parameter '{key}' must not be negative")))
+        };
+        let defaults = Self::default();
+        Ok(Self {
+            signal_to_noise: param.value("signal_to_noise_")?.to_f64()?,
+            peak_width: param.value("peak_width")?.to_f64()?,
+            spacing_difference: param.value("spacing_difference")?.to_f64()?,
+            noise_estimator: SignalToNoiseEstimatorMedian {
+                window_length: param.value("sn_win_len_")?.to_f64()?,
+                bin_count: count("sn_bin_count_")?,
+                ..defaults.noise_estimator
+            },
+            iterations: count("nr_iterations_")?,
+            check_width_internally: param.value("check_width_internally")?.to_bool()?,
+            ms1_only: param.value("ms1_only")?.to_bool()?,
+            clear_meta_data: param.value("clear_meta_data")?.to_bool()?,
+            ..defaults
+        })
+    }
+
+    /// Keeps [`compatibility`](PeakPickerIterative::compatibility), the limits,
+    /// and every member of the noise estimator other than its window length
+    /// and bin count.
+    fn keep_native_members(&self, updated: Self) -> Self {
+        Self {
+            noise_estimator: SignalToNoiseEstimatorMedian {
+                window_length: updated.noise_estimator.window_length,
+                bin_count: updated.noise_estimator.bin_count,
+                ..self.noise_estimator.clone()
+            },
+            compatibility: self.compatibility,
+            max_points: self.max_points,
+            max_work: self.max_work,
+            ..updated
         }
     }
 }

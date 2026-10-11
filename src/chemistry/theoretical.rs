@@ -22,12 +22,16 @@ mod budget_tests;
 mod helpers;
 #[path = "theoretical_internal.rs"]
 mod internal;
+#[path = "theoretical_parameters.rs"]
+mod parameters;
 #[path = "theoretical_presets.rs"]
 mod presets;
 #[path = "theoretical_proforma_budget.rs"]
 mod proforma_budget;
 
+/// Ceiling on the peaks one generation call may produce.
 pub const MAX_THEORETICAL_PEAKS: usize = 100_000;
+/// Ceiling on the residues of a peptide a generation call accepts.
 pub const MAX_THEORETICAL_RESIDUES: usize = 4096;
 const MAX_RESIDUE_WORK: usize = 10_000_000;
 
@@ -106,6 +110,8 @@ pub enum TheoreticalIonSeries {
 }
 
 impl TheoreticalIonSeries {
+    /// The series letter used in ion names: `a` ... `z`, `z.` for z+1 and
+    /// `z'` for z+2.
     pub fn label(self) -> &'static str {
         match self {
             Self::A => "a",
@@ -118,6 +124,7 @@ impl TheoreticalIonSeries {
             Self::ZPlusTwo => "z'",
         }
     }
+    /// Whether the series is N-terminal (a, b, c).
     pub fn is_prefix(self) -> bool {
         matches!(self, Self::A | Self::B | Self::C)
     }
@@ -137,8 +144,12 @@ impl TheoreticalIonSeries {
     }
 }
 
+/// Source parameter `isotope_model` (`none`, `coarse`, `fine`) together with
+/// the value the selected model reads (`max_isotope` or
+/// `max_isotope_probability`).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum TheoreticalIsotopeModel {
+    /// `none`: no isotope peaks (the default).
     #[default]
     None,
     /// Number of low-mass isotope bins, normalized within each envelope.
@@ -148,17 +159,31 @@ pub enum TheoreticalIsotopeModel {
 }
 
 /// Per-series intact peak intensity and independent precursor/loss intensities.
+///
+/// Each is a source parameter of type double (`a_intensity` ...
+/// `z_intensity`, `precursor_intensity`, `precursor_H2O_intensity`,
+/// `precursor_NH3_intensity`, all default 1 with minimum 0), multiplied in
+/// double precision and stored in the f32 peak as the source's `Peak1D` does.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TheoreticalIonIntensities {
-    pub a: f32,
-    pub b: f32,
-    pub c: f32,
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-    pub precursor: f32,
-    pub precursor_water_loss: f32,
-    pub precursor_ammonia_loss: f32,
+    /// Intact a-ion intensity (source `a_intensity`).
+    pub a: f64,
+    /// Intact b-ion intensity (source `b_intensity`).
+    pub b: f64,
+    /// Intact c-ion intensity (source `c_intensity`).
+    pub c: f64,
+    /// Intact x-ion intensity (source `x_intensity`).
+    pub x: f64,
+    /// Intact y-ion intensity (source `y_intensity`).
+    pub y: f64,
+    /// Intact z, z. and z' ion intensity (source `z_intensity`).
+    pub z: f64,
+    /// Intact precursor intensity (source `precursor_intensity`).
+    pub precursor: f64,
+    /// Precursor water-loss intensity (source `precursor_H2O_intensity`).
+    pub precursor_water_loss: f64,
+    /// Precursor ammonia-loss intensity (source `precursor_NH3_intensity`).
+    pub precursor_ammonia_loss: f64,
 }
 impl Default for TheoreticalIonIntensities {
     fn default() -> Self {
@@ -176,7 +201,7 @@ impl Default for TheoreticalIonIntensities {
     }
 }
 impl TheoreticalIonIntensities {
-    fn for_series(self, series: TheoreticalIonSeries) -> f32 {
+    fn for_series(self, series: TheoreticalIonSeries) -> f64 {
         match series {
             TheoreticalIonSeries::A => self.a,
             TheoreticalIonSeries::B => self.b,
@@ -188,18 +213,61 @@ impl TheoreticalIonIntensities {
     }
 }
 
+/// The values of the source's two isotope parameters as configured.
+///
+/// [`TheoreticalSpectrumGenerator::isotope_model`] carries the value its model
+/// uses; this keeps both, so that
+/// [`DefaultParamHandling::to_param`](crate::param::DefaultParamHandling::to_param)
+/// returns the parameters a generator was built from even for the model that
+/// is not selected. Generation never reads it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TheoreticalIsotopeParameters {
+    /// Source `max_isotope` (int, default 2): the isotope peaks of a coarse
+    /// envelope.
+    pub max_isotope: i32,
+    /// Source `max_isotope_probability` (double, default 0.05): the
+    /// probability a fine envelope leaves unexplained.
+    pub max_isotope_probability: f64,
+}
+impl Default for TheoreticalIsotopeParameters {
+    fn default() -> Self {
+        Self {
+            max_isotope: 2,
+            max_isotope_probability: 0.05,
+        }
+    }
+}
+
 /// Theoretical spectrum settings. Defaults match OpenMS's b/y spectrum.
+///
+/// Every field is a source parameter; the source's `DefaultParamHandler`
+/// contract maps through [`DefaultParamHandling`](crate::param::DefaultParamHandling).
 #[derive(Clone, Debug, PartialEq)]
 pub struct TheoreticalSpectrumGenerator {
+    /// The ion series to add (source `add_a_ions` ... `add_zp2_ions`); their
+    /// order here does not matter, generation follows the source's b, y, a, c,
+    /// x, z, z., z' order.
     pub ion_series: Vec<TheoreticalIonSeries>,
+    /// Intact and precursor intensities.
     pub intensities: TheoreticalIonIntensities,
+    /// Source `isotope_model` (`none`, `coarse`, `fine`) with the value the
+    /// model uses (`max_isotope` or `max_isotope_probability`).
     pub isotope_model: TheoreticalIsotopeModel,
+    /// Both isotope parameter values as configured; see
+    /// [`TheoreticalIsotopeParameters`].
+    pub isotope_parameters: TheoreticalIsotopeParameters,
+    /// Add the first prefix ion, b1 for example (source
+    /// `add_first_prefix_ion`).
     pub add_first_prefix_ion: bool,
+    /// Add water and ammonia losses to the ions expected to have them (source
+    /// `add_losses`).
     pub add_losses: bool,
     /// Water loss at prefix termini; water and ammonia loss at suffix termini.
     /// Requires add_losses and no isotope envelopes.
     pub add_terminal_losses: bool,
-    pub relative_loss_intensity: f32,
+    /// Loss-peak intensity relative to the intact ion, in `0..=1` (source
+    /// `relative_loss_intensity`, default 0.1).
+    pub relative_loss_intensity: f64,
     /// Includes intact, water-loss and ammonia-loss precursor peaks, independently
     /// of add_losses. Impossible loss formulas are skipped.
     pub add_precursor_peaks: bool,
@@ -210,7 +278,10 @@ pub struct TheoreticalSpectrumGenerator {
     pub add_internal_fragments: bool,
     /// Fixed singly charged peaks for unmodified P/C/L/H/F/Y/W residues.
     pub add_abundant_immonium_ions: bool,
+    /// Annotate every peak with its ion name and charge (source
+    /// `add_metainfo`).
     pub add_metainfo: bool,
+    /// Sort the output by m/z (source `sort_by_position`, default `true`).
     pub sort_by_position: bool,
 }
 impl Default for TheoreticalSpectrumGenerator {
@@ -219,6 +290,7 @@ impl Default for TheoreticalSpectrumGenerator {
             ion_series: vec![TheoreticalIonSeries::B, TheoreticalIonSeries::Y],
             intensities: TheoreticalIonIntensities::default(),
             isotope_model: TheoreticalIsotopeModel::None,
+            isotope_parameters: TheoreticalIsotopeParameters::default(),
             add_first_prefix_ion: false,
             add_losses: false,
             add_terminal_losses: false,
@@ -398,7 +470,7 @@ impl TheoreticalSpectrumGenerator {
                         ion.formula.as_ref(),
                         ion.mono_mass,
                         charge,
-                        f64::from(intensity),
+                        intensity,
                         &annotation,
                     )?;
                 }
@@ -419,7 +491,7 @@ impl TheoreticalSpectrumGenerator {
                             loss_formula.as_ref(),
                             ion.mono_mass - loss.mono_mass(),
                             charge,
-                            f64::from(intensity) * f64::from(self.relative_loss_intensity),
+                            intensity * self.relative_loss_intensity,
                             &annotation,
                         )?;
                     }
@@ -746,7 +818,7 @@ impl TheoreticalSpectrumGenerator {
             Some(&formula),
             peptide.mono_mass()?,
             charge,
-            f64::from(self.intensities.precursor),
+            self.intensities.precursor,
             &format!("[M+{adduct}]{suffix}"),
         )?;
         for (loss, label, intensity) in [
@@ -762,7 +834,7 @@ impl TheoreticalSpectrumGenerator {
                     Some(&loss_formula),
                     loss_formula.mono_mass(),
                     charge,
-                    f64::from(intensity),
+                    intensity,
                     &format!("[M+{adduct}-{label}]{suffix}"),
                 )?;
             }

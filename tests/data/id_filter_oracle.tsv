@@ -1,0 +1,1443 @@
+count_best	count	peptides	11
+count_best	count	proteins	4
+count_best	count	four	6
+count_best	best	peptide	0	0	0	1	MSLLSNM(Oxidation)ISIVKVGYNAR	10
+count_best	best	peptide	0	0	1	1	FINFGVNVEVLSRFQTK	40
+count_best	best	peptide	0	1	0	1	MRSLGYVAVISAVATDTDK	33.850000000000001
+count_best	best	peptide	0	1	1	1	MRSLGYVAVISAVATDTDK	33.850000000000001
+count_best	best	peptide	1	0	0	1	MSLLSNM(Oxidation)ISIVKVGYNAR	10
+count_best	best	peptide	1	0	1	1	FINFGVNVEVLSRFQTK	40
+count_best	best	peptide	1	1	0	1	FINFGVNVEVLSRFQTK	40
+count_best	best	peptide	1	1	1	1	FINFGVNVEVLSRFQTK	40
+count_best	best	protein	0	1	Q824A5	32.299999999999997
+count_best	best	protein	1	1	Q824A5	32.299999999999997
+count_best	best	several	1	MRSLGYVAVISAVATDTDK	99
+count_best	best	mismatch	InvalidValue
+count_best	best	none	0
+groups	groups	0.5	0	P0	P1	P3	P5
+groups	groups	0.5	1	P2	P4	P6
+groups	groups	0	0	P5
+groups	groups	0	1	P0	P1	P2	P3	P4	P6
+groups	groups	1	0	P0	P1	P2	P3	P4	P5	P6
+groups	groups	1	1
+groups	groups	0.69999999999999996	0	P0	P1	P2	P3	P5
+groups	groups	0.69999999999999996	1	P4	P6
+rtp	rtp	0.080000000000000002	LHASGITVTEIPVTATNFK	DLEPGTDYEVTVSTLFGR	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR
+rtp	rtp	0.050000000000000003	LHASGITVTEIPVTATNFK	DLEPGTDYEVTVSTLFGR	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR
+rtp	rtp	0.02	LHASGITVTEIPVTATNFK	MRSLGYVAVISAVATDTDK	DLEPGTDYEVTVSTLFGR	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR
+rtp	rtp	0.94999999999999996	LHASGITVTEIPVTATNFK
+rtp	rtp	0	LHASGITVTEIPVTATNFK	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR
+rtp	rtp	1
+rtp	rtp_meta	0.5	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	FINFGVNVEVLSRFQTK	THPYGHAIVAGIERYPSK
+rtp	rtp_meta	0	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR
+rtp	rtp_meta	0.29999999999999999	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	FINFGVNVEVLSRFQTK	THPYGHAIVAGIERYPSK
+regex	regex	[BJXZ]	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR
+regex	regex	^M	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	BBBBB	JJJJJ	XXXXX
+regex	regex	K$	DLEPGTDYEVTVSTLFGR	MSLLSNMISIVKVGYNAR	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex	SL{2}	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	BBBBB	JJJJJ	XXXXX
+regex	regex	N.?F	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex	(?=G)G[YQ]	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TLCHHDATFDNLVWTPK	BBBBB	JJJJJ	XXXXX
+regex	regex	
+regex	regex	^$	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex	R.*K	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	MSLLSNMISIVKVGYNAR	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex	\d	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex	A|W	DLEPGTDYEVTVSTLFGR	FINFGVNVEVLSRFQTK	BBBBB	JJJJJ	XXXXX
+regex	regex	(TV){1}S	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex	[^A-Z]	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR	BBBBB	JJJJJ	XXXXX
+regex	regex_invalid	exception
+best_per_peptide	annotate_000	id	0	runA	11
+best_per_peptide	annotate_000	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_000	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_000	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_000	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_000	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_000	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_000	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_000	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_000	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_000	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_000	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_000	id	1	runA	11
+best_per_peptide	annotate_000	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_000	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_000	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i0
+best_per_peptide	annotate_000	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	annotate_000	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i0
+best_per_peptide	annotate_000	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	annotate_000	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_000	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	annotate_000	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_000	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_000	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	annotate_000	id	2	runB	11
+best_per_peptide	annotate_000	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_000	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	annotate_000	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_000	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	annotate_000	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_000	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_000	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_000	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_000	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i0
+best_per_peptide	annotate_000	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_000	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_000	id	3	runB	5
+best_per_peptide	annotate_000	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_000	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_000	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_000	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_000	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_000	id	0	runA	8
+best_per_peptide	keep_000	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_000	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_000	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_000	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_000	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_000	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_000	hit	0	6	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_000	hit	0	7	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_000	id	1	runA	5
+best_per_peptide	keep_000	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_000	hit	1	1	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	keep_000	hit	1	2	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	keep_000	hit	1	3	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	keep_000	hit	1	4	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	keep_000	id	2	runB	3
+best_per_peptide	keep_000	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_000	hit	2	1	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_000	hit	2	2	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_000	id	3	runB	0
+best_per_peptide	annotate_run_000	id	0	runA	11
+best_per_peptide	annotate_run_000	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_000	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_000	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_000	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_000	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_000	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_run_000	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_run_000	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_run_000	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_run_000	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_000	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_run_000	id	1	runA	11
+best_per_peptide	annotate_run_000	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_000	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_run_000	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	annotate_run_000	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	annotate_run_000	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	annotate_run_000	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	annotate_run_000	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_run_000	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	annotate_run_000	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_run_000	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_run_000	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	annotate_run_000	id	2	runB	11
+best_per_peptide	annotate_run_000	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_000	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_000	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_run_000	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_run_000	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_run_000	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_run_000	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_000	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_000	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_000	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_000	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_000	id	3	runB	5
+best_per_peptide	annotate_run_000	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_run_000	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_run_000	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_run_000	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_run_000	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_run_000	id	0	runA	8
+best_per_peptide	keep_run_000	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_000	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_000	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_000	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_000	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_000	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_run_000	hit	0	6	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_run_000	hit	0	7	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_000	id	1	runA	8
+best_per_peptide	keep_run_000	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_000	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_run_000	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	keep_run_000	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	keep_run_000	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	keep_run_000	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	keep_run_000	hit	1	6	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	keep_run_000	hit	1	7	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	keep_run_000	id	2	runB	11
+best_per_peptide	keep_run_000	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_000	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_000	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_run_000	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_run_000	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_run_000	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_run_000	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_000	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_000	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_000	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_000	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_000	id	3	runB	0
+best_per_peptide	map_annotate_000_f0	id	0	runA	11
+best_per_peptide	map_annotate_000_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_000_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_000_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_000_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_000_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_000_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_annotate_000_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_annotate_000_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_annotate_000_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	map_annotate_000_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_000_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	map_annotate_000_f0	id	1	runA	11
+best_per_peptide	map_annotate_000_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_000_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_annotate_000_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_annotate_000_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_annotate_000_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_annotate_000_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_annotate_000_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	map_annotate_000_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	map_annotate_000_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	map_annotate_000_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	map_annotate_000_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	map_annotate_000_f1	id	0	runB	11
+best_per_peptide	map_annotate_000_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_000_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_000_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_annotate_000_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_annotate_000_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_annotate_000_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_annotate_000_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_000_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_000_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_000_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_000_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_000_u	id	0	runB	5
+best_per_peptide	map_annotate_000_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	map_annotate_000_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	map_annotate_000_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	map_annotate_000_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	map_annotate_000_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_keep_000_f0	id	0	runA	8
+best_per_peptide	map_keep_000_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_000_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_000_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_000_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_000_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_000_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_keep_000_f0	hit	0	6	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_keep_000_f0	hit	0	7	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_000_f0	id	1	runA	8
+best_per_peptide	map_keep_000_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_000_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_keep_000_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_keep_000_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_keep_000_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_keep_000_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_keep_000_f0	hit	1	6	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	map_keep_000_f0	hit	1	7	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	map_keep_000_f1	id	0	runB	11
+best_per_peptide	map_keep_000_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_000_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_000_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_keep_000_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_keep_000_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_keep_000_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_keep_000_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_000_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_000_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_000_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_000_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_000_u	id	0	runB	0
+best_per_peptide	annotate_100	id	0	runA	11
+best_per_peptide	annotate_100	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_100	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_100	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_100	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_100	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_100	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_100	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_100	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_100	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_100	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_100	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_100	id	1	runA	11
+best_per_peptide	annotate_100	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_100	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_100	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i0
+best_per_peptide	annotate_100	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	annotate_100	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i0
+best_per_peptide	annotate_100	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	annotate_100	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_100	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	annotate_100	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_100	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_100	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	annotate_100	id	2	runB	11
+best_per_peptide	annotate_100	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_100	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	annotate_100	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_100	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	annotate_100	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_100	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_100	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_100	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_100	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i0
+best_per_peptide	annotate_100	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_100	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_100	id	3	runB	5
+best_per_peptide	annotate_100	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_100	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_100	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_100	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_100	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_100	id	0	runA	7
+best_per_peptide	keep_100	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_100	hit	0	1	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_100	hit	0	2	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_100	hit	0	3	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_100	hit	0	4	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_100	hit	0	5	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_100	hit	0	6	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_100	id	1	runA	5
+best_per_peptide	keep_100	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_100	hit	1	1	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	keep_100	hit	1	2	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	keep_100	hit	1	3	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	keep_100	hit	1	4	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	keep_100	id	2	runB	3
+best_per_peptide	keep_100	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_100	hit	2	1	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_100	hit	2	2	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_100	id	3	runB	0
+best_per_peptide	annotate_run_100	id	0	runA	11
+best_per_peptide	annotate_run_100	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_100	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_100	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_100	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_100	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_100	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_run_100	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_run_100	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_run_100	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_run_100	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_100	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_run_100	id	1	runA	11
+best_per_peptide	annotate_run_100	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_run_100	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_run_100	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	annotate_run_100	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	annotate_run_100	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	annotate_run_100	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	annotate_run_100	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_run_100	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	annotate_run_100	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_run_100	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_run_100	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	annotate_run_100	id	2	runB	11
+best_per_peptide	annotate_run_100	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_100	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_100	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_run_100	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_run_100	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_run_100	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_run_100	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_100	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_100	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_100	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_100	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_run_100	id	3	runB	5
+best_per_peptide	annotate_run_100	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_run_100	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_run_100	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_run_100	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_run_100	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_run_100	id	0	runA	8
+best_per_peptide	keep_run_100	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_100	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_100	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_100	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_100	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_100	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_run_100	hit	0	6	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_run_100	hit	0	7	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_100	id	1	runA	7
+best_per_peptide	keep_run_100	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_run_100	hit	1	1	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	keep_run_100	hit	1	2	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	keep_run_100	hit	1	3	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	keep_run_100	hit	1	4	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	keep_run_100	hit	1	5	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	keep_run_100	hit	1	6	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	keep_run_100	id	2	runB	10
+best_per_peptide	keep_run_100	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_100	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_100	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_run_100	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_run_100	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_run_100	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_run_100	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_100	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_100	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_100	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_100	id	3	runB	0
+best_per_peptide	map_annotate_100_f0	id	0	runA	11
+best_per_peptide	map_annotate_100_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_100_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_100_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_100_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_100_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_100_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_annotate_100_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_annotate_100_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_annotate_100_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	map_annotate_100_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_100_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	map_annotate_100_f0	id	1	runA	11
+best_per_peptide	map_annotate_100_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	map_annotate_100_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_annotate_100_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_annotate_100_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_annotate_100_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_annotate_100_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_annotate_100_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	map_annotate_100_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	map_annotate_100_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	map_annotate_100_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	map_annotate_100_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	map_annotate_100_f1	id	0	runB	11
+best_per_peptide	map_annotate_100_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_100_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_100_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_annotate_100_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_annotate_100_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_annotate_100_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_annotate_100_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_100_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_100_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_100_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_100_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	map_annotate_100_u	id	0	runB	5
+best_per_peptide	map_annotate_100_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	map_annotate_100_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	map_annotate_100_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	map_annotate_100_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	map_annotate_100_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_keep_100_f0	id	0	runA	8
+best_per_peptide	map_keep_100_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_100_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_100_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_100_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_100_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_100_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_keep_100_f0	hit	0	6	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_keep_100_f0	hit	0	7	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_100_f0	id	1	runA	7
+best_per_peptide	map_keep_100_f0	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_keep_100_f0	hit	1	1	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_keep_100_f0	hit	1	2	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_keep_100_f0	hit	1	3	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_keep_100_f0	hit	1	4	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_keep_100_f0	hit	1	5	LHASGITVTEIPVTATNFK	3	15.149999999999999	i1
+best_per_peptide	map_keep_100_f0	hit	1	6	MSLLSNMISIVKVGYNAR	3	10	i1
+best_per_peptide	map_keep_100_f1	id	0	runB	10
+best_per_peptide	map_keep_100_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_100_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_100_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_keep_100_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_keep_100_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_keep_100_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_keep_100_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_100_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_100_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_100_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_100_u	id	0	runB	0
+best_per_peptide	annotate_010	id	0	runA	11
+best_per_peptide	annotate_010	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_010	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_010	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_010	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_010	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_010	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_010	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_010	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	annotate_010	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_010	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	annotate_010	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_010	id	1	runA	11
+best_per_peptide	annotate_010	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_010	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i0
+best_per_peptide	annotate_010	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i0
+best_per_peptide	annotate_010	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i0
+best_per_peptide	annotate_010	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i0
+best_per_peptide	annotate_010	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i0
+best_per_peptide	annotate_010	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_010	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i0
+best_per_peptide	annotate_010	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_010	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_010	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i0
+best_per_peptide	annotate_010	id	2	runB	11
+best_per_peptide	annotate_010	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_010	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_010	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_010	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_010	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_010	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_010	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_010	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_010	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i0
+best_per_peptide	annotate_010	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_010	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_010	id	3	runB	5
+best_per_peptide	annotate_010	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_010	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_010	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_010	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_010	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_010	id	0	runA	5
+best_per_peptide	keep_010	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_010	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_010	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_010	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_010	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_010	id	1	runA	0
+best_per_peptide	keep_010	id	2	runB	6
+best_per_peptide	keep_010	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_010	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_010	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_010	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_010	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_010	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_010	id	3	runB	0
+best_per_peptide	annotate_run_010	id	0	runA	11
+best_per_peptide	annotate_run_010	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_010	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_010	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_010	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_010	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_010	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_run_010	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_run_010	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	annotate_run_010	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_run_010	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	annotate_run_010	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_run_010	id	1	runA	11
+best_per_peptide	annotate_run_010	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_010	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_run_010	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	annotate_run_010	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	annotate_run_010	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	annotate_run_010	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	annotate_run_010	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_run_010	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i0
+best_per_peptide	annotate_run_010	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_run_010	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_run_010	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i0
+best_per_peptide	annotate_run_010	id	2	runB	11
+best_per_peptide	annotate_run_010	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_010	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_010	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_run_010	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_run_010	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_run_010	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_run_010	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_010	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_010	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_010	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_010	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_010	id	3	runB	5
+best_per_peptide	annotate_run_010	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_run_010	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_run_010	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_run_010	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_run_010	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_run_010	id	0	runA	5
+best_per_peptide	keep_run_010	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_010	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_010	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_010	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_010	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_010	id	1	runA	6
+best_per_peptide	keep_run_010	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_010	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_run_010	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	keep_run_010	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	keep_run_010	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	keep_run_010	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	keep_run_010	id	2	runB	11
+best_per_peptide	keep_run_010	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_010	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_010	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_run_010	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_run_010	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_run_010	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_run_010	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_010	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_010	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_010	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_010	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_010	id	3	runB	0
+best_per_peptide	map_annotate_010_f0	id	0	runA	11
+best_per_peptide	map_annotate_010_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_010_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_010_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_010_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_010_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_010_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	map_annotate_010_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_annotate_010_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	map_annotate_010_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	map_annotate_010_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	map_annotate_010_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	map_annotate_010_f0	id	1	runA	11
+best_per_peptide	map_annotate_010_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_010_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_annotate_010_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_annotate_010_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_annotate_010_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_annotate_010_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_annotate_010_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	map_annotate_010_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i0
+best_per_peptide	map_annotate_010_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	map_annotate_010_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	map_annotate_010_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i0
+best_per_peptide	map_annotate_010_f1	id	0	runB	11
+best_per_peptide	map_annotate_010_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_010_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_010_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_annotate_010_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_annotate_010_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_annotate_010_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_annotate_010_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_010_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_010_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_010_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_010_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_010_u	id	0	runB	5
+best_per_peptide	map_annotate_010_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	map_annotate_010_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	map_annotate_010_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	map_annotate_010_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	map_annotate_010_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_keep_010_f0	id	0	runA	5
+best_per_peptide	map_keep_010_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_010_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_010_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_010_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_010_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_010_f0	id	1	runA	6
+best_per_peptide	map_keep_010_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_010_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_keep_010_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_keep_010_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_keep_010_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_keep_010_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_keep_010_f1	id	0	runB	11
+best_per_peptide	map_keep_010_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_010_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_010_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_keep_010_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_keep_010_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_keep_010_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_keep_010_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_010_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_010_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_010_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_010_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_010_u	id	0	runB	0
+best_per_peptide	annotate_110	id	0	runA	11
+best_per_peptide	annotate_110	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_110	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_110	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_110	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_110	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_110	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_110	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_110	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	annotate_110	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_110	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	annotate_110	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_110	id	1	runA	11
+best_per_peptide	annotate_110	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_110	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i0
+best_per_peptide	annotate_110	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i0
+best_per_peptide	annotate_110	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i0
+best_per_peptide	annotate_110	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i0
+best_per_peptide	annotate_110	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i0
+best_per_peptide	annotate_110	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_110	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i0
+best_per_peptide	annotate_110	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_110	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_110	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i0
+best_per_peptide	annotate_110	id	2	runB	11
+best_per_peptide	annotate_110	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_110	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_110	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_110	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_110	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_110	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_110	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_110	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_110	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i0
+best_per_peptide	annotate_110	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_110	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_110	id	3	runB	5
+best_per_peptide	annotate_110	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_110	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_110	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_110	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_110	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_110	id	0	runA	4
+best_per_peptide	keep_110	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_110	hit	0	1	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_110	hit	0	2	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_110	hit	0	3	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_110	id	1	runA	0
+best_per_peptide	keep_110	id	2	runB	6
+best_per_peptide	keep_110	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_110	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_110	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_110	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_110	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_110	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_110	id	3	runB	0
+best_per_peptide	annotate_run_110	id	0	runA	11
+best_per_peptide	annotate_run_110	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_110	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_110	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_110	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_110	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_110	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_run_110	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	annotate_run_110	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	annotate_run_110	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	annotate_run_110	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	annotate_run_110	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	annotate_run_110	id	1	runA	11
+best_per_peptide	annotate_run_110	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_run_110	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_run_110	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	annotate_run_110	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	annotate_run_110	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	annotate_run_110	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	annotate_run_110	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	annotate_run_110	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i0
+best_per_peptide	annotate_run_110	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	annotate_run_110	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	annotate_run_110	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i0
+best_per_peptide	annotate_run_110	id	2	runB	11
+best_per_peptide	annotate_run_110	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_110	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_110	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_run_110	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	annotate_run_110	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	annotate_run_110	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	annotate_run_110	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_110	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_110	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_110	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_110	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_run_110	id	3	runB	5
+best_per_peptide	annotate_run_110	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_run_110	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	annotate_run_110	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	annotate_run_110	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	annotate_run_110	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	keep_run_110	id	0	runA	5
+best_per_peptide	keep_run_110	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_110	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_110	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_110	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_110	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_110	id	1	runA	5
+best_per_peptide	keep_run_110	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_run_110	hit	1	1	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	keep_run_110	hit	1	2	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	keep_run_110	hit	1	3	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	keep_run_110	hit	1	4	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	keep_run_110	id	2	runB	10
+best_per_peptide	keep_run_110	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_110	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_110	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_run_110	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	keep_run_110	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	keep_run_110	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	keep_run_110	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	keep_run_110	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_110	hit	2	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_110	hit	2	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_110	id	3	runB	0
+best_per_peptide	map_annotate_110_f0	id	0	runA	11
+best_per_peptide	map_annotate_110_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_110_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_110_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_110_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_110_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_110_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	map_annotate_110_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_annotate_110_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	i0
+best_per_peptide	map_annotate_110_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	i0
+best_per_peptide	map_annotate_110_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	i0
+best_per_peptide	map_annotate_110_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i0
+best_per_peptide	map_annotate_110_f0	id	1	runA	11
+best_per_peptide	map_annotate_110_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	map_annotate_110_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_annotate_110_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_annotate_110_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_annotate_110_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_annotate_110_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_annotate_110_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	i0
+best_per_peptide	map_annotate_110_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	i0
+best_per_peptide	map_annotate_110_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	i0
+best_per_peptide	map_annotate_110_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	i0
+best_per_peptide	map_annotate_110_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	i0
+best_per_peptide	map_annotate_110_f1	id	0	runB	11
+best_per_peptide	map_annotate_110_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_110_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_110_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_annotate_110_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_annotate_110_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_annotate_110_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_annotate_110_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_110_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_110_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_110_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_110_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	map_annotate_110_u	id	0	runB	5
+best_per_peptide	map_annotate_110_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	map_annotate_110_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i0
+best_per_peptide	map_annotate_110_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i0
+best_per_peptide	map_annotate_110_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	i0
+best_per_peptide	map_annotate_110_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i0
+best_per_peptide	map_keep_110_f0	id	0	runA	5
+best_per_peptide	map_keep_110_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_110_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_110_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_110_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_110_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_110_f0	id	1	runA	5
+best_per_peptide	map_keep_110_f0	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_keep_110_f0	hit	1	1	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_keep_110_f0	hit	1	2	AITSDFANQAKTVLQNFK	3	38.899999999999999	i1
+best_per_peptide	map_keep_110_f0	hit	1	3	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	i1
+best_per_peptide	map_keep_110_f0	hit	1	4	EGASTDFAALRTFLAEDGK	3	37.269999999999996	i1
+best_per_peptide	map_keep_110_f1	id	0	runB	10
+best_per_peptide	map_keep_110_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_110_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_110_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_keep_110_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	i1
+best_per_peptide	map_keep_110_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	i1
+best_per_peptide	map_keep_110_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	i1
+best_per_peptide	map_keep_110_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_keep_110_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_110_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_110_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_110_u	id	0	runB	0
+best_per_peptide	annotate_001	id	0	runA	11
+best_per_peptide	annotate_001	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_001	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_001	hit	0	2	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_001	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_001	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_001	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_001	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_001	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_001	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_001	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_001	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	annotate_001	id	1	runA	11
+best_per_peptide	annotate_001	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_001	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	-
+best_per_peptide	annotate_001	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	-
+best_per_peptide	annotate_001	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	annotate_001	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	annotate_001	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	annotate_001	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	annotate_001	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	annotate_001	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	annotate_001	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	annotate_001	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	annotate_001	id	2	runB	11
+best_per_peptide	annotate_001	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_001	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_001	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_001	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_001	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_001	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_001	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_001	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_001	hit	2	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_001	hit	2	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	annotate_001	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_001	id	3	runB	5
+best_per_peptide	annotate_001	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_001	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_001	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_001	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_001	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	keep_001	id	0	runA	1
+best_per_peptide	keep_001	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_001	id	1	runA	0
+best_per_peptide	keep_001	id	2	runB	1
+best_per_peptide	keep_001	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_001	id	3	runB	0
+best_per_peptide	annotate_run_001	id	0	runA	11
+best_per_peptide	annotate_run_001	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_001	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_run_001	hit	0	2	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_run_001	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_001	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_001	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_001	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_run_001	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_run_001	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_run_001	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_run_001	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	annotate_run_001	id	1	runA	11
+best_per_peptide	annotate_run_001	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_001	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	-
+best_per_peptide	annotate_run_001	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	-
+best_per_peptide	annotate_run_001	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	annotate_run_001	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	annotate_run_001	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	annotate_run_001	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	annotate_run_001	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	annotate_run_001	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	annotate_run_001	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	annotate_run_001	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	annotate_run_001	id	2	runB	11
+best_per_peptide	annotate_run_001	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_001	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_run_001	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_run_001	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_run_001	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_run_001	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_001	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_001	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_001	hit	2	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_run_001	hit	2	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	annotate_run_001	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_run_001	id	3	runB	5
+best_per_peptide	annotate_run_001	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_001	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_001	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_001	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_001	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	keep_run_001	id	0	runA	1
+best_per_peptide	keep_run_001	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_001	id	1	runA	1
+best_per_peptide	keep_run_001	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_001	id	2	runB	1
+best_per_peptide	keep_run_001	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_001	id	3	runB	1
+best_per_peptide	keep_run_001	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_001_f0	id	0	runA	11
+best_per_peptide	map_annotate_001_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_001_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	map_annotate_001_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	map_annotate_001_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_001_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_001_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_001_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_annotate_001_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	map_annotate_001_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	map_annotate_001_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	map_annotate_001_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	map_annotate_001_f0	id	1	runA	11
+best_per_peptide	map_annotate_001_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_001_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	-
+best_per_peptide	map_annotate_001_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	-
+best_per_peptide	map_annotate_001_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	map_annotate_001_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	map_annotate_001_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	map_annotate_001_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	map_annotate_001_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	map_annotate_001_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	map_annotate_001_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	map_annotate_001_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	map_annotate_001_f1	id	0	runB	11
+best_per_peptide	map_annotate_001_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_001_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	map_annotate_001_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	map_annotate_001_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	map_annotate_001_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_annotate_001_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_001_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_001_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_001_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	map_annotate_001_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	map_annotate_001_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	map_annotate_001_u	id	0	runB	5
+best_per_peptide	map_annotate_001_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_001_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_001_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_001_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_001_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_keep_001_f0	id	0	runA	1
+best_per_peptide	map_keep_001_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_001_f0	id	1	runA	1
+best_per_peptide	map_keep_001_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_001_f1	id	0	runB	1
+best_per_peptide	map_keep_001_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_001_u	id	0	runB	1
+best_per_peptide	map_keep_001_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_003	id	0	runA	11
+best_per_peptide	annotate_003	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_003	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_003	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_003	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_003	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_003	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_003	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_003	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_003	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_003	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_003	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	annotate_003	id	1	runA	11
+best_per_peptide	annotate_003	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_003	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_003	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i0
+best_per_peptide	annotate_003	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	annotate_003	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	annotate_003	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	annotate_003	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	annotate_003	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	annotate_003	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	annotate_003	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	annotate_003	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	annotate_003	id	2	runB	11
+best_per_peptide	annotate_003	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_003	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_003	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_003	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_003	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_003	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_003	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_003	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_003	hit	2	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_003	hit	2	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	annotate_003	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_003	id	3	runB	5
+best_per_peptide	annotate_003	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_003	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_003	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_003	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_003	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	keep_003	id	0	runA	3
+best_per_peptide	keep_003	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_003	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_003	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_003	id	1	runA	1
+best_per_peptide	keep_003	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_003	id	2	runB	3
+best_per_peptide	keep_003	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_003	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_003	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_003	id	3	runB	2
+best_per_peptide	keep_003	hit	3	0	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_003	hit	3	1	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_003	id	0	runA	11
+best_per_peptide	annotate_run_003	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_003	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_003	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	annotate_run_003	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_003	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_003	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_003	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_run_003	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_run_003	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_run_003	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_run_003	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	annotate_run_003	id	1	runA	11
+best_per_peptide	annotate_run_003	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_003	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_run_003	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	annotate_run_003	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	annotate_run_003	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	annotate_run_003	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	annotate_run_003	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	annotate_run_003	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	annotate_run_003	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	annotate_run_003	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	annotate_run_003	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	annotate_run_003	id	2	runB	11
+best_per_peptide	annotate_run_003	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_003	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_003	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	annotate_run_003	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_run_003	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_run_003	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_003	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_003	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_003	hit	2	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_run_003	hit	2	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	annotate_run_003	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_run_003	id	3	runB	5
+best_per_peptide	annotate_run_003	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_003	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_003	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_run_003	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_003	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	keep_run_003	id	0	runA	3
+best_per_peptide	keep_run_003	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_003	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_003	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	keep_run_003	id	1	runA	3
+best_per_peptide	keep_run_003	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_003	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_run_003	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	keep_run_003	id	2	runB	3
+best_per_peptide	keep_run_003	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_003	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_003	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	keep_run_003	id	3	runB	3
+best_per_peptide	keep_run_003	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_003	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	keep_run_003	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_003_f0	id	0	runA	11
+best_per_peptide	map_annotate_003_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_003_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_003_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_annotate_003_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_003_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_003_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_003_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_annotate_003_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	map_annotate_003_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	map_annotate_003_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	map_annotate_003_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	map_annotate_003_f0	id	1	runA	11
+best_per_peptide	map_annotate_003_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_003_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_annotate_003_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_annotate_003_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	map_annotate_003_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	map_annotate_003_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	map_annotate_003_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	map_annotate_003_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	map_annotate_003_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	map_annotate_003_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	map_annotate_003_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	map_annotate_003_f1	id	0	runB	11
+best_per_peptide	map_annotate_003_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_003_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_003_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_annotate_003_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	map_annotate_003_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_annotate_003_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_003_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_003_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_003_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	map_annotate_003_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	map_annotate_003_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	map_annotate_003_u	id	0	runB	5
+best_per_peptide	map_annotate_003_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_003_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_003_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	map_annotate_003_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_003_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_keep_003_f0	id	0	runA	3
+best_per_peptide	map_keep_003_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_003_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_003_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	i1
+best_per_peptide	map_keep_003_f0	id	1	runA	3
+best_per_peptide	map_keep_003_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_003_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_keep_003_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	i1
+best_per_peptide	map_keep_003_f1	id	0	runB	3
+best_per_peptide	map_keep_003_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_003_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_003_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	i1
+best_per_peptide	map_keep_003_u	id	0	runB	3
+best_per_peptide	map_keep_003_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_003_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_keep_003_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	i1
+best_per_peptide	annotate_112	id	0	runA	11
+best_per_peptide	annotate_112	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_112	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_112	hit	0	2	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_112	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_112	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_112	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_112	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_112	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_112	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_112	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_112	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	annotate_112	id	1	runA	11
+best_per_peptide	annotate_112	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_112	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i0
+best_per_peptide	annotate_112	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	-
+best_per_peptide	annotate_112	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	annotate_112	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	annotate_112	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	annotate_112	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	annotate_112	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	annotate_112	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	annotate_112	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	annotate_112	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	annotate_112	id	2	runB	11
+best_per_peptide	annotate_112	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_112	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_112	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_112	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_112	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_112	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_112	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_112	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_112	hit	2	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_112	hit	2	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	annotate_112	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_112	id	3	runB	5
+best_per_peptide	annotate_112	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i0
+best_per_peptide	annotate_112	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_112	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_112	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_112	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	keep_112	id	0	runA	1
+best_per_peptide	keep_112	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_112	id	1	runA	0
+best_per_peptide	keep_112	id	2	runB	2
+best_per_peptide	keep_112	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_112	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_112	id	3	runB	1
+best_per_peptide	keep_112	hit	3	0	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_112	id	0	runA	11
+best_per_peptide	annotate_run_112	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_112	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	annotate_run_112	hit	0	2	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_run_112	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_112	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_112	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_112	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_run_112	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_run_112	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_run_112	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	annotate_run_112	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	annotate_run_112	id	1	runA	11
+best_per_peptide	annotate_run_112	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	annotate_run_112	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	annotate_run_112	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	-
+best_per_peptide	annotate_run_112	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	annotate_run_112	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	annotate_run_112	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	annotate_run_112	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	annotate_run_112	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	annotate_run_112	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	annotate_run_112	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	annotate_run_112	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	annotate_run_112	id	2	runB	11
+best_per_peptide	annotate_run_112	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	annotate_run_112	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	annotate_run_112	hit	2	2	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	annotate_run_112	hit	2	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	annotate_run_112	hit	2	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	annotate_run_112	hit	2	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_112	hit	2	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_112	hit	2	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	annotate_run_112	hit	2	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	annotate_run_112	hit	2	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	annotate_run_112	hit	2	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	annotate_run_112	id	3	runB	5
+best_per_peptide	annotate_run_112	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	annotate_run_112	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	annotate_run_112	hit	3	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	annotate_run_112	hit	3	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	annotate_run_112	hit	3	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	keep_run_112	id	0	runA	2
+best_per_peptide	keep_run_112	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_112	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	keep_run_112	id	1	runA	1
+best_per_peptide	keep_run_112	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	keep_run_112	id	2	runB	2
+best_per_peptide	keep_run_112	hit	2	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	keep_run_112	hit	2	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	keep_run_112	id	3	runB	2
+best_per_peptide	keep_run_112	hit	3	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	keep_run_112	hit	3	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_112_f0	id	0	runA	11
+best_per_peptide	map_annotate_112_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_112_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_annotate_112_f0	hit	0	2	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	map_annotate_112_f0	hit	0	3	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_112_f0	hit	0	4	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_112_f0	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_112_f0	hit	0	6	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_annotate_112_f0	hit	0	7	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	map_annotate_112_f0	hit	0	8	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	map_annotate_112_f0	hit	0	9	TLCHHDATFDNLVWTPK	2	10.369999999999999	-
+best_per_peptide	map_annotate_112_f0	hit	0	10	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	-
+best_per_peptide	map_annotate_112_f0	id	1	runA	11
+best_per_peptide	map_annotate_112_f0	hit	1	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	40	i0
+best_per_peptide	map_annotate_112_f0	hit	1	1	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_annotate_112_f0	hit	1	2	TGCDTWGQGTLVTVSSASTK	2	39.07	-
+best_per_peptide	map_annotate_112_f0	hit	1	3	AITSDFANQAKTVLQNFK	3	38.899999999999999	-
+best_per_peptide	map_annotate_112_f0	hit	1	4	DLEPGTDYEVTVSTLFGR	2	38.210000000000001	-
+best_per_peptide	map_annotate_112_f0	hit	1	5	EGASTDFAALRTFLAEDGK	3	37.269999999999996	-
+best_per_peptide	map_annotate_112_f0	hit	1	6	MRSLGYVAVISAVATDTDK	2	16.149999999999999	-
+best_per_peptide	map_annotate_112_f0	hit	1	7	LHASGITVTEIPVTATNFK	3	15.149999999999999	-
+best_per_peptide	map_annotate_112_f0	hit	1	8	THPYGHAIVAGIERYPSK	2	11	-
+best_per_peptide	map_annotate_112_f0	hit	1	9	FINFGVNVEVLSRFQTK	2	10	-
+best_per_peptide	map_annotate_112_f0	hit	1	10	MSLLSNMISIVKVGYNAR	3	10	-
+best_per_peptide	map_annotate_112_f1	id	0	runB	11
+best_per_peptide	map_annotate_112_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_annotate_112_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_annotate_112_f1	hit	0	2	TGCDTWGQGTLVTVSSASTK	2	10.93	-
+best_per_peptide	map_annotate_112_f1	hit	0	3	AITSDFANQAKTVLQNFK	2	11.1	-
+best_per_peptide	map_annotate_112_f1	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_annotate_112_f1	hit	0	5	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_112_f1	hit	0	6	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_112_f1	hit	0	7	LHASGITVTEIPVTATNFK	2	34.850000000000001	-
+best_per_peptide	map_annotate_112_f1	hit	0	8	THPYGHAIVAGIERYPSK	2	39	-
+best_per_peptide	map_annotate_112_f1	hit	0	9	FINFGVNVEVLSRFQTK	2	40	-
+best_per_peptide	map_annotate_112_f1	hit	0	10	MSLLSNMISIVKVGYNAR	2	40	-
+best_per_peptide	map_annotate_112_u	id	0	runB	5
+best_per_peptide	map_annotate_112_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_annotate_112_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+best_per_peptide	map_annotate_112_u	hit	0	2	MRSLGYVAVISAVATDTDK	2	33.850000000000001	-
+best_per_peptide	map_annotate_112_u	hit	0	3	EGASTDFAALRTFLAEDGK	2	12.73	-
+best_per_peptide	map_annotate_112_u	hit	0	4	DLEPGTDYEVTVSTLFGR	2	11.789999999999999	-
+best_per_peptide	map_keep_112_f0	id	0	runA	2
+best_per_peptide	map_keep_112_f0	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_112_f0	hit	0	1	MSLLSNMISIVKVGYNAR	2	40	i1
+best_per_peptide	map_keep_112_f0	id	1	runA	1
+best_per_peptide	map_keep_112_f0	hit	1	0	TLCHHDATFDNLVWTPK	3	39.630000000000003	i1
+best_per_peptide	map_keep_112_f1	id	0	runB	2
+best_per_peptide	map_keep_112_f1	hit	0	0	MSLLSNM(Oxidation)ISIVKVGYNAR	2	10	i1
+best_per_peptide	map_keep_112_f1	hit	0	1	TLCHHDATFDNLVWTPK	2	10.369999999999999	i1
+best_per_peptide	map_keep_112_u	id	0	runB	2
+best_per_peptide	map_keep_112_u	hit	0	0	FINFGVNVEVLSRFQTK	2	40	i1
+best_per_peptide	map_keep_112_u	hit	0	1	LHASGITVTEIPVTATNFK	2	34.850000000000001	i1
+meta_predicates	meta	has_any	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	DLEPGTDYEVTVSTLFGR	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR
+meta_predicates	meta	has_2.0	FINFGVNVEVLSRFQTK
+meta_predicates	meta	has_int5	MSLLSNMISIVKVGYNAR
+meta_predicates	meta	has_double5
+meta_predicates	meta	has_s2	DLEPGTDYEVTVSTLFGR
+meta_predicates	meta	max_2	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK
+meta_predicates	meta	min_2	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK
+meta_predicates	meta	max_4.5	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	FINFGVNVEVLSRFQTK	TGCDTWGQGTLVTVSSASTK
+meta_predicates	meta	min_4.5	MSLLSNMISIVKVGYNAR	TLCHHDATFDNLVWTPK
+meta_predicates	meta	max_0	MRSLGYVAVISAVATDTDK
+meta_predicates	meta	min_0	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK
+meta_predicates	meta	max_9	MRSLGYVAVISAVATDTDK	EGASTDFAALRTFLAEDGK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK
+meta_predicates	meta	min_9	TLCHHDATFDNLVWTPK
+meta_predicates	meta	not_decoy	LHASGITVTEIPVTATNFK	FINFGVNVEVLSRFQTK	MSLLSNMISIVKVGYNAR	THPYGHAIVAGIERYPSK	AITSDFANQAKTVLQNFK	TGCDTWGQGTLVTVSSASTK	TLCHHDATFDNLVWTPK	MSLLSNM(Oxidation)ISIVKVGYNAR
+meta_predicates	move	kept	7	1	2	5	4
+meta_predicates	move	moved	100	3	6	0
+unassigned	unassigned	run1	B	D	E	H	I
+unassigned	unassigned	run2	F
+unassigned	unassigned	run3	J
+unassigned	remaining	run1	A	C
+unassigned	remaining	run2	G
+unassigned	remaining	run1	C	A
+unassigned	remaining	run3
+digestion_peptide	digest_pep	Trypsin	0	1	0	0	0	1	0	1	0	0	0	1
+digestion_peptide	digest_pep	Trypsin	0	2	0	0	0	0	0	1	0	0	0	1
+digestion_peptide	digest_pep	Trypsin	-1	0	0	0	1	1	1	1	0	0	0	1
+digestion_peptide	digest_pep	Trypsin	1	-1	1	1	0	0	0	0	1	1	1	0
+digestion_peptide	digest_pep	Trypsin	-1	-1	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	Trypsin	0	0	0	0	1	1	1	1	0	0	0	1
+digestion_peptide	digest_pep	Trypsin	2	5	1	1	1	0	1	0	1	1	1	0
+digestion_peptide	digest_pep	Asp-N_ambic	0	1	1	1	1	1	0	0	1	0	0	0
+digestion_peptide	digest_pep	Asp-N_ambic	0	2	0	0	0	0	0	0	1	0	0	0
+digestion_peptide	digest_pep	Asp-N_ambic	-1	0	1	1	1	1	0	0	1	0	0	0
+digestion_peptide	digest_pep	Asp-N_ambic	1	-1	0	0	0	0	1	1	0	1	1	1
+digestion_peptide	digest_pep	Asp-N_ambic	-1	-1	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	Asp-N_ambic	0	0	1	1	1	1	0	0	1	0	0	0
+digestion_peptide	digest_pep	Asp-N_ambic	2	5	0	0	0	0	1	1	0	1	1	1
+digestion_peptide	digest_pep	no cleavage	0	1	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	no cleavage	0	2	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	no cleavage	-1	0	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	no cleavage	1	-1	1	1	1	1	1	1	1	1	1	1
+digestion_peptide	digest_pep	no cleavage	-1	-1	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	no cleavage	0	0	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	no cleavage	2	5	1	1	1	1	1	1	1	1	1	1
+digestion_peptide	digest_pep	unspecific cleavage	0	1	1	1	1	1	1	1	1	0	1	1
+digestion_peptide	digest_pep	unspecific cleavage	0	2	1	1	1	1	1	1	1	0	1	1
+digestion_peptide	digest_pep	unspecific cleavage	-1	0	1	1	1	1	1	1	1	0	1	1
+digestion_peptide	digest_pep	unspecific cleavage	1	-1	0	0	0	0	0	0	0	1	0	0
+digestion_peptide	digest_pep	unspecific cleavage	-1	-1	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	unspecific cleavage	0	0	1	1	1	1	1	1	1	0	1	1
+digestion_peptide	digest_pep	unspecific cleavage	2	5	1	1	1	1	1	0	1	1	0	0
+digestion_peptide	digest_pep	Lys-C	0	1	0	0	0	0	0	1	0	0	0	0
+digestion_peptide	digest_pep	Lys-C	0	2	0	0	0	0	0	1	0	0	0	0
+digestion_peptide	digest_pep	Lys-C	-1	0	0	0	0	1	1	1	0	0	0	0
+digestion_peptide	digest_pep	Lys-C	1	-1	1	1	1	0	0	0	1	1	1	1
+digestion_peptide	digest_pep	Lys-C	-1	-1	0	0	0	0	0	0	0	0	0	0
+digestion_peptide	digest_pep	Lys-C	0	0	0	0	0	1	1	1	0	0	0	0
+digestion_peptide	digest_pep	Lys-C	2	5	1	1	1	1	1	0	1	1	1	1
+digestion_evidence	digest_ev	0	0	full	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	1	1	1	0
+digestion_evidence	digest_ev	0	0	semi	1	1	1	0	1	1	0	1	0	0	0	0	0	0	1	1	0	1	1	1	1	1	1	0
+digestion_evidence	digest_ev	0	1	full	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	1	1	1	1	0
+digestion_evidence	digest_ev	0	1	semi	1	1	1	1	1	1	0	1	0	1	1	0	0	0	1	1	0	1	1	1	1	1	1	0
+digestion_evidence	digest_ev	1	0	full	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	1	1	1	1	0
+digestion_evidence	digest_ev	1	0	semi	1	1	1	0	1	1	1	1	0	0	0	1	0	0	1	1	0	1	1	1	1	1	1	0
+digestion_evidence	digest_ev	1	1	full	0	0	1	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	1	1	1	1	1	0
+digestion_evidence	digest_ev	1	1	semi	1	1	1	1	1	1	1	1	0	1	1	1	0	0	1	1	0	1	1	1	1	1	1	0
+idd_initial	match	spectrum_3	GGGR	-	-
+idd_initial	match	spectrum_3	PEPTIDE	-	-
+idd_initial	match	spectrum_2	PEPTIDEK	5	-
+idd_initial	match	spectrum_2	AAAK	5	2
+idd_initial	match	spectrum_1	PEPTIDEK	10	3
+idd_initial	match	spectrum_1	AAAK	12	1
+idd_initial	match	spectrum_1	PEPTIDE	-	-
+idd_initial	parent	PD
+idd_initial	parent	PT
+idd_initial	peptide	AAAK
+idd_initial	peptide	GGGR
+idd_initial	peptide	PEPTIDE
+idd_initial	peptide	PEPTIDEK
+idd_initial	observation	spectrum_1
+idd_initial	observation	spectrum_2
+idd_initial	observation	spectrum_3
+idd_best_sc	match	spectrum_2	PEPTIDEK	5	-
+idd_best_sc	match	spectrum_1	AAAK	12	1
+idd_best_sc	parent	PD
+idd_best_sc	parent	PT
+idd_best_sc	peptide	AAAK
+idd_best_sc	peptide	PEPTIDEK
+idd_best_sc	observation	spectrum_1
+idd_best_sc	observation	spectrum_2
+idd_best_low	match	spectrum_2	AAAK	5	2
+idd_best_low	match	spectrum_1	AAAK	12	1
+idd_best_low	parent	PD
+idd_best_low	peptide	AAAK
+idd_best_low	observation	spectrum_1
+idd_best_low	observation	spectrum_2
+idd_cutoff_sc_10	match	spectrum_1	PEPTIDEK	10	3
+idd_cutoff_sc_10	match	spectrum_1	AAAK	12	1
+idd_cutoff_sc_10	parent	PD
+idd_cutoff_sc_10	parent	PT
+idd_cutoff_sc_10	peptide	AAAK
+idd_cutoff_sc_10	peptide	PEPTIDEK
+idd_cutoff_sc_10	observation	spectrum_1
+idd_cutoff_sc_5	match	spectrum_2	PEPTIDEK	5	-
+idd_cutoff_sc_5	match	spectrum_2	AAAK	5	2
+idd_cutoff_sc_5	match	spectrum_1	PEPTIDEK	10	3
+idd_cutoff_sc_5	match	spectrum_1	AAAK	12	1
+idd_cutoff_sc_5	parent	PD
+idd_cutoff_sc_5	parent	PT
+idd_cutoff_sc_5	peptide	AAAK
+idd_cutoff_sc_5	peptide	PEPTIDEK
+idd_cutoff_sc_5	observation	spectrum_1
+idd_cutoff_sc_5	observation	spectrum_2
+idd_cutoff_low_2	match	spectrum_2	AAAK	5	2
+idd_cutoff_low_2	match	spectrum_1	AAAK	12	1
+idd_cutoff_low_2	parent	PD
+idd_cutoff_low_2	peptide	AAAK
+idd_cutoff_low_2	observation	spectrum_1
+idd_cutoff_low_2	observation	spectrum_2
+idd_decoys	match	spectrum_3	PEPTIDE	-	-
+idd_decoys	match	spectrum_2	PEPTIDEK	5	-
+idd_decoys	match	spectrum_1	PEPTIDEK	10	3
+idd_decoys	match	spectrum_1	PEPTIDE	-	-
+idd_decoys	parent	PT
+idd_decoys	peptide	PEPTIDE
+idd_decoys	peptide	PEPTIDEK
+idd_decoys	observation	spectrum_1
+idd_decoys	observation	spectrum_2
+idd_decoys	observation	spectrum_3

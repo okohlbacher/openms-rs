@@ -64,13 +64,14 @@ fn section_string_constructor() {
     assert_eq!(u4.interpretation, "");
 
     // Exception::ParseError
+    // The Release build's message, `../oracle/B8b-peptide-id` (usi_class).
     assert!(matches!(
         Usi::parse("invalid_usi_string"),
-        Err(Error::InvalidValue(_))
+        Err(Error::Parse { message, .. }) if message == "Invalid USI format in: invalid_usi_string"
     ));
     assert!(matches!(
         Usi::parse("mzspec:PXD000561"),
-        Err(Error::InvalidValue(_))
+        Err(Error::Parse { message, .. }) if message == "Invalid USI format in: mzspec:PXD000561"
     ));
     // `FromStr` is the same constructor.
     assert_eq!(

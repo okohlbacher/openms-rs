@@ -205,6 +205,7 @@ fn gaussian_errors_leave_spectra_and_whole_experiments_unchanged() {
                 width: GaussianWidth::Absolute(width),
                 ..Default::default()
             },
+            ..GaussFilter::default()
         };
         let mut input = spectrum(&[1.0, 2.0, 3.0], &[1.0, 2.0, 3.0]);
         let before = input.clone();

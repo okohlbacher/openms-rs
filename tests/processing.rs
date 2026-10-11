@@ -179,6 +179,35 @@ fn sqrt_negative_clamping_and_dense_rank_ties() {
 }
 
 #[test]
+fn sqrt_scaler_negative_intensity_diagnostic_is_the_source_text() {
+    // SqrtScaler.h at bc9cc12: `std::cerr << "Warning negative intensities were
+    // set to zero" << std::endl;` once per filterSpectrum call that clamped.
+    let mut clamped = spectrum(&[-9.0, 0.0, 4.0, -1.0]);
+    let mut text = Vec::new();
+    SqrtScaler
+        .filter_spectrum_with_diagnostic(&mut clamped, &mut text)
+        .unwrap();
+    assert_eq!(clamped, spectrum(&[0.0, 0.0, 2.0, 0.0]));
+    assert_eq!(
+        String::from_utf8(text).unwrap(),
+        "Warning negative intensities were set to zero\n"
+    );
+    assert_eq!(
+        SQRT_SCALER_NEGATIVE_WARNING,
+        "Warning negative intensities were set to zero\n"
+    );
+
+    // No negative intensity, no output.
+    let mut clean = spectrum(&[0.0, 4.0, 9.0]);
+    let mut text = Vec::new();
+    SqrtScaler
+        .filter_spectrum_with_diagnostic(&mut clean, &mut text)
+        .unwrap();
+    assert_eq!(clean, spectrum(&[0.0, 2.0, 3.0]));
+    assert!(text.is_empty());
+}
+
+#[test]
 fn largest_noop_and_empty_selection() {
     let mut spec = spectrum(&[1.0, 3.0, 2.0]);
     NLargest { n: 3 }.filter_spectrum(&mut spec).unwrap();

@@ -30,12 +30,13 @@ sources are unchanged against the core pin.
 |---|---|---|
 | spectrum `MS:1000127`, `MS:1000128` (1634-1641) | `MSSpectrum::spectrum_type` | existing |
 | spectrum `MS:1000525` resets the type to `UNKNOWN` (1642-1645) | `SpectrumType::Unknown` | ported |
-| spectrum `MS:1003441` sets `IM_CENTROIDED` (1646-1649) | none | not ported: `MSSpectrum` has no ion-mobility peak type |
+| spectrum `MS:1003441` sets `IM_CENTROIDED` (1646-1649) | `MSSpectrum::im_peak_type` | ported (B8a); `ReadOptions::source_im_centroid_frame` drops the term as the executed source does, see below |
+| a spectrum with ion-mobility data and no peak type becomes `IM_PROFILE` once its arrays are filled (248-256) | `MSSpectrum::im_peak_type` in `Record::finish` | ported (B8a); not with `fill_data=false`, as in the source |
 | spectrum `MS:1001581`, FAIMS compensation voltage (1731-1738) | `drift_time`, `DriftTimeUnit::FaimsCompensationVoltage` | ported |
 | spectrum `MS:1002476`, `MS:1002815`, `MS:1002954` | none | not a source route: warned and ignored, as here |
 | scan `MS:1002476`, `MS:1002815`, `MS:1001581`, `MS:1002954` (2279-2311) | `drift_time` and `drift_time_unit` | ported |
 | selectedIon mobility on the precursor (1873, 1876) | `Precursor::drift_time`, `drift_time_unit` | existing |
-| selectedIon mobility copied to the spectrum (1874-1875) | none | not ported, see native differences |
+| selectedIon mobility copied to the spectrum (1874-1875) | `drift_time`, `drift_time_unit` | ported behind `ReadOptions::source_selected_ion_drift_time` (B8a), part of `ReadOptions::source()`; see native differences |
 | binaryDataArray unit stored as `unit_accession` (`MzMLHandlerHelper.cpp:291-295`) | `DataArray::metadata["unit_accession"]` | ported for ion-mobility arrays only |
 
 ### MzMLHandler writer routes
@@ -46,6 +47,7 @@ sources are unchanged against the core pin.
 | array `unit_accession` written on the array cvParam (5781-5786) | written as a `unit_accession` userParam | not ported; decoded content is identical |
 | type `UNKNOWN` written as `MS:1000525` (5285-5288) | nothing written | existing; reads back as `Unknown` either way |
 | precursor mobility (4607-4628) | `mzml_precursor::write_end` | existing |
+| spectrum `IM_CENTROIDED` written as `MS:1003441` (5290-5294) | `mzml::write` after the representation term | ported (B8a) |
 
 ### FileHandler.h
 
@@ -111,14 +113,17 @@ unchanged. `load_experiment_with_options` forwards it the way
 
 ## Native differences
 
-1. **Selected-ion mobility is not copied to the spectrum.**
+1. **Selected-ion mobility is copied to the spectrum only on request.**
    `MzMLFile_test.cpp:418-421` expects spectrum 1 of `MzMLFile_1.mzML` to carry
-   its precursor's drift time 8.1 ms, and the oracle shows it. The native reader
-   leaves the spectrum unset, because the existing
-   `tests/precursor_workflow.rs:157,188` asserts that a precursor-only mobility
-   round-trips without a spectrum value. Adopting the source behaviour flips that
-   assertion and needs an integrator decision; the new test pins the current
-   state.
+   its precursor's drift time 8.1 ms, and the oracle shows it. The native
+   default leaves the spectrum unset, because `tests/precursor_workflow.rs:157,188`
+   asserts that a precursor-only mobility round-trips without a spectrum value;
+   `ReadOptions::source_selected_ion_drift_time` (lane B8a, in
+   `ReadOptions::source()`) copies each selected ion's mobility onto its
+   spectrum, the last one winning over a scan-level value, as the source does.
+   Tier 1 against `../oracle/B8a-mzml-im` (Linux x86_64 Release, ibminode06):
+   `tests/mzml_im_peak_type.rs`, both settings, through load, `fill_data=false`,
+   transform and a write-and-read round trip.
 2. **Conflicting repeats are refused.** The source keeps the last of several
    mobility terms on one spectrum (oracle: 8.5 ms after 7.5 ms; -60 V after a
    spectrum-level -50 V). The native reader returns `Error::Unsupported`
@@ -149,8 +154,9 @@ unchanged. `load_experiment_with_options` forwards it the way
    `load_feature_map_with_options` has no allowed-type list (featureXML is the
    only native reader, where the source throws `InvalidFileType` for a
    disallowed type). `get_type` reads at most 64 KiB, and returns
-   `Error::Unsupported` for ZIP content and for gzip/bzip2 content without the
-   `file-compression` feature, where the source looks inside.
+   `Error::Unsupported` for gzip, bzip2 or ZIP content without the
+   `file-compression` feature, where the source looks inside; with it, all
+   three are looked inside (ZIP since lane B8a).
 8. **SRM conversion after mzML loading** (closed). `loadExperiment` moves SRM
    spectra into chromatograms (`ChromatogramTools::convertSpectraToChromatograms`),
    and every native experiment loader now does too
@@ -214,3 +220,23 @@ where run; clippy `-D warnings`, `cargo doc -D warnings` and a
   precursor FAIMS voltage falls into `default`, is written as milliseconds with
   a warning and reads back with the wrong unit. Source review only.
 - Upstream FAIMS fixtures spell the volt unit `UO:000218`. Fixture defect.
+
+## Ion-mobility peak type (lane B8a)
+
+`MSSpectrum::im_peak_type` is the source `SpectrumSettings::im_peak_type_`. The
+reader substitutes `Profile` for a spectrum whose float arrays contain
+ion-mobility data and whose type is still `Unknown`, after the arrays are
+decoded and only when data are filled (`MzMLHandler.cpp:248-256`); the writer
+emits `MS:1003441` for `Centroid` (`:5290-5294`).
+
+The source's reader branch for `MS:1003441` (`:1646-1649`) is dead in the
+Release build: the pinned psi-ms CV (data-version 4.1.155, byte-identical to
+`resources/cv/psi-ms.obo`) has no such term, so `cvParamToValue` answers
+`DataValue::EMPTY` and `handleCVParam_` returns first (`:1537-1539`). Executed on
+ibminode06 (`../oracle/B8a-mzml-im`), a spectrum the Release build writes as
+`IM_CENTROIDED` reads back as `IM_PROFILE` with ion-mobility data and as
+`UNKNOWN` without. The native default reads the term, so the written type
+survives; `ReadOptions::source_im_centroid_frame` (in `ReadOptions::source()`)
+reproduces the drop. `MSSpectrum`'s derived `PartialEq` compares the type,
+where the source's `SpectrumSettings::operator==` does not.
+

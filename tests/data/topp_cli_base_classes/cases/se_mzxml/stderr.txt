@@ -1,0 +1,1 @@
+Warning: make sure that MS2 spectra in '/scratch/kohlbach/oracle/B7-cli/data/MzXMLFile_2_minimal.mzXML' are centroided. Otherwise the results may be undefined!

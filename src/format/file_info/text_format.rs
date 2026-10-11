@@ -4,12 +4,6 @@
 
 //! C++ stream and `StringUtils` numeric text formatting for the FileInfo report.
 //!
-//! The module also carries the whole of `DATASTRUCTURES/ListUtilsIO.h` (the
-//! vector stream operators, `VecLowPrecision` and the string-list push),
-//! because it is a thin layer over the `StringUtils::toStr` rules implemented
-//! here. The shared digit machinery, `CONCEPT/Detail/NumericFormatting.h`, is
-//! `concept::numeric_formatting`.
-//!
 //! `FORMAT/FileInfo.cpp` renders every number through one of four C++ text
 //! paths, and the upstream reference reports compare those bytes. Each path is
 //! reproduced here as a stateless function:
@@ -20,6 +14,12 @@
 //! | Total ion current, analyzer resolution, `SummaryStatistics` blocks | `std::ostream << double` in the default float field after `os.precision(n)` | [`ostream_g`] |
 //! | FAIMS compensation voltages | `StringUtils::toStr(double)` through `NumericFormatting::appendNumeric` | [`to_str`], [`to_str_f32`] |
 //! | `IM (FAIMS_CV): [..]` | `operator<<(std::ostream&, const std::vector<T>&)` from `ListUtilsIO.h` | [`list_to_string`], [`ToStr`] |
+//!
+//! Since B8a the functions themselves live in
+//! `crate::data_structures::string_utils` (the `StringUtils.h` port) and
+//! `crate::concept::numeric_formatting` (`NumericFormatting.h` and the C stream
+//! conversion); this module re-exports them under the names FileInfo uses and
+//! keeps the `ListUtilsIO.h` stream operator and the FileInfo evidence.
 //!
 //! Sources at core revision `bc9cc12`:
 //! `src/openms/include/OpenMS/DATASTRUCTURES/StringUtils.h`,
@@ -48,11 +48,11 @@
 //! | `toStr(const std::string&)`, `toStr(const char*)`, `toStr(std::string_view)` | [`ToStr`] for `str` and `String` | copied unchanged |
 //! | `toStr(char)` | [`ToStr`] for `char` | one character; a `bool` element is promoted to `int` (`1`/`0`) as in C++ |
 //! | `toStr(long double, bool)`, `appendToStr(long double, std::string&)`, `appendToStrLowP(long double, std::string&)` | not ported | Rust has no `long double`; FileInfo uses none |
-//! | `toStr(double, false)`, `appendToStrLowP(double, std::string&)` | [`to_str_low_precision`] | three fraction digits; not on the FileInfo path |
-//! | `toStr(float, false)`, `appendToStrLowP(float, std::string&)` | [`to_str_low_precision_f32`] | |
-//! | `toStr(const DataValue&, bool)`, `toStr(const ParamValue&, bool)`, `appendToStr(const DataValue&, bool, std::string&)` | not ported here | the value types format themselves in `param` and `metadata` |
-//! | `StringUtils::numberLength(double, UInt)` | not ported | not on the FileInfo path |
-//! | `NumericFormatting::appendNumeric<T>(T, std::string&, int, bool)` | `concept::numeric_formatting`; reached here through [`to_str`] and [`to_str_f32`] with `fixed_format = false` and through [`to_str_low_precision`] and [`to_str_low_precision_f32`] with `fixed_format = true` and precision 3 | the libc++ `long double` branch is not ported |
+//! | `toStr(double, false)`, `appendToStrLowP(double, std::string&)` | [`to_str_low_precision`] (`string_utils::to_str_low_p`) | three fraction digits; not on the FileInfo path |
+//! | `toStr(float, false)`, `appendToStrLowP(float, std::string&)` | [`to_str_low_precision_f32`] (`string_utils::to_str_f32_low_p`) | |
+//! | `toStr(const DataValue&, bool)`, `toStr(const ParamValue&, bool)`, `appendToStr(const DataValue&, bool, std::string&)` | `MetaValue::to_text`, `ParamValue::to_text` | the value types format themselves in `metadata` and `param` |
+//! | `StringUtils::numberLength(double, UInt)` | `crate::data_structures::string_utils::number_length` | not on the FileInfo path |
+//! | `NumericFormatting::appendNumeric<T>(T, std::string&, int, bool)` | `crate::concept::numeric_formatting::append_numeric_f64` and `append_numeric_f32`, reached here through [`to_str`] and [`to_str_f32`] | the libc++ `long double` branch is not portable |
 //! | `writtenDigits<float>()`, `writtenDigits<double>()` | [`WRITTEN_DIGITS_F32`], [`WRITTEN_DIGITS_F64`] | the integer and `long double` specialisations are not ported |
 //! | `operator<<(std::ostream&, const std::vector<T>&)` | [`list_to_string`] | |
 //! | `VecLowPrecision<T>`, its member `value` and constructor | [`VecLowPrecision`], `value`, [`VecLowPrecision::new`] | also `From<&[T]>` and `From<&Vec<T>>` |
@@ -208,8 +208,8 @@
 //! | Section | Status |
 //! |---|---|
 //! | `String_test.cpp` `StringUtils::toStr` for `int`, `unsigned int`, `long int`, `long unsigned int`, `short int`, `short unsigned int`, `long long unsigned int` and `long long signed int` (8 sections) | ported: [`ToStr`] |
-//! | `String_test.cpp` `StringUtils::toStr(float, bool full_precision)` | ported: [`to_str_f32`]; the `false` literals [`to_str_low_precision_f32`] in `tests/list_utils_io.rs` |
-//! | `String_test.cpp` `StringUtils::toStr(double, bool full_precision)` | ported: [`to_str`]; the `false` literals [`to_str_low_precision`] in `tests/list_utils_io.rs` |
+//! | `String_test.cpp` `StringUtils::toStr(float, bool full_precision)` | ported for `full_precision = true`: [`to_str_f32`]; the `false` literals are not ported |
+//! | `String_test.cpp` `StringUtils::toStr(double, bool full_precision)` | ported for `full_precision = true`: [`to_str`]; the `false` literals are not ported |
 //! | `String_test.cpp` `StringUtils::number(double, UInt)` | ported: [`fixed`], [`fixed_truncated`] |
 //! | `String_test.cpp` `StringUtils::toStr(long double, bool full_precision)` | not ported: Rust has no `long double` |
 //! | `String_test.cpp` `StringUtils::toStr(DataValue)` | not ported here: `DataValue` formats itself in `metadata` |
@@ -219,8 +219,7 @@
 //! | `StringUtils_test.cpp` `numberLength` and `number` | `NOT_TESTABLE` upstream ("tested in String_test.cpp") |
 //! | `StringUtils_test.cpp` `[EXTRA] non-finite values round-trip through toStr/toDouble/toFloat` | formatting literals ported; the `toDouble`/`toFloat` read-back and the `DataValue` list are outside this module |
 //! | `StringUtils_test.cpp`, the other 42 sections | outside this module |
-//! | `ListUtilsIO_test.cpp` `[EXTRA] StringList& operator<<(StringList&, const StringType&)` | ported: [`StringListPush`] in `tests/list_utils_io.rs` |
-//! | `PrecisionWrapper_test.cpp`, all four sections | ported: `concept::precision_wrapper` in `tests/list_utils_io.rs` |
+//! | `ListUtilsIO_test.cpp` `[EXTRA] StringList& operator<<(StringList&, const StringType&)` | not ported: `Vec::push` |
 //! | `NumericFormatting.h`, `Types.h` | no class test at the pin |
 //!
 //! # Follow-up
@@ -254,9 +253,6 @@
 //! [`to_str_f32`]: crate::format::file_info::text_format::to_str_f32
 //! [`list_to_string`]: crate::format::file_info::text_format::list_to_string
 //! [`ToStr`]: crate::format::file_info::text_format::ToStr
-//! [`DEFAULT_STREAM_PRECISION`]: crate::format::file_info::text_format::DEFAULT_STREAM_PRECISION
-//! [`WRITTEN_DIGITS_F32`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F32
-//! [`WRITTEN_DIGITS_F64`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F64
 //! [`to_str_low_precision`]: crate::format::file_info::text_format::to_str_low_precision
 //! [`to_str_low_precision_f32`]: crate::format::file_info::text_format::to_str_low_precision_f32
 //! [`list_to_string_low_precision`]: crate::format::file_info::text_format::list_to_string_low_precision
@@ -266,15 +262,33 @@
 //! [`VecLowPrecision::to_text`]: crate::format::file_info::text_format::VecLowPrecision::to_text
 //! [`StringListPush`]: crate::format::file_info::text_format::StringListPush
 //! [`StringListPush::push_item`]: crate::format::file_info::text_format::StringListPush::push_item
+//! [`DEFAULT_STREAM_PRECISION`]: crate::format::file_info::text_format::DEFAULT_STREAM_PRECISION
+//! [`WRITTEN_DIGITS_F32`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F32
+//! [`WRITTEN_DIGITS_F64`]: crate::format::file_info::text_format::WRITTEN_DIGITS_F64
 
-use crate::concept::numeric_formatting;
 use crate::error::{Error, Result};
 
-/// Largest text, in bytes, that `StringUtils::number` can return.
-///
-/// The source formats into `char buf[64]` with `snprintf`, which stores at most
-/// 63 bytes before the terminating NUL and silently drops the rest.
-pub const NUMBER_MAX_TEXT_BYTES: usize = 63;
+pub use crate::concept::numeric_formatting::ostream_g;
+/// `StringUtils::number(double, UInt)`, strict, under its FileInfo name: see
+/// [`crate::data_structures::string_utils::number`].
+pub use crate::data_structures::string_utils::number as fixed;
+/// `StringUtils::number(double, UInt)` with its silent truncation, under its
+/// FileInfo name: see [`crate::data_structures::string_utils::number_truncated`].
+pub use crate::data_structures::string_utils::number_truncated as fixed_truncated;
+pub use crate::data_structures::string_utils::{
+    NUMBER_MAX_TEXT_BYTES, ToStr, WRITTEN_DIGITS_F32, WRITTEN_DIGITS_F64, to_str, to_str_f32,
+};
+/// `StringUtils::toStr(double, false)` under its FileInfo-era name: see
+/// [`crate::data_structures::string_utils::to_str_low_p`].
+pub use crate::data_structures::string_utils::to_str_low_p as to_str_low_precision;
+/// `StringUtils::toStr(float, false)` under its FileInfo-era name: see
+/// [`crate::data_structures::string_utils::to_str_f32_low_p`].
+pub use crate::data_structures::string_utils::to_str_f32_low_p as to_str_low_precision_f32;
+use crate::data_structures::string_utils::{append_to_str_low_p, append_to_str_low_p_f32};
+
+/// Longest three-fraction-digit `toStr` text: `-9.999e-308` (11 bytes) or
+/// `-9999.999` (9 bytes), with one byte to spare.
+const LOW_PRECISION_TO_STR_MAX_BYTES: usize = 12;
 
 /// Precision of a newly constructed C++ stream, `std::ios_base::precision()`.
 ///
@@ -282,300 +296,63 @@ pub const NUMBER_MAX_TEXT_BYTES: usize = 63;
 /// precision, before any statistics block changes it.
 pub const DEFAULT_STREAM_PRECISION: u32 = 6;
 
-/// `writtenDigits<float>()`, which is `std::numeric_limits<float>::digits10`.
-///
-/// FileInfo sets this stream precision for feature and peak intensities and for
-/// qualities, whose C++ types (`Feature::IntensityType`,
-/// `Feature::QualityType`, `Peak1D::IntensityType`) are `float`. `toStr(float)`
-/// uses it as its fraction-digit count.
-pub const WRITTEN_DIGITS_F32: u32 = 6;
-
-/// `writtenDigits<double>()`, which is `std::numeric_limits<double>::digits10`.
-///
-/// FileInfo sets this stream precision for consensus coordinate differences
-/// (`ConsensusFeature::CoordinateType` is `double`). `toStr(double)` uses it as
-/// its fraction-digit count.
-pub const WRITTEN_DIGITS_F64: u32 = 15;
-
 /// Output ceiling of [`list_to_string`] in bytes, checked before allocating.
 ///
 /// The source has no ceiling. FileInfo streams a handful of compensation
 /// voltages, far below it.
 pub const MAX_LIST_TEXT_BYTES: usize = 64 * 1024 * 1024;
 
-/// `%g` precisions at or above this give the same text: no double has more than
-/// 767 significant digits, and no exponent reaches it.
-const MAX_EFFECTIVE_G_PRECISION: usize = 800;
-/// `%f` digit counts at or above this only append zeros: no double has more than
-/// 1074 fraction digits.
-const MAX_EFFECTIVE_FIXED_DIGITS: usize = 1100;
-/// Precision `printf` applies when the requested one is negative.
-const OMITTED_PRECISION: usize = 6;
-/// Longest [`to_str`] text: sign, 17 significant digits, point and `e-308`.
-const F64_TO_STR_MAX_BYTES: usize = 24;
-/// Longest [`to_str_f32`] text: sign, 9 significant digits, point and `e-45`.
-const F32_TO_STR_MAX_BYTES: usize = 15;
-/// Longest decimal 64-bit integer, `-9223372036854775808`.
-const INTEGER_TO_STR_MAX_BYTES: usize = 20;
-/// Longest three-fraction-digit `toStr` text: `-9.999e-308` (11 bytes) or
-/// `-9999.999` (9 bytes), with one byte to spare.
-const LOW_PRECISION_TO_STR_MAX_BYTES: usize = 12;
-
-/// `StringUtils::number(d, n)`: `value` with exactly `digits` fraction digits,
-/// as C `snprintf("%.*f")` writes it.
+/// `operator<<(std::ostream&, const std::vector<T>&)` from `ListUtilsIO.h`:
+/// `[`, each element's `StringUtils::toStr` text separated by `, `, then `]`.
 ///
-/// Rounding uses the exact binary value with ties to even, and the sign of zero
-/// is kept (`-0.00`). NaN and the infinities ignore `digits` and print as
-/// `printf` writes them: `nan`, `-nan` for a NaN whose sign bit is set, `inf`
-/// and `-inf`, as the module's native-difference note records. The source
-/// parameter is a `double`, so a `float` argument is promoted first; pass
-/// `f64::from(x)`.
+/// Elements are neither quoted nor escaped, so a string containing `, ` cannot
+/// be told apart from two elements (`["a, b", ""]` prints `[a, b, ]`), exactly
+/// as in the source. FileInfo converts its FAIMS compensation voltages with
+/// [`to_str`] into a string vector and streams that, giving `[-65.0]`.
 ///
 /// # Errors
 ///
-/// Returns [`Error::InvalidValue`] where the source would not print the full
-/// number: the text is longer than [`NUMBER_MAX_TEXT_BYTES`], which `number`
-/// silently cuts, or `digits` exceeds `i32::MAX` for a finite value, which the
-/// source converts to a negative `int` and so prints with six digits. Use
-/// [`fixed_truncated`] where byte parity with those outputs is required.
+/// Returns [`Error::InvalidValue`] when the text could exceed
+/// [`MAX_LIST_TEXT_BYTES`], judged from [`ToStr::text_len_bound`] before any
+/// allocation, or when the allocation fails. The source has no ceiling.
 ///
 /// # Examples
 ///
 /// ```
-/// use openms::format::file_info::text_format::fixed;
+/// use openms::format::file_info::text_format::{list_to_string, to_str};
 ///
-/// assert_eq!(fixed(-1.0, 2).ok().as_deref(), Some("-1.00"));
-/// assert_eq!(fixed(0.125, 2).ok().as_deref(), Some("0.12"));
-/// assert!(fixed(1e100, 2).is_err());
+/// let cvs = [to_str(-65.0)];
+/// assert_eq!(list_to_string(&cvs).ok().as_deref(), Some("[-65.0]"));
+/// assert_eq!(list_to_string::<f64>(&[]).ok().as_deref(), Some("[]"));
 /// ```
-pub fn fixed(value: f64, digits: u32) -> Result<String> {
-    if !value.is_finite() {
-        return Ok(nonfinite(value).to_owned());
+pub fn list_to_string<T: ToStr>(items: &[T]) -> Result<String> {
+    let mut bound = 2usize;
+    for (index, item) in items.iter().enumerate() {
+        let separator = if index == 0 { 0 } else { 2 };
+        bound = bound
+            .checked_add(separator)
+            .and_then(|total| total.checked_add(item.text_len_bound()))
+            .filter(|total| *total <= MAX_LIST_TEXT_BYTES)
+            .ok_or_else(|| {
+                Error::InvalidValue(format!(
+                    "text of a {}-element vector may exceed {MAX_LIST_TEXT_BYTES} bytes",
+                    items.len()
+                ))
+            })?;
     }
-    if i32::try_from(digits).is_err() {
-        return Err(Error::InvalidValue(format!(
-            "StringUtils::number digit count {digits} exceeds INT_MAX; the source prints six digits instead"
-        )));
+    let mut text = String::new();
+    text.try_reserve_exact(bound).map_err(|_| {
+        Error::InvalidValue(format!("cannot allocate {bound} bytes of vector text"))
+    })?;
+    text.push('[');
+    for (index, item) in items.iter().enumerate() {
+        if index > 0 {
+            text.push_str(", ");
+        }
+        item.append_to_str(&mut text);
     }
-    // "0." and 62 digits already overflow the buffer, so refuse before formatting.
-    let digit_count = match usize::try_from(digits) {
-        Ok(count) if count <= NUMBER_MAX_TEXT_BYTES - 2 => count,
-        _ => return Err(truncated(value, digits)),
-    };
-    let text = format!("{value:.digit_count$}");
-    if text.len() > NUMBER_MAX_TEXT_BYTES {
-        return Err(truncated(value, digits));
-    }
+    text.push(']');
     Ok(text)
-}
-
-/// `StringUtils::number(d, n)` including its silent truncation, for byte parity.
-///
-/// Identical to [`fixed`] wherever that succeeds. Otherwise it returns what the
-/// source returns: the first [`NUMBER_MAX_TEXT_BYTES`] bytes of the `%.*f` text,
-/// and six fraction digits when `digits` exceeds `i32::MAX`. The source gives no
-/// diagnostic, and a cut result shows a wrong magnitude (`number(1e100, 2)` is a
-/// 63-digit integer), so prefer [`fixed`] outside tool paths that must
-/// reproduce the C++ report byte for byte.
-///
-/// The exception is a digit count at which the `%.*f` text would be `INT_MAX`
-/// bytes or longer. There `snprintf` overflows its `int` result and the source
-/// text depends on the C library: Apple libc returns an empty string, glibc 2.39
-/// the digit prefix or, at `digits == INT_MAX`, 63 spaces. This function still
-/// returns the digit prefix.
-///
-/// Work is bounded: a digit count above 1100 is formatted as 1100. That keeps
-/// the returned prefix unchanged, because a double has at most 1074 fraction
-/// digits and every further digit is a zero.
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::fixed_truncated;
-///
-/// assert_eq!(fixed_truncated(6.0 / 60.0, 1), "0.1");
-/// assert_eq!(fixed_truncated(1e100, 2).len(), 63);
-/// assert_eq!(fixed_truncated(0.125, u32::MAX), "0.125000");
-/// ```
-pub fn fixed_truncated(value: f64, digits: u32) -> String {
-    if !value.is_finite() {
-        return nonfinite(value).to_owned();
-    }
-    let digit_count = source_precision(digits).min(MAX_EFFECTIVE_FIXED_DIGITS);
-    let text = format!("{value:.digit_count$}");
-    match text.get(..NUMBER_MAX_TEXT_BYTES) {
-        Some(prefix) => prefix.to_owned(),
-        None => text,
-    }
-}
-
-/// Default `std::ostream` insertion of a `double` after `precision(precision)`,
-/// which is C `printf("%.*g")`.
-///
-/// With `P` the precision (0 counts as 1) and `X` the decimal exponent after
-/// rounding to `P` significant digits, the value is written in fixed notation
-/// with `P - 1 - X` fraction digits when `-4 <= X < P`, otherwise in scientific
-/// notation with `P - 1` fraction digits and a signed exponent of at least two
-/// digits. Trailing fraction zeros and a bare point are then removed. FileInfo
-/// writes statistics at [`WRITTEN_DIGITS_F32`] (`3.49692e+06`, `0.00209717`)
-/// and consensus coordinate statistics at [`WRITTEN_DIGITS_F64`]
-/// (`0.277777777777778`). A C++ `float` is promoted to `double` before it is
-/// formatted, so pass `f64::from(x)`.
-///
-/// Negative zero prints as `-0`, a NaN as `nan` or, with its sign bit set, as
-/// `-nan`, as the module's native-difference note records, and the infinities
-/// as `inf` and `-inf`. A precision above `i32::MAX` reaches `printf` as a
-/// negative `int` in both libc++ and libstdc++ and counts as six.
-///
-/// Exact decimal ties follow the C standard, rounding half to even and then
-/// stripping zeros, as glibc does. Apple libc keeps the zeros of an integer below
-/// `1e15` whose tie rounds down to them (`6427405000.0` at precision 6 is
-/// `6.42740e+09` there and `6.4274e+09` here); see the module's native
-/// differences.
-///
-/// Work is bounded: a precision above 800 is formatted as 800, which gives the
-/// same text because no double has more than 767 significant digits and no
-/// decimal exponent exceeds 308.
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::ostream_g;
-///
-/// assert_eq!(ostream_g(3_496_920.99, 6), "3.49692e+06");
-/// assert_eq!(ostream_g(1e-5, 6), "1e-05");
-/// assert_eq!(ostream_g(2.5 / 9.0, 15), "0.277777777777778");
-/// assert_eq!(ostream_g(-0.0, 6), "-0");
-/// ```
-pub fn ostream_g(value: f64, precision: u32) -> String {
-    if !value.is_finite() {
-        return nonfinite(value).to_owned();
-    }
-    let significant = source_precision(precision).clamp(1, MAX_EFFECTIVE_G_PRECISION);
-    let scientific = format!("{value:.fraction$e}", fraction = significant - 1);
-    let Some((mantissa, exponent)) = scientific.split_once('e') else {
-        // `{:e}` always writes an exponent.
-        return scientific;
-    };
-    let Ok(exponent) = exponent.parse::<i32>() else {
-        return scientific;
-    };
-    let limit = i32::try_from(significant).unwrap_or(i32::MAX);
-    if exponent < -4 || exponent >= limit {
-        let sign = if exponent < 0 { '-' } else { '+' };
-        format!(
-            "{}e{sign}{:02}",
-            strip_fraction_zeros(mantissa),
-            exponent.unsigned_abs()
-        )
-    } else {
-        // -4 <= exponent < limit <= 800, so the difference is small and non-negative.
-        let fraction = usize::try_from(limit - 1 - exponent).unwrap_or(0);
-        strip_fraction_zeros(&format!("{value:.fraction$}")).to_owned()
-    }
-}
-
-/// `StringUtils::toStr(double)`: the full-precision text of
-/// `NumericFormatting::appendNumeric(d, s, writtenDigits<double>(), false)`.
-///
-/// Zero and magnitudes in `[1e-2, 1e4)` use fixed notation with 15 fraction
-/// digits, rounded exactly with ties to even. Trailing zeros are removed but one
-/// fraction digit stays (`5.0`, `-0.0`). These are 15 *fraction* digits, not the
-/// 15 significant digits the source comment describes, so binary representation
-/// digits show: `1234.5678` prints as `1234.567800000000034`. Other magnitudes
-/// use the shortest scientific text that reads back as the same double, with at
-/// least one fraction digit and an exponent without `+` of at least two digits
-/// (`1.0e-05`, `3.6739e04`, `-5.0e-324`). As in `std::to_chars`, the text nearest
-/// the exact value wins among equally short ones, and an exact tie takes the even
-/// digit (`-1.3516970629882812e05`, not `...813e05`). NaN prints as `NaN`, the
-/// infinities as `inf` and `-inf`.
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::to_str;
-///
-/// assert_eq!(to_str(-65.0), "-65.0");
-/// assert_eq!(to_str(1e-5), "1.0e-05");
-/// assert_eq!(to_str(36739.0), "3.6739e04");
-/// assert_eq!(to_str(-135_169.706_298_828_125), "-1.3516970629882812e05");
-/// ```
-pub fn to_str(value: f64) -> String {
-    let mut text = String::new();
-    append_numeric_f64(value, &mut text);
-    text
-}
-
-/// `StringUtils::toStr(float)`: [`to_str`]'s rules applied to the `float`
-/// itself with `writtenDigits<float>()`.
-///
-/// Fixed notation keeps 6 fraction digits of the exact `float` value
-/// (`9999.999023`), and scientific notation uses the shortest text that reads
-/// back as the same `float` (`9.999999e-03`, `3.4028235e38`), not as the same
-/// promoted `double`, with the same tie rule (`2203265.25` prints as
-/// `2.2032652e06`).
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::to_str_f32;
-///
-/// assert_eq!(to_str_f32(50.840_353), "50.840351");
-/// assert_eq!(to_str_f32(1e-5), "1.0e-05");
-/// assert_eq!(to_str_f32(2_203_265.25), "2.2032652e06");
-/// ```
-pub fn to_str_f32(value: f32) -> String {
-    let mut text = String::new();
-    append_numeric_f32(value, &mut text);
-    text
-}
-
-/// `StringUtils::toStr(double, false)`: the three-fraction-digit form.
-///
-/// This is `appendToStrLowP(double, std::string&)`, which calls
-/// `NumericFormatting::appendNumeric(value, target, 3, true)`. Zero and
-/// magnitudes in `[1e-2, 1e4)` use fixed notation with 3 fraction digits, other
-/// magnitudes scientific notation with a 3-digit fraction
-/// (`std::to_chars(scientific, 3)`); both round the exact binary value with ties
-/// to even. Trailing fraction zeros are then removed, one digit being kept
-/// (`2.0`, `1.0e06`), and the exponent loses its `+` but keeps at least two
-/// digits. NaN prints as `NaN`, the infinities as `inf` and `-inf`, as in
-/// [`to_str`].
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::to_str_low_precision;
-///
-/// assert_eq!(to_str_low_precision(17.012345), "17.012");
-/// assert_eq!(to_str_low_precision(2.0), "2.0");
-/// assert_eq!(to_str_low_precision(f64::MIN_POSITIVE / 10.0), "2.225e-309");
-/// ```
-pub fn to_str_low_precision(value: f64) -> String {
-    let mut text = String::new();
-    append_numeric_low_f64(value, &mut text);
-    text
-}
-
-/// `StringUtils::toStr(float, false)`: [`to_str_low_precision`]'s rules applied
-/// to the `float` itself.
-///
-/// This is `appendToStrLowP(float, std::string&)`. The magnitude thresholds
-/// are the `float` literals `1e4f` and `1e-2f`, and rounding is of the exact
-/// `float` value, not of the promoted `double`.
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::to_str_low_precision_f32;
-///
-/// assert_eq!(to_str_low_precision_f32(17.0123), "17.012");
-/// assert_eq!(to_str_low_precision_f32(f32::MIN_POSITIVE / 10.0), "1.175e-39");
-/// ```
-pub fn to_str_low_precision_f32(value: f32) -> String {
-    let mut text = String::new();
-    append_numeric_low_f32(value, &mut text);
-    text
 }
 
 /// A floating-point value with a three-fraction-digit `StringUtils::toStr`
@@ -602,7 +379,7 @@ impl ToStrLowPrecision for f64 {
         LOW_PRECISION_TO_STR_MAX_BYTES
     }
     fn append_to_str_low_precision(&self, target: &mut String) {
-        append_numeric_low_f64(*self, target);
+        append_to_str_low_p(*self, target);
     }
 }
 
@@ -611,7 +388,7 @@ impl ToStrLowPrecision for f32 {
         LOW_PRECISION_TO_STR_MAX_BYTES
     }
     fn append_to_str_low_precision(&self, target: &mut String) {
-        append_numeric_low_f32(*self, target);
+        append_to_str_low_p_f32(*self, target);
     }
 }
 
@@ -774,250 +551,4 @@ impl StringListPush for Vec<String> {
         self.push(item.into());
         self
     }
-}
-
-/// Element text for [`list_to_string`], mirroring the `StringUtils::toStr`
-/// overload set that the `ListUtilsIO.h` stream operator calls.
-///
-/// Implemented for `f64` ([`to_str`]), `f32` ([`to_str_f32`]), the signed and
-/// unsigned 16-, 32- and 64-bit and pointer-sized integers (decimal), `char`
-/// (`toStr(char)`), `bool` (promoted to `int` as in C++, so `1` or `0`), `str`
-/// and `String` (copied unchanged), and references to any of these.
-pub trait ToStr {
-    /// An upper bound of the bytes [`ToStr::append_to_str`] appends.
-    ///
-    /// [`list_to_string`] sums these bounds to enforce
-    /// [`MAX_LIST_TEXT_BYTES`] before it allocates, so an implementation must
-    /// not return less than it appends.
-    fn text_len_bound(&self) -> usize;
-
-    /// Appends the `StringUtils::toStr` text of `self` to `target`.
-    fn append_to_str(&self, target: &mut String);
-}
-
-impl ToStr for f64 {
-    fn text_len_bound(&self) -> usize {
-        F64_TO_STR_MAX_BYTES
-    }
-    fn append_to_str(&self, target: &mut String) {
-        append_numeric_f64(*self, target);
-    }
-}
-
-impl ToStr for f32 {
-    fn text_len_bound(&self) -> usize {
-        F32_TO_STR_MAX_BYTES
-    }
-    fn append_to_str(&self, target: &mut String) {
-        append_numeric_f32(*self, target);
-    }
-}
-
-impl ToStr for str {
-    fn text_len_bound(&self) -> usize {
-        self.len()
-    }
-    fn append_to_str(&self, target: &mut String) {
-        target.push_str(self);
-    }
-}
-
-impl ToStr for String {
-    fn text_len_bound(&self) -> usize {
-        self.len()
-    }
-    fn append_to_str(&self, target: &mut String) {
-        target.push_str(self);
-    }
-}
-
-impl<T: ToStr + ?Sized> ToStr for &T {
-    fn text_len_bound(&self) -> usize {
-        (**self).text_len_bound()
-    }
-    fn append_to_str(&self, target: &mut String) {
-        (**self).append_to_str(target);
-    }
-}
-
-macro_rules! integer_to_str {
-    ($($integer:ty),*) => {$(
-        impl ToStr for $integer {
-            fn text_len_bound(&self) -> usize {
-                INTEGER_TO_STR_MAX_BYTES
-            }
-            fn append_to_str(&self, target: &mut String) {
-                target.push_str(&self.to_string());
-            }
-        }
-    )*};
-}
-integer_to_str!(i16, u16, i32, u32, i64, u64, isize, usize);
-
-impl ToStr for char {
-    /// Source `toStr(char c)`, `std::string(1, c)`. A Rust `char` is a Unicode
-    /// scalar value, written as its UTF-8 bytes (up to four); a C++ `char` is
-    /// one byte.
-    fn text_len_bound(&self) -> usize {
-        self.len_utf8()
-    }
-    fn append_to_str(&self, target: &mut String) {
-        target.push(*self);
-    }
-}
-
-impl ToStr for bool {
-    /// A `bool` element has no `toStr` overload of its own; C++ promotes it
-    /// to `int` and `toStr(int)` writes `1` or `0`.
-    fn text_len_bound(&self) -> usize {
-        1
-    }
-    fn append_to_str(&self, target: &mut String) {
-        target.push(if *self { '1' } else { '0' });
-    }
-}
-
-/// `operator<<(std::ostream&, const std::vector<T>&)` from `ListUtilsIO.h`:
-/// `[`, each element's `StringUtils::toStr` text separated by `, `, then `]`.
-///
-/// Elements are neither quoted nor escaped, so a string containing `, ` cannot
-/// be told apart from two elements (`["a, b", ""]` prints `[a, b, ]`), exactly
-/// as in the source. FileInfo converts its FAIMS compensation voltages with
-/// [`to_str`] into a string vector and streams that, giving `[-65.0]`.
-///
-/// # Errors
-///
-/// Returns [`Error::InvalidValue`] when the text could exceed
-/// [`MAX_LIST_TEXT_BYTES`], judged from [`ToStr::text_len_bound`] before any
-/// allocation, or when the allocation fails. The source has no ceiling.
-///
-/// # Examples
-///
-/// ```
-/// use openms::format::file_info::text_format::{list_to_string, to_str};
-///
-/// let cvs = [to_str(-65.0)];
-/// assert_eq!(list_to_string(&cvs).ok().as_deref(), Some("[-65.0]"));
-/// assert_eq!(list_to_string::<f64>(&[]).ok().as_deref(), Some("[]"));
-/// ```
-pub fn list_to_string<T: ToStr>(items: &[T]) -> Result<String> {
-    let mut bound = 2usize;
-    for (index, item) in items.iter().enumerate() {
-        let separator = if index == 0 { 0 } else { 2 };
-        bound = bound
-            .checked_add(separator)
-            .and_then(|total| total.checked_add(item.text_len_bound()))
-            .filter(|total| *total <= MAX_LIST_TEXT_BYTES)
-            .ok_or_else(|| {
-                Error::InvalidValue(format!(
-                    "text of a {}-element vector may exceed {MAX_LIST_TEXT_BYTES} bytes",
-                    items.len()
-                ))
-            })?;
-    }
-    let mut text = String::new();
-    text.try_reserve_exact(bound).map_err(|_| {
-        Error::InvalidValue(format!("cannot allocate {bound} bytes of vector text"))
-    })?;
-    text.push('[');
-    for (index, item) in items.iter().enumerate() {
-        if index > 0 {
-            text.push_str(", ");
-        }
-        item.append_to_str(&mut text);
-    }
-    text.push(']');
-    Ok(text)
-}
-
-/// The precision `printf` applies for a `UInt` digit count or `std::streamsize`
-/// precision converted to `int`.
-fn source_precision(requested: u32) -> usize {
-    match i32::try_from(requested) {
-        Ok(precision) => usize::try_from(precision).unwrap_or(OMITTED_PRECISION),
-        Err(_) => OMITTED_PRECISION,
-    }
-}
-
-/// `snprintf` and stream spellings of a non-finite value, as the Linux x86_64
-/// Release build's glibc writes them.
-///
-/// Every caller of this function reaches C `printf`: [`fixed`] and
-/// [`fixed_truncated`] are `StringUtils::number(double, UInt)`, whose whole body
-/// is `std::snprintf(buf, sizeof(buf), "%.*f", (int)n, d)`
-/// (`StringUtils.cpp:526-531` at core `bc9cc12`), and [`ostream_g`] is
-/// `std::ostringstream`, whose `num_put<char>::_M_insert_float` writes through
-/// `std::__convert_from_v` — `__builtin_vsnprintf` under the C locale in
-/// libstdc++ 14.4.0's `x86_64-conda-linux-gnu/bits/c++locale.h:74`. glibc's
-/// `__printf_fp` writes a NaN whose **sign bit is set** as `-nan`, so this
-/// function does.
-///
-/// The `StringUtils::toStr` path does **not** come here and must not: its first
-/// statement is `if (std::isnan(value)) { target += "NaN"; return; }`
-/// (`NumericFormatting.h:29`), which never reads the sign bit. That is
-/// [`append_numeric_f64`] and [`append_numeric_f32`], which write `NaN` for
-/// either sign.
-///
-/// Measured by `../oracle/a2-textfmt-linux` on ibminode06 against the Release
-/// install: of its 1018 rows exactly one differs from the macOS capture, the
-/// `fff8000000000000` row, and it differs in the five `printf` columns and not
-/// in the `toStr` column. That row pins `number(-NaN, n)` for `n` in `{0, 1, 2}`
-/// and `ostream(-NaN, p)` for `p` in `{6, 15}`; no other sign-bit NaN, and no
-/// sign-bit NaN `float`, is in the corpus. Every other precision and the `float`
-/// overload follow from glibc writing the sign before it dispatches on the
-/// class, which the module's native-difference note states as the
-/// generalisation it is.
-fn nonfinite(value: f64) -> &'static str {
-    if value.is_nan() {
-        if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-    } else if value < 0.0 {
-        "-inf"
-    } else {
-        "inf"
-    }
-}
-
-fn truncated(value: f64, digits: u32) -> Error {
-    Error::InvalidValue(format!(
-        "StringUtils::number({value:e}, {digits}) needs more than {NUMBER_MAX_TEXT_BYTES} bytes, \
-         which the source silently truncates"
-    ))
-}
-
-/// `%g` without the `#` flag: trailing fraction zeros removed, then a bare point.
-fn strip_fraction_zeros(text: &str) -> &str {
-    if text.contains('.') {
-        text.trim_end_matches('0').trim_end_matches('.')
-    } else {
-        text
-    }
-}
-
-/// `NumericFormatting::appendNumeric(value, target, writtenDigits<double>(), false)`,
-/// the `StringUtils::toStr(double, true)` path; see
-/// [`crate::concept::numeric_formatting`].
-fn append_numeric_f64(value: f64, target: &mut String) {
-    numeric_formatting::append_numeric_f64(value, target, WRITTEN_DIGITS_F64 as usize, false);
-}
-
-/// `NumericFormatting::appendNumeric(value, target, writtenDigits<float>(), false)`,
-/// the `StringUtils::toStr(float, true)` path.
-fn append_numeric_f32(value: f32, target: &mut String) {
-    numeric_formatting::append_numeric_f32(value, target, WRITTEN_DIGITS_F32 as usize, false);
-}
-
-/// `NumericFormatting::appendNumeric(value, target, 3, true)`, the
-/// `appendToStrLowP(double)` path.
-fn append_numeric_low_f64(value: f64, target: &mut String) {
-    numeric_formatting::append_numeric_f64(value, target, 3, true);
-}
-
-/// `NumericFormatting::appendNumeric(value, target, 3, true)`, the
-/// `appendToStrLowP(float)` path.
-fn append_numeric_low_f32(value: f32, target: &mut String) {
-    numeric_formatting::append_numeric_f32(value, target, 3, true);
 }

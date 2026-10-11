@@ -1,0 +1,121 @@
+{
+ "group": "digestion_leading_site",
+ "package": "INTEG-B (Phase 3 wave 4 integration, group B): ProteaseDigestion.h/EnzymaticDigestion.h with a zero-width cleavage site at the first residue (B8b's IDFilter finding)",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/EnzymaticDigestion.h",
+   "sha256": "ecddf6367faafe9c80170b1d3cb01c937d0d8e8b9adedc081336e0ddfb38709f"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+   "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ProteaseDigestion.h",
+   "sha256": "56c405f0c83f793737b588d0cec61265eda53201e116072f5acbd0cf49ad44c1"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ProteaseDigestion.cpp",
+   "sha256": "2f9f20d2ac22d83cc1f91635b4355f0a6382f58f12bb1f6c0d3016cca1cc767a"
+  },
+  {
+   "path": "share/OpenMS/CHEMISTRY/Enzymes.xml",
+   "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995"
+  }
+ ],
+ "native_implementation": [
+  "src/chemistry/digestion.rs",
+  "src/chemistry/digestion/enzymes.rs"
+ ],
+ "native_tests": [
+  "tests/digestion_leading_site.rs"
+ ],
+ "support_document": "docs/DIGESTION_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/digestion_leading_site_oracle.tsv",
+   "sha256": "34954cc75db0c0c3cf96957a5ab1263cce0647617dbe94500f89bc4e6482743b",
+   "bytes": 74925,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-digest-leading/results/records.tsv; count/digest/pepcnt/unmod records verbatim, the 17,376 isValidProduct records packed losslessly one line per case by that oracle's make_fixture.py (three leading comment lines); Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), driver run twice in fresh processes with byte-identical records"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/integ-B-digest-leading/driver.cpp",
+   "sha256": "f90209ebbf15997851131c484ad4c22af402c28c4fa4a40729739ad4324c2af0",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/make_fixture.py",
+   "sha256": "33365bacbc9c11089f55c1e9c510941d403211de1bcb611ee94ab424ba806466",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/remote_run.sh",
+   "sha256": "fa65dac06947f1dbed9bc3323c63c0ab2551ea5cbc4a421e00671ca1060a2b3a",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/run.sh",
+   "sha256": "1fdad77d2c9e32b1548810ca2897559f5e7add868eb69cbc21f930c8890b2efc",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/records.tsv",
+   "sha256": "0288bee447909c16e161da215a72147e6a7f5078692870ff952804ca99c78509",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/hashes.txt",
+   "sha256": "6ef1e2d1b2dc04aa8e44287e51b82f4d9a891724ccf73e6833a8c144f7f692d3",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/host.txt",
+   "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/flags.txt",
+   "sha256": "0daf0f2e6321cec902f1cbefc942f45463aa45bad1ac6d308207f5e4ad3ee39e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/differ.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-leading/results/exit.txt",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The oracle directory lives beside the repository (../oracle/integ-B-digest-leading); results/host.txt names ibminode06 and the Release install, results/differ.txt, results/stderr.txt are empty and results/exit.txt is 0."
+}

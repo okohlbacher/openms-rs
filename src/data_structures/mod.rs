@@ -59,3 +59,6 @@ pub mod matched_iterator;
 
 /// Dense column-major matrix (`DATASTRUCTURES/Matrix.h`).
 pub mod matrix;
+/// `DATASTRUCTURES/StringUtils.h`: string parsing, formatting, trimming,
+/// quoting and splitting with the source's byte-level rules.
+pub mod string_utils;

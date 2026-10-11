@@ -165,19 +165,8 @@ fn parse_source_double(text: &str) -> Result<f64> {
 /// fails. Both properties are reproduced here: `"2147483648"` and `"++5"` are
 /// refused.
 fn parse_source_int32(text: &str, label: &str) -> Result<i32> {
-    let token = trim_source(text);
-    // `strip_prefix` removes at most one '+'. Rust's integer `FromStr` would
-    // accept a second one, which the source's `from_chars` does not, so the
-    // remainder is rejected when it carries another sign.
-    let digits = token.strip_prefix('+').unwrap_or(token);
-    if digits.starts_with('+') {
-        return Err(conversion(format!(
-            "could not convert {token:?} to {label}"
-        )));
-    }
-    digits
-        .parse::<i32>()
-        .map_err(|_| conversion(format!("could not convert {token:?} to {label}")))
+    crate::concept::string_conversion::to_int32(text)
+        .map_err(|_| conversion(format!("could not convert {:?} to {label}", trim_source(text))))
 }
 
 /// Header cell state for `Integer` and `Double` columns.

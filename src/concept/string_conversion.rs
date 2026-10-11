@@ -2,133 +2,90 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! `StringUtils::toInt32` and `StringUtils::toDouble`
+//! The text-to-number conversions of `StringUtils`
 //! (`DATASTRUCTURES/StringUtils.h`, `source/DATASTRUCTURES/StringUtils.cpp` at
-//! core SDK `bc9cc12`) for the layers below `cli`.
+//! core SDK `bc9cc12`): `toInt32`, `toInt64`, `toFloat`, `toDouble`,
+//! `extractDouble`, `extractInt` and `skipWhitespace`, in the one place every
+//! layer can reach.
 //!
-//! The `cli` context module carried the same two conversions privately; this
-//! module exists so `metadata` and other low layers can use them without an
-//! edge to `cli`. At the group-A integration `concept::version_info`'s own
-//! `toInt32` copy was switched to this one, and `to_double` was corrected
-//! against the Linux x86_64 Release build (`../oracle/integ-A-stringutils`):
-//! it refuses a literal that underflows to zero and keeps the sign of `-nan`,
-//! which the copy it was taken from did not.
+//! This is the single implementation behind
+//! [`crate::data_structures::string_utils`]'s public conversions (which add
+//! the crate error type) and behind the low layers (`metadata`, `concept`)
+//! that cannot depend on `data_structures` without closing a cycle. The errors
+//! here are the source's `ConversionError` message texts.
+//!
+//! Evidence: `../oracle/integ-A-stringutils` (`to_double_and_to_int32_match_the_release_build`
+//! below) and `../oracle/B8a-stringutils` (`tests/string_utils.rs`), both the
+//! Linux x86_64 Release install on ibminode06.
 
-/// The source's four whitespace characters, skipped from `index` on.
-fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
-    while bytes
-        .get(index)
-        .is_some_and(|b| matches!(*b, b' ' | b'\t' | b'\n' | b'\r'))
-    {
+/// The four characters every whitespace rule of the header uses: space, tab,
+/// line feed and carriage return.
+const fn is_blank(byte: u8) -> bool {
+    matches!(byte, b' ' | b'\t' | b'\n' | b'\r')
+}
+
+
+/// Index of the first byte at or after `index` that is not one of the four
+/// blanks.
+pub(crate) fn skip_blanks(bytes: &[u8], mut index: usize) -> usize {
+    while bytes.get(index).copied().is_some_and(is_blank) {
         index += 1;
     }
     index
 }
 
-/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`), returning the
-/// source's `ConversionError` message as the error.
-///
-/// Leading and trailing space, tab, newline and carriage return are skipped,
-/// one `+` may precede the number, and the rest must be a complete decimal
-/// `i32`. Like `std::from_chars` after the source strips `+`, a `-` may still
-/// follow it.
-pub(crate) fn to_int32(text: &str) -> std::result::Result<i32, String> {
-    let bytes = text.as_bytes();
-    let not_converted = || format!("Could not convert string '{text}' to an integer value");
-    let mut cursor = skip_whitespace(bytes, 0);
-    if cursor == bytes.len() {
-        return Err(not_converted());
-    }
-    if bytes[cursor] == b'+' {
-        cursor += 1;
-    }
-    let number_start = cursor;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let digits_start = cursor;
-    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-        cursor += 1;
-    }
-    if cursor == digits_start {
-        return Err(not_converted());
-    }
-    let value = text
-        .get(number_start..cursor)
-        .and_then(|digits| digits.parse::<i32>().ok())
-        .ok_or_else(not_converted)?;
-    let after = skip_whitespace(bytes, cursor);
-    if after != bytes.len() {
-        return Err(format!(
-            "Prefix of string '{text}' successfully converted to an int32 value. Additional characters found at position {}",
-            after + 1
-        ));
-    }
-    Ok(value)
+/// Length of the case-insensitive ASCII `word` at `bytes[index..]`, if present.
+fn word_at(bytes: &[u8], index: usize, word: &[u8]) -> Option<usize> {
+    let end = index.checked_add(word.len())?;
+    let candidate = bytes.get(index..end)?;
+    candidate.eq_ignore_ascii_case(word).then_some(word.len())
 }
 
-/// Length of a case-insensitive ASCII `word` at `bytes[index..]`, if present.
-fn word_at(bytes: &[u8], index: usize, word: &str) -> Option<usize> {
-    let candidate = bytes.get(index..index.checked_add(word.len())?)?;
-    candidate
-        .eq_ignore_ascii_case(word.as_bytes())
-        .then_some(word.len())
+/// The anonymous `tryParseNaN` (`StringUtils.cpp:35-58`): `nan` in any case at
+/// `index`, optionally followed by `(`, anything but `)`, and `)`. Returns the
+/// end of the match; an unclosed `(` is no match at all.
+fn try_parse_nan(bytes: &[u8], index: usize) -> Option<usize> {
+    word_at(bytes, index, b"nan")?;
+    let mut end = index + 3;
+    if bytes.get(end) == Some(&b'(') {
+        let close = bytes.get(end..)?.iter().position(|b| *b == b')')?;
+        end += close + 1;
+    }
+    Some(end)
 }
 
-/// Source `StringUtils::toDouble` (`StringUtils.cpp:239-276`), returning the
-/// source's `ConversionError` message as the error.
-///
-/// Whitespace is skipped on both sides and `nan`, optionally followed by a
-/// parenthesised payload, is accepted before anything else. Then one `+` may
-/// precede a libstdc++ `std::from_chars` general-format number: an optional
-/// `-`, digits with an optional fraction and exponent, `inf`/`infinity`, or
-/// `nan` with an optional `(n-char-sequence)`, whose sign is kept (`-nan` is
-/// `0xfff8000000000000`). A literal whose value is out of range is an error, as
-/// `result_out_of_range` is: one that overflows to an infinity, and one with a
-/// non-zero digit that rounds to zero (`1e-400`, `2.4e-324`; `0e-400` is zero
-/// and accepted). Hexadecimal floats are rejected, as `std::from_chars`'s
-/// general format rejects them. Every rule is the Linux x86_64 Release build's,
-/// compared case by case with `../oracle/integ-A-stringutils`
-/// (`to_double_matches_the_release_build`).
-pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
-    let bytes = text.as_bytes();
-    let not_converted = || format!("Could not convert string '{text}' to a double value");
-    let first = skip_whitespace(bytes, 0);
-    if first == bytes.len() {
-        return Err(not_converted());
-    }
-    if let Some(length) = word_at(bytes, first, "nan") {
-        let mut end = first + length;
-        if bytes.get(end) == Some(&b'(') {
-            match bytes[end..].iter().position(|b| *b == b')') {
-                Some(close) => end += close + 1,
-                None => end = first,
-            }
-        }
-        if end != first && skip_whitespace(bytes, end) == bytes.len() {
-            return Ok(f64::NAN);
-        }
-    }
-    let mut start = first;
-    if bytes[start] == b'+' {
-        start += 1;
-    }
+/// What a `std::from_chars` general-format literal denotes.
+#[derive(Clone, Copy)]
+enum Literal {
+    /// Decimal digits; `nonzero` when a mantissa digit is not `0`.
+    Decimal {
+        nonzero: bool,
+    },
+    Infinity,
+    NotANumber,
+}
+
+/// The extent of the `std::from_chars(first, last, value)` general-format
+/// literal at `start`: an optional `-`, then `inf` or `infinity`, `nan` with an
+/// optional `(n-char-sequence)` of letters, digits and `_`, or digits with an
+/// optional fraction and an optional exponent, all case-insensitive. A leading
+/// `+`, whitespace and hexadecimal are not part of the grammar. Returns the
+/// end, whether the literal is negative, and what it denotes.
+fn scan_from_chars(bytes: &[u8], start: usize) -> Option<(usize, bool, Literal)> {
     let mut cursor = start;
-    if bytes.get(cursor) == Some(&b'-') {
+    let negative = bytes.get(cursor) == Some(&b'-');
+    if negative {
         cursor += 1;
     }
-    let negative = bytes.get(start) == Some(&b'-');
-    let infinity = word_at(bytes, cursor, "infinity").or_else(|| word_at(bytes, cursor, "inf"));
-    let nan = word_at(bytes, cursor, "nan");
-    let mut nonzero_mantissa = false;
-    if let Some(length) = infinity {
-        cursor += length;
-    } else if let Some(length) = nan {
-        cursor += length;
-        // `nan(n-char-sequence)`: letters, digits and `_` up to a `)`; without
-        // the `)` only `nan` is consumed.
-        if bytes.get(cursor) == Some(&b'(') {
-            let mut close = cursor + 1;
+    if let Some(length) =
+        word_at(bytes, cursor, b"infinity").or_else(|| word_at(bytes, cursor, b"inf"))
+    {
+        return Some((cursor + length, negative, Literal::Infinity));
+    }
+    if word_at(bytes, cursor, b"nan").is_some() {
+        let mut end = cursor + 3;
+        if bytes.get(end) == Some(&b'(') {
+            let mut close = end + 1;
             while bytes
                 .get(close)
                 .is_some_and(|b| b.is_ascii_alphanumeric() || *b == b'_')
@@ -136,65 +93,233 @@ pub(crate) fn to_double(text: &str) -> std::result::Result<f64, String> {
                 close += 1;
             }
             if bytes.get(close) == Some(&b')') {
-                cursor = close + 1;
+                end = close + 1;
             }
         }
-    } else {
-        let integer_start = cursor;
-        while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-            cursor += 1;
+        return Some((end, negative, Literal::NotANumber));
+    }
+    let mut nonzero = false;
+    let mut digits = 0usize;
+    while let Some(b) = bytes.get(cursor).filter(|b| b.is_ascii_digit()) {
+        nonzero |= *b != b'0';
+        digits += 1;
+        cursor += 1;
+    }
+    if bytes.get(cursor) == Some(&b'.') {
+        let mut fraction = cursor + 1;
+        let mut fraction_digits = 0usize;
+        while let Some(b) = bytes.get(fraction).filter(|b| b.is_ascii_digit()) {
+            nonzero |= *b != b'0';
+            fraction_digits += 1;
+            fraction += 1;
         }
-        let mut digits = cursor - integer_start;
-        if bytes.get(cursor) == Some(&b'.') {
-            let fraction_start = cursor + 1;
-            let mut fraction_end = fraction_start;
-            while bytes.get(fraction_end).is_some_and(u8::is_ascii_digit) {
-                fraction_end += 1;
-            }
-            if digits > 0 || fraction_end > fraction_start {
-                digits += fraction_end - fraction_start;
-                cursor = fraction_end;
-            }
-        }
-        if digits == 0 {
-            return Err(not_converted());
-        }
-        nonzero_mantissa = bytes[integer_start..cursor]
-            .iter()
-            .any(|b| matches!(*b, b'1'..=b'9'));
-        if matches!(bytes.get(cursor), Some(b'e' | b'E')) {
-            let mut exponent = cursor + 1;
-            if matches!(bytes.get(exponent), Some(b'+' | b'-')) {
-                exponent += 1;
-            }
-            let exponent_digits = exponent;
-            while bytes.get(exponent).is_some_and(u8::is_ascii_digit) {
-                exponent += 1;
-            }
-            if exponent > exponent_digits {
-                cursor = exponent;
-            }
+        if digits + fraction_digits > 0 {
+            digits += fraction_digits;
+            cursor = fraction;
         }
     }
-    let value: f64 = if nan.is_some() && infinity.is_none() {
-        if negative { -f64::NAN } else { f64::NAN }
-    } else {
-        let literal = text.get(start..cursor).ok_or_else(not_converted)?;
-        literal.parse().map_err(|_| not_converted())?
+    if digits == 0 {
+        return None;
+    }
+    if matches!(bytes.get(cursor), Some(b'e' | b'E')) {
+        let mut exponent = cursor + 1;
+        if matches!(bytes.get(exponent), Some(b'+' | b'-')) {
+            exponent += 1;
+        }
+        let exponent_digits = exponent;
+        while bytes.get(exponent).is_some_and(u8::is_ascii_digit) {
+            exponent += 1;
+        }
+        if exponent > exponent_digits {
+            cursor = exponent;
+        }
+    }
+    Some((cursor, negative, Literal::Decimal { nonzero }))
+}
+
+/// A floating-point type `std::from_chars` converts to.
+trait FromCharsFloat: Copy + std::str::FromStr + std::ops::Neg<Output = Self> {
+    const INFINITY: Self;
+    const NAN: Self;
+    fn is_infinite(self) -> bool;
+    fn is_zero(self) -> bool;
+}
+
+impl FromCharsFloat for f64 {
+    const INFINITY: Self = f64::INFINITY;
+    const NAN: Self = f64::NAN;
+    fn is_infinite(self) -> bool {
+        f64::is_infinite(self)
+    }
+    fn is_zero(self) -> bool {
+        self == 0.0
+    }
+}
+
+impl FromCharsFloat for f32 {
+    const INFINITY: Self = f32::INFINITY;
+    const NAN: Self = f32::NAN;
+    fn is_infinite(self) -> bool {
+        f32::is_infinite(self)
+    }
+    fn is_zero(self) -> bool {
+        self == 0.0
+    }
+}
+
+/// `std::from_chars` of a floating-point value at `start` as libstdc++ does it
+/// on the reference build: correctly rounded, and `result_out_of_range` (no
+/// value) when a finite literal overflows to infinity or when a literal with a
+/// nonzero digit rounds to zero. A subnormal result is a value. Returns the
+/// value and the end of the literal.
+fn from_chars_float<T: FromCharsFloat>(text: &str, start: usize) -> Option<(T, usize)> {
+    let bytes = text.as_bytes();
+    let (end, negative, literal) = scan_from_chars(bytes, start)?;
+    let value = match literal {
+        Literal::Infinity => {
+            if negative {
+                -T::INFINITY
+            } else {
+                T::INFINITY
+            }
+        }
+        Literal::NotANumber => {
+            if negative {
+                -T::NAN
+            } else {
+                T::NAN
+            }
+        }
+        Literal::Decimal { nonzero } => {
+            let value: T = text.get(start..end)?.parse().ok()?;
+            if value.is_infinite() || (nonzero && value.is_zero()) {
+                return None;
+            }
+            value
+        }
     };
-    // `result_out_of_range`: an overflow to infinity, or a non-zero literal
-    // that rounds to zero.
-    if (value.is_infinite() && infinity.is_none()) || (value == 0.0 && nonzero_mantissa) {
-        return Err(not_converted());
+    Some((value, end))
+}
+
+/// `std::from_chars` of an integer at `start`: an optional `-` and decimal
+/// digits, out-of-range values refused.
+fn from_chars_int<T: std::str::FromStr>(text: &str, start: usize) -> Option<(T, usize)> {
+    let bytes = text.as_bytes();
+    let mut cursor = start;
+    if bytes.get(cursor) == Some(&b'-') {
+        cursor += 1;
     }
-    let after = skip_whitespace(bytes, cursor);
+    let digits = cursor;
+    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+        cursor += 1;
+    }
+    if cursor == digits {
+        return None;
+    }
+    let value = text.get(start..cursor)?.parse().ok()?;
+    Some((value, cursor))
+}
+
+/// The source's `ConversionError` for text with no convertible prefix.
+fn not_converted(text: &str, kind: &str) -> String {
+    format!("Could not convert string '{text}' to {kind} value")
+}
+
+/// The source's `ConversionError` for a converted prefix followed by other
+/// characters; `after` is the zero-based index of the first of them.
+fn trailing(text: &str, kind: &str, after: usize) -> String {
+    format!(
+        "Prefix of string '{text}' successfully converted to {kind} value. \
+         Additional characters found at position {}",
+        after + 1
+    )
+}
+
+/// `StringUtilsHelper::toInt32` and `toInt64` (`StringUtils.cpp:136-200`).
+fn parse_integer<T: std::str::FromStr>(text: &str, prefix_kind: &str) -> Result<T, String> {
+    let bytes = text.as_bytes();
+    let mut start = skip_blanks(bytes, 0);
+    if start == bytes.len() {
+        return Err(not_converted(text, "an integer"));
+    }
+    if bytes.get(start) == Some(&b'+') {
+        start += 1;
+    }
+    let (value, end) =
+        from_chars_int(text, start).ok_or_else(|| not_converted(text, "an integer"))?;
+    let after = skip_blanks(bytes, end);
     if after != bytes.len() {
-        return Err(format!(
-            "Prefix of string '{text}' successfully converted to a double value. Additional characters found at position {}",
-            after + 1
-        ));
+        return Err(trailing(text, prefix_kind, after));
     }
     Ok(value)
+}
+
+/// `StringUtilsHelper::toFloat` and `toDouble` (`StringUtils.cpp:202-276`).
+fn parse_float<T: FromCharsFloat>(text: &str, kind: &str) -> Result<T, String> {
+    let bytes = text.as_bytes();
+    let first = skip_blanks(bytes, 0);
+    if first == bytes.len() {
+        return Err(not_converted(text, kind));
+    }
+    if let Some(end) = try_parse_nan(bytes, first) {
+        if skip_blanks(bytes, end) == bytes.len() {
+            return Ok(T::NAN);
+        }
+    }
+    let mut start = first;
+    if bytes.get(start) == Some(&b'+') {
+        start += 1;
+    }
+    let (value, end) =
+        from_chars_float::<T>(text, start).ok_or_else(|| not_converted(text, kind))?;
+    let after = skip_blanks(bytes, end);
+    if after != bytes.len() {
+        return Err(trailing(text, kind, after));
+    }
+    Ok(value)
+}
+
+/// Source `StringUtils::toInt32` (`StringUtils.cpp:136-166`), returning the
+/// source's `ConversionError` message as the error.
+pub(crate) fn to_int32(text: &str) -> Result<i32, String> {
+    parse_integer(text, "an int32")
+}
+
+/// Source `StringUtils::toInt64` (`StringUtils.cpp:168-200`).
+pub(crate) fn to_int64(text: &str) -> Result<i64, String> {
+    parse_integer(text, "an integer")
+}
+
+/// Source `StringUtils::toFloat` (`StringUtils.cpp:202-237`).
+pub(crate) fn to_float(text: &str) -> Result<f32, String> {
+    parse_float(text, "a float")
+}
+
+/// Source `StringUtils::toDouble` (`StringUtils.cpp:239-276`).
+pub(crate) fn to_double(text: &str) -> Result<f64, String> {
+    parse_float(text, "a double")
+}
+
+/// Source `StringUtils::extractDouble`: the value at the start of `text` and
+/// the bytes it occupies.
+pub(crate) fn extract_double(text: &str) -> Option<(f64, usize)> {
+    let bytes = text.as_bytes();
+    if let Some(end) = try_parse_nan(bytes, 0) {
+        return Some((f64::NAN, end));
+    }
+    let start = usize::from(bytes.first() == Some(&b'+'));
+    from_chars_float::<f64>(text, start)
+}
+
+/// Source `StringUtils::extractInt`.
+pub(crate) fn extract_int(text: &str) -> Option<(i32, usize)> {
+    let start = usize::from(text.as_bytes().first() == Some(&b'+'));
+    from_chars_int::<i32>(text, start)
+}
+
+/// Source `StringUtils::skipWhitespace`: the number of leading blanks.
+pub(crate) fn skip_whitespace(text: &str) -> usize {
+    skip_blanks(text.as_bytes(), 0)
 }
 
 #[cfg(test)]

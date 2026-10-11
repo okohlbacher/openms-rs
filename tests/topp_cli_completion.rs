@@ -1897,10 +1897,8 @@ fn a_debug_level_without_a_log_file_writes_nothing() {
 /// neither run prints a closing line; the load that follows fails in both
 /// with `FileHandler::loadExperiment`'s `ParseError` (exit 3, `Error: Unable to
 /// read file (type: unknown is not allowed for loading an experiment. Allowed
-/// types are: , mzML in: <file>)`, `FileHandler.cpp:859-863`), which this port
-/// prints inside the `parse error on line 0: ` with which the lifecycle
-/// renders every `Error::Parse` (`docs/TOPP_CLI_SUPPORT.md`, *Formats*); both
-/// runs log their error line as the second and last line.
+/// types are: , mzML in: <file>)`, `FileHandler.cpp:859-863`), byte for byte;
+/// both runs log their error line as the second and last line.
 #[test]
 fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
     let name = "log_undetermined_format";
@@ -1925,23 +1923,16 @@ fn an_undetermined_format_logs_the_warning_and_fails_the_load() {
     assert!(
         release_lines[1].starts_with("Error: Unable to read file (type: unknown is not allowed")
     );
-    let rendered = |line: &str| {
-        line.replacen(
-            "Error: Unable to read file (",
-            "Error: Unable to read file (parse error on line 0: ",
-            1,
-        )
-    };
     let lines: Vec<&str> = outcome.err.lines().collect();
     assert_eq!(lines.len(), 2, "{}", outcome.err);
     assert_eq!(lines[0], release_lines[0]);
-    assert_eq!(lines[1], rendered(release_lines[1]));
+    assert_eq!(lines[1], release_lines[1]);
     let expected_log = oracle_log(&case, name);
     let actual_log = log_lines(&case);
     assert_eq!(expected_log.len(), 2);
     assert_eq!(actual_log.len(), 2, "{actual_log:?}");
     assert_eq!(actual_log[0], expected_log[0]);
-    assert_eq!(actual_log[1], rendered(&expected_log[1]));
+    assert_eq!(actual_log[1], expected_log[1]);
 }
 
 /// `START_SECTION(([EXTRA] -log writes a log file))` (`TOPPBase_test.cpp:870-890`):

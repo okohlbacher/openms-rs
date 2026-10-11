@@ -52,6 +52,10 @@ fn complete_registry_metadata_and_source_synonyms() {
     // The source also indexes each name's lowercase form
     // (DigestionEnzymeDB.h:182); executed Release oracle ../oracle/A5a-chem
     // (ibminode06): hasEnzyme("trypsin") 1, hasEnzyme("TRYPSIN") 0.
+    // DigestionEnzymeDB::addEnzyme_ (DigestionEnzymeDB.h at bc9cc12) registers
+    // every enzyme under StringUtils::toLower(name) as well; the executed C++
+    // oracle ../oracle/B8b-dbs (tests/protease_db.rs) resolves "trypsin" to
+    // Trypsin. Only the ASCII lower-cased spelling is added.
     assert!(db.has_enzyme("trypsin"));
     assert!(!db.has_enzyme("TRYPSIN"));
     let trypsin = db.get_enzyme("Trypsin").unwrap();
@@ -338,9 +342,15 @@ fn generation_matches_exhaustive_validity_oracle_and_ranges_are_unique() {
                             let valid = unrestricted
                                 || (mc <= missed
                                     && match specificity {
-                                        Specificity::Full => n && c,
                                         Specificity::Semi => n || c,
                                         Specificity::None => true,
+                                        // isValidProduct_ tests only none and
+                                        // semi, so the three values the loop
+                                        // does not run are the full test too.
+                                        Specificity::Full
+                                        | Specificity::Unknown
+                                        | Specificity::NoCTerm
+                                        | Specificity::NoNTerm => n && c,
                                     });
                             if valid && (2..=5).contains(&(end - start)) {
                                 expected.insert((start, end, mc));

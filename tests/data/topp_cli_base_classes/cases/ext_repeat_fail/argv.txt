@@ -1,0 +1,8 @@
+ext
+-exe
+sh
+-args
+@-c
+echo same >&2; echo same >&2; exit 2
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_repeat_fail/cwd/cap

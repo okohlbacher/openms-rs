@@ -63,7 +63,7 @@ impl TheoreticalSpectrumGenerator {
                         push_peak(
                             rows,
                             (mass + offset) / f64::from(charge),
-                            intensity,
+                            intensity as f32,
                             &name,
                             charge,
                         )?;
@@ -91,7 +91,7 @@ impl TheoreticalSpectrumGenerator {
                             push_peak(
                                 rows,
                                 (ion.mono_mass - loss.mono_mass()) / f64::from(charge),
-                                intensity * self.relative_loss_intensity,
+                                (intensity * self.relative_loss_intensity) as f32,
                                 &format!(
                                     "{}-{}{}",
                                     ion.name,

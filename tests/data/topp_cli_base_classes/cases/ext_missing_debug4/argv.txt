@@ -1,0 +1,7 @@
+ext
+-exe
+/path/does/not/exists.exe
+-debug
+4
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_missing_debug4/cwd/cap

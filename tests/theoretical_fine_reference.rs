@@ -229,8 +229,11 @@ fn explicit_natural_hydrogen_and_charge_division_match_an_independent_full_oracl
     let s = g.generate(&peptide("AA"), 1, 2, Some(4)).unwrap();
     // Alanine b1 is C3H5NO. Each charge adds natural neutral H, whose heavy
     // isotope participates, and only then is the full mass divided by charge.
-    assert_group(&s, "b1", 1, [3, 6, 1, 1], 0.0001, f64::from(0.7_f32));
-    assert_group(&s, "b1", 2, [3, 7, 1, 1], 0.0001, f64::from(0.7_f32));
+    // The source's b_intensity_ is a double (TheoreticalSpectrumGenerator.h:142),
+    // so 0.7 enters unrounded; the Release build agrees bit for bit
+    // (tests/theoretical_parameter_intensities.rs, case fine_AA).
+    assert_group(&s, "b1", 1, [3, 6, 1, 1], 0.0001, 0.7);
+    assert_group(&s, "b1", 2, [3, 7, 1, 1], 0.0001, 0.7);
     let two: Vec<_> = s
         .peaks
         .iter()
@@ -268,13 +271,11 @@ fn terminal_formulas_loss_names_and_f32_probabilities_retain_source_arithmetic()
     // Explicit compositions derive from Ser=C3H7NO3, Gly=C2H5NO2,
     // peptide condensation, Acetyl=C2H2O, Amidated=HNO-1, and neutral H.
     for (name, formula, intensity) in [
-        ("b1", [5, 8, 1, 3], f64::from(0.7_f32)),
+        ("b1", [5, 8, 1, 3], 0.7),
         ("y1", [2, 7, 2, 1], 1.0),
-        (
-            "b1-H2O1+",
-            [5, 6, 1, 2],
-            f64::from(0.7_f32) * f64::from(0.9_f32),
-        ),
+        // Source `intensity * rel_loss_intensity_ * iso.getIntensity()`
+        // (TheoreticalSpectrumGenerator.cpp:531), all double.
+        ("b1-H2O1+", [5, 6, 1, 2], 0.7 * 0.9),
         ("[M+H]+", [7, 14, 3, 4], 1.0),
         ("[M+H-H2O]+", [7, 12, 3, 3], 1.0),
         ("[M+H-NH3]+", [7, 11, 2, 4], 1.0),
@@ -283,9 +284,9 @@ fn terminal_formulas_loss_names_and_f32_probabilities_retain_source_arithmetic()
     }
     let p0 = chno_envelope([5, 6, 1, 2], 0.005)[0].1;
     assert_ne!(
+        (0.7 * 0.9 * f64::from(p0)) as f32,
         (f64::from(0.7_f32) * f64::from(0.9_f32) * f64::from(p0)) as f32,
-        (f64::from(0.7_f32 * 0.9_f32) * f64::from(p0)) as f32,
-        "chosen source loss distinguishes an extra intermediate f32 rounding"
+        "chosen source loss distinguishes double intensity parameters from f32 ones"
     );
     assert!(!names(&s).iter().any(|name| name.starts_with("y1-")));
     assert!(names(&s).iter().all(|name| !name.contains("Acetyl")));

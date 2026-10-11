@@ -106,7 +106,7 @@ use crate::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D, SpectrumType,
     SpectrumTypeQueryLimits,
 };
-use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
+use crate::param::{DefaultParamHandling, Param, ParamEntry, ParamNode, ParamValue};
 use crate::{Error, Result};
 use noise::{flag, flag_entry, float, float_entry, int_entry, integer, string_entry};
 
@@ -1307,6 +1307,9 @@ impl PeakPickerHiRes {
             string_data_arrays: Vec::new(),
             drift_time: input.drift_time,
             drift_time_unit: input.drift_time_unit,
+            // copySpectrumMeta (SpectrumHelper.cpp:20) copies SpectrumSettings
+            // whole, the ion-mobility peak type with it.
+            im_peak_type: input.im_peak_type,
         };
         if let Some(j) = mobility {
             let mut array =
@@ -1983,9 +1986,7 @@ impl PeakPickerHiRes {
     ///
     /// As [`PeakPickerHiRes::from_param`].
     pub fn from_param_with_warnings(parameters: &Param) -> Result<(Self, Vec<String>)> {
-        let mut handler = DefaultParamHandler::new(PEAK_PICKER_HI_RES_NAME)?;
-        handler.set_defaults(Self::defaults()?)?;
-        handler.set_parameters_with(parameters, Self::from_complete_param)
+        <Self as DefaultParamHandling>::from_param_with_warnings(parameters)
     }
 
     fn from_complete_param(param: &Param) -> Result<Self> {
@@ -2021,6 +2022,39 @@ impl PeakPickerHiRes {
             ms_levels,
             ..defaults
         })
+    }
+}
+
+/// The source `DefaultParamHandler` base of `PeakPickerHiRes`; the inherent
+/// [`PeakPickerHiRes::defaults`], [`PeakPickerHiRes::to_param`] and
+/// [`PeakPickerHiRes::from_param`] document the parameters.
+impl DefaultParamHandling for PeakPickerHiRes {
+    const NAME: &'static str = PEAK_PICKER_HI_RES_NAME;
+    fn defaults() -> Result<Param> {
+        PeakPickerHiRes::defaults()
+    }
+    fn to_param(&self) -> Result<Param> {
+        PeakPickerHiRes::to_param(self)
+    }
+    fn update_members(param: &Param) -> Result<Self> {
+        Self::from_complete_param(param)
+    }
+    /// Keeps [`check_spectrum_type`](PeakPickerHiRes::check_spectrum_type),
+    /// [`ion_mobility_array`](PeakPickerHiRes::ion_mobility_array),
+    /// [`compatibility`](PeakPickerHiRes::compatibility), the limits and the
+    /// noise estimator's own limits, none of which is a source parameter.
+    fn keep_native_members(&self, updated: Self) -> Self {
+        Self {
+            noise_estimator: self
+                .noise_estimator
+                .keep_native_members(updated.noise_estimator),
+            check_spectrum_type: self.check_spectrum_type,
+            ion_mobility_array: self.ion_mobility_array.clone(),
+            compatibility: self.compatibility,
+            max_points: self.max_points,
+            max_work: self.max_work,
+            ..updated
+        }
     }
 }
 

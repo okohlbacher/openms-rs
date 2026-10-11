@@ -6,10 +6,13 @@
 //! Positions are zero-based and inclusive, matching the OpenMS metadata model.
 //! Missing values use Option rather than numeric sentinels or NaN.
 
+/// The identification graph (`METADATA/ID/IdentificationData.h` and its record types).
 pub mod graph;
 mod protein_run;
 mod run_mapping;
 pub use run_mapping::IdentifierMSRunMapper;
+mod peptide_identification;
+pub use peptide_identification::{ConsensusIdLocation, ConsensusUidMap, MAX_UID_IDENTIFICATIONS};
 
 use crate::chemistry::{AASequence, SequenceModification};
 use crate::comparison::Tolerance;
@@ -69,6 +72,12 @@ impl PartialOrd for FlankingResidue {
     }
 }
 impl FlankingResidue {
+    /// The residue for a source flanking character: `X` unknown, `[` and `]`
+    /// the protein termini, any other uppercase letter a residue.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for any other character.
     pub fn from_code(code: char) -> Result<Self> {
         match code {
             'X' => Ok(Self::Unknown),
@@ -80,6 +89,7 @@ impl FlankingResidue {
             )),
         }
     }
+    /// The source flanking character (`X`, `[`, `]` or the residue).
     pub fn code(self) -> char {
         match self {
             Self::Unknown => 'X',
@@ -108,6 +118,12 @@ pub struct PeptideEvidence {
     pub aa_after: FlankingResidue,
 }
 impl PeptideEvidence {
+    /// An evidence for `accession` over the inclusive residue range
+    /// `positions`, flanking residues unknown.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`].
     pub fn new(accession: impl Into<String>, positions: RangeInclusive<usize>) -> Result<Self> {
         let value = Self {
             protein_accession: accession.into(),
@@ -118,6 +134,12 @@ impl PeptideEvidence {
         value.validate()?;
         Ok(value)
     }
+    /// Checks that a known start does not exceed a known end and that both
+    /// flanking residues are valid.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the violated rule.
     pub fn validate(&self) -> Result<()> {
         if let (Some(start), Some(end)) = (self.start, self.end) {
             if start > end {
@@ -131,6 +153,12 @@ impl PeptideEvidence {
     pub fn has_valid_limits(&self) -> bool {
         matches!((self.start,self.end),(Some(start),Some(end)) if start<=end)
     }
+    /// The inclusive residue range.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when the evidence is invalid or a position is
+    /// unknown.
     pub fn positions(&self) -> Result<RangeInclusive<usize>> {
         self.validate()?;
         match (self.start, self.end) {
@@ -140,12 +168,17 @@ impl PeptideEvidence {
     }
 }
 
+/// The `target_decoy` annotation of a hit.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum TargetDecoyType {
+    /// No annotation.
     #[default]
     Unknown,
+    /// `target`.
     Target,
+    /// `decoy`.
     Decoy,
+    /// `target+decoy` (peptides only).
     TargetAndDecoy,
 }
 fn target_decoy(metadata: &MetaInfo, allow_mixed: bool) -> Result<TargetDecoyType> {
@@ -178,6 +211,7 @@ fn set_target_decoy(metadata: &mut MetaInfo, value: TargetDecoyType) {
     }
 }
 
+/// One annotated fragment peak of a peptide hit (`PeptideHit::PeakAnnotation`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PeakAnnotation {
     pub mz: f64,
@@ -186,6 +220,11 @@ pub struct PeakAnnotation {
     pub annotation: String,
 }
 impl PeakAnnotation {
+    /// Checks that m/z and intensity are finite.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite value.
     pub fn validate(&self) -> Result<()> {
         finite(self.mz, "annotation m/z")?;
         finite(self.intensity, "annotation intensity")
@@ -206,6 +245,8 @@ impl PeakAnnotation {
     }
 }
 
+/// A secondary search-engine result attached to a peptide hit
+/// (`PeptideHit::PepXMLAnalysisResult`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct AnalysisResult {
     pub score_type: String,
@@ -214,6 +255,11 @@ pub struct AnalysisResult {
     pub sub_scores: BTreeMap<String, f64>,
 }
 impl AnalysisResult {
+    /// Checks that the main and sub-scores are finite.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite score.
     pub fn validate(&self) -> Result<()> {
         finite(self.main_score, "analysis score")?;
         for &score in self.sub_scores.values() {
@@ -223,6 +269,8 @@ impl AnalysisResult {
     }
 }
 
+/// One candidate peptide for a spectrum (`METADATA/PeptideHit.h`): sequence,
+/// score, rank, charge, protein evidences, peak annotations and meta values.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct PeptideHit {
     pub sequence: AASequence,
@@ -235,6 +283,12 @@ pub struct PeptideHit {
     pub metadata: MetaInfo,
 }
 impl PeptideHit {
+    /// A hit with score, rank, charge and sequence (the source's four-argument
+    /// constructor).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`].
     pub fn new(score: f64, rank: u32, charge: i32, sequence: AASequence) -> Result<Self> {
         let value = Self {
             score,
@@ -246,6 +300,12 @@ impl PeptideHit {
         value.validate()?;
         Ok(value)
     }
+    /// Checks the score, meta values, evidences, annotations, analysis
+    /// results and the `target_decoy` annotation.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first invalid part.
     pub fn validate(&self) -> Result<()> {
         finite(self.score, "peptide score")?;
         validate_meta(&self.metadata)?;
@@ -261,6 +321,8 @@ impl PeptideHit {
         self.target_decoy_type()?;
         Ok(())
     }
+    /// The non-empty protein accessions of the evidences
+    /// (`extractProteinAccessionsSet`).
     pub fn protein_accessions(&self) -> BTreeSet<&str> {
         self.evidences
             .iter()
@@ -272,32 +334,87 @@ impl PeptideHit {
     pub fn identity_key(&self) -> (AASequence, i32) {
         (self.sequence.clone(), self.charge)
     }
+    /// Whether both hits have the same annotated sequence and charge.
     pub fn same_sequence_and_charge(&self, other: &Self) -> bool {
         self.sequence == other.sequence && self.charge == other.charge
     }
+    /// The `target_decoy` annotation (`getTargetDecoyType`), compared
+    /// case-insensitively.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for another value.
     pub fn target_decoy_type(&self) -> Result<TargetDecoyType> {
         target_decoy(&self.metadata, true)
     }
+    /// Whether the annotation is exactly `decoy` (`isDecoy`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::target_decoy_type`].
     pub fn is_decoy(&self) -> Result<bool> {
         Ok(self.target_decoy_type()? == TargetDecoyType::Decoy)
     }
+    /// Sets the annotation; `Unknown` removes it (`setTargetDecoyType`).
     pub fn set_target_decoy_type(&mut self, value: TargetDecoyType) {
         set_target_decoy(&mut self.metadata, value);
     }
 }
 
-/// Spectrum-level peptide candidates. Missing coordinates are None.
+/// The candidates (spectrum matches) identified for one precursor spectrum
+/// (source `METADATA/PeptideIdentification.h`).
+///
+/// Typically the result of searching one MS/MS spectrum against a sequence
+/// database or spectral library: a list of [`PeptideHit`]s, each a potential
+/// match. An identification belongs to a parent [`ProteinIdentification`]
+/// run, which holds the search parameters, database and identified proteins;
+/// the two are linked by the shared [`identifier`](Self::identifier) string,
+/// and many identifications (one per spectrum) can share one run.
+///
+/// The precursor's retention time and m/z map the identification back to
+/// experimental data - spectra, features or consensus features (the source's
+/// `IDMapper`). Missing coordinates are `None` where the source stores a quiet
+/// NaN, so `getRT`/`setRT`/`hasRT` and their m/z counterparts are the `rt` and
+/// `mz` fields with `is_some`. The score type, orientation and an optional
+/// significance threshold describe the hits' scores.
+///
+/// The source class is also available as [`SpectrumIdentification`], the name
+/// its header calls "better" and deprecates this one in favour of. Equality is
+/// field-wise; the source's NaN-equals-NaN rule for unset coordinates is
+/// `None == None` here. Hashing is consistent with equality (source
+/// `std::hash<PeptideIdentification>`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct PeptideIdentification {
+    /// Links this identification to its [`ProteinIdentification`] run (source
+    /// `getIdentifier`/`setIdentifier`).
     pub identifier: String,
+    /// The candidate hits (source `getHits`/`setHits`/`insertHit`).
     pub hits: Vec<PeptideHit>,
+    /// Name of the score in [`PeptideHit::score`], for example `Mascot`,
+    /// `e-value` or `q-value` (source `getScoreType`/`setScoreType`).
     pub score_type: String,
+    /// Score orientation (source `isHigherScoreBetter`/`setHigherScoreBetter`);
+    /// `true` by default.
     pub higher_score_better: bool,
+    /// Peptide significance threshold (source
+    /// `getSignificanceThreshold`/`setSignificanceThreshold`). The source keeps
+    /// it as the `significance_threshold` metadata value and removes that value
+    /// when set to 0; here it is a field, 0 by default, and the file formats
+    /// write the source attribute.
     pub significance_threshold: f64,
+    /// Retention time of the identified MS2 spectrum, if known.
     pub rt: Option<f64>,
+    /// Precursor m/z of the identified MS2 spectrum, if known.
     pub mz: Option<f64>,
+    /// The source `MetaInfoInterface` payload, including `spectrum_reference`
+    /// and `experiment_label`.
     pub metadata: MetaInfo,
 }
+
+/// Source `using SpectrumIdentification = PeptideIdentification`, the name the
+/// source header marks as the future default.
+pub type SpectrumIdentification = PeptideIdentification;
+
 impl Default for PeptideIdentification {
     fn default() -> Self {
         Self {
@@ -313,15 +430,27 @@ impl Default for PeptideIdentification {
     }
 }
 impl PeptideIdentification {
+    /// Source default constructor: no hits, no run, higher scores better,
+    /// threshold 0 and unknown RT and m/z.
     pub fn new() -> Self {
         Self::default()
     }
+    /// Number of candidate hits.
     pub fn len(&self) -> usize {
         self.hits.len()
     }
+    /// Whether there are no candidate hits. The source `empty()`, which also
+    /// requires the default run, score type, orientation and threshold, is
+    /// [`PeptideIdentification::source_empty`].
     pub fn is_empty(&self) -> bool {
         self.hits.is_empty()
     }
+    /// Check the invariants the source leaves unchecked: a finite threshold,
+    /// finite coordinates when present, valid metadata and valid hits.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first violated invariant.
     pub fn validate(&self) -> Result<()> {
         finite(
             self.significance_threshold,
@@ -339,6 +468,18 @@ impl PeptideIdentification {
         }
         Ok(())
     }
+    /// Source `sort()`: order the hits so that the best-scoring hit comes
+    /// first, honouring [`Self::higher_score_better`].
+    ///
+    /// The sort is stable, as the source's `std::stable_sort` with
+    /// [`PeptideIdentification::score_comparator`]: equal scores keep their
+    /// input order.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] from [`PeptideIdentification::validate`], before
+    /// anything moves. The source sorts NaN scores with a comparator that is
+    /// then not a strict weak ordering; this refuses them.
     pub fn sort(&mut self) -> Result<()> {
         self.validate()?;
         self.hits
@@ -353,35 +494,60 @@ impl PeptideIdentification {
             .iter()
             .min_by(|a, b| score_order(a.score, b.score, self.higher_score_better)))
     }
+    /// Source static `getReferencingHits(getHits(), accessions)`: this
+    /// identification's hits with at least one peptide evidence whose protein
+    /// accession is in `accessions`, in hit order.
+    /// [`PeptideIdentification::hits_referencing`] takes any hit slice.
     pub fn referencing_hits<'a>(&'a self, accessions: &BTreeSet<String>) -> Vec<&'a PeptideHit> {
-        self.hits
-            .iter()
-            .filter(|hit| {
-                hit.evidences
-                    .iter()
-                    .any(|e| accessions.contains(&e.protein_accession))
-            })
-            .collect()
+        Self::hits_referencing(&self.hits, accessions)
     }
+    /// Source `getSpectrumReference()`: the `spectrum_reference` metadata value
+    /// as text, or `""` when absent. Currently this should almost always be the
+    /// full native vendor ID.
+    ///
+    /// Like the source, a non-string value is stringified leniently rather than
+    /// refused (an integer scan index from idparquet or mzIdentML reads as
+    /// `17`), in the source's text form (`1.5`, `1.23456789125e08`, `[a, b]`).
     pub fn spectrum_reference(&self) -> String {
-        text_value(&self.metadata, "spectrum_reference")
+        source_text_value(&self.metadata, "spectrum_reference")
     }
+    /// Source `setSpectrumReference`: store `spectrum_reference` as a string
+    /// value. An empty reference is stored too, as in the source.
     pub fn set_spectrum_reference(&mut self, value: impl Into<String>) {
         self.metadata
             .insert("spectrum_reference".into(), value.into().into());
     }
+    /// Source `getExperimentLabel()`: the `experiment_label` metadata value as
+    /// text (mostly written for pepXML, where every identification can belong
+    /// to a different experiment), or `""` when absent. Stringified leniently
+    /// as [`PeptideIdentification::spectrum_reference`] is.
     pub fn experiment_label(&self) -> String {
-        text_value(&self.metadata, "experiment_label")
+        source_text_value(&self.metadata, "experiment_label")
     }
+    /// Source `setExperimentLabel`: store a non-empty label.
+    ///
+    /// An empty label is **ignored**, exactly as in the source, which does not
+    /// store the empty default: a label set earlier stays in place (executed
+    /// Release oracle `B8b-peptide-id`, case `labels`). Remove the
+    /// `experiment_label` metadata entry to clear it.
     pub fn set_experiment_label(&mut self, value: impl Into<String>) {
         let value = value.into();
-        if value.is_empty() {
-            self.metadata.remove("experiment_label");
-        } else {
+        if !value.is_empty() {
             self.metadata
                 .insert("experiment_label".into(), value.into());
         }
     }
+}
+/// A metadata value as the source's lenient `StringUtils::toStr(DataValue)`
+/// writes it, or `""` when absent. The text form only fails beyond the list
+/// byte ceiling, where the plain display form is used instead.
+fn source_text_value(metadata: &MetaInfo, key: &str) -> String {
+    use crate::data_structures::list::ListFormat;
+    metadata.get(key).map_or_else(String::new, |value| {
+        value
+            .to_list_text()
+            .map_or_else(|_| value.to_string(), std::borrow::Cow::into_owned)
+    })
 }
 fn score_order(a: f64, b: f64, higher: bool) -> std::cmp::Ordering {
     if higher {
@@ -399,6 +565,7 @@ pub struct ProteinModification {
     pub modification: SequenceModification,
 }
 
+/// One identified protein (`METADATA/ProteinHit.h`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ProteinHit {
     pub score: f64,
@@ -412,6 +579,12 @@ pub struct ProteinHit {
     pub metadata: MetaInfo,
 }
 impl ProteinHit {
+    /// A hit with score, rank, accession and sequence; accession and sequence
+    /// are trimmed as the source's setters do.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`].
     pub fn new(
         score: f64,
         rank: u32,
@@ -428,6 +601,12 @@ impl ProteinHit {
         value.validate()?;
         Ok(value)
     }
+    /// Checks the score, sequence alphabet, coverage percentage, modification
+    /// positions, meta values and `target_decoy` annotation.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first invalid part.
     pub fn validate(&self) -> Result<()> {
         finite(self.score, "protein score")?;
         if !self
@@ -451,19 +630,36 @@ impl ProteinHit {
         self.target_decoy_type()?;
         Ok(())
     }
+    /// The `Description` meta value (`getDescription`), empty when absent.
     pub fn description(&self) -> String {
         text_value(&self.metadata, "Description")
     }
+    /// Sets the `Description` meta value (`setDescription`).
     pub fn set_description(&mut self, value: impl Into<String>) {
         self.metadata
             .insert("Description".into(), value.into().into());
     }
+    /// The `target_decoy` annotation; `target+decoy` is not a protein state.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for another value.
     pub fn target_decoy_type(&self) -> Result<TargetDecoyType> {
         target_decoy(&self.metadata, false)
     }
+    /// Whether the annotation is `decoy`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::target_decoy_type`].
     pub fn is_decoy(&self) -> Result<bool> {
         Ok(self.target_decoy_type()? == TargetDecoyType::Decoy)
     }
+    /// Sets the annotation; `Unknown` removes it.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for `TargetAndDecoy`.
     pub fn set_target_decoy_type(&mut self, value: TargetDecoyType) -> Result<()> {
         if value == TargetDecoyType::TargetAndDecoy {
             return Err(bad("protein target/decoy status cannot be mixed"));
@@ -484,6 +680,11 @@ pub struct ProteinGroup {
     pub string_data_arrays: Vec<DataArray<String>>,
 }
 impl ProteinGroup {
+    /// Checks that the probability and float quantities are finite.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a non-finite value.
     pub fn validate(&self) -> Result<()> {
         finite(self.probability, "protein group probability")?;
         if self
@@ -599,10 +800,13 @@ impl ProteinGroup {
     }
 }
 
+/// Mass type of a search (`ProteinIdentification::PeakMassType`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PeakMassType {
+    /// Monoisotopic masses.
     #[default]
     Monoisotopic,
+    /// Average masses.
     Average,
 }
 impl PeakMassType {
@@ -618,15 +822,22 @@ impl PeakMassType {
         Self::NAMES.iter().map(|name| (*name).to_string()).collect()
     }
 }
+/// Enzyme specificity of a search (`EnzymaticDigestion::Specificity` as
+/// stored in the search parameters).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum EnzymeTermSpecificity {
+    /// Not stated.
     #[default]
     Unknown,
+    /// Both termini enzymatic.
     Full,
+    /// At least one terminus enzymatic.
     Semi,
+    /// No enzyme restriction.
     None,
 }
 
+/// The settings of one search (`ProteinIdentification::SearchParameters`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct SearchParameters {
     pub database: String,
@@ -665,6 +876,12 @@ impl Default for SearchParameters {
     }
 }
 impl SearchParameters {
+    /// Checks that both mass tolerances are finite and nonnegative and the
+    /// meta values are valid.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the violated rule.
     pub fn validate(&self) -> Result<()> {
         for tolerance in [self.fragment_tolerance, self.precursor_tolerance] {
             let (Tolerance::Absolute(v) | Tolerance::Ppm(v)) = tolerance;
@@ -807,16 +1024,7 @@ fn trim_source_blanks(text: &str) -> &str {
 /// `StringUtils::toInt32`: blanks, one optional `+`, then `std::from_chars`
 /// (an optional `-` and at least one digit, in range), then only blanks.
 fn source_int32(text: &str) -> Option<i32> {
-    let text = trim_source_blanks(text);
-    let text = text.strip_prefix('+').unwrap_or(text);
-    let digits_from = usize::from(text.starts_with('-'));
-    let end = text[digits_from..]
-        .find(|c: char| !c.is_ascii_digit())
-        .map_or(text.len(), |offset| digits_from + offset);
-    if end == digits_from || end != text.len() {
-        return None;
-    }
-    text.parse::<i32>().ok()
+    crate::concept::string_conversion::to_int32(text).ok()
 }
 /// `SearchParameters::getChargeValue_`: a charge written with its sign before
 /// or after the number. Any `-` makes it negative and every `-` is dropped;
@@ -833,6 +1041,9 @@ fn source_charge_value(text: &str) -> Result<i32> {
     Ok(if negative { -value } else { value })
 }
 
+/// One identification run (`METADATA/ProteinIdentification.h`): search engine,
+/// search parameters, protein hits and groups; peptide identifications refer to
+/// it by [`Self::identifier`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProteinIdentification {
     pub identifier: String,
@@ -872,9 +1083,15 @@ impl Default for ProteinIdentification {
     }
 }
 impl ProteinIdentification {
+    /// An empty run with higher-is-better scores.
     pub fn new() -> Self {
         Self::default()
     }
+    /// Checks the threshold, meta values, search parameters, hits and groups.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] naming the first invalid part.
     pub fn validate(&self) -> Result<()> {
         finite(
             self.significance_threshold,
@@ -894,12 +1111,19 @@ impl ProteinIdentification {
         }
         Ok(())
     }
+    /// Sorts the hits best first in the run's orientation, keeping ties in
+    /// order (`sort`).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::validate`], before anything moves.
     pub fn sort(&mut self) -> Result<()> {
         self.validate()?;
         self.hits
             .sort_by(|a, b| score_order(a.score, b.score, self.higher_score_better));
         Ok(())
     }
+    /// The first hit with `accession` (`findHit`).
     pub fn find_hit(&self, accession: &str) -> Option<&ProteinHit> {
         self.hits.iter().find(|hit| hit.accession == accession)
     }

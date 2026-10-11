@@ -1,0 +1,6 @@
+Standard output: Running: sh -c echo same >&2; echo same >&2; exit 2
+
+Standard error: same
+same
+Process 'sh' did not finish successfully (exit code: 2). Please check the log.
+

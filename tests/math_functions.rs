@@ -10,12 +10,13 @@
 
 use openms::Error;
 use openms::concept::math_functions::{
-    Bin, MAX_BINOMIAL_TRIALS, MAX_BINS, MAX_DECIMAL_DIGITS, approximately_equal,
-    binomial_cdf_complement, ceil_decimal, contains, create_bins, extend_range, extended_gcd, gcd,
-    interval_transformation, is_odd, linear_to_log10, log_binomial_coef, log_sum_exp,
-    log10_to_linear, percent_of, ppm, ppm_abs, ppm_to_mass, ppm_to_mass_abs, quantile, round,
-    round_decimal, round_to, tolerance_window, zoom_in,
+    Bin, MAX_BINOMIAL_TRIALS, MAX_BINS, MAX_DECIMAL_DIGITS, Mt64, RandomShuffler,
+    approximately_equal, binomial_cdf_complement, ceil_decimal, contains, create_bins,
+    extend_range, extended_gcd, gcd, interval_transformation, is_odd, linear_to_log10,
+    log_binomial_coef, log_sum_exp, log10_to_linear, percent_of, ppm, ppm_abs, ppm_to_mass,
+    ppm_to_mass_abs, quantile, round, round_decimal, round_to, tolerance_window, zoom_in,
 };
+use std::collections::BTreeMap;
 
 /// The class test's default `TOLERANCE_RELATIVE(1.0 + 1e-5)`, with a unit-sized
 /// absolute floor so that comparisons against zero are meaningful.
@@ -640,4 +641,192 @@ fn quantile_uses_the_source_index_convention_and_checks_its_precondition() {
     ));
     assert!(quantile(&[1.0, f64::NAN], 0.5).is_err());
     assert!(quantile(&sample, f64::NAN).is_err());
+}
+
+// ---------------------------------------------------------------------------
+// Math::RandomShuffler. MathFunctions_test.cpp has no section for it; the
+// expected permutations and engine words are EXECUTED C++ output (tier 1):
+// ../oracle/B8b-random-shuffler/driver.cpp built with the Release flags of
+// libOpenMS against the Linux x86_64 Release install
+// openms4-release-bc9cc12-c19e494-174b576 and run twice on ibminode06 (both
+// runs byte-identical). tests/data/random_shuffler_oracle.tsv is the
+// concatenated stdout of its six cases; tests/data/math_functions_provenance.json
+// records the hashes.
+// ---------------------------------------------------------------------------
+
+type OracleRecords = BTreeMap<&'static str, Vec<&'static str>>;
+
+const SHUFFLER_ORACLE: &str = include_str!("data/random_shuffler_oracle.tsv");
+const SHUFFLE_LENGTHS: [usize; 8] = [0, 1, 2, 3, 5, 10, 20, 100];
+
+fn shuffler_oracle() -> OracleRecords {
+    let mut records = BTreeMap::new();
+    for line in SHUFFLER_ORACLE.lines() {
+        let mut fields = line.split('\t');
+        let label = fields.next().unwrap();
+        assert!(
+            records.insert(label, fields.collect()).is_none(),
+            "duplicate oracle label {label}"
+        );
+    }
+    records
+}
+
+fn oracle_field<'a>(records: &'a OracleRecords, label: &str) -> &'a [&'static str] {
+    records
+        .get(label)
+        .unwrap_or_else(|| panic!("oracle record {label} missing"))
+}
+
+fn joined(values: &[usize]) -> String {
+    values
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+/// Replays the driver's `sequence`: consecutive shuffles of `0..n` from one
+/// shuffler, then the next raw word. Returns how many records it checked.
+fn replay_sequence(records: &OracleRecords, label: &str, shuffler: &mut RandomShuffler) -> usize {
+    for n in SHUFFLE_LENGTHS {
+        let mut values: Vec<usize> = (0..n).collect();
+        shuffler.portable_random_shuffle(&mut values);
+        let expected = oracle_field(records, &format!("{label}/n{n}"));
+        assert_eq!(expected[0], n.to_string(), "{label}/n{n} length");
+        assert_eq!(joined(&values), expected[1], "{label}/n{n}");
+    }
+    let word = oracle_field(records, &format!("{label}/next_word"));
+    assert_eq!(
+        shuffler.next_u64().to_string(),
+        word[0],
+        "{label}/next_word"
+    );
+    SHUFFLE_LENGTHS.len() + 1
+}
+
+#[test]
+fn random_shuffler_int_constructor_matches_executed_release_permutations() {
+    let records = shuffler_oracle();
+    let mut checked = 0;
+    for seed in [0, 1, -1, 42, 4711, i32::MAX, i32::MIN] {
+        let mut shuffler = RandomShuffler::new(seed);
+        checked += replay_sequence(&records, &format!("int{seed}"), &mut shuffler);
+    }
+    assert_eq!(checked, 63);
+    // The int converts to the 64-bit seed by sign extension, as in C++: the
+    // executed -1 records are also the executed seed(2^64-1) records.
+    assert_eq!(RandomShuffler::new(-1), RandomShuffler::with_seed(u64::MAX));
+    assert_eq!(
+        oracle_field(&records, "int-1/n100"),
+        oracle_field(&records, "seed18446744073709551615/n100")
+    );
+}
+
+#[test]
+fn random_shuffler_default_constructor_uses_the_standard_default_seed() {
+    let records = shuffler_oracle();
+    let mut shuffler = RandomShuffler::default();
+    assert_eq!(replay_sequence(&records, "default", &mut shuffler), 9);
+    assert_eq!(
+        RandomShuffler::default().next_u64().to_string(),
+        oracle_field(&records, "default/first_word")[0]
+    );
+    assert_eq!(
+        RandomShuffler::default(),
+        RandomShuffler::with_seed(RandomShuffler::DEFAULT_SEED)
+    );
+}
+
+#[test]
+fn random_shuffler_seed_restarts_the_stream_after_earlier_draws() {
+    let records = shuffler_oracle();
+    for seed in [0, 4711, 1_u64 << 63, u64::MAX, 5489] {
+        let mut shuffler = RandomShuffler::new(7);
+        let mut warmup: Vec<usize> = (0..10).collect();
+        shuffler.portable_random_shuffle(&mut warmup);
+        shuffler.seed(seed);
+        assert_eq!(shuffler, RandomShuffler::with_seed(seed));
+        assert_eq!(
+            replay_sequence(&records, &format!("seed{seed}"), &mut shuffler),
+            9
+        );
+    }
+}
+
+#[test]
+fn random_shuffler_adopts_an_engine_in_its_current_state() {
+    let records = shuffler_oracle();
+    let mut engine = Mt64::new(4711);
+    for _ in 0..3 {
+        engine.next_u64();
+    }
+    let mut shuffler = RandomShuffler::from_engine(engine.clone());
+    assert_eq!(shuffler.engine(), &engine);
+    replay_sequence(&records, "engine4711skip3", &mut shuffler);
+    // The source copies the engine; the caller's copy did not advance.
+    assert_eq!(
+        engine.next_u64().to_string(),
+        oracle_field(&records, "engine_copy_unchanged")[0]
+    );
+    // engine_mut draws from the same stream the shuffle uses (source rng_).
+    let mut direct = RandomShuffler::new(4711);
+    let mut through_engine = RandomShuffler::new(4711);
+    assert_eq!(direct.next_u64(), through_engine.engine_mut().next_u64());
+    assert_eq!(direct, through_engine);
+    assert_eq!(direct.into_engine(), through_engine.engine().clone());
+}
+
+#[test]
+fn random_shuffler_permutation_is_independent_of_the_element_type() {
+    let records = shuffler_oracle();
+    for seed in [0, 4711] {
+        let mut letters = *b"ABCDEFGHIJKLMNOPQRST";
+        RandomShuffler::new(seed).portable_random_shuffle(&mut letters);
+        assert_eq!(
+            std::str::from_utf8(&letters).unwrap(),
+            oracle_field(&records, &format!("string{seed}"))[0]
+        );
+        let mut words = [
+            "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+        ]
+        .map(String::from);
+        RandomShuffler::new(seed).portable_random_shuffle(&mut words);
+        assert_eq!(
+            words.join(","),
+            oracle_field(&records, &format!("words{seed}"))[0]
+        );
+    }
+}
+
+#[test]
+fn random_shuffler_long_shuffle_matches_the_executed_digest() {
+    let records = shuffler_oracle();
+    for seed in [0, 4711] {
+        let mut shuffler = RandomShuffler::new(seed);
+        let mut values: Vec<u32> = (0..100_000).collect();
+        shuffler.portable_random_shuffle(&mut values);
+        // FNV-1a over each element's little-endian u32 bytes, as the driver.
+        let mut digest = 1_469_598_103_934_665_603_u64;
+        for value in &values {
+            for byte in value.to_le_bytes() {
+                digest = (digest ^ u64::from(byte)).wrapping_mul(1_099_511_628_211);
+            }
+        }
+        let expected = oracle_field(&records, &format!("long{seed}"));
+        assert_eq!(digest.to_string(), expected[0], "long{seed} digest");
+        let ends = [values[0], values[1], values[99_998], values[99_999]];
+        assert_eq!(
+            ends.map(|v| v.to_string()).join(","),
+            expected[1],
+            "long{seed} ends"
+        );
+        assert_eq!(shuffler.next_u64().to_string(), expected[2]);
+    }
+}
+
+#[test]
+fn random_shuffler_oracle_is_fully_consumed() {
+    // 63 int-seed + 10 default + 45 reseed + 10 engine + 4 type + 2 long records.
+    assert_eq!(shuffler_oracle().len(), 134);
 }

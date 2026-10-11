@@ -82,8 +82,8 @@ pub fn read_into(input: impl Read, target: &mut Param, limits: Limits) -> Result
     *target = draft;
     Ok(())
 }
-/// Load an owned parameter tree from a file; gzip and bzip2 are recognised by
-/// content.
+/// Load an owned parameter tree from a file; gzip, bzip2 and a one-entry ZIP
+/// archive are recognised by content, as `XMLFile::parse_` recognises them.
 ///
 /// # Errors
 ///
@@ -91,7 +91,8 @@ pub fn read_into(input: impl Read, target: &mut Param, limits: Limits) -> Result
 pub fn load(path: impl AsRef<Path>) -> Result<Param> {
     load_with_limits(path, Limits::default())
 }
-/// Path input recognizes gzip and bzip2 by content; limits apply after decoding.
+/// Path input recognizes gzip, bzip2 and one-entry ZIP input by content; limits
+/// apply after decoding.
 pub fn load_with_limits(path: impl AsRef<Path>, limits: Limits) -> Result<Param> {
     read_with_limits(super::path_io::open(path.as_ref())?, limits)
 }
@@ -756,23 +757,59 @@ pub enum OutputEncoding {
     Latin1,
 }
 
+/// How a written parameter file spells its numbers.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum NumberText {
+    /// The native text: every floating-point value (item, list item and
+    /// restriction) as the shortest decimal that reads back to the same `f64`
+    /// (`4`, `100000000000000000000`, `0.1`), infinities as `INF` and `-INF`,
+    /// and an integer item beyond 32 bits refused, because the source's reader
+    /// cannot read it back. Lossless; the native default.
+    #[default]
+    RoundTrip,
+    /// The source `ParamXMLFile::writeXMLToStream`'s text (`ParamXMLFile.cpp`
+    /// at core `bc9cc12`), which `-write_ini` writes:
+    ///
+    /// * an item's value is `ParamValue::toString()` (lines 106 and 110): a
+    ///   floating-point value through `StringUtils::toStr(double)`, 15 digits
+    ///   after the point in `[1e-2, 1e4)` and the shortest round trip in
+    ///   scientific notation outside it, trailing zeros trimmed to one (`4.0`,
+    ///   `1.0e20`, `NaN`, `inf`); an integer as `std::to_string` of the 64-bit
+    ///   value, so one beyond 32 bits is written, although the source's reader
+    ///   (`XMLHandler::asInt_`, `StringUtils::toInt32`) refuses it;
+    /// * a floating-point restriction is `StringUtils::toStr(double)` too
+    ///   (lines 251 and 256: `0.0:`);
+    /// * a floating-point list item is `os << list[i]` on a stream whose
+    ///   precision is `writtenDigits<double>()`, 15 (lines 64 and 328), which
+    ///   is `printf`'s `%.15g` with glibc's `nan`, `-nan`, `inf` and `-inf`
+    ///   (`4`, `1e+20`, `0.1`).
+    ///
+    /// A value with more than 15 significant digits loses them, as in the
+    /// source.
+    Source,
+}
+
 /// Options of [`write_with_options`] and [`store_with_options`].
 ///
-/// The default is the native writer, with a UTF-8 declaration.
-/// [`WriteOptions::source`] selects the source's ISO-8859-1 declaration, which
-/// the TOPP `-write_ini` option uses.
+/// The default is the native writer, with a UTF-8 declaration and lossless
+/// numbers. [`WriteOptions::source`] selects the source's ISO-8859-1
+/// declaration and number text, which the TOPP `-write_ini` option uses.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct WriteOptions {
     /// The declared and used character encoding.
     pub encoding: OutputEncoding,
+    /// The text of numbers.
+    pub numbers: NumberText,
 }
 
 impl WriteOptions {
     /// The source writer's declaration, `encoding="ISO-8859-1"`, with bytes that
-    /// agree with it; see [`OutputEncoding::Latin1`].
+    /// agree with it (see [`OutputEncoding::Latin1`]), and the source's text
+    /// of numbers ([`NumberText::Source`]).
     pub fn source() -> Self {
         Self {
             encoding: OutputEncoding::Latin1,
+            numbers: NumberText::Source,
         }
     }
 }
@@ -818,6 +855,7 @@ pub fn write_with_options(
         limits,
         elements: 0,
         latin1,
+        numbers: options.numbers,
     };
     xml.add(if latin1 {
         "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
@@ -873,6 +911,8 @@ struct Output {
     elements: usize,
     /// Encode as ISO-8859-1, with character references above U+00FF.
     latin1: bool,
+    /// The text of numbers.
+    numbers: NumberText,
 }
 impl Output {
     fn add(&mut self, text: &str) -> Result<()> {
@@ -1045,16 +1085,20 @@ impl Output {
         self.indent(depth)?;
         self.add(if list { "<ITEMLIST" } else { "<ITEM" })?;
         self.attr("name", &entry.name)?;
+        let source = self.numbers == NumberText::Source;
+        let float = if source { item_text } else { float_text };
         if !list {
             match &entry.value {
                 ParamValue::String(v) => self.attr("value", v)?,
                 ParamValue::Integer(v) => {
-                    i32::try_from(*v).map_err(|_| {
-                        unsupported("parameter XML source reader uses 32-bit integers")
-                    })?;
+                    if !source {
+                        i32::try_from(*v).map_err(|_| {
+                            unsupported("parameter XML source reader uses 32-bit integers")
+                        })?;
+                    }
                     self.attr("value", &v.to_string())?;
                 }
-                ParamValue::Float(v) => self.attr("value", &float_text(*v))?,
+                ParamValue::Float(v) => self.attr("value", &float(*v))?,
                 _ => unreachable!(),
             }
         }
@@ -1095,13 +1139,9 @@ impl Output {
                         v.to_string()
                     })
                 }
-                ParamValue::Float(_) | ParamValue::FloatList(_) => bounds(
-                    entry.min_float,
-                    entry.max_float,
-                    -f64::MAX,
-                    f64::MAX,
-                    float_text,
-                ),
+                ParamValue::Float(_) | ParamValue::FloatList(_) => {
+                    bounds(entry.min_float, entry.max_float, -f64::MAX, f64::MAX, float)
+                }
                 _ => {
                     if entry.valid_strings.iter().any(|v| v.contains(',')) {
                         return Err(unsupported(
@@ -1162,8 +1202,9 @@ impl Output {
                 if values.len() > self.limits.max_list_items {
                     return Err(bad("parameter list output limit exceeded"));
                 }
+                let list_float = if source { list_item_text } else { float_text };
                 for value in values {
-                    self.list_item(&float_text(*value), depth + 1)?;
+                    self.list_item(&list_float(*value), depth + 1)?;
                 }
             }
             _ => unreachable!(),
@@ -1201,6 +1242,7 @@ fn bounds<T: PartialEq>(
     };
     format!("{low}:{high}")
 }
+/// [`NumberText::RoundTrip`]'s floating-point text.
 fn float_text(value: f64) -> String {
     if value.is_nan() {
         "NaN".into()
@@ -1211,4 +1253,26 @@ fn float_text(value: f64) -> String {
     } else {
         value.to_string()
     }
+}
+
+/// [`NumberText::Source`]'s text of a floating-point item or restriction:
+/// `StringUtils::toStr(double)`, which is `ParamValue::toString()`'s
+/// ([`ParamValue::to_text`]).
+fn item_text(value: f64) -> String {
+    crate::param::value::format_float(value, true)
+}
+
+/// Significant digits of the source writer's stream,
+/// `os.precision(writtenDigits<double>(0.0))` (`ParamXMLFile.cpp:64`):
+/// `std::numeric_limits<double>::digits10`.
+const STREAM_DIGITS: u32 = 15;
+
+/// [`NumberText::Source`]'s text of a floating-point list item,
+/// `os << list[i]` (`ParamXMLFile.cpp:328`) on a stream of precision
+/// [`STREAM_DIGITS`] with the default format flags: `%.15g`, which is
+/// [`ostream_g`](crate::concept::numeric_formatting::ostream_g) at precision 15
+/// (`4`, `1e+20`, `1e-05`, `-0`, and glibc's `nan`, `-nan`, `inf` and `-inf`
+/// for the Linux Release build).
+fn list_item_text(value: f64) -> String {
+    crate::concept::numeric_formatting::ostream_g(value, STREAM_DIGITS)
 }

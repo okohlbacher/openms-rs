@@ -1,0 +1,12 @@
+ext
+-exe
+sh
+-args
+@-c
+echo "[$B7VAR]"
+-env
+B7VAR=x y
+-debug
+4
+-captured
+/scratch/kohlbach/oracle/B7-cli/runs/run1/ext_env/cwd/cap

@@ -1,0 +1,34 @@
+OpenMS_AllowedEnzymes
+Arg-C/P
+Asp-N
+Asp-N/B
+Asp-N_ambic
+Chymotrypsin
+Clostripain/P
+elastase-trypsin-chymotrypsin
+no cleavage
+unspecific cleavage
+Trypsin
+Arg-C
+Chymotrypsin/P
+CNBr
+Formic_acid
+Lys-C
+Lys-N
+Lys-C/P
+PepsinA
+TrypChymo
+Trypsin/P
+V8-DE
+V8-E
+leukocyte elastase
+proline endopeptidase
+glutamyl endopeptidase
+Alpha-lytic protease
+2-iodobenzoate
+iodosobenzoate
+staphylococcal protease/D
+proline-endopeptidase/HKR
+Glu-C+P
+PepsinA + P
+cyanogen-bromide

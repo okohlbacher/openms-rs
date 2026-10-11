@@ -17,7 +17,7 @@ The historical chemistry reference is [OpenMS4-core at
 7c029e8cdba6abab503708ecdd56f6ab55e38ce4](https://github.com/okohlbacher/OpenMS4-core/tree/7c029e8cdba6abab503708ecdd56f6ab55e38ce4).
 The [current SDK update](CORE_SDK_UPDATE.md) verifies unchanged scientific sources
 at `6bfc0e4`; historical fixture pins are retained.
-The Rust implementation retains the upstream BSD-3-Clause attribution; the private decoy random helper also retains Boost Software License 1.0 terms. Embedded
+The Rust implementation retains the upstream BSD-3-Clause attribution; the `Math::RandomShuffler` port behind the decoy generator (`src/concept/math_functions/random_shuffler.rs`) also retains Boost Software License 1.0 terms. Embedded
 UniMod data has its own Design Science License; see the [modification support](MODIFICATION_SUPPORT.md).
 
 | Rust API | Implemented behavior | Reference |

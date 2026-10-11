@@ -157,7 +157,7 @@ requirement* below says why.
 | run | `Error::InvalidValue`, `InvalidRange` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch`; `an_empty_combined_intensity_range_is_refused` (MapNormalizer) | tier 1 (Release build): the source's `InvalidValue` and `InvalidRange` derive from `BaseException` and take its arm, `Error: Unexpected internal error (<what>)`; MapNormalizer's empty intensity range, executed at the pinned Release build. A tool that refuses a parameter value where the source returns `ILLEGAL_PARAMETERS` says so itself with `ToolError::invalid_parameter` (6): SpectraFilterWindowMower's non-finite window size and MapNormalizer's non-positive maximum, both native refusals |
 | run | a tool body reads a parameter it did not register, or with the wrong accessor | 12 | 482-493; `TOPPBase_defs.h:53-75` | `accessor_misuse_ends_as_the_source_catch_blocks_end_it` | tier 2, source-derived (a programming error, unreachable from the command line): `Internal error: Request for unregistered parameter '<name>'` and `Internal error: Request for parameter with wrong type '<name>'`, through `writeLogError_`, no closing line |
 | run | a flag parameter holding neither `true` nor `false` | 6 | 1822-1840, 475-480 | `ToolContext::flag` | tier 2, source-derived; the strict update refuses such a value first, so only a tool body could reach it |
-| run | `Error::MissingInformation` | 7 | 466-474 | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native: as `RequiredParameterNotGiven`; the source's `MissingInformation` exception reaches its `BaseException` arm, exit 8 |
+| run | `Error::MissingInformation` | 8 | 495-499 | `run_phase_errors_map_like_the_source_inner_catch` | tier 2, source-derived: the source's `MissingInformation` derives directly from `BaseException` (`Exception.h:154`) and takes its arm, `Error: Unexpected internal error (<what>)`; a missing required parameter is the lifecycle's check (7), never this error |
 | run | `Error::Unsupported`, `UnsortedData` | 11 | the tools' own `INCOMPATIBLE_INPUT_DATA` returns | `run_phase_errors_map_like_the_source_inner_catch` | tier 4, native |
 | run | `ToolError::Caught` from a tool body: a source exception whose catch-block text the tool knows | the tool's code | 430-499 | `a_caught_exception_prints_no_closing_line_and_reaches_the_log`; the tools' `release_*` tests | tier 1 (Release build): `fi_out_is_directory_log`, `fd_matched_whitelist_log`, `pphr_centroided_log`, `ffc_profile_noforce_log`, `ffc_ms2_only_log` in `../oracle/topp-exception-exits` |
 | run | `ToolError::Escaped` from a tool body: a `std::exception` | 12 | 510-513 | `an_escaped_exception_prints_no_closing_line_and_stays_out_of_the_log` | tier 1 (Release build): `fd_directory_log` in `../oracle/topp-exception-exits` |
@@ -223,8 +223,10 @@ flags are registered with a leading dash, so their command-line tokens carry two
 values already queued (`parseCommandLine_`). Every entry of a registered
 subsection is an option too, as `-section:name`, typed by its default: a string
 that defaults to `false` and is restricted to `true`/`false` becomes a flag, and
-numbers convert while parsing with `StringUtils::toInt32` and `toDouble` rules,
-whose messages are reproduced. An option given twice keeps its last value with a
+numbers convert while parsing through the StringUtils port
+(`data_structures::string_utils::to_int32` and `to_double`, whose messages are
+the source's), so a literal that rounds to zero, such as `1e-400`, is refused as
+the Linux Release build refuses it. An option given twice keeps its last value with a
 warning. Unknown options are reported before trailing text, and both after
 `--help`.
 
@@ -477,9 +479,12 @@ allowed list (`../oracle/B0-attacks`, cases `unknown_*`, seven tools;
 `tests/topp_b0_release.rs`,
 `an_undetermined_input_format_is_the_loaders_parse_error_in_every_tool`).
 FileInfo, which loads with the forced type alone, goes through the same check.
-The diagnostic still reads `Error: Unable to read file (parse error on line 0:
-<the source's text>)`, the rendering of every `Error::Parse` (open item 3 of
-the TOPPBase ledger entry).
+The diagnostic is the Release build's line byte for byte: an `Error::Parse`
+without a line number is printed as its message alone, which is the source's
+`ParseError::what()`, `<message> in: <file>` (`Exception.cpp:160-164`), for
+every loader that reproduces a source `ParseError`. An `Error::Parse` that
+carries a line keeps `parse error on line <n>: <message>`; no reader that sets
+a line words its message as the source does.
 
 **Input checks on a directory.** On the Linux Release build a directory given
 as an input file whose name no type claims does not warn: `FileHandler::getType`
@@ -496,8 +501,13 @@ reproduction of the same message for its own read (`ToolError::escaped`) is a
 tool-level choice. `setValidFormats_`'s
 `force_OpenMS_format` check of registered format names is not ported.
 
-**`-write_ini`** is compared with the C++ files by number, not by text: this
-writer prints `3` where the source prints `3.0`. The ISO-8859-1 declaration is
+**`-write_ini`** writes the C++ files byte for byte
+(`tests/topp_write_ini_text.rs`, every retained `-write_ini` file of the nine
+ported tools; `tests/topp_json_ini.rs`): the numbers are the source writer's
+(`paramxml::NumberText::Source`), `3.0`, `1.0e20` and `0.0:` for a
+floating-point item or restriction, `%.15g` for a floating-point list item,
+and a 64-bit integer as it is held, although the source's reader, and this
+port's, refuses one beyond 32 bits. The ISO-8859-1 declaration is
 kept consistent with the bytes (`paramxml::OutputEncoding::Latin1`): the source
 copies UTF-8 bytes under that declaration, so its non-ASCII text reads back as
 different characters, while this writer writes ISO-8859-1 bytes and character
@@ -758,8 +768,9 @@ positive), exit 6. For BaselineFilter's element the Release build completes
 with a zero-sample element widened to one (`bf_dp_negative_fraction` of
 `../oracle/B0-attacks`, exit 0) and ends with SIGSEGV on a negative length
 (`bf_dp_negative`, exit 139).
-`Error::MissingInformation` still maps to 7, where the source's exception of
-that name would exit 8.
+`Error::MissingInformation` maps to 8, `Error: Unexpected internal error
+(<what>)`, as the source's exception of that name, which derives directly
+from `BaseException`.
 `parse_range` leaves both bounds unchanged on error. A command line is bounded
 by `MAX_ARGUMENTS` and `MAX_ARGUMENT_BYTES` before parsing, and parsed in time
 linear in its length: the text left after each option is gathered in reverse and
@@ -1104,3 +1115,147 @@ The second DTA finding above is the first concrete instance of the port's
 keep the guard as the library default, add an explicit source-behavior option,
 and have the tool opt in — is the one to apply as further tools meet their own
 guards.
+
+## Tool base classes
+
+The `OpenMS4-cli` package (`c19e494`) has four base classes between `TOPPBase`
+and the tools, and `TOPPBase_defs.h`. They add behaviour and, apart from
+`TOPPMapAlignerBase::ref_params_`, no state, so the native forms are methods
+of the run context or associated functions a [`Tool`] implementation calls,
+not types a tool derives from. The deleted default and copy constructors and
+the inherited `TOPPBase` constructors have no counterpart: a native tool is a
+type implementing `Tool`, whose name, description and citations are its
+associated constants.
+
+Evidence: the Release oracle `../oracle/B7-cli` (driver `driver.cpp`, cases
+`cases.tsv`, runner `run.sh`), built with the pinned Release install's
+compiler (`x86_64-conda-linux-gnu-g++` 14.4.0, `-O3 -DNDEBUG`) and run twice on
+**ibminode06** against the Release install
+`openms4-release-bc9cc12-c19e494-174b576`. The 75 cases agree between the two
+runs except the timing figures of two progress blocks (`ma_none_transform`,
+`ma_none_transform_store`). The retained cases are in
+`tests/data/topp_cli_base_classes/` and replayed by
+`tests/topp_cli_base_classes.rs`: each oracle tool is re-implemented natively
+and run with the Release case's arguments, paths mapped.
+
+### TOPPExternalToolBase (`src/cli/external_tool.rs`) — complete
+
+| Source | Native |
+| --- | --- |
+| `runExternalProcess_(exe, args, workdir, env)` | `ToolContext::run_external_process` |
+| `runExternalProcess_(exe, args, proc_stdout, proc_stderr, workdir, env)` | `ToolContext::run_external_process_output`, returning `ExternalProcessOutput { code, stdout, stderr }` |
+| the `RETURNSTATE` switch | `exit_code_of` (exhaustive; the source's `InternalToolError` default arm is unreachable) |
+| `debug_level_ >= 4` echo to `OPENMS_LOG_INFO` | `EXTERNAL_OUTPUT_DEBUG_LEVEL`, `ToolContext::write_info_stream` (the run's info stream, a `concept::log_stream::LogStream` with the source's two-line repeat cache, `src/cli/info_stream.rs`) |
+| `writeLogError_("Standard output: …")`, `("Standard error: …")` on failure below level 4 | `write_log_error`, on `err` and in the `-log` file |
+
+The child runs through `ExternalProcess` (`src/system/external_process.rs`)
+with `verbose = true` and `READ_WRITE`. Added: `Invocation::preflight` refuses
+argument counts and bytes over its ceilings, interior NUL bytes and malformed
+environment keys before anything starts; the source checks none of them.
+Evidence: 18 `ext_*` cases (success, non-zero exit, crash, missing program, both
+overloads, debug 4 echo with repeated lines, environment overlay, working
+directory, output without a final newline, the `-log` file at debug 0 and 1)
+and `TOPPExternalToolBase_test.cpp`'s three outcomes.
+
+### MapAlignerBase (`src/cli/map_aligner.rs`) — partial
+
+| Source | Native |
+| --- | --- |
+| `TOPPMapAlignerBase(name, description, official)`, `ref_params_` | `TOPPMapAlignerBase::new(ReferenceParameterKind)`, `ref_params()` |
+| `enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }` | `ReferenceParameterKind::{None, Restricted, Flexible}` |
+| `registerOptionsAndFlagsMapAligners_(file_formats, ref_params)` | `register_options_and_flags_map_aligners(spec, file_formats)`; the kind is fixed at construction. `registerTOPPSubsection_` is `ToolSpec::register_topp_subsection` |
+| `checkParameters_()` | `check_parameters(ctx, err)` |
+| `transformSpectraFiles_(in, out, transformations, store_original_rt)` | `transform_spectra_files(ctx, …)` (feature `mzml`); `MapAlignmentTransformer::transform_experiment` and one `ALIGNMENT` processing record per file |
+| `MapAlignerBase::getModelDefaults(default_model)` | **not ported** |
+
+`checkParameters_` reads `reference:index` into a `Size`; a negative value,
+which only a direct caller can supply past `setMinInt_`, is taken as the huge
+unsigned value the conversion gives. The source's two
+`OPENMS_PRECONDITION`s in `transformSpectraFiles_` are `Error::InvalidValue`.
+Evidence: 23 `ma_*` cases (every refusal, the reference checks for the
+restricted and flexible kinds, `--help`, `--helphelp`, `-write_ini` for the
+three kinds, and the transformed spectra files compared record by record;
+completion times compare to the minute, the precision the C++ mzML writer
+keeps, `MzMLHandler.cpp:3947`).
+
+Gaps: `getModelDefaults` forwards to core `TransformationModelDefaults::getDefaults`,
+which is ported on branch `worktree-wf_ee239125-5be-30`
+(`analysis::transformations::params::transformation_model_defaults`, commit
+`48b83c7d`) but not merged here; the forwarder is one line once it is.
+`transformSpectraFiles_`'s progress output (`transforming spectra files` with
+the nested `loading mzML` and `storing mzML file` sections) is not written:
+`FileHandler` has a loader with progress but no mzML store with progress.
+
+### SearchEngineBase (`src/cli/search_engine.rs`) — partial
+
+| Source | Native |
+| --- | --- |
+| `SearchEngineBase(name, description, official, citations, toolhandler_test)` | none (see above) |
+| `getRawfileName(ms_level)` | `SearchEngineBase::get_rawfile_name(ctx, err, ms_level)`; `RAWFILE_INSPECTED_SPECTRA` is `getCentroidInfo`'s ten spectra |
+| `getDBFilename(db)` | `SearchEngineBase::get_db_filename(ctx, out, err, files, db)`, with `FileContext::find_database` |
+| `registerPeptideIndexingParameter_(param)` | `SearchEngineBase::register_peptide_indexing_parameter(spec, param)`; `PEPTIDE_INDEXING_ADVANCED` |
+| `reindex_(proteins, peptides)` | **not ported** |
+
+`getRawfileName` reads mzML as the source's `MzMLFile` does
+(`ReadOptions::source()`, decision D10): the class test's
+`Single_MS2_profileMode.mzML` has dangling `softwareRef`s. The last warning,
+which the source writes without a line break, reaches standard error at the
+end of the run (`write_log_warn_unterminated`), as the Release build shows.
+`registerPeptideIndexingParameter_`'s `setValue("missing_decoy_action",
+"warn")` keeps the entry's description and restrictions and replaces its tags
+(`Param.cpp:406-415`), as the Release INI shows. Evidence: 34 `se_*` cases (24, and the ten `_ns` twins below),
+among them `SearchEngineBase_test.cpp`'s four `getRawfileName` checks.
+
+The class test's `empty_spec.mzML` declares no default namespace. The Release
+build reads it; the native mzML reader refuses an element outside the mzML
+namespace (`src/format/mzml.rs`). The ten cases on it are replayed through
+their `_ns` twins, whose input only adds the namespace and which the Release
+build ended identically (`compare_ns.py`: 34 files, 0 differ). Reading the
+un-namespaced file is an mzML reader gap.
+
+Gap: `reindex_` needs `PeptideIndexing`'s parameter surface
+(`getParameters`/`setParameters`) and its `ExitCodes`
+(`DATABASE_EMPTY`, `PEPTIDE_IDS_EMPTY`, `UNEXPECTED_RESULT`); the native
+`analysis::peptide_indexing::PeptideIndexing` has neither. The oracle's
+indexer defaults are retained (`cases/se_write_ini/cwd/pi_defaults.ini`) so
+that the registration is checked against them meanwhile. A separate
+`PeptideIndexing` process lists `enzyme:name`'s restrictions in another order
+than the tool process did; both were stable across the two runs.
+
+A `-database` value the framework checks fails before the tool body here,
+where the source checks it when the body first reads it, so the body's
+`-force` warning that the Release build prints first is not printed (*Native
+differences*). The blank value of `se_db_blank` exposed a lifecycle gap, now
+closed: a `skipexists` input whose name no type claims and that does not exist
+ends as the source's `FileNotFound` from content recognition (exit 1), where
+the lifecycle warned `Could not determine format` and went on.
+
+### INIUpdater (`src/cli/ini_updater.rs`) — complete
+
+| Source | Native |
+| --- | --- |
+| `typedef std::map<ToolDescriptionInternal, ToolDescriptionInternal> ToolMapping` | `ToolMapping`, keyed by `ToolDescriptionInternal::sort_key` (the source's `operator<`), `ToolMappingEntry` |
+| `INIUpdater()` | `INIUpdater::new()` (initialises the table) |
+| `getToolNamesFromINI(ini)` | `get_tool_names_from_ini(&Param)` |
+| `getNameMapping()` | `get_name_mapping()` |
+| `getNewToolName(old, type, new_name)` | `get_new_tool_name(old, type, &ToolHandler) -> Option<String>` |
+| `static ToolMapping map_` | a `OnceLock` |
+
+`getNewToolName` consults the tool registry, which is an explicit
+`ToolHandler` here. Evidence: `INIUpdater_test.cpp` and the oracle's
+`iniupdater` mode (the whole table and 19 look-ups against the built-in
+product manifest), equal in both runs.
+
+### TOPPBase_defs.h (`src/cli/defs.rs`) — complete
+
+`Citation` (`authors`, `title`, `when_where`, `doi`, `toString` as
+`to_source_string` and `Display`). The three exceptions are not types: the
+accessors' refusals end a run as the catch blocks do (`ToolContext`,
+tests in `tests/topp_cli_lifecycle.rs`), and a tool that throws one itself
+returns `ToolError::required_parameter_not_given`, `unregistered_parameter` or
+`wrong_parameter_type`, which carry the catch blocks' texts and exit codes
+(`TOPPBase.cpp:466-493`; `RequiredParameterNotGiven` quotes its text unless it
+starts with a quote). IDSplitter, IsobaricWorkflow, LuciphorAdapter,
+MapAlignerIdentification and ProteinQuantifier throw them directly. The
+constructors' `GlobalExceptionHandler::setMessage` has no counterpart; it only
+matters to a process that terminates on an uncaught exception.

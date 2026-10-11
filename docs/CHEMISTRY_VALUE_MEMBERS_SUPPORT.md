@@ -76,12 +76,12 @@ formula's round-trip form.
 
 | Source | Rust |
 |---|---|
-| `enum Specificity` (0, 1, 2, 3, 8, 9) and `SIZE_OF_SPECIFICITY` | `enzymatic_digestion::Specificity`, `SIZE_OF_SPECIFICITY` |
+| `enum Specificity` (0, 1, 2, 3, 8, 9) and `SIZE_OF_SPECIFICITY` | `digestion::DigestionSpecificity` (also named `enzymatic_digestion::Specificity`), `SIZE_OF_SPECIFICITY` |
 | `NamesOfSpecificity` | `NAMES_OF_SPECIFICITY` |
 | `NoCleavage`, `UnspecificCleavage` | `NO_CLEAVAGE`, `UNSPECIFIC_CLEAVAGE` |
-| `getSpecificityByName` | `Specificity::by_name` |
-| `getSpecificity`/`setSpecificity` with the source enum | `ProteaseDigestion::source_specificity`/`set_source_specificity` |
-| `filterByMissedCleavages` | `ProteaseDigestion::filter_by_missed_cleavages` |
+| `getSpecificityByName` | `DigestionSpecificity::by_name` |
+| `getSpecificity`/`setSpecificity` with the source enum | the `specificity` field of `ProteaseDigestion` |
+| `filterByMissedCleavages` | `ProteaseDigestion::filter_by_missed_cleavages` (the source's arithmetic, `count_internal_cleavage_sites_source`) |
 | `DigestionEnzymeDB::hasEnzyme(const T*)` | `ProteaseDB::has_enzyme_record`, `RNaseDB::has_enzyme_record` |
 | `DigestionEnzymeDB::getEnzymeByRegEx` | `ProteaseDB::enzyme_by_regex` (single, last registered); `enzymes_by_regex` returns all |
 | the lowercase-name index of `addEnzyme_` | `ProteaseDB::get_enzyme`/`has_enzyme` (fixed; `RNaseDB` already had it) |
@@ -125,8 +125,11 @@ formula's round-trip form.
   order; the SDK sums in element address order, so the last bit can differ.
 - `IsotopeDistribution::merge` adds weights in `f64` (the SDK in `float`) and
   refuses an empty trimmed distribution, which the SDK reads past its end.
-- `set_source_specificity` refuses `SPEC_UNKNOWN`, `SPEC_NOCTERM` and
-  `SPEC_NONTERM`; the SDK stores them and digests as if fully specific.
+- A digestion holds `SPEC_UNKNOWN`, `SPEC_NOCTERM` and `SPEC_NONTERM` as the
+  SDK does, and `ProteaseDigestion::digest` refuses them as the SDK does
+  (`ProteaseDigestion.cpp:93-98`). The group-A `set_source_specificity` was
+  removed at the wave-4 integration, when group B's `DigestionSpecificity`
+  gained the three values.
 - `estimate_fragment_from_peptide_weight_and_sulfur` refuses a fragment sulfur
   count above the precursor's, which the SDK subtracts as unsigned integers.
 
