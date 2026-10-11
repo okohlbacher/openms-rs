@@ -352,6 +352,9 @@ fn run_case(case: &Case) -> Outcome {
             -1,
         )
         .unwrap();
+    for entry in workflow.take_log() {
+        eprintln!("[workflow {:?}] {}", entry.level, entry.message);
+    }
     Outcome {
         features,
         chromatograms: consumer.0,
@@ -378,6 +381,23 @@ fn assert_features_match(actual: &FeatureMap, expected_name: &str) {
     let options = decoded::DecodedOptions::new(decoded::Tolerance::from_settings(&settings))
         .ignoring_unique_ids();
     if let Err(mismatch) = decoded::compare_feature_maps(&actual, &expected, &options) {
+        let describe = |label: &str, map: &FeatureMap| {
+            eprintln!("{label}: {} features", map.features.len());
+            for f in &map.features {
+                eprintln!(
+                    "  rt {:.4} mz {:.4} int {:.2} q {:.4} charge {} peptide {:?} n_sub {}",
+                    f.rt,
+                    f.mz,
+                    f.intensity,
+                    f.quality,
+                    f.charge,
+                    f.metadata.get("PeptideRef"),
+                    f.subordinates.len()
+                );
+            }
+        };
+        describe("actual", &actual);
+        describe("expected", &expected);
         panic!("{expected_name}: {mismatch}");
     }
     assert!(!expected.features.is_empty());
@@ -644,7 +664,8 @@ fn mrm_mode_needs_a_chromatogram_handler() {
         }
     }
     let cp = ChromExtractParams::default();
-    let ffp = scoring_defaults();
+    let mut ffp = scoring_defaults();
+    set_str(&mut ffp, "Scores:use_ion_mobility_scores", "false");
     let call = |workflow: &mut OpenSwathWorkflow| {
         let mut out = FeatureMap::new();
         workflow.perform_extraction(
