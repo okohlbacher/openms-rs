@@ -22,10 +22,11 @@
 //!
 //! # Gaps
 //!
-//! Ion mobility peak picking (`apply_im_peak_picking`) and the Parquet
-//! mobilogram export are gaps of
+//! The Parquet mobilogram export (`MobilogramParquetConsumer`, a header of
+//! its own) is a gap of
 //! [`ion_mobility_scoring`](crate::analysis::openswath::ion_mobility_scoring),
-//! which this module calls.
+//! which this module calls; the sink is a trait here. Ion mobility peak
+//! picking (`apply_im_peak_picking`) is ported there.
 //!
 //! See `docs/OPENSWATH_SCORING_SUPPORT.md`.
 

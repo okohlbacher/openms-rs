@@ -9,8 +9,8 @@ Ports of the OpenSWATH scoring headers at the core pin `bc9cc12`:
 | `ANALYSIS/OPENSWATH/DIAScoring.h` | `src/analysis/openswath/dia_scoring.rs` | complete |
 | `ANALYSIS/OPENSWATH/MRMScoring.h` | `src/analysis/openswath/mrm_scoring.rs` | complete |
 | `ANALYSIS/OPENSWATH/OpenSwathScores.h` | `src/kernel/mrm.rs` (records), `src/analysis/openswath/openswath_scores.rs` (methods, usage) | complete |
-| `ANALYSIS/OPENSWATH/IonMobilityScoring.h` | `src/analysis/openswath/ion_mobility_scoring.rs` | partial: ion-mobilogram peak picking (needs `PeakPickerMobilogram.h`) |
-| `ANALYSIS/OPENSWATH/OpenSwathScoring.h` | `src/analysis/openswath/openswath_scoring.rs` | partial: inherits the ion-mobility peak-picking gap |
+| `ANALYSIS/OPENSWATH/IonMobilityScoring.h` | `src/analysis/openswath/ion_mobility_scoring.rs` | complete: `apply_im_peak_picking` runs `PeakPickerMobilogram` (group O integration; `MobilogramParquetConsumer` is a sink trait, its Parquet implementation a header of its own) |
+| `ANALYSIS/OPENSWATH/OpenSwathScoring.h` | `src/analysis/openswath/openswath_scoring.rs` | complete (the `apply_im_peak_picking` gap closed at group O integration with `PeakPickerMobilogram`) |
 
 `convertPeptideToAASequence` of `ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h`
 was added to `src/analysis/openswath/data_access_helper.rs`, because the DIA
@@ -106,7 +106,7 @@ and precursor scores need it.
 | private `computeGrid_`, `alignToGrid_`, `extractIntensities` (2) | public `compute_grid`, `align_to_grid`, `extract_intensities`, `extract_intensities_single` |
 | free `sumAlignedMobilograms` | `sum_aligned_mobilograms` |
 | `MobilogramParquetConsumer*` | `MobilogramSink` trait (the Parquet implementation is a backlog item of `FORMAT/DATAACCESS/MobilogramParquetConsumer.h`) |
-| `PeakPickerMobilogram` use for `apply_im_peak_picking` | **not ported**: `Error::Unsupported` naming `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h` |
+| `PeakPickerMobilogram` use for `apply_im_peak_picking` | `pick_im_window` in `ion_mobility_scoring.rs`: `PeakPickerMobilogram` at its defaults with method `corrected`, `sum_aligned_mobilograms`, `filter_top_peak` on the aligned mobilograms (and `filter_top_peak_single` on the identification mobilogram), borders read from the grid; a border outside the grid is `Error::InvalidValue` where the source indexes out of range. Evidence: tier 1, `tests/openswath_scoring_oracle.rs::oracle_im_peak_picking` (260 records, ibminode06 Release, `../oracle/integ-O-impick`) |
 
 ### OpenSwathScoring
 

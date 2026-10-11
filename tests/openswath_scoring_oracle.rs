@@ -874,3 +874,207 @@ fn oracle_openswath_scoring() {
         compare(&r, prefix);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Ion-mobilogram peak picking (group O integration)
+// ---------------------------------------------------------------------------
+//
+// `../oracle/integ-O-impick/driver.cpp` ran `IonMobilityScoring::driftScoring`
+// and `driftIdScoring` with `apply_im_peak_picking` true and false on five
+// spectra (`inputs.tsv`) against the Linux x86-64 Release install on
+// ibminode06, twice, byte-identical. The records are the expected values; the
+// `.nopick` records of the same run are the control that the picking alone
+// changes the result.
+
+const IMPICK_INPUTS: &str = include_str!("data/openswath_scoring/impick_inputs.tsv");
+const IMPICK_ORACLE: &str = include_str!("data/openswath_scoring/impick_oracle.stdout");
+
+fn impick_spectra() -> BTreeMap<String, SpectrumPtr> {
+    let mut out = BTreeMap::new();
+    let mut lines = IMPICK_INPUTS.lines();
+    while let Some(header) = lines.next() {
+        let mut cols = header.split('\t');
+        assert_eq!(cols.next(), Some("S"));
+        let name = cols.next().unwrap().to_string();
+        let n: usize = cols.next().unwrap().parse().unwrap();
+        let (mut mz, mut im, mut int) = (Vec::new(), Vec::new(), Vec::new());
+        for _ in 0..n {
+            let row: Vec<f64> = lines
+                .next()
+                .unwrap()
+                .split('\t')
+                .map(|v| v.parse().unwrap())
+                .collect();
+            mz.push(row[0]);
+            im.push(row[1]);
+            int.push(row[2]);
+        }
+        out.insert(name, mk(&mz, &int, Some(&im)));
+    }
+    out
+}
+
+fn impick_scores(r: &mut Rec, k: &str, s: &OpenSwathScores) {
+    for (name, v) in [
+        ("im_drift", s.im_drift),
+        ("im_drift_weighted", s.im_drift_weighted),
+        ("im_delta_score", s.im_delta_score),
+        ("im_delta", s.im_delta),
+        ("im_log_intensity", s.im_log_intensity),
+        ("im_drift_left", s.im_drift_left),
+        ("im_drift_right", s.im_drift_right),
+        ("im_xcorr_coelution_score", s.im_xcorr_coelution_score),
+        ("im_xcorr_shape_score", s.im_xcorr_shape_score),
+        ("im_ind_contrast_coelution", s.im_ind_contrast_coelution),
+        ("im_ind_contrast_shape", s.im_ind_contrast_shape),
+        (
+            "im_ind_sum_contrast_coelution",
+            s.im_ind_sum_contrast_coelution,
+        ),
+        ("im_ind_sum_contrast_shape", s.im_ind_sum_contrast_shape),
+    ] {
+        r.p(format!("{k}.{name}"), v);
+    }
+}
+
+/// The driver's `fresh()`: the left and right drift start at the sentinel -2.
+fn impick_fresh() -> OpenSwathScores {
+    OpenSwathScores {
+        im_drift_left: -2.0,
+        im_drift_right: -2.0,
+        ..OpenSwathScores::default()
+    }
+}
+
+/// `driftScoring` and `driftIdScoring` with and without `apply_im_peak_picking`,
+/// bit for bit against the Release build.
+#[test]
+fn oracle_im_peak_picking() {
+    let spectra = impick_spectra();
+    let det = [
+        tr("det1", 500.2, 1, 1., 700.2),
+        tr("det2", 600.5, 1, 1., 700.2),
+    ];
+    let id = [tr("id1", 700.1, 1, 1., 700.2)];
+    let mut r = Rec::default();
+    // (spectrum, drift target, range centre, range width, window, drift extra)
+    let cases = [
+        ("multi", 0.8, 1.0, 1.0, 0.3, 0.25),
+        ("equal", 0.7, 1.0, 1.0, 0.3, 0.25),
+        ("single", 0.8, 0.8, 0.5, 0.3, 0.25),
+        ("flat", 1.0, 1.0, 1.0, 0.3, 0.25),
+    ];
+    for (name, target, centre, width, window, extra) in cases {
+        let seq = vec![spectra[name].clone()];
+        for apply in [false, true] {
+            let tag = format!("{name}{}", if apply { ".pick" } else { ".nopick" });
+            let mut s = impick_fresh();
+            IonMobilityScoring::drift_scoring(
+                &seq,
+                &det,
+                &mut s,
+                target,
+                rng(centre, width),
+                &ext(window, false, extra),
+                apply,
+                None,
+            )
+            .unwrap();
+            impick_scores(&mut r, &format!("{tag}.drift"), &s);
+            let mut s = impick_fresh();
+            IonMobilityScoring::drift_id_scoring(
+                &seq,
+                &id,
+                &det,
+                &mut s,
+                target,
+                rng(centre, width),
+                &ext(window, false, extra),
+                apply,
+                None,
+            )
+            .unwrap();
+            impick_scores(&mut r, &format!("{tag}.id"), &s);
+        }
+    }
+    {
+        let seq = vec![spectra["imspec"].clone()];
+        let ts = [
+            tr("group1", 500.2, 1, 1., 700.2),
+            tr("group2", 600.5, 1, 1., 700.2),
+        ];
+        let one = [tr("id1", 500.3, 1, 1., 700.2)];
+        for apply in [false, true] {
+            let tag = format!("imspec{}", if apply { ".pick" } else { ".nopick" });
+            let mut s = impick_fresh();
+            IonMobilityScoring::drift_scoring(
+                &seq,
+                &ts,
+                &mut s,
+                1.0,
+                rng(1.0, 1.0),
+                &ext(0.3, false, 0.25),
+                apply,
+                None,
+            )
+            .unwrap();
+            impick_scores(&mut r, &format!("{tag}.drift"), &s);
+            let mut s = impick_fresh();
+            IonMobilityScoring::drift_id_scoring(
+                &seq,
+                &one,
+                &ts,
+                &mut s,
+                1.0,
+                rng(1.0, 1.0),
+                &ext(0.3, false, 0.25),
+                apply,
+                None,
+            )
+            .unwrap();
+            impick_scores(&mut r, &format!("{tag}.id"), &s);
+        }
+    }
+
+    let expected: BTreeMap<&str, &str> = IMPICK_ORACLE
+        .lines()
+        .filter_map(|l| l.split_once('\t'))
+        .collect();
+    let mut failures = Vec::new();
+    for (key, text) in &expected {
+        let want = text.parse::<f64>().unwrap();
+        match r.0.get(*key) {
+            None => failures.push(format!("{key}: missing in port (oracle {text})")),
+            Some(&got) => {
+                let same = if want.is_nan() {
+                    got.is_nan()
+                } else {
+                    got.to_bits() == want.to_bits() || got == want
+                };
+                if !same {
+                    failures.push(format!("{key}: port {got:.17e} oracle {want:.17e}"));
+                }
+            }
+        }
+    }
+    for key in r.0.keys() {
+        if !expected.contains_key(key.as_str()) {
+            failures.push(format!("{key}: not in oracle"));
+        }
+    }
+    assert!(
+        expected.len() > 100,
+        "oracle holds only {} records",
+        expected.len()
+    );
+    assert!(
+        failures.is_empty(),
+        "{} mismatches:\n{}",
+        failures.len(),
+        failures.join("\n")
+    );
+    // The picking must have an effect on the multi-peak spectrum: the control
+    // run leaves the borders at the sentinel, the picked run sets them.
+    assert_eq!(r.0["multi.nopick.drift.im_drift_left"], -2.0);
+    assert!(r.0["multi.pick.drift.im_drift_left"] > 0.0);
+}

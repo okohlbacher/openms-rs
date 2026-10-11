@@ -123,10 +123,20 @@
       "path": "tests/data/openswath_scoring/oracle_all.stderr",
       "sha256": "be8867625a371a17739756e410163abc651c1a844edfd37c38ef2f54e29dc057",
       "origin": "../oracle/O2-scoring/results/cases/all/stderr.bin"
+    },
+    {
+      "path": "tests/data/openswath_scoring/impick_inputs.tsv",
+      "sha256": "586a6a6245a6ec347f9acf95e7438b6744d4dcb26110edb5f7d0ead2085617a4",
+      "origin": "../oracle/integ-O-impick/inputs.tsv"
+    },
+    {
+      "path": "tests/data/openswath_scoring/impick_oracle.stdout",
+      "sha256": "84f3492fa3987655507622926f7ed8f1112fa4cc7e0e4d3d374a4c6ae6c86d4b",
+      "origin": "../oracle/integ-O-impick/results/stdout.txt"
     }
   ],
   "evidence_tier": 1,
-  "evidence": "Tier 1 (executed differential) for DIAHelper, DiaPrescore, DIAScoring, MRMScoring, IonMobilityScoring and OpenSwathScoring: 1014 %.17g records from driver ../oracle/O2-scoring/driver.cpp built with x86_64-conda-linux-gnu-g++ 14.4.0 -O3 -DNDEBUG against the Linux x86-64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, linked with libOpenSwathAlgo.so) on ibminode06, the case run twice in fresh processes with byte-identical stdout, stderr and exit (results/differ.txt empty); compared exactly except three declared accumulation-order classes at relative 1e-12 (Eigen reductions in Scoring.cpp and StatsHelpers.cpp; TheoreticalSpectrumGenerator fragment m/z in the chemistry port). Tier 3 (source review) for every section of DIAHelper_test.cpp, DIAPrescoring_test.cpp, DIAScoring_test.cpp, MRMScoring_test.cpp, IonMobilityScoring_test.cpp, OpenSwathScores_test.cpp and OpenSwathScoring_test.cpp. Tier 4 for native guards and composition checks.",
+  "evidence": "Tier 1 (executed differential) for DIAHelper, DiaPrescore, DIAScoring, MRMScoring, IonMobilityScoring and OpenSwathScoring: 1014 %.17g records from driver ../oracle/O2-scoring/driver.cpp built with x86_64-conda-linux-gnu-g++ 14.4.0 -O3 -DNDEBUG against the Linux x86-64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, linked with libOpenSwathAlgo.so) on ibminode06, the case run twice in fresh processes with byte-identical stdout, stderr and exit (results/differ.txt empty); compared exactly except three declared accumulation-order classes at relative 1e-12 (Eigen reductions in Scoring.cpp and StatsHelpers.cpp; TheoreticalSpectrumGenerator fragment m/z in the chemistry port). Tier 3 (source review) for every section of DIAHelper_test.cpp, DIAPrescoring_test.cpp, DIAScoring_test.cpp, MRMScoring_test.cpp, IonMobilityScoring_test.cpp, OpenSwathScores_test.cpp and OpenSwathScoring_test.cpp. Tier 4 for native guards and composition checks. Group O integration added a second tier-1 run, ../oracle/integ-O-impick (driftScoring and driftIdScoring with apply_im_peak_picking true and false on five spectra, 260 records, ibminode06, Release install openms4-release-bc9cc12-c19e494-174b576, g++ 14.4.0, run twice byte-identical), replayed bit for bit by oracle_im_peak_picking in tests/openswath_scoring_oracle.rs. The same integration moved the Eigen-reduction tolerance classes of oracle_all to exact comparison.",
   "target_verification": {
     "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
     "source_revisions": [
@@ -170,6 +180,48 @@
       "sha256": "c8ddc77d27ba08b34651766196101a0e9c1ec617213108fa14e564dc1687ba78",
       "location": "outside this repository",
       "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/integ-O-impick/driver.cpp",
+      "sha256": "e823a0b834de0e501eeaffc04d081beb5544702e28cd9068f4ae67a34a819806",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-impick/remote_run.sh",
+      "sha256": "1ba648282f2cfc593c542e9ccfb02bffee5a0b9bb28a67ce44fa0d042c555ace",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-impick/run.sh",
+      "sha256": "f5ee40aba48fb6dfe0cfd7777ba8deac95fb3ffbea09121228c460f4757a0e12",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-impick/inputs.tsv",
+      "sha256": "586a6a6245a6ec347f9acf95e7438b6744d4dcb26110edb5f7d0ead2085617a4",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-impick/results/hashes.txt",
+      "sha256": "d01fb06ad5cef0a94a15bcd685200c40bb73bc19121725e8c48d2b51bf2044d7",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-impick/results/output_hashes.txt",
+      "sha256": "4f49bd91266e199d50f0bb1d724d83d83f70ff8a3aef1b6a2c8db525a794b5a8",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-impick/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
     }
   ],
   "external_reference_note": "The C++ oracle driver and its run scripts live outside this repository (no C++ is committed); its retained stdout/stderr are the fixtures under tests/data/openswath_scoring/."

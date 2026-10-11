@@ -21,11 +21,18 @@
 //! Scores are written into an [`OpenSwathScores`](crate::kernel::mrm::OpenSwathScores). On an error the scores are
 //! left unchanged.
 //!
+//! # Ion-mobilogram peak picking
+//!
+//! With `apply_im_peak_picking` the summed aligned fragment mobilogram is
+//! picked by [`PeakPickerMobilogram`] (method `corrected`, the other
+//! parameters at their defaults, as the source sets only `method`), the aligned
+//! mobilograms are cut to the highest picked peak, and the grid positions of
+//! its borders become `im_drift_left` and `im_drift_right` (-1 when no peak
+//! is picked). The cut mobilograms then feed the cross-correlation scores, as
+//! in the source.
+//!
 //! # Gaps
 //!
-//! - Ion-mobilogram peak picking (`apply_im_peak_picking = true`) needs
-//!   `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`, which is not ported yet; the
-//!   request fails with [`Error::Unsupported`](crate::Error::Unsupported) naming that dependency.
 //! - The optional `MobilogramParquetConsumer` export (from
 //!   `FORMAT/DATAACCESS/MobilogramParquetConsumer.h`) is represented by the
 //!   [`MobilogramSink`](crate::analysis::openswath::ion_mobility_scoring::MobilogramSink) trait; the Parquet implementation of it is a backlog
@@ -38,6 +45,7 @@ use std::collections::BTreeMap;
 use super::data_structures::SpectrumPtr;
 use super::dia_helper::{create_mz_range_ppm, integrate_window_sequence};
 use super::mrm_scoring::MRMScoring;
+use super::peak_picker_mobilogram::PeakPickerMobilogram;
 use super::transition_experiment::LightTransition;
 use crate::kernel::mrm::OpenSwathScores;
 use crate::kernel::ranges::RangeBase;
@@ -124,11 +132,41 @@ fn widen(mut im_range: RangeBase, drift_extra: f64) -> Result<(RangeBase, f64)> 
     Ok((im_range, f64::max(1e-8, span * 1e-5)))
 }
 
-fn peak_picking_unsupported() -> Error {
-    Error::Unsupported(
-        "ion mobilogram peak picking needs ANALYSIS/OPENSWATH/PeakPickerMobilogram.h, which is not ported yet"
-            .into(),
-    )
+/// The peak-picking step shared by `driftScoring` and `driftIdScoring`: pick
+/// the summed aligned mobilogram, cut every aligned mobilogram to the highest
+/// peak and return the grid positions of its borders (`(-1, -1)` when nothing
+/// is picked) together with the picked mobilogram.
+///
+/// The source's guards are kept: the aligned list must not be empty and its
+/// first mobilogram must not have a single point, and the sum must have more
+/// than one point.
+fn pick_im_window(
+    aligned: &mut [Mobilogram],
+    grid: &[f64],
+) -> Result<((f64, f64), Option<Mobilogram>)> {
+    if aligned.is_empty() || aligned[0].peaks.len() == 1 {
+        return Ok(((-1.0, -1.0), None));
+    }
+    let summed = sum_aligned_mobilograms(aligned)?;
+    if summed.peaks.len() <= 1 {
+        return Ok(((-1.0, -1.0), None));
+    }
+    let picked = PeakPickerMobilogram::default()
+        .pick_mobilogram(&summed)?
+        .picked;
+    if picked.float_data_arrays.len() <= PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX {
+        return Ok(((-1.0, -1.0), Some(picked)));
+    }
+    let positions = PeakPickerMobilogram::filter_top_peak(&picked, aligned)?;
+    let at = |index: usize| {
+        grid.get(index).copied().ok_or_else(|| {
+            Error::InvalidValue(format!(
+                "the picked ion mobility peak border {index} lies outside the grid of {} points",
+                grid.len()
+            ))
+        })
+    };
+    Ok(((at(positions.left)?, at(positions.right)?), Some(picked)))
 }
 
 fn intensities(mobilogram: &Mobilogram) -> Vec<f64> {
@@ -355,9 +393,10 @@ impl IonMobilityScoring {
     ///
     /// # Errors
     ///
-    /// [`Error::Unsupported`] when `apply_im_peak_picking` is set (see the
-    /// module gaps), the errors of [`Self::compute_ion_mobilogram`],
-    /// [`Self::align_to_grid`], the cross-correlation and the sink.
+    /// The errors of [`Self::compute_ion_mobilogram`], [`Self::align_to_grid`],
+    /// the peak picker, the cross-correlation and the sink, and
+    /// [`Error::InvalidValue`] when a picked border lies outside the grid
+    /// (undefined behaviour in the source).
     #[allow(clippy::too_many_arguments)]
     pub fn drift_scoring(
         spectra: &[SpectrumPtr],
@@ -412,7 +451,7 @@ impl IonMobilityScoring {
         out.im_log_intensity = (sum_int + 1.0).ln();
 
         let grid = Self::compute_grid(&mobilograms, eps);
-        let aligned = Self::aligned(&mobilograms, &grid, eps)?;
+        let mut aligned = Self::aligned(&mobilograms, &grid, eps)?;
         if let Some(export) = export {
             for (m, t) in aligned.iter().zip(transitions) {
                 export.sink.consume_mobilogram(
@@ -427,7 +466,9 @@ impl IonMobilityScoring {
             }
         }
         if apply_im_peak_picking {
-            return Err(peak_picking_unsupported());
+            let ((left, right), _) = pick_im_window(&mut aligned, &grid)?;
+            out.im_drift_left = left;
+            out.im_drift_right = right;
         }
         if aligned.len() < 2 {
             out.im_xcorr_coelution_score = 0.0;
@@ -608,9 +649,8 @@ impl IonMobilityScoring {
     /// # Errors
     ///
     /// [`Error::InvalidValue`] for no transitions (the source reads out of
-    /// bounds), [`Error::Unsupported`] when `apply_im_peak_picking` is set and
-    /// the identification transition has signal, and the extraction,
-    /// alignment, cross-correlation and sink errors.
+    /// bounds) and for a picked border outside the grid, and the extraction,
+    /// alignment, peak picking, cross-correlation and sink errors.
     #[allow(clippy::too_many_arguments)]
     pub fn drift_id_scoring(
         spectra: &[SpectrumPtr],
@@ -656,8 +696,8 @@ impl IonMobilityScoring {
             mobilograms.push(identification.mobilogram.clone());
             let grid = Self::compute_grid(&mobilograms, eps);
             mobilograms.pop();
-            let aligned = Self::aligned(&mobilograms, &grid, eps)?;
-            let (aligned_id, _) = Self::align_to_grid(&identification.mobilogram, &grid, eps)?;
+            let mut aligned = Self::aligned(&mobilograms, &grid, eps)?;
+            let (mut aligned_id, _) = Self::align_to_grid(&identification.mobilogram, &grid, eps)?;
             if let Some(export) = export {
                 for (m, t) in aligned.iter().zip(detection_transitions) {
                     export.sink.consume_mobilogram(
@@ -681,7 +721,19 @@ impl IonMobilityScoring {
                 )?;
             }
             if apply_im_peak_picking {
-                return Err(peak_picking_unsupported());
+                let ((left, right), picked) = pick_im_window(&mut aligned, &grid)?;
+                out.im_drift_left = left;
+                out.im_drift_right = right;
+                // The identification mobilogram is cut to the same peak when
+                // it has more than one point and a peak was picked.
+                if let Some(picked) = picked {
+                    if aligned_id.peaks.len() > 1
+                        && picked.float_data_arrays.len()
+                            > PeakPickerMobilogram::IDX_OF_RIGHTBORDER_IDX
+                    {
+                        PeakPickerMobilogram::filter_top_peak_single(&picked, &mut aligned_id)?;
+                    }
+                }
             }
             let (coelution, shape, sum_coelution, sum_shape) = contrast_scores(
                 &intensities(&aligned_id),

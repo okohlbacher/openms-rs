@@ -10,7 +10,6 @@
 //! "derived" check an independently derived invariant or a native guard
 //! (tier 4).
 
-use openms::Error;
 use openms::analysis::openswath::data_structures::{BinaryDataArray, Spectrum, SpectrumPtr};
 use openms::analysis::openswath::ion_mobility_scoring::{
     DriftExtraction, IonMobilityScoring, sum_aligned_mobilograms,
@@ -168,13 +167,17 @@ fn drift_scoring() {
     real_similar(scores.im_xcorr_coelution_score, 0.0);
 }
 
-/// Derived: peak picking needs the unported PeakPickerMobilogram and fails
-/// without touching the scores.
+/// `apply_im_peak_picking` on the class-test spectrum. The expected borders and
+/// scores are the records of the Release build (`imspec.pick.drift` of
+/// `../oracle/integ-O-impick`, ibminode06, retained as
+/// `tests/data/openswath_scoring/impick_oracle.stdout` and replayed in full by
+/// `oracle_im_peak_picking`): the picked window spans the grid positions
+/// 0.299985 and 1.29999, and the cross-correlation scores stay those of the
+/// unpicked run because the window holds the whole mobilogram.
 #[test]
-fn drift_scoring_peak_picking_is_unsupported() {
+fn drift_scoring_peak_picking_selects_the_im_window() {
     let mut scores = OpenSwathScores::default();
-    let before = scores;
-    let r = IonMobilityScoring::drift_scoring(
+    IonMobilityScoring::drift_scoring(
         &[spec()],
         &transitions(),
         &mut scores,
@@ -183,9 +186,30 @@ fn drift_scoring_peak_picking_is_unsupported() {
         &extraction(0.3),
         true,
         None,
+    )
+    .unwrap();
+    assert_eq!(scores.im_drift_left, 0.299_985_000_000_000_06);
+    assert_eq!(scores.im_drift_right, 1.299_990_000_000_000_2);
+    assert_eq!(scores.im_xcorr_coelution_score, 2.732_050_807_568_877);
+    assert_eq!(scores.im_xcorr_shape_score, 0.892_124_778_448_826_2);
+}
+
+/// The source builds its picker as `PeakPickerMobilogram picker_;` and sets only
+/// `method` to `corrected`; the port's `Default` must be that parameter set.
+#[test]
+fn im_peak_picker_is_the_default_picker_with_the_corrected_method() {
+    use openms::analysis::openswath::peak_picker_mobilogram::PeakPickerMobilogram;
+    use openms::param::ParamValue;
+    let defaults = PeakPickerMobilogram::defaults().unwrap();
+    assert_eq!(
+        defaults.value("method").unwrap(),
+        &ParamValue::String("corrected".into())
     );
-    assert!(matches!(r, Err(Error::Unsupported(_))));
-    assert_eq!(scores, before);
+    let from_defaults = PeakPickerMobilogram::from_param(&defaults).unwrap();
+    assert_eq!(
+        PeakPickerMobilogram::default().to_param().unwrap(),
+        from_defaults.to_param().unwrap()
+    );
 }
 
 /// IonMobilityScoring_test.cpp:[EXTRA] driftScoringMS1.
