@@ -214,41 +214,12 @@ impl SemanticVersion {
 
 /// `StringUtils::toInt32`, returning `None` where the source throws `ConversionError`.
 ///
-/// Whitespace is the source's four characters — space, tab, newline, carriage
-/// return — not Unicode whitespace, and the whole string must be consumed.
+/// The one port of the function,
+/// [`crate::data_structures::string_utils::to_int32`], whose whitespace is the
+/// source's four characters (space, tab, newline, carriage return) and which
+/// consumes the whole string.
 fn to_int32(text: &str) -> Option<i32> {
-    let bytes = text.as_bytes();
-    let whitespace = |b: &u8| matches!(*b, b' ' | b'\t' | b'\n' | b'\r');
-    let mut cursor = 0;
-    while bytes.get(cursor).is_some_and(whitespace) {
-        cursor += 1;
-    }
-    if cursor == bytes.len() {
-        return None;
-    }
-    if bytes.get(cursor) == Some(&b'+') {
-        cursor += 1;
-    }
-    let number_start = cursor;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let digits_start = cursor;
-    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-        cursor += 1;
-    }
-    if cursor == digits_start {
-        return None;
-    }
-    let value = text.get(number_start..cursor)?.parse::<i32>().ok()?;
-    let mut after = cursor;
-    while bytes.get(after).is_some_and(whitespace) {
-        after += 1;
-    }
-    if after != bytes.len() {
-        return None;
-    }
-    Some(value)
+    crate::data_structures::string_utils::to_int32(text).ok()
 }
 
 /// The source's platform tag: `Win`, `Mac`, `Linux`, `Unix` or `unknown`.
