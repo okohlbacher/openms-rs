@@ -1,0 +1,208 @@
+{
+  "package_revisions": {
+    "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "openswath": "1c6556fde80e258a1365e6cd1c98b5d9a2f0a2a8",
+    "test_data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"
+  },
+  "scope": "OpenSwathWorkflow.h and its translation unit come from the Core SDK pin; the TOPP tool (OpenSwathWorkflow.cpp of the openswath package) and the retained inputs and outputs come from the openswath and test-data packages, which are versioned independently of the Core SDK. The tool is not part of this crate: the test harness plays its role.",
+  "method": "The invocations of TOPP_OpenSwathWorkflow_1, _3, _6, _18, _19, _20, _22, _23 and _threads4 are reproduced against OpenSwathWorkflow::perform_extraction on the retained inputs, with the parameters assembled as the tool does (Scoring subsection defaults and overrides, extraction parameters, MS1 and ion mobility options), and the features and chromatograms compared decoded with the FuzzyDiff.ini tolerances (ratio 1.01, absdiff 0.01) and the id= whitelist of the upstream DIFF.",
+  "evidence_tier": "executed differential (tier 1), against retained C++ tool output",
+  "upstream_test_definition": {
+    "file": "OpenMS4-tests/packages/test-data/topp/CMakeLists.txt",
+    "sha256": "0bf7d0efbfbc4b05aa3f7f046e33673cb7a46ec0e30b66be499cc5cda26d4bdb",
+    "lines": "2063-2253 (OLD_OSW_PARAM, TOPP_OpenSwathWorkflow_1, _3, _6, _18..20, threads4), 2340-2353 (_22, _23)",
+    "tool_source": "OpenMS4-tests/packages/openswath/src/OpenSwathWorkflow.cpp",
+    "tool_sha256": "1456504bf5245d05d3bef8fdfaa605a0f4d96fd12b9ffee0ead7cdc6a72ba09b"
+  },
+  "sources": [
+    {
+      "path": "OpenMS4-tests/packages/core/src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h",
+      "sha256": "789eb69d8ad3544819cb503f0d1eb2de3e6c4f73ca878ee15f3e6b2f46bff7bb"
+    },
+    {
+      "path": "OpenMS4-tests/packages/core/src/openms/source/ANALYSIS/OPENSWATH/OpenSwathWorkflow.cpp",
+      "sha256": "e6f78b8cb21dfe2c7a209da62b324030b46a390a230659f60e96a917065eb9f0"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_18_output.featureXML",
+      "sha256": "667e7d093ca23b03af717377b9189fdc7551e81f6c520b46fc391c65ef6b3be3",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_18_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_19_output.featureXML",
+      "sha256": "15c1cfb57e422ad0c333fc8d4f3c1d08dd03b6ac21cd699ce7bb00f52c960525",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_19_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_1_input.TraML",
+      "sha256": "2fdbce23ce25d8656729da600f43c91bb9754acab9b260b1e676d76c2f19f130",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_1_input.TraML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_1_input.mzML",
+      "sha256": "a92df088d6e4b3d6c750da6aae179baedf085a88bbe97a51020dc7159cd65675",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_1_input.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_1_input.trafoXML",
+      "sha256": "a9cd9938a77908972bcd5975a8bb64d6f05b05f3ddc82cb08c6b138fe0ef3ae9",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_1_input.trafoXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_1_output.chrom.mzML",
+      "sha256": "f3a11a76a5508861778b7ccfe42e6504b471ae34ff118f1a59faf1eea052d2ea",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_1_output.chrom.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_1_output.featureXML",
+      "sha256": "da32e04907ce8baf5cd4aa9af83a1efdd63e3fbb7614c1fedccf74d607f60170",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_1_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_20_output.featureXML",
+      "sha256": "a954648aec8b22f4845da26d9fe555bf49c0ec00bdf54ce3715cc45cf3f34fd1",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_20_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_22_input.mzML",
+      "sha256": "29b45ded7d04085f161d5312a7f65d473c72e267e561d5441b5999013408fa62",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_22_input.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_22_input.tsv",
+      "sha256": "f199e94199b64116054b426dd6a90800376f10696b6000fea51a5164b885e0e9",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_22_input.tsv"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_22_output.chrom.mzML",
+      "sha256": "600281ded66198eac48fddc90a2a01ba50284056fb1dfa5346dbf691b7d6de1a",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_22_output.chrom.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_22_output.featureXML",
+      "sha256": "af5ead48d8a903f7d2f31efe423d7360390b4af5d9ff4c4f1bbcd3f58ed95633",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_22_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_23_input.mzML",
+      "sha256": "387c15e8f998c85864f7bc1712eb48d270622ea18142a281ab99f102bbe77260",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_23_input.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_23_input.tsv",
+      "sha256": "271c2bde1728859bd18434a1803cd0c9f4c7d807f2daec5e48dd8283cae6dd5e",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_23_input.tsv"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_23_output.chrom.mzML",
+      "sha256": "2b2b9bd9250879d67288c47ae0b4bb200d3cc149b706791154f9e24eb41044c1",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_23_output.chrom.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_23_output.featureXML",
+      "sha256": "7186529fb0548d1c42baa8501bfe91ef9c782e0008bcc37dddb6819936b10e10",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_23_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_3_output.chrom.mzML",
+      "sha256": "361ff5cef3ee618f5fa705b125166d0360ab32459c9179cbab51b7f2fc39d783",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_3_output.chrom.mzML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_3_output.featureXML",
+      "sha256": "fa2f022f553845c5f6c05bad704b51cad53ad7746a1dc4ab73914df592c49312",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_3_output.featureXML"
+    },
+    {
+      "path": "OpenMS4-tests/packages/test-data/topp/OpenSwathWorkflow_threads_output.featureXML",
+      "sha256": "fa2111ff9c9cb4893cd61423d51cd5933154de8cc17df7d5dfe59816cdab284c",
+      "retained_as": "tests/data/openswath_workflow/OpenSwathWorkflow_threads_output.featureXML"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_18_output.featureXML",
+      "sha256": "667e7d093ca23b03af717377b9189fdc7551e81f6c520b46fc391c65ef6b3be3"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_19_output.featureXML",
+      "sha256": "15c1cfb57e422ad0c333fc8d4f3c1d08dd03b6ac21cd699ce7bb00f52c960525"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_1_input.TraML",
+      "sha256": "2fdbce23ce25d8656729da600f43c91bb9754acab9b260b1e676d76c2f19f130"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_1_input.mzML",
+      "sha256": "a92df088d6e4b3d6c750da6aae179baedf085a88bbe97a51020dc7159cd65675"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_1_input.trafoXML",
+      "sha256": "a9cd9938a77908972bcd5975a8bb64d6f05b05f3ddc82cb08c6b138fe0ef3ae9"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_1_output.chrom.mzML",
+      "sha256": "f3a11a76a5508861778b7ccfe42e6504b471ae34ff118f1a59faf1eea052d2ea"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_1_output.featureXML",
+      "sha256": "da32e04907ce8baf5cd4aa9af83a1efdd63e3fbb7614c1fedccf74d607f60170"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_20_output.featureXML",
+      "sha256": "a954648aec8b22f4845da26d9fe555bf49c0ec00bdf54ce3715cc45cf3f34fd1"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_22_input.mzML",
+      "sha256": "29b45ded7d04085f161d5312a7f65d473c72e267e561d5441b5999013408fa62"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_22_input.tsv",
+      "sha256": "f199e94199b64116054b426dd6a90800376f10696b6000fea51a5164b885e0e9"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_22_output.chrom.mzML",
+      "sha256": "600281ded66198eac48fddc90a2a01ba50284056fb1dfa5346dbf691b7d6de1a"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_22_output.featureXML",
+      "sha256": "af5ead48d8a903f7d2f31efe423d7360390b4af5d9ff4c4f1bbcd3f58ed95633"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_23_input.mzML",
+      "sha256": "387c15e8f998c85864f7bc1712eb48d270622ea18142a281ab99f102bbe77260"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_23_input.tsv",
+      "sha256": "271c2bde1728859bd18434a1803cd0c9f4c7d807f2daec5e48dd8283cae6dd5e"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_23_output.chrom.mzML",
+      "sha256": "2b2b9bd9250879d67288c47ae0b4bb200d3cc149b706791154f9e24eb41044c1"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_23_output.featureXML",
+      "sha256": "7186529fb0548d1c42baa8501bfe91ef9c782e0008bcc37dddb6819936b10e10"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_3_output.chrom.mzML",
+      "sha256": "361ff5cef3ee618f5fa705b125166d0360ab32459c9179cbab51b7f2fc39d783"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_3_output.featureXML",
+      "sha256": "fa2f022f553845c5f6c05bad704b51cad53ad7746a1dc4ab73914df592c49312"
+    },
+    {
+      "path": "tests/data/openswath_workflow/OpenSwathWorkflow_threads_output.featureXML",
+      "sha256": "fa2111ff9c9cb4893cd61423d51cd5933154de8cc17df7d5dfe59816cdab284c"
+    }
+  ],
+  "known_divergence": "The library has an assay PEPTIDEB. AASequence refuses a bare B/Z/X residue, the source gives it the empty formula; the assay is skipped by the workflow and the expected features of ambiguous peptides are accepted missing only when the workflow log records the skip. See docs/OPENSWATH_WORKFLOW_SUPPORT.md.",
+  "native_implementation": [
+    "src/analysis/openswath/openswath_workflow.rs"
+  ],
+  "native_tests": [
+    "tests/openswath_workflow.rs"
+  ],
+  "support_document": "docs/OPENSWATH_WORKFLOW_SUPPORT.md"
+}
