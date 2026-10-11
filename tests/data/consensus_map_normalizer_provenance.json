@@ -75,7 +75,7 @@
   "tier_3_class_tests": "tests/mapmatching_consensus_map_normalizer.rs: every section of ConsensusMapNormalizerAlgorithmMedian_test.cpp",
   "tier_4_native": "quantile (TODO upstream) and threshold (NOT_TESTABLE upstream) sections with hand-derived values; error paths and transactional failure"
  },
- "target_verification": [
+ "verification_record": [
   "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_consensus_map_normalizer --test mapmatching_consensus_map_normalizer_topp",
   "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_consensus_map_normalizer"
  ]

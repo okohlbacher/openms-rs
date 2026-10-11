@@ -11,5 +11,5 @@
  "native_tests": ["tests/fragment_index.rs"],
  "support_document": "docs/FRAGMENT_INDEX_SUPPORT.md",
  "evidence_tier": "Tier 3 (FragmentIndex_test.cpp sections at lines 178-1261, 1267-1541, 1851-2091, 2609-2744 transcribed, 35 tests); tier 4 for snes_query_is_reported_unsupported, parameters_round_trip, sigma_delta_sets_and_mod_slots, build_is_identical_across_thread_counts. Sections exercising the unported querySpectrumSNES_ (1544-1692, 1779-1848, 2094-2606, 2747-2879) are not transcribed.",
- "target_verification": "cargo test --locked --test fragment_index on dax (default features): 39 passed"
+ "verification_record": "cargo test --locked --test fragment_index on dax (default features): 39 passed"
 }

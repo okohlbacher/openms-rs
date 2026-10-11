@@ -81,5 +81,5 @@
   }
  ],
  "external_reference_note": "The C++ drivers live outside the repository; their output is the committed fixtures.",
- "target_verification": "350 of 350 applyBasic/picked records and 48 of 48 observation-match runs (3872 match values) bit-identical, crash and error outcomes included."
+ "verification_record": "350 of 350 applyBasic/picked records and 48 of 48 observation-match runs (3872 match values) bit-identical, crash and error outcomes included."
 }

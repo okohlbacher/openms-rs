@@ -374,7 +374,7 @@
   "run() modifies the stored experiment before it can throw",
   "the parameter descriptions of pasefmini and convex_hulls contain U+2013, which the ParamXML writer emits as raw UTF-8 in a document it declares ISO-8859-1 (executed -write_ini)"
  ],
- "target_verification": {
+ "verification_record": {
   "date": "2026-09-29",
   "work_package": "FF4",
   "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh on dax, slot FF4 (see the lane report for the commands and pass counts)"

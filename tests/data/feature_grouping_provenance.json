@@ -726,7 +726,7 @@
       "reason": "untouched: about 3100 lines in source/ANALYSIS/MAPMATCHING/PIPECHO and a dependency on ML/SVM/SimpleSVM.h (libsvm training with a cross-validated grid search), which is not ported"
     }
   ],
-  "target_verification": [
+  "verification_record": [
     "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_feature_grouping --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder --test mapmatching_qt_cluster_finder_topp",
     "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_feature_grouping --test mapmatching_qt_cluster_finder",
     "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --features featurexml,consensusxml,paramxml --test mapmatching_feature_grouping_topp --test mapmatching_qt_cluster_finder_topp",

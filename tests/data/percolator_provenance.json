@@ -560,5 +560,5 @@
   }
  ],
  "external_reference_note": "C++ oracle and probe sources live outside the repository under ../oracle/; the fixtures they produced are committed under tests/data/percolator/{oracle,ispline}.",
- "target_verification": "Bit-identical SVM weights, pi0, scores, q-values and PEPs on all 13 oracle cases; bit-identical I-spline PEPs on all 10 probe vectors; saveModel bytes identical for both trained models."
+ "verification_record": "Bit-identical SVM weights, pi0, scores, q-values and PEPs on all 13 oracle cases; bit-identical I-spline PEPs on all 10 probe vectors; saveModel bytes identical for both trained models."
 }

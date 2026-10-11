@@ -279,7 +279,7 @@
    "reason": "libkdtree++ (2,208 lines, no class test); backlog: crate evaluation against find_within_range order, see docs/CLUSTERING_SUPPORT.md"
   }
  ],
- "target_verification": [
+ "verification_record": [
   "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a test --locked --test ml_clustering --test ml_grid_clustering --test mapmatching_qt_cluster --test ml_clustering_oracle",
   "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a +1.85.0 test --locked --no-default-features --test ml_clustering --test ml_grid_clustering --test mapmatching_qt_cluster",
   "OPENMS_GATE_HOST=dax openms-kim-gate.sh FF2a clippy --locked --all-features --all-targets -- -D warnings",

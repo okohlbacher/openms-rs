@@ -11,5 +11,5 @@
  "native_tests": ["tests/neighbor_seq.rs"],
  "support_document": "docs/NEIGHBOR_SEQ_SUPPORT.md",
  "evidence_tier": "Tier 3 (transcribed class-test literals, NeighborSeq_test.cpp:26-245, every section) for the six class-test tests; tier 4 (independently derived invariants: X peptides unfindable, closed ppm/Da windows, refused invalid tolerances, empty spectra) for the other four.",
- "target_verification": "cargo test --locked --no-default-features --test neighbor_seq on dax: 10 passed"
+ "verification_record": "cargo test --locked --no-default-features --test neighbor_seq on dax: 10 passed"
 }

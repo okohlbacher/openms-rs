@@ -60,5 +60,5 @@
   }
  ],
  "external_reference_note": "The C++ driver lives outside the repository; its output is the committed fixture.",
- "target_verification": "180 of 180 results bit-identical."
+ "verification_record": "180 of 180 results bit-identical."
 }
