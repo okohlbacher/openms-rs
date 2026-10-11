@@ -25,13 +25,15 @@ retained upstream outputs instead of listing them as not ported. Each keeps a
 tripwire that fails if a branch goes back to refusing.
 Oracle: `../oracle/a7-fileinfo`, **75** cases against the Release C++ FileInfo of
 `/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576` on
-ibminode06, run twice and reproduced. **55** of them have both their `-out` and
+ibminode06, run twice and reproduced. **57** of them have both their `-out` and
 `-out_tsv` reports compared byte for byte in the test, and none carries an
 exemption of any kind. The count was 46 before the NaN-spelling step of
 2026-09-20 closed native difference 5; the nine reports that were compared line
 for line under the `nan` / `-nan` exception are now compared like the rest, and
 the two of them that section 5.2 once called "retained as evidence rather than
-compared" are among them.
+compared" are among them. It was 55 until the identification-XML reader's
+modified-hit budget (section 5.1) was fixed, which added `id_ff25` and
+`id_fdr5`.
 
 ---
 
@@ -466,27 +468,35 @@ crashes the reference FileInfo.
 
 ---
 
-## 5. Known gaps outside this package, and one that closed
+## 5. Known gaps outside this package, both closed
 
-Section 5.1 is a gap. Section 5.2 is kept in place with its measurement because
+Both sections are closed. Each is kept in place with its measurement because
 the measurement is what makes its closure checkable, as native difference 6 is
 kept in section 4.
 
-### 5.1 The identification-XML reader's modified-hit budget
+### 5.1 The identification-XML reader's modified-hit budget — **CLOSED**
 
-The shared identification-XML reader cannot load an idXML with more than **14
-modified peptide hits**, whatever the file size.
-`AASequence::parse_with_budget` (`src/chemistry/sequence.rs:1147-1180`) charges
-a per-modified-sequence preflight proportional to `ModificationsDB::len()`
-against the single document-wide `XmlLimits::max_work = 50_000_000`
-(`src/format/identification_xml.rs:411-425`). Measured: 14 modified hits load,
-15 do not, while 800 *unmodified* hits are fine.
+The shared identification-XML reader could not load an idXML with more than
+**14 modified peptide hits**, whatever the file size.
+`AASequence::parse_with_budget` charged every modified sequence a preflight
+proportional to `ModificationsDB::len()` — a scan of the registry, then
+`records * (longest full ID + 16) * 16` work and `records * 128` bytes per
+annotation — against the single document-wide `XmlLimits::max_work =
+50_000_000` (`src/format/identification_xml.rs:532-540`). Measured: 14 modified
+hits loaded, 15 did not, while 800 *unmodified* hits were fine.
 
-Two oracle cases are blocked by it — `FileFilter_25_input.idXML` (473 modified
-hits) and `FalseDiscoveryRate_5_input.idXML` (75) — so they have no differential
-here; the oracle records what the C++ prints for both. This is a limit of that
-reader and of the sequence parsing budget, not of these branches, and it is
-raised for the lead rather than worked around here.
+Two oracle cases were blocked by it — `FileFilter_25_input.idXML` (473 modified
+top hits) and `FalseDiscoveryRate_5_input.idXML` (75). The budget now charges
+each named annotation only for the lookups of its *own* name
+(`ModificationsDB::name_lookup_work`: an ordered-map descent plus the records
+filed under that name), each mass annotation for the registry scans its lookup
+really makes, and the chemistry rebuild for the modifications actually
+resolved (`src/chemistry/sequence.rs:1212-1450`). Both cases are now compared
+byte for byte (`identifications_many_modified_hits_upstream_files`), their
+retained reports are the Release build's two identical runs with only the two
+path lines normalised, and `a_document_budget_pays_for_hundreds_of_modified_sequences`
+in `src/chemistry/sequence.rs` pins that one parse costs the same however many
+came before.
 
 ### 5.2 A NaN next to a number in a `SummaryStatistics` sample — **CLOSED**
 

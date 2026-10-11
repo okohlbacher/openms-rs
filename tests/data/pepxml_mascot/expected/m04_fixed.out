@@ -1,0 +1,6 @@
+load m04_fixed.pepXML
+status ok
+peptides 1
+title [q1] 2
+seq [.(Acetyl)S(Phospho)C(Carbamidomethyl)T(Phospho)Y(Phospho)KM.(Amidated)] [SCTYKM]
+seq [.(Acetyl)AAAA.(Amidated)] [AAAA]

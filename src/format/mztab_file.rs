@@ -80,6 +80,7 @@
 //! # Ok::<(), openms::Error>(())
 //! ```
 
+use crate::concept::string_conversion::trim;
 use crate::format::file_types::{self, FileType};
 use crate::format::mztab::{
     MzTab, MzTabCell, MzTabDouble, MzTabMetaData, MzTabNucleicAcidSectionRow, MzTabOSMSectionRow,
@@ -87,8 +88,13 @@ use crate::format::mztab::{
     MzTabParameterList, MzTabPeptideSectionRow, MzTabProteinSectionRow,
     MzTabSmallMoleculeSectionRow, MzTabString, optional_column_names,
 };
+use crate::format::mztab_export::{
+    ConsensusMapExportOptions, ConsensusMapMzTabStream, IdMzTabStream, IdentificationExportOptions,
+};
 use crate::format::path_io;
 use crate::format::text::{Limits, TextFile};
+use crate::identification::{PeptideIdentification, ProteinIdentification};
+use crate::kernel::ConsensusMap;
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::BufRead;
@@ -110,12 +116,6 @@ fn parse_error(line: usize, message: impl Into<String>) -> Error {
         line,
         message: message.into(),
     }
-}
-
-/// `StringUtils::trim`: ASCII space, tab, CR and LF only, matched by characters
-/// so a multi-byte character can never be split.
-fn trim_source(text: &str) -> &str {
-    text.trim_matches(|c| c == ' ' || c == '\t' || c == '\n' || c == '\r')
 }
 
 fn has_separator(text: &str) -> bool {
@@ -157,7 +157,7 @@ pub fn extract_bracket_index(key: &str, prefix: &str) -> Result<usize> {
         key.replace(prefix, "")
     };
     let digits = stripped.replace(']', "");
-    let token = trim_source(&digits);
+    let token = trim(&digits);
     let value: i64 = token
         .strip_prefix('+')
         .unwrap_or(token)
@@ -2141,6 +2141,411 @@ impl MzTabFile {
 }
 
 // ---------------------------------------------------------------------------
+// Writing — the streaming exporters
+// ---------------------------------------------------------------------------
+
+/// `1..=count` as an index set, the numbering the source's streaming headers
+/// use.
+fn one_based(count: usize) -> BTreeSet<usize> {
+    (1..=count).collect()
+}
+
+/// The runs of every score of a `search_engine_score[s]_ms_run[r]` family.
+fn score_runs(map: &ScoreRunMap) -> BTreeSet<usize> {
+    map.values().flat_map(|runs| runs.keys().copied()).collect()
+}
+
+/// Which exporter a streaming store writes from; the two differ in how many
+/// score columns the source reserves.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum StreamKind {
+    Identifications,
+    ConsensusMap,
+}
+
+/// The rows a streaming store pulls, section by section.
+trait RowStream {
+    fn meta(&self) -> &MzTabMetaData;
+    fn protein_names(&self) -> &[String];
+    fn peptide_names(&self) -> &[String];
+    fn psm_names(&self) -> &[String];
+    fn next_protein(&mut self) -> Result<Option<MzTabProteinSectionRow>>;
+    fn next_peptide(&mut self) -> Result<Option<MzTabPeptideSectionRow>>;
+    fn next_psm(&mut self) -> Result<Option<MzTabPSMSectionRow>>;
+}
+
+impl RowStream for IdMzTabStream<'_> {
+    fn meta(&self) -> &MzTabMetaData {
+        self.meta_data()
+    }
+    fn protein_names(&self) -> &[String] {
+        self.protein_optional_column_names()
+    }
+    fn peptide_names(&self) -> &[String] {
+        self.peptide_optional_column_names()
+    }
+    fn psm_names(&self) -> &[String] {
+        self.psm_optional_column_names()
+    }
+    fn next_protein(&mut self) -> Result<Option<MzTabProteinSectionRow>> {
+        self.next_prt_row()
+    }
+    fn next_peptide(&mut self) -> Result<Option<MzTabPeptideSectionRow>> {
+        Ok(self.next_pep_row())
+    }
+    fn next_psm(&mut self) -> Result<Option<MzTabPSMSectionRow>> {
+        self.next_psm_row()
+    }
+}
+
+impl RowStream for ConsensusMapMzTabStream<'_> {
+    fn meta(&self) -> &MzTabMetaData {
+        self.meta_data()
+    }
+    fn protein_names(&self) -> &[String] {
+        self.protein_optional_column_names()
+    }
+    fn peptide_names(&self) -> &[String] {
+        self.peptide_optional_column_names()
+    }
+    fn psm_names(&self) -> &[String] {
+        self.psm_optional_column_names()
+    }
+    fn next_protein(&mut self) -> Result<Option<MzTabProteinSectionRow>> {
+        self.next_prt_row()
+    }
+    fn next_peptide(&mut self) -> Result<Option<MzTabPeptideSectionRow>> {
+        self.next_pep_row()
+    }
+    fn next_psm(&mut self) -> Result<Option<MzTabPSMSectionRow>> {
+        self.next_psm_row()
+    }
+}
+
+fn postcondition(section: &str) -> Error {
+    bad(format!(
+        "{section} header and content differs in columns. Please report this bug to the OpenMS developers."
+    ))
+}
+
+fn check_row(line: &str, header_columns: usize, section: &str) -> Result<()> {
+    if column_count(line) == header_columns {
+        Ok(())
+    } else {
+        Err(postcondition(section))
+    }
+}
+
+fn terminated(lines: Vec<String>) -> String {
+    let mut text = String::new();
+    for line in lines {
+        text.push_str(&line);
+        text.push('\n');
+    }
+    text
+}
+
+impl MzTabFile {
+    /// Render a stream the way the source's two streaming `store` overloads
+    /// write it.
+    ///
+    /// Each section's header is derived from the stream's *first* row and the
+    /// metadata, as the source does: `PRT` takes its `best_search_engine_score`
+    /// count from the metadata (at most one for a consensus map), its per-run
+    /// counts from the first row and its abundance columns from the metadata's
+    /// assays and study variables; `PEP` takes every count from the first row;
+    /// `PSM` takes its score count from the metadata (exactly one for a
+    /// consensus map). Every row is then rendered from its own index sets, and
+    /// a row whose column count differs from the header's is the source's
+    /// `Exception::Postcondition`. `PSM` rows with a null sequence — the
+    /// streams' placeholders — are skipped.
+    fn stream_lines(&self, stream: &mut dyn RowStream, kind: StreamKind) -> Result<Vec<String>> {
+        let meta = stream.meta().clone();
+        let mut out = LineBuffer::default();
+        out.extend(self.metadata_section_lines(&meta)?)?;
+
+        let mut n_best = meta.protein_search_engine_score.len();
+        if kind == StreamKind::ConsensusMap {
+            n_best = n_best.min(1);
+        }
+        let names = stream.protein_names().to_vec();
+        let mut header_columns = None;
+        while let Some(row) = stream.next_protein()? {
+            if header_columns.is_none() {
+                let first_runs = row
+                    .search_engine_score_ms_run
+                    .values()
+                    .next()
+                    .map_or(0, BTreeMap::len);
+                let layout = SectionLayout {
+                    best_search_engine_score: one_based(n_best),
+                    search_engine_score: row.search_engine_score_ms_run.keys().copied().collect(),
+                    ms_runs: one_based(first_runs),
+                    count_matches_ms_run: row.num_psms_ms_run.keys().copied().collect(),
+                    count_distinct_ms_run: row
+                        .num_peptides_distinct_ms_run
+                        .keys()
+                        .copied()
+                        .collect(),
+                    count_unique_ms_run: row.num_peptides_unique_ms_run.keys().copied().collect(),
+                    abundance_assay: meta.assay.keys().copied().collect(),
+                    abundance_study_variable: meta.study_variable.keys().copied().collect(),
+                    optional_columns: names.clone(),
+                }
+                .checked()?;
+                let header = self.protein_header(&layout)?;
+                header_columns = Some(column_count(&header));
+                out.push(String::new())?;
+                out.push(header)?;
+            }
+            let layout = SectionLayout {
+                best_search_engine_score: row.best_search_engine_score.keys().copied().collect(),
+                search_engine_score: row.search_engine_score_ms_run.keys().copied().collect(),
+                ms_runs: score_runs(&row.search_engine_score_ms_run),
+                count_matches_ms_run: row.num_psms_ms_run.keys().copied().collect(),
+                count_distinct_ms_run: row.num_peptides_distinct_ms_run.keys().copied().collect(),
+                count_unique_ms_run: row.num_peptides_unique_ms_run.keys().copied().collect(),
+                abundance_assay: meta.assay.keys().copied().collect(),
+                abundance_study_variable: meta.study_variable.keys().copied().collect(),
+                optional_columns: names.clone(),
+            }
+            .checked()?;
+            let line = self.protein_row(&row, &layout)?;
+            check_row(&line, header_columns.unwrap_or(0), "Protein")?;
+            out.push(line)?;
+        }
+
+        let names = stream.peptide_names().to_vec();
+        let mut header_columns = None;
+        while let Some(row) = stream.next_peptide()? {
+            if header_columns.is_none() {
+                let n_scores = row.search_engine_score_ms_run.len();
+                let search_ms_runs = if n_scores == 0 {
+                    0
+                } else {
+                    row.search_engine_score_ms_run
+                        .get(&1)
+                        .ok_or_else(|| bad("the first peptide row has no search_engine_score[1]"))?
+                        .len()
+                };
+                let layout = SectionLayout {
+                    best_search_engine_score: one_based(row.best_search_engine_score.len()),
+                    search_engine_score: one_based(n_scores),
+                    ms_runs: one_based(search_ms_runs),
+                    abundance_assay: one_based(row.peptide_abundance_assay.len()),
+                    abundance_study_variable: one_based(row.peptide_abundance_study_variable.len()),
+                    optional_columns: names.clone(),
+                    ..SectionLayout::default()
+                }
+                .checked()?;
+                let header = self.peptide_header(&layout)?;
+                header_columns = Some(column_count(&header));
+                out.push(String::new())?;
+                out.push(header)?;
+            }
+            let layout = SectionLayout {
+                best_search_engine_score: row.best_search_engine_score.keys().copied().collect(),
+                search_engine_score: row.search_engine_score_ms_run.keys().copied().collect(),
+                ms_runs: score_runs(&row.search_engine_score_ms_run),
+                abundance_assay: row.peptide_abundance_assay.keys().copied().collect(),
+                abundance_study_variable: row
+                    .peptide_abundance_study_variable
+                    .keys()
+                    .copied()
+                    .collect(),
+                optional_columns: names.clone(),
+                ..SectionLayout::default()
+            }
+            .checked()?;
+            let line = self.peptide_row(&row, &layout)?;
+            check_row(&line, header_columns.unwrap_or(0), "Peptide")?;
+            out.push(line)?;
+        }
+
+        let n_scores = match kind {
+            StreamKind::Identifications => meta.psm_search_engine_score.len(),
+            StreamKind::ConsensusMap => 1,
+        };
+        let names = stream.psm_names().to_vec();
+        let mut header_columns = None;
+        while let Some(row) = stream.next_psm()? {
+            if row.sequence.is_null() {
+                continue;
+            }
+            if header_columns.is_none() {
+                let layout = SectionLayout {
+                    search_engine_score: one_based(n_scores),
+                    optional_columns: names.clone(),
+                    ..SectionLayout::default()
+                }
+                .checked()?;
+                let header = self.psm_header(&layout)?;
+                header_columns = Some(column_count(&header));
+                out.push(String::new())?;
+                out.push(header)?;
+            }
+            let scores = if row.search_engine_score.is_empty() {
+                // The source writes a single "null" for a row without scores.
+                one_based(1)
+            } else {
+                row.search_engine_score.keys().copied().collect()
+            };
+            let layout = SectionLayout {
+                search_engine_score: scores,
+                optional_columns: names.clone(),
+                ..SectionLayout::default()
+            }
+            .checked()?;
+            let line = self.psm_row(&row, &layout)?;
+            check_row(&line, header_columns.unwrap_or(0), "PSM")?;
+            out.push(line)?;
+        }
+        Ok(out.lines)
+    }
+
+    fn check_output_name(path: &Path) -> Result<()> {
+        let name = path.to_string_lossy();
+        if file_types::has_valid_extension(&name, FileType::MzTab)
+            || file_types::has_valid_extension(&name, FileType::Tsv)
+        {
+            Ok(())
+        } else {
+            Err(bad(format!(
+                "invalid file extension for MzTab output, expected '{}' or '{}': {name}",
+                FileType::MzTab.name(),
+                FileType::Tsv.name()
+            )))
+        }
+    }
+
+    fn write_text(path: &Path, text: &str) -> Result<()> {
+        path_io::write(path, |writer| {
+            writer.write_all(text.as_bytes())?;
+            Ok(())
+        })
+    }
+
+    /// Render identification runs as MzTab text, exactly as
+    /// [`MzTabFile::store_identifications`] writes them.
+    ///
+    /// Native convenience; the source can only write to a file. `filename` is
+    /// passed to the stream, which ignores it.
+    ///
+    /// # Errors
+    ///
+    /// As [`IdMzTabStream::new`] and its row methods, the ceilings of
+    /// [`MzTabFile::document_lines`], and the source's postcondition — a row
+    /// whose column count differs from its section header's, which happens when
+    /// the runs use more than one protein or PSM score type.
+    pub fn identifications_to_string(
+        &self,
+        protein_identifications: &[ProteinIdentification],
+        peptide_identifications: &[PeptideIdentification],
+        filename: &str,
+        options: &IdentificationExportOptions,
+    ) -> Result<String> {
+        let proteins: Vec<&ProteinIdentification> = protein_identifications.iter().collect();
+        let peptides: Vec<&PeptideIdentification> = peptide_identifications.iter().collect();
+        let mut stream = IdMzTabStream::new(&proteins, &peptides, filename, options)?;
+        Ok(terminated(
+            self.stream_lines(&mut stream, StreamKind::Identifications)?,
+        ))
+    }
+
+    /// Write identification runs to `path` through an [`IdMzTabStream`].
+    ///
+    /// Source `MzTabFile::store(const std::string&, const
+    /// std::vector<ProteinIdentification>&, const PeptideIdentificationList&,
+    /// bool first_run_inference_only, bool export_empty_pep_ids, bool
+    /// export_all_psms, const std::string& title)`, the writer MzTabExporter
+    /// uses for idXML input. The source writes rows as the stream yields them
+    /// into a file it has already truncated, so an exception leaves a partial
+    /// file; here the whole text is rendered first and written atomically, as
+    /// [`MzTabFile::store`] does.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for an extension that names neither mzTab nor
+    /// TSV, otherwise as [`MzTabFile::identifications_to_string`], plus
+    /// [`Error::Io`].
+    pub fn store_identifications(
+        &self,
+        path: impl AsRef<Path>,
+        protein_identifications: &[ProteinIdentification],
+        peptide_identifications: &[PeptideIdentification],
+        options: &IdentificationExportOptions,
+    ) -> Result<()> {
+        let path = path.as_ref();
+        Self::check_output_name(path)?;
+        let text = self.identifications_to_string(
+            protein_identifications,
+            peptide_identifications,
+            &path.to_string_lossy(),
+            options,
+        )?;
+        Self::write_text(path, &text)
+    }
+
+    /// Render a consensus map as MzTab text, exactly as
+    /// [`MzTabFile::store_consensus_map`] writes it.
+    ///
+    /// Native convenience; the source can only write to a file.
+    ///
+    /// # Errors
+    ///
+    /// As [`ConsensusMapMzTabStream::new`] and its row methods, the ceilings of
+    /// [`MzTabFile::document_lines`], and the source's postcondition.
+    pub fn consensus_map_to_string(
+        &self,
+        consensus_map: &ConsensusMap,
+        filename: &str,
+        options: &ConsensusMapExportOptions,
+    ) -> Result<String> {
+        let mut stream = ConsensusMapMzTabStream::new(consensus_map, filename, options)?;
+        Ok(terminated(
+            self.stream_lines(&mut stream, StreamKind::ConsensusMap)?,
+        ))
+    }
+
+    /// Write a consensus map to `path` through a [`ConsensusMapMzTabStream`].
+    ///
+    /// Source `MzTabFile::store(const std::string&, const ConsensusMap&, bool
+    /// first_run_inference_only, bool export_unidentified_features, bool
+    /// export_unassigned_ids, bool export_subfeatures, bool
+    /// export_empty_pep_ids, bool export_all_psms) const`, the writer
+    /// MzTabExporter uses for consensusXML input. The source has no title
+    /// argument and always writes
+    /// [`DEFAULT_CONSENSUS_MAP_TITLE`](crate::format::mztab_export::DEFAULT_CONSENSUS_MAP_TITLE),
+    /// which is the default of `options.title`; a different title is a native
+    /// extension. Only one `best_search_engine_score` column (`PRT`) and one
+    /// `search_engine_score` column (`PSM`) are written, the source's "we
+    /// currently only store one search engine score" limit. The text is
+    /// rendered completely before the file is written atomically.
+    ///
+    /// The source's MzTabExporter first removes identifications without hits
+    /// (`IDFilter::removeEmptyIdentifications`), because the stream "doesn't
+    /// support IDs with empty hits"; a consensus feature whose identification
+    /// has no hit is an error here rather than undefined behaviour.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for an extension that names neither mzTab nor
+    /// TSV, otherwise as [`MzTabFile::consensus_map_to_string`], plus
+    /// [`Error::Io`].
+    pub fn store_consensus_map(
+        &self,
+        path: impl AsRef<Path>,
+        consensus_map: &ConsensusMap,
+        options: &ConsensusMapExportOptions,
+    ) -> Result<()> {
+        let path = path.as_ref();
+        Self::check_output_name(path)?;
+        let text = self.consensus_map_to_string(consensus_map, &path.to_string_lossy(), options)?;
+        Self::write_text(path, &text)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Reading — column bookkeeping
 // ---------------------------------------------------------------------------
 
@@ -3100,7 +3505,7 @@ fn parse_reference_list(text: &str, label: &str, line: usize) -> Result<Vec<i32>
     }
     let mut values = Vec::with_capacity(fields.len());
     for field in fields {
-        let token = trim_source(field);
+        let token = trim(field);
         let value: i32 = token
             .strip_prefix('+')
             .unwrap_or(token)
@@ -3509,7 +3914,7 @@ impl MzTabFile {
                 .filter(|&total| total <= Self::MAX_BYTES)
                 .ok_or_else(|| bad("MzTab input exceeds its byte limit"))?;
 
-            let text = trim_source(&buffer);
+            let text = trim(&buffer);
             // The source records every line shorter than three bytes as an empty
             // row, so a one- or two-character line is discarded rather than
             // parsed.

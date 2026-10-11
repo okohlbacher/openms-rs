@@ -1,0 +1,23 @@
+status ok
+n_hits 0 min_score 0 max_score 0
+protein_ids 1
+prot identifier=[] engine=[xQuest] version=[4.0.0] date=[2018-03-06 11:52:13] score_type=[] higher=1
+ runs 0
+ sp db=[db.fasta] charges=[4,2,3] enzyme=[Trypsin] missed=2 prec_tol=10 prec_ppm=1 frag_tol=0.20000000000000001 frag_ppm=0 mass_type=0 specificity=3
+ fixed [Carbamidomethyl (C)] [Oxidation (M)]
+ variable
+  sp meta cross_link:mass_isoshift double 12.075321000000001
+  sp meta cross_link:mass_mass double 138.0680796
+  sp meta cross_link:mass_monolink doubleList [156.07864430999999,155.094628715]
+  sp meta cross_link:name string DSS
+  sp meta cross_link:residue1 stringList [K|N-term]
+  sp meta cross_link:residue2 stringList [K|N-term]
+  sp meta decoy_prefix int 1
+  sp meta decoy_string string decoy_
+  sp meta fragment:mass_tolerance_xlinks double 0.29999999999999999
+  sp meta input_decoys string decoy.fasta
+  sp meta precursor:max_charge int 4
+  sp meta precursor:min_charge int 2
+ meta SpectrumIdentificationProtocol string MS:1002494
+ hits 0
+peptide_ids 0

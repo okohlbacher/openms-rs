@@ -1,0 +1,159 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PEFFFile.h",
+   "sha256": "60d387c1852ef822aaae75577f3dd3f883cc825629c7914d826cbf974177bbed"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PEFFFile.cpp",
+   "sha256": "d6428b1117f75bed38ebe6f03ed4efebc5a5d934d8ff7dff0957cc1a35c42869"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PEFFFile_test.cpp",
+   "sha256": "a64bd90c19128ff746a668fa1dcfce02eaa4bd3f10e009c0628fc9fded950897"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/PEFFFile_P53_uniprot.peff",
+   "sha256": "61df65d5d61d79bce7dc5309572a00a89226f8b2d1690fa3978055308d925ab0",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_P53_uniprot.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_UniPEFF_test.peff",
+   "sha256": "4086ff80715122624f78b1dd3e64ef195910b0451786698a08ccdfa4d238f387",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_UniPEFF_test.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_annotid.peff",
+   "sha256": "72f5eb60016d1070bd33493a9142c2b0d97e8c81003a72210d98f72a488ecdc4",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_annotid.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_customkeydef.peff",
+   "sha256": "904054dd7476360303e6ef1e06112a1b81819e00acb9367e887d65b252886b98",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_customkeydef.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_customkeydef_usage.peff",
+   "sha256": "2fa436dc52a2414f608cd522a42c7b3a4ee47d3e27e0b686c49e6de603cc6d5c",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_customkeydef_usage.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_minimal.peff",
+   "sha256": "4b57ebae3ebbe097beb1b522c510465eeb2e879262d934a2baf796b0aa48e417",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_minimal.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_mod_optionaltag.peff",
+   "sha256": "972806b8887e9144baf96530a10ec43e9f596a6bc1b3a0e3c6b0af1aff85338e",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_mod_optionaltag.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_modtypes.peff",
+   "sha256": "ad993d653d391b182be30c6ed18e57bb9fa2ee7afeef320e1cae7cc10c55ee70",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_modtypes.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_multidb.peff",
+   "sha256": "36288d4e5e58b79b78de4bfe9ee2110b43c4cf8190f66ea71847f90e907f0a56",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_multidb.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_test.peff",
+   "sha256": "2cc87f2ffde0c21382316db4e891fa5a8a9dd58348e9dd020917c6143687ae1a",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_test.peff"
+  },
+  {
+   "path": "tests/data/PEFFFile_uniprot.peff",
+   "sha256": "3cae31d048fa38c93093acc7cd9d2a093ece6ff4433d2eabb346313b4460b376",
+   "kind": "upstream class-test fixture, byte-identical",
+   "upstream_path": "src/tests/class_tests/openms/data/PEFFFile_uniprot.peff"
+  },
+  {
+   "path": "tests/data/peff_sequences_oracle.tsv",
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9",
+   "kind": "retained stdout of the executed C++ Release build (tier 1)",
+   "upstream_path": "../oracle/F6-peff-sequences/results/stdout_1.tsv"
+  }
+ ],
+ "native_implementation": [
+  "src/format/peff.rs",
+  "src/format/peff/read.rs",
+  "src/format/peff/write.rs",
+  "src/format/peff/text.rs",
+  "src/format/peff/sequences.rs"
+ ],
+ "native_tests": [
+  "tests/peff.rs",
+  "tests/peff_sequences.rs"
+ ],
+ "support_document": "docs/PEFF_SUPPORT.md",
+ "method": "Tier 1: tests/peff_sequences.rs oracle_* compare every (description, peptide) pair of 23 digestWithVariants/generatePeptides/getVariantSequences cases, the proteoform-cap counts, getModifiedSequence (with its two warnings from the retained stderr) and getProcessedSequence against the retained stdout of the executed C++ Release build. Every expected value is a literal of PEFFFile_test.cpp at the pin (tier 3), including the four proteoform tables transcribed row for row; the required-key and unresolved-modification warnings are derived from PEFFFile.cpp:1493-1527 and :586 (tier 4). The one PSI-MOD term the class test resolves (MOD:00046) is authored in the test from its identifier, origin and Unimod link, not copied from PSI-MOD.obo. No Rust output is used as an expected value.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F6-peff-sequences/driver.cpp",
+   "sha256": "b873d5254688e38965551e2017a103f94853f0816b0859e0fdcd42549a959ded",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/remote_run.sh",
+   "sha256": "0077a8f25a49c6a2cd96b1e30c1c18a6117ef9dd4e3341408baed86fda344ac5",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/run.sh",
+   "sha256": "55fff8e048a05fc79243278a20289710fbfc8e34bba9fdec76d2ae5d8bfd7b9f",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/stdout_1.tsv",
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/stdout_2.tsv",
+   "sha256": "632df1fcf42df2a85ae659ab12b569bd2b113634588cf7ddb428287c47b296b9",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/stderr_1.txt",
+   "sha256": "f9f576c0f52c38ab96c3326ea51a9be1cc12ee64138aa51ac1d83062c37adc64",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F6-peff-sequences/results/build_info.txt",
+   "sha256": "8969d1ba938cafd0de473c60092708c2e45e7e68517ac31c48ce7fd620e9356d",
+   "note": "ibminode06, Ubuntu 24.04.4, AMD EPYC 7763, conda-forge g++ 14.4.0 -O2 -std=c++20, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c); two runs byte-identical",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "license": "OpenMS BSD-3-Clause; source notices retained in the crate LICENSE and LICENSES.md.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ },
+ "external_reference_note": "The C++ oracle driver and its scripts (../oracle/F6-peff-sequences/, built against the Linux x86_64 Release install on ibminode06) stay outside the repository; no C++ enters it. Its retained stdout is tests/data/peff_sequences_oracle.tsv."
+}

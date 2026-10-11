@@ -96,12 +96,12 @@ fn initialize_lookup_reads_the_spectra_and_registers_the_default_formats() {
     assert!(lookup.is_empty());
     assert!(warnings.is_empty());
     assert_eq!(lookup.reference_formats(), [TitleReferenceFormat::MzThenRt]);
-    // A caller-supplied regular expression cannot be compiled here.
-    assert!(matches!(
-        MascotXmlFile::initialize_lookup(&experiment, Some("scan=(?<SCAN>\\d+)")),
-        Err(Error::Unsupported(_))
-    ));
-    // An empty or whitespace-only override is the source default.
+    // A caller-supplied regular expression replaces the default formats
+    // (differential evidence: tests/mascot_xml_regex.rs).
+    let (custom, _) =
+        MascotXmlFile::initialize_lookup(&experiment, Some("scan=(?<SCAN>\\d+)")).unwrap();
+    assert_eq!(custom.reference_formats(), [TitleReferenceFormat::Regex(0)]);
+    // An empty override is the source default.
     assert!(MascotXmlFile::initialize_lookup(&experiment, Some("")).is_ok());
 }
 
@@ -336,8 +336,8 @@ fn load_mascot_xml_2_1_as_written_by_mascot_server_2_3() {
 /// `IdXMLFile::store` writes exactly one element per line with plain
 /// double-quoted attributes, so the retained output can be read without an XML
 /// parser. This keeps the differential independent of this crate's own idXML
-/// reader, whose fixed 50-million-unit work budget cannot get through 586
-/// modified peptides (see `docs/MASCOT_XML_SUPPORT.md`).
+/// reader, which is cross-checked against it separately (see
+/// `docs/MASCOT_XML_SUPPORT.md`).
 fn attribute<'a>(line: &'a str, name: &str) -> Option<&'a str> {
     let key = format!(" {name}=\"");
     let start = line.find(&key)? + key.len();
@@ -632,6 +632,46 @@ fn load_mascot_xml_2_2_against_the_retained_cpp_idxml_output() {
         }
     }
     assert_eq!(total_hits, 586);
+}
+
+/// The crate's own idXML reader now reads the retained C++ output too, and it
+/// agrees with the line extractor above hit for hit.
+///
+/// It could not before: `AASequence::parse_with_budget` charged every
+/// modified sequence for the whole modification registry against the reader's
+/// document-wide 50-million-unit work budget, and this file carries 586
+/// peptide hits, many of them modified. The extractor stays the primary
+/// reference, because it does not depend on the reader under test.
+#[test]
+fn the_idxml_reader_reads_the_retained_cpp_output_like_the_extractor() {
+    let reference = read_reference(OUT_3);
+    let document = openms::format::idxml::load(OUT_3).unwrap();
+    assert_eq!(document.protein_identifications.len(), 1);
+    let proteins: Vec<&str> = document.protein_identifications[0]
+        .hits
+        .iter()
+        .map(|hit| hit.accession.as_str())
+        .collect();
+    assert_eq!(proteins, reference.protein_accessions);
+    let ours = &document.peptide_identifications;
+    assert_eq!(ours.len(), reference.identifications.len());
+    let mut modified = 0;
+    for (index, (ours, reference)) in ours.iter().zip(&reference.identifications).enumerate() {
+        assert_eq!(ours.hits.len(), reference.hits.len(), "id {index}");
+        for (ours, reference) in ours.hits.iter().zip(&reference.hits) {
+            assert_eq!(ours.sequence.to_string(), reference.sequence, "id {index}");
+            assert_eq!(ours.charge, reference.charge, "id {index}");
+            assert!(
+                (ours.score - reference.score).abs() < FUZZY_ABSOLUTE,
+                "id {index}"
+            );
+            modified += usize::from(reference.sequence.contains('('));
+        }
+    }
+    // 436 of the 586 hits in the retained file carry a modification (counted
+    // in the file with `grep -c '<PeptideHit .*sequence="[^"]*('`), far more
+    // than the fourteen the old budget allowed.
+    assert_eq!(modified, 436);
 }
 
 // ---------------------------------------------------------------------------

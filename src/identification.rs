@@ -1111,16 +1111,29 @@ impl ProteinIdentification {
         }
         Ok(())
     }
-    /// Sorts the hits best first in the run's orientation, keeping ties in
-    /// order (`sort`).
+    /// Stable sort of the protein hits, best score first.
+    ///
+    /// The source `ProteinIdentification::sort` (`ProteinIdentification.cpp:649-659`)
+    /// stable-sorts with `ProteinHit::ScoreMore` or `ProteinHit::ScoreLess`
+    /// (`ProteinHit.h:72-92`), which compare the tuple (score, accession): equal
+    /// scores are ordered by accession, descending when higher scores are better
+    /// and ascending otherwise. Accessions compare bytewise, as `std::string` does.
     ///
     /// # Errors
     ///
-    /// As [`Self::validate`], before anything moves.
+    /// The errors of [`ProteinIdentification::validate`]; the hits are unchanged then.
     pub fn sort(&mut self) -> Result<()> {
         self.validate()?;
-        self.hits
-            .sort_by(|a, b| score_order(a.score, b.score, self.higher_score_better));
+        let higher = self.higher_score_better;
+        self.hits.sort_by(|a, b| {
+            score_order(a.score, b.score, higher).then_with(|| {
+                if higher {
+                    b.accession.cmp(&a.accession)
+                } else {
+                    a.accession.cmp(&b.accession)
+                }
+            })
+        });
         Ok(())
     }
     /// The first hit with `accession` (`findHit`).

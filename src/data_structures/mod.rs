@@ -57,8 +57,11 @@ pub use dbounding_box::{DBoundingBox, DBoundingBox1, DBoundingBox2};
 /// `DATASTRUCTURES/MatchedIterator.h`).
 pub mod matched_iterator;
 
+/// Sets of enum flags stored as bits (source `DATASTRUCTURES/FlagSet.h`).
+pub mod flag_set;
 /// Dense column-major matrix (`DATASTRUCTURES/Matrix.h`).
 pub mod matrix;
+pub use flag_set::{FlagEnum, FlagSet};
 /// `DATASTRUCTURES/StringUtils.h`: string parsing, formatting, trimming,
 /// quoting and splitting with the source's byte-level rules.
 pub mod string_utils;

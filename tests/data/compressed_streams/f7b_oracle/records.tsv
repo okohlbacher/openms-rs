@@ -1,0 +1,172 @@
+g_fixture	open	open=1 end=0
+g_fixture	1:read29	n=29 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636365737366756c3f
+g_fixture	2:read10	n=1 open=0 end=1 data=0a
+g_fixture	3:read10	ERR:IllegalArgument:no file for decompression initialized
+g_exact	open	open=1 end=0
+g_exact	1:read30	n=30 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636365737366756c3f0a
+g_exact	2:read10	n=0 open=0 end=1 data=
+g_zero	open	open=1 end=0
+g_zero	1:read0	n=0 open=1 end=0 data=
+g_zero	2:read29	n=29 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636365737366756c3f
+g_zero	3:read0	n=0 open=1 end=0 data=
+g_zero	4:read2	n=1 open=0 end=1 data=0a
+g_corrupt	open	open=1 end=0
+g_corrupt	1:read10	n=10 open=1 end=0 data=576173206465636f6d70
+g_corrupt	2:read10	ERR:Parse Error:unknown error (code: 1593851233) in: error reading from gzip file
+g_corrupt	3:read10	ERR:IllegalArgument:no file for decompression initialized
+g_corrupt	4:read10	ERR:IllegalArgument:no file for decompression initialized
+g_corrupt30	open	open=1 end=0
+g_corrupt30	1:read30	n=30 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636320737573696f6e20
+g_corrupt30	2:read30	ERR:Parse Error:unknown error (code: 1601003877) in: error reading from gzip file
+g_plain	open	open=1 end=0
+g_plain	1:read100	n=21 open=0 end=1 data=706c61696e20746578742c206e6f7420677a69700a
+g_one	open	open=1 end=0
+g_one	1:read10	n=1 open=0 end=1 data=78
+g_empty	open	open=1 end=0
+g_empty	1:read10	n=0 open=0 end=1 data=
+g_members	open	open=1 end=0
+g_members	1:read1000	n=27 open=0 end=1 data=6669727374206d656d6265720a7365636f6e64206d656d6265720a
+g_payload	open	open=1 end=0
+g_payload	1:read200000	n=80000 open=0 end=1 data=80000:f14dfa7e9d1a9b43
+g_payload_exact	open	open=1 end=0
+g_payload_exact	1:read80000	n=80000 open=1 end=0 data=80000:f14dfa7e9d1a9b43
+g_payload_exact	2:read1	n=0 open=0 end=1 data=
+g_trunc_trailer	open	open=1 end=0
+g_trunc_trailer	1:read200000	n=80000 open=0 end=1 data=80000:f14dfa7e9d1a9b43
+g_trunc_trailer	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_trunc_body	open	open=1 end=0
+g_trunc_body	1:read200000	n=39904 open=0 end=1 data=39904:108413055e92af8b
+g_trunc_body	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_bad_crc	open	open=1 end=0
+g_bad_crc	1:read200000	n=80000 open=0 end=1 data=80000:f14dfa7e9d1a9b43
+g_bad_crc	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_bad_crc_chunks	open	open=1 end=0
+g_bad_crc_chunks	1:read40000	n=40000 open=1 end=0 data=40000:68fb9347b518ec23
+g_bad_crc_chunks	2:read40000	ERR:Parse Error:unknown error (code: 1601003877) in: error reading from gzip file
+g_bad_crc_chunks	3:read10	ERR:IllegalArgument:no file for decompression initialized
+g_bad_len	open	open=1 end=0
+g_bad_len	1:read200000	n=80000 open=0 end=1 data=80000:f14dfa7e9d1a9b43
+g_bad_len	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_hcrc_good	open	open=1 end=0
+g_hcrc_good	1:read100	n=14 open=0 end=1 data=68656164657220637263206f6b0a
+g_hcrc_bad	open	open=1 end=0
+g_hcrc_bad	1:read100	n=0 open=0 end=1 data=
+g_hcrc_bad	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_extra	open	open=1 end=0
+g_extra	1:read100	n=13 open=0 end=1 data=6578747261206669656c64730a
+g_bad_second	open	open=1 end=0
+g_bad_second	1:read100	n=5 open=0 end=1 data=676f6f640a
+g_bad_second	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_reserved_flag	open	open=1 end=0
+g_reserved_flag	1:read100	n=21 open=0 end=1 data=1f8b08200000000002ffab00008316dc8c01000000
+g_reserved_flag	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_missing	open	ERR:FileNotFound:the file '../../data/missing.gz' could not be found
+g_close	open	open=1 end=0
+g_close	1:close	open=0 end=1
+g_close	2:read10	ERR:IllegalArgument:no file for decompression initialized
+g_close	3:reopen	open=1 end=0
+g_close	4:read29	n=29 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636365737366756c3f
+b_fixture	open	open=1 end=0
+b_fixture	1:read29	n=29 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636365737366756c3f
+b_fixture	2:read10	n=1 open=0 end=1 data=0a
+b_fixture	3:read10	ERR:IllegalArgument:no file for decompression initialized
+b_exact	open	open=1 end=0
+b_exact	1:read30	n=30 open=0 end=1 data=576173206465636f6d7072657373696f6e207375636365737366756c3f0a
+b_exact	2:read10	ERR:IllegalArgument:no file for decompression initialized
+b_zero	open	open=1 end=0
+b_zero	1:read0	n=0 open=1 end=0 data=
+b_zero	2:read29	n=29 open=1 end=0 data=576173206465636f6d7072657373696f6e207375636365737366756c3f
+b_corrupt	open	open=1 end=0
+b_corrupt	1:read10	ERR:Parse Error:bzip2 compression failed:  in:  
+b_corrupt	2:read10	ERR:IllegalArgument:no file for decompression initialized
+b_payload	open	open=1 end=0
+b_payload	1:read200000	n=120000 open=0 end=1 data=120000:33986107d9d887a8
+b_payload_exact	open	open=1 end=0
+b_payload_exact	1:read120000	n=120000 open=0 end=1 data=120000:33986107d9d887a8
+b_payload_exact	2:read1	ERR:IllegalArgument:no file for decompression initialized
+b_payload_chunks	open	open=1 end=0
+b_payload_chunks	1:read60000	n=60000 open=1 end=0 data=60000:0a5b91c493163b0a
+b_payload_chunks	2:read60000	n=60000 open=0 end=1 data=60000:65d62ef8f21b8f31
+b_payload_chunks	3:read1	ERR:IllegalArgument:no file for decompression initialized
+b_two	open	open=1 end=0
+b_two	1:read200000	n=120000 open=0 end=1 data=120000:33986107d9d887a8
+b_trunc	open	open=1 end=0
+b_trunc	1:read200000	ERR:Parse Error:bzip2 compression failed:  in:  
+b_trunc	2:read10	ERR:IllegalArgument:no file for decompression initialized
+b_trunc_chunks	open	open=1 end=0
+b_trunc_chunks	1:read100000	n=100000 open=1 end=0 data=100000:25fd36456074aa66
+b_trunc_chunks	2:read100000	ERR:Parse Error:bzip2 compression failed:  in:  
+b_plain	open	open=1 end=0
+b_plain	1:read10	ERR:Parse Error:bzip2 compression failed:  in:  
+b_empty	open	open=1 end=0
+b_empty	1:read10	ERR:Parse Error:bzip2 compression failed:  in:  
+b_missing	open	ERR:FileNotFound:the file '../../data/missing.bz2' could not be found
+z_fixture	open	open=1 end=0
+z_fixture	1:read28008	n=28008 open=1 end=0 data=28008:6a2abbb3addfdf96
+z_fixture	2:read10	n=0 open=0 end=1 data=
+z_fixture	3:read10	ERR:IllegalArgument:no file for decompression initialized
+z_short	open	open=1 end=0
+z_short	1:read30000	n=28008 open=1 end=0 data=28008:6a2abbb3addfdf96
+z_short	2:read10	n=0 open=0 end=1 data=
+z_zero	open	open=1 end=0
+z_zero	1:read0	n=0 open=1 end=0 data=
+z_zero	2:close	open=0 end=1
+z_zero	3:read0	n=0 open=0 end=1 data=
+z_zero	4:read10	ERR:IllegalArgument:no file for decompression initialized
+z_bad_crc	open	open=1 end=0
+z_bad_crc	1:read200000	n=6652 open=1 end=0 data=6652:be4b1d52fcb51444
+z_bad_crc	2:read10	ERR:Parse Error:zip_fread returned error in: error reading from zip entry
+z_bad_crc_chunks	open	open=1 end=0
+z_bad_crc_chunks	1:read1000	n=1000 open=1 end=0 data=1000:0e96dda8cb93bcc6
+z_bad_crc_chunks	2:read200000	n=5652 open=1 end=0 data=5652:d6b639a3c31278f5
+z_bad_crc_chunks	3:read10	ERR:Parse Error:zip_fread returned error in: error reading from zip entry
+z_bzip2	open	open=1 end=0
+z_bzip2	1:read200000	n=6652 open=1 end=0 data=6652:be4b1d52fcb51444
+z_bzip2	2:read10	n=0 open=0 end=1 data=
+z_stored	open	open=1 end=0
+z_stored	1:read200000	n=6652 open=1 end=0 data=6652:be4b1d52fcb51444
+z_stored	2:read10	n=0 open=0 end=1 data=
+z_lzma	open	ERR:FileNotReadable:the file '../../data/featurexml_lzma.zip' is not readable for the current user
+za	zipDirectory	a.parquet|b/c.parquet|
+za	writeSidecarIndex1	a.parquet|b/c.parquet|out.zip.idx.json|
+za	sidecar1	{   "a.parquet": 10,   "b/c.parquet": 3 } 
+za	writeSidecarIndex2	a.parquet|b/c.parquet|out.zip.idx.json|
+za	sidecar2	{   "a.parquet": 10,   "b/c.parquet": 3,   "out.zip.idx.json": 42 } 
+za	sidecarDir	{   "a.parquet": 10,   "b/c.parquet": 3 } 
+za	unzipDirectory	parquet_unpacked a.parquet=10|b/|b/c.parquet=3|out.zip.idx.json=68|
+za	unzipDirectoryDir	za/ztree temp=0
+za	unzipMissing	ERR:FileNotFound:the file 'za/missing.zip' could not be found
+za	unzipText	ERR:InvalidValue:the value 'za/text.zip' was used but is not valid; Failed to open zip archive
+za	addReplace	a.parquet|b/c.parquet|out.zip.idx.json| replacement
+za	addNewArchive	x/y.bin|
+za	addMissingSource	ERR:InvalidValue:the value 'za/new.zip' was used but is not valid; Failed to finalize zip archive
+za	addToText	ERR:InvalidValue:the value 'za/text.zip' was used but is not valid; Failed to open zip archive for add/replace
+za	addToEmpty	ERR:InvalidValue:the value 'za/empty.zip' was used but is not valid; Failed to open zip archive for add/replace
+za	listText	[]
+za	listMissing	[]
+za	extractMissingEntry	ERR:FileNotFound:the file 'nope' could not be found
+za	extractMissingArchive	ERR:FileNotFound:the file 'za/none.zip' could not be found
+za	extractDirLayout	za/ztree/b/c.parquet temp=0
+za	extractDirMissing	ERR:FileNotFound:the file 'za/ztree/nope' could not be found
+za	extractDirEscape	za/src.txt
+za	unzipTraversal	ERR:InvalidValue:the value '../escape.txt' was used but is not valid; Zip entry would extract outside target directory
+parseInt	42	42
+parseInt	ws-17	-17
+parseInt	+0	0
+parseInt	vt5	5
+parseInt	5vt	ERR:unknown
+parseInt	ff5	5
+parseInt	2147483647	2147483647
+parseInt	2147483648	-2147483648
+parseInt	-2147483649	2147483647
+parseInt	4294967296	0
+parseInt	99999999999999999999	ERR:unknown
+parseInt	empty	ERR:unknown
+parseInt	spaces	ERR:unknown
+parseInt	4 2	ERR:unknown
+parseInt	0x10	ERR:unknown
+parseInt	arabic1	ERR:unknown
+parseInt	plus space	ERR:unknown
+convert	utf8	4dc3bc6c6c657220ceb120f09fa7aa
+convert	unpaired	e29181
+convert	narrow	004d 00fc 006c 006c 0065 0072 

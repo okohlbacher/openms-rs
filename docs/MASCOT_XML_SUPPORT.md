@@ -37,7 +37,7 @@ direct TOPP consumers of this header.
 | `MascotXMLFile()` | `MascotXmlFile::new` (also `Default`) |
 | `void load(const std::string& filename, ProteinIdentification&, PeptideIdentificationList&, const SpectrumMetaDataLookup&)` | `MascotXmlFile::load` and free `load`, returning `MascotXmlResult`; the three out-parameters become its three fields |
 | `void load(const std::string& filename, ProteinIdentification&, PeptideIdentificationList&, std::map<std::string, std::vector<AASequence>>&, const SpectrumMetaDataLookup&)` | `MascotXmlFile::load_with_peptides` and free `load_with_peptides`. The `[in,out]` map is taken by shared reference: the source never writes to it |
-| `static void initializeLookup(SpectrumMetaDataLookup&, const PeakMap&, const std::string& scan_regex = "")` | `MascotXmlFile::initialize_lookup`, returning the lookup plus the warnings the source logs. A non-empty `scan_regex` is `Error::Unsupported` — see "Native differences" |
+| `static void initializeLookup(SpectrumMetaDataLookup&, const PeakMap&, const std::string& scan_regex = "")` | `MascotXmlFile::initialize_lookup`, returning the lookup plus the warnings the source logs. A non-empty `scan_regex` (white space included, as in the source) replaces the defaults and is registered as `TitleReferenceFormat::Regex`, compiled by `concept::boost_regex` and evaluated by `format::spectrum_meta_data_lookup`; an expression without a named group is `Error::InvalidValue` (the source's `IllegalArgument`), as is one that does not compile (`boost::regex_error`). Tier 1: `tests/mascot_xml_regex.rs` (lane F3a, wave 4) |
 
 Rust-only surface, all native: `read`, `read_with_peptides`,
 `read_with_options`, `read_with_registry`, `ReadLimits`, `MascotXmlResult`,
@@ -187,7 +187,7 @@ Each is covered by a named test in `tests/mascot_xml.rs`.
 
 | Difference | Why |
 |---|---|
-| **A caller-supplied `scan_regex` is refused.** `initialize_lookup` accepts `None` (or an empty string) and registers the default formats; a non-empty expression returns `Error::Unsupported`. | The source compiles a Boost regular expression with named groups. When this package was written the crate had no regular-expression engine (`crate::concept::boost_regex` landed a day later, `854d996`) and this package may not add a dependency, so the three default formats are hand-coded as `TitleReferenceFormat` variants. A caller needing another form registers a variant directly; extending the enum is the path to a fourth format. |
+| **The three default formats are hand-coded.** `TitleReferenceFormat::{ScanNumber, DtaFileName, MzThenRt}` reproduce the source's three default expressions without compiling them; a caller-supplied `scan_regex` is compiled (`TitleReferenceFormat::Regex`). | The hand-coded formats predate the crate's Boost regular-expression port (`concept::boost_regex`, lane F3a); cases `r01` and `r05` of `tests/mascot_xml_regex.rs` check them against the Release build as well. Earlier revisions refused a caller-supplied `scan_regex`; lane F3a (wave 4) closed that gap against a Release oracle (`../oracle/F3a-mascot-regex`, 14 cases: `RT`, `MZ`, `SCAN`, `INDEX0`, `INDEX1`, `ID` and `RT` look-ups, no match, and the three refusals). |
 | **`<NumQueries>` is bounded *and* not materialised.** The source calls `resize` with the converted value, so 2,000,000,000 commits the memory, a negative value wraps to an enormous `size_t`, and a header repeating the element constructs and drops the vector again; `MascotXMLFile::load` then reserves the unfiltered count a second time for its filtered output. | `ReadLimits::max_queries` (5,000,000 by default) is checked before any allocation, a negative count is a parse error, the declared count is only an index space, and the filtered vector reserves the number of survivors. A five-million-query header with four repetitions went from 1.59 s to 0.02 s in release mode on the gate node. Recorded as `MXML-02` and `MXML-09` (`a_hostile_numqueries_is_bounded_rather_than_allocated`, `a_declared_query_count_is_not_materialised_up_front`). |
 | **Index bounds are checked.** The source's guard is `peptide_identification_index_ > id_data_.size()`, so `query == size + 1` indexes one past the end and a document with no `<NumQueries>` indexes an empty vector. `<peptide query="0">` is *not* one of those cases: the member is a `UInt`, so `0 - 1` wraps to 4294967295 and the guard does catch it. The genuinely unchecked index is `id_data_[actual_query_ - 1]` in the `<queries>` branches, where `actual_query_` is also unsigned: `<query number="0">` followed by `<StringTitle>` or `<RTINSECONDS>` reads at index 4294967295. | All of them are refused, the `<peptide>` cases with the source's own "show_header=1" message. Recorded as `MXML-01` and `MXML-03` (`a_missing_numqueries_header_is_refused_rather_than_read_out_of_bounds`). |
 | **A `<pep_var_mod_pos>` digit beyond the declared list, or a position beyond the sequence, is a parse error.** The source uses `vector::at` for the former, an uncaught `std::out_of_range`, and `AASequence::setModification` for the latter, which throws `IndexOverflow` when the index is not below the peptide length. | Both become `Error::Parse`, which is the same accept/reject boundary — only the exception type differs. An earlier revision of this row called the residue index unchecked; it is checked one level down (`AASequence.cpp`, `setModification`). No upstream fixture reaches either: all 645 aligned pairs in the two large fixtures are in range (`a_variable_modification_index_beyond_the_list_is_refused`). An empty N- or C-terminal slot (`.00.0` split into three fields with an empty first one) is skipped here, where the source reads `temp_string[0]`, gets the string's NUL terminator and fails its conversion. |
@@ -195,7 +195,7 @@ Each is covered by a named test in `tests/mascot_xml.rs`.
 | **Mascot's `-` flanking marker becomes a terminus marker.** The source stores the character verbatim, and `IdXMLFile` then writes `aa_before="-"`, which is neither of OpenMS's own `[`/`]` markers and which nothing downstream interprets — this crate's `FlankingResidue` cannot represent it at all. `-` before the peptide becomes `NTerminus`, after it `CTerminus`. | It is the information the character carries, and without the mapping `MascotXMLFile_test_2.mascotXML` (which uses `-` 
 for both) could not be read. Recorded as `MXML-08`. |
 | **The unresolved-retention-time warning is reported.** The source's guard is `if (!id_data_[i].getRT())`, which is false for the NaN it has just assigned, so an unresolved title reports nothing while a title legitimately encoding retention time 0 reports an error. | The port reports the unresolved case, which is the one a caller can act on. Recorded as `MXML-04`. |
-| **Non-finite numbers are refused** wherever the source's `toDouble` would accept `inf`/`nan`. | Every consumer of an identification rejects them. An overflowing decimal literal is refused as a *conversion* error rather than becoming an infinity, which is what `std::from_chars` reports and what `toDouble` therefore throws; a second `+` (`++1`) is refused for the same reason. |
+| **Non-finite numbers are refused** wherever the source's `toDouble` would accept `inf`/`nan`. | Every consumer of an identification rejects them. An overflowing decimal literal is refused as a *conversion* error rather than becoming an infinity, which is what `std::from_chars` reports and what `toDouble` therefore throws; a second `+` (`++1`) and a nonzero literal that underflows to zero are refused for the same reason (the conversions are the shared `data_structures::string_utils::to_double`/`to_int32`, wave-4 integration). |
 | **Predefined entities and numeric character references are expanded; CDATA and DTDs are refused.** Xerces expands references before the C++ handler sees character data. | quick-xml emits references separately, so the reader resolves them before appending to element text. Thus `<pep_score>1&#46;5</pep_score>` reads as 1.5, and `&amp;` in descriptions is supported. Undeclared references fail even in text the handler ignores, and references outside the root are malformed XML. CDATA is an explicit native limitation. Not a C++ defect (`entity_references_are_expanded_and_unresolvable_shapes_refused`, `references_outside_the_root_or_in_ignored_text_are_still_checked`). |
 | **A document must be one complete element tree.** Xerces rejects a truncated document, content before the root and a second root; quick-xml's `check_end_names` only pairs the tags it sees. | Exactly one root element, closed, and no non-whitespace character data outside it, checked in the event loop. Without it a download truncated mid-export loaded as a valid partial result and never ran the root-close post-processing (`an_incomplete_or_multi_root_document_is_refused`). |
 | **A reference format that matched but whose captured value does not convert is an error, not a miss.** `getSpectrumMetaData` returns after the first matching expression, and the `toInt32`/`toDouble` it calls inside throw, which the handler catches as a warning. | Falling through to the next format invents a successful association from a different part of the title: `500_12 scan=9223372036854775808` would resolve to RT 12 and m/z 500 after the scan-number format had already claimed it (`a_matched_format_whose_value_does_not_convert_does_not_fall_through`). |
@@ -229,15 +229,17 @@ port's own load of the same input:
   peptide evidence's accession and both flanking residues in order, and the
   `EValue` user parameter.
 
-The retained file is read with a line-oriented attribute extractor in the test
-rather than with `crate::format::idxml`, because that reader's fixed
-50,000,000-unit work budget (`XmlLimits::default`) is exhausted after roughly
-forty modified peptides: `AASequence::parse_with_budget` charges about 1.3
-million units per annotated sequence, so 586 of them need about 790 million.
+The retained file is read with a line-oriented attribute extractor in the test,
+so the differential does not depend on this crate's own idXML reader.
 `IdXMLFile::store` writes exactly one element per line with plain
-double-quoted attributes, so the extractor is exact for this fixture. Raising
-that budget belongs to the package that owns `src/format/identification_xml.rs`;
-it is listed under "Deferred".
+double-quoted attributes, so the extractor is exact for this fixture. The
+extractor was first chosen because `crate::format::idxml` could not read the
+file at all: `AASequence::parse_with_budget` charged every annotated sequence
+for the whole modification database against the reader's document-wide
+50,000,000-unit budget. That budget was fixed (lane F3a, 2026-09-27), and
+`the_idxml_reader_reads_the_retained_cpp_output_like_the_extractor` now checks
+that the reader agrees with the extractor on every protein accession and on
+every hit's sequence, charge and score — 436 of the 586 hits are modified.
 
 **Evidence tier 3 (source review) for `MascotXMLFile_test_1` and `_2`.** Their
 expectations are the class test's literals: for 1.0 the four fixed and three
@@ -292,17 +294,11 @@ flanking residues, sequences and every string.
 
 ## Deferred
 
-- `src/format/identification_xml.rs`'s fixed 50,000,000-unit work budget cannot
-  read an idXML with more than roughly forty modified peptides, so
-  `idxml::load("MascotXMLFile_test_out_3.idXML")` fails with "peptide parent
-  parsing resource limit exceeded". The per-sequence charge in
-  `AASequence::parse_with_budget` scales with the whole modification database
-  for every annotation. That file is outside this package's scope; until it is
-  raised, the differential uses its own extractor.
-- `METADATA/SpectrumLookup.h`, `METADATA/SpectrumMetaDataLookup.h` and
-  `METADATA/SpectrumNativeIDParser.h` stay unported; only the subset above is
-  reproduced, and a caller-supplied `scan_regex` cannot be honoured until a
-  regular-expression facility exists in the crate.
+- `METADATA/SpectrumLookup.h` and `METADATA/SpectrumMetaDataLookup.h` are
+  ported as such in `format::spectrum_meta_data_lookup` (their
+  regular-expression path, lane F3a); this reader keeps its own title lookup
+  for the three default formats and delegates a caller-supplied `scan_regex`
+  to that module. `METADATA/SpectrumNativeIDParser.h` stays unported.
 - `FORMAT/XMLFile.h` and `FORMAT/HANDLERS/XMLHandler.h` stay unported; the
   handler's error-reporting contract is replaced by `Result` plus a warning
   list.

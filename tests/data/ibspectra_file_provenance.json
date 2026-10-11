@@ -1,0 +1,46 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/IBSpectraFile.h",
+      "sha256": "e2e2332b1794292d8d758b24a0bf25c403565894a084cc27f5cdef7d75969947",
+      "role": "Installed public API; every member mapped in the support document."
+    },
+    {
+      "path": "src/openms/source/FORMAT/IBSpectraFile.cpp",
+      "sha256": "fdbe197857d0a813b087cca5c1b51b094c6e15a400f67b660272a4dc2194fcea",
+      "role": "Implementation read in full; behaviour and defects recorded at the Rust items."
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IBSpectraFile_test.cpp",
+      "sha256": "be41742c675fae8821511ba8741dcc42ed3df5dd065a4c3d918f7d08bf828319",
+      "role": "Upstream class test; every START_SECTION reproduced."
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/ibspectra_file/IBSpectraFile.consensusXML",
+      "sha256": "7fa9b51f68e37e62ad923eb803fa711dc5cd4c56602be1bab19c6192f15ff3a1",
+      "bytes": 16872,
+      "role": "Upstream class-test input/expected output, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/IBSpectraFile.consensusXML"
+    },
+    {
+      "path": "tests/data/ibspectra_file/IBSpectraFile.ibspectra.csv",
+      "sha256": "200bf4ecf52eb6bc24410b9e29bbee61464e4d2ec5e43fd91d4485f13e453c82",
+      "bytes": 3118,
+      "role": "Upstream class-test input/expected output, byte-identical.",
+      "source_path": "src/tests/class_tests/openms/data/IBSpectraFile.ibspectra.csv"
+    }
+  ],
+  "native_implementation": [
+    "src/format/ibspectra.rs"
+  ],
+  "native_tests": [
+    "tests/ibspectra_file.rs"
+  ],
+  "support_document": "docs/IBSPECTRA_FILE_SUPPORT.md",
+  "evidence": "Tier 1 retained output: IBSpectraFile.ibspectra.csv compared with TEST_FILE_SIMILAR's class-test tolerances (ClassTest.cpp:35-38); tier 3 for the remaining sections."
+}

@@ -390,7 +390,11 @@ range. The port keeps the same process-wide counter, atomically, and every
 mzData load advances it, reporting or not (`mzdata_static_counter`). The
 source's other file entry points that report progress are not wired here and
 report nothing: `MzMLFile::loadSize`, `loadBuffer`, `storeBuffer` and both
-`transform` overloads, and `MzXMLFile`'s `transform` overloads.
+`transform` overloads. `MzXMLFile`'s two `transform` overloads are wired:
+`mzxml::transform_with_progress` and `transform_into_with_progress` make the
+Release build's calls, including the section a `skip_full_count` transform
+leaves open (tier 1, `tests/mzxml_transform_progress.rs`,
+`docs/MZXML_SUPPORT.md`).
 
 ## Evidence
 

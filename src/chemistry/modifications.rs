@@ -1074,6 +1074,43 @@ impl ModificationsDB {
     pub(crate) fn exact_name_indices(&self, name: &str) -> Option<&[usize]> {
         self.by_name.get(name).map(Vec::as_slice)
     }
+
+    /// Upper bound on the work of one [`find`](Self::find) or
+    /// [`find_handles`](Self::find_handles) call for `name`, including the
+    /// full-ID comparison [`get_modification`](Self::get_modification) makes
+    /// over the same candidates.
+    ///
+    /// Both calls normalise the name (at most its own length), descend the
+    /// ordered name index (at most `log2(keys) + 2` comparisons, each reading at
+    /// most the name's length), and then visit only the records filed under that
+    /// name. The bound therefore depends on this name's candidates, never on the
+    /// size of the whole registry. Computing it costs one such descent itself,
+    /// so a caller charges [`name_descent_work`](Self::name_descent_work) first.
+    pub(crate) fn name_lookup_work(&self, name: &str) -> usize {
+        let normalized;
+        let key = if name
+            .get(..7)
+            .is_some_and(|p| p.eq_ignore_ascii_case("unimod:"))
+        {
+            normalized = format!("UniMod:{}", &name[7..]);
+            normalized.as_str()
+        } else {
+            name
+        };
+        let candidates = self.by_name.get(key).map_or(0, |indices| {
+            indices.iter().fold(0usize, |sum, &index| {
+                sum.saturating_add(self.entries[index].full_id.len().saturating_add(16))
+            })
+        });
+        self.name_descent_work(name).saturating_add(candidates)
+    }
+
+    /// Work of normalising `name` and descending the ordered name index once:
+    /// `log2(keys) + 2` comparisons of at most `name.len() + 16` bytes each.
+    pub(crate) fn name_descent_work(&self, name: &str) -> usize {
+        let comparisons = (self.by_name.len().max(1).ilog2() as usize).saturating_add(2);
+        comparisons.saturating_mul(name.len().saturating_add(16))
+    }
 }
 
 impl ModificationsDB {

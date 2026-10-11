@@ -1,0 +1,65 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c0",
+ "evidence_tier": "executed differential (tier 1), against the Xerces-C of the OpenMS4 Linux x86_64 Release build, configured as Internal::XMLFile::parse configures it",
+ "method": "Wave-4 integration found three SAX drivers written by three lanes (F6 format/sax_xml.rs, F3b format/search_engine_xml.rs, F3a format/xml_sax.rs), each delivering character data differently. An oracle driver (../oracle/integ-F-xerces-sax/driver.cpp) creates the SAX2XMLReader exactly as FORMAT/XMLFile.cpp does (namespaces and namespace prefixes off), links the Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 and its Xerces-C with conda-forge g++ 14.4.0 and libOpenMS's core flags, and records every startElement, endElement and characters callback (with its UTF-16 length) and every fatal error with its line for 28 documents; it ran twice on ibminode06 with identical output. The result: Xerces splits character data at every reference (the text before it is one callback, the replacement starts the next), ends a run at a comment or processing instruction, delivers a CDATA section (even an empty one) as its own callback, and reports NUL character references, an upper-case X radix, a literal < in an attribute value and the usual well-formedness errors as fatal errors on the line the scanner stands on. None of the three drivers matched; the one remaining driver, src/format/sax_xml.rs, replays all 28 cases in its release_callbacks unit test (locator columns are not compared; the internal-DTD case and ISO-8859-1 in UTF-8 mode are refused as documented native differences).",
+ "sources": [
+  {
+   "path": "src/openms/source/FORMAT/XMLFile.cpp",
+   "sha256": "61f51e245b4ccdc7367d949e1217ebd4906b6e03b4cd9653f7368b0d8da51ad4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/HANDLERS/XMLHandler.h",
+   "sha256": "43d1f74e3a061475c167bfef9a5059936889f6c9bbb0a4516200f64544443264"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/XMLHandler.cpp",
+   "sha256": "72810f8cb607b7fafa2f6dc85b87b97a49b42fd1e2d2d605b54ee4e4629494e7"
+  }
+ ],
+ "native_implementation": [
+  "src/format/sax_xml.rs"
+ ],
+ "native_tests": [
+  "src/format/sax_xml.rs"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/xerces_sax_release/cpp_release_records.txt",
+   "sha256": "e05f295c7234da1232928a568e37e7f924b29b3d90e89f9bbcb9dc94e585fe12",
+   "bytes": 507278,
+   "kind": "executed Release C++ output (results/records.tsv of ../oracle/integ-F-xerces-sax)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release) and its bundled Xerces-C, libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/integ-F-xerces-sax/driver.cpp",
+   "sha256": "dec5d0e943fbb2e97caa26be3ac63ae842957e6054f21a119bf0187c71c6de9b",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-xerces-sax/remote_run.sh",
+   "sha256": "3608f8a2b47c1ea51da257271a3ee9324e927fc5a6332a2488c9da9e2f81d126",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-xerces-sax/run.sh",
+   "sha256": "23cda56da65ff7e490fd0a0879d288b2d602332183a0aae016a91edd001d7880",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The oracle driver and its scripts are C++ and shell for the Release install and stay under ../oracle/integ-F-xerces-sax/.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

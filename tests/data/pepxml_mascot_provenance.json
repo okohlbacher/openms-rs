@@ -1,0 +1,989 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c0",
+ "evidence_tier": "executed differential (tier 1), against the OpenMS4 Linux x86_64 Release libOpenMS through an oracle driver; class-test literals (tier 3); resource ceilings (tier 4)",
+ "method": "Lane F3a (wave 4) ported PepXMLFileMascot. ../oracle/F3a-pepxml-mascot/driver.cpp, built on ibminode06 (never ibminode05) with the Release install's own conda g++ 14.4.0 and libOpenMS's core flags against /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, loaded the upstream class-test fixture and 27 generated inputs, each in a fresh process with a clean environment, twice; both runs agreed byte for byte (results/differ.txt empty). The driver prints the map (title, toString and toUnmodifiedString of each sequence) or the exception, and the handler's OPENMS_LOG_ERROR lines go to stderr. A second invocation loads a throwing file and then a good file with one object, recording that the source keeps its variable modifications after a throw. tests/pepxml_mascot.rs renders this port's load in the driver's format and compares it line by line, the log line by line, and each exception with the crate error kind documented for it.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PepXMLFileMascot.h",
+   "sha256": "4096ea3fe4b4f7ade9dcfc263bf8fefe5f92a1a5c48efeb22da0ff98aa3d230c"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PepXMLFileMascot.cpp",
+   "sha256": "a2a77e2416d4cd8a111dd39e1580c99da7d3ddf5027fa62a7e4fca879683b2a4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PepXMLFileMascot_test.cpp",
+   "sha256": "a2d8acf4423a63bb3f10c49785193d9d74c4426da0fd302447d678350680866b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/data/PepXMLFileMascot_test.pepXML",
+   "sha256": "557355c36c2de7b44590c7e8daa428af9e0a560780306d443cfc543db4900461"
+  }
+ ],
+ "native_implementation": [
+  "src/format/pepxml_mascot.rs",
+  "src/format/sax_xml.rs"
+ ],
+ "native_tests": [
+  "tests/pepxml_mascot.rs"
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m01_upstream.pepXML",
+   "sha256": "557355c36c2de7b44590c7e8daa428af9e0a560780306d443cfc543db4900461",
+   "bytes": 12303,
+   "kind": "upstream class-test fixture",
+   "source_path": "src/tests/class_tests/openms/data/PepXMLFileMascot_test.pepXML",
+   "unchanged": true
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m02_var_nterm.pepXML",
+   "sha256": "c04917268910de33aec32ce0121781ac9017ce1ca12296c1475c208692d3c4b1",
+   "bytes": 467,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m03_var_cterm.pepXML",
+   "sha256": "3b9aab065bf6ff7544cf49ae541885cc13c49bac8986755d7a5711de8e5526cf",
+   "bytes": 470,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m04_fixed.pepXML",
+   "sha256": "2975d6b1e69a05c27375f4a76f940803a4201046d945fe83730cfd40b914309c",
+   "bytes": 684,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m05_fixed_bad.pepXML",
+   "sha256": "78d5f07fe4427463cf9ac8920a8adbf49f65d68f5436b4ab7ac2d42bfe34d5a9",
+   "bytes": 535,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m06_unmatched.pepXML",
+   "sha256": "f0d0d3be35f12c8829d210b0f3341398a1a1415f0203fb4b3fd6a783f181b449",
+   "bytes": 516,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m07_duplicates_and_orphans.pepXML",
+   "sha256": "67a9269b49872d6e0597094ffa0886b1a87aeeb95e156b0a3da1bdf6f05ebf07",
+   "bytes": 970,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m08_position_zero.pepXML",
+   "sha256": "133a5be1157dd4b6fb79a92e60c24e1952f9672f8219c82a655b9e26e7ef62fb",
+   "bytes": 469,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m09_position_past_end.pepXML",
+   "sha256": "a9fd672c52e918f17b1e6d936ab4eca9538ba4a5f18c19ee9789054e7f63e9e0",
+   "bytes": 469,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m10_position_negative.pepXML",
+   "sha256": "c1dfefc52456890a8a0cc3695658b4a1055ae223f23d3eab236630491c9edc57",
+   "bytes": 470,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m11_unknown_name.pepXML",
+   "sha256": "92642af27114fcb3be2cfe6bf65bd149edcdce884f61f6e76b9fd6282df71af8",
+   "bytes": 463,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m12_missing_peptide.pepXML",
+   "sha256": "130abd0992dec67e67a32556f1e24916cb450596a300a157e1826488eb669775",
+   "bytes": 361,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m13_bad_mass.pepXML",
+   "sha256": "39bee06645364dba0817c14fe281b6ebceaa6b938bac9228e2a2eca1737c0372",
+   "bytes": 464,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m14_both_missing.pepXML",
+   "sha256": "d3811bb3d38d8ab213739ab07a41536311b6e223df82e43b1f0db69035db1e7f",
+   "bytes": 335,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m15_missing_variable.pepXML",
+   "sha256": "ddc03c2f42745c230e7927025a53216b11984df9e765343225ae269f89646b9a",
+   "bytes": 366,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m16_three_words.pepXML",
+   "sha256": "5485dc81521073ab6ce880d7ed2b039af795b9f4a1e984c888c6fc1f0a0e31f4",
+   "bytes": 471,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m17_first_match_and_window.pepXML",
+   "sha256": "3321bf3da54f2c23f4e379205f9c98510d991392db9b79fbc73234d32c2d61c4",
+   "bytes": 686,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m18_empty_peptide.pepXML",
+   "sha256": "029891d08c21138b23ee46f781782b05e8dbb86bf0284f85152992eb6dbe9734",
+   "bytes": 290,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m19_empty_peptide_fixed_nterm.pepXML",
+   "sha256": "f835c00323cf3702833174a62ae62675cfa55edb6c3cc5b3529cf90bf29d17e5",
+   "bytes": 371,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m20_permissive.pepXML",
+   "sha256": "aea5b17ab2c567059672d09e51335c08ef3fb3a9e68b99e0345fdd98fceb58d4",
+   "bytes": 413,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m21_invalid_sequence.pepXML",
+   "sha256": "8524be741b652e6a5a9a12790479c019553bc42e6e0f985e1827b565aeeec25e",
+   "bytes": 298,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m22_lowercase_variable.pepXML",
+   "sha256": "ed27397f09258fc62cd18a244ba93357ad3ce15c3d4d20ea66f11a7f1cd93ed5",
+   "bytes": 381,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m23_variable_then_fixed.pepXML",
+   "sha256": "f3fdeaa0732919f0284ddf2de4f7b699ac9dca217a2ca47709b771b350121bcc",
+   "bytes": 558,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m24_empty.pepXML",
+   "sha256": "2648269374cfecd8581c140bd2064aeb7ae217cf308245853505a5127c317115",
+   "bytes": 48,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m25_position_text.pepXML",
+   "sha256": "5538565a5d20eaa81fce781830feab8a447b548a1a416eb319bf912f82c43679",
+   "bytes": 473,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m26_var_protein_nterm.pepXML",
+   "sha256": "d7c4208371bb045e152f531a461b04210ee88b0065c64f6a96dc729522d25a32",
+   "bytes": 474,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m27_title_order.pepXML",
+   "sha256": "e9545fdfe32de3095654ba9b26ac6ede32f3f51ee2e4a4ccdb61608372dd97e4",
+   "bytes": 677,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m28_reuse_first_throws.pepXML",
+   "sha256": "130abd0992dec67e67a32556f1e24916cb450596a300a157e1826488eb669775",
+   "bytes": 361,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/inputs/m28_reuse_second.pepXML",
+   "sha256": "bd5ce2738433384a40fbccd4624c5af5d730ef78f42714d2d5c4cc329fab34e1",
+   "bytes": 469,
+   "kind": "generated oracle input (../oracle/F3a-pepxml-mascot/make_cases.py)"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "bytes": 61,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/hashes.txt",
+   "sha256": "a53829e2e5cce45760f91858ba4d24629aa99dbaf4e7e3b5f01c136291c7d2d6",
+   "bytes": 3168,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/host.txt",
+   "sha256": "f9a1ce143b3b6c7e7870b8c4f78158614c9cc5b34ef519900789d653f5b1cb65",
+   "bytes": 213,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m01_upstream.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m01_upstream.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m01_upstream.out",
+   "sha256": "47c70502849969ff5efd2340d2ac4ee0b0de6d2c734117d622926204138a168b",
+   "bytes": 853,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m02_var_nterm.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m02_var_nterm.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m02_var_nterm.out",
+   "sha256": "bba716a21e0347fd23c30a37e2b35fdc0661feb1dc6663ae14689edae7359b4f",
+   "bytes": 103,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m03_var_cterm.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m03_var_cterm.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m03_var_cterm.out",
+   "sha256": "7043a9d28ebc27e2c87a3786ccccb02a7c244b20c0d4ab42b26414e8ad49b630",
+   "bytes": 141,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m04_fixed.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m04_fixed.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m04_fixed.out",
+   "sha256": "00a8fe8f5f90814e7d67c14e41fbdaca17bcd30f3a3cd432b53b6709348cbc7b",
+   "bytes": 180,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m05_fixed_bad.err",
+   "sha256": "6fdb9c3a01b71b5dcaae5d5e9b8d4ea0b3447175935f934d1ea9c5b0b111de2a",
+   "bytes": 299,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m05_fixed_bad.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m05_fixed_bad.out",
+   "sha256": "ab21210177ec6234b33f162a553160ea40e9420315a7df6291ebac260fd58709",
+   "bytes": 84,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m06_unmatched.err",
+   "sha256": "00f26ded7c9b71693dd4235f87428fc93bda130fc2b7de23d348906228bdcaaa",
+   "bytes": 85,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m06_unmatched.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m06_unmatched.out",
+   "sha256": "2dae6a119bc97bf498fa71889d690af00d962d1cc6a45bb202b39ca521e82a88",
+   "bytes": 97,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m07_duplicates_and_orphans.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m07_duplicates_and_orphans.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m07_duplicates_and_orphans.out",
+   "sha256": "561b9bc678fadacd05079dae516b892152837fe1ffaf189b3ccc852859f42ea8",
+   "bytes": 206,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m08_position_zero.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m08_position_zero.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m08_position_zero.out",
+   "sha256": "78052ca20566e61041281cd7298015bad482de47d3dd1c635d60d5d4e53caea2",
+   "bytes": 126,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m09_position_past_end.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m09_position_past_end.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m09_position_past_end.out",
+   "sha256": "956d12c1fe8fc037449e662524deab28826417d0b46559752a8e4c962d9982c4",
+   "bytes": 121,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m10_position_negative.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m10_position_negative.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m10_position_negative.out",
+   "sha256": "f174111045fee09ac0f23cf07a4064587701b944056a49f08514fa667db93740",
+   "bytes": 130,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m11_unknown_name.err",
+   "sha256": "a7c587f4a2f7e0f007c12c5ec87871ae0a858f4e211f7b2fe7e886988ba6eefc",
+   "bytes": 210,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m11_unknown_name.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m11_unknown_name.out",
+   "sha256": "68e60b6083c2ea93f058410f291921b515de86a4678c7b1d346e4d67a0532614",
+   "bytes": 139,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m12_missing_peptide.err",
+   "sha256": "d05500323f71bee99ea113ed90deeda542ada427b3c68c2131af5e7e77820254",
+   "bytes": 302,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m12_missing_peptide.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m12_missing_peptide.out",
+   "sha256": "f21124274c2dd6d785d256bf9272dff959a87865a29139f44e84d3a70b6cce5b",
+   "bytes": 303,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m13_bad_mass.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m13_bad_mass.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m13_bad_mass.out",
+   "sha256": "979db873d970e0e60d94f8a50e4f99f466d626732d785951e6cea8de06667577",
+   "bytes": 119,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m14_both_missing.err",
+   "sha256": "49e644acbba30d5039ae3ef6014f05e2cf41881e02f96a6c438fbebf09aa8633",
+   "bytes": 296,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m14_both_missing.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m14_both_missing.out",
+   "sha256": "c36ffbc7145add3500f2c40358436d4ba285f74e471e8a0a9c247726f74a6ab2",
+   "bytes": 291,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m15_missing_variable.err",
+   "sha256": "bbadc3a453ac76d97db21b6b81f397446a960933be989214d57e0fef7a28262c",
+   "bytes": 304,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m15_missing_variable.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m15_missing_variable.out",
+   "sha256": "d3a1697fefdd6c3a531fc43a02bcc3d06155ae32a8894f602cf685fbb28d9329",
+   "bytes": 307,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m16_three_words.err",
+   "sha256": "15b20f2fa8ce62ef59ce10b8a760b585111fcc3709acd2f2f4190136f76d3292",
+   "bytes": 102,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m16_three_words.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m16_three_words.out",
+   "sha256": "e41890542d34ce7c18bbd102a725db841f96ac169d4c76f98eafbc8a06e39cec",
+   "bytes": 88,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m17_first_match_and_window.err",
+   "sha256": "27292255460efe8c384c70e242d93fe82ee8ca55d1d817301eff1d074d0a338c",
+   "bytes": 98,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m17_first_match_and_window.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m17_first_match_and_window.out",
+   "sha256": "afe94cd95dde9cedc721a07fce4453f8f9a4329f86f8afee206117dcf0038751",
+   "bytes": 110,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m18_empty_peptide.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m18_empty_peptide.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m18_empty_peptide.out",
+   "sha256": "42c4932c2efb20076a1851d98f7b426bdb422127b308deac227cc17460ca59b0",
+   "bytes": 74,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m19_empty_peptide_fixed_nterm.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m19_empty_peptide_fixed_nterm.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m19_empty_peptide_fixed_nterm.out",
+   "sha256": "497df564bacc16705e5d174ed810ea9ea8ee4900e30e643844e7974d0b83cd24",
+   "bytes": 95,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m20_permissive.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m20_permissive.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m20_permissive.out",
+   "sha256": "9c1dba9245ad091853e2e016115f62db9617e8da4f8955daf7e71c51d5625016",
+   "bytes": 139,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m21_invalid_sequence.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m21_invalid_sequence.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m21_invalid_sequence.out",
+   "sha256": "c1428a017d030798a9ce6337f5665cd9f2055e5be3b171ff70285f88c5deffca",
+   "bytes": 158,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m22_lowercase_variable.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m22_lowercase_variable.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m22_lowercase_variable.out",
+   "sha256": "f9ac9956420d9484e4f229af8e204d08e85788784d54e1cd4cfb168c00f60660",
+   "bytes": 119,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m23_variable_then_fixed.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m23_variable_then_fixed.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m23_variable_then_fixed.out",
+   "sha256": "101942cbab8e630d2fb9046aed7b34a612d6574f8f232489e764b404faedc2e3",
+   "bytes": 158,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m24_empty.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m24_empty.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m24_empty.out",
+   "sha256": "37933d15833c011505388af046ebc9335457721c4328ae5c3dd5a3777cad9b0d",
+   "bytes": 43,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m25_position_text.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m25_position_text.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m25_position_text.out",
+   "sha256": "4809cdacd68bf6262c1664c2726800f53cce1e05a595bbbb6b9dd4a1614f6375",
+   "bytes": 103,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m26_var_protein_nterm.err",
+   "sha256": "e1c55fdc85cc13ea288eea490453783d507e4bf4dd62b912117af77c85a1b652",
+   "bytes": 116,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m26_var_protein_nterm.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m26_var_protein_nterm.out",
+   "sha256": "e8ce44c65054d8db62fea401906c881e4dd2fcec9ae6dacb90734f55cf405ff6",
+   "bytes": 103,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m27_title_order.err",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "bytes": 0,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m27_title_order.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m27_title_order.out",
+   "sha256": "0285d717cd68e2fff812c0ae177c8062225421ea0a938d12570746258dbfa661",
+   "bytes": 148,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m28_fresh.err",
+   "sha256": "a82346e488f01731793fd9636daaf4d81aa80a8e74742ee51a62dbaebdc9ad67",
+   "bytes": 88,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m28_fresh.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m28_fresh.out",
+   "sha256": "129ebce771eea734d9223002abf73bef58f40a854d4c4eeb1a678adfda860eb3",
+   "bytes": 89,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m28_reuse.err",
+   "sha256": "ccb153df46f37b8eeafe1c8ff23e22263bde604d0fa2a6467cc5cf4013170a4a",
+   "bytes": 305,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m28_reuse.exit",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/pepxml_mascot/expected/m28_reuse.out",
+   "sha256": "55ccf60c6ca2613453e9a3687a2876398d2117659b2a2a4bd97638a8b18953e5",
+   "bytes": 412,
+   "kind": "executed Release libOpenMS output (../oracle/F3a-pepxml-mascot results/, driver stdout, stderr and exit code)",
+   "host": "ibminode06, Linux 6.8.0-124-generic x86_64",
+   "build": "openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release), libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, driver binary sha256 c215b3885e0fd44ec8ac8e1c1bd54609c9462bc190eaa92afc69a4089636b55c"
+  },
+  {
+   "path": "tests/data/xerces_sax_release/cpp_release_records.txt",
+   "sha256": "e05f295c7234da1232928a568e37e7f924b29b3d90e89f9bbcb9dc94e585fe12",
+   "bytes": 507278,
+   "kind": "executed Release Xerces SAX callbacks (../oracle/integ-F-xerces-sax), copied verbatim with src/format/sax_xml.rs from the wave-4 integration branch worktree-wf_ee239125-5be-32 (commit 2d6ad26), which registers it"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F3a-pepxml-mascot/run.sh",
+   "sha256": "5cfc0d453b35ef40dca972490615ef55b4ac1bf9bb313f28ba1ef63aee952508",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F3a-pepxml-mascot/node.sh",
+   "sha256": "3da8687dd366d138f8876dbc446dc47791594e9c97eac61fe3121cc57429a0a2",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F3a-pepxml-mascot/driver.cpp",
+   "sha256": "ca615d49df114759e2e0d1b7f7dbc64e47b5650fdeaf14688f887f772a5d2b90",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F3a-pepxml-mascot/make_cases.py",
+   "sha256": "dd835c00999915de3459ef3aa16283f4d58af4a9953d4bdc6d35ac98468177ef",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F3a-pepxml-mascot/results/hashes.txt",
+   "sha256": "a53829e2e5cce45760f91858ba4d24629aa99dbaf4e7e3b5f01c136291c7d2d6",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F3a-pepxml-mascot/results/host.txt",
+   "sha256": "f9a1ce143b3b6c7e7870b8c4f78158614c9cc5b34ef519900789d653f5b1cb65",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F3a-pepxml-mascot/results/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The F3a PepXMLFileMascot oracle's scripts, driver and the run's own host and hash records stay under ../oracle/F3a-pepxml-mascot/; the Release outputs it produced are the tests/data/pepxml_mascot/expected fixtures, byte-identical to its results/.",
+ "support_document": "docs/PEPXML_MASCOT_SUPPORT.md",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

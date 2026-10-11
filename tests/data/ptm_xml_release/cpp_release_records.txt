@@ -1,0 +1,19 @@
+stored:
+<PTMs>
+	<PTM>
+		<name>a<b>&"c'</name>
+		<composition>H2O</composition>
+		<possible_amino_acids>S</possible_amino_acids>
+	</PTM>
+	<PTM>
+		<name>plain</name>
+		<composition>C2H2O</composition>
+		<possible_amino_acids>K</possible_amino_acids>
+	</PTM>
+</PTMs>
+
+roundtrip load threw Parse Error
+handwritten size=1
+  name=[&B] composition=[O] aa=[S T]
+escaped size=1
+  name=['] composition=[H2O] aa=[S]

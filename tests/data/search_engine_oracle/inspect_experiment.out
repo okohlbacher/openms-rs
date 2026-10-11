@@ -1,0 +1,6 @@
+case Inspect.mzXML by_content mzXML
+type mzXML spectra 20
+case Inspect.mzData by_content mzData
+type mzData spectra 20
+case Inspect_test.fasta by_content fasta
+exception Parse Error message type is not supported for loading experiments in: <DATA>/Inspect_test.fasta

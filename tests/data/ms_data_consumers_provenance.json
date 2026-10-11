@@ -1,0 +1,221 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/NoopMSDataConsumer.h",
+      "sha256": "234624af17689be05f75ab2aff1c005da48e2c59ad1330b7a73de7ea95dfe7a9"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/NoopMSDataConsumer.cpp",
+      "sha256": "ffec50f881d0d7e398a1d650cc1c31c1203c7dba6e7ce6510104f9d8fbb3527f"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/NoopMSDataConsumer_test.cpp",
+      "sha256": "3991057ef4701849435b162bbfe4f9c478ea8c205da6c8e6764b63d4b63e4804"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h",
+      "sha256": "ad8e856a64b29dc7f8b04408554c438746ae45c64171c7efdd367fdadc20cd2a"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataStoringConsumer.cpp",
+      "sha256": "2ab490de2c63273f78b4f83fa20a0661be56c0081d832272ba80cfb10ad73c1d"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSDataStoringConsumer_test.cpp",
+      "sha256": "b6a2067193cb0c12ea499b275689e01d635705cfb6b52c795c85295a4f426156"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h",
+      "sha256": "06ca9490ec8fe691e89435f0e1408dca9743790831256b2d7b5aa22ae33b2629"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataChainingConsumer.cpp",
+      "sha256": "42eafacce2d87a7f698e63d9c679098bfc79bea6ca1593404a26bcd78a74eef9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSDataChainingConsumer_test.cpp",
+      "sha256": "5511f6e40dec4322b4d971e933f6c2a5fcbd5249fcfeed8bc813d96c6045c512"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h",
+      "sha256": "edeca114b4ecfbc861a759822fb1b0cc61149ed48c240e19d524077b9e4e5991"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataTransformingConsumer.cpp",
+      "sha256": "bed3d5b6ae4510c3746af5c1427bb8356bbba4bddfb67ecb7565680c48e1b481"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSDataTransformingConsumer_test.cpp",
+      "sha256": "405886968432cf59a691633532a980a408af02e2e82abd0fa939f1b89c8db0b1"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataAggregatingConsumer.h",
+      "sha256": "1cbb7160624383aac786ec31606808cb7df7a22d75306ee44ff6f7c5d6b2e82e"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataAggregatingConsumer.cpp",
+      "sha256": "cc9fa56a064f22fc78539667546aa39190a8043276a411ed492898369ba8d5f6"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSDataAggregatingConsumer_test.cpp",
+      "sha256": "0bed65b1a65ae7c16ed8f4a04f8cb5dcc9159ece8d02b39317225926b7f74d68"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataSqlConsumer.h",
+      "sha256": "e43bf7460af223a83b3d186d3997bf8ebe968506d3f4b684914cb7011be20513"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataSqlConsumer.cpp",
+      "sha256": "8c06d139c17b2c6b5e39ccc217837ef0f19a856137a6193539b74f3e3eb3cf3d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/IndexedMzMLFileLoader.h",
+      "sha256": "4442f4d76e212447d4a02f14e870786cc27d307f6dae197a31b2a02e2a649061"
+    },
+    {
+      "path": "src/openms/source/FORMAT/IndexedMzMLFileLoader.cpp",
+      "sha256": "f4b394e9ed0a8c3f9b823e048766b7113ec910dda7477c5d938025c4d48f98f8"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/IndexedMzMLFileLoader_test.cpp",
+      "sha256": "c0729dad0098b5ba5b33a12145679b29f61f1ccfa384b88658189b262eefa7fe"
+    },
+    {
+      "path": "src/openms/include/OpenMS/INTERFACES/IMSDataConsumer.h",
+      "sha256": "513bd99bffa60b542ab3ae892eafead238c4714c1ca748f08bcaa7569b54ea9a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h",
+      "sha256": "fdebd319ab6d5de1c2bd1ef7893e0281ddb36227abe093f388c98aeb75bbad39"
+    },
+    {
+      "path": "src/openms/source/FORMAT/DATAACCESS/MSDataCachedConsumer.cpp",
+      "sha256": "3957c06ac446865484a7977d2ff87971da379942f05a7f8fbcd1b0f1bea2e9f6"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MSDataCachedConsumer_test.cpp",
+      "sha256": "169fb1ab42be1a18e323c8a61970ab916898acef6ac999784c4af84a6a4b3eae"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/mzml_validator/MzMLFile_1.mzML",
+      "sha256": "076fd42e8b2281b526868c874e4e267e18c0ed67543b03d2a718d86116390bc2"
+    },
+    {
+      "path": "tests/data/indexed_mzml/IndexedmzMLFile_1.mzML",
+      "sha256": "0b5506dacd470abe850de55f21fdd40c7684592405ffdf65eca4cdfe54a0d9fc"
+    },
+    {
+      "path": "tests/data/mzml_sqlite_handler/MzMLSqliteHandler_1.mzML",
+      "sha256": "c57ce081bc065a5e00193ee939ee1336f2b7dc5a2a1cbf29dee840432a4dc4a7"
+    },
+    {
+      "path": "tests/data/f4_progress/MzMLFile_1.cached",
+      "sha256": "c1b794e55efdfa16ea7b03267aa853a886fea73918dc9b18534661a0d026a003"
+    },
+    {
+      "path": "tests/data/f4_progress/empty.cached",
+      "sha256": "c4a0040963db01ee1ac3783b88c772d63a7383b43617f15ecb9d761f0123452c"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/cpp_release_records.tsv",
+      "sha256": "0ad8a2cd28bcbd146bdcbdf5498c205bc959e84dfdce6d5fb823dcbf7ec64403"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/all_clear.cached",
+      "sha256": "c1b794e55efdfa16ea7b03267aa853a886fea73918dc9b18534661a0d026a003"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/spectra_keep.cached",
+      "sha256": "0046436751ce5a4035876fc94b1490492f785cdf68788f7561a3ae8875fb3463"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/empty.cached",
+      "sha256": "c4a0040963db01ee1ac3783b88c772d63a7383b43617f15ecb9d761f0123452c"
+    },
+    {
+      "path": "tests/data/ms_data_cached_consumer/order.cached",
+      "sha256": "b372fdd63b75975755ecef46218412bc59b6840433a524d4789dff4873fda46b"
+    }
+  ],
+  "native_implementation": [
+    "src/format/noop_ms_data_consumer.rs",
+    "src/format/ms_data_storing_consumer.rs",
+    "src/format/ms_data_chaining_consumer.rs",
+    "src/format/ms_data_transforming_consumer.rs",
+    "src/format/ms_data_aggregating_consumer.rs",
+    "src/format/ms_data_sql_consumer.rs",
+    "src/format/indexed_mzml_file_loader.rs",
+    "src/format/ms_data_writing_consumer.rs (set_peak_file_options, for IndexedMzMLFileLoader::store_on_disc)",
+    "src/format/ms_data_cached_consumer.rs"
+  ],
+  "native_tests": [
+    "tests/ms_data_consumers.rs",
+    "tests/ms_data_sql_consumer.rs",
+    "tests/indexed_mzml_file_loader.rs",
+    "tests/ms_data_cached_consumer.rs"
+  ],
+  "support": [
+    "docs/MS_DATA_CONSUMERS_SUPPORT.md",
+    "docs/INDEXED_MZML_FILE_LOADER_SUPPORT.md"
+  ],
+  "evidence_tier": {
+    "class_test_sections": 3,
+    "native_tests": 4
+  },
+  "evidence": [
+    "Every START_SECTION of NoopMSDataConsumer_test.cpp, MSDataStoringConsumer_test.cpp, MSDataTransformingConsumer_test.cpp, MSDataChainingConsumer_test.cpp, MSDataAggregatingConsumer_test.cpp and IndexedMzMLFileLoader_test.cpp is transcribed with its line numbers (source review, tier 3). No C++ was executed.",
+    "MSDataSqlConsumer has no upstream class test; tests/ms_data_sql_consumer.rs derives every expectation from MSDataSqlConsumer.cpp, the central one being that streamed records read back identically to MzMLSqliteHandler::write_experiment of the same experiment (tier 4).",
+    "IndexedMzMLFileLoader_test.cpp's VALIDATE_TMP_FILES step runs under the mzml-schema feature (libxml2 XSD validation of both written files).",
+    "MSDataCachedConsumer (ported at wave-4 integration, INTEG-F, once lane F4's CachedMzMLHandler and lane F7a's consumers met): every START_SECTION of MSDataCachedConsumer_test.cpp is transcribed in tests/ms_data_cached_consumer.rs (tier 3). release_build_bytes streams MzMLFile_1.mzML through the consumer and requires the bytes of tests/data/f4_progress/MzMLFile_1.cached and empty.cached, which CachedMzMLHandler::writeMemdump wrote on the Linux x86_64 Release build (../oracle/F4-progress, ibminode06, openms4-release-bc9cc12-c19e494-174b576, two runs with the same sha256; see tests/data/f4_progress_provenance.json): writeMemdump (CachedMzMLHandler.cpp:33-58) and the consumer's constructor, consumeSpectrum, consumeChromatogram and destructor (MSDataCachedConsumer.cpp:18-75) write the same identifier, records and counts (tier 1 bytes, tier 4 equivalence).",
+    "MSDataCachedConsumer, tier 1 (wave-4 integration): ../oracle/integ-F-cachedconsumer links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06 and runs the Release build's own MSDataCachedConsumer twice (identical files and records) over MzMLFile_1.mzML: every record with clearData, spectra 0 and 1 without it, nothing, and a spectrum after a chromatogram. tests/ms_data_cached_consumer.rs (release_consumer_*) requires the same four files byte for byte (tests/data/ms_data_cached_consumer/, verbatim), the same cleared or unchanged records, and the source's IllegalArgument message. The consumer's all-records file equals the writeMemdump output of ../oracle/F4-progress byte for byte."
+  ],
+  "gaps": [
+    "MSDataAggregatingConsumer merges with a caller-supplied function: the source's SpectrumAddition::addUpSpectra(s_list, -1, true) (ANALYSIS/OPENSWATH/SpectrumAddition.h) is unported, and format may not depend on analysis. Its class test's 17/120/230 run with a merge double that adds intensities on the shared m/z grid.",
+    "No tier 1 differential: no C++ oracle was run for these consumers.",
+    "This manifest is not listed in SOURCE_PROVENANCE.json; registering it is the integrator's step."
+  ],
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/integ-F-cachedconsumer/driver.cpp",
+      "sha256": "09a1b9b41d907308b3f0acca99f24b016469568ca257d4e8bfa62a9daf4fd3ec",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/remote_run.sh",
+      "sha256": "03fd926ec50c5933d1512610ad14ff5d683c9a0cc46a120e5fe60cc52530ce21",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/run.sh",
+      "sha256": "a697d1d8ad0247fe7c166b190c4d2ad9a761ea239db1412f9e96a6909281878e",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/results/hashes.txt",
+      "sha256": "c929e374213332e543fb90bdd5f2aa0c72ea674cbb62d28b085280238914c1e8",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/results/records.tsv",
+      "sha256": "0ad8a2cd28bcbd146bdcbdf5498c205bc959e84dfdce6d5fb823dcbf7ec64403",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    },
+    {
+      "path": "../oracle/integ-F-cachedconsumer/results/host.txt",
+      "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+      "location": "outside this repository",
+      "origin_key": "evidence"
+    }
+  ],
+  "external_reference_note": "The integ-F-cachedconsumer oracle driver is C++ and stays outside the repository; the files and records it wrote were copied verbatim into tests/data/ms_data_cached_consumer/ (hashes under reused_fixtures), and its results/hashes.txt hashes the driver, the input, the built binary, libOpenMS.so and every file it wrote."
+}

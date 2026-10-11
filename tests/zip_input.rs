@@ -111,7 +111,7 @@ fn zip_refusals_carry_the_source_messages() {
         .to_string();
     assert!(
         two.contains(
-            "ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML"
+            "ZIP archive contains 2 file entries; expected exactly 1: a.featureXML b.featureXML in: "
         ),
         "{two}"
     );
@@ -122,16 +122,18 @@ fn zip_refusals_carry_the_source_messages() {
             "{error}"
         );
     }
-    // LZMA: the reference build's libzip has no decoder either.
+    // LZMA: the reference build's libzip has no decoder either, and the
+    // oracle's class is FileNotReadable (`ZipIfstream.cpp:94`).
     assert!(matches!(
         featurexml::load(fixture("featurexml_lzma.zip")),
-        Err(openms::Error::Unsupported(_))
+        Err(openms::Error::Io(error)) if error.kind() == std::io::ErrorKind::InvalidData
     ));
-    // A wrong CRC-32 is found at the end of the entry, as libzip finds it.
+    // A wrong CRC-32 is found at the end of the entry, as libzip finds it:
+    // `Parse Error:zip_fread returned error in: error reading from zip entry`.
     let crc = featurexml::load(fixture("featurexml_bad_crc.zip"))
         .unwrap_err()
         .to_string();
-    assert!(crc.contains("CRC-32"), "{crc}");
+    assert!(crc.contains("error reading from zip entry"), "{crc}");
 }
 
 /// A loaded map with every identification-run identifier replaced by the

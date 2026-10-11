@@ -57,6 +57,7 @@ fn complete_registry_metadata_and_source_synonyms() {
     // oracle ../oracle/B8b-dbs (tests/protease_db.rs) resolves "trypsin" to
     // Trypsin. Only the ASCII lower-cased spelling is added.
     assert!(db.has_enzyme("trypsin"));
+    assert_eq!(db.get_enzyme("trypsin").unwrap().name(), "Trypsin");
     assert!(!db.has_enzyme("TRYPSIN"));
     let trypsin = db.get_enzyme("Trypsin").unwrap();
     assert_eq!(trypsin.regex(), "(?<=[KRX])(?!P)");

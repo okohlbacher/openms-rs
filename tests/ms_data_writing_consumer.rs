@@ -20,12 +20,14 @@ use openms::format::ms_data_writing_consumer::{
     PlainMSDataWritingConsumer, PlainProcessor, ReferencePolicy, WritingLimits,
 };
 use openms::format::mzml::{self, WriteOptions};
+use openms::format::peak_options::{NumpressCompression, NumpressConfig, PeakFileOptions};
 use openms::interfaces::MSDataConsumer;
 use openms::kernel::{
     ChromatogramPeak, DataArray, MSChromatogram, MSExperiment, MSSpectrum, Peak1D,
 };
 use openms::metadata::{
-    DataProcessing, ExperimentalSettings, ProcessingAction, Software, SourceFile,
+    Acquisition, DataProcessing, ExperimentalSettings, MetaValue, ProcessingAction, Software,
+    SourceFile,
 };
 use openms::system::file::TempDir;
 use std::sync::Arc;
@@ -1243,4 +1245,351 @@ fn the_noop_consumer_accepts_everything_and_touches_no_file() {
         std::ops::ControlFlow::Continue(())
     );
     assert_eq!(consumer.spectra_written(), 2);
+}
+
+/// Streams `experiment` through a consumer carrying `options`.
+/// A labelled edit of the default writer options.
+type OptionVariant = (&'static str, fn(&mut PeakFileOptions));
+
+fn streamed_with(experiment: &MSExperiment, options: &PeakFileOptions) -> Vec<u8> {
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new())
+        .with_peak_file_options(options.clone())
+        .unwrap();
+    consumer
+        .set_expected_size(experiment.spectra.len(), experiment.chromatograms.len())
+        .unwrap();
+    consumer
+        .set_experimental_settings(&experiment.settings)
+        .unwrap();
+    for s in &experiment.spectra {
+        consumer.consume_spectrum(&mut s.clone()).unwrap();
+    }
+    for c in &experiment.chromatograms {
+        consumer.consume_chromatogram(&mut c.clone()).unwrap();
+    }
+    consumer.finish().unwrap()
+}
+
+#[test]
+fn peak_file_options_encode_every_record_as_the_whole_document_writer_does() {
+    // The source consumer is an `MzMLHandler`: `setOptions` reaches the same
+    // `options_` its `writeSpectrum_`/`writeChromatogram_` read, and
+    // `write_index` decides the `indexedmzML` wrapper in `writeHeader_`
+    // (MzMLHandler.cpp:4848) and the index in `writeFooter_`
+    // (MzMLHandlerHelper.cpp:89). Streamed and whole-document output of the
+    // same records under the same options must be the same bytes.
+    let experiment = MSExperiment {
+        spectra: vec![
+            spectrum("scan=1", 1.0, 100.0),
+            spectrum("scan=2", 2.0, 200.0),
+        ],
+        chromatograms: vec![chromatogram("TIC", 1.0)],
+        ..MSExperiment::default()
+    };
+    let slof = NumpressConfig {
+        compression: NumpressCompression::Slof,
+        ..NumpressConfig::default()
+    };
+    let linear = NumpressConfig {
+        compression: NumpressCompression::Linear,
+        ..NumpressConfig::default()
+    };
+    let variants: [OptionVariant; 6] = [
+        ("defaults", |_| {}),
+        ("plain", |o| o.write_index = false),
+        ("zlib", |o| o.zlib_compression = true),
+        ("precision", |o| {
+            o.mz_32_bit = true;
+            o.intensity_32_bit = false;
+        }),
+        ("plain with TPP", |o| {
+            o.write_index = false;
+            o.force_tpp_compatibility = true;
+        }),
+        ("Numpress", |_| {}),
+    ];
+    for (label, change) in variants {
+        let mut options = PeakFileOptions::default();
+        change(&mut options);
+        if label == "Numpress" {
+            let _ = options.set_numpress_configuration_mass_time(linear);
+            options.set_numpress_configuration_intensity(slof);
+        }
+        let mut whole = Vec::new();
+        mzml::write_with_peak_options(&mut whole, &experiment, &options).unwrap();
+        let streamed = streamed_with(&experiment, &options);
+        assert_eq!(
+            String::from_utf8(streamed).unwrap(),
+            String::from_utf8(whole).unwrap(),
+            "{label}"
+        );
+    }
+}
+
+#[test]
+fn peak_file_options_are_fixed_once_the_header_is_written() {
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    assert!(consumer.peak_file_options().is_none());
+    let mut options = PeakFileOptions::default();
+    options.zlib_compression = true;
+    consumer.set_peak_file_options(options.clone()).unwrap();
+    assert_eq!(consumer.peak_file_options(), Some(&options));
+    assert!(consumer.write_options().zlib_compression);
+    consumer.set_expected_size(1, 0).unwrap();
+    consumer
+        .consume_spectrum(&mut spectrum("scan=1", 1.0, 100.0))
+        .unwrap();
+    let error = consumer
+        .set_peak_file_options(PeakFileOptions::default())
+        .unwrap_err();
+    assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
+    assert_eq!(consumer.peak_file_options(), Some(&options));
+    // The document stays the indexed, zlib-compressed one it started as.
+    let text = written(consumer);
+    assert!(text.contains("<indexListOffset>"));
+    assert!(text.contains("MS:1000574"));
+}
+
+// ---------------------------------------------------------------------------
+// protected Internal::MzMLValidator* validator_
+// The validator's one effect is inside MzMLHandler::writeUserParam_: a
+// metadata key naming a PSI-MS term is written as a cvParam when validateCV_
+// finds the term allowed at the element's mapping path (MzMLHandler.cpp:3637,
+// :3669). This consumer renders each record through the whole-document
+// writer, so it inherits that writer's rule: a record-level key is promoted
+// only where the reader routes the cvParam back to the same key on the same
+// owner (`metadata` in src/format/mzml_header/xml.rs). Tier 4: the invariant
+// is the round trip, plus the reader's own route for a scan cvParam (the
+// source's, MzMLHandler.cpp:2271-2277) for why a scan-level key is not
+// promoted.
+// ---------------------------------------------------------------------------
+#[test]
+fn record_metadata_is_promoted_only_where_the_reader_routes_it_back() {
+    let mut record = spectrum("scan=1", 1.0, 100.0);
+    // Written as `no combination` when empty (MzMLHandler.cpp:5380-5388), so
+    // set it for the record to compare equal after the round trip.
+    record.acquisition_info.method_of_combination = "no combination".into();
+    record.metadata.insert(
+        "total ion current".into(),
+        MetaValue::try_from(30.0).unwrap(),
+    );
+    let mut scan = Acquisition::default();
+    scan.metadata
+        .insert("dwell time".into(), MetaValue::try_from(2.5).unwrap());
+    record.acquisition_info.acquisitions.push(scan);
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    consumer.set_expected_size(1, 0).unwrap();
+    consumer.consume_spectrum(&mut record.clone()).unwrap();
+    let text = written(consumer);
+
+    // The spectrum-level key is a source read route (MS:1000285 under
+    // <spectrum>), so it is written as the cvParam the source writes.
+    assert!(
+        text.contains("accession=\"MS:1000285\" name=\"total ion current\""),
+        "{text}"
+    );
+    assert!(
+        !text.contains("userParam name=\"total ion current\""),
+        "{text}"
+    );
+    // The scan-level key stays a userParam.
+    let user = "<userParam name=\"dwell time\" type=\"xsd:double\" value=\"2.5\"/>";
+    assert!(text.contains(user), "{text}");
+
+    // Both keys come back on the owner they were written from.
+    let loaded = mzml::read(text.as_bytes()).unwrap();
+    assert_eq!(loaded.spectra[0].metadata, record.metadata);
+    assert_eq!(loaded.spectra[0].acquisition_info, record.acquisition_info);
+
+    // What promoting it would have produced: the same value as a cvParam under
+    // <scan> is read into the SPECTRUM's metadata, as the source reader routes
+    // it, so the value would change owner on the next read.
+    let promoted = text.replace(
+        user,
+        "<cvParam cvRef=\"MS\" accession=\"MS:1000502\" name=\"dwell time\" value=\"2.5\"/>",
+    );
+    let moved = mzml::read(promoted.as_bytes()).unwrap();
+    assert_eq!(
+        moved.spectra[0].metadata["dwell time"].as_f64().unwrap(),
+        2.5
+    );
+    // The scan is left with nothing of its own, so no acquisition is kept.
+    assert!(
+        moved.spectra[0]
+            .acquisition_info
+            .acquisitions
+            .iter()
+            .all(|scan| !scan.metadata.contains_key("dwell time")),
+        "{:?}",
+        moved.spectra[0].acquisition_info
+    );
+
+    // And the stream is still the whole-document writer's output.
+    let mut experiment = MSExperiment::new();
+    experiment.spectra.push(record);
+    let mut whole = Vec::new();
+    mzml::write(&mut whole, &experiment).unwrap();
+    assert_eq!(text, String::from_utf8(whole).unwrap());
+}
+
+// ---------------------------------------------------------------------------
+// validator_, tier 1: the Release build's own streaming consumer. The fixture
+// carries a PSI-MS-named metadata key on every record owner the writer reaches
+// (spectrum, scanList, scan, precursor activation, chromatogram), and the
+// expected outputs are FileConverter -process_lowmemory (MzMLFile::transform
+// into a PlainMSDataWritingConsumer, FileConverter.cpp:633-657 at topp
+// 174b576) and plain FileConverter (MzMLFile::store) of it, run twice on the
+// Linux x86_64 Release install on ibminode06 (../oracle/F7a-record-cv).
+// ---------------------------------------------------------------------------
+const RECORD_CV_INPUT: &str = include_str!("data/mzml_record_cv/record_cv.mzML");
+const RECORD_CV_LOWMEM: &str = include_str!("data/mzml_record_cv/FileConverter_lowmemory_out.mzML");
+const RECORD_CV_STORE: &str = include_str!("data/mzml_record_cv/FileConverter_out.mzML");
+/// The fixture's metadata keys; every other param is structural.
+const RECORD_CV_KEYS: [&str; 12] = [
+    "total ion current",
+    "lowest observed m/z",
+    "filter string",
+    "fixture note",
+    "sum of spectra",
+    "dwell time",
+    "fixture scan note",
+    "collision energy",
+    "percent collision energy",
+    "fixture activation note",
+    "chromatogram title",
+    "fixture chromatogram note",
+];
+/// Promotions the source makes and its own reader does not reverse: `sum of
+/// spectra` under <scanList> is read as the method of combination, its value
+/// dropped (MzMLHandler.cpp:2259-2264), `dwell time` under <scan> is read into
+/// the spectrum's metadata (:2274-2277),
+/// and `chromatogram title` becomes the chromatogram's name (:3403-3406). The
+/// port keeps each as a userParam on the owner it came from.
+const NOT_REVERSED: [&str; 3] = ["sum of spectra", "dwell time", "chromatogram title"];
+
+/// (element path, param element, name) of every fixture key, in document
+/// order. Tags are tokenised, not lines: the two writers break lines
+/// differently (`</activation></precursor>` is one line here).
+fn record_params(text: &str) -> Vec<(String, String, String)> {
+    let mut stack: Vec<&str> = Vec::new();
+    let mut params = Vec::new();
+    let mut rest = text;
+    while let Some(open) = rest.find('<') {
+        let Some(close) = rest[open..].find('>') else {
+            break;
+        };
+        let token = &rest[open + 1..open + close];
+        rest = &rest[open + close + 1..];
+        if let Some(name) = token.strip_prefix('/') {
+            while let Some(top) = stack.pop() {
+                if top == name.trim() {
+                    break;
+                }
+            }
+            continue;
+        }
+        if token.starts_with('?') || token.starts_with('!') {
+            continue;
+        }
+        let tag = token
+            .split(|c: char| c.is_whitespace() || c == '/')
+            .next()
+            .unwrap_or_default();
+        if tag == "cvParam" || tag == "userParam" {
+            let name = token
+                .split(" name=\"")
+                .nth(1)
+                .and_then(|tail| tail.split('"').next())
+                .unwrap_or_default();
+            if RECORD_CV_KEYS.contains(&name) {
+                params.push((stack.join("/"), tag.to_owned(), name.to_owned()));
+            }
+        } else if !token.ends_with('/') {
+            stack.push(tag);
+        }
+    }
+    params
+}
+
+/// What the port writes: the source's params with the non-reversed promotions
+/// kept as userParams, compared as sets (a userParam follows every cvParam).
+fn expected_from_source(source: &str) -> Vec<(String, String, String)> {
+    let mut expected: Vec<_> = record_params(source)
+        .into_iter()
+        .map(|(owner, tag, name)| {
+            if NOT_REVERSED.contains(&name.as_str()) {
+                assert_eq!(tag, "cvParam", "the source promotes {name}");
+                (owner, "userParam".to_owned(), name)
+            } else {
+                (owner, tag, name)
+            }
+        })
+        .collect();
+    expected.sort();
+    expected
+}
+
+fn param_line<'a>(text: &'a str, name: &str) -> &'a str {
+    let needle = format!(" name=\"{name}\"");
+    let mut lines = text.lines().filter(|l| l.contains(&needle));
+    let line = lines.next().unwrap_or_else(|| panic!("no {name} param"));
+    assert!(lines.next().is_none(), "{name} written twice");
+    line.trim()
+}
+
+#[test]
+fn record_level_cv_promotion_matches_the_release_streaming_writer() {
+    let experiment = mzml::read(RECORD_CV_INPUT.as_bytes()).unwrap();
+    // The fixture really exercises every owner: 12 keys, all read back.
+    let source = record_params(RECORD_CV_LOWMEM);
+    assert_eq!(source.len(), RECORD_CV_KEYS.len(), "{source:?}");
+
+    let mut consumer = PlainMSDataWritingConsumer::plain(Vec::new());
+    consumer
+        .set_expected_size(experiment.spectra.len(), experiment.chromatograms.len())
+        .unwrap();
+    for spectrum in &experiment.spectra {
+        consumer.consume_spectrum(&mut spectrum.clone()).unwrap();
+    }
+    for chromatogram in &experiment.chromatograms {
+        consumer
+            .consume_chromatogram(&mut chromatogram.clone())
+            .unwrap();
+    }
+    let streamed = written(consumer);
+
+    let mut port = record_params(&streamed);
+    port.sort();
+    assert_eq!(port, expected_from_source(RECORD_CV_LOWMEM), "{streamed}");
+
+    // The one activation key whose name is not its term's: the source finds no
+    // term for "percent collision energy" and writes the same userParam line.
+    assert_eq!(
+        param_line(&streamed, "percent collision energy"),
+        param_line(RECORD_CV_LOWMEM, "percent collision energy")
+    );
+    assert_eq!(
+        param_line(RECORD_CV_LOWMEM, "percent collision energy"),
+        "<userParam name=\"percent collision energy\" type=\"xsd:double\" value=\"35.0\"/>"
+    );
+
+    // The whole-document writer, which the consumer drives per record, agrees
+    // with MzMLFile::store in the same way.
+    let mut whole = Vec::new();
+    mzml::write(&mut whole, &experiment).unwrap();
+    let whole = String::from_utf8(whole).unwrap();
+    let mut port = record_params(&whole);
+    port.sort();
+    assert_eq!(port, expected_from_source(RECORD_CV_STORE), "{whole}");
+    // Both source runs promote identically, streamed or stored.
+    assert_eq!(
+        record_params(RECORD_CV_LOWMEM),
+        record_params(RECORD_CV_STORE)
+    );
+
+    // Everything the port wrote comes back on the owner it was read from.
+    let reloaded = mzml::read(streamed.as_bytes()).unwrap();
+    assert_eq!(reloaded.spectra, experiment.spectra);
+    assert_eq!(reloaded.chromatograms, experiment.chromatograms);
 }

@@ -2,218 +2,118 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // $Maintainer: OpenMS Rust contributors $
 
-//! Unimod XML modification files: `FORMAT/UnimodXMLFile.h`, its handler
-//! `FORMAT/HANDLERS/UnimodXMLHandler.h`, and `CHEMISTRY/UnimodXMLDataProvider.h`.
+//! Unimod XML: the modification database of unimod.org, read at run time.
 //!
-//! The source reads `unimod.xml` (and OpenMS's `custom_mods.xml`, which uses the
-//! same schema) into one `ResidueModification` per allowed site of every
-//! `<umod:mod>`. [`UnimodXmlFile::load`](crate::format::unimod_xml::UnimodXmlFile::load) returns those records as
-//! [`ModificationRecord`](crate::chemistry::ModificationRecord)s with an empty full identifier, as the source's
-//! `UnimodXMLFile::load` leaves it unset; [`UnimodXmlDataProvider`](crate::format::unimod_xml::UnimodXmlDataProvider) derives the
-//! full identifier and freezes them into [`ResidueModification`](crate::chemistry::ResidueModification)s, as the
-//! source provider's `setFullId()` does. A caller-owned
-//! [`crate::chemistry::ModificationsDB`] takes them through
-//! `ModificationsDB::extend_records`; the global registry is the compiled table
-//! generated from the same files by `tools/generate_modifications.py`.
+//! Ports `FORMAT/UnimodXMLFile.h`, its handler `FORMAT/HANDLERS/UnimodXMLHandler.h`
+//! and `CHEMISTRY/UnimodXMLDataProvider.h`, the provider that wraps the file
+//! for a modification registry.
 //!
-//! # API mapping
+//! The default build does not need this: `ModificationsDB::global()` is built
+//! from a table `tools/generate_modifications.py` flattens from the pinned
+//! `resources/modifications/unimod.xml` offline. This reader produces the same
+//! records from any Unimod-style file at run time, so a caller can load a newer
+//! `unimod.xml`, the OpenMS `custom_mods.xml`, or its own file, and build a
+//! registry with [`ModificationsDB::from_records`].
 //!
-//! | Source (core `bc9cc12`) | Rust |
-//! |---|---|
-//! | `UnimodXMLFile()`, `~UnimodXMLFile()` | [`UnimodXmlFile`](crate::format::unimod_xml::UnimodXmlFile) (a unit struct) |
-//! | `UnimodXMLFile::load(filename, std::vector<ResidueModification*>&)` | [`UnimodXmlFile::load`](crate::format::unimod_xml::UnimodXmlFile::load) (path), [`UnimodXmlFile::load_from_reader`](crate::format::unimod_xml::UnimodXmlFile::load_from_reader) |
-//! | `Internal::UnimodXMLHandler` (`onStartElement`, `onEndElement`, `onCharacters`) | the private event handler of this module |
-//! | `UnimodXMLDataProvider(const std::string& filename)` | [`UnimodXmlDataProvider::new`](crate::format::unimod_xml::UnimodXmlDataProvider::new) |
-//! | `UnimodXMLDataProvider::loadModifications()` | [`UnimodXmlDataProvider::load_modifications`](crate::format::unimod_xml::UnimodXmlDataProvider::load_modifications) |
+//! One `<umod:mod>` becomes one [`ResidueModification`] per
+//! `<umod:specificity>`, in document order. See
+//! `docs/UNIMOD_XML_SUPPORT.md` for the member mapping and evidence.
 //!
-//! # Preserved source conventions
-//!
-//! - Tags are matched by their qualified name, `umod:X` or unprefixed `X`, as
-//!   the handler compares them; other prefixes are ignored.
-//! - One record per `<umod:specificity>`: the site's first character as the
-//!   origin, `X` for a multi-character site (`N-term`, `C-term`), the position
-//!   mapped to the term specificity, an unknown position warned about and read
-//!   as `Anywhere`.
-//! - The delta's `mono_mass` and `avge_mass` are the difference masses; its
-//!   `<umod:element>` children, `number` atoms of `symbol` (digits in the symbol
-//!   are the isotope, `13C` is `(13)C`), sum to the difference formula.
-//!   Elements anywhere else (`<umod:Ignore>`, `<umod:aa>`, `<umod:brick>`) are
-//!   skipped.
-//! - A `<umod:NeutralLoss>` with elements becomes a neutral loss of its
-//!   specificity, with its `mono_mass` and `avge_mass`; one without elements
-//!   (the `0` loss) is dropped.
-//! - Every record of a `<umod:mod>` carries the `classification` of that mod's
-//!   **last** specificity: the handler sets it on the shared modification at
-//!   each specificity (its own `TODO` says so), and the copies are made at the
-//!   end. The compiled table keeps each specificity's own classification.
-//! - The absolute masses stay zero and the provenance is `Cv`.
-//!
-//! # Native differences
-//!
-//! - `hidden` is read from each specificity (absent is `false`); the source's
-//!   `ResidueModification` has no such field. The compiled table reads it too.
-//! - `File::find` resolution of a bare file name against the OpenMS data path
-//!   is not done: the path is opened as given.
-//! - Input is limited to [`MAX_UNIMOD_XML_BYTES`](crate::format::unimod_xml::MAX_UNIMOD_XML_BYTES) and
-//!   [`MAX_UNIMOD_RECORDS`](crate::format::unimod_xml::MAX_UNIMOD_RECORDS) records, checked before the records are built.
-//! - A missing required attribute, an unparsable number or formula, or a
-//!   malformed document is an error; the source reports a parse error too.
-//!
-//! See `docs/UNIMOD_XML_SUPPORT.md`.
+//! [`ModificationsDB::from_records`]: crate::chemistry::ModificationsDB::from_records
+//! [`ResidueModification`]: crate::chemistry::ResidueModification
 
+use super::sax_xml::{SaxAttributes, SaxEvent, SaxLimits, parse};
 use crate::chemistry::{
     EmpiricalFormula, ModificationProvenance, ModificationRecord, NeutralLoss, ResidueModification,
     TermSpecificity,
 };
 use crate::{Error, Result};
-use quick_xml::Reader;
-use quick_xml::events::{BytesStart, Event};
-use std::fs::File;
-use std::io::{BufRead, BufReader, Read};
+use std::io::BufRead;
 use std::path::{Path, PathBuf};
 
-/// Largest Unimod XML document read, in bytes (the pinned `unimod.xml` is
-/// about 2.5 MB).
-pub const MAX_UNIMOD_XML_BYTES: usize = 64 * 1024 * 1024;
-
-/// Largest number of site records one document may produce (the pinned
-/// `unimod.xml` gives about 3,000).
-pub const MAX_UNIMOD_RECORDS: usize = 1_000_000;
-
-/// The records and warnings of one Unimod XML document.
-#[derive(Clone, Debug, Default)]
-pub struct UnimodXmlLoad {
-    /// One record per site, in document order, with an empty `full_id`.
-    pub records: Vec<ModificationRecord>,
-    /// The handler's warnings, such as an unknown specificity position.
-    pub warnings: Vec<String>,
+/// Resource bounds for reading one Unimod XML document. Exceeding any of them
+/// is [`Error::InvalidValue`] and yields no result.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ReadLimits {
+    /// Decompressed input bytes. The pinned `unimod.xml` is 2.4 MB.
+    pub max_input_bytes: u64,
+    /// Open elements at any one time.
+    pub max_depth: usize,
+    /// Parser events in the document.
+    pub max_events: u64,
+    /// Modification records in the result (one per specificity).
+    pub max_records: usize,
+    /// Specificities of one `<umod:mod>`.
+    pub max_specificities: usize,
+    /// Neutral losses of one specificity.
+    pub max_neutral_losses: usize,
 }
 
-/// Reader for Unimod XML files: source `UnimodXMLFile`.
-#[derive(Clone, Copy, Debug, Default)]
-pub struct UnimodXmlFile;
-
-impl UnimodXmlFile {
-    /// Reads the file at `path`: source `UnimodXMLFile::load(filename, mods)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::Io`] when the file cannot be read (the source's
-    /// `FileNotFound`), and the errors of [`Self::load_from_reader`].
-    pub fn load(&self, path: impl AsRef<Path>) -> Result<UnimodXmlLoad> {
-        let file = File::open(path.as_ref())?;
-        self.load_from_reader(BufReader::new(file))
-    }
-
-    /// Reads a Unimod XML document from `input`.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`Error::Parse`] for malformed XML, a missing required attribute
-    /// (`title`, `record_id`, `site`, `position`, the delta and neutral-loss
-    /// masses, an element's `symbol`), an unparsable number or element, or a
-    /// record id outside `u32`, and [`Error::InvalidValue`] when the document
-    /// exceeds [`MAX_UNIMOD_XML_BYTES`] or [`MAX_UNIMOD_RECORDS`].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use openms::format::unimod_xml::UnimodXmlFile;
-    ///
-    /// let xml = r#"<umod:unimod xmlns:umod="http://www.unimod.org/xmlns/schema/unimod_2">
-    ///   <umod:modifications>
-    ///     <umod:mod title="Oxidation" full_name="Oxidation or Hydroxylation" record_id="35">
-    ///       <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational"/>
-    ///       <umod:delta mono_mass="15.994915" avge_mass="15.9994" composition="O">
-    ///         <umod:element symbol="O" number="1"/>
-    ///       </umod:delta>
-    ///     </umod:mod>
-    ///   </umod:modifications>
-    /// </umod:unimod>"#;
-    /// let load = UnimodXmlFile.load_from_reader(xml.as_bytes()).unwrap();
-    /// assert_eq!(load.records.len(), 1);
-    /// assert_eq!(load.records[0].name, "Oxidation");
-    /// assert_eq!(load.records[0].origin, Some('M'));
-    /// assert_eq!(load.records[0].diff_mono_mass, 15.994915);
-    /// ```
-    pub fn load_from_reader(&self, input: impl BufRead) -> Result<UnimodXmlLoad> {
-        let bytes = read_bounded(input)?;
-        let mut reader = Reader::from_reader(bytes.as_slice());
-        reader.config_mut().check_end_names = true;
-        let mut handler = Handler::default();
-        let mut buffer = Vec::new();
-        loop {
-            let event = reader
-                .read_event_into(&mut buffer)
-                .map_err(|e| parse_error(format!("Unimod XML: {e}")))?;
-            match event {
-                Event::Start(element) => handler.start(&element)?,
-                Event::Empty(element) => {
-                    handler.start(&element)?;
-                    handler.end(element.name().as_ref())?;
-                }
-                Event::End(element) => handler.end(element.name().as_ref())?,
-                Event::Eof => break,
-                _ => {}
-            }
-            buffer.clear();
-        }
-        Ok(UnimodXmlLoad {
-            records: handler.records,
-            warnings: handler.warnings,
-        })
-    }
-}
-
-/// Modification data from a Unimod XML file: source `UnimodXMLDataProvider`.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct UnimodXmlDataProvider {
-    filename: PathBuf,
-}
-
-impl UnimodXmlDataProvider {
-    /// A provider reading `filename`: source
-    /// `UnimodXMLDataProvider(const std::string& filename)`. Nothing is read
-    /// until [`Self::load_modifications`].
-    pub fn new(filename: impl Into<PathBuf>) -> Self {
+impl Default for ReadLimits {
+    fn default() -> Self {
         Self {
-            filename: filename.into(),
+            max_input_bytes: 256 * 1024 * 1024,
+            max_depth: 64,
+            max_events: 50_000_000,
+            max_records: 1_000_000,
+            max_specificities: 10_000,
+            max_neutral_losses: 10_000,
         }
-    }
-
-    /// The file this provider reads.
-    pub fn filename(&self) -> &Path {
-        &self.filename
-    }
-
-    /// Reads the file and returns one modification per site, each with its
-    /// full identifier derived (`Oxidation (M)`, `Acetyl (N-term)`,
-    /// `Amidated (Protein C-term)`): source `loadModifications()`.
-    ///
-    /// # Errors
-    ///
-    /// Returns the errors of [`UnimodXmlFile::load`], and
-    /// [`Error::InvalidValue`] when a record fails
-    /// [`ResidueModification::from_record`] (an empty title, a control
-    /// character, an origin that is not an uppercase letter).
-    pub fn load_modifications(&self) -> Result<Vec<ResidueModification>> {
-        let load = UnimodXmlFile.load(&self.filename)?;
-        records_to_modifications(load.records)
     }
 }
 
-/// Freezes loaded records as the provider does, deriving each full identifier.
+/// What to do with the two specificity attributes the source handler drops.
 ///
-/// # Errors
-///
-/// Returns the first error of [`ResidueModification::from_record`].
-pub fn records_to_modifications(
-    records: Vec<ModificationRecord>,
-) -> Result<Vec<ResidueModification>> {
-    records
-        .into_iter()
-        .map(ResidueModification::from_record)
-        .collect()
+/// Unimod gives every `<umod:specificity>` its own `classification` and
+/// `hidden` flag. Source `UnimodXMLHandler` keeps neither per specificity: it
+/// ignores `hidden`, and it writes each specificity's classification into the
+/// one modification all of them are copied from, so the *last* one wins for
+/// every site (`UnimodXMLHandler.cpp:60-63`, marked `TODO` there).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum SpecificityAttributes {
+    /// Keep each specificity's own `classification` text and `hidden` flag.
+    ///
+    /// This loses nothing, and it is what the embedded table behind
+    /// `ModificationsDB::global()` records, so reading the pinned
+    /// `unimod.xml` this way reproduces that registry's records exactly.
+    #[default]
+    Retain,
+    /// The source's result: `hidden` is `false`, and every specificity gets
+    /// the classification of the modification's last specificity, as source
+    /// `ResidueModification::setSourceClassification` canonicalises it --
+    /// matched case-insensitively against the Unimod names and returned in
+    /// `getSourceClassificationName`'s spelling, or the empty string for a
+    /// name it does not know.
+    Source,
+}
+
+/// Options for reading Unimod XML.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct ReadOptions {
+    /// How specificity classifications and hidden flags are carried.
+    pub specificity_attributes: SpecificityAttributes,
+    /// Resource bounds.
+    pub limits: ReadLimits,
+}
+
+impl ReadOptions {
+    /// Options that reproduce the source handler's records.
+    pub fn source() -> Self {
+        Self {
+            specificity_attributes: SpecificityAttributes::Source,
+            limits: ReadLimits::default(),
+        }
+    }
+
+    fn sax(&self) -> SaxLimits {
+        SaxLimits {
+            max_input_bytes: self.limits.max_input_bytes,
+            max_depth: self.limits.max_depth,
+            max_events: self.limits.max_events,
+            max_attributes: 256,
+            max_text_bytes: 16 * 1024 * 1024,
+        }
+    }
 }
 
 fn parse_error(message: impl Into<String>) -> Error {
@@ -223,239 +123,551 @@ fn parse_error(message: impl Into<String>) -> Error {
     }
 }
 
-fn read_bounded(input: impl BufRead) -> Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    input
-        .take(MAX_UNIMOD_XML_BYTES as u64 + 1)
-        .read_to_end(&mut bytes)?;
-    if bytes.len() > MAX_UNIMOD_XML_BYTES {
-        return Err(Error::InvalidValue(format!(
-            "Unimod XML exceeds {MAX_UNIMOD_XML_BYTES} bytes"
-        )));
-    }
-    Ok(bytes)
+/// Source `attributeAsString_`: a missing attribute is a fatal parse error.
+fn required<'a>(attributes: &'a SaxAttributes, name: &str) -> Result<&'a str> {
+    attributes.required(name)
 }
 
-/// Whether a qualified tag name is `umod:<local>` or `<local>`, as the source
-/// handler compares them.
-fn is_tag(name: &[u8], local: &str) -> bool {
-    name == local.as_bytes()
-        || (name.len() == local.len() + 5
-            && name.starts_with(b"umod:")
-            && &name[5..] == local.as_bytes())
-}
-
-/// An attribute's value after the XML parser's normalisation: literal tab,
-/// newline and carriage return become spaces, then entities are expanded.
-fn attribute(element: &BytesStart<'_>, key: &str) -> Result<Option<String>> {
-    for attr in element.attributes() {
-        let attr = attr.map_err(|e| parse_error(format!("Unimod XML attribute: {e}")))?;
-        if attr.key.as_ref() == key.as_bytes() {
-            let raw = std::str::from_utf8(&attr.value)
-                .map_err(|_| parse_error("Unimod XML attribute is not UTF-8"))?;
-            let normalized: String = raw
-                .chars()
-                .map(|c| {
-                    if matches!(c, '\t' | '\n' | '\r') {
-                        ' '
-                    } else {
-                        c
-                    }
-                })
-                .collect();
-            let value = quick_xml::escape::unescape(&normalized)
-                .map_err(|e| parse_error(format!("Unimod XML attribute: {e}")))?;
-            return Ok(Some(value.into_owned()));
-        }
-    }
-    Ok(None)
-}
-
-fn required(element: &BytesStart<'_>, key: &str) -> Result<String> {
-    attribute(element, key)?.ok_or_else(|| {
-        parse_error(format!(
-            "Unimod XML: <{}> lacks the attribute {key}",
-            String::from_utf8_lossy(element.name().as_ref())
-        ))
-    })
-}
-
-fn number(element: &BytesStart<'_>, key: &str) -> Result<f64> {
-    let text = required(element, key)?;
-    text.trim()
-        .parse::<f64>()
+/// A finite decimal through the source's `StringUtils::toDouble`
+/// (`attributeAsDouble_`, and the direct calls of `UnimodXMLHandler.cpp:122-123`);
+/// it also accepts `nan` and `inf`, which a modification mass cannot be, so
+/// those are refused.
+fn mass(attributes: &SaxAttributes, name: &str) -> Result<f64> {
+    let text = required(attributes, name)?;
+    crate::concept::string_conversion::to_double(text)
         .ok()
         .filter(|value| value.is_finite())
         .ok_or_else(|| {
             parse_error(format!(
-                "Unimod XML: {key}=\"{text}\" is not a finite number"
+                "attribute '{name}' is not a finite number: {text:?}"
             ))
         })
 }
 
-/// The state of `UnimodXMLHandler` between events.
+fn boolean(text: &str) -> Result<bool> {
+    match text.trim_matches([' ', '\t', '\n', '\r']) {
+        "1" | "true" => Ok(true),
+        "0" | "false" => Ok(false),
+        _ => Err(parse_error(format!(
+            "attribute 'hidden' is not a boolean: {text:?}"
+        ))),
+    }
+}
+
+/// Everything the source keeps per `<umod:specificity>`.
+struct Specificity {
+    origin: char,
+    term: TermSpecificity,
+    classification: String,
+    hidden: bool,
+    neutral_losses: Vec<NeutralLoss>,
+}
+
+/// The modification-level fields the source stores in its `modification_`.
+#[derive(Default)]
+struct Modification {
+    title: String,
+    full_name: String,
+    record_id: u32,
+    /// The classification of the specificity seen last, as the source's
+    /// single `setSourceClassification` call leaves it.
+    last_classification: String,
+}
+
+/// The state of source `UnimodXMLHandler`, member for member where the
+/// member affects the result.
 #[derive(Default)]
 struct Handler {
-    records: Vec<ModificationRecord>,
-    warnings: Vec<String>,
-    /// The `<umod:mod>` being read: title, full name, record id, classification.
-    modification: Option<ModificationRecord>,
-    sites: Vec<char>,
-    hidden: Vec<bool>,
-    term_specs: Vec<TermSpecificity>,
+    options: ReadOptions,
+    /// `modification_`: `None` outside a `<umod:mod>`.
+    modification: Option<Modification>,
+    /// `avge_mass_` / `mono_mass_`: the last `<umod:delta>` masses.
+    average_mass: f64,
+    mono_mass: f64,
+    /// `diff_formula_`: element counts collected while `collect_elements`.
     diff_formula: EmpiricalFormula,
-    diff_mono_mass: f64,
-    diff_average_mass: f64,
+    /// `collect_elements_`: inside `<umod:delta>` or `<umod:NeutralLoss>`.
     collect_elements: bool,
+    /// Masses of the open `<umod:NeutralLoss>`.
     loss_mono_mass: f64,
     loss_average_mass: f64,
-    /// The neutral losses of the specificity being read.
+    /// Neutral losses of the open specificity (`neutral_loss_diff_formula_`
+    /// with the two parallel mass vectors).
     losses: Vec<NeutralLoss>,
-    /// The neutral losses of every specificity read so far, in order.
-    losses_per_specificity: Vec<Vec<NeutralLoss>>,
+    /// Closed specificities of the open modification (`sites_`,
+    /// `term_specs_` and the per-specificity loss vectors). The open one is
+    /// `open_specificity`, which the source pushes at its start tag.
+    specificities: Vec<Specificity>,
+    open_specificity: Option<Specificity>,
+    output: Vec<ResidueModification>,
+    /// The handler's `warning(LOAD, ...)` texts.
+    warnings: Vec<String>,
+}
+
+/// The local part of a tag the source matches in both spellings, with and
+/// without the `umod:` prefix, and only those two.
+fn unimod_tag(qname: &str) -> &str {
+    qname.strip_prefix("umod:").unwrap_or(qname)
 }
 
 impl Handler {
-    fn start(&mut self, element: &BytesStart<'_>) -> Result<()> {
-        let name = element.name();
-        let tag = name.as_ref();
-        if is_tag(tag, "mod") {
-            self.sites.clear();
-            self.hidden.clear();
-            let record_id = required(element, "record_id")?;
-            let record_id = record_id.trim().parse::<u32>().map_err(|_| {
-                parse_error(format!(
-                    "Unimod XML: record_id=\"{record_id}\" is not a record id"
-                ))
-            })?;
-            self.modification = Some(ModificationRecord {
-                provenance: ModificationProvenance::Cv,
-                record_id: Some(record_id),
-                name: required(element, "title")?,
-                full_name: attribute(element, "full_name")?.unwrap_or_default(),
-                classification: String::new(),
-                ..ModificationRecord::default()
-            });
-            return Ok(());
+    fn event(&mut self, event: SaxEvent<'_>) -> Result<()> {
+        match event {
+            SaxEvent::Start(qname, attributes) => self.start(qname, attributes),
+            SaxEvent::End(qname) => self.end(qname),
+            SaxEvent::Characters(_) => Ok(()),
         }
-        if is_tag(tag, "specificity") {
-            self.losses.clear();
-            let classification = attribute(element, "classification")?.unwrap_or_default();
-            let modification = self
-                .modification
-                .as_mut()
-                .ok_or_else(|| parse_error("Unimod XML: <specificity> outside <mod>"))?;
-            modification.classification = classification;
-            let site = required(element, "site")?;
-            let position = required(element, "position")?;
-            let term = match position.as_str() {
-                "Anywhere" => TermSpecificity::Anywhere,
-                "Protein N-term" => TermSpecificity::ProteinNTerm,
-                "Protein C-term" => TermSpecificity::ProteinCTerm,
-                "Any C-term" => TermSpecificity::CTerm,
-                "Any N-term" => TermSpecificity::NTerm,
-                other => {
-                    self.warnings.push(format!(
-                        "Don't know allowed position called: '{other}' - setting to anywhere"
-                    ));
-                    TermSpecificity::Anywhere
+    }
+
+    fn start(&mut self, qname: &str, attributes: &SaxAttributes) -> Result<()> {
+        match unimod_tag(qname) {
+            "mod" => {
+                // The source discards (without freeing) a modification still
+                // open here; a nested <mod> cannot close the outer one twice.
+                if self.modification.is_some() {
+                    return Err(parse_error("<umod:mod> nested in <umod:mod>"));
                 }
-            };
-            self.term_specs.push(term);
-            let mut chars = site.chars();
-            let origin = match (chars.next(), chars.next()) {
-                (Some(only), None) => only,
-                (Some(_), Some(_)) => 'X',
-                (None, _) => return Err(parse_error("Unimod XML: empty specificity site")),
-            };
-            self.sites.push(origin);
-            self.hidden
-                .push(attribute(element, "hidden")?.is_some_and(|flag| flag.trim() == "1"));
-            if self.sites.len() > MAX_UNIMOD_RECORDS
-                || self.records.len().saturating_add(self.sites.len()) > MAX_UNIMOD_RECORDS
-            {
-                return Err(Error::InvalidValue(format!(
-                    "Unimod XML has more than {MAX_UNIMOD_RECORDS} site records"
-                )));
+                self.specificities.clear();
+                let record_id = required(attributes, "record_id")?;
+                let record_id = record_id
+                    .trim_matches([' ', '\t', '\n', '\r'])
+                    .parse::<u32>()
+                    .map_err(|_| {
+                        parse_error(format!(
+                            "attribute 'record_id' is not a record number: {record_id:?}"
+                        ))
+                    })?;
+                self.modification = Some(Modification {
+                    title: required(attributes, "title")?.to_owned(),
+                    full_name: required(attributes, "full_name")?.to_owned(),
+                    record_id,
+                    last_classification: String::new(),
+                });
             }
-            return Ok(());
-        }
-        if is_tag(tag, "NeutralLoss") {
-            self.loss_mono_mass = number(element, "mono_mass")?;
-            self.loss_average_mass = number(element, "avge_mass")?;
-            self.collect_elements = true;
-            return Ok(());
-        }
-        if is_tag(tag, "delta") {
-            self.diff_average_mass = number(element, "avge_mass")?;
-            self.diff_mono_mass = number(element, "mono_mass")?;
-            self.collect_elements = true;
-            return Ok(());
-        }
-        if is_tag(tag, "element") && self.collect_elements {
-            let symbol = required(element, "symbol")?;
-            let count = required(element, "number")?;
-            let isotope: String = symbol.chars().filter(char::is_ascii_digit).collect();
-            let bare: String = symbol.chars().filter(|c| !c.is_ascii_digit()).collect();
-            let text = if isotope.is_empty() {
-                format!("{bare}{count}")
-            } else {
-                format!("({isotope}){bare}{count}")
-            };
-            let atoms = EmpiricalFormula::parse(&text)
-                .map_err(|e| parse_error(format!("Unimod XML: element {symbol} x {count}: {e}")))?;
-            self.diff_formula = self.diff_formula.checked_add(&atoms)?;
+            "specificity" => {
+                let modification = self
+                    .modification
+                    .as_mut()
+                    .ok_or_else(|| parse_error("<umod:specificity> outside <umod:mod>"))?;
+                if self.open_specificity.is_some() {
+                    return Err(parse_error(
+                        "<umod:specificity> nested in <umod:specificity>",
+                    ));
+                }
+                if self.specificities.len() == self.options.limits.max_specificities {
+                    return Err(Error::InvalidValue(
+                        "Unimod specificity limit exceeded".into(),
+                    ));
+                }
+                self.losses.clear();
+                let classification = required(attributes, "classification")?;
+                modification.last_classification = classification.to_owned();
+                let site = required(attributes, "site")?;
+                let position = required(attributes, "position")?;
+                let term = match position {
+                    "Anywhere" => TermSpecificity::Anywhere,
+                    "Protein N-term" => TermSpecificity::ProteinNTerm,
+                    "Protein C-term" => TermSpecificity::ProteinCTerm,
+                    "Any C-term" => TermSpecificity::CTerm,
+                    "Any N-term" => TermSpecificity::NTerm,
+                    // Source: a warning "Don't know allowed position called:
+                    // '...' - setting to anywhere", and the record is kept.
+                    other => {
+                        self.warnings.push(format!(
+                            "Don't know allowed position called: '{other}' - setting to anywhere"
+                        ));
+                        TermSpecificity::Anywhere
+                    }
+                };
+                // Source: a site longer than one character ("N-term",
+                // "C-term") is the wildcard X; otherwise its first character.
+                let mut characters = site.chars();
+                let origin = match (characters.next(), characters.next()) {
+                    (Some(c), None) => c,
+                    (Some(_), Some(_)) => 'X',
+                    // The source reads site[0] of an empty string: the
+                    // terminating NUL, which no residue has.
+                    (None, _) => return Err(parse_error("empty specificity site")),
+                };
+                let hidden = match self.options.specificity_attributes {
+                    SpecificityAttributes::Retain => boolean(required(attributes, "hidden")?)?,
+                    SpecificityAttributes::Source => false,
+                };
+                self.open_specificity = Some(Specificity {
+                    origin,
+                    term,
+                    classification: classification.to_owned(),
+                    hidden,
+                    neutral_losses: Vec::new(),
+                });
+            }
+            "NeutralLoss" => {
+                self.loss_mono_mass = mass(attributes, "mono_mass")?;
+                self.loss_average_mass = mass(attributes, "avge_mass")?;
+                self.collect_elements = true;
+            }
+            "delta" => {
+                // Source reads these through valueByIndex(index(...)) with no
+                // presence check; an absent one is undefined there.
+                self.average_mass = mass(attributes, "avge_mass")?;
+                self.mono_mass = mass(attributes, "mono_mass")?;
+                self.collect_elements = true;
+            }
+            "element" if self.collect_elements => {
+                let symbol = required(attributes, "symbol")?;
+                let number = required(attributes, "number")?;
+                // Source: digits of the symbol are the isotope, the rest the
+                // element, giving "(13)C6" for symbol "13C", number "6".
+                let (isotope, element): (String, String) =
+                    symbol.chars().partition(char::is_ascii_digit);
+                let formula = if isotope.is_empty() {
+                    format!("{element}{number}")
+                } else {
+                    format!("({isotope}){element}{number}")
+                };
+                let formula = EmpiricalFormula::parse(&formula).map_err(|error| {
+                    parse_error(format!(
+                        "invalid Unimod element {symbol:?} x {number:?}: {error}"
+                    ))
+                })?;
+                self.diff_formula = self.diff_formula.checked_add(&formula)?;
+            }
+            _ => {}
         }
         Ok(())
     }
 
-    fn end(&mut self, tag: &[u8]) -> Result<()> {
-        if is_tag(tag, "mod") {
-            let modification = self
-                .modification
-                .take()
-                .ok_or_else(|| parse_error("Unimod XML: unbalanced </mod>"))?;
-            let formula = std::mem::take(&mut self.diff_formula);
-            let losses = std::mem::take(&mut self.losses_per_specificity);
-            for (index, origin) in self.sites.iter().enumerate() {
-                let mut record = modification.clone();
-                record.diff_mono_mass = self.diff_mono_mass;
-                record.diff_average_mass = self.diff_average_mass;
-                record.diff_formula = formula.clone();
-                record.origin = Some(*origin);
-                record.term_specificity = self.term_specs[index];
-                record.hidden = self.hidden[index];
-                record.neutral_losses = losses.get(index).cloned().unwrap_or_default();
-                self.records.push(record);
+    fn end(&mut self, qname: &str) -> Result<()> {
+        match unimod_tag(qname) {
+            "mod" => self.finish_modification()?,
+            "specificity" => {
+                // Source: the per-specificity loss vectors are pushed here.
+                if let Some(mut specificity) = self.open_specificity.take() {
+                    specificity.neutral_losses = std::mem::take(&mut self.losses);
+                    self.specificities.push(specificity);
+                }
             }
-            self.diff_mono_mass = 0.0;
-            self.diff_average_mass = 0.0;
-            self.collect_elements = false;
-            self.term_specs.clear();
-            self.sites.clear();
-            self.hidden.clear();
-            return Ok(());
-        }
-        if is_tag(tag, "specificity") {
-            self.losses_per_specificity
-                .push(std::mem::take(&mut self.losses));
-            return Ok(());
-        }
-        if is_tag(tag, "delta") {
-            self.collect_elements = false;
-            return Ok(());
-        }
-        if is_tag(tag, "NeutralLoss") {
-            self.collect_elements = false;
-            if !self.diff_formula.is_empty() {
-                let formula = std::mem::take(&mut self.diff_formula);
-                self.losses.push(NeutralLoss::new(
-                    formula,
-                    self.loss_mono_mass,
-                    self.loss_average_mass,
-                )?);
+            "delta" => self.collect_elements = false,
+            "NeutralLoss" => {
+                self.collect_elements = false;
+                // Source: a loss without element children adds nothing, and
+                // the collected formula is reset only when it is kept.
+                if !self.diff_formula.is_empty() {
+                    if self.losses.len() == self.options.limits.max_neutral_losses {
+                        return Err(Error::InvalidValue(
+                            "Unimod neutral loss limit exceeded".into(),
+                        ));
+                    }
+                    let formula = std::mem::take(&mut self.diff_formula);
+                    self.losses.push(NeutralLoss::new(
+                        formula,
+                        self.loss_mono_mass,
+                        self.loss_average_mass,
+                    )?);
+                }
             }
+            _ => {}
         }
         Ok(())
+    }
+
+    fn finish_modification(&mut self) -> Result<()> {
+        let Some(modification) = self.modification.take() else {
+            return Err(parse_error("</umod:mod> without <umod:mod>"));
+        };
+        let diff_formula = std::mem::take(&mut self.diff_formula);
+        let count = self
+            .output
+            .len()
+            .checked_add(self.specificities.len())
+            .filter(|&n| n <= self.options.limits.max_records)
+            .ok_or_else(|| Error::InvalidValue("Unimod record limit exceeded".into()))?;
+        self.output.reserve(count - self.output.len());
+        for specificity in self.specificities.drain(..) {
+            let (classification, hidden) = match self.options.specificity_attributes {
+                SpecificityAttributes::Retain => (specificity.classification, specificity.hidden),
+                // `setSourceClassification` followed by
+                // `getSourceClassificationName`: the canonical spelling, or
+                // the empty string for a name the source does not know.
+                SpecificityAttributes::Source => (
+                    crate::chemistry::modification_classification::SourceClassification::from_text(
+                        &modification.last_classification,
+                    )
+                    .name()
+                    .to_owned(),
+                    false,
+                ),
+            };
+            let record = ModificationRecord {
+                provenance: ModificationProvenance::Cv,
+                record_id: Some(modification.record_id),
+                name: modification.title.clone(),
+                full_name: modification.full_name.clone(),
+                full_id: String::new(),
+                origin: Some(specificity.origin),
+                term_specificity: specificity.term,
+                diff_formula: diff_formula.clone(),
+                diff_mono_mass: self.mono_mass,
+                diff_average_mass: self.average_mass,
+                hidden,
+                classification,
+                neutral_losses: specificity.neutral_losses,
+                ..ModificationRecord::default()
+            };
+            if record.name.is_empty() {
+                // Source setFullId: "Cannot create full ID for modification
+                // with missing (short) ID." (ResidueModification.cpp:140).
+                return Err(Error::MissingInformation(
+                    "Cannot create full ID for modification with missing (short) ID.".into(),
+                ));
+            }
+            self.output
+                .push(ResidueModification::from_record(record).map_err(|error| {
+                    parse_error(format!(
+                        "invalid Unimod modification {:?}: {error}",
+                        modification.title
+                    ))
+                })?);
+        }
+        self.average_mass = 0.0;
+        self.mono_mass = 0.0;
+        self.collect_elements = false;
+        Ok(())
+    }
+}
+
+/// Read a Unimod XML document with the default [`ReadOptions`].
+///
+/// Source `UnimodXMLFile::load`, which appends to a caller's vector of raw
+/// pointers; this returns the records instead, and only on success. Records
+/// come in document order: modifications as they appear, and within one, its
+/// specificities as they appear.
+///
+/// Each record carries the modification's `title` as its name, `full_name`,
+/// `record_id`, the `<umod:delta>` masses and element composition (as the
+/// difference formula), and its specificity's site, position and neutral
+/// losses. It has [`ModificationProvenance::Cv`], as the source's
+/// `setProvenance(CV)`.
+///
+/// The reader is the source handler's state machine:
+///
+/// - Tags are matched with and without the `umod:` prefix, as the source's
+///   namespace-unaware parse sees them; any other prefix is not recognised.
+/// - Only `<umod:element>` children of `<umod:delta>` and `<umod:NeutralLoss>`
+///   contribute to formulas; those of `<umod:Ignore>`, `<umod:aa>` and
+///   `<umod:brick>` do not (OpenMS issue 10030).
+/// - A neutral loss without element children is dropped, as the source drops
+///   it; its masses come from its own `mono_mass` and `avge_mass`.
+/// - A site of more than one character (Unimod's `N-term`, `C-term`) is the
+///   wildcard `X`, which a terminal specificity then stores as no origin.
+/// - An unknown `position` is `Anywhere`; the source logs a warning.
+/// - A `<umod:delta>` outside every `<umod:mod>` still sets the masses the
+///   next modification uses unless that one has its own, as in the source.
+///
+/// Native differences: every record has its full identifier (for example
+/// `Oxidation (M)`) derived at construction, which the source leaves to
+/// [`UnimodXMLDataProvider`]'s `setFullId`; masses must be finite; an XML
+/// structure the source mishandles through a dangling pointer (a
+/// specificity outside a modification, nested modifications) is refused.
+///
+/// # Errors
+///
+/// [`Error::Parse`] for XML that is not well formed, a missing required
+/// attribute, a mass or record number that does not parse, or a formula
+/// element the element table does not hold — each an `Exception::ParseError`
+/// in the source; [`Error::MissingInformation`] for a modification with an
+/// empty `title`; [`Error::Unsupported`] for a DTD or a non-UTF-8 encoding;
+/// [`Error::InvalidValue`] when a bound in [`ReadLimits`] is exceeded;
+/// [`Error::Io`] when the input fails.
+pub fn read(input: impl BufRead) -> Result<Vec<ResidueModification>> {
+    read_with_options(input, &ReadOptions::default())
+}
+
+/// [`read`] with explicit options.
+///
+/// # Errors
+///
+/// As [`read`].
+pub fn read_with_options(
+    input: impl BufRead,
+    options: &ReadOptions,
+) -> Result<Vec<ResidueModification>> {
+    read_with_warnings(input, options).map(|(records, _)| records)
+}
+
+/// [`read_with_options`] that also returns the handler's warnings: the
+/// source's `warning(LOAD, ...)` calls, which are an unknown `position`
+/// (`Don't know allowed position called: '...' - setting to anywhere`), in
+/// document order.
+///
+/// # Errors
+///
+/// As [`read`].
+pub fn read_with_warnings(
+    input: impl BufRead,
+    options: &ReadOptions,
+) -> Result<(Vec<ResidueModification>, Vec<String>)> {
+    let mut handler = Handler {
+        options: *options,
+        ..Handler::default()
+    };
+    parse(input, &options.sax(), |event| handler.event(event))?;
+    Ok((handler.output, handler.warnings))
+}
+
+/// Load a Unimod XML file with the default [`ReadOptions`]; gzip and bzip2
+/// input are recognised by their leading bytes.
+///
+/// Source `UnimodXMLFile::load` first resolves `filename` with `File::find`,
+/// so `"CHEMISTRY/unimod.xml"` finds the installed copy. This reads the path
+/// it is given; resolve a shared-data name with
+/// `system::file::FileContext::find` first.
+///
+/// # Errors
+///
+/// [`Error::Io`] when the file cannot be opened (the source's
+/// `Exception::FileNotFound`); otherwise as [`read`].
+pub fn load(path: impl AsRef<Path>) -> Result<Vec<ResidueModification>> {
+    load_with_options(path, &ReadOptions::default())
+}
+
+/// [`load`] with explicit options.
+///
+/// # Errors
+///
+/// As [`load`].
+pub fn load_with_options(
+    path: impl AsRef<Path>,
+    options: &ReadOptions,
+) -> Result<Vec<ResidueModification>> {
+    read_with_options(super::path_io::open(path.as_ref())?, options)
+}
+
+/// A source of modification records backed by one Unimod XML file.
+///
+/// Source `UnimodXMLDataProvider`, a `ModificationDataProvider` that wraps
+/// `UnimodXMLFile::load` and then gives every record its full identifier.
+/// Construction stores the path only; nothing is read until
+/// [`load_modifications`](Self::load_modifications). Feed the records to
+/// [`ModificationsDB::from_records`] or
+/// [`ModificationsDB::extend_records`].
+///
+/// [`ModificationsDB::from_records`]: crate::chemistry::ModificationsDB::from_records
+/// [`ModificationsDB::extend_records`]: crate::chemistry::ModificationsDB::extend_records
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct UnimodXMLDataProvider {
+    filename: PathBuf,
+    options: ReadOptions,
+}
+
+impl UnimodXMLDataProvider {
+    /// A provider for the Unimod XML file at `filename`, read with the default
+    /// [`ReadOptions`].
+    ///
+    /// The source resolves `filename` through `File::find` when it loads;
+    /// this reads the path as given (see [`load`]).
+    pub fn new(filename: impl Into<PathBuf>) -> Self {
+        Self::with_options(filename, ReadOptions::default())
+    }
+
+    /// A provider that reads with explicit options, for example
+    /// [`ReadOptions::source`] to reproduce the source's records.
+    pub fn with_options(filename: impl Into<PathBuf>, options: ReadOptions) -> Self {
+        Self {
+            filename: filename.into(),
+            options,
+        }
+    }
+
+    /// The file this provider reads.
+    pub fn filename(&self) -> &Path {
+        &self.filename
+    }
+
+    /// The options this provider reads with.
+    pub fn options(&self) -> &ReadOptions {
+        &self.options
+    }
+
+    /// Read the file and return its records, each with its full identifier.
+    ///
+    /// Source `loadModifications`, which returns owning pointers; the records
+    /// are owned values here, and a failure returns none of them.
+    ///
+    /// # Errors
+    ///
+    /// As [`load`].
+    pub fn load_modifications(&self) -> Result<Vec<ResidueModification>> {
+        load_with_options(&self.filename, &self.options)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const ONE: &str = r#"<umod:unimod xmlns:umod="u"><umod:modifications>
+<umod:mod title="T" full_name="Test" record_id="7">
+  <umod:specificity hidden="1" site="S" position="Anywhere" classification="Artefact">
+    <umod:NeutralLoss mono_mass="0" avge_mass="0" flag="false" composition="0"/>
+    <umod:NeutralLoss mono_mass="97.976896" avge_mass="97.9952" flag="false" composition="H(3) O(4) P">
+      <umod:element symbol="H" number="3"/><umod:element symbol="O" number="4"/><umod:element symbol="P" number="1"/>
+    </umod:NeutralLoss>
+  </umod:specificity>
+  <umod:specificity hidden="0" site="N-term" position="Protein N-term" classification="Post-translational"/>
+  <umod:delta mono_mass="79.966331" avge_mass="79.9799" composition="H O(3) P">
+    <umod:element symbol="H" number="1"/><umod:element symbol="O" number="3"/><umod:element symbol="P" number="1"/>
+  </umod:delta>
+  <umod:Ignore><umod:element symbol="C" number="100"/></umod:Ignore>
+</umod:mod></umod:modifications></umod:unimod>"#;
+
+    #[test]
+    fn one_record_per_specificity_with_source_state_rules() {
+        let records = read(ONE.as_bytes()).unwrap();
+        assert_eq!(records.len(), 2);
+        let first = &records[0];
+        assert_eq!(first.name(), "T");
+        assert_eq!(first.full_id(), "T (S)");
+        assert_eq!(first.record_id(), Some(7));
+        assert_eq!(first.diff_formula().to_string(), "H1O3P1");
+        assert_eq!(first.diff_mono_mass(), 79.966331);
+        assert!(first.is_hidden());
+        assert_eq!(first.classification(), "Artefact");
+        assert_eq!(first.neutral_losses().len(), 1);
+        assert_eq!(first.neutral_losses()[0].mono_mass(), 97.976896);
+        let second = &records[1];
+        assert_eq!(second.origin(), None);
+        assert_eq!(second.term_specificity(), TermSpecificity::ProteinNTerm);
+        assert_eq!(second.full_id(), "T (Protein N-term)");
+        assert!(second.neutral_losses().is_empty());
+        assert_eq!(second.classification(), "Post-translational");
+
+        let source = read_with_options(ONE.as_bytes(), &ReadOptions::source()).unwrap();
+        for record in &source {
+            assert!(!record.is_hidden());
+            assert_eq!(record.classification(), "Post-translational");
+            assert_eq!(record.source_classification_name(), "Post-translational");
+        }
+    }
+
+    #[test]
+    fn classification_names_follow_the_source_table() {
+        use crate::chemistry::modification_classification::SourceClassification;
+        let name = |text: &str| SourceClassification::from_text(text).name();
+        assert_eq!(name("ARTIFACT"), "Artefact");
+        assert_eq!(name("aa substitution"), "AA substitution");
+        assert_eq!(name("Something else"), "");
+    }
+
+    #[test]
+    fn malformed_records_are_refused() {
+        for text in [
+            r#"<m><mod title="T" full_name="F"/></m>"#,
+            r#"<m><specificity site="S" position="Anywhere" classification="x" hidden="0"/></m>"#,
+            r#"<m><mod title="" full_name="F" record_id="1"><specificity site="S" position="Anywhere" classification="x" hidden="0"/></mod></m>"#,
+            r#"<m><mod title="T" full_name="F" record_id="1"><delta mono_mass="nan" avge_mass="1"/></mod></m>"#,
+        ] {
+            assert!(read(text.as_bytes()).is_err(), "{text}");
+        }
     }
 }

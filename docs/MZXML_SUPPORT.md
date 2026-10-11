@@ -74,7 +74,7 @@ Every declared member, plus the surface it inherits.
 | inherited `XMLFile::parse_` / `parseBuffer_` / `save_` | the module's reader and writer | compression sniffing comes from `crate::format::path_io` |
 | inherited `XMLFile::schema_location_` / `schema_version_` | `SCHEMA`, `SCHEMA_VERSION` | |
 | inherited `XMLFile::enforceEncoding_` | reader's declaration handling | UTF-8, US-ASCII and ASCII-only ISO-8859-1 are accepted |
-| inherited `ProgressLogger` (`setLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | the caller's `crate::concept::progress_logger::ProgressLogger`, passed to `load_with_progress`, `store_with_progress` and the `MzXMLFile` members of those names | the Release build's calls, call for call (tier 1, `tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`). The other entry points, including both `transform` overloads, run the same code and report nothing; non-fatal observations come back in `ReadReport` either way |
+| inherited `ProgressLogger` (`setLogType`, `startProgress`, `setProgress`, `endProgress`, `nextProgress`) | the caller's `crate::concept::progress_logger::ProgressLogger`, passed to `load_with_progress`, `store_with_progress`, `transform_with_progress`, `transform_into_with_progress` and the `MzXMLFile` members of those names | the Release build's calls, call for call (tier 1: loads and stores in `tests/progress_format_readers.rs`, see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`; both `transform` overloads, with the consumer's calls interleaved, in `tests/mzxml_transform_progress.rs`, see *Progress of `transform`* below). The other entry points run the same code and report nothing; non-fatal observations come back in `ReadReport` either way |
 
 ## API mapping — `FORMAT/HANDLERS/MzXMLHandler.h`
 
@@ -427,10 +427,41 @@ removal; this port always strips whitespace, because stripping is what makes
 has no effect in the source mzXML writer and is honoured here as the native
 extension described above.
 
+## Progress of `transform`
+
+`MzXMLFile::transform` runs two handlers whose logger is the file
+(`MzXMLFile.cpp:59-109`), so both passes make the load's calls:
+`startProgress(0, scanCount, "loading mzXML file")` at `<msRun>`,
+`setProgress(n)` per `<scan>` before any filter, and `endProgress()` at
+`</mzXML>` after the buffered spectra went to the consumer. Between the passes
+the consumer gets `setExpectedSize(scans, 0)` and `setExperimentalSettings`.
+`transform_with_progress` and `transform_into_with_progress` (and the
+`MzXMLFile` members of those names) make exactly these calls, and the port's
+consumer calls come in the same order among them.
+
+With `skip_full_count` the first pass is metadata-only, and the source's
+`EndParsingSoftly` at the first `<scan>` bypasses `endProgress`
+(`MzXMLHandler.cpp:242-245`): the section stays open, the second pass's start
+is nested one level deeper, and on a command backend that start throws
+`Exception::Precondition` ("StopWatch is already started!") after the consumer
+already received its expected size and settings. So a command-line
+`transform(..., skip_full_count = true)` never completes in the Release build.
+The port reproduces this on the progress entry points (the second start is
+refused with `Error::InvalidValue`); the silent entry points are unaffected,
+as the source's are with no logger. This is a C++ defect candidate: the
+metadata-only pass should end the section it started.
+
+Evidence is tier 1: `../oracle/F7c-transform-progress` ran the Release build
+(`openms4-release-bc9cc12-c19e494-174b576`, ibminode06, g++ 14.4.0) on nine
+cases in both logger modes, twice, with identical op logs:
+both overloads with and without `skip_full_count`, a document cut after scan
+11, two transforms on one file object, and an MS-level filter.
+`tests/mzxml_transform_progress.rs` replays every backend call, every consumer
+call, the command output (timing masked), the outcome and the nesting depth
+(`tests/data/mzxml_transform_progress_provenance.json`).
+
 ## Deferred
 
-- Progress of the `transform` overloads: the source's handler reports there
-  too; the port's transform runs report nothing.
 - `FileHandler` dispatch: `crate::format::file_types::FileType::MzXml` already
   exists and content detection already recognises `<mzXML`, but
   `src/format/file_handler.rs` does not route to this module. That file is

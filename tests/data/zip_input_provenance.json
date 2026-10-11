@@ -23,14 +23,14 @@
   }
  ],
  "native_implementation": [
-  "src/format/zip_input.rs",
+  "src/format/zip_ifstream.rs",
   "src/format/path_io.rs"
  ],
  "native_tests": [
   "tests/zip_input.rs",
   "tests/mzml_counts.rs"
  ],
- "support_document": "src/format/zip_input.rs",
+ "support_document": "src/format/zip_ifstream.rs",
  "fixtures": [
   {
    "path": "tests/data/zip_input/oracle.tsv",

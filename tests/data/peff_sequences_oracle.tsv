@@ -1,0 +1,328 @@
+sizes	variants_simple	1	1
+variants_simple	0	P3A (dbSNP:test)	PEATIDE
+sizes	variants_all	2	2
+variants_all	0	P3A (dbSNP:test)	PEATIDE
+variants_all	1	2-4>XXX (ClinVar:123)	PXXXIDE
+sizes	variants_unparsable	3	1
+variants_unparsable	0	P3a (lower)	PEPTLDE
+sizes	dwv_big_trypsin	11	11
+dwv_big_trypsin	0		WVTFISLLLLFSSAYSR
+dwv_big_trypsin	1	T5A(dbSNP:rs1)	WVAFISLLLLFSSAYSR
+dwv_big_trypsin	2	L10M(dbSNP:rs2)	WVTFISLMLLFSSAYSR
+dwv_big_trypsin	3	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	WVAFISLMLLFSSAYSR
+dwv_big_trypsin	4		GVFR
+dwv_big_trypsin	5	G20F(dbSNP:rs3)	FVFR
+dwv_big_trypsin	6		DTHK
+dwv_big_trypsin	7		SEIAHR
+dwv_big_trypsin	8		DLGEEHFK
+dwv_big_trypsin	9		GLVLIAFSQYLQQCPFDEHVK
+dwv_big_trypsin	10		LVNELTEFAK
+sizes	dwv_big_noref	4	4
+dwv_big_noref	0	T5A(dbSNP:rs1)	WVAFISLLLLFSSAYSR
+dwv_big_noref	1	L10M(dbSNP:rs2)	WVTFISLMLLFSSAYSR
+dwv_big_noref	2	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	WVAFISLMLLFSSAYSR
+dwv_big_noref	3	G20F(dbSNP:rs3)	FVFR
+sizes	dwv_big_chymo	8	8
+dwv_big_chymo	0		SSAY
+dwv_big_chymo	1		SRGVF
+dwv_big_chymo	2	G20F(dbSNP:rs3)	SRFVF
+dwv_big_chymo	3		RRDTHKSEIAHRF
+dwv_big_chymo	4		GEEHF
+dwv_big_chymo	5		QQCPF
+dwv_big_chymo	6		DEHVKL
+dwv_big_chymo	7		VNEL
+sizes	dwv_big_mc2	51	51
+dwv_big_mc2	0		WVTFISLLLLFSSAYSR
+dwv_big_mc2	1	T5A(dbSNP:rs1)	WVAFISLLLLFSSAYSR
+dwv_big_mc2	2	L10M(dbSNP:rs2)	WVTFISLMLLFSSAYSR
+dwv_big_mc2	3	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	WVAFISLMLLFSSAYSR
+dwv_big_mc2	4		GVFR
+dwv_big_mc2	5	G20F(dbSNP:rs3)	FVFR
+dwv_big_mc2	6		DTHK
+dwv_big_mc2	7		SEIAHR
+dwv_big_mc2	8		DLGEEHFK
+dwv_big_mc2	9		GLVLIAFSQYLQQCPFDEHVK
+dwv_big_mc2	10		LVNELTEFAK
+dwv_big_mc2	11		MKWVTFISLLLLFSSAYSR
+dwv_big_mc2	12	T5A(dbSNP:rs1)	MKWVAFISLLLLFSSAYSR
+dwv_big_mc2	13	L10M(dbSNP:rs2)	MKWVTFISLMLLFSSAYSR
+dwv_big_mc2	14	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	MKWVAFISLMLLFSSAYSR
+dwv_big_mc2	15		WVTFISLLLLFSSAYSRGVFR
+dwv_big_mc2	16	T5A(dbSNP:rs1)	WVAFISLLLLFSSAYSRGVFR
+dwv_big_mc2	17	L10M(dbSNP:rs2)	WVTFISLMLLFSSAYSRGVFR
+dwv_big_mc2	18	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	WVAFISLMLLFSSAYSRGVFR
+dwv_big_mc2	19	G20F(dbSNP:rs3)	WVTFISLLLLFSSAYSRFVFR
+dwv_big_mc2	20	T5A(dbSNP:rs1);G20F(dbSNP:rs3)	WVAFISLLLLFSSAYSRFVFR
+dwv_big_mc2	21	L10M(dbSNP:rs2);G20F(dbSNP:rs3)	WVTFISLMLLFSSAYSRFVFR
+dwv_big_mc2	22	T5A(dbSNP:rs1);L10M(dbSNP:rs2);G20F(dbSNP:rs3)	WVAFISLMLLFSSAYSRFVFR
+dwv_big_mc2	23		GVFRR
+dwv_big_mc2	24	G20F(dbSNP:rs3)	FVFRR
+dwv_big_mc2	25		RDTHK
+dwv_big_mc2	26		DTHKSEIAHR
+dwv_big_mc2	27		SEIAHRFK
+dwv_big_mc2	28		FKDLGEEHFK
+dwv_big_mc2	29		DLGEEHFKGLVLIAFSQYLQQCPFDEHVK
+dwv_big_mc2	30		MKWVTFISLLLLFSSAYSRGVFR
+dwv_big_mc2	31	T5A(dbSNP:rs1)	MKWVAFISLLLLFSSAYSRGVFR
+dwv_big_mc2	32	L10M(dbSNP:rs2)	MKWVTFISLMLLFSSAYSRGVFR
+dwv_big_mc2	33	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	MKWVAFISLMLLFSSAYSRGVFR
+dwv_big_mc2	34	G20F(dbSNP:rs3)	MKWVTFISLLLLFSSAYSRFVFR
+dwv_big_mc2	35	T5A(dbSNP:rs1);G20F(dbSNP:rs3)	MKWVAFISLLLLFSSAYSRFVFR
+dwv_big_mc2	36	L10M(dbSNP:rs2);G20F(dbSNP:rs3)	MKWVTFISLMLLFSSAYSRFVFR
+dwv_big_mc2	37	T5A(dbSNP:rs1);L10M(dbSNP:rs2);G20F(dbSNP:rs3)	MKWVAFISLMLLFSSAYSRFVFR
+dwv_big_mc2	38		WVTFISLLLLFSSAYSRGVFRR
+dwv_big_mc2	39	T5A(dbSNP:rs1)	WVAFISLLLLFSSAYSRGVFRR
+dwv_big_mc2	40	L10M(dbSNP:rs2)	WVTFISLMLLFSSAYSRGVFRR
+dwv_big_mc2	41	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	WVAFISLMLLFSSAYSRGVFRR
+dwv_big_mc2	42	G20F(dbSNP:rs3)	WVTFISLLLLFSSAYSRFVFRR
+dwv_big_mc2	43	T5A(dbSNP:rs1);G20F(dbSNP:rs3)	WVAFISLLLLFSSAYSRFVFRR
+dwv_big_mc2	44	L10M(dbSNP:rs2);G20F(dbSNP:rs3)	WVTFISLMLLFSSAYSRFVFRR
+dwv_big_mc2	45	T5A(dbSNP:rs1);L10M(dbSNP:rs2);G20F(dbSNP:rs3)	WVAFISLMLLFSSAYSRFVFRR
+dwv_big_mc2	46		GVFRRDTHK
+dwv_big_mc2	47	G20F(dbSNP:rs3)	FVFRRDTHK
+dwv_big_mc2	48		RDTHKSEIAHR
+dwv_big_mc2	49		DTHKSEIAHRFK
+dwv_big_mc2	50		SEIAHRFKDLGEEHFK
+sizes	dwv_big_semi	29	29
+dwv_big_semi	0		SEIAHR
+dwv_big_semi	1		DLGEEHFK
+dwv_big_semi	2		LVNELTEF
+dwv_big_semi	3		LVNELTE
+dwv_big_semi	4		LVNELT
+dwv_big_semi	5		LFSSAYSR
+dwv_big_semi	6		FSSAYSR
+dwv_big_semi	7		SSAYSR
+dwv_big_semi	8		GLVLIAFS
+dwv_big_semi	9		GLVLIAF
+dwv_big_semi	10		GLVLIA
+dwv_big_semi	11		DLGEEHF
+dwv_big_semi	12		DLGEEH
+dwv_big_semi	13		LGEEHFK
+dwv_big_semi	14		GEEHFK
+dwv_big_semi	15		CPFDEHVK
+dwv_big_semi	16		PFDEHVK
+dwv_big_semi	17		FDEHVK
+dwv_big_semi	18		WVTFISLL
+dwv_big_semi	19	T5A(dbSNP:rs1)	WVAFISLL
+dwv_big_semi	20	L10M(dbSNP:rs2)	WVTFISLM
+dwv_big_semi	21	T5A(dbSNP:rs1);L10M(dbSNP:rs2)	WVAFISLM
+dwv_big_semi	22		WVTFISL
+dwv_big_semi	23	T5A(dbSNP:rs1)	WVAFISL
+dwv_big_semi	24		NELTEFAK
+dwv_big_semi	25		WVTFIS
+dwv_big_semi	26	T5A(dbSNP:rs1)	WVAFIS
+dwv_big_semi	27		ELTEFAK
+dwv_big_semi	28		LTEFAK
+sizes	dwv_combo	7	7
+dwv_combo	0		MK
+dwv_combo	1		AEPTIDER
+dwv_combo	2	E4L(var1)	ALPTIDER
+dwv_combo	3	T6L(var2)	AEPLIDER
+dwv_combo	4	E4L(var1);T6L(var2)	ALPLIDER
+dwv_combo	5	T6V(var3)	AEPVIDER
+dwv_combo	6	E4L(var1);T6V(var3)	ALPVIDER
+sizes	dwv_mods_only	9	9
+dwv_mods_only	0		MK
+dwv_mods_only	1		AMEPTIDER
+dwv_mods_only	2	UNIMOD:35@4	AM(Oxidation)EPTIDER
+dwv_mods_only	3	UNIMOD:21@7	AMEPT(Phospho)IDER
+dwv_mods_only	4	UNIMOD:35@4;UNIMOD:21@7	AM(Oxidation)EPT(Phospho)IDER
+dwv_mods_only	5	Phospho@5	AME(Phospho)PTIDER
+dwv_mods_only	6	UNIMOD:35@4;Phospho@5	AM(Oxidation)E(Phospho)PTIDER
+dwv_mods_only	7	UNIMOD:21@7;Phospho@5	AME(Phospho)PT(Phospho)IDER
+dwv_mods_only	8	UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AM(Oxidation)E(Phospho)PT(Phospho)IDER
+sizes	dwv_mods_vars	33	33
+dwv_mods_vars	0		MK
+dwv_mods_vars	1		AMEPTIDER
+dwv_mods_vars	2	E5S(var1)	AMSPTIDER
+dwv_mods_vars	3	M4L(var2)	ALEPTIDER
+dwv_mods_vars	4	E5S(var1);M4L(var2)	ALSPTIDER
+dwv_mods_vars	5	UNIMOD:35@4	AM(Oxidation)EPTIDER
+dwv_mods_vars	6	E5S(var1);UNIMOD:35@4	AM(Oxidation)SPTIDER
+dwv_mods_vars	7	M4L(var2);UNIMOD:35@4	AL(Oxidation)EPTIDER
+dwv_mods_vars	8	E5S(var1);M4L(var2);UNIMOD:35@4	AL(Oxidation)SPTIDER
+dwv_mods_vars	9	UNIMOD:21@7	AMEPT(Phospho)IDER
+dwv_mods_vars	10	E5S(var1);UNIMOD:21@7	AMSPT(Phospho)IDER
+dwv_mods_vars	11	M4L(var2);UNIMOD:21@7	ALEPT(Phospho)IDER
+dwv_mods_vars	12	E5S(var1);M4L(var2);UNIMOD:21@7	ALSPT(Phospho)IDER
+dwv_mods_vars	13	UNIMOD:35@4;UNIMOD:21@7	AM(Oxidation)EPT(Phospho)IDER
+dwv_mods_vars	14	E5S(var1);UNIMOD:35@4;UNIMOD:21@7	AM(Oxidation)SPT(Phospho)IDER
+dwv_mods_vars	15	M4L(var2);UNIMOD:35@4;UNIMOD:21@7	AL(Oxidation)EPT(Phospho)IDER
+dwv_mods_vars	16	E5S(var1);M4L(var2);UNIMOD:35@4;UNIMOD:21@7	AL(Oxidation)SPT(Phospho)IDER
+dwv_mods_vars	17	Phospho@5	AME(Phospho)PTIDER
+dwv_mods_vars	18	E5S(var1);Phospho@5	AMS(Phospho)PTIDER
+dwv_mods_vars	19	M4L(var2);Phospho@5	ALE(Phospho)PTIDER
+dwv_mods_vars	20	E5S(var1);M4L(var2);Phospho@5	ALS(Phospho)PTIDER
+dwv_mods_vars	21	UNIMOD:35@4;Phospho@5	AM(Oxidation)E(Phospho)PTIDER
+dwv_mods_vars	22	E5S(var1);UNIMOD:35@4;Phospho@5	AM(Oxidation)S(Phospho)PTIDER
+dwv_mods_vars	23	M4L(var2);UNIMOD:35@4;Phospho@5	AL(Oxidation)E(Phospho)PTIDER
+dwv_mods_vars	24	E5S(var1);M4L(var2);UNIMOD:35@4;Phospho@5	AL(Oxidation)S(Phospho)PTIDER
+dwv_mods_vars	25	UNIMOD:21@7;Phospho@5	AME(Phospho)PT(Phospho)IDER
+dwv_mods_vars	26	E5S(var1);UNIMOD:21@7;Phospho@5	AMS(Phospho)PT(Phospho)IDER
+dwv_mods_vars	27	M4L(var2);UNIMOD:21@7;Phospho@5	ALE(Phospho)PT(Phospho)IDER
+dwv_mods_vars	28	E5S(var1);M4L(var2);UNIMOD:21@7;Phospho@5	ALS(Phospho)PT(Phospho)IDER
+dwv_mods_vars	29	UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AM(Oxidation)E(Phospho)PT(Phospho)IDER
+dwv_mods_vars	30	E5S(var1);UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AM(Oxidation)S(Phospho)PT(Phospho)IDER
+dwv_mods_vars	31	M4L(var2);UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AL(Oxidation)E(Phospho)PT(Phospho)IDER
+dwv_mods_vars	32	E5S(var1);M4L(var2);UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AL(Oxidation)S(Phospho)PT(Phospho)IDER
+sizes	dwv_mods_vars_noref	31	31
+dwv_mods_vars_noref	0	E5S(var1)	AMSPTIDER
+dwv_mods_vars_noref	1	M4L(var2)	ALEPTIDER
+dwv_mods_vars_noref	2	E5S(var1);M4L(var2)	ALSPTIDER
+dwv_mods_vars_noref	3	UNIMOD:35@4	AM(Oxidation)EPTIDER
+dwv_mods_vars_noref	4	E5S(var1);UNIMOD:35@4	AM(Oxidation)SPTIDER
+dwv_mods_vars_noref	5	M4L(var2);UNIMOD:35@4	AL(Oxidation)EPTIDER
+dwv_mods_vars_noref	6	E5S(var1);M4L(var2);UNIMOD:35@4	AL(Oxidation)SPTIDER
+dwv_mods_vars_noref	7	UNIMOD:21@7	AMEPT(Phospho)IDER
+dwv_mods_vars_noref	8	E5S(var1);UNIMOD:21@7	AMSPT(Phospho)IDER
+dwv_mods_vars_noref	9	M4L(var2);UNIMOD:21@7	ALEPT(Phospho)IDER
+dwv_mods_vars_noref	10	E5S(var1);M4L(var2);UNIMOD:21@7	ALSPT(Phospho)IDER
+dwv_mods_vars_noref	11	UNIMOD:35@4;UNIMOD:21@7	AM(Oxidation)EPT(Phospho)IDER
+dwv_mods_vars_noref	12	E5S(var1);UNIMOD:35@4;UNIMOD:21@7	AM(Oxidation)SPT(Phospho)IDER
+dwv_mods_vars_noref	13	M4L(var2);UNIMOD:35@4;UNIMOD:21@7	AL(Oxidation)EPT(Phospho)IDER
+dwv_mods_vars_noref	14	E5S(var1);M4L(var2);UNIMOD:35@4;UNIMOD:21@7	AL(Oxidation)SPT(Phospho)IDER
+dwv_mods_vars_noref	15	Phospho@5	AME(Phospho)PTIDER
+dwv_mods_vars_noref	16	E5S(var1);Phospho@5	AMS(Phospho)PTIDER
+dwv_mods_vars_noref	17	M4L(var2);Phospho@5	ALE(Phospho)PTIDER
+dwv_mods_vars_noref	18	E5S(var1);M4L(var2);Phospho@5	ALS(Phospho)PTIDER
+dwv_mods_vars_noref	19	UNIMOD:35@4;Phospho@5	AM(Oxidation)E(Phospho)PTIDER
+dwv_mods_vars_noref	20	E5S(var1);UNIMOD:35@4;Phospho@5	AM(Oxidation)S(Phospho)PTIDER
+dwv_mods_vars_noref	21	M4L(var2);UNIMOD:35@4;Phospho@5	AL(Oxidation)E(Phospho)PTIDER
+dwv_mods_vars_noref	22	E5S(var1);M4L(var2);UNIMOD:35@4;Phospho@5	AL(Oxidation)S(Phospho)PTIDER
+dwv_mods_vars_noref	23	UNIMOD:21@7;Phospho@5	AME(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	24	E5S(var1);UNIMOD:21@7;Phospho@5	AMS(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	25	M4L(var2);UNIMOD:21@7;Phospho@5	ALE(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	26	E5S(var1);M4L(var2);UNIMOD:21@7;Phospho@5	ALS(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	27	UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AM(Oxidation)E(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	28	E5S(var1);UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AM(Oxidation)S(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	29	M4L(var2);UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AL(Oxidation)E(Phospho)PT(Phospho)IDER
+dwv_mods_vars_noref	30	E5S(var1);M4L(var2);UNIMOD:35@4;UNIMOD:21@7;Phospho@5	AL(Oxidation)S(Phospho)PT(Phospho)IDER
+sizes	dwv_unspecific	17	17
+dwv_unspecific	0		PE
+dwv_unspecific	1	E2Q(v)	PQ
+dwv_unspecific	2		EP
+dwv_unspecific	3	E2Q(v)	QP
+dwv_unspecific	4		PT
+dwv_unspecific	5		TI
+dwv_unspecific	6		ID
+dwv_unspecific	7		DE
+dwv_unspecific	8		EK
+dwv_unspecific	9		PEP
+dwv_unspecific	10	E2Q(v)	PQP
+dwv_unspecific	11		EPT
+dwv_unspecific	12	E2Q(v)	QPT
+dwv_unspecific	13		PTI
+dwv_unspecific	14		TID
+dwv_unspecific	15		IDE
+dwv_unspecific	16		DEK
+sizes	dwv_nocleavage	2	2
+dwv_nocleavage	0		PEPTIDEK
+dwv_nocleavage	1	E2Q(v)	PQPTIDEK
+sizes	gen_basic	9	9
+gen_basic	0		MK
+gen_basic	1		AMEPTIDER
+gen_basic	2	UNIMOD:21@3	AME(Phospho)PTIDER
+gen_basic	3	UNIMOD:21@5	AMEPT(Phospho)IDER
+gen_basic	4	UNIMOD:21@3;UNIMOD:21@5	AME(Phospho)PT(Phospho)IDER
+gen_basic	5	M4L(dbSNP:test)	ALEPTIDER
+gen_basic	6	M4L(dbSNP:test);UNIMOD:21@3	ALE(Phospho)PTIDER
+gen_basic	7	M4L(dbSNP:test);UNIMOD:21@5	ALEPT(Phospho)IDER
+gen_basic	8	M4L(dbSNP:test);UNIMOD:21@3;UNIMOD:21@5	ALE(Phospho)PT(Phospho)IDER
+sizes	gen_basic_noref	7	7
+gen_basic_noref	0	UNIMOD:21@3	AME(Phospho)PTIDER
+gen_basic_noref	1	UNIMOD:21@5	AMEPT(Phospho)IDER
+gen_basic_noref	2	UNIMOD:21@3;UNIMOD:21@5	AME(Phospho)PT(Phospho)IDER
+gen_basic_noref	3	M4L(dbSNP:test)	ALEPTIDER
+gen_basic_noref	4	M4L(dbSNP:test);UNIMOD:21@3	ALE(Phospho)PTIDER
+gen_basic_noref	5	M4L(dbSNP:test);UNIMOD:21@5	ALEPT(Phospho)IDER
+gen_basic_noref	6	M4L(dbSNP:test);UNIMOD:21@3;UNIMOD:21@5	ALE(Phospho)PT(Phospho)IDER
+sizes	gen_basic_cap1	7	7
+gen_basic_cap1	0		MK
+gen_basic_cap1	1		AMEPTIDER
+gen_basic_cap1	2	UNIMOD:21@3	AME(Phospho)PTIDER
+gen_basic_cap1	3	UNIMOD:21@5	AMEPT(Phospho)IDER
+gen_basic_cap1	4	M4L(dbSNP:test)	ALEPTIDER
+gen_basic_cap1	5	M4L(dbSNP:test);UNIMOD:21@3	ALE(Phospho)PTIDER
+gen_basic_cap1	6	M4L(dbSNP:test);UNIMOD:21@5	ALEPT(Phospho)IDER
+sizes	gen_fixed	3	3
+gen_fixed	0		MK
+gen_fixed	1		AC(Carbamidomethyl)MEPTIDER
+gen_fixed	2		MC(Carbamidomethyl)K
+sizes	gen_variable	6	6
+gen_variable	0		MK
+gen_variable	1	+varmod	M(Oxidation)K
+gen_variable	2		ACMEPTIDER
+gen_variable	3	+varmod	ACM(Oxidation)EPTIDER
+gen_variable	4		MCK
+gen_variable	5	+varmod	M(Oxidation)CK
+sizes	gen_full	7	7
+gen_full	0		MK
+gen_full	1	+varmod	M(Oxidation)K
+gen_full	2		AC(Carbamidomethyl)MEPTIDER
+gen_full	3	+varmod	AC(Carbamidomethyl)M(Oxidation)EPTIDER
+gen_full	4	M5L(var1)	AC(Carbamidomethyl)LEPTIDER
+gen_full	5		MC(Carbamidomethyl)K
+gen_full	6	+varmod	M(Oxidation)C(Carbamidomethyl)K
+sizes	gen_full_mc1_noref	5	5
+gen_full_mc1_noref	0	M5L(var1)	AC(Carbamidomethyl)LEPTIDER
+gen_full_mc1_noref	1	M5L(var1)	MKAC(Carbamidomethyl)LEPTIDER
+gen_full_mc1_noref	2	M5L(var1);+varmod	M(Oxidation)KAC(Carbamidomethyl)LEPTIDER
+gen_full_mc1_noref	3	M5L(var1)	AC(Carbamidomethyl)LEPTIDERMC(Carbamidomethyl)K
+gen_full_mc1_noref	4	M5L(var1);+varmod	AC(Carbamidomethyl)LEPTIDERM(Oxidation)C(Carbamidomethyl)K
+sizes	gen_noref	1	1
+gen_noref	0	UNIMOD:21@4	MKPE(Phospho)PTIDER
+count	gen_cap_1	10
+count	gen_cap_2	46
+count	gen_cap_3	130
+count	gen_cap_0	512
+sizes	gen_cap_2	46	46
+gen_cap_2	0		ASASASASASASASASAS
+gen_cap_2	1	UNIMOD:21@2	AS(Phospho)ASASASASASASASAS
+gen_cap_2	2	UNIMOD:21@4	ASAS(Phospho)ASASASASASASAS
+gen_cap_2	3	UNIMOD:21@2;UNIMOD:21@4	AS(Phospho)AS(Phospho)ASASASASASASAS
+gen_cap_2	4	UNIMOD:21@6	ASASAS(Phospho)ASASASASASAS
+gen_cap_2	5	UNIMOD:21@2;UNIMOD:21@6	AS(Phospho)ASAS(Phospho)ASASASASASAS
+gen_cap_2	6	UNIMOD:21@4;UNIMOD:21@6	ASAS(Phospho)AS(Phospho)ASASASASASAS
+gen_cap_2	7	UNIMOD:21@8	ASASASAS(Phospho)ASASASASAS
+gen_cap_2	8	UNIMOD:21@2;UNIMOD:21@8	AS(Phospho)ASASAS(Phospho)ASASASASAS
+gen_cap_2	9	UNIMOD:21@4;UNIMOD:21@8	ASAS(Phospho)ASAS(Phospho)ASASASASAS
+gen_cap_2	10	UNIMOD:21@6;UNIMOD:21@8	ASASAS(Phospho)AS(Phospho)ASASASASAS
+gen_cap_2	11	UNIMOD:21@10	ASASASASAS(Phospho)ASASASAS
+gen_cap_2	12	UNIMOD:21@2;UNIMOD:21@10	AS(Phospho)ASASASAS(Phospho)ASASASAS
+gen_cap_2	13	UNIMOD:21@4;UNIMOD:21@10	ASAS(Phospho)ASASAS(Phospho)ASASASAS
+gen_cap_2	14	UNIMOD:21@6;UNIMOD:21@10	ASASAS(Phospho)ASAS(Phospho)ASASASAS
+gen_cap_2	15	UNIMOD:21@8;UNIMOD:21@10	ASASASAS(Phospho)AS(Phospho)ASASASAS
+gen_cap_2	16	UNIMOD:21@12	ASASASASASAS(Phospho)ASASAS
+gen_cap_2	17	UNIMOD:21@2;UNIMOD:21@12	AS(Phospho)ASASASASAS(Phospho)ASASAS
+gen_cap_2	18	UNIMOD:21@4;UNIMOD:21@12	ASAS(Phospho)ASASASAS(Phospho)ASASAS
+gen_cap_2	19	UNIMOD:21@6;UNIMOD:21@12	ASASAS(Phospho)ASASAS(Phospho)ASASAS
+gen_cap_2	20	UNIMOD:21@8;UNIMOD:21@12	ASASASAS(Phospho)ASAS(Phospho)ASASAS
+gen_cap_2	21	UNIMOD:21@10;UNIMOD:21@12	ASASASASAS(Phospho)AS(Phospho)ASASAS
+gen_cap_2	22	UNIMOD:21@14	ASASASASASASAS(Phospho)ASAS
+gen_cap_2	23	UNIMOD:21@2;UNIMOD:21@14	AS(Phospho)ASASASASASAS(Phospho)ASAS
+gen_cap_2	24	UNIMOD:21@4;UNIMOD:21@14	ASAS(Phospho)ASASASASAS(Phospho)ASAS
+gen_cap_2	25	UNIMOD:21@6;UNIMOD:21@14	ASASAS(Phospho)ASASASAS(Phospho)ASAS
+gen_cap_2	26	UNIMOD:21@8;UNIMOD:21@14	ASASASAS(Phospho)ASASAS(Phospho)ASAS
+gen_cap_2	27	UNIMOD:21@10;UNIMOD:21@14	ASASASASAS(Phospho)ASAS(Phospho)ASAS
+gen_cap_2	28	UNIMOD:21@12;UNIMOD:21@14	ASASASASASAS(Phospho)AS(Phospho)ASAS
+gen_cap_2	29	UNIMOD:21@16	ASASASASASASASAS(Phospho)AS
+gen_cap_2	30	UNIMOD:21@2;UNIMOD:21@16	AS(Phospho)ASASASASASASAS(Phospho)AS
+gen_cap_2	31	UNIMOD:21@4;UNIMOD:21@16	ASAS(Phospho)ASASASASASAS(Phospho)AS
+gen_cap_2	32	UNIMOD:21@6;UNIMOD:21@16	ASASAS(Phospho)ASASASASAS(Phospho)AS
+gen_cap_2	33	UNIMOD:21@8;UNIMOD:21@16	ASASASAS(Phospho)ASASASAS(Phospho)AS
+gen_cap_2	34	UNIMOD:21@10;UNIMOD:21@16	ASASASASAS(Phospho)ASASAS(Phospho)AS
+gen_cap_2	35	UNIMOD:21@12;UNIMOD:21@16	ASASASASASAS(Phospho)ASAS(Phospho)AS
+gen_cap_2	36	UNIMOD:21@14;UNIMOD:21@16	ASASASASASASAS(Phospho)AS(Phospho)AS
+gen_cap_2	37	UNIMOD:21@18	ASASASASASASASASAS(Phospho)
+gen_cap_2	38	UNIMOD:21@2;UNIMOD:21@18	AS(Phospho)ASASASASASASASAS(Phospho)
+gen_cap_2	39	UNIMOD:21@4;UNIMOD:21@18	ASAS(Phospho)ASASASASASASAS(Phospho)
+gen_cap_2	40	UNIMOD:21@6;UNIMOD:21@18	ASASAS(Phospho)ASASASASASAS(Phospho)
+gen_cap_2	41	UNIMOD:21@8;UNIMOD:21@18	ASASASAS(Phospho)ASASASASAS(Phospho)
+gen_cap_2	42	UNIMOD:21@10;UNIMOD:21@18	ASASASASAS(Phospho)ASASASAS(Phospho)
+gen_cap_2	43	UNIMOD:21@12;UNIMOD:21@18	ASASASASASAS(Phospho)ASASAS(Phospho)
+gen_cap_2	44	UNIMOD:21@14;UNIMOD:21@18	ASASASASASASAS(Phospho)ASAS(Phospho)
+gen_cap_2	45	UNIMOD:21@16;UNIMOD:21@18	ASASASASASASASAS(Phospho)AS(Phospho)
+modified	materialise	PEPTIDES(Phospho)
+processed	signal	RESTOFPROTEIN
+processed	transit_named_signal	LPEPTIDERESTOFPROTEIN
+processed	absent	[]

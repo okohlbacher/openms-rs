@@ -1,0 +1,268 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "test_data_revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+ "license": "BSD-3-Clause",
+ "method": "Executed differential: the oracle driver ../oracle/F1b-openswath/driver.cpp links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06 and ran twice in a clean environment with byte-identical records and output files (results/differ.txt empty). The Rust tests read the records and the C++-written .xic/.xim/.xipm/.parquet files and compare bit for bit (doubles through %a). The class tests of every ported header are reproduced with their literals; the retained upstream .xic/.xim/.xipm inputs are also compared field by field with files the Rust writers produce from the same chromatograms and peak maps.",
+ "evidence_tier": "1 (executed differential) and 3 (class tests)",
+ "reference_tools": "../oracle/F1b-openswath (driver.cpp, node.sh, run.sh)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XICParquetFile.h",
+   "sha256": "a51e571fefc75a27f6afe289a2f124b2264b4f3a493118e613385f81b8fc4389"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XICParquetFile.cpp",
+   "sha256": "6158e259d21c97b0f197c5e7ee340ece4ca1dfe2a4e09242ff4cc4f8ef9450ca"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XIMParquetFile.h",
+   "sha256": "3f8ae954d93a175609abc7de0859d657042ff9c8e48b4e8c758b70bed9a059e1"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XIMParquetFile.cpp",
+   "sha256": "16556795dff884ab63c38a283ea1f2fa39484cfce2d67abf4d4fb3774ff8a9ea"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/XIPMParquetFile.h",
+   "sha256": "b66892c872da90b4afb6ca552b25a5e271d1a66b806a4a0de2c2c2c7f4cef460"
+  },
+  {
+   "path": "src/openms/source/FORMAT/XIPMParquetFile.cpp",
+   "sha256": "8e351dc9d9b0bcdfcbfc1188b65b22d412ce751814d5793964d3dfb3ca8602dc"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/ParquetReaderHelpers.h",
+   "sha256": "f5e63439e911b3afda8c108bb62cbfca75ff858fd096cb2a6ded7759baaa8599"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/ParquetReaderHelpers.cpp",
+   "sha256": "1960c64f299394349b36625ffbe8166c05e75637f996c8ef8a449fce10f3b5e6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.h",
+   "sha256": "e7608d5a98f0266e60b848e3e29eb408ab934037b182ca2365819d5ca72b1533"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MSChromatogramParquetConsumer.cpp",
+   "sha256": "da6162fa81adff694fcc69bd7a321c7be04d103569bac7cc788e2984dbd427ec"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/MobilogramParquetConsumer.h",
+   "sha256": "6f3d0d276e5e8ab82177a84799ae9e3634991fb40c643b7027029637452a22a7"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/MobilogramParquetConsumer.cpp",
+   "sha256": "1f556e12b3a1b26de9d0821037a7d0fd5856700def49a90b328d3dabe278bdba"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/XIPMParquetConsumer.h",
+   "sha256": "c1388bbeca30666a262cb6c0f318afc0feb5610b1b47a8cb5c85f0e15aefb40a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/XIPMParquetConsumer.cpp",
+   "sha256": "3558e3657b8eaf7161b761082003d21668b1f8ecc1b4406019d6818decac34db"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSExperimentArrowExport.h",
+   "sha256": "fcfbd407feef17ad7dab77cc516697be99ac8733fc2cae76b187c396b4f00db5"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MSExperimentArrowExport.cpp",
+   "sha256": "d1d20afe11d118790bcf25d6802c965504b8bf0e5c102cb04890ae078eedd038"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakMapExtractor.h",
+   "sha256": "38fa7b336a3189fb2acbde2278dd188c495a3d78592d1821ecb0a3e453c2debe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XICParquetFile_test.cpp",
+   "sha256": "574fbbe87a3e62fcdda7ce137ba44be2e63398a0cc5a9a223bda10e82dad0b95"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XIMParquetFile_test.cpp",
+   "sha256": "7b2d612e7fedfda128419b53eaab096ee61984c87393d82f09ae86b31a73917b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XIPMParquetFile_test.cpp",
+   "sha256": "9438250b7fa688269dbb260cea82618d79ca55e0115bf55f8e798a3f4f3d4af3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/XIPMParquetConsumer_test.cpp",
+   "sha256": "24076657c06f344d4c014336c8692909e1d0d4f026997a645faf4177ecd1def8"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSChromatogramParquetConsumer_test.cpp",
+   "sha256": "688f8c9698d5c94d9cc9ccd333258c2f4715e3452e69b37eee6039450c904e8f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MobilogramParquetConsumer_test.cpp",
+   "sha256": "2923fe330dd7a7df108b592c5eaa9af6ab48db46d07fd8ba3ac63ec2e085b93b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MSExperimentArrowExport_test.cpp",
+   "sha256": "af8bba761ccc05408fa88f4e87a2982e7a45977c5c43cc51a40d70cd5fbdc6d0"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/openswath_parquet/MSChromatogramParquetConsumer_1_input.TraML",
+   "sha256": "2fdbce23ce25d8656729da600f43c91bb9754acab9b260b1e676d76c2f19f130",
+   "kind": "retained upstream class-test input, core bc9cc12 src/tests/class_tests/openms/data/MSChromatogramParquetConsumer_1_input.TraML"
+  },
+  {
+   "path": "tests/data/openswath_parquet/MSChromatogramParquetConsumer_1_output.chrom.mzML",
+   "sha256": "e6c2409729250c7bd537804d0737bd205f36d0523ce3a904eb2344694f1689e7",
+   "kind": "retained upstream class-test input, core bc9cc12 src/tests/class_tests/openms/data/MSChromatogramParquetConsumer_1_output.chrom.mzML"
+  },
+  {
+   "path": "tests/data/openswath_parquet/XICParquetFile_1_input.xic",
+   "sha256": "26a9b0b741d6a936b8713bb7057373fcf643ca991dea46225aaad42dfeccb5c2",
+   "kind": "retained upstream class-test input, core bc9cc12 src/tests/class_tests/openms/data/XICParquetFile_1_input.xic"
+  },
+  {
+   "path": "tests/data/openswath_parquet/XICParquetFile_2_input.xic",
+   "sha256": "26a9b0b741d6a936b8713bb7057373fcf643ca991dea46225aaad42dfeccb5c2",
+   "kind": "retained upstream class-test input, core bc9cc12 src/tests/class_tests/openms/data/XICParquetFile_2_input.xic"
+  },
+  {
+   "path": "tests/data/openswath_parquet/XIMParquetFile_23_input.xim",
+   "sha256": "558c4b1a4af4cba2b4a610aafde283025376ccc14a163022ed94b16b0266ec1a",
+   "kind": "retained upstream class-test input, core bc9cc12 src/tests/class_tests/openms/data/XIMParquetFile_23_input.xim"
+  },
+  {
+   "path": "tests/data/openswath_parquet/XIPMParquetFile_1_input.xipm",
+   "sha256": "0b39f2bd40debc0d414c362b63f4fe0c2054c6d56c48b810ebb080b72ebd74e7",
+   "kind": "retained upstream class-test input, core bc9cc12 src/tests/class_tests/openms/data/XIPMParquetFile_1_input.xipm"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/chroms_long.parquet",
+   "sha256": "3b5a48c68382eb8e86394a248ccdd50286cd09dd729fb5a439562a04fe768509",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/chroms_wide_rt.parquet",
+   "sha256": "9ced7ad325eafc6a326a7aa85c5052bc2a51ffc5ea6861565f0373c9dafbcb11",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/consumer.xic",
+   "sha256": "423f5348db983e09d7a92c9bfe39a8cfbd692cb15c47f5d5738ec04642526f17",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/consumer.xim",
+   "sha256": "bbedd7a86f1f3e229ccd837e1dd675ccfa19955b434a8bcf86566c3fff89a104",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/consumer.xipm",
+   "sha256": "e2a7ee58d4c34c9fa7f7df976758ef3123d5295e0b2a1552e8b862c721ae17b3",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/consumer_after.xic",
+   "sha256": "260fef74744056ef5566886fb202179c331b25dd5d3ee5a90c1537887969dcf7",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/consumer_badid.xic",
+   "sha256": "36c43b110726f403d69f5e1eb926edcb9e2bca8dc853518f81c173f92dd8d86f",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/records.tsv",
+   "sha256": "91a8ca259376ba1573c2842d3494828a94dfae37bf39811a48ed5a8a0894e5ee",
+   "kind": "records of the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/spectra_long.parquet",
+   "sha256": "1b36e98cc85a2ed3593ac98a5f614b5874a418a67415a2bba8444e017db853e2",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/spectra_long_columns.parquet",
+   "sha256": "d4d9ed9cba9998dd0b1e81e0c25d3ff16a3e0e3ee2880ea373ff1c7a8f349f4f",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/spectra_long_windows.parquet",
+   "sha256": "53d28f9c081164ff98f48ef52a7ce605dc7de46262cfe6399d38bd9c67baba6c",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/spectra_wide.parquet",
+   "sha256": "3c63059d44d6d775f91cdf7ed44c6a22ce6e3f5addf484528609ba3740277f13",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  },
+  {
+   "path": "tests/data/openswath_parquet/cpp_release/spectra_wide_windows.parquet",
+   "sha256": "fd484ed2b433f67306747b4e40283c89c86e02d8aa43bf03c34d398b14b0f6d7",
+   "kind": "file written by the executed Release build (oracle F1b-openswath)"
+  }
+ ],
+ "native_implementation": [
+  "src/format/parquet_reader_helpers.rs",
+  "src/format/xic_parquet_file.rs",
+  "src/format/xim_parquet_file.rs",
+  "src/format/xipm_parquet_file.rs",
+  "src/format/openswath_parquet_writer.rs",
+  "src/format/ms_chromatogram_parquet_consumer.rs",
+  "src/format/mobilogram_parquet_consumer.rs",
+  "src/format/xipm_parquet_consumer.rs",
+  "src/format/msexperiment_arrow_export.rs",
+  "src/analysis/openswath/peak_map_extractor.rs"
+ ],
+ "native_tests": [
+  "tests/openswath_parquet.rs",
+  "tests/openswath_parquet_writers.rs",
+  "tests/openswath_parquet_oracle.rs",
+  "tests/msexperiment_arrow_export.rs"
+ ],
+ "support_document": "docs/OPENSWATH_PARQUET_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F1b-openswath/driver.cpp",
+   "sha256": "0ed290c61fe6d634217bcd132652e05787d3556ddd3d24740b91c55e3dfdbb42",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1b-openswath/node.sh",
+   "sha256": "0943eb0ac0ac1ae13b7451bb4a7f71ecba18f997aeb792af5995a9c364fbb4ce",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1b-openswath/run.sh",
+   "sha256": "a8cd465c3873db84a3ea8036b862a92760d8bc879c99c231b394b6c688c7dcd6",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1b-openswath/results/hashes.txt",
+   "sha256": "9ede85dcac71bf9455c06d06d354fa10da5566325c2cc690b1de1ede622f6119",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1b-openswath/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1b-openswath/results/records.tsv",
+   "sha256": "91a8ca259376ba1573c2842d3494828a94dfae37bf39811a48ed5a8a0894e5ee",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1b-openswath/results/differ.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  }
+ ],
+ "external_reference_note": "The oracle driver is C++ and stays outside the repository; its records and every file it wrote were copied verbatim into tests/data/openswath_parquet/cpp_release/ (hashes above), and results/hashes.txt hashes the driver, the built binary, libOpenMS.so and every output."
+}

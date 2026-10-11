@@ -102,6 +102,51 @@ fn source_double(value: f64) -> String {
     format_float(value, true)
 }
 
+/// `EmpiricalFormula::toString()`: each element as its symbol (an isotope as
+/// `(<mass number>)<symbol>`) followed by its count, ordered by that symbol
+/// *text* (the source builds a `std::map<std::string, int>`), so isotopes
+/// such as `(2)H` sort before `C`; the charge is not written.
+///
+/// The crate's `Display` for `EmpiricalFormula` orders by element and appends
+/// the charge, which differs for isotope-labelled or charged formulas. This
+/// re-orders the `Display` text, the only public view of the atoms.
+pub(crate) fn source_formula_text(formula: &crate::chemistry::EmpiricalFormula) -> String {
+    let text = formula.to_string();
+    let bytes = text.as_bytes();
+    let mut tokens: Vec<(&str, &str)> = Vec::new();
+    let mut index = 0;
+    while index < bytes.len() {
+        let start = index;
+        if bytes[index] == b'(' {
+            while index < bytes.len() && bytes[index] != b')' {
+                index += 1;
+            }
+            index += 1;
+        }
+        if index >= bytes.len() || !bytes[index].is_ascii_uppercase() {
+            // What remains is the signed charge `Display` appends.
+            break;
+        }
+        index += 1;
+        while index < bytes.len() && bytes[index].is_ascii_lowercase() {
+            index += 1;
+        }
+        let symbol_end = index;
+        if index < bytes.len() && bytes[index] == b'-' {
+            index += 1;
+        }
+        while index < bytes.len() && bytes[index].is_ascii_digit() {
+            index += 1;
+        }
+        tokens.push((&text[start..symbol_end], &text[symbol_end..index]));
+    }
+    tokens.sort_by(|a, b| a.0.cmp(b.0));
+    tokens
+        .iter()
+        .map(|(symbol, count)| format!("{symbol}{count}"))
+        .collect()
+}
+
 /// The `MTD` line prefix, and the tab the source concatenates after it.
 const MTD: &str = "MTD\t";
 
@@ -683,13 +728,9 @@ impl MzTabM {
     ///
     /// # Notes
     ///
-    /// [`ControlledVocabulary::psi_ms`] carries all five pinned vocabularies in
-    /// one object, so its `name`, `label`, `version` and `url` identify the
-    /// vocabulary loaded last rather than PSI-MS, and the `cv[1]` block this
-    /// produces is correspondingly generic. A caller that needs the `cv[1]`
-    /// block the source writes must load `psi-ms.obo` alone under the name
-    /// `PSI-MS` and call [`MzTabM::export_feature_map_with`]. Term *lookups*
-    /// are unaffected: the shared object contains every PSI-MS term.
+    /// The vocabulary is [`ControlledVocabulary::psi_ms_only`]: the pinned
+    /// `psi-ms.obo` alone under the name `PSI-MS`, exactly what the source
+    /// loads, so the `cv[1]` block carries the source's identity.
     pub fn export_feature_map(
         feature_map: &FeatureMap,
         id_data: &IdentificationData,
@@ -697,7 +738,7 @@ impl MzTabM {
         Self::export_feature_map_with(
             feature_map,
             id_data,
-            ControlledVocabulary::psi_ms()?,
+            ControlledVocabulary::psi_ms_only()?,
             &MzTabMExportOptions::default(),
         )
     }
@@ -2666,7 +2707,9 @@ mod export {
                         source_double(feature.rt)
                     )),
                     database_identifier: MzTabString::from_text(&compound.identifier),
-                    chemical_formula: MzTabString::from_text(&compound.formula.to_string()),
+                    chemical_formula: MzTabString::from_text(&super::source_formula_text(
+                        &compound.formula,
+                    )),
                     smiles: MzTabString::from_text(&compound.smile),
                     inchi: MzTabString::from_text(&compound.inchi),
                     chemical_name: MzTabString::from_text(&compound.name),

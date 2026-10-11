@@ -1,0 +1,11 @@
+spectra	4
+chromatograms	2
+all_clear.spectrum0	0|0|0|0|index=0
+all_clear.spectrum1	0|0|0|0|index=1
+all_clear.spectrum2	0|0|0|0|index=2
+all_clear.spectrum3	0|0|0|0|index=3
+all_clear.chromatogram0	0|tic native
+all_clear.chromatogram1	0|sic native
+spectra_keep.unchanged	11
+order.exception	IllegalArgument: Cannot write spectra after writing chromatograms.
+order.spectrum_unchanged	1

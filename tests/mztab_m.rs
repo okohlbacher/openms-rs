@@ -2664,3 +2664,76 @@ fn section_line_reports_its_own_column_count() {
     assert_eq!(evidence.columns, 18);
     assert_eq!(evidence.text.split('\t').next_back().unwrap(), "rank");
 }
+
+#[cfg(feature = "sqlite")]
+#[path = "support/fuzzy_string_comparator.rs"]
+mod fuzzy;
+
+/// `MzTabM_test.cpp` section `exportFeatureMapToMzTabM` and
+/// `MzTabMFile_test.cpp` section `store`, end to end: the class tests' own
+/// input `MzTabMFile_input_1.oms` (core bc9cc12
+/// `src/tests/class_tests/openms/data/`, schema version 1) is loaded with
+/// `OmsFile`, exported and stored, and the file is compared with the retained
+/// `MzTabMFile_output_1.mztab` as `TEST_FILE_SIMILAR` compares it (ClassTest
+/// tolerances: relative 1 + 1e-5, absolute 1e-5, no whitelist).
+#[cfg(feature = "sqlite")]
+#[test]
+fn export_and_store_reproduce_the_retained_output_from_the_oms_input() {
+    use openms::format::oms_file::{OmsFile, OmsLoadOptions};
+    let loaded = OmsFile::default()
+        .load_feature_map_with(
+            "tests/data/MzTabMFile_input_1.oms",
+            OmsLoadOptions::source(),
+        )
+        .unwrap();
+    // The source loads psi-ms.obo alone, named "PSI-MS"; so does psi_ms_only.
+    let document = MzTabM::export_feature_map_with(
+        &loaded.map,
+        &loaded.identifications,
+        ControlledVocabulary::psi_ms_only().unwrap(),
+        &MzTabMExportOptions::source(),
+    )
+    .unwrap();
+    // MzTabM_test.cpp exportFeatureMapToMzTabM: the six asserted sizes.
+    assert_eq!(document.small_molecule_section_rows().len(), 83);
+    assert_eq!(document.small_molecule_feature_section_rows().len(), 83);
+    assert_eq!(document.small_molecule_evidence_section_rows().len(), 312);
+    assert_eq!(
+        document
+            .small_molecule_optional_column_names()
+            .unwrap()
+            .len(),
+        0
+    );
+    assert_eq!(
+        document
+            .small_molecule_feature_optional_column_names()
+            .unwrap()
+            .len(),
+        18
+    );
+    assert_eq!(
+        document
+            .small_molecule_evidence_optional_column_names()
+            .unwrap()
+            .len(),
+        6
+    );
+    // MzTabMFile_test.cpp store: TEST_FILE_SIMILAR against the retained file.
+    let temp = TempDir::new_in(std::env::temp_dir(), false).unwrap();
+    let path = temp.path().join("exported.mzTab");
+    MzTabMFile::with_options(MzTabMWriteOptions::source())
+        .store(&path, &document)
+        .unwrap();
+    let written = std::fs::read(&path).unwrap();
+    let expected = std::fs::read(STORE_FIXTURE).unwrap();
+    let settings = fuzzy::FuzzyDiffSettings {
+        ratio: 1.0 + 1e-5,
+        absdiff: 1e-5,
+        whitelist: Vec::new(),
+        ..fuzzy::FuzzyDiffSettings::default()
+    };
+    if let Err(log) = settings.compare_bytes(&written, &expected) {
+        panic!("MzTabMFile_output_1.mztab: TEST_FILE_SIMILAR failed:\n{log}");
+    }
+}

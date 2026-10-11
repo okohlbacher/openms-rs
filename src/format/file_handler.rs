@@ -249,7 +249,7 @@ impl FileHandler {
     /// throws `Exception::FileNotFound`. A gzip, bzip2 or ZIP input without the
     /// `file-compression` feature is [`Error::Unsupported`]; with it, all three
     /// are looked inside, as the source does (a ZIP archive through its single
-    /// file entry, `src/format/zip_input.rs`).
+    /// file entry, `src/format/zip_ifstream.rs`).
     pub fn get_type(path: impl AsRef<Path>) -> Result<FileType> {
         let normalized = filename(path.as_ref())?.trim_end_matches(['/', '\\']);
         let kind = type_by_file_name(normalized);

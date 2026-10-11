@@ -17,7 +17,7 @@ Input compression is detected from bytes, even with an unknown or misleading
 suffix. Plain, gzip, bzip2 and single-entry ZIP input are supported; limits count decompressed XML
 and decoded binary arrays. Invalid options fail before opening the input, and
 corrupt compressed streams fail rather than returning a partial experiment.
-A one-entry ZIP archive is read as the source reads it (`src/format/zip_input.rs`, see `docs/FEATUREXML_SUPPORT.md`). `load_into` and `load_into_with_options` parse an
+A one-entry ZIP archive is read as the source reads it (`src/format/zip_ifstream.rs`, see `docs/FEATUREXML_SUPPORT.md`). `load_into` and `load_into_with_options` parse an
 owned replacement before changing the destination, so every reported error leaves
 the previous value intact. Source `MzMLFile::load` resets its destination first;
 atomic failure is a deliberate native correction.

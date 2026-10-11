@@ -370,75 +370,99 @@ impl SpectrumMetaDataLookup {
         meta: &mut SpectrumMetaData,
         flags: MetaDataFlags,
     ) -> Result<()> {
-        let mut flags = flags;
-        for regex in &self.lookup.reference_formats {
-            let Some(captures) = regex.search(spectrum_ref.as_bytes())? else {
-                continue;
-            };
-            let group = |name: &str| {
-                captures
-                    .name(name)
-                    .and_then(|range| spectrum_ref.get(range))
-            };
-            let wanted = |flags: MetaDataFlags, flag: MetaDataFlags| flags & flag == flag;
-            let double = |value: &str| to_double(value).map_err(Error::InvalidValue);
-            let int = |value: &str| to_int32(value).map_err(Error::InvalidValue);
-            if wanted(flags, MDF_RT) {
-                if let Some(value) = group("RT").filter(|v| !v.is_empty()) {
-                    meta.rt = double(value)?;
-                    flags &= !MDF_RT;
-                }
+        for format in 0..self.lookup.reference_formats.len() {
+            if self.spectrum_meta_data_with_format(format, spectrum_ref, meta, flags)? {
+                return Ok(());
             }
-            if wanted(flags, MDF_PRECURSORRT) {
-                if let Some(value) = group("PRECRT").filter(|v| !v.is_empty()) {
-                    meta.precursor_rt = double(value)?;
-                    flags &= !MDF_PRECURSORRT;
-                }
-            }
-            if wanted(flags, MDF_PRECURSORMZ) {
-                if let Some(value) = group("MZ").filter(|v| !v.is_empty()) {
-                    meta.precursor_mz = double(value)?;
-                    flags &= !MDF_PRECURSORMZ;
-                }
-            }
-            if wanted(flags, MDF_PRECURSORCHARGE) {
-                if let Some(value) = group("CHARGE").filter(|v| !v.is_empty()) {
-                    meta.precursor_charge = truncate_charge(double(value)?, value)?;
-                    flags &= !MDF_PRECURSORCHARGE;
-                }
-            }
-            if wanted(flags, MDF_MSLEVEL) {
-                if let Some(value) = group("LEVEL").filter(|v| !v.is_empty()) {
-                    let level = int(value)?;
-                    meta.ms_level = usize::try_from(level).map_err(|_| {
-                        Error::InvalidValue(format!("MS level '{value}' is negative"))
-                    })?;
-                    flags &= !MDF_MSLEVEL;
-                }
-            }
-            if wanted(flags, MDF_SCANNUMBER) {
-                if let Some(value) = group("SCAN").filter(|v| !v.is_empty()) {
-                    meta.scan_number = int(value)?;
-                    flags &= !MDF_SCANNUMBER;
-                }
-            }
-            if wanted(flags, MDF_NATIVEID) {
-                if let Some(value) = group("ID") {
-                    meta.native_id = value.to_owned();
-                    if !meta.native_id.is_empty() {
-                        flags &= !MDF_NATIVEID;
-                    }
-                }
-            }
-            if flags != 0 {
-                let index =
-                    self.lookup
-                        .find_by_regexp_match(spectrum_ref, regex.as_str(), &captures)?;
-                *meta = self.spectrum_meta_data(index)?;
-            }
-            return Ok(());
         }
         Ok(())
+    }
+
+    /// [`Self::spectrum_meta_data_from_reference`] restricted to the reference
+    /// format registered at position `format`: `Ok(false)` when there is none
+    /// or it does not match `spectrum_ref` (and `meta` is unchanged),
+    /// `Ok(true)` when it matched and `meta` was filled as the source fills
+    /// it. The `MascotXMLFile` lookup evaluates its caller-supplied format
+    /// through this.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::spectrum_meta_data_from_reference`].
+    pub(crate) fn spectrum_meta_data_with_format(
+        &self,
+        format: usize,
+        spectrum_ref: &str,
+        meta: &mut SpectrumMetaData,
+        flags: MetaDataFlags,
+    ) -> Result<bool> {
+        let mut flags = flags;
+        let Some(regex) = self.lookup.reference_formats.get(format) else {
+            return Ok(false);
+        };
+        let Some(captures) = regex.search(spectrum_ref.as_bytes())? else {
+            return Ok(false);
+        };
+        let group = |name: &str| {
+            captures
+                .name(name)
+                .and_then(|range| spectrum_ref.get(range))
+        };
+        let wanted = |flags: MetaDataFlags, flag: MetaDataFlags| flags & flag == flag;
+        let double = |value: &str| to_double(value).map_err(Error::InvalidValue);
+        let int = |value: &str| to_int32(value).map_err(Error::InvalidValue);
+        if wanted(flags, MDF_RT) {
+            if let Some(value) = group("RT").filter(|v| !v.is_empty()) {
+                meta.rt = double(value)?;
+                flags &= !MDF_RT;
+            }
+        }
+        if wanted(flags, MDF_PRECURSORRT) {
+            if let Some(value) = group("PRECRT").filter(|v| !v.is_empty()) {
+                meta.precursor_rt = double(value)?;
+                flags &= !MDF_PRECURSORRT;
+            }
+        }
+        if wanted(flags, MDF_PRECURSORMZ) {
+            if let Some(value) = group("MZ").filter(|v| !v.is_empty()) {
+                meta.precursor_mz = double(value)?;
+                flags &= !MDF_PRECURSORMZ;
+            }
+        }
+        if wanted(flags, MDF_PRECURSORCHARGE) {
+            if let Some(value) = group("CHARGE").filter(|v| !v.is_empty()) {
+                meta.precursor_charge = truncate_charge(double(value)?, value)?;
+                flags &= !MDF_PRECURSORCHARGE;
+            }
+        }
+        if wanted(flags, MDF_MSLEVEL) {
+            if let Some(value) = group("LEVEL").filter(|v| !v.is_empty()) {
+                let level = int(value)?;
+                meta.ms_level = usize::try_from(level)
+                    .map_err(|_| Error::InvalidValue(format!("MS level '{value}' is negative")))?;
+                flags &= !MDF_MSLEVEL;
+            }
+        }
+        if wanted(flags, MDF_SCANNUMBER) {
+            if let Some(value) = group("SCAN").filter(|v| !v.is_empty()) {
+                meta.scan_number = int(value)?;
+                flags &= !MDF_SCANNUMBER;
+            }
+        }
+        if wanted(flags, MDF_NATIVEID) {
+            if let Some(value) = group("ID") {
+                meta.native_id = value.to_owned();
+                if !meta.native_id.is_empty() {
+                    flags &= !MDF_NATIVEID;
+                }
+            }
+        }
+        if flags != 0 {
+            let index =
+                self.lookup
+                    .find_by_regexp_match(spectrum_ref, regex.as_str(), &captures)?;
+            *meta = self.spectrum_meta_data(index)?;
+        }
+        Ok(true)
     }
 
     /// Fill in missing retention times of peptide identifications from the

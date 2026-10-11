@@ -1,0 +1,935 @@
+identity	psm	249030645178071364
+identity	format/0.1	0.10000000149011612
+warn	internal_best/0	\x1b[93mWarning: unknown modification '+123.456' of residue 'M' - adding it to the database\x1b[39m
+warn	internal_best/count	1
+warn	internal_all/count	0
+warn	qpx_best/0	\x1b[93mQPXFile: 1 PSM(s) have no resolvable origin file, so their run_file_name is empty -- a QPX primary-key component that must not be, and the key the psm view is joined to feature and pg on. Protein inference commonly drops the path: set it with ProteinIdentification::setPrimaryMSRunPath() before exporting.\x1b[39m
+warn	qpx_best/count	1
+warn	qpx_all/count	0
+table	internal_best	rows=4 cols=29
+schema	internal_best	sequence: string\npeptidoform: string\nmodifications: list<item: struct<name: string, accession: string, positions: list<item: struct<position: string, scores: double>>>>\nprecursor_charge: int32\nposterior_error_probability: double\nis_decoy: bool\ncalculated_mz: double\nobserved_mz: double\nadditional_scores: list<item: struct<score_name: string, score_value: double, higher_better: bool>>\nprotein_accessions: list<item: struct<accession: string not null, aa_before: string, aa_after: string, start: int32, end: int32>>\npredicted_rt: double\nreference_file_name: string\ncv_params: string\nscan: int32\nrt: double\nion_mobility: double\nspectrum_reference: string\nscore: double\nscore_type: string\nhigher_score_better: bool\nhit_index: int32\npeptide_identification_index: int32\npsm_metavalues: list<item: struct<name: string, value: string, value_type: string>>\nspectrum_metavalues: list<item: struct<name: string, value: string, value_type: string>>\nrun_identifier: string\nmz_array: list<item: float>\nintensity_array: list<item: float>\ncharge_array: list<item: int32>\nion_type_array: list<item: string>
+cell	internal_best/sequence/0	"PEMTIDER"
+cell	internal_best/sequence/1	"PEPTIDECK"
+cell	internal_best/sequence/2	"PEPTIDEK"
+cell	internal_best/sequence/3	"PEPTIDEK"
+cell	internal_best/peptidoform/0	"PEM[UNIMOD:35]TIDER"
+cell	internal_best/peptidoform/1	"[UNIMOD:1]-PEPTIDEC[UNIMOD:4]K"
+cell	internal_best/peptidoform/2	"PEPTIDEK"
+cell	internal_best/peptidoform/3	"PEPTIDEK-[UNIMOD:2]"
+cell	internal_best/modifications/0	[{name="Oxidation",accession="UNIMOD:35",positions=[{position="M.3",scores=null}]}]
+cell	internal_best/modifications/1	[{name="Acetyl",accession="UNIMOD:1",positions=[{position="N-term.0",scores=null}]}\x1e{name="Carbamidomethyl",accession="UNIMOD:4",positions=[{position="C.8",scores=null}]}]
+cell	internal_best/modifications/2	[]
+cell	internal_best/modifications/3	[{name="Amidated",accession="UNIMOD:2",positions=[{position="C-term.9",scores=null}]}]
+cell	internal_best/precursor_charge/0	i:2
+cell	internal_best/precursor_charge/1	i:3
+cell	internal_best/precursor_charge/2	i:0
+cell	internal_best/precursor_charge/3	i:2
+cell	internal_best/posterior_error_probability/0	f64:3f947ae147ae147b
+cell	internal_best/posterior_error_probability/1	f64:3fa999999999999a
+cell	internal_best/posterior_error_probability/2	null
+cell	internal_best/posterior_error_probability/3	null
+cell	internal_best/is_decoy/0	b:false
+cell	internal_best/is_decoy/1	b:true
+cell	internal_best/is_decoy/2	null
+cell	internal_best/is_decoy/3	null
+cell	internal_best/calculated_mz/0	f64:407f7baa895b7ae1
+cell	internal_best/calculated_mz/1	f64:407798188b3a52fb
+cell	internal_best/calculated_mz/2	null
+cell	internal_best/calculated_mz/3	f64:407d03e23e195b78
+cell	internal_best/observed_mz/0	f64:407f440000000000
+cell	internal_best/observed_mz/1	f64:4082c26666666666
+cell	internal_best/observed_mz/2	f64:4079000000000000
+cell	internal_best/observed_mz/3	f64:407c280000000000
+cell	internal_best/additional_scores/0	[{score_name="Posterior Error Probability",score_value=f64:3f947ae147ae147b,higher_better=b:false}\x1e{score_name="q-value",score_value=f64:3f847ae147ae147b,higher_better=b:false}\x1e{score_name="expect",score_value=f64:3f50624dd2f1a9fc,higher_better=null}\x1e{score_name="hyperscore",score_value=f64:4041800000000000,higher_better=null}]
+cell	internal_best/additional_scores/1	[]
+cell	internal_best/additional_scores/2	[]
+cell	internal_best/additional_scores/3	[]
+cell	internal_best/protein_accessions/0	[{accession="PROT_A",aa_before="K",aa_after="A",start=i:10,end=i:17}\x1e{accession="PROT_B",aa_before=null,aa_after=null,start=null,end=null}]
+cell	internal_best/protein_accessions/1	[{accession="PROT_C",aa_before="[",aa_after="]",start=i:0,end=i:9}]
+cell	internal_best/protein_accessions/2	[]
+cell	internal_best/protein_accessions/3	[]
+cell	internal_best/predicted_rt/0	f64:4092c00000000000
+cell	internal_best/predicted_rt/1	f64:4056000000000000
+cell	internal_best/predicted_rt/2	null
+cell	internal_best/predicted_rt/3	null
+cell	internal_best/reference_file_name/0	"/data/run1.mzML"
+cell	internal_best/reference_file_name/1	"/b/fracB.mzML.gz"
+cell	internal_best/reference_file_name/2	null
+cell	internal_best/reference_file_name/3	"/data/run1.mzML"
+cell	internal_best/cv_params/0	null
+cell	internal_best/cv_params/1	null
+cell	internal_best/cv_params/2	null
+cell	internal_best/cv_params/3	null
+cell	internal_best/scan/0	i:1000
+cell	internal_best/scan/1	i:42
+cell	internal_best/scan/2	i:5
+cell	internal_best/scan/3	i:1001
+cell	internal_best/rt/0	f64:40934a0000000000
+cell	internal_best/rt/1	null
+cell	internal_best/rt/2	f64:4049000000000000
+cell	internal_best/rt/3	f64:4094510000000000
+cell	internal_best/ion_mobility/0	f64:3fe8000000000000
+cell	internal_best/ion_mobility/1	f64:3ff199999999999a
+cell	internal_best/ion_mobility/2	null
+cell	internal_best/ion_mobility/3	null
+cell	internal_best/spectrum_reference/0	"controllerType=0 controllerNumber=1 scan=1000"
+cell	internal_best/spectrum_reference/1	"scan=42"
+cell	internal_best/spectrum_reference/2	"index=5"
+cell	internal_best/spectrum_reference/3	"controllerType=0 controllerNumber=1 scan=1001"
+cell	internal_best/score/0	f64:3f847ae147ae147b
+cell	internal_best/score/1	f64:3fa999999999999a
+cell	internal_best/score/2	f64:4029000000000000
+cell	internal_best/score/3	f64:3fc999999999999a
+cell	internal_best/score_type/0	"q-value"
+cell	internal_best/score_type/1	"Posterior Error Probability"
+cell	internal_best/score_type/2	"hyperscore"
+cell	internal_best/score_type/3	"q-value"
+cell	internal_best/higher_score_better/0	b:false
+cell	internal_best/higher_score_better/1	b:false
+cell	internal_best/higher_score_better/2	b:true
+cell	internal_best/higher_score_better/3	b:false
+cell	internal_best/hit_index/0	i:0
+cell	internal_best/hit_index/1	i:0
+cell	internal_best/hit_index/2	i:0
+cell	internal_best/hit_index/3	i:0
+cell	internal_best/peptide_identification_index/0	i:0
+cell	internal_best/peptide_identification_index/1	i:1
+cell	internal_best/peptide_identification_index/2	i:3
+cell	internal_best/peptide_identification_index/3	i:4
+cell	internal_best/psm_metavalues/0	[{name="rank",value="1",value_type="int"}\x1e{name="missed_cleavages",value="1",value_type="int"}\x1e{name="COMET:deltaCn",value="0.5",value_type="double"}\x1e{name="custom_list",value="[a, b]",value_type="string_list"}]
+cell	internal_best/psm_metavalues/1	[]
+cell	internal_best/psm_metavalues/2	[]
+cell	internal_best/psm_metavalues/3	[]
+cell	internal_best/spectrum_metavalues/0	[{name="pep_note",value="hello",value_type="string"}]
+cell	internal_best/spectrum_metavalues/1	[{name="id_merge_index",value="1",value_type="int"}]
+cell	internal_best/spectrum_metavalues/2	[]
+cell	internal_best/spectrum_metavalues/3	[{name="reference_file_name",value="/elsewhere/other_run.mzML",value_type="string"}]
+cell	internal_best/run_identifier/0	"run1"
+cell	internal_best/run_identifier/1	"merged"
+cell	internal_best/run_identifier/2	"nopath"
+cell	internal_best/run_identifier/3	"run1"
+cell	internal_best/mz_array/0	[f32:432f1e77\x1ef32:438a13d7]
+cell	internal_best/mz_array/1	null
+cell	internal_best/mz_array/2	null
+cell	internal_best/mz_array/3	null
+cell	internal_best/intensity_array/0	[f32:447a0000\x1ef32:43fa0000]
+cell	internal_best/intensity_array/1	null
+cell	internal_best/intensity_array/2	null
+cell	internal_best/intensity_array/3	null
+cell	internal_best/charge_array/0	[i:1\x1ei:1]
+cell	internal_best/charge_array/1	null
+cell	internal_best/charge_array/2	null
+cell	internal_best/charge_array/3	null
+cell	internal_best/ion_type_array/0	["y1"\x1e"y2"]
+cell	internal_best/ion_type_array/1	null
+cell	internal_best/ion_type_array/2	null
+cell	internal_best/ion_type_array/3	null
+table	internal_all	rows=6 cols=29
+schema	internal_all	sequence: string\npeptidoform: string\nmodifications: list<item: struct<name: string, accession: string, positions: list<item: struct<position: string, scores: double>>>>\nprecursor_charge: int32\nposterior_error_probability: double\nis_decoy: bool\ncalculated_mz: double\nobserved_mz: double\nadditional_scores: list<item: struct<score_name: string, score_value: double, higher_better: bool>>\nprotein_accessions: list<item: struct<accession: string not null, aa_before: string, aa_after: string, start: int32, end: int32>>\npredicted_rt: double\nreference_file_name: string\ncv_params: string\nscan: int32\nrt: double\nion_mobility: double\nspectrum_reference: string\nscore: double\nscore_type: string\nhigher_score_better: bool\nhit_index: int32\npeptide_identification_index: int32\npsm_metavalues: list<item: struct<name: string, value: string, value_type: string>>\nspectrum_metavalues: list<item: struct<name: string, value: string, value_type: string>>\nrun_identifier: string\nmz_array: list<item: float>\nintensity_array: list<item: float>\ncharge_array: list<item: int32>\nion_type_array: list<item: string>
+cell	internal_all/sequence/0	"PEMTIDER"
+cell	internal_all/sequence/1	"SECONDK"
+cell	internal_all/sequence/2	"PEPTIDECK"
+cell	internal_all/sequence/3	"PEPTIDEK"
+cell	internal_all/sequence/4	"PEPTIDEK"
+cell	internal_all/sequence/5	"PEPTMIDEK"
+cell	internal_all/peptidoform/0	"PEM[UNIMOD:35]TIDER"
+cell	internal_all/peptidoform/1	"SECONDK"
+cell	internal_all/peptidoform/2	"[UNIMOD:1]-PEPTIDEC[UNIMOD:4]K"
+cell	internal_all/peptidoform/3	"PEPTIDEK"
+cell	internal_all/peptidoform/4	"PEPTIDEK-[UNIMOD:2]"
+cell	internal_all/peptidoform/5	"PEPTM[+123.4560]IDEK"
+cell	internal_all/modifications/0	[{name="Oxidation",accession="UNIMOD:35",positions=[{position="M.3",scores=null}]}]
+cell	internal_all/modifications/1	[]
+cell	internal_all/modifications/2	[{name="Acetyl",accession="UNIMOD:1",positions=[{position="N-term.0",scores=null}]}\x1e{name="Carbamidomethyl",accession="UNIMOD:4",positions=[{position="C.8",scores=null}]}]
+cell	internal_all/modifications/3	[]
+cell	internal_all/modifications/4	[{name="Amidated",accession="UNIMOD:2",positions=[{position="C-term.9",scores=null}]}]
+cell	internal_all/modifications/5	[{name="",accession=null,positions=[{position="M.5",scores=null}]}]
+cell	internal_all/precursor_charge/0	i:2
+cell	internal_all/precursor_charge/1	i:1
+cell	internal_all/precursor_charge/2	i:3
+cell	internal_all/precursor_charge/3	i:0
+cell	internal_all/precursor_charge/4	i:2
+cell	internal_all/precursor_charge/5	i:2
+cell	internal_all/posterior_error_probability/0	f64:3f947ae147ae147b
+cell	internal_all/posterior_error_probability/1	null
+cell	internal_all/posterior_error_probability/2	f64:3fa999999999999a
+cell	internal_all/posterior_error_probability/3	null
+cell	internal_all/posterior_error_probability/4	null
+cell	internal_all/posterior_error_probability/5	null
+cell	internal_all/is_decoy/0	b:false
+cell	internal_all/is_decoy/1	null
+cell	internal_all/is_decoy/2	b:true
+cell	internal_all/is_decoy/3	null
+cell	internal_all/is_decoy/4	null
+cell	internal_all/is_decoy/5	null
+cell	internal_all/calculated_mz/0	f64:407f7baa895b7ae1
+cell	internal_all/calculated_mz/1	f64:408d23504efaeac4
+cell	internal_all/calculated_mz/2	f64:407798188b3a52fb
+cell	internal_all/calculated_mz/3	null
+cell	internal_all/calculated_mz/4	f64:407d03e23e195b78
+cell	internal_all/calculated_mz/5	f64:40827fdd2782164b
+cell	internal_all/observed_mz/0	f64:407f440000000000
+cell	internal_all/observed_mz/1	f64:407f440000000000
+cell	internal_all/observed_mz/2	f64:4082c26666666666
+cell	internal_all/observed_mz/3	f64:4079000000000000
+cell	internal_all/observed_mz/4	f64:407c280000000000
+cell	internal_all/observed_mz/5	f64:407c280000000000
+cell	internal_all/additional_scores/0	[{score_name="Posterior Error Probability",score_value=f64:3f947ae147ae147b,higher_better=b:false}\x1e{score_name="q-value",score_value=f64:3f847ae147ae147b,higher_better=b:false}\x1e{score_name="expect",score_value=f64:3f50624dd2f1a9fc,higher_better=null}\x1e{score_name="hyperscore",score_value=f64:4041800000000000,higher_better=null}]
+cell	internal_all/additional_scores/1	[]
+cell	internal_all/additional_scores/2	[]
+cell	internal_all/additional_scores/3	[]
+cell	internal_all/additional_scores/4	[]
+cell	internal_all/additional_scores/5	[]
+cell	internal_all/protein_accessions/0	[{accession="PROT_A",aa_before="K",aa_after="A",start=i:10,end=i:17}\x1e{accession="PROT_B",aa_before=null,aa_after=null,start=null,end=null}]
+cell	internal_all/protein_accessions/1	[]
+cell	internal_all/protein_accessions/2	[{accession="PROT_C",aa_before="[",aa_after="]",start=i:0,end=i:9}]
+cell	internal_all/protein_accessions/3	[]
+cell	internal_all/protein_accessions/4	[]
+cell	internal_all/protein_accessions/5	[]
+cell	internal_all/predicted_rt/0	f64:4092c00000000000
+cell	internal_all/predicted_rt/1	null
+cell	internal_all/predicted_rt/2	f64:4056000000000000
+cell	internal_all/predicted_rt/3	null
+cell	internal_all/predicted_rt/4	null
+cell	internal_all/predicted_rt/5	null
+cell	internal_all/reference_file_name/0	"/data/run1.mzML"
+cell	internal_all/reference_file_name/1	"/data/run1.mzML"
+cell	internal_all/reference_file_name/2	"/b/fracB.mzML.gz"
+cell	internal_all/reference_file_name/3	null
+cell	internal_all/reference_file_name/4	"/data/run1.mzML"
+cell	internal_all/reference_file_name/5	"/data/run1.mzML"
+cell	internal_all/cv_params/0	null
+cell	internal_all/cv_params/1	null
+cell	internal_all/cv_params/2	null
+cell	internal_all/cv_params/3	null
+cell	internal_all/cv_params/4	null
+cell	internal_all/cv_params/5	null
+cell	internal_all/scan/0	i:1000
+cell	internal_all/scan/1	i:1000
+cell	internal_all/scan/2	i:42
+cell	internal_all/scan/3	i:5
+cell	internal_all/scan/4	i:1001
+cell	internal_all/scan/5	i:1001
+cell	internal_all/rt/0	f64:40934a0000000000
+cell	internal_all/rt/1	f64:40934a0000000000
+cell	internal_all/rt/2	null
+cell	internal_all/rt/3	f64:4049000000000000
+cell	internal_all/rt/4	f64:4094510000000000
+cell	internal_all/rt/5	f64:4094510000000000
+cell	internal_all/ion_mobility/0	f64:3fe8000000000000
+cell	internal_all/ion_mobility/1	f64:3fe8000000000000
+cell	internal_all/ion_mobility/2	f64:3ff199999999999a
+cell	internal_all/ion_mobility/3	null
+cell	internal_all/ion_mobility/4	null
+cell	internal_all/ion_mobility/5	null
+cell	internal_all/spectrum_reference/0	"controllerType=0 controllerNumber=1 scan=1000"
+cell	internal_all/spectrum_reference/1	"controllerType=0 controllerNumber=1 scan=1000"
+cell	internal_all/spectrum_reference/2	"scan=42"
+cell	internal_all/spectrum_reference/3	"index=5"
+cell	internal_all/spectrum_reference/4	"controllerType=0 controllerNumber=1 scan=1001"
+cell	internal_all/spectrum_reference/5	"controllerType=0 controllerNumber=1 scan=1001"
+cell	internal_all/score/0	f64:3f847ae147ae147b
+cell	internal_all/score/1	f64:3fe0000000000000
+cell	internal_all/score/2	f64:3fa999999999999a
+cell	internal_all/score/3	f64:4029000000000000
+cell	internal_all/score/4	f64:3fc999999999999a
+cell	internal_all/score/5	f64:3fd3333333333333
+cell	internal_all/score_type/0	"q-value"
+cell	internal_all/score_type/1	"q-value"
+cell	internal_all/score_type/2	"Posterior Error Probability"
+cell	internal_all/score_type/3	"hyperscore"
+cell	internal_all/score_type/4	"q-value"
+cell	internal_all/score_type/5	"q-value"
+cell	internal_all/higher_score_better/0	b:false
+cell	internal_all/higher_score_better/1	b:false
+cell	internal_all/higher_score_better/2	b:false
+cell	internal_all/higher_score_better/3	b:true
+cell	internal_all/higher_score_better/4	b:false
+cell	internal_all/higher_score_better/5	b:false
+cell	internal_all/hit_index/0	i:0
+cell	internal_all/hit_index/1	i:1
+cell	internal_all/hit_index/2	i:0
+cell	internal_all/hit_index/3	i:0
+cell	internal_all/hit_index/4	i:0
+cell	internal_all/hit_index/5	i:1
+cell	internal_all/peptide_identification_index/0	i:0
+cell	internal_all/peptide_identification_index/1	i:0
+cell	internal_all/peptide_identification_index/2	i:1
+cell	internal_all/peptide_identification_index/3	i:3
+cell	internal_all/peptide_identification_index/4	i:4
+cell	internal_all/peptide_identification_index/5	i:4
+cell	internal_all/psm_metavalues/0	[{name="rank",value="1",value_type="int"}\x1e{name="missed_cleavages",value="1",value_type="int"}\x1e{name="COMET:deltaCn",value="0.5",value_type="double"}\x1e{name="custom_list",value="[a, b]",value_type="string_list"}]
+cell	internal_all/psm_metavalues/1	[]
+cell	internal_all/psm_metavalues/2	[]
+cell	internal_all/psm_metavalues/3	[]
+cell	internal_all/psm_metavalues/4	[]
+cell	internal_all/psm_metavalues/5	[]
+cell	internal_all/spectrum_metavalues/0	[{name="pep_note",value="hello",value_type="string"}]
+cell	internal_all/spectrum_metavalues/1	[{name="pep_note",value="hello",value_type="string"}]
+cell	internal_all/spectrum_metavalues/2	[{name="id_merge_index",value="1",value_type="int"}]
+cell	internal_all/spectrum_metavalues/3	[]
+cell	internal_all/spectrum_metavalues/4	[{name="reference_file_name",value="/elsewhere/other_run.mzML",value_type="string"}]
+cell	internal_all/spectrum_metavalues/5	[{name="reference_file_name",value="/elsewhere/other_run.mzML",value_type="string"}]
+cell	internal_all/run_identifier/0	"run1"
+cell	internal_all/run_identifier/1	"run1"
+cell	internal_all/run_identifier/2	"merged"
+cell	internal_all/run_identifier/3	"nopath"
+cell	internal_all/run_identifier/4	"run1"
+cell	internal_all/run_identifier/5	"run1"
+cell	internal_all/mz_array/0	[f32:432f1e77\x1ef32:438a13d7]
+cell	internal_all/mz_array/1	null
+cell	internal_all/mz_array/2	null
+cell	internal_all/mz_array/3	null
+cell	internal_all/mz_array/4	null
+cell	internal_all/mz_array/5	null
+cell	internal_all/intensity_array/0	[f32:447a0000\x1ef32:43fa0000]
+cell	internal_all/intensity_array/1	null
+cell	internal_all/intensity_array/2	null
+cell	internal_all/intensity_array/3	null
+cell	internal_all/intensity_array/4	null
+cell	internal_all/intensity_array/5	null
+cell	internal_all/charge_array/0	[i:1\x1ei:1]
+cell	internal_all/charge_array/1	null
+cell	internal_all/charge_array/2	null
+cell	internal_all/charge_array/3	null
+cell	internal_all/charge_array/4	null
+cell	internal_all/charge_array/5	null
+cell	internal_all/ion_type_array/0	["y1"\x1e"y2"]
+cell	internal_all/ion_type_array/1	null
+cell	internal_all/ion_type_array/2	null
+cell	internal_all/ion_type_array/3	null
+cell	internal_all/ion_type_array/4	null
+cell	internal_all/ion_type_array/5	null
+table	qpx_best	rows=4 cols=26
+schema	qpx_best	psm_id: int64 not null\nsequence: string not null\npeptidoform: string not null\nmodifications: list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>\ncharge: int16 not null\nposterior_error_probability: double\nis_decoy: bool not null\ncalculated_mz: float not null\nobserved_mz: float not null\nmass_error_ppm: float\nadditional_scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>\npredicted_rt: float\nrun_file_name: string not null\ncv_params: list<item: struct<cv_name: string not null, cv_value: string not null>>\nscan: list<item: int32> not null\nrt: float\nion_mobility: float\nmissed_cleavages: int16\nprotein_accessions: list<item: string>\ncross_links: list<item: struct<xl_type: string not null, partner_sequence: string, partner_peptidoform: string, donor_position: int32 not null, acceptor_position: int32, linker_name: string not null, linker_accession: string, linker_mass: double not null>>\nmz_array: list<item: float>\nintensity_array: list<item: float>\ncharge_array: list<item: int32>\nion_type_array: list<item: string>\nion_mobility_array: list<item: float>\nfeature_id: int64
+cell	qpx_best/psm_id/0	i:-8644500794958262367
+cell	qpx_best/psm_id/1	i:3795412642868164579
+cell	qpx_best/psm_id/2	i:8939040008795919095
+cell	qpx_best/psm_id/3	i:72731781295170777
+cell	qpx_best/sequence/0	"PEMTIDER"
+cell	qpx_best/sequence/1	"PEPTIDECK"
+cell	qpx_best/sequence/2	"PEPTIDEK"
+cell	qpx_best/sequence/3	"PEPTIDEK"
+cell	qpx_best/peptidoform/0	"PEM[UNIMOD:35]TIDER"
+cell	qpx_best/peptidoform/1	"[UNIMOD:1]-PEPTIDEC[UNIMOD:4]K"
+cell	qpx_best/peptidoform/2	"PEPTIDEK"
+cell	qpx_best/peptidoform/3	"PEPTIDEK-[UNIMOD:2]"
+cell	qpx_best/modifications/0	[{name="Oxidation",accession="UNIMOD:35",positions=[{position=i:3,amino_acid="M",scores=[]}]}]
+cell	qpx_best/modifications/1	[{name="Acetyl",accession="UNIMOD:1",positions=[{position=i:0,amino_acid=null,scores=[]}]}\x1e{name="Carbamidomethyl",accession="UNIMOD:4",positions=[{position=i:8,amino_acid="C",scores=[]}]}]
+cell	qpx_best/modifications/2	[]
+cell	qpx_best/modifications/3	[{name="Amidated",accession="UNIMOD:2",positions=[{position=i:9,amino_acid=null,scores=[]}]}]
+cell	qpx_best/charge/0	i:2
+cell	qpx_best/charge/1	i:3
+cell	qpx_best/charge/2	i:0
+cell	qpx_best/charge/3	i:2
+cell	qpx_best/posterior_error_probability/0	f64:3f947ae147ae147b
+cell	qpx_best/posterior_error_probability/1	f64:3fa999999999999a
+cell	qpx_best/posterior_error_probability/2	null
+cell	qpx_best/posterior_error_probability/3	null
+cell	qpx_best/is_decoy/0	b:false
+cell	qpx_best/is_decoy/1	b:true
+cell	qpx_best/is_decoy/2	b:false
+cell	qpx_best/is_decoy/3	b:false
+cell	qpx_best/calculated_mz/0	f32:43fbdd54
+cell	qpx_best/calculated_mz/1	f32:43bcc0c4
+cell	qpx_best/calculated_mz/2	f32:00000000
+cell	qpx_best/calculated_mz/3	f32:43e81f12
+cell	qpx_best/observed_mz/0	f32:43fa2000
+cell	qpx_best/observed_mz/1	f32:44161333
+cell	qpx_best/observed_mz/2	f32:43c80000
+cell	qpx_best/observed_mz/3	f32:43e14000
+cell	qpx_best/mass_error_ppm/0	f32:c5d7d5eb
+cell	qpx_best/mass_error_ppm/1	f32:491015d7
+cell	qpx_best/mass_error_ppm/2	null
+cell	qpx_best/mass_error_ppm/3	f32:c6e744f6
+cell	qpx_best/additional_scores/0	[{score_name="Posterior Error Probability",score_value=f64:3f947ae147ae147b,higher_better=b:false}\x1e{score_name="q-value",score_value=f64:3f847ae147ae147b,higher_better=b:false}\x1e{score_name="expect",score_value=f64:3f50624dd2f1a9fc,higher_better=null}\x1e{score_name="hyperscore",score_value=f64:4041800000000000,higher_better=null}]
+cell	qpx_best/additional_scores/1	[]
+cell	qpx_best/additional_scores/2	[]
+cell	qpx_best/additional_scores/3	[]
+cell	qpx_best/predicted_rt/0	f32:44960000
+cell	qpx_best/predicted_rt/1	f32:42b00000
+cell	qpx_best/predicted_rt/2	null
+cell	qpx_best/predicted_rt/3	null
+cell	qpx_best/run_file_name/0	"run1"
+cell	qpx_best/run_file_name/1	"fracB"
+cell	qpx_best/run_file_name/2	""
+cell	qpx_best/run_file_name/3	"other_run"
+cell	qpx_best/cv_params/0	null
+cell	qpx_best/cv_params/1	null
+cell	qpx_best/cv_params/2	null
+cell	qpx_best/cv_params/3	null
+cell	qpx_best/scan/0	[i:1000]
+cell	qpx_best/scan/1	[i:42]
+cell	qpx_best/scan/2	[i:5]
+cell	qpx_best/scan/3	[i:1001]
+cell	qpx_best/rt/0	f32:449a5000
+cell	qpx_best/rt/1	null
+cell	qpx_best/rt/2	f32:42480000
+cell	qpx_best/rt/3	f32:44a28800
+cell	qpx_best/ion_mobility/0	f32:3f400000
+cell	qpx_best/ion_mobility/1	f32:3f8ccccd
+cell	qpx_best/ion_mobility/2	null
+cell	qpx_best/ion_mobility/3	null
+cell	qpx_best/missed_cleavages/0	i:1
+cell	qpx_best/missed_cleavages/1	null
+cell	qpx_best/missed_cleavages/2	null
+cell	qpx_best/missed_cleavages/3	null
+cell	qpx_best/protein_accessions/0	["PROT_A"\x1e"PROT_B"]
+cell	qpx_best/protein_accessions/1	["PROT_C"]
+cell	qpx_best/protein_accessions/2	[]
+cell	qpx_best/protein_accessions/3	[]
+cell	qpx_best/cross_links/0	null
+cell	qpx_best/cross_links/1	null
+cell	qpx_best/cross_links/2	null
+cell	qpx_best/cross_links/3	null
+cell	qpx_best/mz_array/0	[f32:432f1e77\x1ef32:438a13d7]
+cell	qpx_best/mz_array/1	null
+cell	qpx_best/mz_array/2	null
+cell	qpx_best/mz_array/3	null
+cell	qpx_best/intensity_array/0	[f32:447a0000\x1ef32:43fa0000]
+cell	qpx_best/intensity_array/1	null
+cell	qpx_best/intensity_array/2	null
+cell	qpx_best/intensity_array/3	null
+cell	qpx_best/charge_array/0	[i:1\x1ei:1]
+cell	qpx_best/charge_array/1	null
+cell	qpx_best/charge_array/2	null
+cell	qpx_best/charge_array/3	null
+cell	qpx_best/ion_type_array/0	["y1"\x1e"y2"]
+cell	qpx_best/ion_type_array/1	null
+cell	qpx_best/ion_type_array/2	null
+cell	qpx_best/ion_type_array/3	null
+cell	qpx_best/ion_mobility_array/0	null
+cell	qpx_best/ion_mobility_array/1	null
+cell	qpx_best/ion_mobility_array/2	null
+cell	qpx_best/ion_mobility_array/3	null
+cell	qpx_best/feature_id/0	null
+cell	qpx_best/feature_id/1	null
+cell	qpx_best/feature_id/2	null
+cell	qpx_best/feature_id/3	null
+table	qpx_all	rows=6 cols=26
+schema	qpx_all	psm_id: int64 not null\nsequence: string not null\npeptidoform: string not null\nmodifications: list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>\ncharge: int16 not null\nposterior_error_probability: double\nis_decoy: bool not null\ncalculated_mz: float not null\nobserved_mz: float not null\nmass_error_ppm: float\nadditional_scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>\npredicted_rt: float\nrun_file_name: string not null\ncv_params: list<item: struct<cv_name: string not null, cv_value: string not null>>\nscan: list<item: int32> not null\nrt: float\nion_mobility: float\nmissed_cleavages: int16\nprotein_accessions: list<item: string>\ncross_links: list<item: struct<xl_type: string not null, partner_sequence: string, partner_peptidoform: string, donor_position: int32 not null, acceptor_position: int32, linker_name: string not null, linker_accession: string, linker_mass: double not null>>\nmz_array: list<item: float>\nintensity_array: list<item: float>\ncharge_array: list<item: int32>\nion_type_array: list<item: string>\nion_mobility_array: list<item: float>\nfeature_id: int64
+cell	qpx_all/psm_id/0	i:-8644500794958262367
+cell	qpx_all/psm_id/1	i:3439772881518643529
+cell	qpx_all/psm_id/2	i:3795412642868164579
+cell	qpx_all/psm_id/3	i:8939040008795919095
+cell	qpx_all/psm_id/4	i:72731781295170777
+cell	qpx_all/psm_id/5	i:-2433051124422920159
+cell	qpx_all/sequence/0	"PEMTIDER"
+cell	qpx_all/sequence/1	"SECONDK"
+cell	qpx_all/sequence/2	"PEPTIDECK"
+cell	qpx_all/sequence/3	"PEPTIDEK"
+cell	qpx_all/sequence/4	"PEPTIDEK"
+cell	qpx_all/sequence/5	"PEPTMIDEK"
+cell	qpx_all/peptidoform/0	"PEM[UNIMOD:35]TIDER"
+cell	qpx_all/peptidoform/1	"SECONDK"
+cell	qpx_all/peptidoform/2	"[UNIMOD:1]-PEPTIDEC[UNIMOD:4]K"
+cell	qpx_all/peptidoform/3	"PEPTIDEK"
+cell	qpx_all/peptidoform/4	"PEPTIDEK-[UNIMOD:2]"
+cell	qpx_all/peptidoform/5	"PEPTM[+123.4560]IDEK"
+cell	qpx_all/modifications/0	[{name="Oxidation",accession="UNIMOD:35",positions=[{position=i:3,amino_acid="M",scores=[]}]}]
+cell	qpx_all/modifications/1	[]
+cell	qpx_all/modifications/2	[{name="Acetyl",accession="UNIMOD:1",positions=[{position=i:0,amino_acid=null,scores=[]}]}\x1e{name="Carbamidomethyl",accession="UNIMOD:4",positions=[{position=i:8,amino_acid="C",scores=[]}]}]
+cell	qpx_all/modifications/3	[]
+cell	qpx_all/modifications/4	[{name="Amidated",accession="UNIMOD:2",positions=[{position=i:9,amino_acid=null,scores=[]}]}]
+cell	qpx_all/modifications/5	[{name="",accession=null,positions=[{position=i:5,amino_acid="M",scores=[]}]}]
+cell	qpx_all/charge/0	i:2
+cell	qpx_all/charge/1	i:1
+cell	qpx_all/charge/2	i:3
+cell	qpx_all/charge/3	i:0
+cell	qpx_all/charge/4	i:2
+cell	qpx_all/charge/5	i:2
+cell	qpx_all/posterior_error_probability/0	f64:3f947ae147ae147b
+cell	qpx_all/posterior_error_probability/1	null
+cell	qpx_all/posterior_error_probability/2	f64:3fa999999999999a
+cell	qpx_all/posterior_error_probability/3	null
+cell	qpx_all/posterior_error_probability/4	null
+cell	qpx_all/posterior_error_probability/5	null
+cell	qpx_all/is_decoy/0	b:false
+cell	qpx_all/is_decoy/1	b:false
+cell	qpx_all/is_decoy/2	b:true
+cell	qpx_all/is_decoy/3	b:false
+cell	qpx_all/is_decoy/4	b:false
+cell	qpx_all/is_decoy/5	b:false
+cell	qpx_all/calculated_mz/0	f32:43fbdd54
+cell	qpx_all/calculated_mz/1	f32:44691a82
+cell	qpx_all/calculated_mz/2	f32:43bcc0c4
+cell	qpx_all/calculated_mz/3	f32:00000000
+cell	qpx_all/calculated_mz/4	f32:43e81f12
+cell	qpx_all/calculated_mz/5	f32:4413fee9
+cell	qpx_all/observed_mz/0	f32:43fa2000
+cell	qpx_all/observed_mz/1	f32:43fa2000
+cell	qpx_all/observed_mz/2	f32:44161333
+cell	qpx_all/observed_mz/3	f32:43c80000
+cell	qpx_all/observed_mz/4	f32:43e14000
+cell	qpx_all/observed_mz/5	f32:43e14000
+cell	qpx_all/mass_error_ppm/0	f32:c5d7d5eb
+cell	qpx_all/mass_error_ppm/1	f32:c8e25030
+cell	qpx_all/mass_error_ppm/2	f32:491015d7
+cell	qpx_all/mass_error_ppm/3	null
+cell	qpx_all/mass_error_ppm/4	f32:c6e744f6
+cell	qpx_all/mass_error_ppm/5	f32:c8696599
+cell	qpx_all/additional_scores/0	[{score_name="Posterior Error Probability",score_value=f64:3f947ae147ae147b,higher_better=b:false}\x1e{score_name="q-value",score_value=f64:3f847ae147ae147b,higher_better=b:false}\x1e{score_name="expect",score_value=f64:3f50624dd2f1a9fc,higher_better=null}\x1e{score_name="hyperscore",score_value=f64:4041800000000000,higher_better=null}]
+cell	qpx_all/additional_scores/1	[]
+cell	qpx_all/additional_scores/2	[]
+cell	qpx_all/additional_scores/3	[]
+cell	qpx_all/additional_scores/4	[]
+cell	qpx_all/additional_scores/5	[]
+cell	qpx_all/predicted_rt/0	f32:44960000
+cell	qpx_all/predicted_rt/1	null
+cell	qpx_all/predicted_rt/2	f32:42b00000
+cell	qpx_all/predicted_rt/3	null
+cell	qpx_all/predicted_rt/4	null
+cell	qpx_all/predicted_rt/5	null
+cell	qpx_all/run_file_name/0	"run1"
+cell	qpx_all/run_file_name/1	"run1"
+cell	qpx_all/run_file_name/2	"fracB"
+cell	qpx_all/run_file_name/3	""
+cell	qpx_all/run_file_name/4	"other_run"
+cell	qpx_all/run_file_name/5	"other_run"
+cell	qpx_all/cv_params/0	null
+cell	qpx_all/cv_params/1	null
+cell	qpx_all/cv_params/2	null
+cell	qpx_all/cv_params/3	null
+cell	qpx_all/cv_params/4	null
+cell	qpx_all/cv_params/5	null
+cell	qpx_all/scan/0	[i:1000]
+cell	qpx_all/scan/1	[i:1000]
+cell	qpx_all/scan/2	[i:42]
+cell	qpx_all/scan/3	[i:5]
+cell	qpx_all/scan/4	[i:1001]
+cell	qpx_all/scan/5	[i:1001]
+cell	qpx_all/rt/0	f32:449a5000
+cell	qpx_all/rt/1	f32:449a5000
+cell	qpx_all/rt/2	null
+cell	qpx_all/rt/3	f32:42480000
+cell	qpx_all/rt/4	f32:44a28800
+cell	qpx_all/rt/5	f32:44a28800
+cell	qpx_all/ion_mobility/0	f32:3f400000
+cell	qpx_all/ion_mobility/1	f32:3f400000
+cell	qpx_all/ion_mobility/2	f32:3f8ccccd
+cell	qpx_all/ion_mobility/3	null
+cell	qpx_all/ion_mobility/4	null
+cell	qpx_all/ion_mobility/5	null
+cell	qpx_all/missed_cleavages/0	i:1
+cell	qpx_all/missed_cleavages/1	null
+cell	qpx_all/missed_cleavages/2	null
+cell	qpx_all/missed_cleavages/3	null
+cell	qpx_all/missed_cleavages/4	null
+cell	qpx_all/missed_cleavages/5	null
+cell	qpx_all/protein_accessions/0	["PROT_A"\x1e"PROT_B"]
+cell	qpx_all/protein_accessions/1	[]
+cell	qpx_all/protein_accessions/2	["PROT_C"]
+cell	qpx_all/protein_accessions/3	[]
+cell	qpx_all/protein_accessions/4	[]
+cell	qpx_all/protein_accessions/5	[]
+cell	qpx_all/cross_links/0	null
+cell	qpx_all/cross_links/1	null
+cell	qpx_all/cross_links/2	null
+cell	qpx_all/cross_links/3	null
+cell	qpx_all/cross_links/4	null
+cell	qpx_all/cross_links/5	null
+cell	qpx_all/mz_array/0	[f32:432f1e77\x1ef32:438a13d7]
+cell	qpx_all/mz_array/1	null
+cell	qpx_all/mz_array/2	null
+cell	qpx_all/mz_array/3	null
+cell	qpx_all/mz_array/4	null
+cell	qpx_all/mz_array/5	null
+cell	qpx_all/intensity_array/0	[f32:447a0000\x1ef32:43fa0000]
+cell	qpx_all/intensity_array/1	null
+cell	qpx_all/intensity_array/2	null
+cell	qpx_all/intensity_array/3	null
+cell	qpx_all/intensity_array/4	null
+cell	qpx_all/intensity_array/5	null
+cell	qpx_all/charge_array/0	[i:1\x1ei:1]
+cell	qpx_all/charge_array/1	null
+cell	qpx_all/charge_array/2	null
+cell	qpx_all/charge_array/3	null
+cell	qpx_all/charge_array/4	null
+cell	qpx_all/charge_array/5	null
+cell	qpx_all/ion_type_array/0	["y1"\x1e"y2"]
+cell	qpx_all/ion_type_array/1	null
+cell	qpx_all/ion_type_array/2	null
+cell	qpx_all/ion_type_array/3	null
+cell	qpx_all/ion_type_array/4	null
+cell	qpx_all/ion_type_array/5	null
+cell	qpx_all/ion_mobility_array/0	null
+cell	qpx_all/ion_mobility_array/1	null
+cell	qpx_all/ion_mobility_array/2	null
+cell	qpx_all/ion_mobility_array/3	null
+cell	qpx_all/ion_mobility_array/4	null
+cell	qpx_all/ion_mobility_array/5	null
+cell	qpx_all/feature_id/0	null
+cell	qpx_all/feature_id/1	null
+cell	qpx_all/feature_id/2	null
+cell	qpx_all/feature_id/3	null
+cell	qpx_all/feature_id/4	null
+cell	qpx_all/feature_id/5	null
+cell	qpx_links/feature_id/0	i:777
+cell	qpx_links/feature_id/1	null
+cell	qpx_links/feature_id/2	null
+cell	qpx_links/feature_id/3	null
+warn	collisions/0	\x1b[93mQPXFile: several MS runs share the run_file_name 'run1' after stripping path and extension: /data/run1.mzML, /x/run1.mzML. They cannot be told apart in the exported QPX tables.\x1b[39m
+warn	collisions/count	1
+warn	duplicate_paths/0	\x1b[93m<QPXFile: 1 PSM(s) have no resolvable origin file, so their run_file_name is empty -- a QPX primary-key component that must not be, and the key the psm view is joined to feature and pg on. Protein inference commonly drops the path: set it with ProteinIdentification::setPrimaryMSRunPath() before exporting.> occurred 3 times\x1b[39m
+warn	duplicate_paths/1	\x1b[93mQPXFile: could not build a complete MS-run mapping: the value '/data/run1.mzML' was used but is not valid; Multiple protein identifications with the same ms-run-path. Check input!. Per-PSM run_file_name resolution may be incomplete.\x1b[39m
+warn	duplicate_paths/count	2
+table	duplicate_paths	ok
+warn	import_all/count	0
+parquet	internal_all/written	true
+import	import_all/ok	true
+import	import_all/proteins	3
+import	import_all/protein/0	run1|q-value|0|/data/run1.mzML|
+import	import_all/protein/1	merged|Posterior Error Probability|0|/b/fracB.mzML.gz|
+import	import_all/protein/2	nopath|hyperscore|1|
+import	import_all/peptides	4
+import	import_all/peptide/0	run1|q-value|0|f64:40934a0000000000|f64:407f440000000000|pep_note=STRING_VALUE|hello;spectrum_reference=STRING_VALUE|controllerType=0 controllerNumber=1 scan=1000;
+import	import_all/peptide/0/hit/0	PEM(Oxidation)TIDER|2|f64:3f847ae147ae147b|1|PROT_A,K,A,10,17;PROT_B,X,X,-1,-1;|COMET:deltaCn=DOUBLE_VALUE|f64:3fe0000000000000;Posterior Error Probability=DOUBLE_VALUE|f64:3f947ae147ae147b;custom_list=STRING_LIST|[a, b];expect=DOUBLE_VALUE|f64:3f50624dd2f1a9fc;hyperscore=DOUBLE_VALUE|f64:4041800000000000;ion_mobility=DOUBLE_VALUE|f64:3fe8000000000000;missed_cleavages=INT_VALUE|1;predicted_RT=DOUBLE_VALUE|f64:4092c00000000000;q-value=DOUBLE_VALUE|f64:3f847ae147ae147b;rank=INT_VALUE|1;reference_file_name=STRING_VALUE|/data/run1.mzML;scan=INT_VALUE|1000;target_decoy=STRING_VALUE|target;
+import	import_all/peptide/0/hit/1	SECONDK|1|f64:3fe0000000000000|0||ion_mobility=DOUBLE_VALUE|f64:3fe8000000000000;reference_file_name=STRING_VALUE|/data/run1.mzML;scan=INT_VALUE|1000;
+import	import_all/peptide/1	merged|Posterior Error Probability|0|nort|f64:4082c26666666666|id_merge_index=INT_VALUE|1;spectrum_reference=STRING_VALUE|scan=42;
+import	import_all/peptide/1/hit/0	.(Acetyl)PEPTIDEC(Carbamidomethyl)K|3|f64:3fa999999999999a|0|PROT_C,[,],0,9;|ion_mobility=DOUBLE_VALUE|f64:3ff199999999999a;predicted_RT=DOUBLE_VALUE|f64:4056000000000000;reference_file_name=STRING_VALUE|/b/fracB.mzML.gz;scan=INT_VALUE|42;target_decoy=STRING_VALUE|decoy;
+import	import_all/peptide/2	nopath|hyperscore|1|f64:4049000000000000|f64:4079000000000000|spectrum_reference=STRING_VALUE|index=5;
+import	import_all/peptide/2/hit/0	PEPTIDEK|0|f64:4029000000000000|0||scan=INT_VALUE|5;
+import	import_all/peptide/3	run1|q-value|0|f64:4094510000000000|f64:407c280000000000|reference_file_name=STRING_VALUE|/elsewhere/other_run.mzML;spectrum_reference=STRING_VALUE|controllerType=0 controllerNumber=1 scan=1001;
+import	import_all/peptide/3/hit/0	PEPTIDEK.(Amidated)|2|f64:3fc999999999999a|0||reference_file_name=STRING_VALUE|/data/run1.mzML;scan=INT_VALUE|1001;
+import	import_all/peptide/3/hit/1	PEPTM[+123.456]IDEK|2|f64:3fd3333333333333|0||reference_file_name=STRING_VALUE|/data/run1.mzML;scan=INT_VALUE|1001;
+table	qpx_reimport	rows=6 cols=26
+schema	qpx_reimport	psm_id: int64 not null\nsequence: string not null\npeptidoform: string not null\nmodifications: list<item: struct<name: string not null, accession: string, positions: list<item: struct<position: int32 not null, amino_acid: string, scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>>> not null>>\ncharge: int16 not null\nposterior_error_probability: double\nis_decoy: bool not null\ncalculated_mz: float not null\nobserved_mz: float not null\nmass_error_ppm: float\nadditional_scores: list<item: struct<score_name: string not null, score_value: double not null, higher_better: bool>>\npredicted_rt: float\nrun_file_name: string not null\ncv_params: list<item: struct<cv_name: string not null, cv_value: string not null>>\nscan: list<item: int32> not null\nrt: float\nion_mobility: float\nmissed_cleavages: int16\nprotein_accessions: list<item: string>\ncross_links: list<item: struct<xl_type: string not null, partner_sequence: string, partner_peptidoform: string, donor_position: int32 not null, acceptor_position: int32, linker_name: string not null, linker_accession: string, linker_mass: double not null>>\nmz_array: list<item: float>\nintensity_array: list<item: float>\ncharge_array: list<item: int32>\nion_type_array: list<item: string>\nion_mobility_array: list<item: float>\nfeature_id: int64
+cell	qpx_reimport/psm_id/0	i:-8644500794958262367
+cell	qpx_reimport/psm_id/1	i:3439772881518643529
+cell	qpx_reimport/psm_id/2	i:3795412642868164579
+cell	qpx_reimport/psm_id/3	i:8939040008795919095
+cell	qpx_reimport/psm_id/4	i:4052365280477235014
+cell	qpx_reimport/psm_id/5	i:6424324439873574155
+cell	qpx_reimport/sequence/0	"PEMTIDER"
+cell	qpx_reimport/sequence/1	"SECONDK"
+cell	qpx_reimport/sequence/2	"PEPTIDECK"
+cell	qpx_reimport/sequence/3	"PEPTIDEK"
+cell	qpx_reimport/sequence/4	"PEPTIDEK"
+cell	qpx_reimport/sequence/5	"PEPTMIDEK"
+cell	qpx_reimport/peptidoform/0	"PEM[UNIMOD:35]TIDER"
+cell	qpx_reimport/peptidoform/1	"SECONDK"
+cell	qpx_reimport/peptidoform/2	"[UNIMOD:1]-PEPTIDEC[UNIMOD:4]K"
+cell	qpx_reimport/peptidoform/3	"PEPTIDEK"
+cell	qpx_reimport/peptidoform/4	"PEPTIDEK-[UNIMOD:2]"
+cell	qpx_reimport/peptidoform/5	"PEPTM[+123.4560]IDEK"
+cell	qpx_reimport/modifications/0	[{name="Oxidation",accession="UNIMOD:35",positions=[{position=i:3,amino_acid="M",scores=[]}]}]
+cell	qpx_reimport/modifications/1	[]
+cell	qpx_reimport/modifications/2	[{name="Acetyl",accession="UNIMOD:1",positions=[{position=i:0,amino_acid=null,scores=[]}]}\x1e{name="Carbamidomethyl",accession="UNIMOD:4",positions=[{position=i:8,amino_acid="C",scores=[]}]}]
+cell	qpx_reimport/modifications/3	[]
+cell	qpx_reimport/modifications/4	[{name="Amidated",accession="UNIMOD:2",positions=[{position=i:9,amino_acid=null,scores=[]}]}]
+cell	qpx_reimport/modifications/5	[{name="",accession=null,positions=[{position=i:5,amino_acid="M",scores=[]}]}]
+cell	qpx_reimport/charge/0	i:2
+cell	qpx_reimport/charge/1	i:1
+cell	qpx_reimport/charge/2	i:3
+cell	qpx_reimport/charge/3	i:0
+cell	qpx_reimport/charge/4	i:2
+cell	qpx_reimport/charge/5	i:2
+cell	qpx_reimport/posterior_error_probability/0	f64:3f947ae147ae147b
+cell	qpx_reimport/posterior_error_probability/1	null
+cell	qpx_reimport/posterior_error_probability/2	f64:3fa999999999999a
+cell	qpx_reimport/posterior_error_probability/3	null
+cell	qpx_reimport/posterior_error_probability/4	null
+cell	qpx_reimport/posterior_error_probability/5	null
+cell	qpx_reimport/is_decoy/0	b:false
+cell	qpx_reimport/is_decoy/1	b:false
+cell	qpx_reimport/is_decoy/2	b:true
+cell	qpx_reimport/is_decoy/3	b:false
+cell	qpx_reimport/is_decoy/4	b:false
+cell	qpx_reimport/is_decoy/5	b:false
+cell	qpx_reimport/calculated_mz/0	f32:43fbdd54
+cell	qpx_reimport/calculated_mz/1	f32:44691a82
+cell	qpx_reimport/calculated_mz/2	f32:43bcc0c4
+cell	qpx_reimport/calculated_mz/3	f32:00000000
+cell	qpx_reimport/calculated_mz/4	f32:43e81f12
+cell	qpx_reimport/calculated_mz/5	f32:4413fee9
+cell	qpx_reimport/observed_mz/0	f32:43fa2000
+cell	qpx_reimport/observed_mz/1	f32:43fa2000
+cell	qpx_reimport/observed_mz/2	f32:44161333
+cell	qpx_reimport/observed_mz/3	f32:43c80000
+cell	qpx_reimport/observed_mz/4	f32:43e14000
+cell	qpx_reimport/observed_mz/5	f32:43e14000
+cell	qpx_reimport/mass_error_ppm/0	f32:c5d7d5eb
+cell	qpx_reimport/mass_error_ppm/1	f32:c8e25030
+cell	qpx_reimport/mass_error_ppm/2	f32:491015d7
+cell	qpx_reimport/mass_error_ppm/3	null
+cell	qpx_reimport/mass_error_ppm/4	f32:c6e744f6
+cell	qpx_reimport/mass_error_ppm/5	f32:c8696599
+cell	qpx_reimport/additional_scores/0	[{score_name="Posterior Error Probability",score_value=f64:3f947ae147ae147b,higher_better=b:false}\x1e{score_name="q-value",score_value=f64:3f847ae147ae147b,higher_better=b:false}\x1e{score_name="expect",score_value=f64:3f50624dd2f1a9fc,higher_better=null}\x1e{score_name="hyperscore",score_value=f64:4041800000000000,higher_better=null}]
+cell	qpx_reimport/additional_scores/1	[]
+cell	qpx_reimport/additional_scores/2	[]
+cell	qpx_reimport/additional_scores/3	[]
+cell	qpx_reimport/additional_scores/4	[]
+cell	qpx_reimport/additional_scores/5	[]
+cell	qpx_reimport/predicted_rt/0	f32:44960000
+cell	qpx_reimport/predicted_rt/1	null
+cell	qpx_reimport/predicted_rt/2	f32:42b00000
+cell	qpx_reimport/predicted_rt/3	null
+cell	qpx_reimport/predicted_rt/4	null
+cell	qpx_reimport/predicted_rt/5	null
+cell	qpx_reimport/run_file_name/0	"run1"
+cell	qpx_reimport/run_file_name/1	"run1"
+cell	qpx_reimport/run_file_name/2	"fracB"
+cell	qpx_reimport/run_file_name/3	""
+cell	qpx_reimport/run_file_name/4	"run1"
+cell	qpx_reimport/run_file_name/5	"run1"
+cell	qpx_reimport/cv_params/0	null
+cell	qpx_reimport/cv_params/1	null
+cell	qpx_reimport/cv_params/2	null
+cell	qpx_reimport/cv_params/3	null
+cell	qpx_reimport/cv_params/4	null
+cell	qpx_reimport/cv_params/5	null
+cell	qpx_reimport/scan/0	[i:1000]
+cell	qpx_reimport/scan/1	[i:1000]
+cell	qpx_reimport/scan/2	[i:42]
+cell	qpx_reimport/scan/3	[i:5]
+cell	qpx_reimport/scan/4	[i:1001]
+cell	qpx_reimport/scan/5	[i:1001]
+cell	qpx_reimport/rt/0	f32:449a5000
+cell	qpx_reimport/rt/1	f32:449a5000
+cell	qpx_reimport/rt/2	null
+cell	qpx_reimport/rt/3	f32:42480000
+cell	qpx_reimport/rt/4	f32:44a28800
+cell	qpx_reimport/rt/5	f32:44a28800
+cell	qpx_reimport/ion_mobility/0	f32:3f400000
+cell	qpx_reimport/ion_mobility/1	f32:3f400000
+cell	qpx_reimport/ion_mobility/2	f32:3f8ccccd
+cell	qpx_reimport/ion_mobility/3	null
+cell	qpx_reimport/ion_mobility/4	null
+cell	qpx_reimport/ion_mobility/5	null
+cell	qpx_reimport/missed_cleavages/0	i:1
+cell	qpx_reimport/missed_cleavages/1	null
+cell	qpx_reimport/missed_cleavages/2	null
+cell	qpx_reimport/missed_cleavages/3	null
+cell	qpx_reimport/missed_cleavages/4	null
+cell	qpx_reimport/missed_cleavages/5	null
+cell	qpx_reimport/protein_accessions/0	["PROT_A"\x1e"PROT_B"]
+cell	qpx_reimport/protein_accessions/1	[]
+cell	qpx_reimport/protein_accessions/2	["PROT_C"]
+cell	qpx_reimport/protein_accessions/3	[]
+cell	qpx_reimport/protein_accessions/4	[]
+cell	qpx_reimport/protein_accessions/5	[]
+cell	qpx_reimport/cross_links/0	null
+cell	qpx_reimport/cross_links/1	null
+cell	qpx_reimport/cross_links/2	null
+cell	qpx_reimport/cross_links/3	null
+cell	qpx_reimport/cross_links/4	null
+cell	qpx_reimport/cross_links/5	null
+cell	qpx_reimport/mz_array/0	null
+cell	qpx_reimport/mz_array/1	null
+cell	qpx_reimport/mz_array/2	null
+cell	qpx_reimport/mz_array/3	null
+cell	qpx_reimport/mz_array/4	null
+cell	qpx_reimport/mz_array/5	null
+cell	qpx_reimport/intensity_array/0	null
+cell	qpx_reimport/intensity_array/1	null
+cell	qpx_reimport/intensity_array/2	null
+cell	qpx_reimport/intensity_array/3	null
+cell	qpx_reimport/intensity_array/4	null
+cell	qpx_reimport/intensity_array/5	null
+cell	qpx_reimport/charge_array/0	null
+cell	qpx_reimport/charge_array/1	null
+cell	qpx_reimport/charge_array/2	null
+cell	qpx_reimport/charge_array/3	null
+cell	qpx_reimport/charge_array/4	null
+cell	qpx_reimport/charge_array/5	null
+cell	qpx_reimport/ion_type_array/0	null
+cell	qpx_reimport/ion_type_array/1	null
+cell	qpx_reimport/ion_type_array/2	null
+cell	qpx_reimport/ion_type_array/3	null
+cell	qpx_reimport/ion_type_array/4	null
+cell	qpx_reimport/ion_type_array/5	null
+cell	qpx_reimport/ion_mobility_array/0	null
+cell	qpx_reimport/ion_mobility_array/1	null
+cell	qpx_reimport/ion_mobility_array/2	null
+cell	qpx_reimport/ion_mobility_array/3	null
+cell	qpx_reimport/ion_mobility_array/4	null
+cell	qpx_reimport/ion_mobility_array/5	null
+cell	qpx_reimport/feature_id/0	null
+cell	qpx_reimport/feature_id/1	null
+cell	qpx_reimport/feature_id/2	null
+cell	qpx_reimport/feature_id/3	null
+cell	qpx_reimport/feature_id/4	null
+cell	qpx_reimport/feature_id/5	null
+warn	import_nuxl/0	\x1b[93mQPXFile: failed to parse peptidoform 'AEADNLDDK[NuXL:U-H2O]K' (Expected ']' in: AEADNLDDK[NuXL:U-H2O]K); falling back to the unmodified sequence column.\x1b[39m
+warn	import_nuxl/1	\x1b[93mQPXFile: reconstructed sequence for peptidoform 'AEADNLDDK[NuXL:U-H2O]K' has calculated m/z 559.77, but the row stores 712.782 (difference 153.013 Da). Unsupported modification data may have been lost.\x1b[39m
+warn	import_nuxl/count	2
+import	import_nuxl/ok	true
+import	import_nuxl/proteins	1
+import	import_nuxl/protein/0	run_1|score|1|
+import	import_nuxl/peptides	1
+import	import_nuxl/peptide/0	run_1|score|1|f64:4031cccccccccccd|f64:408646432ca57a78|spectrum_reference=STRING_VALUE|scan=9;
+import	import_nuxl/peptide/0/hit/0	AEADNLDDKK|2|f64:3fb999999999999a|0||scan=INT_VALUE|9;
+warn	import_unparseable/0	\x1b[93mQPXFile: failed to parse peptidoform 'AEAD[[K' (Expected modification in: AEAD[[K); falling back to the unmodified sequence column.\x1b[39m
+warn	import_unparseable/1	\x1b[93mQPXFile: reconstructed sequence for peptidoform 'AEAD[[K' has calculated m/z 559.77, but the row stores 712.782 (difference 153.013 Da). Unsupported modification data may have been lost.\x1b[39m
+warn	import_unparseable/count	2
+import	import_unparseable/ok	true
+import	import_unparseable/proteins	1
+import	import_unparseable/protein/0	run_1|score|1|
+import	import_unparseable/peptides	1
+import	import_unparseable/peptide/0	run_1|score|1|f64:4031cccccccccccd|f64:408646432ca57a78|spectrum_reference=STRING_VALUE|scan=9;
+import	import_unparseable/peptide/0/hit/0	AEADNLDDKK|2|f64:3fb999999999999a|0||scan=INT_VALUE|9;
+warn	oneshot/count	0
+parquet	oneshot/ok	true
+parquet	oneshot/row_groups	1:5,
+parquet	oneshot/rows	5
+parquet	oneshot/kv/qpx_version	1.1
+parquet	oneshot/kv/file_type	psm_file
+parquet	oneshot/kv/creator	OpenMS
+parquet	oneshot/kv/software_provider	OpenMS 4.0.0
+parquet	oneshot/kv/creation_date	<dynamic>
+parquet	oneshot/kv/compression_format	zstd
+parquet	oneshot/kv/uuid	<dynamic>
+parquet	oneshot/kv/primary_key	psm_id
+parquet	oneshot/kv/identity_composite	run_file_name,scan,peptidoform,charge
+parquet	oneshot/kv/scan_format	scan
+warn	stream/count	0
+parquet	stream/ok	true
+parquet	stream/row_groups	3:2,1,2,
+parquet	stream/rows	5
+parquet	stream/kv/qpx_version	1.1
+parquet	stream/kv/file_type	psm_file
+parquet	stream/kv/creator	OpenMS
+parquet	stream/kv/software_provider	OpenMS 4.0.0
+parquet	stream/kv/creation_date	<dynamic>
+parquet	stream/kv/compression_format	zstd
+parquet	stream/kv/uuid	<dynamic>
+parquet	stream/kv/primary_key	psm_id
+parquet	stream/kv/identity_composite	run_file_name,scan,peptidoform,charge
+parquet	stream/kv/scan_format	scan
+parquet	empty/ok	true
+parquet	empty/row_groups	1:0,
+parquet	empty/rows	0
+parquet	empty/kv/qpx_version	1.1
+parquet	empty/kv/file_type	psm_file
+parquet	empty/kv/creator	OpenMS
+parquet	empty/kv/software_provider	OpenMS 4.0.0
+parquet	empty/kv/creation_date	<dynamic>
+parquet	empty/kv/compression_format	zstd
+parquet	empty/kv/uuid	<dynamic>
+parquet	empty/kv/primary_key	psm_id
+parquet	empty/kv/identity_composite	run_file_name,scan,peptidoform,charge
+parquet	gap/ok	true
+parquet	gap/row_groups	3:1,0,1,
+parquet	gap/rows	2
+parquet	gap/kv/qpx_version	1.1
+parquet	gap/kv/file_type	psm_file
+parquet	gap/kv/creator	OpenMS
+parquet	gap/kv/software_provider	OpenMS 4.0.0
+parquet	gap/kv/creation_date	<dynamic>
+parquet	gap/kv/compression_format	zstd
+parquet	gap/kv/uuid	<dynamic>
+parquet	gap/kv/primary_key	psm_id
+parquet	gap/kv/identity_composite	run_file_name,scan,peptidoform,charge
+parquet	gap/kv/scan_format	scan
+warn	unattributable/0	\x1b[93mQPXFile: 1 PSM(s) have no resolvable origin file, so their run_file_name is empty -- a QPX primary-key component that must not be, and the key the psm view is joined to feature and pg on. Protein inference commonly drops the path: set it with ProteinIdentification::setPrimaryMSRunPath() before exporting.\x1b[39m
+warn	unattributable/1	\x1b[93mArrowIOHelpers: spectrum native IDs mix 'scan' and 'index' conventions; omitting QPX scan_format.\x1b[39m
+warn	unattributable/count	2
+parquet	unattributable/ok	false
+parquet	unattributable	missing
+parquet	lz4/ok	false
+parquet	internal_table/ok	false
+exception	duplicate_identifier	InvalidValue|the value 'run1' was used but is not valid; QPXFile: several identification runs share the identifier 'run1'. Their MS run paths cannot be told apart, so a PSM could be attributed to the wrong run file.
+exception	missing_index	MissingInformation|Multiple files in a run, but no 'id_merge_index' in PeptideIdentification found: PSM #1 of identification run 'merged' (2 files in the run).
+exception	out_of_range	MissingInformation|'id_merge_index' = 2 is out of range: PSM #1 of identification run 'merged' (2 files in the run).
+exception	not_integer	MissingInformation|'id_merge_index' is not an integer: PSM #1 of identification run 'merged' (2 files in the run).
+exception	export_missing_index	MissingInformation|Multiple files in a run, but no 'id_merge_index' in PeptideIdentification found: PSM #1 of identification run 'merged' (2 files in the run).
+exception	missed_cleavages_double	ConversionError|Could not convert non-integer DataValue of type 'Double' and value '1.5' to int
+validate	psm/valid/valid	true
+validate	psm/empty_table/valid	true
+validate	psm/no_scan/valid	false
+validate	psm/no_scan/0	row 0 has an empty 'scan' primary-key value
+validate	psm/no_run/valid	false
+validate	psm/no_run/0	row 0 has an empty or blank 'run_file_name' primary-key value
+validate	psm/blank_run/valid	false
+validate	psm/blank_run/0	row 0 has an empty or blank 'run_file_name' primary-key value
+validate	psm/empty_peptidoform/valid	false
+validate	psm/empty_peptidoform/0	row 1 has an empty or blank 'peptidoform' primary-key value
+validate	psm/null_scan_component/valid	false
+validate	psm/null_scan_component/0	row 0 has a null scan component
+validate	psm/duplicate/valid	false
+validate	psm/duplicate/0	row 1 repeats the QPX psm identity 'psm_id'
+validate	psm/duplicate/1	row 1 repeats the QPX psm primary key (peptidoform, charge, run_file_name, scan)
+validate	psm/reordered_scans/valid	false
+validate	psm/reordered_scans/0	row 1 repeats the QPX psm primary key (peptidoform, charge, run_file_name, scan)
+validate	psm/id_collision/valid	false
+validate	psm/id_collision/0	row 1 repeats the QPX psm identity 'psm_id'
+validate	psm/as_pg/valid	false
+validate	psm/as_pg/0	schema: Field count mismatch: got 26, expected 22
+validate	psm/as_pg/1	schema: Field name mismatch at index 0: got 'psm_id', expected 'pg_id'
+validate	psm/as_pg/2	schema: Field name mismatch at index 1: got 'sequence', expected 'pg_accessions'
+validate	psm/as_pg/3	schema: Field name mismatch at index 2: got 'peptidoform', expected 'pg_names'
+validate	psm/as_pg/4	schema: Field name mismatch at index 3: got 'modifications', expected 'gg_accessions'
+validate	psm/as_pg/5	schema: Field name mismatch at index 4: got 'charge', expected 'gg_names'
+validate	psm/as_pg/6	schema: Field name mismatch at index 5: got 'posterior_error_probability', expected 'gg_qvalue'
+validate	psm/as_pg/7	schema: Field name mismatch at index 6: got 'is_decoy', expected 'anchor_protein'
+validate	psm/as_pg/8	schema: Field name mismatch at index 7: got 'calculated_mz', expected 'grouped_runs'
+validate	psm/as_pg/9	schema: Field name mismatch at index 8: got 'observed_mz', expected 'global_qvalue'
+validate	psm/as_pg/10	schema: Field name mismatch at index 9: got 'mass_error_ppm', expected 'pg_qvalue'
+validate	psm/as_pg/11	schema: Field name mismatch at index 10: got 'additional_scores', expected 'label'
+validate	psm/as_pg/12	schema: Field name mismatch at index 11: got 'predicted_rt', expected 'intensity'
+validate	psm/as_pg/13	schema: Field name mismatch at index 12: got 'run_file_name', expected 'additional_intensities'
+validate	psm/as_pg/14	schema: Field name mismatch at index 13: got 'cv_params', expected 'is_decoy'
+validate	psm/as_pg/15	schema: Field name mismatch at index 14: got 'scan', expected 'contaminant'
+validate	psm/as_pg/16	schema: Field name mismatch at index 15: got 'rt', expected 'peptides'
+validate	psm/as_pg/17	schema: Field name mismatch at index 16: got 'ion_mobility', expected 'peptide_counts'
+validate	psm/as_pg/18	schema: Field name mismatch at index 17: got 'missed_cleavages', expected 'feature_counts'
+validate	psm/as_pg/19	schema: Field name mismatch at index 18: got 'protein_accessions', expected 'sequence_coverage'
+validate	psm/as_pg/20	schema: Field name mismatch at index 19: got 'cross_links', expected 'molecular_weight'
+validate	psm/as_pg/21	schema: Field name mismatch at index 20: got 'mz_array', expected 'additional_scores'
+validate	psm/as_pg/22	schema: Field name mismatch at index 21: got 'intensity_array', expected 'cv_params'
+validate	psm/as_pg/23	schema: Unexpected field 'charge_array' not in expected schema
+validate	psm/as_pg/24	schema: Unexpected field 'ion_type_array' not in expected schema
+validate	psm/as_pg/25	schema: Unexpected field 'ion_mobility_array' not in expected schema
+validate	psm/as_pg/26	schema: Unexpected field 'feature_id' not in expected schema
+validate	psm/second_batch/valid	false
+validate	psm/second_batch/0	row 0 repeats the QPX psm identity 'psm_id'
+validate	psm/second_batch/1	row 1 repeats the QPX psm identity 'psm_id'
+validate	psm/second_batch/2	row 0 repeats the QPX psm primary key (peptidoform, charge, run_file_name, scan)
+validate	psm/second_batch/3	row 1 repeats the QPX psm primary key (peptidoform, charge, run_file_name, scan)
+validate	feature/unmapped/valid	true
+validate	feature/same_mz/valid	false
+validate	feature/same_mz/0	row 1 repeats the QPX feature primary key (peptidoform, charge, run_file_name, rt, observed_mz)
+validate	feature/signed_zero/valid	false
+validate	feature/signed_zero/0	row 1 repeats the QPX feature primary key (peptidoform, charge, run_file_name, rt, observed_mz)
+validate	feature/null_rt/valid	true
+validate	feature/both_null/valid	false
+validate	feature/both_null/0	row 1 repeats the QPX feature primary key (peptidoform, charge, run_file_name, rt, observed_mz)
+validate	feature/nan_rt/valid	false
+validate	feature/nan_rt/0	row 0 has a non-finite 'rt' primary-key value
+validate	feature/inf_mz/valid	false
+validate	feature/inf_mz/0	row 0 has a non-finite 'observed_mz' primary-key value
+validate	feature/bad_intensities/valid	false
+validate	feature/bad_intensities/0	row 0 repeats intensity label 'LFQ'
+validate	feature/bad_intensities/1	row 0 has a null or non-finite intensity for label 'LFQ'
+validate	feature/bad_intensities/2	row 0 has non-canonical intensity label 'light'
+validate	feature/bad_intensities/3	row 0 contains an empty intensities[].label
+validate	feature/bad_intensities/4	row 0 contains a null intensities entry
+validate	feature/tmt/valid	true
+validate	feature/null_list/valid	true
+validate	pg/good/valid	true
+validate	pg/same_group/valid	false
+validate	pg/same_group/0	row 1 repeats the QPX pg identity (pg_accessions, grouped_runs, label)
+validate	pg/same_group/1	row 1 reuses run 'r1' in another pg row with the same (pg_accessions, label)
+validate	pg/overlap/valid	false
+validate	pg/overlap/0	row 1 reuses run 'r2' in another pg row with the same (pg_accessions, label)
+validate	pg/malformed/valid	false
+validate	pg/malformed/0	row 0 has an empty or blank 'anchor_protein' primary-key value
+validate	pg/malformed/1	row 0 has an empty 'pg_accessions' primary-key value
+validate	pg/malformed/2	row 1 has an empty member in pg_accessions
+validate	pg/malformed/3	row 1 has an empty 'grouped_runs' primary-key value
+validate	pg/malformed/4	row 1 must set label and intensity together, or leave both null
+validate	pg/malformed/5	row 2 repeats run 'r1' inside grouped_runs
+validate	pg/malformed/6	row 2 has non-canonical label 'light'
+validate	pg/malformed/7	row 2 has a non-finite intensity
+validate	pg/malformed/8	row 3 has an empty 'label' primary-key value
+validate	pg/malformed/9	row 4 has an empty member in grouped_runs
+validate	pg/malformed/10	row 4 must set label and intensity together, or leave both null
+validate	pg/additional_good/valid	true
+validate	pg/additional_bad/valid	false
+validate	pg/additional_bad/0	row 0 has additional_intensities label 'TMT126' that differs from its pg label
+validate	pg/additional_bad/1	row 0 repeats additional_intensities intensity name 'iBAQ'
+validate	pg/additional_bad/2	row 0 has a null or non-finite additional_intensities intensity value
+validate	pg/additional_bad/3	row 0 has non-canonical additional_intensities label 'light'
+validate	pg/additional_bad/4	row 0 has additional_intensities label 'light' that differs from its pg label
+validate	pg/additional_bad/5	row 0 contains an empty additional_intensities[].intensities[].intensity_name
+validate	pg/additional_bad/6	row 1 repeats additional_intensities label 'LFQ'

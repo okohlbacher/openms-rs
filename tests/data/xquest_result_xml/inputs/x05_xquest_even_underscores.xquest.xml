@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xquest_results xquest_version="xquest 2.1.1" date="Fri Dec 18 12:28:42 2015" enzyme_num="1" missed_cleavages="2" database="db.fasta" ms1tolerance="10" tolerancemeasure="ppm" ms2tolerance="0.2" tolerancemeasure_ms2="Da" xlink_ms2tolerance="0.3" variable_mod="M,15.99491" fixed_mod="" decoy_string="decoy_" database_dc="" monolinkmw="156.07864431, 155.094628715" xlinkermw="138.0680796" crosslinkername="DSS" cp_isotopediff="12.075321" ntermxlinkable="1" AArequired="K">
+<spectrum_search spectrum="a_b_c.1.1.2" mz_precursor="500.25" scantype="light_heavy" charge_precursor="3" Mr_precursor="1497.7" rtsecscans="100.5:101.25" mzscans="500.25:504.26" scan_index_light="7" scan_index_heavy="9" >
+<search_hit search_hit_rank="1" id="X-Y-a1-b1" type="xlink" structure="X-Y" seq1="PEPKTIDE" seq2="LLKQR" prot1="P1,decoy_P2" prot2="P3" topology="a4-b3" xlinkposition="4,3" Mr="1" mz="1" charge="3" xlinkermass="138.0680796" measured_mass="1" error="0" error_rel="1.5" num_of_matched_common_ions_alpha="3" num_of_matched_common_ions_beta="2" num_of_matched_xlink_ions_alpha="1" num_of_matched_xlink_ions_beta="4" wTIC="0.1" TIC="0.2" intsum="3.5" match_odds="2.25" score="10.5" >
+</search_hit>
+</spectrum_search>
+</xquest_results>

@@ -291,13 +291,17 @@ spellings above. Everything else is read from the pinned source.
 The source file loader also accepts ZIP archives (`XMLFile::parse_`,
 `XMLFile.cpp:141-165`: a file starting with `PK` is read through libzip's
 `ZipIfstream`, which requires exactly one non-directory entry). The shared path
-transport does the same (`src/format/zip_input.rs`, lane B8a): stored, deflate
+transport does the same (`src/format/zip_ifstream.rs`, lane B8a): stored, deflate
 and bzip2 entries, the methods the reference build's libzip decodes, with the
 source's `FileEmpty`/`ParseError` messages for an archive with no or several
 file entries and a CRC-32 and size check at the end of the entry. Tier 1 against
 `../oracle/B8a-zip-input` (`FeatureXMLFile::load`/`loadSize` and
 `MzMLFile::load`/`loadSize` of the Linux x86_64 Release build on ibminode06,
-two runs byte-identical), `tests/zip_input.rs`. The error kinds differ: the port
-has no file-empty or not-readable variant, so these are `Error::Parse`,
-`Error::Unsupported` (an encrypted entry or another method) or `Error::Io` (a
-wrong CRC-32).
+two runs byte-identical), `tests/zip_input.rs` and `tests/zip_input_oracle.rs`.
+The error kinds follow the exception classes: `FileEmpty` is an `Error::Io` of
+kind `UnexpectedEof`, `FileNotReadable` (an unreadable archive, an encrypted
+entry, a method libzip lacks) an `Error::Io` of kind `InvalidData`, and the
+`ParseError` of several file entries (message ending ` in: `, the whole
+`what()`) or of a wrong CRC-32 (`error reading from zip entry`) an
+`Error::Parse`. `MzMLFile::loadSize` wraps the first two in a `ParseError`
+(`- due to that error of type ...`), and `mzml::load_size` does the same.

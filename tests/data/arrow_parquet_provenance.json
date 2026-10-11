@@ -1,0 +1,676 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "test_data_revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+ "license": "BSD-3-Clause",
+ "method": "Executed differential: four oracle drivers link the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06, each run twice in a clean environment with byte-identical records; the Rust tests transcribe the records and read the Parquet files the executed library wrote, plus the retained C++-written TOPP fixture bundles. ParquetFilter is transcribed from its upstream class test.",
+ "evidence_tier": "1 (executed differential; ParquetFilter tier 3, source review of the class test)",
+ "reference_tools": "../oracle/F1a-arrow, ../oracle/F1a-arrow2, ../oracle/F1a-protein, ../oracle/F1a-features (driver.cpp, node.sh, run.sh), ../oracle/integ-F-psmarrowio (driver.cpp, remote_run.sh, run.sh; wave-4 integration)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ArrowIOHelpers.h",
+   "sha256": "5a1a8b0c076bae23a1c56da03bbe2cb0aa828dbd8b765476f05bdcca20c72ba5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ArrowSchemaRegistry.h",
+   "sha256": "9aeae1949712311eaa4f75e7d438a6cef06775d26ccf3e0ffbb26016e3cfefc2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/FeatureMapArrowIO.h",
+   "sha256": "7a8baece2c5628a373229e04ec8bec23956c74f0f33ba86b62c2ad5239ba2b66"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/MSExperimentArrowExport.h",
+   "sha256": "fcfbd407feef17ad7dab77cc516697be99ac8733fc2cae76b187c396b4f00db5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ParquetFile.h",
+   "sha256": "62b512df003c0c4ef0f6e8729d15674fd44ceeb37849bfe6816b7ad4c2802df3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ParquetFilter.h",
+   "sha256": "eeb9eee1c4d29f3dbf49a5be6249d1081f5dbd4b316b780a06f3e48e649f2903"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/ProteinIdentificationArrowIO.h",
+   "sha256": "5c2eac656de9d792cd72950b7d769ab59123d1e3f058706826910852b195d647"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.cpp",
+   "sha256": "73f1da3012c9d656718760a792136a1993c64f4e626d739598537fb95f720725"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ArrowIOHelpers.cpp",
+   "sha256": "e13e483ebb9953f7de6c590e4e34fc6440f3bc46b46ad6a67d60b10629b9955d"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ArrowSchemaRegistry.cpp",
+   "sha256": "7f4fcd02c14bba9b092891040103f5a495796f4e1d4b516ff945d397dc99c134"
+  },
+  {
+   "path": "src/openms/source/FORMAT/FeatureMapArrowIO.cpp",
+   "sha256": "63d2a49aef69f084dcedb646d014a2e8245ad39595480c8a8b496c9ed25f6ba6"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ParquetFile.cpp",
+   "sha256": "f0f9932534b79fda152614428e263cc30fe6c8c3e07588f565606e79eda7fd94"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ParquetFilter.cpp",
+   "sha256": "5edc4fe60efec943bae72f334261012ae8b9191e0cf3e654821dd02050228a7f"
+  },
+  {
+   "path": "src/openms/source/FORMAT/ProteinIdentificationArrowIO.cpp",
+   "sha256": "00bee31d5142c1bfbe3fa33ac1d1ef3b7f85049fb62558ea7837c89fd61269f4"
+  },
+  {
+   "path": "src/openms/source/KERNEL/BaseFeature.cpp",
+   "sha256": "b0166d47181ce74ced4937a112da94788cbc51eb57f88a426a1e62578458151d"
+  },
+  {
+   "path": "src/openms/source/KERNEL/Feature.cpp",
+   "sha256": "5b6ea1b5ecb99d656213c02ebfe4e9a89f5216bd6c7b535ab8d24a0bd7579f72"
+  },
+  {
+   "path": "src/openms/source/METADATA/ProteinIdentification.cpp",
+   "sha256": "c4b8be0c5a733e6a1cb36c6fb3ab9b181688f6a487cd505b785b0051f83d9585"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ParquetFilter_test.cpp",
+   "sha256": "e72742faccbd0647ba63e7f4275d4c0642f56323595e093f0700500cfb26f407"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/PSMArrowIO.h",
+   "sha256": "9e42d0eeddbf806ba98200439dfb773c6c0a002abea1c1908af9d55644362537"
+  },
+  {
+   "path": "src/openms/source/FORMAT/PSMArrowIO.cpp",
+   "sha256": "8656e08a10e7f9671438005a0f0a5bbc0fd8351ac596384ca8dadc11f28c0b6b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PSMArrowIO_test.cpp",
+   "sha256": "da14f39dd231b2aac314c6ffd7eed82e719676d385e6c717a20473675ac732b2"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/arrow_parquet/awp_gzip.parquet",
+   "sha256": "a6afd815f1bd4b71862feec500ab377797e1604f9a93e2daf4bb0ed4ce28007e",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_lz4.parquet",
+   "sha256": "e37ea105b943dfbc5ec012e5c40a45cef267fe2281961ffe39bf526b7294d497",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_metadata.parquet",
+   "sha256": "123f47a81a16ccb115a87375f364d183fb928176b4353f8044e3500386524c04",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_nested.parquet",
+   "sha256": "1dcf33ad0e5e0471806e2cb09e3166344dd8965e40018fe8c2533eef81d72621",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_none.parquet",
+   "sha256": "86392ca9909b2bf58aa89e5a9b02a1a4c7e36a203594821f4a7fcad0d096ae03",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_nostats.parquet",
+   "sha256": "812ad364190063f20399543b51ec213aa9bc72d130d6d7cd18ad05aa136aa64d",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_qpx2.parquet",
+   "sha256": "202a3c45d58eaceb55418414868ef92aa89fe35e0f4cbf22b532d0af68970d95",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_rg2.parquet",
+   "sha256": "d920d27963cf2b366d87d91c2066e7235a41cd972de493105d2629de98685617",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_snappy.parquet",
+   "sha256": "98e2b736c29f7b8e4843ddcbd67068f7fc032673a35745fecdfa56bfb3f561c7",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/awp_zstd.parquet",
+   "sha256": "d8534b2a82964d726c5937637795a953936fe09f361c7ac65270a840d6c5ae7c",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/concat_md.parquet",
+   "sha256": "9586be132a094731b2c0793295d2398634c3a2fcff7d5603746286f23f37efdf",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/concat_two.parquet",
+   "sha256": "c159f5710c080b8eba9f67e19a5e48f7c7f248f1c37f50b5c15bc74f2f940161",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_records.tsv",
+   "sha256": "146a2287e1731e742f2ae82349d77a21dedbf59fd9ae3d28fb44877f0c3b408a",
+   "kind": "records of the executed Release build, oracle part 1 (../oracle/F1a-arrow)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_records_2.tsv",
+   "sha256": "dab95036c4e07ff26ff3c0a4ebaf7fbfbeff09d58f0dedc63b2ff536589a4df6",
+   "kind": "records of the executed Release build, oracle part 2 (../oracle/F1a-arrow2)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_records_3.tsv",
+   "sha256": "b5bc983e77cff80caeaeb3ff9f488ae2def3e7263e776874f8c94cd9eb8c9493",
+   "kind": "records of the executed Release build, oracle part 3 (../oracle/F1a-protein)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_records_4.tsv",
+   "sha256": "3a3144be54b81a71b15af428283697375511cd5bfed311733f6567ce05385e32",
+   "kind": "records of the executed Release build, oracle part 4 (../oracle/F1a-features)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_14_output.consensusparquet/consensus_features.parquet",
+   "sha256": "f62986bbafdf505a7bab4560bd5bbfb577379c195e95a4f186784f75ad1d8258",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_14_output.consensusparquet/consensus_features.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_14_output.consensusparquet/protein_groups.parquet",
+   "sha256": "dc22f65e71e515fbbaddcf82bc41d2c00f41c3755b6558d2fafcdc51034912df",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_14_output.consensusparquet/protein_groups.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_14_output.consensusparquet/proteins.parquet",
+   "sha256": "f72e6400c7ae8adf5f9d5a1b68e33367c639026961fb318220e4de664dccdec4",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_14_output.consensusparquet/proteins.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_14_output.consensusparquet/psms.parquet",
+   "sha256": "904f20e0b9cee41ff6084b5697b25a826d456d308c2391359db32e28ba68305c",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_14_output.consensusparquet/psms.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_14_output.consensusparquet/search_params.parquet",
+   "sha256": "a86bd1a935e03de0e32646d00e6e3e11381c530f4c7725bcebf3cd64e99b9422",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_14_output.consensusparquet/search_params.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_9_output.featureparquet/features.parquet",
+   "sha256": "36c1d42043b496ba0713c74fa2c28ca63f999052047e0e88ffa72f56b9b7f90e",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_9_output.featureparquet/features.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_9_output.featureparquet/protein_groups.parquet",
+   "sha256": "dc5242fcaa265c92dbb1f1a82ef3763d4afe23493c669d7c3eeb90a30d749a69",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_9_output.featureparquet/protein_groups.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_9_output.featureparquet/proteins.parquet",
+   "sha256": "a19c6121500703d0d9d0564be3c834b15486e5f8fe5a768db0d08b552f07e851",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_9_output.featureparquet/proteins.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_9_output.featureparquet/psms.parquet",
+   "sha256": "3fb4402f8451f604f04d30be31f8d3270d5c5cd74bdd0e982c88a262565de93f",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_9_output.featureparquet/psms.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/FileConverter_9_output.featureparquet/search_params.parquet",
+   "sha256": "720756f8c14b258ed1f39aac419f077cc77634ae2b8007393d24e7eb711f0c7a",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/FileConverter_9_output.featureparquet/search_params.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input1.idparquet/protein_groups.parquet",
+   "sha256": "8081f54a154fa7228fe379f969223358744bddd78aa0092d3e12a9d638856797",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input1.idparquet/protein_groups.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input1.idparquet/proteins.parquet",
+   "sha256": "50e8b85b55a2be7432d7281418a1784693cc489a123462eef7d859edd70ef1b6",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input1.idparquet/proteins.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input1.idparquet/psms.parquet",
+   "sha256": "5ef279e7f4305d52913a5f24d33630f0d6ee3cceb0b6c46707dd51312ef48583",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input1.idparquet/psms.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input1.idparquet/search_params.parquet",
+   "sha256": "a78d0f05a52a8cdb88c4c8ebd0f63d9e7d18445066e37e27b384973f376657ea",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input1.idparquet/search_params.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input2.idparquet/protein_groups.parquet",
+   "sha256": "9a63df010d0bdbb8d7cfbcbf99651492eb8a583299d3e942dfc90c41c850748e",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input2.idparquet/protein_groups.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input2.idparquet/proteins.parquet",
+   "sha256": "17719de7932f2c8e056b45bfc73ba69a930cda48e10b3085db1e0eeac7f07402",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input2.idparquet/proteins.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input2.idparquet/psms.parquet",
+   "sha256": "9546713734aa279543097bbf0e306fe91eb816f964e775d8869b08cfedd69111",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input2.idparquet/psms.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDMerger_idparquet_input2.idparquet/search_params.parquet",
+   "sha256": "20ccc32cfd839cab901d5cb0545d33838292328b352b7a32d46e93dec44018c9",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDMerger_idparquet_input2.idparquet/search_params.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDRipper_4_input.idparquet/protein_groups.parquet",
+   "sha256": "7e5a27bc386ae299ce67fa316108981be577c9efce5d4116d0ea5266fc699718",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDRipper_4_input.idparquet/protein_groups.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDRipper_4_input.idparquet/proteins.parquet",
+   "sha256": "cdfcc673347904ba402a3cea4c13ad1bb89c6fdf5813b192b223632f621b684e",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDRipper_4_input.idparquet/proteins.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDRipper_4_input.idparquet/psms.parquet",
+   "sha256": "a95896de0c33811d9d59c1b584ea7ee0de4e7644f8467ecef9caf0725f122d5d",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDRipper_4_input.idparquet/psms.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/IDRipper_4_input.idparquet/search_params.parquet",
+   "sha256": "26a48ca0125d01a0bf49e8d27ae399205661f481566a61c03024746a30311324",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/IDRipper_4_input.idparquet/search_params.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/protein_groups.parquet",
+   "sha256": "7b0902268f9d69377abf11fb67207e72c1008e144b3860e6c8f973113e902439",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/protein_groups.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/proteins.parquet",
+   "sha256": "73d271d10c1a12095547d1195174e42f1221a04c6d734e0d253720ba1e36c980",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/proteins.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/psms.parquet",
+   "sha256": "1268afa39030e0005ac94de714ff5bb7d4cf604c4c3a860918e76615f9895911",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/psms.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fixtures/topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/search_params.parquet",
+   "sha256": "0ddb7420bf53e34fdda4c78f9ca2aafbba0207381ee76aac0682f86fbbf6a3be",
+   "kind": "retained C++-written TOPP test fixture, test-data 0cb15f23fccc6ea196bfafcfbbf020958f36c3a3 topp/THIRDPARTY/PercolatorAdapter_idparquet_in.idparquet/search_params.parquet"
+  },
+  {
+   "path": "tests/data/arrow_parquet/fm_features.parquet",
+   "sha256": "f71bda9c29ad3513f8f9f74323f94c4708eb3d14e0d5255270ce8ca0a70472fb",
+   "kind": "Parquet file written by the executed Release build, oracle part 4 (FeatureMapArrowIO features table)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/parquetfile_default.parquet",
+   "sha256": "2dd35272514a5e25acdce721d7b2085d67e7f0e6d79d9218892dc382f8ac588a",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/parquetfile_empty.parquet",
+   "sha256": "e4f27836c6996dd3d14ccf1a3b1fd52b243eef41675056624dd51a6b49e2ae4b",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/parquetfile_empty_rg0.parquet",
+   "sha256": "e4f27836c6996dd3d14ccf1a3b1fd52b243eef41675056624dd51a6b49e2ae4b",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/parquetfile_rg2.parquet",
+   "sha256": "a1824a7f7d3e531a7b17807ce6ae6f7212264042ee9e56b505f92a9a806f830e",
+   "kind": "Parquet file written by the executed Release build, oracle part 1 or 2"
+  },
+  {
+   "path": "tests/data/arrow_parquet/pia_protein_groups.parquet",
+   "sha256": "bd798f4b8e52a5bd8adc5eb42a5d39cebf22b984824aa9cbf220e56f1304bfd5",
+   "kind": "Parquet file written by the executed Release build, oracle part 3 (ProteinIdentificationArrowIO export)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/pia_proteins.parquet",
+   "sha256": "92880d773eb5ca2fa5c865ecbf832aa94a6f81b8bbc7c7ed550eab2e6d9281c2",
+   "kind": "Parquet file written by the executed Release build, oracle part 3 (ProteinIdentificationArrowIO export)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/pia_search_params.parquet",
+   "sha256": "76e13d18eb875419e6c2e591cca04a62a8c8d31008e3b19e31f4fa2d398f42f1",
+   "kind": "Parquet file written by the executed Release build, oracle part 3 (ProteinIdentificationArrowIO export)"
+  },
+  {
+   "path": "tests/data/arrow_parquet/pia_search_params_defs.parquet",
+   "sha256": "3e01ac3ce050c24822398e8663a554750ed5b70ff409e048d314e7e89b2d085c",
+   "kind": "Parquet file written by the executed Release build, oracle part 3 (ProteinIdentificationArrowIO export)"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/cpp_release_records.tsv",
+   "sha256": "525c2e5742fedd9c39e663f4bb0d1d7f39e3d57746c07156e11a7001fd88e157",
+   "kind": "Records written by the executed Release build, oracle integ-F-psmarrowio (PSMArrowIO import)"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/cpp_release_stderr.txt",
+   "sha256": "1237d26452494e9a7cbbb0b57cbfd786de805884a16b40b73dbb18c921d9ab74",
+   "kind": "Log lines written by the executed Release build, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/protein_groups.parquet",
+   "sha256": "e6781a92c373236cf3ca6e52394c1b74b08a4c3897ca6b834d9579d219dabb6b",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/proteins.parquet",
+   "sha256": "1292be59eca9526f6dc84d360968f453e8aca89b19183c4eb931d8206c053726",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/psms.parquet",
+   "sha256": "b92fedc3e665c98e02b2067c0904a81d1e87d743afac8a37b0a6d7b12a58b6b4",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_decoy/search_params.parquet",
+   "sha256": "9135f01f83084cb14db18a80048870d44f4092a013b5cfaee175413f673575dd",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/protein_groups.parquet",
+   "sha256": "9433791aec31518a2cecc1b772f6e2577de48a9ad490ab4d5e6e5602346d5996",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/proteins.parquet",
+   "sha256": "75586af4499122c2f26fbefb8933cf3202a330e58d6a7e59ced04dc9cb93a829",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/psms.parquet",
+   "sha256": "cba0c07fe1fe20be1b10f52fd598003c02f00edf8ca76da4b12b8c65ac03fe8a",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_minimal/search_params.parquet",
+   "sha256": "5691c5a207178b6378951bdaeac29e72213f140bac50511767cf0e530fa10f92",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/protein_groups.parquet",
+   "sha256": "135becc06b49d078b2991d5d5aff16c3283ae349ad77ab255ee82aa9f7493a72",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/proteins.parquet",
+   "sha256": "f79c91d3ad4c021d8c300f85aed3939e14f7adedc8717e363a4b1265c35e1ca2",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/psms.parquet",
+   "sha256": "42015b387271b7f4a81ede34071339880987db883d1a8b2c08c5dc3362bd021f",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/psm_arrow_io/export_multirank/search_params.parquet",
+   "sha256": "da8fc3e60129896dbd75198c9d2f4c5e9f1e38d4a4212dfe9bc89f255b3b8ee9",
+   "kind": "Parquet file written by the executed Release build's PSMArrowIO::exportToParquet, oracle integ-F-psmarrowio"
+  },
+  {
+   "path": "tests/data/arrow_parquet/cpp_release_concat_records.tsv",
+   "sha256": "fd644358cbaeab4585ebb75a73f539d41dd2763424cfca47471663211b73a513",
+   "kind": "records of the executed Release build, concatenation oracle (../oracle/integ-F-concat): arrow::ConcatenateTables and concatenateAndWriteToParquet over list element spellings; ibminode06, Linux x86_64 Release, run twice, identical"
+  }
+ ],
+ "native_implementation": [
+  "src/format/arrow_schema_registry.rs",
+  "src/format/parquet_file.rs",
+  "src/format/parquet_filter.rs",
+  "src/format/arrow_io_helpers.rs",
+  "src/format/protein_identification_arrow_io.rs",
+  "src/format/feature_map_arrow_io.rs",
+  "src/format/psm_arrow_io.rs"
+ ],
+ "native_tests": [
+  "tests/arrow_parquet.rs",
+  "tests/protein_identification_arrow_io.rs",
+  "tests/feature_map_arrow_io.rs",
+  "tests/parquet_filter.rs",
+  "tests/psm_arrow_io.rs"
+ ],
+ "support_document": "docs/ARROW_PARQUET_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/F1a-arrow/driver.cpp",
+   "sha256": "6e70db369caaf8ad001006b093b5a09451b735d72b3c579ce27d2ab5a57c0806",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-arrow/node.sh",
+   "sha256": "e960a8a506f1a9cb0832b11218d294cb319a36b836f1611c3047a4cfb08b9a45",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-arrow/run.sh",
+   "sha256": "e91f4bbf1ccd62cf27ebe13a64cb1b6b0bf5f41eeef6180fbdf99319945f7906",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-arrow/results/records.tsv",
+   "sha256": "146a2287e1731e742f2ae82349d77a21dedbf59fd9ae3d28fb44877f0c3b408a",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-arrow/results/hashes.txt",
+   "sha256": "24a2ee2ad5e8f91a2c2d7e1075872707fe22ae08f86bbcc618c58b2ba13b1337",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-arrow/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-arrow2/driver.cpp",
+   "sha256": "9264b40d32756c62b2bac92b08eab367a73856b447c12371c7de45046edce0d9",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-arrow2/node.sh",
+   "sha256": "ee385f2693e25de4ed1928c49af75e98bf4a622d056b8a62792c3f4bc28d331b",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-arrow2/run.sh",
+   "sha256": "54b895d713b95a33011084476cf75142f2fb75206af4e2e9a25b996ad5591020",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-arrow2/results/records.tsv",
+   "sha256": "dab95036c4e07ff26ff3c0a4ebaf7fbfbeff09d58f0dedc63b2ff536589a4df6",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-arrow2/results/hashes.txt",
+   "sha256": "e8ff3bba68b08ece963e4f6f575af8bcdb6a631f3bac46339a9041fdad6a938d",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-arrow2/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-protein/driver.cpp",
+   "sha256": "fcefdb2fa229b90abd40ea916004331ed2ddc962cff74d5322ac9c80a2f7ed1e",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-protein/node.sh",
+   "sha256": "b73b1365e0b473f0f6531c3f7cb65a3c53c484b2d27345a59fab3d445292cd01",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-protein/run.sh",
+   "sha256": "6bce0c7a751c36533a633c06aff85ccb8b8e7f7348d8227d54c33bca105cd6d2",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-protein/results/records.tsv",
+   "sha256": "b5bc983e77cff80caeaeb3ff9f488ae2def3e7263e776874f8c94cd9eb8c9493",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-protein/results/hashes.txt",
+   "sha256": "e992fcd717f09fbb5ebeff18c4111bbfade40474e9e58090a74bb53e5a298abc",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-protein/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-features/driver.cpp",
+   "sha256": "6ee73253e1c2210b5a0d3ba782f796b5526dd42d682edb57b48090d52887d2d3",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-features/node.sh",
+   "sha256": "2760944e6a7a192ee8479bbd291dfe16226e5e78ef8a49f0538a53cebba7f667",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-features/run.sh",
+   "sha256": "43e7ca245ee14def62d667bb9391aefd376743540df21e5253dff0baa2a8e7e1",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/F1a-features/results/records.tsv",
+   "sha256": "3a3144be54b81a71b15af428283697375511cd5bfed311733f6567ce05385e32",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-features/results/hashes.txt",
+   "sha256": "e76b811e2a5ad668e69b7012b9b0237f0a6e91d9a36f12b460a507874fab81f4",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/F1a-features/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/driver.cpp",
+   "sha256": "1bb5ddd2c74d0d09a45ecd7a9dc8b0cce4c167867576b2684f3dbdb3cf8f9af5",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/remote_run.sh",
+   "sha256": "2bc9c87a9da9203ed09c4a2c18d5651d1a683db7eafc58b73aea976929630721",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/run.sh",
+   "sha256": "7c8d20da30cb3327b5b249f60e367e5518b85a8a8889c24d2b9c45dc8701ca79",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/hashes.txt",
+   "sha256": "b427ae0b20b4c28ca1ff4c9b71e4b99216e9f889fb6f2a2704854c8e9275ac8a",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/records.tsv",
+   "sha256": "525c2e5742fedd9c39e663f4bb0d1d7f39e3d57746c07156e11a7001fd88e157",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/host.txt",
+   "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-psmarrowio/results/stderr.txt",
+   "sha256": "1237d26452494e9a7cbbb0b57cbfd786de805884a16b40b73dbb18c921d9ab74",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/driver.cpp",
+   "sha256": "0048644a451783ae1601f1ac5628d445eca2ff1ec8587f256d9a54322a693a37",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/node.sh",
+   "sha256": "9d3e694464d225c580e64dc7478423e51ba438e0dc9213fd83ded264b14bd7b7",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/run.sh",
+   "sha256": "da89146f3de6c3ccb791e235da985a17fe5cbe38fa66483eafbde9471e67800b",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/records.tsv",
+   "sha256": "fd644358cbaeab4585ebb75a73f539d41dd2763424cfca47471663211b73a513",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/hashes.txt",
+   "sha256": "ffa962c7ee848ccda35e68b5d9cdac8ff0975041872d84c8c999f7afd2e9a559",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/host.txt",
+   "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/integ-F-concat/results/stderr.txt",
+   "sha256": "5fe6ac760c0d7fd8b4041caeaf7419105f03cb4960b1f655084f74333ad1b7ab",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  }
+ ],
+ "external_reference_note": "The oracle drivers are C++ and stay outside the repository; their records were copied verbatim into tests/data/arrow_parquet/ (hashes above), and results/hashes.txt of each oracle hashes the driver, the built binary, libOpenMS.so and every file it wrote. The C++-written pia_*.parquet files embed a fresh uuid and creation_date per run, so the two runs of oracle part 3 differ in those files only; the records are identical.",
+ "psm_arrow_io_note": "PSMArrowIO (wave-4 integration, INTEG-F): tests/psm_arrow_io.rs ports every section of PSMArrowIO_test.cpp (tier 3) and imports the C++-written test-data fixtures IDMerger_idparquet_input1/2.idparquet (already listed under fixtures), which topp/CMakeLists.txt:178 at test-data 0cb15f2 records as written by IDFileConverter from topp/IDMerger_1_input1.idXML (sha256 3621364be45a069a2bd4224832231e1608528c098accdc1ede1aa83003de3cdd) and topp/IDMerger_1_input2.idXML (sha256 a7ece5d0cec93d55c9b43ed53a456222c8f73035be78a6995b069ae742d390eb); the expected identifications are transcribed from those two idXML files, and the retained topp/IDMerger_idparquet_output.idXML (sha256 0fa0bf1a78d3dab97b0474cf62bdaa5f47451ad0224a253a338df7bac42d1c73, the C++ import merged by IDMerger, which sorts hits) shows the same hits. Tier 1: ../oracle/integ-F-psmarrowio links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (run twice, identical records): PSMArrowIO::importFromParquet of the four C++-written idparquet fixtures and of the Release build's own exportToParquet bundles of the class test's minimal, decoy and multi-rank sets, field for field (tests/data/psm_arrow_io/cpp_release_records.tsv, cpp_release_stderr.txt and export_*/, verbatim; the bundles embed a fresh uuid and creation_date per run)."
+}

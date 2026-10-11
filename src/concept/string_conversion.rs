@@ -321,6 +321,444 @@ pub(crate) fn skip_whitespace(text: &str) -> usize {
     skip_blanks(text.as_bytes(), 0)
 }
 
+/// Source `StringUtils::split(s, splitter, substrings)` without quote
+/// protection (`StringUtils.h:596-663`): an empty string yields no fields at
+/// all, anything else every field between separators, empty fields included.
+pub(crate) fn split(text: &str, separator: char) -> Vec<&str> {
+    if text.is_empty() {
+        Vec::new()
+    } else {
+        text.split(separator).collect()
+    }
+}
+
+/// Source `StringUtils::trim` (`StringUtils.h:395-408`): strips space, tab,
+/// newline and carriage return from both ends.
+pub(crate) fn trim(text: &str) -> &str {
+    text.trim_matches([' ', '\t', '\n', '\r'])
+}
+
+// The C library conversions: std::stod, std::stoll and std::stoul as glibc
+// performs them (moved here from format::arrow_io_helpers, lane F1a, whose
+// Release oracle measured them, and format::string_utils, lane F4).
+
+/// C locale `isspace`.
+fn is_c_space(byte: u8) -> bool {
+    matches!(byte, b' ' | b'\t' | b'\n' | 0x0b | 0x0c | b'\r')
+}
+
+/// `std::stoll(text)`: leading whitespace, an optional sign and the longest
+/// run of decimal digits, the rest ignored. `None` where `stoll` throws (no
+/// digits, or out of range).
+fn c_stoll(text: &str) -> Option<i64> {
+    let bytes = text.as_bytes();
+    let mut i = bytes.iter().take_while(|b| is_c_space(**b)).count();
+    let negative = match bytes.get(i) {
+        Some(b'-') => {
+            i += 1;
+            true
+        }
+        Some(b'+') => {
+            i += 1;
+            false
+        }
+        _ => false,
+    };
+    let digits = bytes[i..].iter().take_while(|b| b.is_ascii_digit()).count();
+    if digits == 0 {
+        return None;
+    }
+    // Accumulate negatively so that i64::MIN is reachable.
+    let mut value: i64 = 0;
+    for &digit in &bytes[i..i + digits] {
+        value = value
+            .checked_mul(10)?
+            .checked_sub(i64::from(digit - b'0'))?;
+    }
+    if negative {
+        Some(value)
+    } else {
+        value.checked_neg()
+    }
+}
+
+/// Whether `text` starts with `prefix`, ASCII case-insensitively.
+fn starts_with_ignore_case(text: &[u8], prefix: &str) -> bool {
+    text.len() >= prefix.len() && text[..prefix.len()].eq_ignore_ascii_case(prefix.as_bytes())
+}
+
+/// Round `mantissa * 2^exponent` (plus a nonzero tail below it when
+/// `sticky`) to a double, to nearest with ties to even. `None` where glibc's
+/// `strtod` reports `ERANGE`: overflow, or an inexact result below the
+/// smallest normal double (tininess after rounding, as on x86-64).
+fn assemble_binary(mantissa: u64, exponent: i64, sticky: bool) -> Option<f64> {
+    if mantissa == 0 {
+        return Some(0.0);
+    }
+    let bits = 64 - i64::from(mantissa.leading_zeros());
+    let top = exponent.saturating_add(bits - 1);
+    if top > 1023 {
+        return None;
+    }
+    let lsb = top.saturating_sub(52).max(-1074);
+    let shift = lsb.saturating_sub(exponent);
+    let wide = u128::from(mantissa);
+    let (mut q, inexact) = if shift <= 0 {
+        // At most 53 significant bits remain, so the shifted value fits.
+        (wide << u32::try_from(-shift).unwrap_or(0).min(64), sticky)
+    } else if shift >= 128 {
+        (0, true)
+    } else {
+        let shift = u32::try_from(shift).unwrap_or(127);
+        let q = wide >> shift;
+        let rest = wide & ((1u128 << shift) - 1);
+        let half = 1u128 << (shift - 1);
+        let round_up = rest > half || (rest == half && (sticky || q & 1 == 1));
+        (q + u128::from(round_up), rest != 0 || sticky)
+    };
+    let mut e = lsb;
+    if q == 1u128 << 53 {
+        q >>= 1;
+        e += 1;
+    }
+    let q = u64::try_from(q).ok()?;
+    let tiny = q < 1u64 << 52;
+    if inexact && tiny {
+        return None;
+    }
+    if tiny {
+        return Some(f64::from_bits(q));
+    }
+    let biased = e + 52 + 1023;
+    if biased >= 2047 {
+        return None;
+    }
+    let biased = u64::try_from(biased).ok()?;
+    Some(f64::from_bits((biased << 52) | (q & ((1u64 << 52) - 1))))
+}
+
+/// The hexadecimal float after `0x`: `None` when no hex digit follows (the
+/// caller then reads the leading `0`), `Some(None)` for `ERANGE`.
+fn c_hex_float(bytes: &[u8]) -> Option<Option<f64>> {
+    let mut mantissa: u64 = 0;
+    let mut exponent: i64 = 0;
+    let mut sticky = false;
+    let mut any = false;
+    let mut dot = false;
+    let mut i = 0;
+    loop {
+        match bytes.get(i) {
+            Some(&c) if c.is_ascii_hexdigit() => {
+                any = true;
+                let digit = u64::from(char::from(c).to_digit(16).unwrap_or(0));
+                if mantissa >> 60 == 0 {
+                    mantissa = (mantissa << 4) | digit;
+                    if dot {
+                        exponent -= 4;
+                    }
+                } else {
+                    sticky |= digit != 0;
+                    if !dot {
+                        exponent = exponent.saturating_add(4);
+                    }
+                }
+            }
+            Some(b'.') if !dot => dot = true,
+            _ => break,
+        }
+        i += 1;
+    }
+    if !any {
+        return None;
+    }
+    if matches!(bytes.get(i), Some(b'p' | b'P')) {
+        let mut j = i + 1;
+        let negative = match bytes.get(j) {
+            Some(b'-') => {
+                j += 1;
+                true
+            }
+            Some(b'+') => {
+                j += 1;
+                false
+            }
+            _ => false,
+        };
+        let mut value: i64 = 0;
+        let mut digits = 0;
+        while let Some(digit) = bytes.get(j).filter(|b| b.is_ascii_digit()) {
+            value = value
+                .saturating_mul(10)
+                .saturating_add(i64::from(digit - b'0'))
+                .min(1 << 40);
+            digits += 1;
+            j += 1;
+        }
+        if digits > 0 {
+            exponent = exponent.saturating_add(if negative { -value } else { value });
+        }
+    }
+    Some(assemble_binary(mantissa, exponent, sticky))
+}
+
+/// Base-10^9 digits of `k * 5^1074`, most significant first, as a decimal
+/// string: the exact digits of the subnormal double `k * 2^-1074` scaled by
+/// 10^1074.
+fn subnormal_digits(k: u64) -> String {
+    const BASE: u64 = 1_000_000_000;
+    let mut limbs: Vec<u64> = Vec::new();
+    let mut rest = k;
+    while rest > 0 {
+        limbs.push(rest % BASE);
+        rest /= BASE;
+    }
+    let mut multiply = |factor: u64| {
+        let mut carry = 0u64;
+        for limb in &mut limbs {
+            let product = *limb * factor + carry;
+            *limb = product % BASE;
+            carry = product / BASE;
+        }
+        while carry > 0 {
+            limbs.push(carry % BASE);
+            carry /= BASE;
+        }
+    };
+    // 1074 = 13 * 82 + 8; 5^13 = 1,220,703,125 keeps each product below 2^64.
+    for _ in 0..82 {
+        multiply(1_220_703_125);
+    }
+    multiply(390_625);
+    let mut text = String::new();
+    for (index, limb) in limbs.iter().rev().enumerate() {
+        if index == 0 {
+            text.push_str(&limb.to_string());
+        } else {
+            text.push_str(&format!("{limb:09}"));
+        }
+    }
+    text
+}
+
+/// Strip leading and trailing zeros of a digit string, adjusting the decimal
+/// exponent of its last digit.
+fn normalized(digits: &str, exponent: i64) -> (&str, i64) {
+    let digits = digits.trim_start_matches('0');
+    let trimmed = digits.trim_end_matches('0');
+    let dropped = i64::try_from(digits.len() - trimmed.len()).unwrap_or(i64::MAX);
+    (trimmed, exponent.saturating_add(dropped))
+}
+
+/// `std::stod(text)` as glibc's `strtod` decides it: leading whitespace, an
+/// optional sign, then the longest valid prefix — `inf`/`infinity`, `nan`
+/// (with or without a parenthesised payload), a hexadecimal float after `0x`
+/// or a decimal float — the rest ignored. `None` where `stod` throws: no
+/// conversion, overflow, or an inexact result below the smallest normal
+/// double (measured: `1e-310` and `0x1.8p-1074` throw, `0x1p-1074` and
+/// `0e-400` do not).
+fn c_stod(text: &str) -> Option<f64> {
+    let bytes = text.as_bytes();
+    let mut i = bytes.iter().take_while(|b| is_c_space(**b)).count();
+    let negative = match bytes.get(i) {
+        Some(b'-') => {
+            i += 1;
+            true
+        }
+        Some(b'+') => {
+            i += 1;
+            false
+        }
+        _ => false,
+    };
+    let sign = if negative { -1.0 } else { 1.0 };
+    let rest = &bytes[i..];
+    if starts_with_ignore_case(rest, "inf") {
+        return Some(sign * f64::INFINITY);
+    }
+    if starts_with_ignore_case(rest, "nan") {
+        return Some(if negative { -f64::NAN } else { f64::NAN });
+    }
+    if rest.len() >= 2 && rest[0] == b'0' && (rest[1] | 0x20) == b'x' {
+        if let Some(value) = c_hex_float(&rest[2..]) {
+            return value.map(|value| sign * value);
+        }
+    }
+    // Decimal: digits, an optional point and digits, at least one digit, then
+    // an exponent only when it has digits.
+    let integer = rest.iter().take_while(|b| b.is_ascii_digit()).count();
+    let mut end = integer;
+    let mut fraction = 0;
+    if rest.get(end) == Some(&b'.') {
+        fraction = rest[end + 1..]
+            .iter()
+            .take_while(|b| b.is_ascii_digit())
+            .count();
+        if integer + fraction > 0 {
+            end += 1 + fraction;
+        }
+    }
+    if integer + fraction == 0 {
+        return None;
+    }
+    let mantissa_end = end;
+    let mut exponent: i64 = 0;
+    if matches!(rest.get(end), Some(b'e' | b'E')) {
+        let mut j = end + 1;
+        let exponent_negative = match rest.get(j) {
+            Some(b'-') => {
+                j += 1;
+                true
+            }
+            Some(b'+') => {
+                j += 1;
+                false
+            }
+            _ => false,
+        };
+        let digits = rest[j..].iter().take_while(|b| b.is_ascii_digit()).count();
+        if digits > 0 {
+            for &digit in &rest[j..j + digits] {
+                exponent = exponent
+                    .saturating_mul(10)
+                    .saturating_add(i64::from(digit - b'0'))
+                    .min(1 << 40);
+            }
+            if exponent_negative {
+                exponent = -exponent;
+            }
+            end = j + digits;
+        }
+    }
+    // Every byte in rest[..end] is ASCII.
+    let literal = std::str::from_utf8(&rest[..end]).ok()?;
+    let magnitude: f64 = literal.parse().ok()?;
+    if magnitude.is_infinite() {
+        return None;
+    }
+    let digits: String = rest[..mantissa_end]
+        .iter()
+        .filter(|b| b.is_ascii_digit())
+        .map(|b| char::from(*b))
+        .collect();
+    if magnitude == 0.0 {
+        return if digits.bytes().any(|b| b != b'0') {
+            None
+        } else {
+            Some(sign * 0.0)
+        };
+    }
+    if magnitude < f64::MIN_POSITIVE {
+        let fraction = i64::try_from(fraction).unwrap_or(i64::MAX);
+        let input = normalized(&digits, exponent.saturating_sub(fraction));
+        let exact_digits = subnormal_digits(magnitude.to_bits());
+        let exact = normalized(&exact_digits, -1074);
+        if input != exact {
+            return None;
+        }
+    }
+    Some(sign * magnitude)
+}
+
+/// Whether C's `strtod`/`strtoll` would read any number at the start of
+/// `text` (after leading C white space and one sign): a digit, a point
+/// followed by a digit, `inf`, `nan` or `0x`. When it would, a `None` from the
+/// conversion is `ERANGE`, not "no conversion".
+fn has_numeric_prefix(text: &str, float: bool) -> bool {
+    let bytes = text.as_bytes();
+    let mut i = bytes.iter().take_while(|b| is_c_space(**b)).count();
+    if matches!(bytes.get(i), Some(b'+' | b'-')) {
+        i += 1;
+    }
+    let rest = &bytes[i..];
+    match rest.first() {
+        Some(b) if b.is_ascii_digit() => true,
+        Some(b'.') if float => rest.get(1).is_some_and(u8::is_ascii_digit),
+        _ => {
+            float && (starts_with_ignore_case(rest, "inf") || starts_with_ignore_case(rest, "nan"))
+        }
+    }
+}
+
+/// `std::stod`: glibc's `strtod` on the text, which skips leading C white
+/// space, reads the longest numeric prefix and ignores whatever follows it.
+///
+/// The prefix is an optional sign and then a decimal number (digits with an
+/// optional fraction, at least one digit, and an exponent only when it has
+/// digits), a hexadecimal float after `0x`, `inf`, `infinity` or `nan` (any
+/// case), or `nan(...)`. The rules are the Linux Release build's, measured by
+/// lane F1a through `ArrowIOHelpers::readMetaValues`
+/// (`tests/data/arrow_parquet/cpp_release_records.tsv`, `d1`-`d32`): `0x1p3` is
+/// 8, `1e-310` and `0x1.8p-1074` are out of range (an inexact result below the
+/// smallest normal double), `0x1p-1074` and `0e-400` are not.
+///
+/// # Errors
+///
+/// `std::stod`'s `std::invalid_argument` ("no conversion") when no prefix
+/// converts, and `std::out_of_range` when the value overflows or is an inexact
+/// result below the smallest normal double (`ERANGE` in the C library).
+pub(crate) fn stod(text: &str) -> std::result::Result<f64, String> {
+    c_stod(text).ok_or_else(|| {
+        if has_numeric_prefix(text, true) {
+            format!("stod: '{text}' is out of range")
+        } else {
+            format!("stod: no conversion of '{text}'")
+        }
+    })
+}
+
+/// `std::stoll`: `strtoll` in base 10, which skips leading C white space,
+/// takes one sign and the longest run of decimal digits, ignoring the rest.
+///
+/// # Errors
+///
+/// `std::invalid_argument` ("no conversion") when no digit follows, and
+/// `std::out_of_range` when the digits exceed `i64`.
+pub(crate) fn stoll(text: &str) -> std::result::Result<i64, String> {
+    c_stoll(text).ok_or_else(|| {
+        if has_numeric_prefix(text, false) {
+            format!("stoll: '{text}' is out of range")
+        } else {
+            format!("stoll: no conversion of '{text}'")
+        }
+    })
+}
+
+/// `std::stoul` with the 64-bit `unsigned long` of the source platforms:
+/// `strtoul` in base 10, which skips leading C whitespace, accepts one sign,
+/// reads the longest digit prefix and ignores whatever follows. A `-` negates
+/// the value in unsigned arithmetic, as C does (`-1` is `u64::MAX`).
+///
+/// # Errors
+///
+/// Returns `std::invalid_argument` ("no conversion") when no digit follows,
+/// and `std::out_of_range` when the digits exceed `u64`.
+pub(crate) fn stoul(text: &str) -> std::result::Result<u64, String> {
+    let bytes = text.as_bytes();
+    let mut cursor = 0;
+    while bytes.get(cursor).copied().is_some_and(is_c_space) {
+        cursor += 1;
+    }
+    let negative = bytes.get(cursor) == Some(&b'-');
+    if matches!(bytes.get(cursor), Some(b'+' | b'-')) {
+        cursor += 1;
+    }
+    let start = cursor;
+    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
+        cursor += 1;
+    }
+    if cursor == start {
+        return Err(format!("stoul: no conversion of '{text}'"));
+    }
+    let value: u64 = text[start..cursor]
+        .parse()
+        .map_err(|_| format!("stoul: '{text}' is out of range"))?;
+    Ok(if negative {
+        value.wrapping_neg()
+    } else {
+        value
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -413,7 +851,7 @@ mod tests {
     /// `ConversionError` text, as the Linux x86_64 Release build returned it
     /// (`../oracle/integ-A-stringutils`, ibminode06, install
     /// openms4-release-bc9cc12-c19e494-174b576, two runs in each of two
-    /// invocations, identical; tests/data/string_utils_release_provenance.json).
+    /// invocations, identical; tests/data/string_conversion_release_provenance.json).
     #[test]
     fn to_double_and_to_int32_match_the_release_build() {
         let text = std::fs::read_to_string(
@@ -445,5 +883,80 @@ mod tests {
             rows += 1;
         }
         assert_eq!(rows, DOUBLE_INPUTS.len() + INT_INPUTS.len());
+    }
+
+    #[test]
+    fn conversions_follow_the_source_rules() {
+        assert_eq!(to_double(" +1.5 "), Ok(1.5));
+        assert!(to_double("1.5x").is_err());
+        assert!(to_double("++1").is_err());
+        assert!(to_double("1e999").is_err());
+        assert!(to_double("").is_err());
+        assert!(to_double("nan(x)").unwrap().is_nan());
+        assert_eq!(to_double("-inf"), Ok(f64::NEG_INFINITY));
+        assert_eq!(to_float("866.606"), Ok(866.606_f32));
+        assert!(to_float("1e39").is_err());
+        assert!(to_float("1.5x").unwrap_err().contains("to a float value"));
+        assert_eq!(to_int32(" +7\t"), Ok(7));
+        assert_eq!(to_int32("-7"), Ok(-7));
+        assert!(to_int32("7.0").is_err());
+        assert!(to_int32("2147483648").is_err());
+        assert!(split("", '\t').is_empty());
+        assert_eq!(split("a\t\tb", '\t'), ["a", "", "b"]);
+        assert_eq!(trim(" \ta b\r\n"), "a b");
+    }
+
+    #[test]
+    fn stod_reads_the_longest_prefix() {
+        assert_eq!(stod(" 12.5 min"), Ok(12.5));
+        assert_eq!(stod("\x0c-3e2x"), Ok(-300.0));
+        assert_eq!(stod("7e"), Ok(7.0));
+        assert_eq!(stod(".5"), Ok(0.5));
+        assert_eq!(stod("5."), Ok(5.0));
+        assert_eq!(stod("-inf"), Ok(f64::NEG_INFINITY));
+        assert!(stod("NaN").unwrap().is_nan());
+        assert!(stod("").is_err());
+        assert!(stod(".").is_err());
+        assert!(stod("abc").is_err());
+        assert!(stod("1e999").is_err());
+        assert!(stod("1e-400").is_err());
+        assert_eq!(stod("0e-400"), Ok(0.0));
+        // The Release build reads hexadecimal floats (readMetaValues d12,
+        // tests/data/arrow_parquet/cpp_release_records.tsv: 0x1p3 -> 8.0);
+        // lane F4 had refused them.
+        assert_eq!(stod("0x1p3"), Ok(8.0));
+    }
+
+    #[test]
+    fn stoul_follows_strtoul() {
+        assert_eq!(stoul("14"), Ok(14));
+        assert_eq!(stoul(" +3x"), Ok(3));
+        assert_eq!(stoul("-1"), Ok(u64::MAX));
+        assert!(stoul("x").is_err());
+        assert!(stoul("99999999999999999999").is_err());
+    }
+
+    #[test]
+    fn stoll_follows_the_c_library() {
+        assert_eq!(stoll("12"), Ok(12));
+        assert_eq!(stoll("\x0b\x0c 7"), Ok(7));
+        assert!(stoll("- 1").is_err());
+        assert_eq!(stoll("-9223372036854775808"), Ok(i64::MIN));
+        assert!(stoll("9223372036854775808").is_err());
+    }
+
+    #[test]
+    fn stod_reports_range_errors_as_glibc() {
+        assert_eq!(stod("0x1p-1074"), Ok(f64::from_bits(1)));
+        assert!(stod("0x1.8p-1074").is_err());
+        assert!(stod("1e-310").is_err());
+        assert_eq!(stod("0e-400"), Ok(0.0));
+        assert_eq!(stod("0x"), Ok(0.0));
+        assert_eq!(stod("0x.8"), Ok(0.5));
+        assert!(stod("0x1p1024").is_err());
+        assert_eq!(stod("0x1.fffffffffffffp1023"), Ok(f64::MAX));
+        // (lane F1a) The exact decimal expansion of the smallest subnormal is exact.
+        let exact = format!("{}e-1074", subnormal_digits(1));
+        assert_eq!(stod(&exact), Ok(f64::from_bits(1)));
     }
 }

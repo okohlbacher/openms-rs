@@ -25,7 +25,7 @@
  "native_implementation": [
   "src/format/paramxml.rs",
   "src/format/path_io.rs",
-  "src/format/zip_input.rs"
+  "src/format/zip_ifstream.rs"
  ],
  "native_tests": [
   "tests/paramxml_zip_input.rs"

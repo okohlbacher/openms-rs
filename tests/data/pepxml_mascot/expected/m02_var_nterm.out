@@ -1,0 +1,5 @@
+load m02_var_nterm.pepXML
+status ok
+peptides 1
+title [q1] 1
+seq [.(Acetyl)K(Acetyl)PEPTIDE] [KPEPTIDE]

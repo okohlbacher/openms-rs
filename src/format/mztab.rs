@@ -59,6 +59,10 @@
 //! ```
 
 use crate::chemistry::{ModificationsDB, ResidueModification, TermSpecificity};
+// `StringUtils::trim` (space, tab, newline and carriage return only, deliberately not
+// `str::trim`) and `StringUtils::split` (an empty subject yields no fields, so an empty
+// cell adds no entries to a list), shared with the other text readers.
+use crate::concept::string_conversion::{split, trim};
 use crate::identification::{FlankingResidue, PeptideEvidence};
 use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::param::value::format_float;
@@ -94,14 +98,6 @@ fn limit() -> Error {
     bad("MzTab cell exceeds its byte or entry limit")
 }
 
-/// `StringUtils::trim`: ASCII space, tab, newline and carriage return only.
-///
-/// Deliberately not [`str::trim`], which also removes Unicode whitespace such
-/// as U+00A0. Trimming by characters cannot split a multi-byte character.
-fn trim_source(text: &str) -> &str {
-    text.trim_matches(|c| c == ' ' || c == '\t' || c == '\n' || c == '\r')
-}
-
 /// The source's `toLower(s) == "null"` test, without building a lowered copy.
 ///
 /// The source lowercases the whole cell with `std::tolower` on each `unsigned
@@ -109,17 +105,7 @@ fn trim_source(text: &str) -> &str {
 /// An ASCII-case-insensitive comparison agrees on every input for which the
 /// test can succeed and never touches non-ASCII bytes.
 fn is_token(text: &str, token: &str) -> bool {
-    trim_source(text).eq_ignore_ascii_case(token)
-}
-
-/// `StringUtils::split`: an empty subject yields no fields at all, so an empty
-/// cell adds no entries to a list rather than one empty entry.
-fn split_cells(text: &str, separator: char) -> Vec<&str> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).collect()
-    }
+    trim(text).eq_ignore_ascii_case(token)
 }
 
 fn preflight_cell(text: &str, separator: char) -> Result<()> {
@@ -141,7 +127,7 @@ fn preflight_cell(text: &str, separator: char) -> Result<()> {
 /// accepted; a token that overflows the double range is an error, as the
 /// source's `std::from_chars` reports `result_out_of_range`.
 fn parse_source_double(text: &str) -> Result<f64> {
-    let token = trim_source(text);
+    let token = trim(text);
     let value = token
         .parse::<f64>()
         .map_err(|_| conversion(format!("could not convert {token:?} to a double value")))?;
@@ -165,12 +151,8 @@ fn parse_source_double(text: &str) -> Result<f64> {
 /// fails. Both properties are reproduced here: `"2147483648"` and `"++5"` are
 /// refused.
 fn parse_source_int32(text: &str, label: &str) -> Result<i32> {
-    crate::concept::string_conversion::to_int32(text).map_err(|_| {
-        conversion(format!(
-            "could not convert {:?} to {label}",
-            trim_source(text)
-        ))
-    })
+    crate::concept::string_conversion::to_int32(text)
+        .map_err(|_| conversion(format!("could not convert {:?} to {label}", trim(text))))
 }
 
 /// Header cell state for `Integer` and `Double` columns.
@@ -582,7 +564,7 @@ impl MzTabInteger {
             if value.fract() != 0.0 || !(-2_147_483_648.0..=2_147_483_647.0).contains(&value) {
                 return Err(conversion(format!(
                     "could not convert {:?} to an MzTab Integer",
-                    trim_source(text)
+                    trim(text)
                 )));
             }
             self.set(value as i32);
@@ -754,7 +736,7 @@ impl MzTabString {
             self.value.clear();
         } else {
             self.value.clear();
-            self.value.push_str(trim_source(text));
+            self.value.push_str(trim(text));
         }
     }
     /// The stored text, empty when the cell is null.
@@ -983,7 +965,7 @@ impl MzTabParameter {
                 if in_quotes {
                     field.push(',');
                 } else {
-                    fields.push(trim_source(&field).to_owned());
+                    fields.push(trim(&field).to_owned());
                     field.clear();
                 }
             } else if c != '[' && c != ']' {
@@ -993,7 +975,7 @@ impl MzTabParameter {
                 field.push(c);
             }
         }
-        fields.push(trim_source(&field).to_owned());
+        fields.push(trim(&field).to_owned());
         if fields.len() != 4 {
             return Err(conversion(format!(
                 "could not convert {text:?} to an MzTab Param: {} fields instead of 4",
@@ -1092,7 +1074,7 @@ impl MzTabParameterList {
         }
         preflight_cell(text, '|')?;
         let mut next = Vec::new();
-        for field in split_cells(text, '|') {
+        for field in split(text, '|') {
             if is_token(field, "null") {
                 return Err(conversion(format!(
                     "MzTab Param in a Param[] must not be null: {text:?}"
@@ -1206,7 +1188,7 @@ impl MzTabStringList {
             return Ok(());
         }
         preflight_cell(text, self.separator)?;
-        let next = split_cells(text, self.separator)
+        let next = split(text, self.separator)
             .into_iter()
             .map(MzTabString::from_text)
             .collect();
@@ -1289,7 +1271,7 @@ impl MzTabIntegerList {
         }
         preflight_cell(text, ',')?;
         let mut next = Vec::new();
-        for field in split_cells(text, ',') {
+        for field in split(text, ',') {
             let mut cell = MzTabInteger::default();
             cell.from_cell_string(field)?;
             next.push(cell);
@@ -1373,7 +1355,7 @@ impl MzTabDoubleList {
         }
         preflight_cell(text, '|')?;
         let mut next = Vec::new();
-        for field in split_cells(text, '|') {
+        for field in split(text, '|') {
             let mut cell = MzTabDouble::default();
             cell.from_cell_string(field)?;
             next.push(cell);
@@ -1523,7 +1505,7 @@ impl MzTabSpectraRef {
             return Ok(());
         }
         preflight_cell(text, ':')?;
-        let fields = split_cells(text, ':');
+        let fields = split(text, ':');
         if fields.len() != 2 {
             return Err(conversion(format!(
                 "can not convert {text:?} to an MzTab spectra_ref"
@@ -1689,21 +1671,21 @@ impl MzTabModification {
         preflight_cell(text, '-')?;
         if !text.contains('-') {
             let mut next = Self::default();
-            next.identifier.from_cell_string(trim_source(text));
+            next.identifier.from_cell_string(trim(text));
             *self = next;
             return Ok(());
         }
-        let trimmed = trim_source(text);
-        let fields = split_cells(trimmed, '-');
+        let trimmed = trim(text);
+        let fields = split(trimmed, '-');
         if fields.len() != 2 {
             return Err(conversion(format!(
                 "can not convert {text:?} to an MzTab modification"
             )));
         }
         let mut next = Self::default();
-        next.identifier.from_cell_string(trim_source(fields[1]));
+        next.identifier.from_cell_string(trim(fields[1]));
         preflight_cell(fields[0], '|')?;
-        for position_field in split_cells(fields[0], '|') {
+        for position_field in split(fields[0], '|') {
             match position_field.find('[') {
                 None => {
                     let position = parse_position(position_field)?;
@@ -1729,7 +1711,7 @@ fn parse_position(text: &str) -> Result<usize> {
     usize::try_from(value).map_err(|_| {
         conversion(format!(
             "MzTab modification position must not be negative: {:?}",
-            trim_source(text)
+            trim(text)
         ))
     })
 }
@@ -1842,10 +1824,7 @@ impl MzTabModificationList {
 /// quotes stay in the field text, as they do in the source.
 fn split_modification_entries(text: &str) -> Vec<String> {
     if !text.contains('[') {
-        return split_cells(text, ',')
-            .into_iter()
-            .map(str::to_owned)
-            .collect();
+        return split(text, ',').into_iter().map(str::to_owned).collect();
     }
     let mut fields = Vec::new();
     let mut field = String::new();
@@ -2983,7 +2962,7 @@ pub fn add_meta_info_to_optional_columns(
 
 /// The source's `DataValue::toString(true)`: full-precision numbers, lists
 /// bracketed and separated by `", "`, and an absent value as empty text.
-fn meta_value_text(value: &MetaValue) -> String {
+pub(crate) fn meta_value_text(value: &MetaValue) -> String {
     fn bracketed<I: Iterator<Item = String>>(parts: I) -> String {
         let joined: Vec<String> = parts.collect();
         format!("[{}]", joined.join(", "))

@@ -38,7 +38,7 @@ Every member the header declares, public and protected.
 |---|---|
 | `class MascotGenericFile` | `MascotGenericFile` |
 | base `ProgressLogger`, as `load` and `store` use it | `load_with_progress`, `MascotGenericFile::load_with_progress`, `MascotGenericFile::store_with_progress`, `MascotGenericFile::store_to_with_progress`: the caller's logger receives the Release build's calls, call for call (tier 1, `tests/progress_format_readers.rs`; see `docs/PROGRESS_LOGGER_SUPPORT.md#format-readers`). The load's range is the file size, and its value after each block is the source's `is.tellg()`, -1 after a last `END IONS` with no newline. The other entry points run the same code and report nothing |
-| base `DefaultParamHandler` | `crate::param::DefaultParamHandler`, held as a private field and surfaced through `parameters`, `defaults` and `set_parameters` |
+| base `DefaultParamHandler` | `crate::param::DefaultParamHandler`, held as a private field. The parameter contract is `MascotGenericFile::from_param` (construction, `setParameters`, `updateMembers_`), `from_param_with_warnings` (plus the unknown-key warnings the source logs) and `to_param` (`getParameters`), with `parameters`, `set_parameters` and `defaults` besides. `defaults` is an instance method, not the contract's associated function, because the modification valid-string lists come from the registry the file was built with (`with_modifications`); adopting lane B6's `DefaultParamHandling` trait therefore needs a rename there |
 | `MascotGenericFile()` | `MascotGenericFile::new` (uses the shared `ModificationsDB`) and `MascotGenericFile::with_modifications` (caller-owned registry). Fallible, because the parameter tree is resource-checked |
 | `~MascotGenericFile()` | `Drop`, implicit |
 | `void updateMembers_()` | folded into `set_parameters` / `with_modifications`, which rebuild the specificity-group map atomically with the new parameters; the result is readable through `special_modification_groups` |
@@ -182,7 +182,9 @@ Every one of these is reproduced, and each is covered by a named test in
     order across repeated lines within one query, because the Mascot
     specification makes each `SEQ` an independent sequence filter
     (`many_seq_lines_in_one_query_are_linear`).
-13. *Numeric conversion is `std::from_chars` strict.* `toDouble`/`toInt32` skip
+13. *Numeric conversion is `std::from_chars` strict, and shared.* `toDouble`/`toInt32` are
+    `data_structures::string_utils::to_double`/`to_int32` (wave-4 integration; the reader
+    had carried private copies) and skip
     space, tab, CR and LF, consume one leading `+`, and then require a complete
     token: a *second* `+` (`++5`) and an overflowing decimal literal (`1e999`,
     which `from_chars` reports as `result_out_of_range`) are conversion errors,
@@ -261,7 +263,7 @@ Every one of these is reproduced, and each is covered by a named test in
 | Difference | Why |
 |---|---|
 | **Carry-over is off by default.** `getNextSpectrum_` clears only peaks, native ID, `TITLE` and `SEQ`, so retention time, precursor m/z, precursor intensity, precursor charge, MS level and every other meta value leak from one block into the next. `CarryOver::Reset` (the default) starts each block fresh; `CarryOver::Source` reproduces the leak. | The upstream class test asserts only that `SEQ` does not leak, which is the one field the source explicitly resets — the author clearly knew about the others. An inherited charge is not recoverable by a caller and is almost never what the file meant. Both behaviours are tested (`carry_over_reproduces_the_source_bleed_and_reset_prevents_it`). Recorded as `MGF-01` in the C++ issue log. |
-| **Non-finite numbers are refused.** The source's `toDouble` accepts `inf` and `nan` and stores them silently. | Every consumer of an `MSSpectrum` rejects a non-finite coordinate, so the failure is moved to the point of parsing. `nan(payload)` is likewise not accepted. |
+| **Non-finite numbers are refused.** The source's `toDouble` accepts `inf` and `nan` and stores them silently. | Every consumer of an `MSSpectrum` rejects a non-finite coordinate, so the failure is moved to the point of parsing. `nan(payload)` converts as it does in the source (the shared `data_structures::string_utils::to_double`) and is refused with the other non-finite spellings. |
 | **A value offset landing inside a multi-byte character is a parse error.** The source slices raw bytes and produces an ill-formed string. | Rust string slicing at a non-boundary aborts the process, and half a character is not a usable value. Tested with `PEPMASSé=1.0`. An offset *past* the end of the line is not this case: `StringUtils::substr` clamps it, and so does this port (`a_header_line_shorter_than_its_key_yields_an_empty_value`). |
 | **A `SEQ=` list is accumulated in the reader**, not round-tripped through the meta value on every line. | The source reads the whole list out of the meta value, appends one entry and writes it back for each `SEQ=` line, which is quadratic: the 100,000-line ceiling costs about five billion string copies, 434 s in release mode on the gate node, for a 1.2 MB block. Accumulating and storing once is 0.04 s and stores the identical list (`many_seq_lines_in_one_query_are_linear`). Recorded as `MGF-04`. |
 | **A scan number that overflows 32-bit arithmetic yields the `-1` sentinel and a warning.** The source's `index=` branch computes `toInt32(value) + 1` and its WIFF branch `cycle * 1000 + experiment` in `int`, both of which are signed overflow — undefined behaviour — for a large native ID. | Checked arithmetic cannot wrap, so the port takes the same path as every other extraction failure and says so in the warning. Recorded as `MGF-05` (`the_last_scan_number_match_wins_before_conversion`). |
@@ -275,12 +277,23 @@ Every one of these is reproduced, and each is covered by a named test in
 
 ## Checked boundaries and evidence
 
-**Evidence tier 3 (source review).** Every expectation comes from the pinned
-`MascotGenericFile_test.cpp` literals or from reading
-`MascotGenericFile.cpp`/`.h`; no C++ was built or executed and no C++ output was
-retained for MGF, so this is not a tier-1 differential. The upstream suite has
-no retained MGF output: its `store` sections compare substrings of an
-in-memory stream, and both transcribed fixtures are inputs.
+**Evidence tier 1 (executed Release output).** The progress calls of `load`
+and `store` are the Release build's, call for call (see the API table).
+`tests/data/mascot_generic_store_release.mgf` is what the Release build's
+`store` wrote for `mgf_two_blocks.mgf` loaded by its own `load`
+(`../oracle/progress-format-readers`, ibminode06, three identical repetitions;
+`tests/data/mascot_generic_provenance.json`): the default parameter header and
+two blocks, the second carrying the first block's charge as the source's load
+leaves it. Loaded with `CarryOver::Source` and stored with the defaults, the
+port writes that file byte for byte, through `store` and `store_to`
+(`store_writes_the_release_build_bytes`); `tests/progress_format_readers.rs`
+also compares the output size it used to exempt.
+
+**Evidence tier 3 (source review).** Every other expectation comes from the
+pinned `MascotGenericFile_test.cpp` literals or from reading
+`MascotGenericFile.cpp`/`.h`. The upstream suite has no retained MGF output:
+its `store` sections compare substrings of an in-memory stream, and both
+transcribed fixtures are inputs.
 
 Transcribed literals, all reproduced: one spectrum with nine peaks from
 `MascotInfile_test.mascot_in`; the written block

@@ -75,7 +75,7 @@ Limits default to 64 MiB raw/decoded/output XML, one million XML elements, one m
 The native path loader recognizes plain, gzip and bzip2 input by content.
 `load_with_limits` and `load_into_with_limits` bound decoded bytes; failed reads
 preserve the existing parameter tree. A one-entry ZIP archive is read through
-its file entry (`src/format/zip_input.rs`), as `XMLFile::parse_` reads it
+its file entry (`src/format/zip_ifstream.rs`), as `XMLFile::parse_` reads it
 (`ParamXMLFile.cpp:357-361` calls `parse_`). `tests/paramxml_zip_input.rs` loads
 stored, deflated and bzip2 entries, an entry below a directory entry, two entries
 and an empty archive, and compares each with the Linux x86_64 Release build's

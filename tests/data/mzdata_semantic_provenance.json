@@ -1,0 +1,111 @@
+{
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/VALIDATORS/MzDataValidator.h",
+   "sha256": "af3eee18b2beb7cb953d18e75eb6567a399befd8a882b57a905b6b35130d2a9f",
+   "lines": "the class: constructor, destructor, the handleTerm_ override"
+  },
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/MzDataValidator.cpp",
+   "sha256": "3c1c02608dce2ed02fc5f8edf224aaf424db753982ebb5bbc45f449e36f3cc62",
+   "lines": "20-24 setCheckUnits(true); 29-153 handleTerm_: rules, units, normalised name comparison"
+  },
+  {
+   "path": "src/openms/source/FORMAT/VALIDATORS/SemanticValidator.cpp",
+   "sha256": "99d9ee2fc48a95880b935b5ffc4a35433cad25850d4e6cebc7e319358daeac59",
+   "lines": "111-139 onStartElement: Unknown CV term (not handled further) and Obsolete CV term warnings before handleTerm_"
+  },
+  {
+   "path": "src/openms/source/FORMAT/MzDataFile.cpp",
+   "sha256": "b301edec0895f5d13e3536a98a3ae2c8826cd9a819c21036ac13c064bcb137ff",
+   "lines": "40-55 isSemanticallyValid"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MzDataValidator_test.cpp",
+   "sha256": "d63ea9ae39b7a5a8cba891aea5c40dd8caf19845147ca84e5d781ef03df0fdaa",
+   "lines": "constructor and destructor only"
+  }
+ ],
+ "resources": [
+  {
+   "path": "resources/cv/mzdata-mapping.xml",
+   "sha256": "2613831cc48e961d1e7e0a06a116885441501c8d11306e28cf42b53e139acfef",
+   "origin": "share/OpenMS/MAPPING/mzdata-mapping.xml at bc9cc12, unchanged; the Release install's copy has the same sha256 (build_info.txt)"
+  },
+  {
+   "path": "resources/cv/psi-mzdata.obo",
+   "sha256": "177c2e95c7d54bc803dcbcd11dde16178976c69b3fa8828ab65abb95a052428e",
+   "origin": "share/OpenMS/CV/psi-mzdata.obo at bc9cc12, unchanged; the Release install's copy has the same sha256 (build_info.txt)"
+  }
+ ],
+ "evidence": "Executed Release differential: MzDataFile::isSemanticallyValid's returned bool, every error and every warning in order, or the exception, for 13 inputs: six unmodified mzData fixtures, five single-defect mutations of MzDataFile_1.mzData, a truncated document and a missing file.",
+ "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
+ "fixtures": [
+  {
+   "path": "tests/data/mzdata_semantic/release_reports.tsv",
+   "sha256": "2b72f7edbe3d3a581cce0822caca2794efdaf8249911e4b0255f830821414f6d",
+   "origin": "../oracle/F7c-mzdata-semantic/results/out_1.txt (out_2.txt byte-identical) with the node's input directory replaced by <IN>"
+  },
+  {
+   "path": "tests/data/mzdata_semantic/sv_names.mzData",
+   "sha256": "1a5c553fb1e839e68e7cae7c9b891cc6284bcdb331fa2aabffda766544435845",
+   "origin": "MzDataFile_1.mzData with two term names changed (make_inputs.py)"
+  },
+  {
+   "path": "tests/data/mzdata_semantic/sv_unknown.mzData",
+   "sha256": "b39fc6a0de02520b03be7c149ea94b8e4f681c78b57601faa192c192169cfdd0",
+   "origin": "MzDataFile_1.mzData with an accession the vocabulary lacks (make_inputs.py)"
+  },
+  {
+   "path": "tests/data/mzdata_semantic/sv_wrong_element.mzData",
+   "sha256": "7a6390585e880b1dee2324f3dcaa37812f8e66c40e0c33921b1eb9a9f26a2e74",
+   "origin": "MzDataFile_1.mzData with a source term added to sampleDescription (make_inputs.py)"
+  },
+  {
+   "path": "tests/data/mzdata_semantic/sv_units.mzData",
+   "sha256": "8fc5a5cb3beb79dbb2d7b59d5a69060843fc28c3eecc892f00fb7da9a7362d37",
+   "origin": "MzDataFile_1.mzData with unit attributes on two terms (make_inputs.py)"
+  },
+  {
+   "path": "tests/data/mzdata_semantic/sv_rules.mzData",
+   "sha256": "0a1c6f9ebfcf0eb7c7bda7e79a2c0ac802fb2a1766b8615ad4788e7f7d456776",
+   "origin": "MzDataFile_1.mzData with one source term removed and one repeated (make_inputs.py)"
+  }
+ ],
+ "reused_fixtures": [
+  {"path": "tests/data/MzDataFile_1.mzData", "sha256": "2a50f4bc28c5bcd3f3625e67b5860dfbdddb011febcd10253776b6dc4a0de64f", "origin": "the driver read a byte-identical copy"},
+  {"path": "tests/data/MzDataFile_3_minimal.mzData", "sha256": "68e635bfb16fa50b87672454d88db422e8da4f5e53fe5578c7ffb99cc92f3c54", "origin": "the driver read a byte-identical copy"},
+  {"path": "tests/data/MzDataFile_4_64bit.mzData", "sha256": "0c598515f77f9027b3c3124cd0a1d8b8c72670ecce474207d00f527a7fdc184f", "origin": "the driver read a byte-identical copy"},
+  {"path": "tests/data/mzdata_big_endian.mzData", "sha256": "9344aa501df97dd3b04e345811c8e382f9421b0bdbf7ed076dfa6e532ab4dd89", "origin": "the driver read a byte-identical copy"},
+  {"path": "tests/data/mzdata_latin1.mzData", "sha256": "7f73073ce6dd4521e3597eac25e9816505558b7ae8851f00149aa057f3a93ce3", "origin": "the driver read a byte-identical copy"},
+  {"path": "tests/data/mzdata_utf8.mzData", "sha256": "a27bffb0b341017c34f1ea5735ac5e9c1e01e5b1f43d38c66c008af5d56f775c", "origin": "the driver read a byte-identical copy"},
+  {"path": "tests/data/progress_format_readers/truncated.mzData", "sha256": "7893312e9beeeb7bca82566fc492958a518607b5f64e4baf45eab74c71e5acaa", "origin": "the driver read a byte-identical copy"}
+ ],
+ "native_implementation": [
+  "src/format/mzdata_validator.rs (semantic_validator::mzdata: MzDataValidator, validate_semantics, default_mappings, default_vocabulary)",
+  "src/format/mzdata.rs (MzDataFile::is_semantically_valid)"
+ ],
+ "native_tests": [
+  "tests/mzdata.rs (semantic_validation_matches_the_release_build)"
+ ],
+ "support_document": "docs/MZDATA_SUPPORT.md",
+ "release_oracle": {
+  "reference_build": "Linux x86_64 Release /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (core bc9cc12)",
+  "host": "ibminode06 (Ubuntu 24.04.4 LTS, AMD EPYC 7763), conda-forge g++ 14.4.0 -O2 -std=c++20, run 2026-09-29, two repetitions byte-identical",
+  "driver_sha256": "77789374f9f3677d022bbe27adc0f449881d42980fed87c97037651776defb62",
+  "driver_binary_sha256": "e1e6ca9031dc338bee56f057608574ebf32d2c37900065c5fa0f753d109a6abc",
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c"
+ },
+ "external_reference_artifacts": [
+  {"path": "../oracle/F7c-mzdata-semantic/driver.cpp", "sha256": "77789374f9f3677d022bbe27adc0f449881d42980fed87c97037651776defb62", "location": "outside this repository", "origin_key": "release_oracle", "role": "executed driver source"},
+  {"path": "../oracle/F7c-mzdata-semantic/remote_run.sh", "sha256": "c6961f5039d98220982eb550807b70b4fb245a264ba84911edf41dd247f38988", "location": "outside this repository", "origin_key": "release_oracle", "role": "node build/run script (refuses every host but ibminode06)"},
+  {"path": "../oracle/F7c-mzdata-semantic/run.sh", "sha256": "1dd86e3f21a0b2ba87c73af95fa7588d51319271aef56707e692092539199df9", "location": "outside this repository", "origin_key": "release_oracle", "role": "Mac-side stage/launch/fetch script"},
+  {"path": "../oracle/F7c-mzdata-semantic/make_inputs.py", "sha256": "a0bd2b5a4437918cb6c91d0ccb491e2418e0b06ce252604aff0cc9594d41403a", "location": "outside this repository", "origin_key": "fixtures", "role": "derives the five mutated inputs"},
+  {"path": "../oracle/F7c-mzdata-semantic/results/build_info.txt", "sha256": "91dccc7587442dc209661227eede3e2c90bed9f675e88eedc758f049e1aef57f", "location": "outside this repository", "origin_key": "release_oracle", "role": "host, compiler, library, input and resource hashes"},
+  {"path": "../oracle/F7c-mzdata-semantic/results/out_1.txt", "sha256": "8d669bf0c5af76fc97db91f6e86f33518b7f95f355b27c283059f68a7bba3f29", "location": "outside this repository", "origin_key": "fixtures", "role": "raw reports, repetition 1 (repetition 2 identical)"}
+ ],
+ "external_reference_note": "The Release oracle driver, its scripts, the input generator and the raw reports live under ../oracle/F7c-mzdata-semantic/ so that no C++ is committed here; these sha256 values are the evidence chain from the Release install to the fixture."
+}

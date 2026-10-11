@@ -96,7 +96,7 @@ Schema hints are inert, as in this source loader. The referenced CvMapping XSD
 is absent from the pinned SDK resources; no external schema is substituted.
 Paths reuse shared magic-based gzip/bzip2 readers with existing optional
 compression dependencies. A ZIP archive is read through its single file entry
-(`src/format/zip_input.rs`), as `XMLFile::parse_` reads it. Compression is independent of filename suffix, the entire
+(`src/format/zip_ifstream.rs`), as `XMLFile::parse_` reads it. Compression is independent of filename suffix, the entire
 stream is read and corrupt/truncated compression is reported. Zero/one-byte
 inputs are handled by length-aware byte slices and checked XML errors.
 

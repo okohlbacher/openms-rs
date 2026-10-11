@@ -587,7 +587,7 @@ fn diff_mono_mass_string(value: f64) -> String {
 /// Built from public chemistry only: the single-residue peptide's neutral mass
 /// less water. Ambiguous codes (B/Z/X) have no monoisotopic composition here,
 /// where the source supplies an averaged placeholder.
-fn internal_residue_mass(code: char) -> Result<f64> {
+pub(crate) fn internal_residue_mass(code: char) -> Result<f64> {
     let water = EmpiricalFormula::parse("H2O")?.mono_mass();
     Ok(AASequence::parse(&code.to_string())?.mono_mass()? - water)
 }
@@ -2932,7 +2932,7 @@ fn date_time(date: &DateTime) -> Option<String> {
 /// `DigestionEnzymeDB` registers every enzyme under its name, its lower-cased
 /// name and each synonym, so `name="trypsin"` resolves to `Trypsin`;
 /// [`ProteaseDB::get_enzyme`] keeps the same index.
-fn find_enzyme(name: &str) -> Option<&'static crate::chemistry::DigestionEnzymeProtein> {
+pub(crate) fn find_enzyme(name: &str) -> Option<&'static crate::chemistry::DigestionEnzymeProtein> {
     ProteaseDB::global().get_enzyme(name).ok()
 }
 

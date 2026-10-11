@@ -176,5 +176,17 @@
       "tests/data/sqlite_s1_resume_validation/final/mzml_only_activation.log",
       "tests/data/sqlite_s1_resume_validation/final/sqmass_clippy.log"
     ]
+  },
+  "release_oracle_f7a": {
+    "artifact": "../oracle/F7a-record-cv",
+    "host": "ibminode06",
+    "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release)",
+    "finding": "The Release writer keeps precursor metadata 'percent collision energy' (read from MS:1000138, MzMLHandler.cpp:1919-1922) as <userParam name=\"percent collision energy\" type=\"xsd:double\" value=\"35.0\"/>, because checkAndGetTermByName (:3666) finds no term of that name in the pinned CV, which names MS:1000138 'normalized collision energy'. The port wrote the MS:1000138 cvParam; mzml_precursor.rs promoted() now requires the route key to be the term's CV name. tests/mzml_precursor_activation.rs all_nine_activation_metadata_routes_preserve_scalar_types asserts the userParam line for MS:1000138 instead of the accession.",
+    "fixtures": [
+      "tests/data/mzml_record_cv/record_cv.mzML",
+      "tests/data/mzml_record_cv/FileConverter_lowmemory_out.mzML",
+      "tests/data/mzml_record_cv/FileConverter_out.mzML"
+    ],
+    "test": "tests/ms_data_writing_consumer.rs record_level_cv_promotion_matches_the_release_streaming_writer"
   }
 }

@@ -2,7 +2,7 @@
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "evidence_tier": "executed differential (tier 1) against the OpenMS4 Release C++ build",
- "method": "An oracle driver calls UnimodXMLDataProvider::loadModifications on the installed CHEMISTRY/unimod.xml and custom_mods.xml and prints every record (id, full id, record id, origin, term specificity name, full name, difference masses as %.17g, difference formula, source classification name, neutral losses). Built with x86_64-conda-linux-gnu-g++ 14.4.0 and libOpenMS's core flags, run twice on ibminode06 in a clean environment; both runs identical.",
+ "method": "An oracle driver calls UnimodXMLDataProvider::loadModifications on the installed CHEMISTRY/unimod.xml and custom_mods.xml and prints every record (id, full id, record id, origin, term specificity name, full name, difference masses as %.17g, difference formula, source classification name, neutral losses). Built with x86_64-conda-linux-gnu-g++ 14.4.0 and libOpenMS's core flags, run twice on ibminode06 in a clean environment; both runs identical. Further expected values are UnimodXMLFile_test.cpp literals and invariants at the pin (tier 3) over the pinned unimod.xml, and the whole-file comparison with ModificationsDB::global(), which tools/generate_modifications.py derives offline from the same files by an independent Python code path (tier 4 cross-check). No Rust output is used as an expected value.",
  "sources": [
   {
    "path": "src/openms/include/OpenMS/CHEMISTRY/UnimodXMLDataProvider.h",
@@ -35,6 +35,14 @@
   {
    "path": "src/openms/source/CHEMISTRY/ResidueModification.cpp",
    "sha256": "0da366aa8a3dc58834a8d3f021299ca510b3b8a7ede87952f183a770439060e9"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/UnimodXMLFile_test.cpp",
+   "sha256": "6c5e5d1e66d2fc66d7ae6e4fa1ae6e4aed89ee1ff29e90c10e23dc782ce2b010"
+  },
+  {
+   "path": "share/OpenMS/CHEMISTRY/unimod.xml",
+   "sha256": "22231d3289f2330895cee8bc119c1f9bc52b0006447b3f28a196e778e4591091"
   }
  ],
  "fixtures": [
@@ -58,7 +66,8 @@
  ],
  "native_implementation": [
   "src/format/unimod_xml.rs",
-  "src/chemistry/modification_classification.rs"
+  "src/chemistry/modification_classification.rs",
+  "src/format/sax_xml.rs"
  ],
  "native_tests": [
   "tests/unimod_xml.rs"
@@ -103,5 +112,12 @@
   "environment": "env -i HOME PATH=/usr/bin:/bin OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<prefix>/share/OpenMS/4.0.0",
   "repeats": "run twice; results/differ.txt empty"
  },
- "license": "OpenMS BSD-3-Clause; the fixture is derived from UniMod data (Design Science License, resources/modifications/DESIGN_SCIENCE_LICENSE.txt) and OpenMS custom modifications (BSD-3-Clause)."
+ "license": "OpenMS BSD-3-Clause; the fixture is derived from UniMod data (Design Science License, resources/modifications/DESIGN_SCIENCE_LICENSE.txt) and OpenMS custom modifications (BSD-3-Clause).",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
 }

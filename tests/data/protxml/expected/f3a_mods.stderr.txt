@@ -1,0 +1,9 @@
+Non-fatal error while loading 'input.protXML': Modification '147.03540000000001' is not uniquely defined by the given data. Using 'Oxidation (M)' to represent any of 'Oxidation (M), oxidation to L-methionine sulfoxide (M), oxidation to L-methionine (R)-sulfoxide (M), oxidation to L-methionine (S)-sulfoxide (M)'!
+Non-fatal error while loading 'input.protXML': Modification '160.030649000000011' is not uniquely defined by the given data. Using 'Carbamidomethyl (N-term)' to represent any of 'Carbamidomethyl (N-term), Carbamidomethyl (C)'!
+Non-fatal error while loading 'input.protXML': Modification '113.047679000000002' is not uniquely defined by the given data. Using 'Acetyl (Protein N-term)' to represent any of 'Acetyl (Protein N-term), Acetyl (N-term), N-acetyl-L-alanine (N-term A)'!
+Non-fatal error while loading 'input.protXML': Cannot parse modification 'Acetyl (Protein N-term)@1'
+Non-fatal error while loading 'input.protXML': Modification '127.110946999999996' is not uniquely defined by the given data. Using 'Amidated (C-term)' to represent any of 'Amidated (C-term), Amidated (Protein C-term), L-lysine amide (C-term K)'!
+Non-fatal error while loading 'input.protXML': Cannot parse modification 'Gln->pyro-Glu (N-term Q)@1'
+Non-fatal error while loading 'input.protXML': Cannot find modification '301.0 P' @3
+Non-fatal error while loading 'input.protXML': Modification '147.03540000000001' is not uniquely defined by the given data. Using 'Oxidation (M)' to represent any of 'Oxidation (M), oxidation to L-methionine sulfoxide (M), oxidation to L-methionine (R)-sulfoxide (M), oxidation to L-methionine (S)-sulfoxide (M)'!
+Non-fatal error while loading 'input.protXML': Modification '160.030649000000011' is not uniquely defined by the given data. Using 'Carbamidomethyl (N-term)' to represent any of 'Carbamidomethyl (N-term), Carbamidomethyl (C)'!

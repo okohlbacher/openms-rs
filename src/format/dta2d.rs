@@ -11,21 +11,86 @@
 //! make the progress
 //! calls of its `load`, `store` and `storeTIC` on a caller's logger; every
 //! other entry point runs the same code and reports nothing.
+//!
+//! The writers spell every number as the source does, through
+//! `precisionWrapper` and so `StringUtils::toStr(value, true)`: retention time
+//! and m/z with [`to_str`], intensity with [`to_str_f32`]. By default they
+//! refuse a value whose text would not read back exactly, and anything else
+//! DTA2D cannot carry; [`WriteOptions::source`](crate::format::dta2d::WriteOptions::source) writes what the source writes.
+//!
+//! `load`, `store` and `storeTIC` are templates over `MapType`, documented as
+//! "a MSExperiment or have the same interface"; every instantiation in the
+//! pinned source is `PeakMap` (`FileHandler.cpp:877-883`, `:1159-1165`, the
+//! class test), and this crate has one experiment type, so `MapType` is
+//! [`MSExperiment`](crate::MSExperiment) here.
+//!
+//! [`to_str`]: crate::format::file_info::text_format::to_str
+//! [`to_str_f32`]: crate::format::file_info::text_format::to_str_f32
 
 pub use super::ms2::Limits;
 use super::ms2::{
     Counter, TextInput, check_experiment, check_peaks, check_spectrum_payload, fields, increment,
-    invalid, parse_intensity, parse_number, push_peak, push_spectrum, trim, unsupported,
+    invalid, loaded_document, parse_intensity, parse_number, push_peak, push_spectrum,
+    record_document, trim, unsupported,
 };
-use super::parse_error;
+use super::{PeakFileOptions, parse_error};
 use crate::concept::progress_logger::{ProgressLogger, ProgressReporter};
+use crate::format::file_info::text_format::{to_str, to_str_f32};
 use crate::{MSExperiment, MSSpectrum, Peak1D, Result};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
 use std::ops::Range;
 use std::path::Path;
-/// Output ceilings of the writers; the same [`Limits`] as the reader's.
-pub type WriteOptions = Limits;
+
+/// Settings of the writers: output ceilings and what may be discarded.
+///
+/// The default refuses anything the file would not carry back, so a stored
+/// experiment reads back unchanged. [`WriteOptions::source`] writes what
+/// source `DTA2DFile::store` and `storeTIC` write and discards the rest
+/// silently, as the source does.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct WriteOptions {
+    /// Output ceilings; the same [`Limits`] as the reader's.
+    pub limits: Limits,
+    /// Write what the source writes and drop what DTA2D cannot represent,
+    /// instead of refusing it.
+    ///
+    /// With `false`, the default, `store` refuses spectra that are not
+    /// nonempty MS1 spectra without precursors, names, annotations,
+    /// identifications, data arrays or foreign native IDs; experiment metadata
+    /// and chromatograms; adjacent spectra the reader would merge (retention
+    /// times within 0.0001 s) or a first spectrum the reader's -1 sentinel
+    /// would change; and, in `store` and `storeTIC` alike, any number whose
+    /// source text does not read back as the same value. That text has 15
+    /// fraction digits for a double and 6 for a float in `[0.01, 10000)`, so
+    /// for example an m/z below about 8, or an intensity `0.123456789`, would
+    /// change.
+    ///
+    /// With `true` every spectrum is written as the source writes it: its
+    /// peaks under its retention time, whatever its MS level or metadata, an
+    /// empty spectrum contributing no line. Nonfinite values and the ceilings
+    /// are refused in both modes.
+    pub discard_unrepresentable: bool,
+}
+impl WriteOptions {
+    /// The source `DTA2DFile::store`/`storeTIC` behaviour: write what the
+    /// source writes and discard the rest, under default ceilings.
+    pub fn source() -> Self {
+        Self {
+            limits: Limits::default(),
+            discard_unrepresentable: true,
+        }
+    }
+}
+impl From<Limits> for WriteOptions {
+    /// Lossless writing under `limits`.
+    fn from(limits: Limits) -> Self {
+        Self {
+            limits,
+            discard_unrepresentable: false,
+        }
+    }
+}
 
 /// The three source-consumed PeakFileOptions filters. Ranges are half-open,
 /// including the minimum and excluding the maximum, as in OpenMS DRange.
@@ -41,6 +106,26 @@ pub struct ReadOptions {
     pub limits: Limits,
 }
 impl ReadOptions {
+    /// The reader settings a source `PeakFileOptions` gives `DTA2DFile::load`,
+    /// the counterpart of `DTA2DFile::getOptions() = options`.
+    ///
+    /// The source's `load` reads only `hasRTRange`/`getRTRange`,
+    /// `hasMZRange`/`getMZRange` and `hasIntensityRange`/`getIntensityRange`
+    /// (`DTA2DFile.h:211-240`); each range that is set becomes the matching
+    /// half-open range here. Every other field of `options` has no DTA2D
+    /// behaviour in the source and is ignored, as there. `limits` keep their
+    /// defaults.
+    pub fn from_peak_options(options: &PeakFileOptions) -> Self {
+        let range = |present: bool, range: crate::kernel::NumericRange| {
+            present.then_some(range.min..range.max)
+        };
+        Self {
+            rt_range: range(options.has_rt_range(), options.rt_range()),
+            mz_range: range(options.has_mz_range(), options.mz_range()),
+            intensity_range: range(options.has_intensity_range(), options.intensity_range()),
+            limits: Limits::default(),
+        }
+    }
     fn validate(&self) -> Result<()> {
         self.limits.validate()?;
         for range in [&self.rt_range, &self.mz_range, &self.intensity_range]
@@ -210,16 +295,25 @@ pub fn read_into_with_options(
 ///
 /// # Errors
 ///
-/// [`Io`](crate::Error::Io) when the file cannot be opened, otherwise as
-/// [`read_with_options`].
+/// As [`load_with_options`].
 pub fn load(path: impl AsRef<Path>) -> Result<MSExperiment> {
-    read(BufReader::new(File::open(path)?))
+    load_with_options(path, &ReadOptions::default())
 }
-/// Read a DTA2D file.
+/// Read a DTA2D file, source `DTA2DFile::load` (`DTA2DFile.h:72-248`).
+///
+/// As in the source, the result records the document's identity:
+/// `settings.document.loaded_file_path` is the path as given (a relative path
+/// prefixed with the current directory) and `loaded_file_type` is the type
+/// recognised from the file's content, the source's
+/// `setLoadedFileType(filename)` and `setLoadedFilePath(filename)`
+/// (`DTA2DFile.h:97-98`), so `DTA2DFile_test.cpp:72-73` holds.
 ///
 /// # Errors
 ///
-/// As [`load`].
+/// [`Io`](crate::Error::Io) when the file cannot be opened, where the source
+/// throws `Exception::FileNotFound`, `FileNotReadable` or `IOException`;
+/// [`InvalidValue`](crate::Error::InvalidValue) for a path that is not UTF-8;
+/// otherwise as [`read_with_options`].
 pub fn load_with_options(path: impl AsRef<Path>, options: &ReadOptions) -> Result<MSExperiment> {
     load_reporting(path, options, &mut ProgressReporter::silent())
 }
@@ -281,8 +375,12 @@ fn load_reporting(
     options: &ReadOptions,
     progress: &mut ProgressReporter<'_>,
 ) -> Result<MSExperiment> {
+    let path = path.as_ref();
     progress.start(0, 0, "loading DTA2D file")?;
-    let experiment = read_reporting(BufReader::new(File::open(path)?), options, progress)?;
+    let input = BufReader::new(File::open(path)?);
+    let document = loaded_document(path, "DTA2D")?;
+    let mut experiment = read_reporting(input, options, progress)?;
+    record_document(&mut experiment, document);
     progress.end()?;
     Ok(experiment)
 }
@@ -297,18 +395,29 @@ pub fn write(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
 }
 /// Write `experiment` as DTA2D; everything is checked before the first byte.
 ///
+/// The body of source `DTA2DFile::store` (`DTA2DFile.h:258-287`): the header
+/// `#SEC\tMZ\tINT`, then one `rt\tmz\tintensity` line per peak, spectrum by
+/// spectrum, each number in the source's text (see the module documentation).
+///
 /// # Errors
 ///
 /// [`Unsupported`](crate::Error::Unsupported) for data DTA2D cannot hold
-/// (see `docs/TEXT_PEAK_LIST_SUPPORT.md`), [`InvalidValue`](crate::Error::InvalidValue)
-/// for an exceeded ceiling, and [`Io`](crate::Error::Io) for a write failure.
+/// (see [`WriteOptions::discard_unrepresentable`] and
+/// `docs/TEXT_PEAK_LIST_SUPPORT.md`), [`InvalidValue`](crate::Error::InvalidValue)
+/// for a nonfinite value or an exceeded ceiling, and [`Io`](crate::Error::Io)
+/// for a write failure.
 pub fn write_with_options(
     mut writer: impl Write,
     experiment: &MSExperiment,
     options: &WriteOptions,
 ) -> Result<()> {
     preflight(experiment, options)?;
-    render(&mut writer, experiment, &mut ProgressReporter::silent())?;
+    render(
+        &mut writer,
+        experiment,
+        &mut ProgressReporter::silent(),
+        false,
+    )?;
     writer.flush()?;
     Ok(())
 }
@@ -373,12 +482,29 @@ fn store_reporting(
     preflight(experiment, options)?;
     progress.start_count(experiment.spectra.len(), "storing DTA2D file")?;
     let mut writer = BufWriter::new(File::create(path)?);
-    render(&mut writer, experiment, progress)?;
+    render(&mut writer, experiment, progress, false)?;
     writer.flush()?;
     progress.end()
 }
-fn preflight(experiment: &MSExperiment, options: &Limits) -> Result<()> {
-    check_experiment(experiment, options)?;
+fn preflight(experiment: &MSExperiment, options: &WriteOptions) -> Result<()> {
+    let limits = &options.limits;
+    if options.discard_unrepresentable {
+        limits.validate()?;
+        if experiment.spectra.len() > limits.max_spectra {
+            return Err(invalid("spectrum limit exceeded"));
+        }
+        let mut peaks = 0;
+        for s in &experiment.spectra {
+            check_peaks(s, &mut peaks, limits)?;
+        }
+        return render(
+            &mut Counter(limits.max_output_bytes),
+            experiment,
+            &mut ProgressReporter::silent(),
+            false,
+        );
+    }
+    check_experiment(experiment, limits)?;
     let mut peaks = 0;
     let mut previous: Option<f64> = None;
     for s in &experiment.spectra {
@@ -399,41 +525,88 @@ fn preflight(experiment: &MSExperiment, options: &Limits) -> Result<()> {
             ));
         }
         previous = Some(s.rt);
-        check_peaks(s, &mut peaks, options)?;
+        check_peaks(s, &mut peaks, limits)?;
     }
     render(
-        &mut Counter(options.max_output_bytes),
+        &mut Counter(limits.max_output_bytes),
         experiment,
         &mut ProgressReporter::silent(),
+        true,
     )
 }
+/// Source `StringUtils::toStr(double, true)`, refused with `exact` when the
+/// text does not parse back to the same bits.
+fn double_text(value: f64, exact: bool) -> Result<String> {
+    let text = to_str(value);
+    if exact && text.parse::<f64>().map(f64::to_bits) != Ok(value.to_bits()) {
+        return Err(unsupported(
+            "DTA2D source number text would not read back exactly",
+        ));
+    }
+    Ok(text)
+}
+/// Source `StringUtils::toStr(float, true)`, refused as [`double_text`].
+fn float_text(value: f32, exact: bool) -> Result<String> {
+    let text = to_str_f32(value);
+    if exact && text.parse::<f32>().map(f32::to_bits) != Ok(value.to_bits()) {
+        return Err(unsupported(
+            "DTA2D source number text would not read back exactly",
+        ));
+    }
+    Ok(text)
+}
 /// The file body, with the source's `setProgress(count++)` before each
-/// spectrum (`DTA2DFile.h:275-277`).
+/// spectrum (`DTA2DFile.h:275-277`). With `exact`, a number whose text does
+/// not read back is refused.
 fn render(
     writer: &mut impl Write,
     experiment: &MSExperiment,
     progress: &mut ProgressReporter<'_>,
+    exact: bool,
 ) -> Result<()> {
     writeln!(writer, "#SEC\tMZ\tINT")?;
     for (index, s) in experiment.spectra.iter().enumerate() {
         progress.set_count(index)?;
+        if s.peaks.is_empty() {
+            continue;
+        }
+        let rt = double_text(s.rt, exact)?;
         for p in &s.peaks {
-            writeln!(writer, "{}\t{}\t{}", s.rt, p.mz, p.intensity)?;
+            let mz = double_text(p.mz, exact)?;
+            let intensity = float_text(p.intensity, exact)?;
+            writeln!(writer, "{rt}\t{mz}\t{intensity}")?;
         }
     }
     Ok(())
 }
-/// Explicit lossy projection: MS1 TIC only, one row per scan (including empty
-/// scans), m/z=0 and f32 accumulation in storage order. Other data are unconsumed.
+/// Write the MS1 total-ion-current projection of `experiment` as DTA2D with
+/// default settings.
+///
+/// Explicit lossy projection, source `DTA2DFile::storeTIC`
+/// (`DTA2DFile.h:297-320`) through `calculateTIC()` with its defaults: MS1
+/// TIC only, one row per scan (including empty scans), m/z written as the
+/// literal `0`, and f32 accumulation in storage order. Other data are
+/// unconsumed; the numbers are spelled as [`write`](fn@write) spells them.
+///
+/// # Errors
+///
+/// As [`write_tic_with_options`].
 pub fn write_tic(writer: impl Write, experiment: &MSExperiment) -> Result<()> {
     write_tic_with_options(writer, experiment, &WriteOptions::default())
 }
-/// [`write_tic`] under explicit ceilings.
+/// [`write_tic`] under explicit settings.
+///
+/// Only the ceilings and the number-text check of `options` apply; the
+/// projection itself always discards everything but MS1 retention times and
+/// summed intensities, as the source's does.
 ///
 /// # Errors
 ///
 /// [`InvalidValue`](crate::Error::InvalidValue) for an exceeded ceiling or a
-/// nonfinite retention time, intensity or TIC sum, and
+/// nonfinite retention time, intensity or TIC sum;
+/// [`Unsupported`](crate::Error::Unsupported), unless
+/// [`WriteOptions::discard_unrepresentable`] is set, for a retention time or
+/// sum whose source text does not read back exactly; and
 /// [`Io`](crate::Error::Io) for a write failure.
 pub fn write_tic_with_options(
     mut writer: impl Write,
@@ -441,7 +614,6 @@ pub fn write_tic_with_options(
     options: &WriteOptions,
 ) -> Result<()> {
     let points = tic_points(experiment, options)?;
-    render_tic(&mut Counter(options.max_output_bytes), &points)?;
     render_tic(&mut writer, &points)?;
     writer.flush()?;
     Ok(())
@@ -502,14 +674,16 @@ fn store_tic_reporting(
     progress: &mut ProgressReporter<'_>,
 ) -> Result<()> {
     let points = tic_points(experiment, options)?;
-    render_tic(&mut Counter(options.max_output_bytes), &points)?;
     progress.start_count(experiment.spectra.len(), "storing DTA2D file")?;
     let mut writer = BufWriter::new(File::create(path)?);
     render_tic(&mut writer, &points)?;
     writer.flush()?;
     progress.end()
 }
-fn tic_points(experiment: &MSExperiment, options: &Limits) -> Result<Vec<(f64, f32)>> {
+/// The TIC rows as text, checked and counted against the output ceiling.
+fn tic_points(experiment: &MSExperiment, options: &WriteOptions) -> Result<Vec<(String, String)>> {
+    let exact = !options.discard_unrepresentable;
+    let options = &options.limits;
     options.validate()?;
     if experiment.spectra.len() > options.max_spectra {
         return Err(invalid("DTA2D TIC spectrum limit exceeded"));
@@ -534,13 +708,14 @@ fn tic_points(experiment: &MSExperiment, options: &Limits) -> Result<Vec<(f64, f
         if !sum.is_finite() {
             return Err(invalid("DTA2D TIC intensity sum exceeds f32 range"));
         }
-        points.push((s.rt, sum));
+        points.push((double_text(s.rt, exact)?, float_text(sum, exact)?));
     }
+    render_tic(&mut Counter(options.max_output_bytes), &points)?;
     Ok(points)
 }
-fn render_tic(writer: &mut impl Write, points: &[(f64, f32)]) -> Result<()> {
+fn render_tic(writer: &mut impl Write, points: &[(String, String)]) -> Result<()> {
     writeln!(writer, "#SEC\tMZ\tINT")?;
-    for &(rt, intensity) in points {
+    for (rt, intensity) in points {
         writeln!(writer, "{rt}\t0\t{intensity}")?;
     }
     Ok(())

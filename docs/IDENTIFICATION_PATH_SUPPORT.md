@@ -13,7 +13,7 @@ compression. Decoded bytes are subject to the supplied `ReadOptions` limits.
 `load_into` replaces its destination only after a successful complete load;
 custom-options callers can assign the successful owned `load_with_registry`
 result in the same way. A one-entry ZIP archive is read through its file entry
-(`src/format/zip_input.rs`), as `XMLFile::parse_` reads it.
+(`src/format/zip_ifstream.rs`), as `XMLFile::parse_` reads it.
 
 Direct stores reject recognized non-idXML extensions, including compressed
 variants; unknown extensions remain allowed. This source extension check runs

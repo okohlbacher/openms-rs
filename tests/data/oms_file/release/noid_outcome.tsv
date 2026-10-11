@@ -1,0 +1,4 @@
+id_data_empty	1
+EXCEPTION	feature_store_without_ids	no such table: main.ID_IdentifiedMolecule
+id_data_empty	1
+EXCEPTION	consensus_store_without_ids	no such table: main.ID_IdentifiedMolecule

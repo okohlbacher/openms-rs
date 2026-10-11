@@ -1,0 +1,824 @@
+Error: Could not extract scan number from spectrum native ID '300' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '310' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '314' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '321' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '323' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '331' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '338' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '340' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '343' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '346' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '348' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '351' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '354' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '361' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '366' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '373' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '375' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '378' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '380' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '382' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '386' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '394' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '396' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '400' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '402' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '404' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '407' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '409' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '413' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '416' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '421' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '423' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '425' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '427' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '430' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '434' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '436' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '438' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '440' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '442' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '449' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '452' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '454' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '456' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '461' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '465' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '467' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '471' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '473' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '475' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '478' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '481' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '483' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '487' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '489' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '491' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '493' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '495' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '497' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '499' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '501' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '504' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '508' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '510' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '512' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '514' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '516' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '524' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '526' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '529' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '531' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '533' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '543' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '549' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '551' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '553' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '555' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '557' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '561' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '563' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '566' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '568' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '570' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '572' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '574' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '577' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '581' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '583' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '586' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '588' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '590' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '599' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '601' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '603' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '606' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '610' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '613' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '616' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '618' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '620' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '622' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '624' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '627' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '630' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '632' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '636' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '638' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '640' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '642' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '645' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '647' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '651' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '654' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '656' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '658' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '660' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '662' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '666' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '670' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '672' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '674' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '677' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '681' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '689' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '691' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '693' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '698' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '701' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '706' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '710' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '713' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '717' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '722' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '724' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '726' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '730' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '736' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '739' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '742' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '746' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '751' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '756' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '760' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '763' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '765' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '768' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '771' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '773' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '777' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '780' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '783' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '786' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '794' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '800' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '806' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '814' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '816' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '823' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '825' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '830' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '834' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '837' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '839' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '842' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '856' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '866' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '874' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '882' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '903' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '908' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '919' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '934' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '950' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '982' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '1052' using regular expression '=(?<SCAN>\d+)$'.
+Error: Could not extract scan number from spectrum native ID '1237' using regular expression '=(?<SCAN>\d+)$'.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239044189453_1959.77478027344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239349365234_1933.40515136719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250030517578_2357.07421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250213623047_2321.49926757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250335693359_2398.77709960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.725463867188_1866.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752258300781_1793.82604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752807617188_1750.91589355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.285888671875_2061.19897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.868530273438_1884.34716796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239044189453_1959.77478027344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239349365234_1933.40515136719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250030517578_2357.07421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250213623047_2321.49926757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250335693359_2398.77709960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.725463867188_1866.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752258300781_1793.82604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752807617188_1750.91589355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.285888671875_2061.19897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.868530273438_1884.34716796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239044189453_1959.77478027344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239349365234_1933.40515136719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250030517578_2357.07421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250213623047_2321.49926757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250335693359_2398.77709960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.725463867188_1866.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752258300781_1793.82604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752807617188_1750.91589355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.285888671875_2061.19897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.868530273438_1884.34716796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250030517578_2357.07421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250213623047_2321.49926757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.250335693359_2398.77709960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239044189453_1959.77478027344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239349365234_1933.40515136719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.725463867188_1866.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752258300781_1793.82604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752807617188_1750.91589355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.285888671875_2061.19897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.868530273438_1884.34716796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239044189453_1959.77478027344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.239349365234_1933.40515136719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.725463867188_1866.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752258300781_1793.82604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752807617188_1750.91589355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.285888671875_2061.19897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.868530273438_1884.34716796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.725463867188_1866.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752258300781_1793.82604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.752807617188_1750.91589355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.737426757812_1796.54211425781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.738647460938_1840.43005371094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '602.215270996094_2014.09838867188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '602.216369628906_1990.95288085938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1931.03063964844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1949.40295410156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1964.75512695312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '617.321655273438_2178.77099609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '629.226867675781_2365.80102539062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '637.237915039062_2299.00073242188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.713287353516_2155.63891601562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.713745117188_2107.021484375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194366455078_2043.75915527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194580078125_2077.69018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.194732666016_2118.50366210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.196868896484_2189.283203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.199523925781_2145.28442382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.229461669922_1999.83911132812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862518310547_2116.9365234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862518310547_2083.01293945312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862701416016_2002.96887207031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862762451172_1859.82470703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862823486328_1890.99816894531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862884521484_1962.37341308594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862945556641_2024.62145996094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862823486328_2048.69897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1931.03063964844'. Could not extract spectrum meta data.
+<Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862823486328_2048.69897460938'. Could not extract spectrum meta data.> occurred 2 times
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1949.40295410156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1964.75512695312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1931.03063964844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1949.40295410156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '615.23388671875_1964.75512695312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '405.223510742188_1935.72485351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '304.696655273438_2484.2265625'. Could not extract spectrum meta data.
+<Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '405.223510742188_1935.72485351562'. Could not extract spectrum meta data.> occurred 17 times
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '316.702850341797_1690.08984375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '322.689971923828_1835.75073242188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '322.694030761719_1867.09143066406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '336.185180664062_1888.68212890625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '336.705932617188_1698.30578613281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '345.190399169922_1884.03259277344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '347.18798828125_1715.66564941406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '374.196533203125_1869.91064453125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '379.71484375_2010.87902832031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '379.714996337891_1978.94653320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '379.715118408203_2032.04125976562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '379.715393066406_2069.04321289062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '379.715576171875_2100.20629882812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '381.686309814453_1510.3955078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.184600830078_2388.53540039062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.216278076172_1700.37255859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '387.713104248047_1950.13903808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.242462158203_2003.68078613281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.700897216797_2085.73901367188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.701019287109_2147.13110351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '395.701019287109_2054.18969726562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '401.238922119141_2243.34765625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '403.231719970703_2387.79052734375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '403.231781005859_2348.58276367188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '403.232177734375_2315.3115234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '403.232391357422_2409.66479492188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '405.223510742188_1935.72485351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.235229492188_1537.26110839844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '410.213653564453_1656.70690917969'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '410.703369140625_2451.44116210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '415.706420898438_1764.19104003906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '418.197479248047_2412.10693359375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '424.236602783203_2315.65380859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '424.2373046875_2350.91479492188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '424.237670898438_2375.87182617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.245880126953_1601.15954589844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.233795166016_2206.15673828125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.765838623047_2105.13037109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '435.773651123047_2204.21923828125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '435.773803710938_2132.66235351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '437.227416992188_1929.76965332031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '443.711242675781_1738.03344726562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.250793457031_1575.74987792969'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '453.204986572266_2271.06225585938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '453.214965820312_2202.63940429688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.279357910156_1947.98950195312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.677062988281_1876.140625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.677154541016_1862.84509277344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.711212158203_1834.13854980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.713287353516_2155.63891601562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '455.713745117188_2107.021484375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.271423339844_2393.86450195312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.723968505859_1503.96166992188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '464.722503662109_1854.47717285156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '466.220947265625_1998.26232910156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '311.149993896484_1997.91271972656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '466.276306152344_2450.72778320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '470.167755126953_1756.28527832031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '470.168640136719_1741.81384277344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.754638671875_2330.17407226562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '474.249420166016_2354.80224609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '474.25048828125_2405.84838867188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '474.250579833984_2390.65234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '474.259429931641_1760.68139648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '476.261932373047_2480.39428710938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '476.301666259766_1939.94958496094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '479.239013671875_1957.39868164062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '479.662017822266_2276.32202148438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '482.758270263672_2135.0068359375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '482.758483886719_2164.8955078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '485.208068847656_2298.654296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '485.208984375_2250.1005859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '485.762603759766_1826.68432617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.491119384766_1946.90405273438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.491180419922_1840.79333496094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.491241455078_1877.39440917969'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.491241455078_1987.85107421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.491302490234_1912.52319335938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.226043701172_2152.4560546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.226501464844_2384.43286132812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.226531982422_2140.982421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.226806640625_2442.255859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.227111816406_2396.865234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.820587158203_2361.51220703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.820587158203_2142.21728515625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.820617675781_2408.14477539062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '325.820648193359_2474.39038085938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.674468994141_1818.84655761719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '488.728759765625_1729.06005859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.705108642578_2343.01049804688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.707092285156_2353.26977539062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.707611083984_2366.90307617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.708068847656_2333.52099609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.774383544922_2293.8779296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.211944580078_2214.29541015625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.212341308594_2278.81640625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.791320800781_2390.99951171875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '494.255126953125_1649.67846679688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '496.2216796875_2127.27172851562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '496.222778320312_1845.38427734375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '496.22607421875_1858.61682128906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '496.255737304688_1720.07421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '496.754760742188_2057.2431640625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '496.755737304688_2095.37548828125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '500.225494384766_1824.73254394531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '503.289916992188_1941.39404296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '339.497802734375_2055.65600585938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '339.497863769531_1960.35925292969'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '509.235076904297_2043.40637207031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '509.780029296875_1662.87463378906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '509.810668945312_2039.90344238281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '511.248046875_1727.76342773438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '511.722595214844_2001.81103515625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '511.722686767578_2014.46105957031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '511.723358154297_1954.3037109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '511.724761962891_1924.75170898438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '342.189117431641_2392.787109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '513.243041992188_1614.09912109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '513.308532714844_2225.43969726562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '345.514587402344_1548.49084472656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '347.514892578125_2387.4345703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '523.285339355469_1822.05737304688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '523.77685546875_2390.30078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '525.268371582031_2430.2294921875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '525.742431640625_1896.07104492188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.830902099609_2157.25390625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.830993652344_1936.06726074219'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831115722656_2069.78637695312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831115722656_1888.32397460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831268310547_2051.46875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831359863281_1945.15405273438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831359863281_1981.72241210938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831390380859_1951.63696289062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '350.831512451172_2114.5712890625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '528.251831054688_2392.060546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '352.839752197266_2389.60913085938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '528.794372558594_2025.71008300781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.23974609375_1654.26513671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.251831054688_2394.96801757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.293090820312_1870.61633300781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.685485839844_1936.42419433594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.687438964844_1836.46313476562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.733337402344_2081.5078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.733764648438_2047.12841796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '532.734741210938_2096.60205078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '358.174682617188_1554.4921875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '542.197326660156_1868.67553710938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '363.216644287109_1787.29150390625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '363.216888427734_1800.96520996094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '363.217132568359_1703.65258789062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '363.217407226562_1748.64526367188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '363.217529296875_1853.35363769531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '363.217590332031_1774.38464355469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '545.254638671875_2350.56030273438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '550.262145996094_1994.76025390625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '550.710083007812_1576.09387207031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.744140625_1698.63854980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '368.832061767578_1697.94360351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '368.832153320312_1607.2958984375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.7451171875_1607.65417480469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.745910644531_1849.73388671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '554.260375976562_2058.83471679688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '554.260559082031_2098.17504882812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '556.226867675781_1683.71643066406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '556.837036132812_2338.138671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '556.837219238281_2286.88208007812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '556.839172363281_2427.44995117188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '558.260803222656_1782.34692382812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '558.261352539062_1790.93713378906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '562.258483886719_1992.13305664062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '562.25927734375_2008.59191894531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '564.130676269531_1713.27478027344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '564.218322753906_1623.47546386719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '564.692993164062_2312.62109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '377.837371826172_1761.39282226562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '377.837982177734_1747.0361328125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '377.838470458984_1741.45373535156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '377.839019775391_1664.2763671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '567.822692871094_2445.04028320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236206054688_2096.95434570312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_1937.91174316406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236877441406_2035.02514648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.236938476562_2084.56030273438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.750732421875_1815.43566894531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.797973632812_2024.99084472656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '571.132934570312_1687.16430664062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '571.711669921875_2359.2099609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '381.479949951172_2357.28784179688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '571.720703125_1739.39318847656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '381.861968994141_1769.7197265625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '381.862335205078_1798.93090820312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '381.862365722656_1819.19873046875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '381.862762451172_1841.88635253906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '573.205688476562_1985.32336425781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '573.206665039062_2017.35913085938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '573.287414550781_1673.50891113281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.529968261719_1892.45190429688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.239685058594_2039.18054199219'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829223632812_2005.5537109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.240295410156_1934.09985351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829528808594_1931.3974609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.24072265625_2150.1572265625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.82958984375_2296.2724609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829650878906_2124.52221679688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829650878906_2247.16918945312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829650878906_2180.03662109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.240905761719_2087.13159179688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829711914062_1967.763671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.240966796875_2066.75952148438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.240966796875_2208.06079101562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829772949219_2022.04675292969'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.241088867188_2277.57006835938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829864501953_2037.37512207031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '383.829956054688_2075.13403320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.241455078125_1952.74035644531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.26708984375_2414.44946289062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '578.213745117188_2479.67724609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '582.740844726562_2100.94702148438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '582.741333007812_2136.9482421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.22412109375_2138.52270507812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.70458984375_2074.00927734375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.71826171875_1638.98059082031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.736572265625_1880.72766113281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.737426757812_1796.54211425781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.738647460938_1840.43005371094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '585.758544921875_2265.42211914062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '587.695129394531_2149.79760742188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '587.698425292969_2443.90185546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '589.761352539062_2383.26440429688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '592.742980957031_2494.09204101562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '398.163818359375_2289.44018554688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '398.163909912109_2342.2880859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '398.163940429688_2332.79345703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '600.740173339844_2134.28662109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '600.740478515625_2327.55029296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '600.740539550781_2203.85620117188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '600.742370605469_2265.05908203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '600.7578125_1847.93542480469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '600.822998046875_2025.34704589844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '602.208923339844_1959.99450683594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '602.215270996094_2014.09838867188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '602.216369628906_1990.95288085938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '605.746520996094_2453.3681640625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '607.719482421875_2245.89404296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.838317871094_1988.94665527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '612.756042480469_1693.33874511719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.839813232422_1856.31506347656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.839874267578_1685.43786621094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.839996337891_1784.91455078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.840087890625_1880.01599121094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.840118408203_1745.42236328125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.840118408203_1953.09899902344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.840240478516_1815.0712890625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.84033203125_1926.05676269531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '408.840576171875_1960.71398925781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '617.321655273438_2178.77099609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '619.300537109375_2016.20349121094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '619.799072265625_2451.07470703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '621.254211425781_2464.57299804688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '621.716674804688_1519.99584960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '626.709106445312_1833.77038574219'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '629.226867675781_2365.80102539062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '629.24658203125_2260.48266601562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '629.736328125_2305.54028320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '629.743225097656_2257.09985351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '631.703491210938_2092.06713867188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '422.863067626953_1845.73522949219'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '637.298889160156_2006.27282714844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '637.298950195312_1972.505859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '637.729614257812_2269.8623046875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '639.801208496094_1590.18725585938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '426.870086669922_1586.74768066406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '641.785095214844_1902.56774902344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.503112792969_1825.94750976562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.503143310547_1905.00073242188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.503265380859_1947.62060546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.503479003906_1870.24841308594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '643.224548339844_1617.15380859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '643.225280761719_1731.94470214844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '643.226257324219_1792.59777832031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '646.3037109375_1804.53405761719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '431.205047607422_1949.76904296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '646.30419921875_1926.79992675781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '431.205261230469_1797.83959960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '431.205413818359_1917.892578125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '646.304504394531_1759.0947265625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '431.205505371094_1879.63781738281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '431.20556640625_1846.8330078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '431.205596923828_1755.91577148438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '646.306823730469_1841.14453125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '649.776184082031_1933.73583984375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.285888671875_2061.19897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '435.909851074219_2295.90209960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '435.910003662109_2414.08081054688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '435.910125732422_2488.0380859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.361633300781_2423.44287109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.361755371094_2490.31689453125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '653.361938476562_2298.28881835938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '657.386840820312_2020.66467285156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '439.200531005859_2133.00659179688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '659.212890625_1733.73278808594'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '659.75439453125_2296.6328125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '661.737060546875_1938.60961914062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '661.738586425781_1909.70922851562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862518310547_2116.9365234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862670898438_1822.7666015625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862701416016_2002.96887207031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.86279296875_1937.54052734375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '441.862823486328_2048.69897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '673.748107910156_1561.94079589844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '450.249694824219_2258.40380859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '675.245483398438_2018.45812988281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '675.247497558594_1972.86828613281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '678.275939941406_1923.05261230469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '678.276245117188_1910.82434082031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '678.277282714844_1901.0810546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '684.338684082031_2318.38452148438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.583923339844_1957.74645996094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.583923339844_2088.74829101562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.583953857422_2052.94165039062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.584320068359_1886.70275878906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.584411621094_2064.38232421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.584564208984_2075.50122070312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.584686279297_1913.54455566406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.584777832031_1990.58068847656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '457.585052490234_1978.20959472656'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '692.829467773438_2004.02612304688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '695.771179199219_1585.33605957031'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '700.333435058594_2184.22534179688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '700.775512695312_2376.21362304688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '703.237915039062_1713.96765136719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '703.238525390625_1743.82373046875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '707.2333984375_1863.19055175781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.848083496094_2051.8251953125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.848266601562_2030.55102539062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.848541259766_2009.73071289062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.848693847656_1994.38635253906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.848785400391_1963.47509765625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.84912109375_1894.79296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.849151611328_2023.16625976562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.849182128906_1955.00732421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.849243164062_1980.49291992188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.849426269531_1910.45080566406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.849761962891_1945.51220703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '472.849822998047_2075.87426757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '711.851196289062_2049.83911132812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '714.830261230469_1977.00598144531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '714.830688476562_1955.74682617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '720.817260742188_2446.67407226562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '735.898376464844_2437.17260742188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.935028076172_2446.296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.935577392578_2490.9384765625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '735.900512695312_2463.85131835938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '490.936248779297_2400.27172851562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.527252197266_1943.05944824219'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.52734375_2049.46240234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.52734375_1988.20385742188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.527862548828_2000.58203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.527862548828_1965.82189941406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '492.528625488281_2009.35278320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.310729980469_1935.349609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.310974121094_1889.01489257812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.311767578125_1865.4755859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.395080566406_2202.26489257812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.803405761719_2091.69482421875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.803588867188_2063.60668945312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '738.804748535156_1952.36840820312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '494.533599853516_1785.27954101562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '743.828186035156_2247.52807617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '498.201019287109_1848.29821777344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '748.781677246094_1786.91625976562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '748.901428222656_2461.84301757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '748.902038574219_2404.68090820312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '755.7509765625_1922.67785644531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '379.146301269531_1901.45190429688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '758.791748046875_2394.20971679688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '507.525054931641_2373.54467773438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '507.527191162109_2399.890625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '762.730834960938_2211.94897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '509.849090576172_1534.080078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '764.760681152344_1558.9072265625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '764.767272949219_1899.53259277344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '511.278381347656_2279.16650390625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '767.79638671875_2054.52661132812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '767.799011230469_2093.69897460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '770.731323242188_1841.50659179688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '770.780090332031_1686.78723144531'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '772.2294921875_2160.80688476562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '515.92236328125_1885.07763671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '774.778381347656_2492.88403320312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '774.922241210938_2408.49487304688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '779.736511230469_1656.32531738281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '782.309936523438_2366.52319335938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '782.310241699219_2403.08618164062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '782.311340332031_2375.1123046875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '782.379577636719_2042.20788574219'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '528.523742675781_1788.88342285156'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '528.524353027344_1779.39001464844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '528.526000976562_1804.89758300781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.815734863281_2375.48950195312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.815856933594_2346.095703125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.815979003906_2352.88671875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.816772460938_2338.85205078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.817443847656_2364.21435546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.818115234375_2331.28686523438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '793.818664550781_2294.22485351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '530.178771972656_1543.80639648438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '530.512329101562_1555.86108398438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '798.29296875_2111.359375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '798.325439453125_1962.74145507812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '802.229675292969_1983.68664550781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '802.230590820312_1996.29455566406'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '802.231262207031_2033.09802246094'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '802.231384277344_2059.5830078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '802.232238769531_2015.82165527344'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '802.233276367188_2070.546875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '810.228942871094_1684.07055664062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '542.577880859375_2372.81176757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '815.761535644531_1982.07604980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '815.763610839844_2007.041015625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '820.889770507812_2193.82568359375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '824.283264160156_1530.95678710938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '550.188354492188_1616.76672363281'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '550.192993164062_1970.46240234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '827.807250976562_2108.91479492188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '827.80810546875_2125.25048828125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '827.816833496094_2089.119140625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '827.818176269531_2067.11547851562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.919555664062_2050.21337890625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.919616699219_2036.14636230469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.919738769531_2139.7216796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.92041015625_2028.27612304688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.920959472656_2167.279296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.920959472656_2155.9833984375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '552.921142578125_2212.68725585938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '831.749694824219_2081.85791015625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '831.7509765625_2073.2705078125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '558.593627929688_2193.43920898438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '558.5947265625_1809.15905761719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '558.5947265625_2256.30102539062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '558.863952636719_1542.34704589844'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '841.448974609375_1961.0771484375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '564.854797363281_1800.57397460938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.251220703125_2316.79150390625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.252502441406_2352.49829101562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.25439453125_2262.099609375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '569.520629882812_1615.41711425781'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '428.457153320312_2035.38244628906'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '571.278625488281_2119.19995117188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '573.972045898438_2470.22387695312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '575.93994140625_2049.06860351562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '865.845581054688_2476.67456054688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '871.378356933594_1541.95202636719'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '587.630920410156_2392.3876953125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '880.945495605469_2402.6923828125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '589.865783691406_1602.57250976562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '890.342590332031_2172.95141601562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '890.342590332031_2244.623046875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '890.8369140625_2263.76025390625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '906.329711914062_2285.22094726562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '911.919860839844_2240.4755859375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '920.840026855469_2199.46459960938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '617.28857421875_2107.36938476562'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '623.626525878906_2318.75439453125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '937.420532226562_2462.21557617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '635.597534179688_2198.17919921875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '639.954772949219_2475.4658203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '639.95849609375_2458.728515625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '649.297058105469_2100.54418945312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '981.957092285156_2078.03002929688'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '655.303955078125_2162.47509765625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '655.304382324219_2098.52807617188'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '655.634033203125_2217.01904296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '657.000305175781_2444.26171875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '494.250732421875_2465.77783203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '494.251617431641_2498.365234375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '494.251647949219_2486.85961914062'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '494.253356933594_2406.1953125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '664.305053710938_2086.02905273438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '664.976318359375_2061.56494140625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '500.967895507812_2081.09912109375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '669.307312011719_2234.72802734375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '503.492828369141_1907.60729980469'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '403.97119140625_2079.26318359375'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '690.663940429688_2467.404296875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '1051.49560546875_2347.31689453125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '707.320373535156_2438.45288085938'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '1060.48022460938_2434.30249023438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '723.005249023438_2215.45556640625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '725.725524902344_2402.28466796875'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '578.802001953125_2421.74658203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '784.023681640625_1652.47045898438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '784.3525390625_1683.31176757812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '485.045349121094_2439.67358398438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '831.079040527344_2488.72119140625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '835.387634277344_2422.1533203125'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '850.384765625_2166.86450195312'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '728.602172851562_2164.48364257812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '728.850952148438_2237.13598632812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '741.195495605469_2379.0166015625'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '838.917846679688_2401.87670898438'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '671.337097167969_2396.45629882812'. Could not extract spectrum meta data.
+Non-fatal error while loading 'MascotXMLFile_test_2.mascotXML': <pep_scan_title> element has unexpected format '700.35107421875_2258.77612304688'. Could not extract spectrum meta data.
+Warning: Removed 8 peptide identifications without sequence.
+Warning: 523 (of 1112) peptide identifications have no retention time value.

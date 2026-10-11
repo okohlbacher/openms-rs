@@ -170,8 +170,28 @@ fn merge_validator_rejects_only_ambiguous_multi_file_assignments() {
     ])
     .unwrap();
     let mut p = peptide("merged");
-    let error = m.validate_merge_index(&p, 123).unwrap_err().to_string();
-    assert!(error.contains("123") && error.contains("missing id_merge_index"));
+    // IdentifierMSRunMapper.cpp validateMergeIndex, core bc9cc12: the
+    // messages of its three Exception::MissingInformation throws.
+    let error = m.validate_merge_index(&p, 123).unwrap_err();
+    assert!(matches!(error, openms::Error::MissingInformation(_)));
+    assert_eq!(
+        error.to_string(),
+        "missing information: Multiple files in a run, but no 'id_merge_index' in \
+         PeptideIdentification found: PSM #123 of identification run 'merged' (2 files in the \
+         run)."
+    );
+    p.metadata.insert("id_merge_index".into(), "1".into());
+    assert_eq!(
+        m.validate_merge_index(&p, 4).unwrap_err().to_string(),
+        "missing information: 'id_merge_index' is not an integer: PSM #4 of identification run \
+         'merged' (2 files in the run)."
+    );
+    p.metadata.insert("id_merge_index".into(), (-1i64).into());
+    assert_eq!(
+        m.validate_merge_index(&p, 4).unwrap_err().to_string(),
+        "missing information: 'id_merge_index' = -1 is out of range: PSM #4 of identification \
+         run 'merged' (2 files in the run)."
+    );
     for value in [
         (-1i64).into(),
         2i64.into(),

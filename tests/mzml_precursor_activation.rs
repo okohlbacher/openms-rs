@@ -164,7 +164,23 @@ fn all_nine_activation_metadata_routes_preserve_scalar_types() {
         for (id, key, text, expected) in &rows {
             let p = read(&document("", &cv(id, text, ""), chrom), chrom);
             assert_eq!(&p.cv_terms.metadata[*key], expected, "{id}");
-            assert!(roundtrip(&p, chrom).contains(id));
+            let xml = roundtrip(&p, chrom);
+            if *id == "MS:1000138" {
+                // Read under its historical key, which is not the term's name
+                // in the pinned CV ("normalized collision energy"), so the
+                // source's writeUserParam_ finds no term for the key and writes
+                // it back as this userParam. Expected line from the Release
+                // build, ../oracle/F7a-record-cv (value 35 there, 30 here).
+                assert!(
+                    xml.contains(
+                        "<userParam name=\"percent collision energy\" type=\"xsd:double\" value=\"30.0\"/>"
+                    ),
+                    "{xml}"
+                );
+                assert!(!xml.contains(id), "{xml}");
+            } else {
+                assert!(xml.contains(id), "{id}");
+            }
         }
     }
 }

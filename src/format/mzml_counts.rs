@@ -53,17 +53,32 @@ pub fn load_size(path: impl AsRef<Path>) -> Result<MzMLCounts> {
 }
 /// Path form of read_size_with_options. A successful early stop does not drain
 /// compressed trailers. A one-entry ZIP container is read through its file entry
-/// (`src/format/zip_input.rs`), as the source's `XMLFile::parse_` does.
+/// (`zip_ifstream`), as the source's `XMLFile::parse_` does; an archive
+/// `ZipIfstream::open` refuses is reported as `MzMLFile::loadSize` reports it,
+/// a `ParseError` that names the underlying exception (`FileEmpty` or
+/// `FileNotReadable`), where `MzMLFile::load` lets that exception through.
+
 pub fn load_size_with_options(
     path: impl AsRef<Path>,
     scientific: &PeakFileOptions,
     limits: &ReadOptions,
 ) -> Result<MzMLCounts> {
-    read_size_with_options(
-        crate::format::path_io::open(path.as_ref())?,
-        scientific,
-        limits,
-    )
+    let input = crate::format::path_io::open(path.as_ref()).map_err(|error| match error {
+        Error::Io(io) if io.kind() == std::io::ErrorKind::UnexpectedEof => Error::Parse {
+            line: 0,
+            message: format!(
+                "- due to that error of type FileEmpty in: ZipIfstream::open(const char*): {io}"
+            ),
+        },
+        Error::Io(io) if io.kind() == std::io::ErrorKind::InvalidData => Error::Parse {
+            line: 0,
+            message: format!(
+                "- due to that error of type FileNotReadable in: ZipIfstream::open(const char*): {io}"
+            ),
+        },
+        other => other,
+    })?;
+    read_size_with_options(input, scientific, limits)
 }
 
 // quick-xml intentionally leaves these XML lexical constraints to callers.

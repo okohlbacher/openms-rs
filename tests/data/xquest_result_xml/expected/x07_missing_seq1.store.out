@@ -1,0 +1,2 @@
+status exception Parse Error: While loading 'x07_missing_seq1.xquest.xml': Required attribute 'seq1' not present!
+Probable cause: The file suffix (xquest.xml) does not match the file content (unknown). Rename the file to fix this. in: x07_missing_seq1.xquest.xml

@@ -1,0 +1,170 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "method": "Executed differential: the oracle driver F1c-qpx links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06 and ran twice in a clean environment with identical records; a second process imports the C++-written internal table fresh. The Rust tests build the same identifications and tables and compare every cell, warning, refusal, diagnostic and Parquet layout, and read the Parquet files the executed library wrote. QPXIdentity is checked against its upstream class test, whose values the qpx Python reference computed.",
+  "evidence_tier": "1 (executed differential; QPXIdentity tier 3 with independently computed class-test values; QPXCollectionExport::Transaction tier 3)",
+  "reference_tools": "../oracle/F1c-qpx (driver.cpp, node.sh, run.sh)",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/QPXIdentity.h",
+      "sha256": "176587ba52d3bfccd5b39b38f781821c278ed92b816a2cc46aeaa5a41953bc68"
+    },
+    {
+      "path": "src/openms/source/FORMAT/QPXIdentity.cpp",
+      "sha256": "55b71b370487915a054090a5958a4d219f48d16c83b5d38eb4c83f0744ee66f5"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/QPXIdentity_test.cpp",
+      "sha256": "c70ea7aa5b2a0998cda827dff042d7b8effeb1242018d84a890996fba5a4bb3f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/QPXValueValidation.h",
+      "sha256": "eda5bac9271b6dad8e327e164b4e328f1c02da82d20bd518c70d553f2e5412a3"
+    },
+    {
+      "path": "src/openms/source/FORMAT/QPXValueValidation.cpp",
+      "sha256": "3dc136953e698f2304881e59e90aaf0691b564fd8adcccc91439b813a3c0ce22"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/QPXValueValidation_test.cpp",
+      "sha256": "06b7ad09c71fc3ff01207d9a6de54642c5ab85f3378ccb7e44697d32516d5df4"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/QPXFile.h",
+      "sha256": "f564a059b9ba6d5119dc7435044cc123ae538ad7ca6b5cff634e35b38ad95a96"
+    },
+    {
+      "path": "src/openms/source/FORMAT/QPXFile.cpp",
+      "sha256": "b2d8e5c4b527d9b36a0d72bf846f6418ad03d6cbaa8eb81f5c687bf27e241b3c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/QPXFile_test.cpp",
+      "sha256": "7add14a4b14cf8477c5e22f70e7c319e9def7bcc3539045c9e459c38dfda5b49"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/QPXCollectionExport.h",
+      "sha256": "f4d4e9d73047f27c21c7b06ee99ec10a88571d25b56d760c8490f1a175b6eeb5"
+    },
+    {
+      "path": "src/openms/source/FORMAT/QPXCollectionExport.cpp",
+      "sha256": "1a95312705e8f4d9427a431bccd91cc5a4c7c37ed070b881898d284ec810f13f"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/QPXCollectionExport_test.cpp",
+      "sha256": "18ea6af5bf2d12f31fbfdb9161a6b3544806634dfe63ab3d2f91eb22725e9d3d"
+    },
+    {
+      "path": "src/openms/source/FORMAT/ArrowIOHelpers.cpp",
+      "sha256": "e13e483ebb9953f7de6c590e4e34fc6440f3bc46b46ad6a67d60b10629b9955d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/METADATA/IdentifierMSRunMapper.h",
+      "sha256": "d75a8076e9abe280755742eaa7f1114580ce520dd16e6e83bb6f11dede677a20"
+    },
+    {
+      "path": "src/openms/source/METADATA/IdentifierMSRunMapper.cpp",
+      "sha256": "95a3228c79015a5e923a401096bfbaf2e25ac1cfa5783163f6d315d5ad2a2a19"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/qpx/cpp_release_import_records.tsv",
+      "sha256": "ec14f0d2aa165438ea08381d87cc2e11bb61409e313c7244453c4535e3876bce",
+      "kind": "Records of the executed Release build (oracle F1c-qpx, second process): importFromArrow of internal_all.parquet in a fresh process"
+    },
+    {
+      "path": "tests/data/qpx/cpp_release_records.tsv",
+      "sha256": "94fbe8d5dd9ffe7c88d78dd0a21372aea60e2e0556415893578a6c849d16c996",
+      "kind": "Records of the executed Release build (oracle F1c-qpx, first process): export cells, warnings, import, Parquet layouts, refusals, validation diagnostics"
+    },
+    {
+      "path": "tests/data/qpx/internal_all.parquet",
+      "sha256": "5e737ff09bef3be565c5a05fe78487c865a194b09b00051c8dfaca280af78d12",
+      "kind": "Parquet file written by the executed Release build (ArrowIOHelpers::writeTableToParquet of the internal PSM table)"
+    },
+    {
+      "path": "tests/data/qpx/psm_empty.parquet",
+      "sha256": "9263b3ff4b46c4947edfaf33da624319856e8471ad32f604a74fde34b7a5a0f3",
+      "kind": "QPX psm_file written by the executed Release build (streaming, no identifications)"
+    },
+    {
+      "path": "tests/data/qpx/psm_gap.parquet",
+      "sha256": "c31a68cf87a960cfc4e0577803698441b62143ff40a1d0db9a9b3a572f3a62c7",
+      "kind": "QPX psm_file written by the executed Release build (streaming, batch 1, a batch without rows)"
+    },
+    {
+      "path": "tests/data/qpx/psm_oneshot.parquet",
+      "sha256": "2e0b3e6bc3e0737f53f551c20f96a2df46432210c2ed0cdae260a35d5d9d882f",
+      "kind": "QPX psm_file written by the executed Release build (QPXFile::exportToParquet)"
+    },
+    {
+      "path": "tests/data/qpx/psm_stream.parquet",
+      "sha256": "5ebda349eddf84b1d5232b80047d21fdb3e17c23b0302b9c5306b23ee2bcc18a",
+      "kind": "QPX psm_file written by the executed Release build (QPXFile::exportToParquetStreaming, batch 2, row groups of 2)"
+    }
+  ],
+  "native_implementation": [
+    "src/format/qpx_identity.rs",
+    "src/format/qpx_value_validation.rs",
+    "src/format/qpx_file.rs",
+    "src/format/qpx_collection_export.rs",
+    "src/format/arrow_io_helpers.rs",
+    "src/format/parquet_file.rs",
+    "src/identification/run_mapping.rs"
+  ],
+  "native_tests": [
+    "tests/qpx_identity.rs",
+    "tests/qpx_value_validation.rs",
+    "tests/qpx_file.rs",
+    "tests/qpx_collection_export.rs",
+    "tests/run_mapping.rs",
+    "tests/arrow_parquet.rs"
+  ],
+  "support_document": "docs/QPX_SUPPORT.md",
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/F1c-qpx/driver.cpp",
+      "sha256": "c9e3d698ff544f817839b7e73dcd3f8a49b2e5ced48950907f1de1e71637cf93",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/F1c-qpx/node.sh",
+      "sha256": "a6cfc66d05e7e01de58d0f947fcaa9776b1ae23feced46b64e1d8b89bb0a4cf4",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/F1c-qpx/run.sh",
+      "sha256": "99c8b97060da11a2c00ac13d0af6b77a8a77a887f67f20aca2391808c2de9ad2",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/F1c-qpx/results/records.tsv",
+      "sha256": "94fbe8d5dd9ffe7c88d78dd0a21372aea60e2e0556415893578a6c849d16c996",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/F1c-qpx/results/import_records.tsv",
+      "sha256": "ec14f0d2aa165438ea08381d87cc2e11bb61409e313c7244453c4535e3876bce",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/F1c-qpx/results/hashes.txt",
+      "sha256": "47f65a7923756492326a6eab5bfcc88a30ea1fad4e1631316a802329eec79c73",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/F1c-qpx/results/host.txt",
+      "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "The oracle driver is C++ and stays outside the repository; its records and Parquet files were copied verbatim into tests/data/qpx/ (hashes above), and results/hashes.txt hashes the driver, the built binary, libOpenMS.so, the records and every file it wrote. The psm_*.parquet files embed a fresh uuid and creation_date per run, so the two runs differ in those files only; the records are identical."
+}
