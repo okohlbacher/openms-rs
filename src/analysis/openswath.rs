@@ -46,6 +46,12 @@ pub mod transitions;
 pub mod include_exclude_target;
 /// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
 pub mod metabo_targeted_target_decoy;
+/// `MRMAssay`: assay generation (annotation, restriction, detecting and UIS transitions) from raw targeted experiments.
+pub mod mrm_assay;
+/// `MRMDecoy`: reverse, pseudo-reverse and shuffle decoys for targeted assay libraries.
+pub mod mrm_decoy;
+/// `MRMIonSeries`: theoretical fragment ion series and transition annotation for assays and decoys.
+pub mod mrm_ion_series;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
 pub mod mrm_mapping;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.

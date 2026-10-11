@@ -1,0 +1,158 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h",
+      "sha256": "7ab66495c1fed5dcf3990e56d44df811b2efce49725a89d270cf5a1c505a3041"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMIonSeries.cpp",
+      "sha256": "6b5d4cc6296aec733a8841468bf5b394efa916d86fbc2fe8c980cffd02b6c626"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h",
+      "sha256": "a86ccb21a9a39d6318d67119adaf33b816bf024cc5f953eba997383e3c917119"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMDecoy.cpp",
+      "sha256": "0b04b24045e6253fb673b5a167e3104e8f7dad78c01024e033d79ffe2e1bd8e3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h",
+      "sha256": "5767d10d2c2a5660351bf2a0a4799b63e0b423faad98e710ddfa619d7bf73402"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMAssay.cpp",
+      "sha256": "d34d48c1113a570af38ecdde2d51101f6f0ebf25860b81293afc94d6a9bb5e63"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMIonSeries_test.cpp",
+      "sha256": "60c760f9bb9c32d350e2559e238ce2b25e0b8776e06251f866a1110f70426f85"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMDecoy_test.cpp",
+      "sha256": "290a4158d56db35a640b94a1f17f88e014b6e8ca7b32bceceb66b31670e0be58"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMAssay_test.cpp",
+      "sha256": "fc4e9af24e91619086d148d777be0d3b6ec8d7a63fe909327b847d301d374776"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMAssay_reannotateTransitions_input.TraML",
+      "sha256": "ef2d094acdf6136e83b69c3eaaaedecbcbe2e09dbc8eefe66b3b3a87e219ee4a"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMAssay_restrictTransitions_input.TraML",
+      "sha256": "55133d3d9d0ff17fac3ac2f83459e3b2eaa6a84d92e54f31c06f42bf5f7a155e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMAssay_detectingTransitions_input.TraML",
+      "sha256": "55133d3d9d0ff17fac3ac2f83459e3b2eaa6a84d92e54f31c06f42bf5f7a155e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMAssay_detectingTransistionCompound_input.TraML",
+      "sha256": "5513a89582f02e9249adf69b2eec8598d2727a9939fd8d228fcde5a330f0d7b1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMAssay_uisTransitions_input_1.TraML",
+      "sha256": "55133d3d9d0ff17fac3ac2f83459e3b2eaa6a84d92e54f31c06f42bf5f7a155e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMAssay_uisTransitions_input_3.TraML",
+      "sha256": "1d5162f495e796cae6fc65adddf28cde275466b56ac035d0972c5c5897417280"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMDecoyGenerator_input.TraML",
+      "sha256": "6b1f16bb54ac6fb2f3a56beaab1f4efe7c149a1e4222b16831c4fd4e9e976e45"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/mrm_ion_series.rs",
+    "src/analysis/openswath/mrm_decoy.rs",
+    "src/analysis/openswath/mrm_assay.rs",
+    "src/chemistry/theoretical.rs",
+    "src/chemistry/decoy_random.rs"
+  ],
+  "native_tests": [
+    "tests/mrm_ion_series.rs",
+    "tests/mrm_decoy.rs",
+    "tests/mrm_assay.rs",
+    "tests/mrm_assay_oracle.rs"
+  ],
+  "support": "docs/MRM_ASSAY_SUPPORT.md",
+  "fixtures": [
+    {"path": "tests/data/mrm_assay/oracle/compound_minmax.tsv", "sha256": "6f18157791dab3e77b5ae43a0e263c9d2ae3c3fd59e9db5309f9507ac7f2df78", "origin": "../oracle/O1c-assays/results/cases/compound_minmax/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/compound_unreferenced.tsv", "sha256": "ef57d7aad66fc784e664a6436e16411f7a227edbde6b16a1aeffff750ca69ba5", "origin": "../oracle/O1c-assays/results/cases/compound_unreferenced/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/decoy_masses.tsv", "sha256": "c101afa2b3bee11b3982c802e1a65228fe3b75f0ef239e9465749080b82212ce", "origin": "../oracle/O1c-assays/results/cases/decoy_masses/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/decoys_fraction.tsv", "sha256": "01a25252a76681619d7c6cdb60326781eb0ea55499267980cb7af05119c623b2", "origin": "../oracle/O1c-assays/results/cases/decoys_fraction/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/decoys_pseudo.tsv", "sha256": "f5e497cb6eb4c016d5ae0c3820e9d2cbb575b88130f1fa952bfb60cc3b6a8e54", "origin": "../oracle/O1c-assays/results/cases/decoys_pseudo/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/decoys_reverse.tsv", "sha256": "f43bcdc7ffd74313e6a01babe968744093599ebb379999b59513e82b5ad6c505", "origin": "../oracle/O1c-assays/results/cases/decoys_reverse/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/decoys_switchkr.tsv", "sha256": "76d31fe3bf15378b0029cdd955c5a509d158f0cbb47154a72d4600f7fc4e3ed4", "origin": "../oracle/O1c-assays/results/cases/decoys_switchkr/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/detecting.tsv", "sha256": "506d55b6aa1ed015ef1040cbd082b693c6e29b79025645f6473cb67bcc6233e9", "origin": "../oracle/O1c-assays/results/cases/detecting/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMAssay_detectingTransistionCompound_input.TraML.tsv", "sha256": "ef57d7aad66fc784e664a6436e16411f7a227edbde6b16a1aeffff750ca69ba5", "origin": "../oracle/O1c-assays/results/cases/input_MRMAssay_detectingTransistionCompound_input.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMAssay_detectingTransitions_input.TraML.tsv", "sha256": "d89f92bc3a49911a17539c9923fcb72f28049c87d03b7136a1191b1706dc346e", "origin": "../oracle/O1c-assays/results/cases/input_MRMAssay_detectingTransitions_input.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMAssay_reannotateTransitions_input.TraML.tsv", "sha256": "ec962826b073927bf9bb1e2ac9b5db2ba95f6821d431201315e33d74ec395a39", "origin": "../oracle/O1c-assays/results/cases/input_MRMAssay_reannotateTransitions_input.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMAssay_restrictTransitions_input.TraML.tsv", "sha256": "d89f92bc3a49911a17539c9923fcb72f28049c87d03b7136a1191b1706dc346e", "origin": "../oracle/O1c-assays/results/cases/input_MRMAssay_restrictTransitions_input.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMAssay_uisTransitions_input_1.TraML.tsv", "sha256": "d89f92bc3a49911a17539c9923fcb72f28049c87d03b7136a1191b1706dc346e", "origin": "../oracle/O1c-assays/results/cases/input_MRMAssay_uisTransitions_input_1.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMAssay_uisTransitions_input_3.TraML.tsv", "sha256": "506d55b6aa1ed015ef1040cbd082b693c6e29b79025645f6473cb67bcc6233e9", "origin": "../oracle/O1c-assays/results/cases/input_MRMAssay_uisTransitions_input_3.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/input_MRMDecoyGenerator_input.TraML.tsv", "sha256": "24083b10a944d44737ac3719222337d603784de7cfe07730e997f40dea394b1b", "origin": "../oracle/O1c-assays/results/cases/input_MRMDecoyGenerator_input.TraML/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/reannotate_1.tsv", "sha256": "dc58eff3a9673f5fdb853273d35928aaed33c6f55a72e1d88101b9cfcd3cfdec", "origin": "../oracle/O1c-assays/results/cases/reannotate_1/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/reannotate_2.tsv", "sha256": "fb2779407298f3038d5b075abebd749fab6974f6d90e48dc5d1ef387652ab6d2", "origin": "../oracle/O1c-assays/results/cases/reannotate_2/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/restrict.tsv", "sha256": "3b130af40b058cd2259701f4a7273977eac03d022119178dfd444764848bf145", "origin": "../oracle/O1c-assays/results/cases/restrict/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/restrict_swathes.tsv", "sha256": "eafa24158c3948c923bb255cc775c9bd8617967f429d624b03f6da55f5263404", "origin": "../oracle/O1c-assays/results/cases/restrict_swathes/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/uis_1.tsv", "sha256": "68b94e795ca4c092aba21f17d1b68bc840e117d6b45a54c23ff5645a7a269479", "origin": "../oracle/O1c-assays/results/cases/uis_1/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/uis_2.tsv", "sha256": "8c8146b188e4daa14ac8e85f8cf0645c20acc507d14a8c9d603d3b048f8db8a2", "origin": "../oracle/O1c-assays/results/cases/uis_2/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/uis_3.tsv", "sha256": "e4bfc4fb7cdef3ee5cecf76292f3ab8d8f8a4e1184ecc4b6e5a02857b0a848f0", "origin": "../oracle/O1c-assays/results/cases/uis_3/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/uis_4.tsv", "sha256": "215aab55b6acd278c5ec0e2675d9b72fc14add41c5b48736d4294c2c94ac0b47", "origin": "../oracle/O1c-assays/results/cases/uis_4/stdout.bin"},
+    {"path": "tests/data/mrm_assay/oracle/uis_5.tsv", "sha256": "0dd68191c311935f3efba59a84a3099da72cc0eb7ae234825bc0b84deca42ca5", "origin": "../oracle/O1c-assays/results/cases/uis_5/stdout.bin"}
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (executed differential) for MRMAssay::reannotateTransitions (2 parameter sets), restrictTransitions (without and with the class test's 32 swathes), detectingTransitions, filterMinMaxTransitionsCompound, filterUnreferencedDecoysCompound, uisTransitions (all 5 class-test parameter sets, seed 42) and MRMDecoy::generateDecoys (pseudo-reverse as the class test, reverse, fraction 0.5, switchKR), and through them MRMIonSeries::getIonSeries, annotateIon, getIon and annotateTransitionCV, on the class-test TraML inputs: driver ../oracle/O1c-assays/driver.cpp built with x86_64-conda-linux-gnu-g++ 14.4.0 -O3 -DNDEBUG against the Linux x86-64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c) on ibminode06, every case run twice in fresh processes with byte-identical stdout, stderr and exit (results/differ.txt empty), and the whole batch run twice with identical case hashes. Every compared field matches exactly except the unrounded decoy precursor m/z, within a declared 4-ulp relative tolerance whose cause (residue internal masses summed in a different element order) the decoy_masses case pins. Tier 3 (source review) for every literal of MRMIonSeries_test.cpp, MRMDecoy_test.cpp (all seeded shuffles, reversals, identity, switchKR, terminal-modification checks, the heavy duplicate-detection regression) and MRMAssay_test.cpp (matching peptidoforms, swath lookup, random sequence, n-choose-k, addModificationsSequences, 13 theoretical peptidoforms, decoy peptidoforms). Tier 4 for the native checks.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O1c-assays/driver.cpp",
+      "sha256": "5f1983debf4ec5b833246a5133a338f7a648dcbdb56192c57f541633bd7cbf72",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O1c-assays/remote_run.sh",
+      "sha256": "a0328c64153f53d359f01256d8524c921693ae05a4a3cb24a1d8fa9285a8315a",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O1c-assays/run.sh",
+      "sha256": "7a5cf195d238e28c3b6042750a2faedfce37cd6f172c6fbe75e1a99ebb3e4b7e",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O1c-assays/cases.txt",
+      "sha256": "c9f47709905986f36498ada23b08e295e6b2805391fafdfbfbdecf81f0accebf",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O1c-assays/results/hashes.txt",
+      "sha256": "19a4c0c1ce95d0a4cef0ccac07e38fcb067df5b61c7f3fcb5f3c9ad3eff43277",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O1c-assays/results/case_hashes.txt",
+      "sha256": "4abaaa72ba251637e5f3667d769fe2a00f508f1055b8015578ec116fcbeb4b81",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    }
+  ],
+  "external_reference_note": "The C++ oracle driver and its run scripts live outside this repository (no C++ is committed); its retained stdout are the fixtures under tests/data/mrm_assay/oracle/. run.sh records the intended one-shot staging; the run itself was staged with the same scp/ssh steps by hand."
+}

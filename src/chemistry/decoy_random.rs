@@ -56,6 +56,17 @@ impl DecoyRandom {
         shuffle_from(|| self.next_u64(), data, remaining_draws)
     }
 
+    /// [`DecoyRandom::shuffle`] for any element type, as the source template
+    /// `RandomShuffler::portable_random_shuffle` accepts any random-access
+    /// range (`MRMDecoy` shuffles peptide indices with it).
+    pub(crate) fn shuffle_slice<T>(
+        &mut self,
+        data: &mut [T],
+        remaining_draws: &mut usize,
+    ) -> Result<()> {
+        shuffle_from(|| self.next_u64(), data, remaining_draws)
+    }
+
     /// One raw 64-bit engine word.
     pub(crate) fn next_u64(&mut self) -> u64 {
         self.engine.next_u64()
@@ -64,9 +75,9 @@ impl DecoyRandom {
 
 // The Fisher–Yates loop and range mapping read raw words through a closure so
 // the private tests can script adversarial words; production passes the engine.
-fn shuffle_from(
+fn shuffle_from<T>(
     mut next: impl FnMut() -> u64,
-    data: &mut [u8],
+    data: &mut [T],
     remaining_draws: &mut usize,
 ) -> Result<()> {
     for end in (1..data.len()).rev() {
