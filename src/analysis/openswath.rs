@@ -9,6 +9,10 @@
 
 /// Confidence scoring of features against an assay library, from `ANALYSIS/OPENSWATH/ConfidenceScoring.h`.
 pub mod confidence_scoring;
+/// Coordinates, extraction and annotated chromatograms for targeted experiments, from `ANALYSIS/OPENSWATH/ChromatogramExtractor.h`.
+pub mod chromatogram_extractor;
+/// Chromatogram extraction at given coordinates, from `ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h`.
+pub mod chromatogram_extractor_algorithm;
 /// Conversions between kernel and light records, from `ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h`.
 pub mod data_access_helper;
 /// Named numeric table writers, from `OPENSWATHALGO/DATAACCESS/DataFrameWriter.h`.
@@ -65,6 +69,8 @@ pub mod openswath_scoring;
 pub mod peak_picker_mobilogram;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
+/// Raw m/z-RT-ion-mobility peak clouds at targeted coordinates, from `ANALYSIS/OPENSWATH/PeakMapExtractor.h`.
+pub mod peak_map_extractor;
 /// Distances, cross-correlation, ranks and mutual information, from `OPENSWATHALGO/ALGO/Scoring.h`.
 pub mod scoring;
 /// The spectrum access interface, from `OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h`.
@@ -89,6 +95,12 @@ pub mod targeted_experiment_helper;
 pub mod transition_pqp_file;
 /// `TransitionTSVFile`: read and write OpenSWATH transition lists (TSV/CSV/MRM).
 pub mod transition_tsv_file;
+/// m/z and ion-mobility correction of SWATH maps (partial), from `ANALYSIS/OPENSWATH/SwathMapMassCorrection.h`.
+pub mod swath_map_mass_correction;
+/// OpenSWATH quality control (MS1 charge distribution), from `ANALYSIS/OPENSWATH/SwathQC.h`.
+pub mod swath_qc;
+/// SWATH-window files and SWATH-map annotation, from `ANALYSIS/OPENSWATH/SwathWindowLoader.h`.
+pub mod swath_window_loader;
 /// The light targeted experiment, from `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h`.
 pub mod transition_experiment;
 /// Transition grouping and compound lookup, from `OPENSWATHALGO/DATAACCESS/TransitionHelper.h`.
