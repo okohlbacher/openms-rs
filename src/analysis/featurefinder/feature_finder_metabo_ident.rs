@@ -54,8 +54,7 @@ use crate::format::file_info::text_format::to_str_f32;
 use crate::identification::{PeptideIdentification, ProteinIdentification};
 use crate::kernel::im_data_converter::ImDataConverter;
 use crate::kernel::{Feature, FeatureMap, MSExperiment};
-use crate::metadata::im_types::ImTypes;
-use crate::metadata::{IonMobilityFormat, MetaValue};
+use crate::metadata::{ImTypes, IonMobilityFormat, MetaValue};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::processing::feature_overlap_filter::FeatureOverlapFilter;
 use crate::{Error, Result};
@@ -1464,10 +1463,9 @@ impl FeatureFinderAlgorithmMetaboIdent {
                 sub.metadata.remove("FeatureLevel");
             }
             // required for SIRIUS
-            feat.metadata.insert(
-                NUM_OF_MASSTRACES.to_owned(),
-                MetaValue::try_from(u64::try_from(feat.subordinates.len()).unwrap_or(u64::MAX))?,
-            );
+            let n_traces = u64::try_from(feat.subordinates.len()).unwrap_or(u64::MAX);
+            feat.metadata
+                .insert(NUM_OF_MASSTRACES.to_owned(), MetaValue::try_from(n_traces)?);
         }
         features.protein_identifications.clear();
         Ok(())

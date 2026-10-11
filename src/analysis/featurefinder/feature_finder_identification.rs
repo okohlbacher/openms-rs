@@ -52,8 +52,7 @@ use crate::identification::{PeptideHit, PeptideIdentification, ProteinIdentifica
 use crate::kernel::faims_helper::FaimsHelper;
 use crate::kernel::im_data_converter::ImDataConverter;
 use crate::kernel::{Feature, FeatureMap, MSExperiment};
-use crate::metadata::im_types::ImTypes;
-use crate::metadata::{DriftTimeUnit, IonMobilityFormat, MetaInfo, MetaValue};
+use crate::metadata::{DriftTimeUnit, ImTypes, IonMobilityFormat, MetaInfo, MetaValue};
 use crate::param::{DefaultParamHandler, Param, ParamValue};
 use crate::{Error, Result};
 use std::cmp::Ordering;
@@ -2388,14 +2387,19 @@ impl FeatureFinderIdentificationAlgorithm {
 /// the unassigned identifications (source `removeSeedPseudoIDs_`).
 fn remove_seed_pseudo_ids(features: &mut FeatureMap) {
     for feature in &mut features.features {
-        let ids = &mut feature.peptide_identifications;
         // When all assigned identifications are offset peptides the feature is
         // one too.
-        if !ids.is_empty() && ids.iter().all(|id| id.metadata.contains_key(OFFSET_PEPTIDE)) {
+        let all_offsets = !feature.peptide_identifications.is_empty()
+            && feature
+                .peptide_identifications
+                .iter()
+                .all(|id| id.metadata.contains_key(OFFSET_PEPTIDE));
+        if all_offsets {
             feature
                 .metadata
                 .insert(OFFSET_PEPTIDE.to_owned(), MetaValue::from("true"));
         }
+        let ids = &mut feature.peptide_identifications;
         // the pseudo hits (PSM details)
         for id in ids.iter_mut() {
             id.hits.retain(|hit| !is_seed_pseudo_hit(hit));
