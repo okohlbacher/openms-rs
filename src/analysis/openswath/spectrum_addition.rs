@@ -34,6 +34,8 @@
 
 use super::data_structures::{BinaryDataArray, Spectrum, SpectrumPtr};
 use super::spectrum_access::{SpectrumSequence, filter_by_drift};
+use crate::format::ms_data_aggregating_consumer::MSDataAggregatingConsumer;
+use crate::interfaces::MSDataConsumer;
 use crate::kernel::ranges::RangeBase;
 use crate::kernel::{MSSpectrum, Peak1D};
 use crate::{Error, Result};
@@ -438,4 +440,54 @@ pub fn add_up_ms_spectra(
         peaks,
         ..MSSpectrum::default()
     })
+}
+
+/// The merge `MSDataAggregatingConsumer` hard-codes:
+/// `SpectrumAddition::addUpSpectra(s_list, -1, true)` of
+/// `MSDataAggregatingConsumer.cpp:23` and `:44`, that is [`add_up_ms_spectra`]
+/// with the sampling rate estimated from the spectra and zero-intensity points
+/// dropped.
+fn aggregate_group(spectra: &[MSSpectrum]) -> Result<MSSpectrum> {
+    add_up_ms_spectra(spectra, -1.0, true)
+}
+
+/// An [`MSDataAggregatingConsumer`] with the source's merge,
+/// `MSDataAggregatingConsumer(IMSDataConsumer* next_consumer)`.
+///
+/// The consumer is defined in `format`, which may not depend on `analysis`, so
+/// it takes the merge as a function (see
+/// [`MSDataAggregatingConsumer::new`]); this constructor, in the domain that
+/// owns `SpectrumAddition`, supplies the one the source compiles in. Spectra
+/// that share a retention time (within
+/// [`RT_TOLERANCE`](crate::format::ms_data_aggregating_consumer::RT_TOLERANCE))
+/// are added up on a common m/z grid, resampled at the smallest spacing found
+/// and without zero-intensity points, and each merged spectrum carries the
+/// metadata of its group's first spectrum.
+///
+/// ```
+/// use openms::analysis::openswath::spectrum_addition::aggregating_consumer;
+/// use openms::format::ms_data_storing_consumer::MSDataStoringConsumer;
+/// use openms::interfaces::MSDataConsumer;
+/// use openms::kernel::{MSSpectrum, Peak1D};
+///
+/// let mut storage = MSDataStoringConsumer::new();
+/// {
+///     let mut aggregating = aggregating_consumer(&mut storage);
+///     for (rt, intensity) in [(5.0, 7.0), (5.0, 10.0), (25.0, 1.0)] {
+///         let mut spectrum = MSSpectrum::default();
+///         spectrum.rt = rt;
+///         spectrum.peaks.push(Peak1D::new(5.0, intensity));
+///         spectrum.peaks.push(Peak1D::new(10.0, intensity));
+///         aggregating.consume_spectrum(&mut spectrum).unwrap();
+///     }
+///     aggregating.finish().unwrap();
+/// }
+/// let merged = &storage.data().spectra;
+/// assert_eq!(merged.len(), 2);
+/// assert_eq!(merged[0].peaks[0].intensity, 17.0);
+/// ```
+pub fn aggregating_consumer(
+    next_consumer: &mut dyn MSDataConsumer,
+) -> MSDataAggregatingConsumer<'_, fn(&[MSSpectrum]) -> Result<MSSpectrum>> {
+    MSDataAggregatingConsumer::new(next_consumer, aggregate_group)
 }

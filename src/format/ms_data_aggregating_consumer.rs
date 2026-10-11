@@ -8,10 +8,11 @@
 //! `docs/MS_DATA_CONSUMERS_SUPPORT.md` for the API mapping and the evidence.
 //!
 //! The source merges each group with `SpectrumAddition::addUpSpectra(list, -1,
-//! true)` from `ANALYSIS/OPENSWATH/SpectrumAddition.h`. That header is not
-//! ported yet, and `format` may not depend on `analysis` in any case, so the
-//! merge is a function the caller supplies; see
-//! [`MSDataAggregatingConsumer::new`](crate::format::ms_data_aggregating_consumer::MSDataAggregatingConsumer::new).
+//! true)` from `ANALYSIS/OPENSWATH/SpectrumAddition.h`. `format` may not depend
+//! on `analysis`, so this type takes the merge as a function (see
+//! [`MSDataAggregatingConsumer::new`](crate::format::ms_data_aggregating_consumer::MSDataAggregatingConsumer::new));
+//! [`aggregating_consumer`](crate::analysis::openswath::spectrum_addition::aggregating_consumer)
+//! in the analysis domain supplies the source's.
 
 use crate::Result;
 use crate::interfaces::MSDataConsumer;
@@ -97,9 +98,10 @@ where
     /// used, the metadata is copied from the group's first spectrum afterwards.
     /// The source's merge is `SpectrumAddition::addUpSpectra(spectra, -1,
     /// true)` — resampling to the auto-detected sampling rate and dropping
-    /// zero-intensity points — which is not ported (the header is
-    /// `ANALYSIS/OPENSWATH/SpectrumAddition.h`); until it is, the caller
-    /// supplies it or another merge.
+    /// zero-intensity points. It lives in `ANALYSIS/OPENSWATH`, which `format`
+    /// may not depend on, so the caller supplies it:
+    /// [`aggregating_consumer`](crate::analysis::openswath::spectrum_addition::aggregating_consumer)
+    /// is this constructor with that merge.
     ///
     /// The source's class test constructs one with a null next consumer
     /// ("don't do that ..."), which crashes on the first flush; a reference

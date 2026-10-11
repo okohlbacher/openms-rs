@@ -22,15 +22,19 @@
 //!   keeps the metadata of the one it came from — is the same for any
 //!   metadata.
 //! - `MSDataAggregatingConsumer` merges with `SpectrumAddition::addUpSpectra`
-//!   upstream, which is not ported. Its sections run with [`add_up_on_grid`], a
-//!   test double that adds intensities on a shared m/z grid. The literals
-//!   17/120/230 are the class test's; any merge that adds intensities on the
-//!   fixture's shared grid reaches them, so they check the consumer's grouping
-//!   and metadata plumbing, not `SpectrumAddition`.
+//!   upstream. Its sections run twice: with [`add_up_on_grid`], a test double
+//!   that adds intensities on a shared m/z grid (the literals 17/120/230 are
+//!   the class test's; any merge that adds intensities on the fixture's shared
+//!   grid reaches them, so those runs check the consumer's grouping and
+//!   metadata plumbing), and, in `aggregating_with_the_spectrum_addition_of_the_source`,
+//!   with the merge the source compiles in
+//!   (`analysis::openswath::spectrum_addition::aggregating_consumer`, which
+//!   closed the header's one gap at wave-4 integration).
 
 #![cfg(feature = "mzml")]
 
 use openms::Error;
+use openms::analysis::openswath::spectrum_addition::aggregating_consumer;
 use openms::format::ms_data_aggregating_consumer::{MSDataAggregatingConsumer, RT_TOLERANCE};
 use openms::format::ms_data_chaining_consumer::MSDataChainingConsumer;
 use openms::format::ms_data_storing_consumer::MSDataStoringConsumer;
@@ -685,6 +689,116 @@ fn aggregating_full_spectra() {
     assert!(similar(f64::from(snew.peaks[1].intensity), 120.0));
     assert!(similar(snew.peaks[2].mz, 15.0));
     assert!(similar(f64::from(snew.peaks[2].intensity), 230.0));
+}
+
+/// All three `consumeSpectrum` blocks of `MSDataAggregatingConsumer_test.cpp`
+/// (:42-185) with the source's own merge, `SpectrumAddition::addUpSpectra(list,
+/// -1, true)`, instead of the grid double: the literals are the class test's.
+#[test]
+fn aggregating_with_the_spectrum_addition_of_the_source() {
+    // :42-70, no adding up.
+    let mut storage = MSDataStoringConsumer::new();
+    {
+        let mut agg = aggregating_consumer(&mut storage);
+        let mut s = MSSpectrum::default();
+        for (name, rt) in [("spec1", 5.0), ("spec2", 15.0), ("spec3", 25.0)] {
+            s.name = name.into();
+            s.rt = rt;
+            continued(agg.consume_spectrum(&mut s));
+        }
+        continued(agg.finish());
+    }
+    let names: Vec<_> = storage
+        .data()
+        .spectra
+        .iter()
+        .map(|s| s.name.clone())
+        .collect();
+    assert_eq!(names, ["spec1", "spec2", "spec3"]);
+    assert_eq!(storage.data().chromatograms.len(), 0);
+
+    // :72-115, adding empty spectra.
+    let mut storage = MSDataStoringConsumer::new();
+    {
+        let mut agg = aggregating_consumer(&mut storage);
+        let mut s = MSSpectrum::default();
+        for (name, comm, rt) in [
+            ("spec1", "comm1", 5.0),
+            ("spec2", "comm2", 5.0),
+            ("spec3", "comm3", 25.0),
+            ("spec4", "comm4", 25.0),
+            ("spec5", "comm5", 35.0),
+        ] {
+            s.name = name.into();
+            set_comment(&mut s, comm);
+            s.rt = rt;
+            continued(agg.consume_spectrum(&mut s));
+        }
+    }
+    let data = storage.data();
+    let names: Vec<_> = data.spectra.iter().map(|s| s.name.clone()).collect();
+    assert_eq!(names, ["spec1", "spec3", "spec5"]);
+    assert_eq!(comment(&data.spectra[0]), MetaValue::from("comm1"));
+    assert_eq!(comment(&data.spectra[1]), MetaValue::from("comm3"));
+    assert_eq!(comment(&data.spectra[2]), MetaValue::from("comm5"));
+
+    // :117-185, adding full spectra: 7 + 10, 20 + 100, 30 + 200.
+    let mut storage = MSDataStoringConsumer::new();
+    {
+        let mut agg = aggregating_consumer(&mut storage);
+        let mut s = MSSpectrum {
+            name: "spec1".into(),
+            rt: 5.0,
+            peaks: vec![
+                Peak1D::new(5.0, 7.0),
+                Peak1D::new(10.0, 20.0),
+                Peak1D::new(15.0, 30.0),
+            ],
+            ..Default::default()
+        };
+        set_comment(&mut s, "comm1");
+        continued(agg.consume_spectrum(&mut s));
+        s.clear(true);
+        s.name = "spec2".into();
+        set_comment(&mut s, "comm2");
+        s.rt = 5.0;
+        s.peaks = vec![
+            Peak1D::new(5.0, 10.0),
+            Peak1D::new(10.0, 100.0),
+            Peak1D::new(15.0, 200.0),
+        ];
+        continued(agg.consume_spectrum(&mut s));
+        for (name, comm, rt) in [
+            ("spec3", "comm3", 25.0),
+            ("spec4", "comm4", 25.0),
+            ("spec5", "comm5", 35.0),
+        ] {
+            s.clear(true);
+            s.name = name.into();
+            set_comment(&mut s, comm);
+            s.rt = rt;
+            continued(agg.consume_spectrum(&mut s));
+        }
+        s.clear(true);
+        continued(agg.finish());
+    }
+    let data = storage.data();
+    assert_eq!(data.spectra.len(), 3);
+    assert_eq!(data.spectra[0].name, "spec1");
+    assert_eq!(data.spectra[1].name, "spec3");
+    assert_eq!(data.spectra[2].name, "spec5");
+    assert_eq!(comment(&data.spectra[0]), MetaValue::from("comm1"));
+    let snew = &data.spectra[0];
+    assert_eq!(snew.peaks.len(), 3);
+    let similar = |a: f64, b: f64| (a - b).abs() <= 1e-5 * b.abs().max(1.0);
+    for (peak, (mz, intensity)) in
+        snew.peaks
+            .iter()
+            .zip([(5.0, 17.0), (10.0, 120.0), (15.0, 230.0)])
+    {
+        assert!(similar(peak.mz, mz), "{peak:?}");
+        assert!(similar(f64::from(peak.intensity), intensity), "{peak:?}");
+    }
 }
 
 #[test]

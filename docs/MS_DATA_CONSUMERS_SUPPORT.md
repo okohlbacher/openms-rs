@@ -11,7 +11,7 @@ headers of `FORMAT/DATAACCESS` onto the crate's consumer trait
 | `MSDataStoringConsumer.h` | `src/format/ms_data_storing_consumer.rs` | none | complete |
 | `MSDataChainingConsumer.h` | `src/format/ms_data_chaining_consumer.rs` | none | complete |
 | `MSDataTransformingConsumer.h` | `src/format/ms_data_transforming_consumer.rs` | none | complete |
-| `MSDataAggregatingConsumer.h` | `src/format/ms_data_aggregating_consumer.rs` | none | partial: the merge is caller-supplied until `ANALYSIS/OPENSWATH/SpectrumAddition.h` is ported |
+| `MSDataAggregatingConsumer.h` | `src/format/ms_data_aggregating_consumer.rs`; `analysis::openswath::spectrum_addition::aggregating_consumer` | none | complete (wave-4 integration: `SpectrumAddition` arrived with lane OA, and the constructor with the source's merge lives in the analysis domain) |
 | `MSDataSqlConsumer.h` | `src/format/ms_data_sql_consumer.rs` | `sqmass` | complete |
 | `MSDataCachedConsumer.h` | `src/format/ms_data_cached_consumer.rs` | none | complete (wave-4 integration, on lane F4's `CachedMzMLHandler`) |
 | `MSDataWritingConsumer.h` | `src/format/ms_data_writing_consumer.rs` | `mzml` | partial, see [its own document](MS_DATA_WRITING_CONSUMER_SUPPORT.md) |
@@ -73,7 +73,7 @@ answers `Continue` unless it forwards another consumer's `Break`.
 
 | C++ | Rust | Notes |
 |---|---|---|
-| `MSDataAggregatingConsumer(IMSDataConsumer* next_consumer)` | `new(&'a mut dyn MSDataConsumer, add_up: F)` | `F: FnMut(&[MSSpectrum]) -> Result<MSSpectrum>` is the merge the source hard-codes as `SpectrumAddition::addUpSpectra(s_list, -1, true)` (`MSDataAggregatingConsumer.cpp:23`, `:44`). **This is the header's one open gap**: `SpectrumAddition` is an `ANALYSIS/OPENSWATH` header, not ported, and `format` may not depend on `analysis` (`tools/check_module_cycles.py`). When it lands, a constructor that passes it is one line in the analysis domain. |
+| `MSDataAggregatingConsumer(IMSDataConsumer* next_consumer)` | `new(&'a mut dyn MSDataConsumer, add_up: F)` | `F: FnMut(&[MSSpectrum]) -> Result<MSSpectrum>` is the merge the source hard-codes as `SpectrumAddition::addUpSpectra(s_list, -1, true)` (`MSDataAggregatingConsumer.cpp:23`, `:44`); `format` may not depend on `analysis` (`tools/check_module_cycles.py`), so `analysis::openswath::spectrum_addition::aggregating_consumer(next)` is the constructor that passes `add_up_ms_spectra(list, -1.0, true)` (wave-4 integration, closing the gap). |
 | `~MSDataAggregatingConsumer()` | `finish() -> Result<ControlFlow<()>>`, and the same flush on drop | A drop cannot report an error, so it logs a warning; `finish` reports it. |
 | `setExpectedSize`, `setExperimentalSettings` (`{}`) | trait methods | Not forwarded to the next consumer, as in the source. |
 | `consumeSpectrum` | trait method | Groups consecutive spectra with `|RT - previous_rt| < 1e-5` (`RT_TOLERANCE`), to the *previous* spectrum, so a drift chains a group; merges each group and copies the first spectrum's metadata (`copySpectrumMeta(s_list[0], tmps, false)`). A failed merge or next consumer leaves the group, the incoming spectrum and the RT state unchanged. |
