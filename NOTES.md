@@ -80,3 +80,17 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
 - Incarnation 5 (wf_97065d91-48e-2, 2026-10-11): brief named only -52/-34; also fast-forward merged
   worktree-wf_a10fdd71-2d2-10 (my own incarnation 4: Labeled, KD tree, FeatureMapping, KD all done) -- reported to lead.
   Remaining: report M2.md (not written), CI sweep slice counts, WNet/WNetMatcher (wnetalign dep), PipEcho.
+
+## Incarnation 5: WNet plan (findings)
+- Pin libs (cmake_findExternalLibs.cmake bc9cc12): pylmcf v0.9.8 d2c9c52, wnet v0.9.11 18a1525, wnetalign v0.9.8 cff6a19.
+  Identical checkouts readable on ibminode06: /scratch/omsbuild/oms-build/_deps/{pylmcf,wnet,wnetalign}-src (header-only;
+  LEMON network simplex under pylmcf-src/src/pylmcf/cpp/lemon). The Release install has NO WNet symbols -> oracle =
+  pinned FeatureGroupingAlgorithmWNet.cpp/WNetMatcher.cpp compiled in ../oracle/M2-wnet with those header dirs.
+- Algorithm: scale=sqrt(2^60/(max(sumA,sumB)*trash)); int64 intensities trunc(i*scale); positions*=scale; dist double ->
+  truncated to int64; subgraphs = connected comps; per subgraph arcs src->emp(cap int), emp->theo (cap min(theo,emp), cost
+  dist), theo->sink, src->sink trash(cost trash, cap total), supply = max(sumEmp,sumTheo); LEMON NetworkSimplex BLOCK_SEARCH;
+  consensus = std::sort flows desc (unstable) + greedy one-to-one.
+- TOPP_FeatureLinkerWNet_1 retained (inputs FeatureLinkerUnlabeled_1_input1..3.featureXML, ini FeatureLinkerWNet_1_parameters.ini)
+  was produced by 3.6.0-pre-wnetalign-2026-03-25 (older than pin) -> may differ; oracle first.
+- PipEchoAlgorithm IS in the Release install (nm shows PipEchoAlgorithm::group) -> oracle possible.
+- Plan: Rust src/analysis/mapmatching/wnet_matcher.rs (+ network simplex transcription), feature_grouping_algorithm_wnet.rs.
