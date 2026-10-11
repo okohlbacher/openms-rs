@@ -20,6 +20,8 @@ use openms::identification::{
 use openms::kernel::{BaseFeature, ColumnHeader, ConsensusFeature, ConsensusMap, FeatureHandle};
 use std::path::{Path, PathBuf};
 
+// Only the consensusxml-gated tests read a fixture; without the feature this would be dead code.
+#[cfg_attr(not(feature = "consensusxml"), allow(dead_code))]
 fn data(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/data/ibspectra_file")
