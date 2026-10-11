@@ -1091,51 +1091,13 @@ fn process_outliers(x_scores: &mut Vec<f64>, handling: OutlierHandling) -> Resul
 /// the source writes into its gnuplot files; a formula built with it would be a
 /// different byte sequence for the same fit.
 fn format_g(value: f64) -> String {
-    if value.is_nan() {
-        // `getGaussGnuplotFormula` and its siblings build the formula with
-        // `stringstream formula; formula << params.A << ...`
-        // (`PosteriorErrorProbabilityModel.cpp:674-679`, `:681-687`), an
-        // unconfigured `std::ostream` insertion of a `double`. That is
-        // libstdc++'s `num_put` through `__convert_from_v` to glibc
-        // `__printf_fp` at `%g`, which writes the sign of a NaN. Measured at
-        // this default precision and every other in
-        // `../oracle/a2-textfmt-nan-sweep`: 912 sign-bearing rows, none
-        // printing a sign that disagrees with the argument's sign bit. A
-        // diverged fit is exactly where a NaN parameter reaches this formula,
-        // so the sign is observable in a written `.plot` file.
-        return if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-        .to_string();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.to_string();
-    }
-    const PRECISION: i32 = 6;
-    let scientific = format!("{:.*e}", (PRECISION - 1) as usize, value);
-    let Some(marker) = scientific.find('e') else {
-        return scientific;
-    };
-    let exponent: i32 = scientific[marker + 1..].parse().unwrap_or(0);
-    if (-4..PRECISION).contains(&exponent) {
-        let decimals = (PRECISION - 1 - exponent).max(0) as usize;
-        trim_trailing_zeros(format!("{value:.decimals$}"))
-    } else {
-        let mantissa = trim_trailing_zeros(scientific[..marker].to_string());
-        let sign = if exponent < 0 { '-' } else { '+' };
-        format!("{mantissa}e{sign}{:02}", exponent.abs())
-    }
-}
-
-/// Drop the trailing zeros of a fractional part, and the point if nothing is
-/// left after it — the `%g` rule, absent the `#` flag.
-fn trim_trailing_zeros(text: String) -> String {
-    if !text.contains('.') {
-        return text;
-    }
-    let trimmed = text.trim_end_matches('0');
-    let trimmed = trimmed.strip_suffix('.').unwrap_or(trimmed);
-    trimmed.to_string()
+    // The NaN sign is observable in a written `.plot` file: a diverged fit is
+    // exactly where a NaN parameter reaches the formula, and glibc's
+    // `__printf_fp` writes it (`getGaussGnuplotFormula` and its siblings build
+    // the formula with an unconfigured `std::ostream`,
+    // `PosteriorErrorProbabilityModel.cpp:674-687`; measured by
+    // `../oracle/a2-textfmt-nan-sweep`: 912 sign-bearing rows, none printing a
+    // sign that disagrees with the argument's sign bit).
+    // `crate::concept::numeric_formatting::ostream_g` is that routine.
+    crate::concept::numeric_formatting::ostream_g(value, 6)
 }

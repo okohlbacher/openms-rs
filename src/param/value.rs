@@ -516,133 +516,39 @@ fn hash_float(value: f64) -> u64 {
     fnv(&(if value == 0.0 { 0.0 } else { value }).to_le_bytes())
 }
 
-/// StringUtils::toStr(double): fixed 15/3 fractional digits in the ordinary
-/// interval, otherwise shortest scientific/three fractional scientific digits.
+/// `StringUtils::toStr(double, full_precision)`: the source's one
+/// `NumericFormatting::appendNumeric<double>`, which
+/// [`crate::concept::numeric_formatting`] ports (15 fraction digits, or 3 in
+/// the reduced form with its three-digit scientific mantissa).
 pub(crate) fn format_float(value: f64, full_precision: bool) -> String {
-    if value.is_nan() {
-        return "NaN".into();
-    }
-    if value.is_infinite() {
-        return if value.is_sign_negative() {
-            "-inf"
-        } else {
-            "inf"
-        }
-        .into();
-    }
-    let scientific = value != 0.0 && (value.abs() >= 1e4 || value.abs() < 1e-2);
-    if scientific {
-        let raw = if full_precision {
-            format!("{value:e}")
-        } else {
-            format!("{value:.3e}")
-        };
-        let (mantissa, exponent) = raw.split_once('e').unwrap();
-        let exponent: i32 = exponent.parse().unwrap();
-        let mantissa = trim_fraction(mantissa, true);
-        if exponent < 0 {
-            format!("{mantissa}e-{:02}", exponent.unsigned_abs())
-        } else {
-            format!("{mantissa}e{exponent:02}")
-        }
-    } else {
-        let raw = if full_precision {
-            format!("{value:.15}")
-        } else {
-            format!("{value:.3}")
-        };
-        trim_fraction(&raw, true)
-    }
-}
-
-/// Float overload used by ListUtils; unlike ParamValue's promoted float, fixed
-/// full-precision output uses six fractional digits and f32 threshold literals.
-pub(crate) fn format_float32(value: f32, full_precision: bool) -> String {
-    if value.is_nan() {
-        return "NaN".into();
-    }
-    if value.is_infinite() {
-        return if value.is_sign_negative() {
-            "-inf"
-        } else {
-            "inf"
-        }
-        .into();
-    }
-    if value != 0.0 && (value.abs() >= 1e4 || value.abs() < 1e-2) {
-        let raw = if full_precision {
-            format!("{value:e}")
-        } else {
-            format!("{value:.3e}")
-        };
-        let (mantissa, exponent) = raw.split_once('e').unwrap();
-        let exponent: i32 = exponent.parse().unwrap();
-        let mantissa = trim_fraction(mantissa, true);
-        if exponent < 0 {
-            format!("{mantissa}e-{:02}", exponent.unsigned_abs())
-        } else {
-            format!("{mantissa}e{exponent:02}")
-        }
-    } else {
-        let raw = if full_precision {
-            format!("{value:.6}")
-        } else {
-            format!("{value:.3}")
-        };
-        trim_fraction(&raw, true)
-    }
-}
-fn trim_fraction(value: &str, keep_one: bool) -> String {
-    let mut text = value.to_owned();
-    if text.contains('.') {
-        while text.ends_with('0') {
-            text.pop();
-        }
-        if text.ends_with('.') {
-            if keep_one {
-                text.push('0');
-            } else {
-                text.pop();
-            }
-        }
-    } else if keep_one {
-        text.push_str(".0");
-    }
+    let mut text = String::new();
+    crate::concept::numeric_formatting::append_numeric_f64(
+        value,
+        &mut text,
+        if full_precision { 15 } else { 3 },
+        !full_precision,
+    );
     text
 }
+
+/// `StringUtils::toStr(float, full_precision)`, `appendNumeric<float>`: six
+/// fraction digits in the full form and the `float` threshold literals; see
+/// [`format_float`].
+pub(crate) fn format_float32(value: f32, full_precision: bool) -> String {
+    let mut text = String::new();
+    crate::concept::numeric_formatting::append_numeric_f32(
+        value,
+        &mut text,
+        if full_precision { 6 } else { 3 },
+        !full_precision,
+    );
+    text
+}
+
+/// A `double` inserted into a default `std::ostream`: `%g` at the stream's
+/// default precision of six, with glibc's `nan`/`-nan` and `-0`.
 fn format_stream_float(value: f64) -> String {
-    if value.is_nan() {
-        return if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-        .into();
-    }
-    if value.is_infinite() {
-        return if value.is_sign_negative() {
-            "-inf"
-        } else {
-            "inf"
-        }
-        .into();
-    }
-    let raw = format!("{value:.5e}");
-    let (mantissa, exponent) = raw.split_once('e').unwrap();
-    let exponent: i32 = exponent.parse().unwrap();
-    if (-4..6).contains(&exponent) {
-        trim_fraction(
-            &format!("{value:.precision$}", precision = (5 - exponent) as usize),
-            false,
-        )
-    } else {
-        format!(
-            "{}e{}{:02}",
-            trim_fraction(mantissa, false),
-            if exponent < 0 { '-' } else { '+' },
-            exponent.unsigned_abs()
-        )
-    }
+    crate::concept::numeric_formatting::ostream_g(value, 6)
 }
 
 #[cfg(test)]
@@ -667,6 +573,41 @@ mod tests {
             remaining_bytes: 300,
         };
         assert!(value.to_text_with_work(true, &mut work).is_err());
+    }
+
+    #[test]
+    fn float_text_is_the_one_append_numeric_with_its_even_digit_ties() {
+        // The exact shortest-round-trip ties of the executed differential in
+        // tests/file_info_text_format.rs (oracle rows by bit pattern): where
+        // Rust's `{:e}` alone rounds up (`...813e05`), `std::to_chars` takes
+        // the even digit. The text of a ParamValue is that routine's.
+        assert_eq!(
+            format_float(f64::from_bits(0xc100_800d_a680_0000), true),
+            "-1.3516970629882812e05"
+        );
+        assert_eq!(
+            format_float(f64::from_bits(0x4315_50f7_dca7_0001), true),
+            "1.5000000000000002e15"
+        );
+        assert_eq!(
+            format_float32(f32::from_bits(0x4a06_7a05), true),
+            "2.2032652e06"
+        );
+        assert_eq!(
+            format_float32(f32::from_bits(0x4a18_9681), true),
+            "2.5000002e06"
+        );
+        assert_eq!(
+            ParamValue::from(f64::from_bits(0xc100_800d_a680_0000))
+                .to_text(true)
+                .unwrap(),
+            "-1.3516970629882812e05"
+        );
+        // The stream form: six significant digits, glibc's spelling of -0.
+        assert_eq!(format_stream_float(-0.0), "-0");
+        assert_eq!(format_stream_float(5.0), "5");
+        assert_eq!(format_stream_float(1.0e20), "1e+20");
+        assert_eq!(format_stream_float(0.0001234567), "0.000123457");
     }
 
     #[test]
