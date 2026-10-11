@@ -68,8 +68,12 @@
 pub mod basic_statistics;
 /// A radix-2 decimation-in-frequency FFT and its packed real transform.
 pub mod fft;
+/// `boost::heap::fibonacci_heap`'s structure and tie behaviour.
+pub mod fibonacci_heap;
 /// Parameter estimation for named distributions.
 pub mod fitters;
+/// The iteration orders of libstdc++'s and Boost's hash containers.
+pub mod hash_order;
 /// A binned counter over a closed value range.
 pub mod histogram;
 /// FFT-based Gaussian kernel density estimation.

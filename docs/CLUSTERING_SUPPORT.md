@@ -16,9 +16,9 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ML/CLUSTERING/ClusteringGrid.h` | `src/math/ml/clustering/clustering_grid.rs` | complete |
 | `ML/CLUSTERING/GridBasedCluster.h` | `src/math/ml/clustering/grid_based_cluster.rs` | complete |
 | `ML/CLUSTERING/GridBasedClustering.h` | `src/math/ml/clustering/grid_based_clustering.rs` | complete |
-| `ML/CLUSTERING/HashGrid.h` | `src/math/ml/clustering/hash_grid.rs` | partial (iteration order, float `hash_value`) |
+| `ML/CLUSTERING/HashGrid.h` | `src/math/ml/clustering/hash_grid.rs` (+ `src/math/hash_order.rs`) | complete |
 | `DATASTRUCTURES/GridFeature.h` | `src/analysis/mapmatching/grid_feature.rs` | complete |
-| `DATASTRUCTURES/QTCluster.h` | `src/analysis/mapmatching/qt_cluster.rs` | partial (hash-map order: neighbour order, summation order) |
+| `DATASTRUCTURES/QTCluster.h` | `src/analysis/mapmatching/qt_cluster.rs` | complete |
 | `DATASTRUCTURES/KDTree.h` | none | not ported (see Backlog) |
 
 ## Placement
@@ -275,15 +275,21 @@ upward dependency and live in `src/data_structures/`.
   where `StringUtils::toStr(float)` lives (`to_str_f32`). Passing
   `Some(&to_str_f32)` is the source's `include_distance = true`; the oracle
   compares that text byte for byte.
-- `HashGrid` iterates cells in ascending index and pairs in insertion order; the
-  source iterates in `boost::unordered` hash order, which is not reproduced.
-- `QTCluster` keeps neighbours by ascending map index; the source's
-  `std::unordered_map` order is not reproduced. `getElements` /
-  `getAllNeighbors` order differs, and the quality sums neighbour distances in a
-  different order, which can change its last bit with three or more neighbours
-  (oracle case `Q2` happens to agree). A cluster owns its `BulkData` instead of
-  sharing a pointer. The debug-only `OPENMS_PRECONDITION`s are not checked, as in
-  the Release build.
+- `HashGrid` iterates cells and pairs in the order of Boost 1.89's
+  `unordered_map` / `unordered_multimap` (hash `h(i) ^ h(j)` of the `Int64`
+  cell index, `bits(x) ^ bits(y)` of the two `double` coordinates; prime
+  bucket counts, bucket groups of 64 visited in reverse order of activation,
+  equal keys adjacent), reproduced by `math::hash_order::BoostTable` and
+  validated against the executed C++ (`tests/hash_order_oracle.rs`, six grid
+  scripts). `insert` returns the position in that order. The `*_mut`
+  accessors that hand out a cell's vector must not add, remove or reorder
+  pairs.
+- `QTCluster` keeps the per-map neighbours in `math::hash_order::StdHashMap`,
+  libstdc++'s `std::unordered_map<size_t, V>` order, so `getElements` /
+  `getAllNeighbors` list them as the source does and the quality sums the
+  distances in the source's order (the last bit of the quality). A cluster owns
+  its `BulkData` instead of sharing a pointer. The debug-only
+  `OPENMS_PRECONDITION`s are not checked, as in the Release build.
 - `SourceOrderedSequence` falls back to the crate's `AASequence` order where the
   source compares two different residue modifications by their registry
   addresses (not reproducible by any other program), and where the source finds
@@ -335,7 +341,3 @@ upward dependency and live in `src/data_structures/`.
   (`std::nth_element`) are observable, so a crate (`kiddo`, `kdtree`) must first
   be measured against an oracle of `find_within_range`, or the header ported with
   `nth_element` emulated. Named dependency: that crate evaluation.
-- `HashGrid` iteration order and `QTCluster` neighbour order follow Boost's and
-  libstdc++'s hash tables; reproducing them needs an emulation of those tables'
-  bucket and rehash policies. `QTClusterFinder` is the consumer to measure it
-  against.
