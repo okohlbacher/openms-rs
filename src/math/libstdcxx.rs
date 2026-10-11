@@ -74,6 +74,21 @@ pub(crate) fn upper_bound<T>(items: &[T], mut value_less_than: impl FnMut(&T) ->
     first
 }
 
+/// `std::max(a, b)`: `a < b ? b : a`. Unlike `f64::max`, a NaN in `a` is
+/// returned and a NaN in `b` is ignored (the comparison is false), as the
+/// library does; a tie returns `a`.
+#[inline]
+pub(crate) fn std_max<T: PartialOrd>(a: T, b: T) -> T {
+    if a < b { b } else { a }
+}
+
+/// `std::min(a, b)`: `b < a ? b : a`, with [`std_max`]'s NaN asymmetry; a tie
+/// returns `a`.
+#[inline]
+pub(crate) fn std_min<T: PartialOrd>(a: T, b: T) -> T {
+    if b < a { b } else { a }
+}
+
 /// `std::is_sorted` (`std::is_sorted_until`): no element is `less` than
 /// its predecessor.
 pub(crate) fn is_sorted_by<T>(items: &[T], mut less: impl FnMut(&T, &T) -> bool) -> bool {

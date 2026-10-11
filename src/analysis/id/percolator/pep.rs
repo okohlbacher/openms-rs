@@ -17,10 +17,10 @@
 //! cache sizes); this port uses plain in-order sums, so the I-spline PEPs
 //! agree with the C++ to rounding, not to the bit. The PAVA path is exact.
 
-use super::engine::{std_max, std_min};
 use crate::math::fitters::levenberg_marquardt::{
     eigen_dot, eigen_gemv_row, eigen_squared_norm, eigen_sum,
 };
+use crate::math::libstdcxx::{std_max, std_min};
 use crate::{Error, Result};
 
 /// `InferPEP`: q-values to PEPs by monotone regression.

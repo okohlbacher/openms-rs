@@ -66,7 +66,7 @@ use crate::chemistry::EmpiricalFormula;
 use crate::concept::constants::user_param::{
     ADDUCT_GROUP, DC_CHARGE_ADDUCTS, IIMN_BEST_ION, IIMN_LINKED_GROUPS,
 };
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::kernel::features::{BaseFeature, ConsensusFeature, ConsensusMap, FeatureMap};
 use crate::math::fibonacci_heap::FibonacciHeap;
 use crate::math::hash_order::StdHashMap;

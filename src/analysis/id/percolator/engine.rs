@@ -23,6 +23,7 @@
 
 use super::pep::InferPep;
 use crate::math::libstdcxx::lower_bound;
+use crate::math::libstdcxx::{std_max, std_min};
 use crate::math::source_sort::source_sort_by;
 use crate::{Error, Result};
 
@@ -202,16 +203,6 @@ pub(super) fn std_unique<T: Clone>(items: &mut [T], equal: impl Fn(&T, &T) -> bo
         }
     }
     dest + 1
-}
-
-/// `std::max(a, b)`: `a < b ? b : a`.
-pub(super) fn std_max(a: f64, b: f64) -> f64 {
-    if a < b { b } else { a }
-}
-
-/// `std::min(a, b)`: `b < a ? b : a`.
-pub(super) fn std_min(a: f64, b: f64) -> f64 {
-    if b < a { b } else { a }
 }
 
 /// `mymin(a, b)`: `a > b ? b : a`, the `partial_sum` operator of the source's

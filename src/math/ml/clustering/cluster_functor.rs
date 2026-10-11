@@ -103,8 +103,3 @@ pub(crate) fn at_mut<T>(values: &mut [T], index: usize) -> Result<&mut T> {
         .get_mut(index)
         .ok_or_else(|| Error::InvalidValue(format!("cluster index {index} out of range")))
 }
-
-/// `std::min(a, b)`: `b` only when `b < a`, so a NaN in either keeps `a`.
-pub(crate) fn cpp_min(a: f32, b: f32) -> f32 {
-    if b < a { b } else { a }
-}

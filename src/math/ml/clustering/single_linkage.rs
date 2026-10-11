@@ -8,10 +8,11 @@
 
 use std::collections::BTreeSet;
 
-use super::cluster_functor::{ClusterFunctor, at, at_mut, cpp_min, insufficient_input};
+use super::cluster_functor::{ClusterFunctor, at, at_mut, insufficient_input};
 use crate::concept::progress_logger::ProgressReporter;
 use crate::data_structures::binary_tree_node::BinaryTreeNode;
 use crate::data_structures::distance_matrix::DistanceMatrix;
+use crate::math::libstdcxx::std_min;
 use crate::math::source_sort::source_sort_by;
 use crate::{Error, Result};
 
@@ -100,12 +101,12 @@ impl ClusterFunctor for SingleLinkage {
             for i in 0..k {
                 let pi_i = pi[i];
                 if lambda[i] >= row_k[i] {
-                    let updated = cpp_min(*at(&row_k, pi_i)?, lambda[i]);
+                    let updated = std_min(*at(&row_k, pi_i)?, lambda[i]);
                     *at_mut(&mut row_k, pi_i)? = updated;
                     lambda[i] = row_k[i];
                     pi[i] = k;
                 } else {
-                    let updated = cpp_min(*at(&row_k, pi_i)?, row_k[i]);
+                    let updated = std_min(*at(&row_k, pi_i)?, row_k[i]);
                     *at_mut(&mut row_k, pi_i)? = updated;
                 }
             }

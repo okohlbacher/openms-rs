@@ -19,7 +19,7 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ML/CLUSTERING/HashGrid.h` | `src/math/ml/clustering/hash_grid.rs` (+ `src/math/hash_order.rs`) | complete |
 | `DATASTRUCTURES/GridFeature.h` | `src/analysis/mapmatching/grid_feature.rs` | complete |
 | `DATASTRUCTURES/QTCluster.h` | `src/analysis/mapmatching/qt_cluster.rs` | complete |
-| `DATASTRUCTURES/KDTree.h` | none | not ported (see Backlog) |
+| `DATASTRUCTURES/KDTree.h` | private subset in `src/analysis/mapmatching/kd_tree_feature_maps.rs` (insert, `optimise`, `find_within_range`; lane M2) | partial: only what `KDTreeFeatureMaps` uses (see Backlog) |
 
 ## Placement
 
@@ -182,7 +182,7 @@ upward dependency and live in `src/data_structures/`.
 | `grid_at` (const and not) | `grid_at` / `grid_at_mut` |
 | `grid_find` (const and not) | `grid_find` / `grid_find_mut` |
 | `cellIndexAtClusterCenter` | `cell_index_at_cluster_center` |
-| free `hash_value(DPosition<N, T>)` | `hash_value(&[u64])` for integral `T`; the `double` instantiation is not ported |
+| free `hash_value(DPosition<N, T>)` | `hash_value(&[u64])` for integral `T`, `hash_value_f64(&[f64])` for `double` (`boost::hash<double>` of Boost 1.89 is the bit pattern of `value + 0`) |
 
 ### GridFeature
 
@@ -336,8 +336,9 @@ upward dependency and live in `src/data_structures/`.
 
 - **`DATASTRUCTURES/KDTree.h`** (2,208 lines of libkdtree++, no class test).
   Consumer: `ANALYSIS/QUANTITATION/KDTreeFeatureMaps` (`insert`, `size`,
-  `clear`, `optimize`, `find_within_range`), reached by
-  `AssayGeneratorMetaboSirius`. Its result order and `optimize`'s median split
-  (`std::nth_element`) are observable, so a crate (`kiddo`, `kdtree`) must first
-  be measured against an oracle of `find_within_range`, or the header ported with
-  `nth_element` emulated. Named dependency: that crate evaluation.
+  `clear`, `optimize`, `find_within_range`). Lane M2 ported exactly that subset
+  privately inside `kd_tree_feature_maps.rs` with the library's `nth_element`
+  (now `math::libstdcxx::nth_element_by`), checked against an executed oracle of
+  the query order. The rest of the header (erase, nearest-neighbour queries,
+  iterators, the allocator and comparator customisation points) is not ported;
+  that is why the header stays `partial`.

@@ -20,6 +20,7 @@
 //! [`StdHashMap`](crate::math::hash_order::StdHashMap), which reproduces
 //! libstdc++'s order for `size_t` keys.
 
+use crate::math::libstdcxx::std_min;
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::grid_feature::{GridFeature, SourceOrderedSequence};
@@ -449,7 +450,7 @@ impl<'a> QTCluster<'a> {
                 for (&map_index, &unspecific_distance) in &unspecific {
                     distances
                         .entry(map_index)
-                        .and_modify(|current| *current = cpp_min(*current, unspecific_distance))
+                        .and_modify(|current| *current = std_min(*current, unspecific_distance))
                         .or_insert(unspecific_distance);
                 }
             }
@@ -504,7 +505,7 @@ impl<'a> QTCluster<'a> {
                 .entry(sequence.clone())
                 .or_default()
                 .entry(map_index)
-                .and_modify(|current| *current = cpp_min(distance, *current))
+                .and_modify(|current| *current = std_min(distance, *current))
                 .or_insert(distance);
         };
         let unannotated = SourceOrderedSequence(AASequence::default());
@@ -536,9 +537,4 @@ impl PartialOrd for QTCluster<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.quality.partial_cmp(&other.quality)
     }
-}
-
-/// `std::min(a, b)`: `b` only when `b < a`.
-fn cpp_min(a: f64, b: f64) -> f64 {
-    if b < a { b } else { a }
 }

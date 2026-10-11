@@ -14,17 +14,13 @@
 
 use super::{Biosaur2Algorithm, Hill, source_invalid_value};
 use crate::kernel::MSSpectrum;
+use crate::math::libstdcxx::std_max;
 use crate::math::source_sort::source_sort_by;
 use crate::math::statistic_functions::median;
 use crate::metadata::{ImTypes, IonMobilityFormat};
 use crate::processing::noise_estimation::x86::cvttsd2si32;
 use crate::{Error, Result};
 use std::collections::BTreeMap;
-
-/// `std::max(a, b)` on doubles: `b` only when `a < b`.
-fn std_max(a: f64, b: f64) -> f64 {
-    if a < b { b } else { a }
-}
 
 /// Mass difference of `mz1` from the reference `mz2`, in ppm, the source
 /// `calculatePPM_`: `(mz1 - mz2) / mz2 * 1e6`, and 0 when `|mz2| < 1e-10`.

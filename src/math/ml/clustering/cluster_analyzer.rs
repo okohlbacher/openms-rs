@@ -10,6 +10,7 @@
 //! uses ordered maps with the same insert-on-read rule, so every loop visits
 //! the same keys in the same order. See `docs/CLUSTERING_SUPPORT.md`.
 
+use crate::math::libstdcxx::std_max;
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::cluster_functor::{at, at_mut};
@@ -28,11 +29,6 @@ pub struct ClusterAnalyzer;
 
 fn invalid_parameter(message: &str) -> Error {
     Error::InvalidValue(message.to_owned())
-}
-
-/// `std::max(a, b)`: `b` only when `a < b`.
-fn cpp_max(a: f32, b: f32) -> f32 {
-    if a < b { b } else { a }
 }
 
 /// `map[key]` on a `std::map<Size, T>`: inserts `T()` when absent.
@@ -241,7 +237,7 @@ impl ClusterAnalyzer {
                         let inter = *entry(&mut interdist_i, member);
                         if inter != 0.0 {
                             let intra = *entry(&mut intradist_i, member);
-                            average_overall_silhouette += (inter - intra) / cpp_max(inter, intra);
+                            average_overall_silhouette += (inter - intra) / std_max(inter, intra);
                         }
                     }
                 }

@@ -12,6 +12,7 @@
 //! ordered maps replace them without changing a result. See
 //! `docs/CLUSTERING_SUPPORT.md`.
 
+use crate::math::libstdcxx::{std_max, std_min};
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -459,10 +460,10 @@ impl<M: Fn(&Point, &Point) -> f64> GridBasedClustering<M> {
                 let total = (points1.len() + points2.len()) as f64;
                 let new_x = (centre1x * n1 + centre2x * n2) / total;
                 let new_y = (centre1y * n1 + centre2y * n2) / total;
-                let min_x = cpp_min(box1x_min, box2x_min);
-                let min_y = cpp_min(box1y_min, box2y_min);
-                let max_x = cpp_max(box1x_max, box2x_max);
-                let max_y = cpp_max(box1y_max, box2y_max);
+                let min_x = std_min(box1x_min, box2x_min);
+                let min_y = std_min(box1y_min, box2y_min);
+                let max_x = std_max(box1x_max, box2x_max);
+                let max_y = std_max(box1y_max, box2y_max);
                 let new_centre = Point::xy(new_x, new_y);
                 let new_bounding_box =
                     Rectangle::new(Point::xy(min_x, min_y), Point::xy(max_x, max_y));
@@ -669,14 +670,4 @@ impl<M: Fn(&Point, &Point) -> f64> GridBasedClustering<M> {
 #[allow(clippy::neg_cmp_op_on_partial_ord)]
 fn equivalent(a: f64, b: f64) -> bool {
     !(a < b) && !(b < a)
-}
-
-/// `std::min(a, b)`.
-fn cpp_min(a: f64, b: f64) -> f64 {
-    if b < a { b } else { a }
-}
-
-/// `std::max(a, b)`.
-fn cpp_max(a: f64, b: f64) -> f64 {
-    if a < b { b } else { a }
 }

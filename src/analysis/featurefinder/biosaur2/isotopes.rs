@@ -32,15 +32,11 @@ use super::{
     Biosaur2Algorithm, Biosaur2Message, Hill, IsotopeCandidate, PeptideFeature, g6, info, warn,
 };
 use crate::concept::constants::{C13C12_MASSDIFF_U, PROTON_MASS_U};
+use crate::math::libstdcxx::std_max;
 use crate::math::source_sort::source_sort_by;
 use crate::processing::noise_estimation::x86::cvttsd2si32;
 use crate::{Error, Result};
 use std::collections::{BTreeMap, BTreeSet};
-
-/// `std::max(a, b)` on doubles: `b` only when `a < b`.
-fn std_max(a: f64, b: f64) -> f64 {
-    if a < b { b } else { a }
-}
 
 /// Per-isotope `(shift, sigma)` calibration in ppm, isotopes 1 to 9.
 pub type IsotopeCalibration = BTreeMap<i32, (f64, f64)>;

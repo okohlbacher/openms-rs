@@ -63,6 +63,7 @@
 // algorithm that this module exists to preserve.
 #![allow(clippy::needless_range_loop)]
 
+use crate::math::libstdcxx::{std_max, std_min};
 use crate::{Error, Result};
 
 /// Largest number of (x, y) observations a fitter accepts.
@@ -564,19 +565,6 @@ pub fn blue_norm(v: &[f64]) -> f64 {
         let ratio = small / large;
         large * (1.0 + ratio * ratio).sqrt()
     }
-}
-
-/// `(std::max)(a, b)` as Eigen's solver calls it: `a < b ? b : a`. Unlike
-/// `f64::max`, a NaN in `a` is returned and a NaN in `b` is ignored.
-#[inline]
-fn std_max(a: f64, b: f64) -> f64 {
-    if a < b { b } else { a }
-}
-
-/// `(std::min)(a, b)`: `b < a ? b : a`, with `std_max`'s NaN asymmetry.
-#[inline]
-fn std_min(a: f64, b: f64) -> f64 {
-    if b < a { b } else { a }
 }
 
 /// Column-pivoted Householder QR, reproducing `Eigen::ColPivHouseholderQR`.
