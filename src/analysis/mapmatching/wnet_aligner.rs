@@ -11,9 +11,8 @@
 //! `wnet` v0.9.11 (`18a15250adb7ed478ef40d26d736bcd873265c74`) and the LEMON
 //! copy of `pylmcf` v0.9.8 (`d2c9c52bd67d7198ae17b389d77884357260f114`), which
 //! OpenMS fetches in `cmake/cmake_findExternalLibs.cmake`
-//! (`WITH_WNETALIGN`). The solver is in
-//! [`lemon_network_simplex`](crate::analysis::mapmatching::lemon_network_simplex);
-//! `docs/FEATURE_GROUPING_SUPPORT.md` records what was read and why no crate
+//! (`WITH_WNETALIGN`). The solver is the crate-private module
+//! `lemon_network_simplex`; `docs/FEATURE_GROUPING_SUPPORT.md` records what was read and why no crate
 //! stands in for it.
 //!
 //! # The model
@@ -58,9 +57,9 @@
 //!   check, which is undefined behaviour for NaN, infinite and out-of-range
 //!   values (`max_distance * s` too large, a non-finite position, a distance
 //!   of NaN as `m/z` scaled by an infinite factor produces). Those inputs are
-//!   [`Error::InvalidValue`] here.
-//! - Resource ceilings the source lacks: [`MAX_PEAKS`] and
-//!   [`MAX_MATCHING_ARCS`], checked before the network is allocated.
+//!   [`Error::InvalidValue`](crate::error::Error::InvalidValue) here.
+//! - Resource ceilings the source lacks: [`MAX_PEAKS`](crate::analysis::mapmatching::wnet_aligner::MAX_PEAKS) and
+//!   [`MAX_MATCHING_ARCS`](crate::analysis::mapmatching::wnet_aligner::MAX_MATCHING_ARCS), checked before the network is allocated.
 
 use crate::error::{Error, Result};
 use crate::math::source_sort::source_sort_permutation;

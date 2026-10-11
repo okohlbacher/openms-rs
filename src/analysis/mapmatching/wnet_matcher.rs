@@ -15,9 +15,12 @@
 //! transport. The transport network, scaling and solver are those of
 //! [`wnet_aligner`](crate::analysis::mapmatching::wnet_aligner).
 //!
-//! The source's static member `match` is [`WNetMatcher::match_points`]
+//! The source's static member `match` is
+//! [`WNetMatcher::match_points`](crate::analysis::mapmatching::wnet_matcher::WNetMatcher::match_points)
 //! (`match` is a Rust keyword), and its default arguments are
-//! [`DEFAULT_METRIC`], [`DEFAULT_MAX_DISTANCE`] and [`DEFAULT_TRASH_COST`].
+//! [`DEFAULT_METRIC`](crate::analysis::mapmatching::wnet_matcher::DEFAULT_METRIC),
+//! [`DEFAULT_MAX_DISTANCE`](crate::analysis::mapmatching::wnet_matcher::DEFAULT_MAX_DISTANCE) and
+//! [`DEFAULT_TRASH_COST`](crate::analysis::mapmatching::wnet_matcher::DEFAULT_TRASH_COST).
 
 use super::wnet_aligner::{Spectrum, WNetAligner};
 use crate::error::{Error, Result};

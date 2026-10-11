@@ -1,4 +1,4 @@
-# Feature grouping support (`FeatureDistance`, `BaseGroupFinder`, `StablePairFinder`, `LabeledPairFinder`, `QTClusterFinder`, `KDTreeFeatureMaps`, `FeatureMapping`, `MapAlignmentAlgorithmKD`, `FeatureGroupingAlgorithm*`)
+# Feature grouping support (`FeatureDistance`, `BaseGroupFinder`, `StablePairFinder`, `LabeledPairFinder`, `QTClusterFinder`, `KDTreeFeatureMaps`, `FeatureMapping`, `MapAlignmentAlgorithmKD`, `WNetMatcher`, `FeatureGroupingAlgorithm*`)
 
 Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 
@@ -19,7 +19,9 @@ Source revision: OpenMS4-core `bc9cc12514c768385ce121d6ca4bb710fe1983c4`.
 | `ANALYSIS/MAPMATCHING/FeatureMapping.h` | `src/analysis/mapmatching/feature_mapping.rs` | complete (reproduces the source's map-1 exclusion) |
 | `ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h` | `src/analysis/mapmatching/map_alignment_algorithm_kd.rs` | partial (LOWESS without `auto_span`, `akima`) |
 | `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h` (with `ClusterProxyKD`) | `src/analysis/mapmatching/feature_grouping_algorithm_kd.rs` | partial (inherits the LOWESS gap when warping) |
-| `WNetMatcher.h`, `FeatureGroupingAlgorithmWNet.h` | none | not ported: needs the external `wnetalign` network-flow solver |
+| `ANALYSIS/MAPMATCHING/WNetMatcher.h` | `src/analysis/mapmatching/wnet_matcher.rs` | complete |
+| `ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmWNet.h` | `src/analysis/mapmatching/feature_grouping_algorithm_wnet.rs` | complete |
+| `wnetalign` `WNetAligner<2>`, `wnet` `WassersteinNetwork`, `pylmcf`/LEMON `NetworkSimplex` (third-party, not OpenMS headers) | `wnet_aligner.rs`, `lemon_network_simplex.rs` (crate-private solver) | the subset both OpenMS classes reach: `DIM = 2`, dense factory, no chain optimisation, no derivatives |
 | `PipEchoAlgorithm.h` | none | not started |
 
 Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
@@ -166,6 +168,26 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 | private `rt_tol_secs_`, `mz_tol_`, `mz_ppm_`, `feature_distance_`, `progress_` | public parameter fields; the distance functor is built per run |
 | `ClusterProxyKD` (constructors, `operator<`, `==`, `!=`, `getSize`, `isValid`, `getAvgDistance`, `getCenterIndex`) | `ClusterProxyKD` (`new`, `Default`, `Ord`, `Eq`, `size`, `is_valid`, `avg_distance`, `center_index`) |
 
+### WNetMatcher
+
+| Source | Rust |
+|---|---|
+| `enum class DistanceMetric { L1, L2, LINF }` | `DistanceMetric { L1, L2, Linf }` (defined with the aligner, re-exported) |
+| `struct MatchResult { matched_pairs, cost }` | `MatchResult { matched_pairs: Vec<(usize, usize)>, cost: f64 }` |
+| `static MatchResult match(positions_a, intensities_a, positions_b, intensities_b, metric = LINF, max_distance = 100, trash_cost = 100)` | `WNetMatcher::match_points(..) -> Result<MatchResult>` (`match` is a Rust keyword), with `match_with_defaults` and the constants `DEFAULT_METRIC`, `DEFAULT_MAX_DISTANCE`, `DEFAULT_TRASH_COST` |
+| `static DistanceMetric metricFromString(const std::string&)` (warns and returns LINF for other strings) | `metric_from_string`; `metric_from_string_with_warning` also returns the warning text |
+
+### FeatureGroupingAlgorithmWNet and the Wasserstein aligner
+
+| Source | Rust |
+|---|---|
+| constructor (`defaults_`: `distance_metric`, `max_rt_shift`, `mz_unit`, `max_mz_shift_da`, `max_mz_shift_ppm`, `trash_cost`, `normalize_intensities`, `decharge_mz`), destructor, deleted copy and move | `Default`, `from_param`, `from_param_with_warnings`, `defaults`, `to_param` (built with the source's call sequence) |
+| `group(vector<FeatureMap>, ConsensusMap&)`, `group(vector<ConsensusMap>, ConsensusMap&)` | `FeatureGroupingAlgorithm::group`, `group_consensus` |
+| private `group_<MapType>`, anonymous `transformMz`, `dechargeMz`, `mapToSpectrum`, `parseDistanceMetric`, `buildAlignParams`, `convertAndNormalizeSpectra`, `collectCandidates`, `UnionFind` | private functions and types of the same names |
+| `Spectrum<2>` (`sum_intensities`, `normalized`, `size`) | `Spectrum` (`new`, `sum_intensities`, `normalized`, `len`) |
+| `WNetAligner<2>` (constructor, `set_point`, `total_cost`, `scale_factor`, `no_subgraphs`, `flows_for_target`, `consensus_for_target`) | `WNetAligner` (`new`, `set_point`, `total_cost`, `scale_factor`, `no_subgraphs`, `flows_for_target`, `consensus_for_target`) |
+| `lemon::NetworkSimplex<StaticDigraph, int64_t, int64_t>::run(BLOCK_SEARCH)` | crate-private `lemon_network_simplex::solve` |
+
 ## Preserved source conventions
 
 - `FeatureDistance`: charges must agree unless one is 0 or `ignore_charge` is
@@ -257,6 +279,44 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   `f32`; the `best ion` index starting at global index 0 (a source quirk,
   see the module documentation); `postprocess` as for the other algorithms.
 
+- Wasserstein aligner (`wnet_aligner.rs`): intensities and positions are scaled
+  by `s = sqrt(2^60 / (max(sum A, sum B) * trash_cost))` and truncated to
+  `int64`; distances are computed in `double` from the scaled positions and
+  truncated; an arc exists when the truncated distance is at most
+  `trunc(max_distance * s)` and the first coordinates lie within the window
+  `x +- (double) trunc(max_distance * s)`. The flow network of a connected
+  component is source -> empirical peak (capacity intensity), empirical ->
+  theoretical (capacity `min(theoretical * point, empirical)`, cost distance),
+  theoretical -> sink, and the trash arc source -> sink (capacity the total,
+  cost `trunc(trash_cost * s)`), with the total the larger of the two
+  intensity sums *of that component*. Components are numbered by their lowest
+  peak, peaks without an arc belong to none, and arcs sit in the order of
+  `(start, end)`, which is the `StaticDigraph` arc numbering.
+- LEMON's `StaticDigraph` visits nodes and arcs from the highest id down, so
+  the simplex's internal node `i` is graph node `N - 1 - i` and its arcs are
+  stored in the `arc_mixing` order (`skip = max(M / N, 3)`). Block search with
+  block size `max(floor(sqrt(M)), 10)`, the heuristic initial pivots (reverse
+  search from the sink over in-arcs by descending arc id), and the
+  strongly-feasible-tree leaving-arc rule (`d < delta` on the first path,
+  `d <= delta` on the second) pick *which* optimum the solver stops at when
+  costs tie; the port transcribes all of it.
+- The consensus is `std::sort` (the C++ Release build's introsort, through
+  `math::source_sort`) of the matching arcs by descending flow, then a greedy
+  pass taking an arc while neither peak is used. Equal flows therefore end in
+  the libstdc++ order, which the lattice instances of the oracle exercise.
+- `FeatureGroupingAlgorithmWNet`: `trash_cost <= 0` means `max_rt_shift`; the
+  m/z axis is `ln(m/z)` for ppm with `mz_scale = max_rt_shift / log1p(ppm *
+  1e-6)` and `m/z` for Da with `max_rt_shift / max_mz_shift_da`; the maximum
+  distance is `max_rt_shift`, `2 * max_rt_shift` (L1) or `sqrt(2) *
+  max_rt_shift` (L2); normalisation divides by the intensity sum only when a
+  map is non-empty; map pairs with an empty map are skipped; a candidate's
+  cost is the pair's total cost divided by the number of consensus pairs;
+  candidates are sorted by `(cost, lower, higher flat feature number)` and
+  merged by a union-find that refuses merges putting two features of one map in
+  a group; groups become consensus features in ascending order of their root,
+  members by map and feature, then `postprocess`. Consensus features are
+  appended to `out`'s (the source does not clear it).
+
 ## Native differences
 
 - Errors instead of undefined behaviour or silent insertion in
@@ -322,6 +382,25 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   previously inserted only the handles; fixed, and the TOPP differentials now
   compare identifications.
 
+- WNet: the source converts floating-point values to `int64_t` without a range
+  check, which is undefined behaviour for NaN, infinite and out-of-range
+  values. A non-finite scaled position, an intensity, capacity or distance that
+  does not fit 64 bits, and a scale factor that is not finite (`trash_cost` 0
+  with `max_rt_shift` 0) are `Error::InvalidValue` here. An m/z tolerance of
+  exactly 0 (infinite `mz_scale`, every scaled distance `NaN`) is therefore an
+  error rather than garbage costs.
+- WNet: `std::sort` ties are reproduced (see above); `unordered_set` use in
+  `consensus_for_target` has no order effect and is a `HashSet`.
+- WNet ceilings the source lacks: `wnet_aligner::MAX_PEAKS` (2^25) and
+  `MAX_MATCHING_ARCS` (2^24) per aligner, `feature_grouping_algorithm_wnet::
+  MAX_FEATURES` (2^24) over all maps. The source logs per-pair counts at INFO;
+  no logging is done here. A non-numeric `dc_charge_adduct_mass` meta value is
+  an error (the source reads a union member of the wrong type).
+- WNet: the caller-supplied `scale_factor` constructor argument, the
+  one-dimensional chain factory (`create_1d`) and the derivative members
+  (`signal_part_derivatives`, `spectrum_proportion_derivatives`) of the
+  `wnet` library are not ported because no OpenMS code reaches them.
+
 ## Checked boundaries and evidence
 
 - Tier 1: `tests/mapmatching_feature_grouping_topp.rs` reproduces the
@@ -381,6 +460,37 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
   `KDTreeFeatureNode_test.cpp`, `FeatureMapping_test.cpp`,
   `FeatureGroupingAlgorithmKD_test.cpp` and `MapAlignmentAlgorithmKD_test.cpp`.
 
+- Tier 1 against executed C++ for WNet (oracle `M2-wnet`, ibminode06, two
+  identical runs): the Release install `openms4-release-bc9cc12-c19e494-174b576`
+  was configured without WNet (no `WNetMatcher` or
+  `FeatureGroupingAlgorithmWNet` symbol in `libOpenMS.so`), so the oracle
+  compiles the pinned `WNetMatcher.cpp` and `FeatureGroupingAlgorithmWNet.cpp`
+  with that install's g++ 14.4.0, headers and `libOpenMS` flags against the
+  header-only libraries at the commits `cmake_findExternalLibs.cmake` pins
+  (wnetalign v0.9.8 `cff6a19`, wnet v0.9.11 `18a1525`, pylmcf v0.9.8
+  `d2c9c52`). `tests/mapmatching_wnet_oracle.rs`: 31 generated instances
+  (random under L1/L2/LINF, equal-weight integer lattices and a full grid with
+  massive cost and flow ties, duplicates, zero intensities, 10-component
+  cluster sets, trash from 0.5 to 1000, zero and huge maximum distance,
+  realistic scaled `ln(m/z)` positions with normalised intensities up to 400
+  points per side); scale factor and total cost compared bit for bit, every
+  flow triple in order, the consensus in selection order, and
+  `WNetMatcher::match`. `tests/mapmatching_wnet_grouping_oracle.rs`: 13 tool-path
+  cases (default, Da, L2, L1 without normalisation, trash 500, tight
+  tolerances, the unlabeled 2 and 3 inputs, charge and adduct inputs with and
+  without `decharge_mz`, consensus-map input) and the four class-test
+  sections; the defaults tree equals the executed C++'s stored `ParamXML`.
+- Tier 1 against the retained output: `tests/mapmatching_wnet_topp.rs`
+  reproduces `TOPP_FeatureLinkerWNet_1` (test-data 0cb15f2,
+  `topp/CMakeLists.txt:2955-2958`: the FeatureLinkerUnlabeled_1 inputs and
+  the default parameters) with every handle exact; the retained file was
+  generated by tool version `3.6.0-pre-wnetalign-2026-03-25` and agrees with
+  the pin here.
+- Tier 3: every section of `WNetMatcher_test.cpp` and
+  `FeatureGroupingAlgorithmWNet_test.cpp` (`tests/mapmatching_wnet.rs`).
+  Tier 4: the single-pair cost, the competition for one theoretical peak,
+  unconnected pairs, and every refusal listed under native differences.
+
 ## Backlog
 
 - `QTClusterFinder` tie order: reproducing the source for clusters of exactly
@@ -391,7 +501,10 @@ Parameter handling follows `src/processing/peak_picking.rs`: `defaults()`,
 - `TransformationModelLowess` (unmapped): automatic span selection and
   `akima` interpolation, which `MapAlignmentAlgorithmKD` and
   `FeatureGroupingAlgorithmKD` need for those parameter values.
-- `WNetMatcher` and `FeatureGroupingAlgorithmWNet`: need the `wnetalign`
-  network-flow aligner (`WNetAligner<2>`, the vcpkg overlay port); no crate
-  provides it. Retained test: `FeatureLinkerWNet_1`.
-- `PipEchoAlgorithm` (and the private `PIPECHO/` sources): not started.
+- `PipEchoAlgorithm` (and the private `PIPECHO/` sources, about 3100 lines):
+  untouched. Its `TransferFDRModel` trains a linear-kernel SVM through
+  `ML/SVM/SimpleSVM.h` (libsvm: cross-validated grid search over `log2_C`,
+  probability estimates), which is not ported (`docs/core-sdk-coverage.json`
+  lists `SimpleSVM.h` as unmapped; only fixed-model RBF prediction exists, in
+  `feature_finding_metabo/predictor.rs`). The Release install does contain
+  `PipEchoAlgorithm`, so an oracle is available once the SVM trainer exists.

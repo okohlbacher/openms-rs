@@ -284,7 +284,7 @@ impl FeatureGroupingAlgorithmWNet {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] when a parameter has the wrong type or
+    /// Returns [`Error::InvalidValue`](crate::error::Error::InvalidValue) when a parameter has the wrong type or
     /// violates its restriction.
     pub fn from_param(parameters: &Param) -> Result<Self> {
         Ok(Self::from_param_with_warnings(parameters)?.0)
@@ -535,7 +535,7 @@ impl FeatureGroupingAlgorithm for FeatureGroupingAlgorithmWNet {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidValue`] for fewer than two maps (source
+    /// Returns [`Error::InvalidValue`](crate::error::Error::InvalidValue) for fewer than two maps (source
     /// `Exception::IllegalArgument`), for the aligner's refusals, and for a
     /// feature with a non-finite position or intensity. On error `out` is
     /// unchanged.
