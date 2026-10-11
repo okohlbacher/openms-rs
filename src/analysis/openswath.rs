@@ -85,8 +85,17 @@ pub mod openswath_inference_data;
 pub mod openswath_library_id_normalizer;
 /// Building and writing of OpenSWATH quantification matrices, from `ANALYSIS/OPENSWATH/OpenSwathMatrixExporter.h`.
 pub mod openswath_matrix_exporter;
+/// `OpenSwathOSWParquetReader`: read OSW Parquet containers into flat feature, transition and unscored tables.
+#[cfg(all(feature = "arrow", feature = "file-compression"))]
+pub mod openswath_osw_parquet_reader;
+/// `OpenSwathOSWParquetWriter`: write OpenSwathWorkflow results as an OSW Parquet container (`.oswpq`).
+#[cfg(all(feature = "arrow", feature = "file-compression"))]
+pub mod openswath_osw_parquet_writer;
 /// The OSW (SQLite) output of OpenSWATH, from `ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h`.
 pub mod openswath_osw_writer;
+/// `OpenSwathParquetExporter`: write scored OpenSWATH feature and transition tables to Parquet.
+#[cfg(feature = "arrow")]
+pub mod openswath_parquet_exporter;
 /// Peptide-level context inference, from `ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h`.
 pub mod openswath_peptide_inference;
 /// Inference of peptidoforms (IPF), from `ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h`.
@@ -140,6 +149,9 @@ pub mod targeted_spectra_extractor;
 pub mod transition_experiment;
 /// Transition grouping and compound lookup, from `OPENSWATHALGO/DATAACCESS/TransitionHelper.h`.
 pub mod transition_helper;
+/// `TransitionParquetFile`: read and write OpenSWATH Parquet assay libraries (`.oswpq`).
+#[cfg(all(feature = "arrow", feature = "file-compression"))]
+pub mod transition_parquet_file;
 /// `TransitionPQPFile`: read and write PQP (SQLite) transition libraries.
 #[cfg(feature = "sqlite")]
 pub mod transition_pqp_file;

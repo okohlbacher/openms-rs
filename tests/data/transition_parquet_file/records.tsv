@@ -1,0 +1,871 @@
+C	traml_input	0	4_Cyproconazole_0	410.14499999999998	-1	0			Cyproconazole		nan	nan			C15H18ClN3O			
+C	traml_input	1	0_Dimethachlor_0	388.16699999999997	-1	0			Dimethachlor		nan	nan			C13H18ClNO2			
+C	traml_input	2	1_Dimethachlor_0	388.58699999999999	-1	0			Dimethachlor		nan	nan			C13H18ClNO2			
+C	traml_input	3	5_Fenamiphos_0	423.78400000002	-1	0			Fenamiphos		nan	nan			C13H22NO3PS			
+C	traml_input	4	7_Flubendiamide_0	450.57199999997999	-1	0			Flubendiamide		nan	nan			C23H22F7IN2O4S			
+C	traml_input	5	6_Flufenacet_0	456.87199999998001	-1	0			Flufenacet		nan	nan			C14H13F4N3O2S			
+C	traml_input	6	3_Isoprothiolane_0	450.57199999997999	-1	0			Isoprothiolane		nan	nan			C12H18O4S2			
+C	traml_input	7	2_Myclobutanil_0	425.02399999997999	-1	0			Myclobutanil		nan	nan			C15H17ClN4			
+T	traml_input	0	0_0_Dimethachlor_0	0_Dimethachlor_0	1	132.08077599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	1	0_1_Dimethachlor_0	0_Dimethachlor_0	0.54965782165527299	105.06987700000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	2	0_2_Dimethachlor_0	0_Dimethachlor_0	0.47792315483093301	133.08860100000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	3	0_3_Dimethachlor_0	0_Dimethachlor_0	0.23892782628536199	146.09642600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	4	0_4_Dimethachlor_0	0_Dimethachlor_0	0.21453599631786299	79.054226999999997	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	5	0_5_Dimethachlor_0	0_Dimethachlor_0	0.202484920620918	118.06512600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	6	0_6_Dimethachlor_0	0_Dimethachlor_0	0.117609620094299	103.054227	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	7	0_7_Dimethachlor_0	0_Dimethachlor_0	0.115704223513603	174.09134	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	8	0_8_Dimethachlor_0	0_Dimethachlor_0	0.108522295951843	130.06512599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_input	9	1_0_Dimethachlor_0	1_Dimethachlor_0	1	118.06272	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	10	1_1_Dimethachlor_0	1_Dimethachlor_0	0.62518608570098899	146.09402	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	11	1_2_Dimethachlor_0	1_Dimethachlor_0	0.46888956427574202	160.10966999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	12	1_3_Dimethachlor_0	1_Dimethachlor_0	0.40637093782424899	144.07837000000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	13	1_4_Dimethachlor_0	1_Dimethachlor_0	0.25007444620132402	188.10458499999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	14	1_5_Dimethachlor_0	1_Dimethachlor_0	0.18755581974983199	116.059646	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	15	1_6_Dimethachlor_0	1_Dimethachlor_0	0.18755581974983199	228.09949900000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	16	1_7_Dimethachlor_0	1_Dimethachlor_0	0.156296521425247	162.12531999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	17	1_8_Dimethachlor_0	1_Dimethachlor_0	0.12503722310066201	105.067471	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	18	1_9_Dimethachlor_0	1_Dimethachlor_0	0.12503722310066201	119.08312100000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_input	19	2_0_Myclobutanil_0	2_Myclobutanil_0	1	125.015254	289.12145099999998	-1	0	0	1	0	1	-1		
+T	traml_input	20	3_0_Isoprothiolane_0	3_Isoprothiolane_0	1	231.01441299999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_input	21	3_1_Isoprothiolane_0	3_Isoprothiolane_0	0.35872665047645602	172.97254799999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_input	22	3_2_Isoprothiolane_0	3_Isoprothiolane_0	0.282854944467545	61.010648000000003	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_input	23	3_3_Isoprothiolane_0	3_Isoprothiolane_0	0.24895463883876801	188.96746200000001	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_input	24	3_4_Isoprothiolane_0	3_Isoprothiolane_0	0.239635765552521	88.951418000000004	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_input	25	3_5_Isoprothiolane_0	3_Isoprothiolane_0	0.18928921222686801	84.974261999999996	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_input	26	4_0_Cyproconazole_0	4_Cyproconazole_0	1	125.015254	292.12111599999997	-1	0	0	1	0	1	-1		
+T	traml_input	27	5_0_Fenamiphos_0	5_Fenamiphos_0	1	234.03482700000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	28	5_1_Fenamiphos_0	5_Fenamiphos_0	0.42122146487236001	276.08177799999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	29	5_2_Fenamiphos_0	5_Fenamiphos_0	0.192885711789131	153.03686200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	30	5_3_Fenamiphos_0	5_Fenamiphos_0	0.17585217952728299	184.98206300000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	31	5_4_Fenamiphos_0	5_Fenamiphos_0	0.175382480025291	262.06612699999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	32	5_5_Fenamiphos_0	5_Fenamiphos_0	0.122402869164944	198.997714	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	33	5_6_Fenamiphos_0	5_Fenamiphos_0	0.10693221539259	60.080776	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	34	5_7_Fenamiphos_0	5_Fenamiphos_0	0.105000659823418	155.05251200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_input	35	6_0_Flufenacet_0	6_Flufenacet_0	1	124.056847	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_input	36	6_1_Flufenacet_0	6_Flufenacet_0	0.35369905829429599	194.09871200000001	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_input	37	6_2_Flufenacet_0	6_Flufenacet_0	0.163496643304825	109.045948	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_input	38	7_0_Flubendiamide_0	7_Flubendiamide_0	1	325.89158600000002	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_input	39	7_1_Flubendiamide_0	7_Flubendiamide_0	0.67509132623672496	367.938536	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_input	40	7_2_Flubendiamide_0	7_Flubendiamide_0	0.61388552188873302	409.98548599999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_input	41	7_3_Flubendiamide_0	7_Flubendiamide_0	0.57518273591995195	307.88102099999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_input	42	7_4_Flubendiamide_0	7_Flubendiamide_0	0.52304100990295399	263.89004899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_input	43	7_5_Flubendiamide_0	7_Flubendiamide_0	0.25040599703788802	700.05714899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+OK	traml_input
+F	traml_dir_write	precursors.parquet	traml_dir_write__precursors.parquet
+F	traml_dir_write	transitions.parquet	traml_dir_write__transitions.parquet
+F	traml_dir_write	metadata.json	traml_dir_write__metadata.json
+Z	traml_dir_write	sidecar_exists	0
+OK	traml_dir_write
+C	traml_dir_read	0	2	425.02399999997999	-1	0					nan	nan						
+C	traml_dir_read	1	3	450.57199999997999	-1	0					nan	nan						
+C	traml_dir_read	2	6	456.87199999998001	-1	0					nan	nan						
+C	traml_dir_read	3	7	450.57199999997999	-1	0					nan	nan						
+C	traml_dir_read	4	5	423.78400000002	-1	0					nan	nan						
+C	traml_dir_read	5	1	388.58699999999999	-1	0					nan	nan						
+C	traml_dir_read	6	0	388.16699999999997	-1	0					nan	nan						
+C	traml_dir_read	7	4	410.14499999999998	-1	0					nan	nan						
+T	traml_dir_read	0	0	0	1	132.08077599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	1	1	0	0.54965782165527299	105.06987700000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	2	2	0	0.47792315483093301	133.08860100000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	3	3	0	0.23892782628536199	146.09642600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	4	4	0	0.21453599631786299	79.054226999999997	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	5	5	0	0.202484920620918	118.06512600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	6	6	0	0.117609620094299	103.054227	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	7	7	0	0.115704223513603	174.09134	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	8	8	0	0.108522295951843	130.06512599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	9	9	1	1	118.06272	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	10	10	1	0.62518608570098899	146.09402	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	11	11	1	0.46888956427574202	160.10966999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	12	12	1	0.40637093782424899	144.07837000000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	13	13	1	0.25007444620132402	188.10458499999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	14	14	1	0.18755581974983199	116.059646	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	15	15	1	0.18755581974983199	228.09949900000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	16	16	1	0.156296521425247	162.12531999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	17	17	1	0.12503722310066201	105.067471	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	18	18	1	0.12503722310066201	119.08312100000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read	19	19	2	1	125.015254	289.12145099999998	-1	0	0	1	0	1	-1		
+T	traml_dir_read	20	20	3	1	231.01441299999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read	21	21	3	0.35872665047645602	172.97254799999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read	22	22	3	0.282854944467545	61.010648000000003	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read	23	23	3	0.24895463883876801	188.96746200000001	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read	24	24	3	0.239635765552521	88.951418000000004	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read	25	25	3	0.18928921222686801	84.974261999999996	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read	26	26	4	1	125.015254	292.12111599999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	27	27	5	1	234.03482700000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	28	28	5	0.42122146487236001	276.08177799999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	29	29	5	0.192885711789131	153.03686200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	30	30	5	0.17585217952728299	184.98206300000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	31	31	5	0.175382480025291	262.06612699999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	32	32	5	0.122402869164944	198.997714	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	33	33	5	0.10693221539259	60.080776	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	34	34	5	0.105000659823418	155.05251200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read	35	35	6	1	124.056847	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_dir_read	36	36	6	0.35369905829429599	194.09871200000001	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_dir_read	37	37	6	0.163496643304825	109.045948	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_dir_read	38	38	7	1	325.89158600000002	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read	39	39	7	0.67509132623672496	367.938536	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read	40	40	7	0.61388552188873302	409.98548599999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read	41	41	7	0.57518273591995195	307.88102099999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read	42	42	7	0.52304100990295399	263.89004899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read	43	43	7	0.25040599703788802	700.05714899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+M	traml_dir_read	precursor_source_to_canonical	0_Dimethachlor_0	0
+M	traml_dir_read	precursor_source_to_canonical	1_Dimethachlor_0	1
+M	traml_dir_read	precursor_source_to_canonical	2_Myclobutanil_0	2
+M	traml_dir_read	precursor_source_to_canonical	3_Isoprothiolane_0	3
+M	traml_dir_read	precursor_source_to_canonical	4_Cyproconazole_0	4
+M	traml_dir_read	precursor_source_to_canonical	5_Fenamiphos_0	5
+M	traml_dir_read	precursor_source_to_canonical	6_Flufenacet_0	6
+M	traml_dir_read	precursor_source_to_canonical	7_Flubendiamide_0	7
+M	traml_dir_read	precursor_canonical_to_source	0	0_Dimethachlor_0
+M	traml_dir_read	precursor_canonical_to_source	1	1_Dimethachlor_0
+M	traml_dir_read	precursor_canonical_to_source	2	2_Myclobutanil_0
+M	traml_dir_read	precursor_canonical_to_source	3	3_Isoprothiolane_0
+M	traml_dir_read	precursor_canonical_to_source	4	4_Cyproconazole_0
+M	traml_dir_read	precursor_canonical_to_source	5	5_Fenamiphos_0
+M	traml_dir_read	precursor_canonical_to_source	6	6_Flufenacet_0
+M	traml_dir_read	precursor_canonical_to_source	7	7_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	0	0_0_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	1	0_1_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	10	1_1_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	11	1_2_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	12	1_3_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	13	1_4_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	14	1_5_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	15	1_6_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	16	1_7_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	17	1_8_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	18	1_9_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	19	2_0_Myclobutanil_0
+M	traml_dir_read	transition_canonical_to_source	2	0_2_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	20	3_0_Isoprothiolane_0
+M	traml_dir_read	transition_canonical_to_source	21	3_1_Isoprothiolane_0
+M	traml_dir_read	transition_canonical_to_source	22	3_2_Isoprothiolane_0
+M	traml_dir_read	transition_canonical_to_source	23	3_3_Isoprothiolane_0
+M	traml_dir_read	transition_canonical_to_source	24	3_4_Isoprothiolane_0
+M	traml_dir_read	transition_canonical_to_source	25	3_5_Isoprothiolane_0
+M	traml_dir_read	transition_canonical_to_source	26	4_0_Cyproconazole_0
+M	traml_dir_read	transition_canonical_to_source	27	5_0_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	28	5_1_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	29	5_2_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	3	0_3_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	30	5_3_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	31	5_4_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	32	5_5_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	33	5_6_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	34	5_7_Fenamiphos_0
+M	traml_dir_read	transition_canonical_to_source	35	6_0_Flufenacet_0
+M	traml_dir_read	transition_canonical_to_source	36	6_1_Flufenacet_0
+M	traml_dir_read	transition_canonical_to_source	37	6_2_Flufenacet_0
+M	traml_dir_read	transition_canonical_to_source	38	7_0_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	39	7_1_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	4	0_4_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	40	7_2_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	41	7_3_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	42	7_4_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	43	7_5_Flubendiamide_0
+M	traml_dir_read	transition_canonical_to_source	5	0_5_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	6	0_6_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	7	0_7_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	8	0_8_Dimethachlor_0
+M	traml_dir_read	transition_canonical_to_source	9	1_0_Dimethachlor_0
+OK	traml_dir_read
+C	traml_dir_read2	0	2	425.02399999997999	-1	0					nan	nan						
+C	traml_dir_read2	1	3	450.57199999997999	-1	0					nan	nan						
+C	traml_dir_read2	2	6	456.87199999998001	-1	0					nan	nan						
+C	traml_dir_read2	3	7	450.57199999997999	-1	0					nan	nan						
+C	traml_dir_read2	4	5	423.78400000002	-1	0					nan	nan						
+C	traml_dir_read2	5	1	388.58699999999999	-1	0					nan	nan						
+C	traml_dir_read2	6	0	388.16699999999997	-1	0					nan	nan						
+C	traml_dir_read2	7	4	410.14499999999998	-1	0					nan	nan						
+T	traml_dir_read2	0	0	0	1	132.08077599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	1	1	0	0.54965782165527299	105.06987700000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	2	2	0	0.47792315483093301	133.08860100000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	3	3	0	0.23892782628536199	146.09642600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	4	4	0	0.21453599631786299	79.054226999999997	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	5	5	0	0.202484920620918	118.06512600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	6	6	0	0.117609620094299	103.054227	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	7	7	0	0.115704223513603	174.09134	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	8	8	0	0.108522295951843	130.06512599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	9	9	1	1	118.06272	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	10	10	1	0.62518608570098899	146.09402	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	11	11	1	0.46888956427574202	160.10966999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	12	12	1	0.40637093782424899	144.07837000000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	13	13	1	0.25007444620132402	188.10458499999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	14	14	1	0.18755581974983199	116.059646	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	15	15	1	0.18755581974983199	228.09949900000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	16	16	1	0.156296521425247	162.12531999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	17	17	1	0.12503722310066201	105.067471	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	18	18	1	0.12503722310066201	119.08312100000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	19	19	2	1	125.015254	289.12145099999998	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	20	20	3	1	231.01441299999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	21	21	3	0.35872665047645602	172.97254799999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	22	22	3	0.282854944467545	61.010648000000003	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	23	23	3	0.24895463883876801	188.96746200000001	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	24	24	3	0.239635765552521	88.951418000000004	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	25	25	3	0.18928921222686801	84.974261999999996	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	26	26	4	1	125.015254	292.12111599999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	27	27	5	1	234.03482700000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	28	28	5	0.42122146487236001	276.08177799999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	29	29	5	0.192885711789131	153.03686200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	30	30	5	0.17585217952728299	184.98206300000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	31	31	5	0.175382480025291	262.06612699999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	32	32	5	0.122402869164944	198.997714	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	33	33	5	0.10693221539259	60.080776	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	34	34	5	0.105000659823418	155.05251200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	35	35	6	1	124.056847	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	36	36	6	0.35369905829429599	194.09871200000001	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	37	37	6	0.163496643304825	109.045948	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	38	38	7	1	325.89158600000002	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	39	39	7	0.67509132623672496	367.938536	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	40	40	7	0.61388552188873302	409.98548599999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	41	41	7	0.57518273591995195	307.88102099999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	42	42	7	0.52304100990295399	263.89004899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_dir_read2	43	43	7	0.25040599703788802	700.05714899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+OK	traml_dir_read2
+C	traml_norm_input	0	4	410.14499999999998	-1	0			Cyproconazole		nan	nan			C15H18ClN3O			
+C	traml_norm_input	1	0	388.16699999999997	-1	0			Dimethachlor		nan	nan			C13H18ClNO2			
+C	traml_norm_input	2	1	388.58699999999999	-1	0			Dimethachlor		nan	nan			C13H18ClNO2			
+C	traml_norm_input	3	5	423.78400000002	-1	0			Fenamiphos		nan	nan			C13H22NO3PS			
+C	traml_norm_input	4	7	450.57199999997999	-1	0			Flubendiamide		nan	nan			C23H22F7IN2O4S			
+C	traml_norm_input	5	6	456.87199999998001	-1	0			Flufenacet		nan	nan			C14H13F4N3O2S			
+C	traml_norm_input	6	3	450.57199999997999	-1	0			Isoprothiolane		nan	nan			C12H18O4S2			
+C	traml_norm_input	7	2	425.02399999997999	-1	0			Myclobutanil		nan	nan			C15H17ClN4			
+T	traml_norm_input	0	0	0	1	132.08077599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	1	1	0	0.54965782165527299	105.06987700000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	2	2	0	0.47792315483093301	133.08860100000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	3	3	0	0.23892782628536199	146.09642600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	4	4	0	0.21453599631786299	79.054226999999997	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	5	5	0	0.202484920620918	118.06512600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	6	6	0	0.117609620094299	103.054227	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	7	7	0	0.115704223513603	174.09134	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	8	8	0	0.108522295951843	130.06512599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	9	9	1	1	118.06272	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	10	10	1	0.62518608570098899	146.09402	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	11	11	1	0.46888956427574202	160.10966999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	12	12	1	0.40637093782424899	144.07837000000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	13	13	1	0.25007444620132402	188.10458499999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	14	14	1	0.18755581974983199	116.059646	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	15	15	1	0.18755581974983199	228.09949900000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	16	16	1	0.156296521425247	162.12531999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	17	17	1	0.12503722310066201	105.067471	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	18	18	1	0.12503722310066201	119.08312100000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_input	19	19	2	1	125.015254	289.12145099999998	-1	0	0	1	0	1	-1		
+T	traml_norm_input	20	20	3	1	231.01441299999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_input	21	21	3	0.35872665047645602	172.97254799999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_input	22	22	3	0.282854944467545	61.010648000000003	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_input	23	23	3	0.24895463883876801	188.96746200000001	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_input	24	24	3	0.239635765552521	88.951418000000004	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_input	25	25	3	0.18928921222686801	84.974261999999996	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_input	26	26	4	1	125.015254	292.12111599999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	27	27	5	1	234.03482700000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	28	28	5	0.42122146487236001	276.08177799999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	29	29	5	0.192885711789131	153.03686200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	30	30	5	0.17585217952728299	184.98206300000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	31	31	5	0.175382480025291	262.06612699999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	32	32	5	0.122402869164944	198.997714	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	33	33	5	0.10693221539259	60.080776	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	34	34	5	0.105000659823418	155.05251200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_input	35	35	6	1	124.056847	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_norm_input	36	36	6	0.35369905829429599	194.09871200000001	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_norm_input	37	37	6	0.163496643304825	109.045948	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_norm_input	38	38	7	1	325.89158600000002	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_input	39	39	7	0.67509132623672496	367.938536	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_input	40	40	7	0.61388552188873302	409.98548599999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_input	41	41	7	0.57518273591995195	307.88102099999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_input	42	42	7	0.52304100990295399	263.89004899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_input	43	43	7	0.25040599703788802	700.05714899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+M	traml_norm_input	precursor_source_to_canonical	0_Dimethachlor_0	0
+M	traml_norm_input	precursor_source_to_canonical	1_Dimethachlor_0	1
+M	traml_norm_input	precursor_source_to_canonical	2_Myclobutanil_0	2
+M	traml_norm_input	precursor_source_to_canonical	3_Isoprothiolane_0	3
+M	traml_norm_input	precursor_source_to_canonical	4_Cyproconazole_0	4
+M	traml_norm_input	precursor_source_to_canonical	5_Fenamiphos_0	5
+M	traml_norm_input	precursor_source_to_canonical	6_Flufenacet_0	6
+M	traml_norm_input	precursor_source_to_canonical	7_Flubendiamide_0	7
+M	traml_norm_input	precursor_canonical_to_source	0	0_Dimethachlor_0
+M	traml_norm_input	precursor_canonical_to_source	1	1_Dimethachlor_0
+M	traml_norm_input	precursor_canonical_to_source	2	2_Myclobutanil_0
+M	traml_norm_input	precursor_canonical_to_source	3	3_Isoprothiolane_0
+M	traml_norm_input	precursor_canonical_to_source	4	4_Cyproconazole_0
+M	traml_norm_input	precursor_canonical_to_source	5	5_Fenamiphos_0
+M	traml_norm_input	precursor_canonical_to_source	6	6_Flufenacet_0
+M	traml_norm_input	precursor_canonical_to_source	7	7_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	0	0_0_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	1	0_1_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	10	1_1_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	11	1_2_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	12	1_3_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	13	1_4_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	14	1_5_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	15	1_6_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	16	1_7_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	17	1_8_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	18	1_9_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	19	2_0_Myclobutanil_0
+M	traml_norm_input	transition_canonical_to_source	2	0_2_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	20	3_0_Isoprothiolane_0
+M	traml_norm_input	transition_canonical_to_source	21	3_1_Isoprothiolane_0
+M	traml_norm_input	transition_canonical_to_source	22	3_2_Isoprothiolane_0
+M	traml_norm_input	transition_canonical_to_source	23	3_3_Isoprothiolane_0
+M	traml_norm_input	transition_canonical_to_source	24	3_4_Isoprothiolane_0
+M	traml_norm_input	transition_canonical_to_source	25	3_5_Isoprothiolane_0
+M	traml_norm_input	transition_canonical_to_source	26	4_0_Cyproconazole_0
+M	traml_norm_input	transition_canonical_to_source	27	5_0_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	28	5_1_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	29	5_2_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	3	0_3_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	30	5_3_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	31	5_4_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	32	5_5_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	33	5_6_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	34	5_7_Fenamiphos_0
+M	traml_norm_input	transition_canonical_to_source	35	6_0_Flufenacet_0
+M	traml_norm_input	transition_canonical_to_source	36	6_1_Flufenacet_0
+M	traml_norm_input	transition_canonical_to_source	37	6_2_Flufenacet_0
+M	traml_norm_input	transition_canonical_to_source	38	7_0_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	39	7_1_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	4	0_4_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	40	7_2_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	41	7_3_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	42	7_4_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	43	7_5_Flubendiamide_0
+M	traml_norm_input	transition_canonical_to_source	5	0_5_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	6	0_6_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	7	0_7_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	8	0_8_Dimethachlor_0
+M	traml_norm_input	transition_canonical_to_source	9	1_0_Dimethachlor_0
+F	traml_norm_write	precursors.parquet	traml_norm_write__precursors.parquet
+F	traml_norm_write	transitions.parquet	traml_norm_write__transitions.parquet
+F	traml_norm_write	metadata.json	traml_norm_write__metadata.json
+OK	traml_norm_write
+C	traml_norm_read	0	2	425.02399999997999	-1	0					nan	nan						
+C	traml_norm_read	1	3	450.57199999997999	-1	0					nan	nan						
+C	traml_norm_read	2	6	456.87199999998001	-1	0					nan	nan						
+C	traml_norm_read	3	7	450.57199999997999	-1	0					nan	nan						
+C	traml_norm_read	4	5	423.78400000002	-1	0					nan	nan						
+C	traml_norm_read	5	1	388.58699999999999	-1	0					nan	nan						
+C	traml_norm_read	6	0	388.16699999999997	-1	0					nan	nan						
+C	traml_norm_read	7	4	410.14499999999998	-1	0					nan	nan						
+T	traml_norm_read	0	0	0	1	132.08077599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	1	1	0	0.54965782165527299	105.06987700000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	2	2	0	0.47792315483093301	133.08860100000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	3	3	0	0.23892782628536199	146.09642600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	4	4	0	0.21453599631786299	79.054226999999997	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	5	5	0	0.202484920620918	118.06512600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	6	6	0	0.117609620094299	103.054227	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	7	7	0	0.115704223513603	174.09134	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	8	8	0	0.108522295951843	130.06512599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	9	9	1	1	118.06272	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	10	10	1	0.62518608570098899	146.09402	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	11	11	1	0.46888956427574202	160.10966999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	12	12	1	0.40637093782424899	144.07837000000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	13	13	1	0.25007444620132402	188.10458499999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	14	14	1	0.18755581974983199	116.059646	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	15	15	1	0.18755581974983199	228.09949900000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	16	16	1	0.156296521425247	162.12531999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	17	17	1	0.12503722310066201	105.067471	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	18	18	1	0.12503722310066201	119.08312100000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_norm_read	19	19	2	1	125.015254	289.12145099999998	-1	0	0	1	0	1	-1		
+T	traml_norm_read	20	20	3	1	231.01441299999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_read	21	21	3	0.35872665047645602	172.97254799999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_read	22	22	3	0.282854944467545	61.010648000000003	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_read	23	23	3	0.24895463883876801	188.96746200000001	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_read	24	24	3	0.239635765552521	88.951418000000004	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_read	25	25	3	0.18928921222686801	84.974261999999996	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_norm_read	26	26	4	1	125.015254	292.12111599999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	27	27	5	1	234.03482700000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	28	28	5	0.42122146487236001	276.08177799999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	29	29	5	0.192885711789131	153.03686200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	30	30	5	0.17585217952728299	184.98206300000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	31	31	5	0.175382480025291	262.06612699999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	32	32	5	0.122402869164944	198.997714	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	33	33	5	0.10693221539259	60.080776	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	34	34	5	0.105000659823418	155.05251200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_norm_read	35	35	6	1	124.056847	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_norm_read	36	36	6	0.35369905829429599	194.09871200000001	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_norm_read	37	37	6	0.163496643304825	109.045948	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_norm_read	38	38	7	1	325.89158600000002	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_read	39	39	7	0.67509132623672496	367.938536	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_read	40	40	7	0.61388552188873302	409.98548599999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_read	41	41	7	0.57518273591995195	307.88102099999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_read	42	42	7	0.52304100990295399	263.89004899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_norm_read	43	43	7	0.25040599703788802	700.05714899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+M	traml_norm_read	precursor_source_to_canonical	0_Dimethachlor_0	0
+M	traml_norm_read	precursor_source_to_canonical	1_Dimethachlor_0	1
+M	traml_norm_read	precursor_source_to_canonical	2_Myclobutanil_0	2
+M	traml_norm_read	precursor_source_to_canonical	3_Isoprothiolane_0	3
+M	traml_norm_read	precursor_source_to_canonical	4_Cyproconazole_0	4
+M	traml_norm_read	precursor_source_to_canonical	5_Fenamiphos_0	5
+M	traml_norm_read	precursor_source_to_canonical	6_Flufenacet_0	6
+M	traml_norm_read	precursor_source_to_canonical	7_Flubendiamide_0	7
+M	traml_norm_read	precursor_canonical_to_source	0	0_Dimethachlor_0
+M	traml_norm_read	precursor_canonical_to_source	1	1_Dimethachlor_0
+M	traml_norm_read	precursor_canonical_to_source	2	2_Myclobutanil_0
+M	traml_norm_read	precursor_canonical_to_source	3	3_Isoprothiolane_0
+M	traml_norm_read	precursor_canonical_to_source	4	4_Cyproconazole_0
+M	traml_norm_read	precursor_canonical_to_source	5	5_Fenamiphos_0
+M	traml_norm_read	precursor_canonical_to_source	6	6_Flufenacet_0
+M	traml_norm_read	precursor_canonical_to_source	7	7_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	0	0_0_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	1	0_1_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	10	1_1_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	11	1_2_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	12	1_3_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	13	1_4_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	14	1_5_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	15	1_6_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	16	1_7_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	17	1_8_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	18	1_9_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	19	2_0_Myclobutanil_0
+M	traml_norm_read	transition_canonical_to_source	2	0_2_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	20	3_0_Isoprothiolane_0
+M	traml_norm_read	transition_canonical_to_source	21	3_1_Isoprothiolane_0
+M	traml_norm_read	transition_canonical_to_source	22	3_2_Isoprothiolane_0
+M	traml_norm_read	transition_canonical_to_source	23	3_3_Isoprothiolane_0
+M	traml_norm_read	transition_canonical_to_source	24	3_4_Isoprothiolane_0
+M	traml_norm_read	transition_canonical_to_source	25	3_5_Isoprothiolane_0
+M	traml_norm_read	transition_canonical_to_source	26	4_0_Cyproconazole_0
+M	traml_norm_read	transition_canonical_to_source	27	5_0_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	28	5_1_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	29	5_2_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	3	0_3_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	30	5_3_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	31	5_4_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	32	5_5_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	33	5_6_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	34	5_7_Fenamiphos_0
+M	traml_norm_read	transition_canonical_to_source	35	6_0_Flufenacet_0
+M	traml_norm_read	transition_canonical_to_source	36	6_1_Flufenacet_0
+M	traml_norm_read	transition_canonical_to_source	37	6_2_Flufenacet_0
+M	traml_norm_read	transition_canonical_to_source	38	7_0_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	39	7_1_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	4	0_4_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	40	7_2_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	41	7_3_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	42	7_4_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	43	7_5_Flubendiamide_0
+M	traml_norm_read	transition_canonical_to_source	5	0_5_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	6	0_6_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	7	0_7_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	8	0_8_Dimethachlor_0
+M	traml_norm_read	transition_canonical_to_source	9	1_0_Dimethachlor_0
+OK	traml_norm_read
+Z	traml_zip_write	0	library/precursors.parquet
+Z	traml_zip_write	1	library/transitions.parquet
+Z	traml_zip_write	2	library/metadata.json
+Z	traml_zip_write	3	traml.oswpq.tmp.idx.json
+Z	traml_zip_write	staging_exists	0
+Z	traml_zip_write	idx_json	{\n  "library/precursors.parquet": 2583,\n  "library/transitions.parquet": 4838,\n  "library/metadata.json": 799\n}\n
+F	traml_zip_write	precursors.parquet	traml_zip_write__precursors.parquet
+F	traml_zip_write	transitions.parquet	traml_zip_write__transitions.parquet
+F	traml_zip_write	metadata.json	traml_zip_write__metadata.json
+OK	traml_zip_write
+C	traml_zip_read	0	2	425.02399999997999	-1	0					nan	nan						
+C	traml_zip_read	1	3	450.57199999997999	-1	0					nan	nan						
+C	traml_zip_read	2	6	456.87199999998001	-1	0					nan	nan						
+C	traml_zip_read	3	7	450.57199999997999	-1	0					nan	nan						
+C	traml_zip_read	4	5	423.78400000002	-1	0					nan	nan						
+C	traml_zip_read	5	1	388.58699999999999	-1	0					nan	nan						
+C	traml_zip_read	6	0	388.16699999999997	-1	0					nan	nan						
+C	traml_zip_read	7	4	410.14499999999998	-1	0					nan	nan						
+T	traml_zip_read	0	0	0	1	132.08077599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	1	1	0	0.54965782165527299	105.06987700000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	2	2	0	0.47792315483093301	133.08860100000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	3	3	0	0.23892782628536199	146.09642600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	4	4	0	0.21453599631786299	79.054226999999997	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	5	5	0	0.202484920620918	118.06512600000001	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	6	6	0	0.117609620094299	103.054227	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	7	7	0	0.115704223513603	174.09134	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	8	8	0	0.108522295951843	130.06512599999999	256.10988300000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	9	9	1	1	118.06272	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	10	10	1	0.62518608570098899	146.09402	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	11	11	1	0.46888956427574202	160.10966999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	12	12	1	0.40637093782424899	144.07837000000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	13	13	1	0.25007444620132402	188.10458499999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	14	14	1	0.18755581974983199	116.059646	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	15	15	1	0.18755581974983199	228.09949900000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	16	16	1	0.156296521425247	162.12531999999999	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	17	17	1	0.12503722310066201	105.067471	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	18	18	1	0.12503722310066201	119.08312100000001	278.09182700000002	-1	0	0	1	0	1	-1		
+T	traml_zip_read	19	19	2	1	125.015254	289.12145099999998	-1	0	0	1	0	1	-1		
+T	traml_zip_read	20	20	3	1	231.01441299999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_zip_read	21	21	3	0.35872665047645602	172.97254799999999	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_zip_read	22	22	3	0.282854944467545	61.010648000000003	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_zip_read	23	23	3	0.24895463883876801	188.96746200000001	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_zip_read	24	24	3	0.239635765552521	88.951418000000004	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_zip_read	25	25	3	0.18928921222686801	84.974261999999996	291.07192800000001	-1	0	0	1	0	1	-1		
+T	traml_zip_read	26	26	4	1	125.015254	292.12111599999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	27	27	5	1	234.03482700000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	28	28	5	0.42122146487236001	276.08177799999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	29	29	5	0.192885711789131	153.03686200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	30	30	5	0.17585217952728299	184.98206300000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	31	31	5	0.175382480025291	262.06612699999999	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	32	32	5	0.122402869164944	198.997714	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	33	33	5	0.10693221539259	60.080776	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	34	34	5	0.105000659823418	155.05251200000001	304.11307799999997	-1	0	0	1	0	1	-1		
+T	traml_zip_read	35	35	6	1	124.056847	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_zip_read	36	36	6	0.35369905829429599	194.09871200000001	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_zip_read	37	37	6	0.163496643304825	109.045948	364.07373699999999	-1	0	0	1	0	1	-1		
+T	traml_zip_read	38	38	7	1	325.89158600000002	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_zip_read	39	39	7	0.67509132623672496	367.938536	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_zip_read	40	40	7	0.61388552188873302	409.98548599999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_zip_read	41	41	7	0.57518273591995195	307.88102099999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_zip_read	42	42	7	0.52304100990295399	263.89004899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+T	traml_zip_read	43	43	7	0.25040599703788802	700.05714899999998	700.05156709934397	-1	0	0	1	0	1	-1		
+M	traml_zip_read	precursor_source_to_canonical	0_Dimethachlor_0	0
+M	traml_zip_read	precursor_source_to_canonical	1_Dimethachlor_0	1
+M	traml_zip_read	precursor_source_to_canonical	2_Myclobutanil_0	2
+M	traml_zip_read	precursor_source_to_canonical	3_Isoprothiolane_0	3
+M	traml_zip_read	precursor_source_to_canonical	4_Cyproconazole_0	4
+M	traml_zip_read	precursor_source_to_canonical	5_Fenamiphos_0	5
+M	traml_zip_read	precursor_source_to_canonical	6_Flufenacet_0	6
+M	traml_zip_read	precursor_source_to_canonical	7_Flubendiamide_0	7
+M	traml_zip_read	precursor_canonical_to_source	0	0_Dimethachlor_0
+M	traml_zip_read	precursor_canonical_to_source	1	1_Dimethachlor_0
+M	traml_zip_read	precursor_canonical_to_source	2	2_Myclobutanil_0
+M	traml_zip_read	precursor_canonical_to_source	3	3_Isoprothiolane_0
+M	traml_zip_read	precursor_canonical_to_source	4	4_Cyproconazole_0
+M	traml_zip_read	precursor_canonical_to_source	5	5_Fenamiphos_0
+M	traml_zip_read	precursor_canonical_to_source	6	6_Flufenacet_0
+M	traml_zip_read	precursor_canonical_to_source	7	7_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	0	0_0_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	1	0_1_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	10	1_1_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	11	1_2_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	12	1_3_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	13	1_4_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	14	1_5_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	15	1_6_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	16	1_7_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	17	1_8_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	18	1_9_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	19	2_0_Myclobutanil_0
+M	traml_zip_read	transition_canonical_to_source	2	0_2_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	20	3_0_Isoprothiolane_0
+M	traml_zip_read	transition_canonical_to_source	21	3_1_Isoprothiolane_0
+M	traml_zip_read	transition_canonical_to_source	22	3_2_Isoprothiolane_0
+M	traml_zip_read	transition_canonical_to_source	23	3_3_Isoprothiolane_0
+M	traml_zip_read	transition_canonical_to_source	24	3_4_Isoprothiolane_0
+M	traml_zip_read	transition_canonical_to_source	25	3_5_Isoprothiolane_0
+M	traml_zip_read	transition_canonical_to_source	26	4_0_Cyproconazole_0
+M	traml_zip_read	transition_canonical_to_source	27	5_0_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	28	5_1_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	29	5_2_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	3	0_3_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	30	5_3_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	31	5_4_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	32	5_5_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	33	5_6_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	34	5_7_Fenamiphos_0
+M	traml_zip_read	transition_canonical_to_source	35	6_0_Flufenacet_0
+M	traml_zip_read	transition_canonical_to_source	36	6_1_Flufenacet_0
+M	traml_zip_read	transition_canonical_to_source	37	6_2_Flufenacet_0
+M	traml_zip_read	transition_canonical_to_source	38	7_0_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	39	7_1_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	4	0_4_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	40	7_2_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	41	7_3_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	42	7_4_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	43	7_5_Flubendiamide_0
+M	traml_zip_read	transition_canonical_to_source	5	0_5_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	6	0_6_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	7	0_7_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	8	0_8_Dimethachlor_0
+M	traml_zip_read	transition_canonical_to_source	9	1_0_Dimethachlor_0
+OK	traml_zip_read
+Z	zip_over_file	0	library/precursors.parquet
+Z	zip_over_file	1	library/transitions.parquet
+Z	zip_over_file	2	library/metadata.json
+Z	zip_over_file	3	over.oswpq.tmp.idx.json
+OK	zip_over_file
+C	syn_input	0	0	100.5	-1	2	PEPTIDEK	P1			nan	nan						
+C	syn_input	1	5	250.25	0.75	3	.(Acetyl)PEPTM(Oxidation)IDEK	P1|P2			nan	nan						
+C	syn_input	2	17	101	-1	2	KEDITPEP	DECOY_P1			nan	nan						
+C	syn_input	3	3	55.5	1.25	1			Glucose		nan	nan						
+C	syn_input	4	8	12	-1	4	PEPTIDE(Foo)K	P3			nan	nan						
+C	syn_input	5	11	100000	-1	2	ELVISLIVESK(Label:13C(6)15N(2))	P4			nan	nan						
+T	syn_input	0	2	0	100	300.10000000000002	450.25	-1	1	0	1	0	1	3	y	y3^1
+T	syn_input	1	9	0	55.5	400.19999999999999	450.25	-1	2	0	1	0	1	7	b	b7^2
+T	syn_input	2	4	5	0	350.30000000000001	500.125	0.75	1	0	0	1	0	4	y-H2O	y-H2O4^1
+T	syn_input	3	11	17	90	300.19999999999999	450.5	-1	1	1	1	0	1	3	y	y3^1
+T	syn_input	4	1	17	45	410.19999999999999	450.5	-1	3	1	1	0	1	5	unknown	unknown5^3
+T	syn_input	5	30	3	1000	163.06	181.06999999999999	1.25	0	0	1	0	1	-1		
+T	syn_input	6	31	3	10	145.05000000000001	181.06999999999999	1.25	1	0	1	1	1	-1	prec	prec
+T	syn_input	7	40	8	5	200	300	-1	1	0	1	0	1	2	x	x2^1
+T	syn_input	8	41	8	6	201	301	-1	-2	0	1	0	1	300	unknown	unknown300
+T	syn_input	9	0	11	7	202	302	-1	2	0	1	0	1	1	z.	z.1^2
+T	syn_input	10	7	5	1.5	351.30000000000001	999	0.75	1	0	1	0	1	2	b	b2^1
+P	syn_input	0	P1	SEQ	U_P1
+P	syn_input	1	P2	SEQ	U_P2
+P	syn_input	2	DECOY_P1	SEQ	U_DECOY_P1
+P	syn_input	3	P3	SEQ	U_P3
+P	syn_input	4	P4	SEQ	U_P4
+P	syn_input	5	DECOY_extra	SEQ	U_DECOY_extra
+F	syn_write	precursors.parquet	syn_write__precursors.parquet
+F	syn_write	transitions.parquet	syn_write__transitions.parquet
+F	syn_write	metadata.json	syn_write__metadata.json
+OK	syn_write
+C	syn_read	0	11	100000	-1	2	ELVISLIVESK(Label:13C(6)15N(2))	P4		10:259,	nan	nan						
+C	syn_read	1	8	12	-1	4	PEPTIDE(Foo)K	P3			nan	nan						
+C	syn_read	2	3	55.5	1.25	1					nan	nan						
+C	syn_read	3	17	101	-1	2	KEDITPEP	DECOY_P1			nan	nan						
+C	syn_read	4	5	250.25	0.75	3	.(Acetyl)PEPTM(Oxidation)IDEK	P1|P2		-1:1,4:35,	nan	nan						
+C	syn_read	5	0	100.5	-1	2	PEPTIDEK	P1			nan	nan						
+T	syn_read	0	2	0	100	300.10000000000002	450.25	-1	1	0	1	0	1	3	y	y3^1
+T	syn_read	1	9	0	55.5	400.19999999999999	450.25	-1	2	0	1	0	1	7	b	b7^2
+T	syn_read	2	4	5	0	350.30000000000001	500.125	0.75	1	0	0	1	0	4	y-H2O	y-H2O4^1
+T	syn_read	3	11	17	90	300.19999999999999	450.5	-1	1	1	1	0	1	3	y	y3^1
+T	syn_read	4	1	17	45	410.19999999999999	450.5	-1	3	1	1	0	1	5	unknown	unknown5^3
+T	syn_read	5	30	3	1000	163.06	181.06999999999999	1.25	0	0	1	0	1	-1		
+T	syn_read	6	31	3	10	145.05000000000001	181.06999999999999	1.25	1	0	1	1	1	-1	prec	prec
+T	syn_read	7	40	8	5	200	300	-1	1	0	1	0	1	2	x	x2^1
+T	syn_read	8	41	8	6	201	300	-1	-2	0	1	0	1	300	unknown	unknown300
+T	syn_read	9	0	11	7	202	302	-1	2	0	1	0	1	1	z.	z.1^2
+T	syn_read	10	7	5	1.5	351.30000000000001	500.125	0.75	1	0	1	0	1	2	b	b2^1
+P	syn_read	0	P4		
+P	syn_read	1	P3		
+P	syn_read	2	DECOY_P1		
+P	syn_read	3	P1		
+P	syn_read	4	P2		
+M	syn_read	precursor_source_to_canonical	0	0
+M	syn_read	precursor_source_to_canonical	11	11
+M	syn_read	precursor_source_to_canonical	3	3
+M	syn_read	precursor_source_to_canonical	8	8
+M	syn_read	precursor_source_to_canonical	DECOY_PEP	17
+M	syn_read	precursor_source_to_canonical	PEP_five	5
+M	syn_read	precursor_canonical_to_source	0	0
+M	syn_read	precursor_canonical_to_source	11	11
+M	syn_read	precursor_canonical_to_source	17	DECOY_PEP
+M	syn_read	precursor_canonical_to_source	3	3
+M	syn_read	precursor_canonical_to_source	5	PEP_five
+M	syn_read	precursor_canonical_to_source	8	8
+M	syn_read	transition_canonical_to_source	0	tr_zero
+M	syn_read	transition_canonical_to_source	1	1
+M	syn_read	transition_canonical_to_source	11	11
+M	syn_read	transition_canonical_to_source	2	2
+M	syn_read	transition_canonical_to_source	30	30
+M	syn_read	transition_canonical_to_source	31	31
+M	syn_read	transition_canonical_to_source	4	tr_four
+M	syn_read	transition_canonical_to_source	40	40
+M	syn_read	transition_canonical_to_source	41	41
+M	syn_read	transition_canonical_to_source	7	7
+M	syn_read	transition_canonical_to_source	9	9
+OK	syn_read
+F	syn_write_noids	precursors.parquet	syn_write_noids__precursors.parquet
+F	syn_write_noids	transitions.parquet	syn_write_noids__transitions.parquet
+F	syn_write_noids	metadata.json	syn_write_noids__metadata.json
+OK	syn_write_noids
+E	w_malformed_canonical	OpenMS::Exception::InvalidValue	the value '2' was used but is not valid; Canonical transition IDs must be unique
+E	w_malformed_canonical_zip	OpenMS::Exception::InvalidValue	the value '2' was used but is not valid; Canonical transition IDs must be unique
+E	w_no_transition	OpenMS::Exception::MissingInformation	No precursor_mz found for compound '99'
+E	w_source_style_noncanonical_3arg	OpenMS::Exception::InvalidValue	the value '4_Cyproconazole_0' was used but is not valid; Precursor ID must be a non-negative Int64 in canonical decimal form
+E	w_parse_error	OpenMS::Exception::ParseError	Cannot convert string to peptide modification: missing ')' in: PEPT(UniMod:35
+F	w_empty	precursors.parquet	w_empty__precursors.parquet
+F	w_empty	transitions.parquet	w_empty__transitions.parquet
+F	w_empty	metadata.json	w_empty__metadata.json
+OK	w_empty
+OK	w_empty_read
+F	r_basic	precursors.parquet	r_basic__precursors.parquet
+F	r_basic	transitions.parquet	r_basic__transitions.parquet
+C	r_basic	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_basic	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_basic	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_basic	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_basic	0	5	10	100	300.10000000000002	500.5	-1	1	0	1	0	1	3	y	y3^1
+T	r_basic	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4	unknown	unknown4^2
+T	r_basic	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_basic	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_basic	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_basic	0	P2		
+P	r_basic	1			
+P	r_basic	2	P9		
+P	r_basic	3	DECOY_P1		
+P	r_basic	4	P1		
+M	r_basic	precursor_source_to_canonical	src_a	10
+M	r_basic	precursor_source_to_canonical	src_b	3
+M	r_basic	precursor_source_to_canonical	src_d	42
+M	r_basic	precursor_canonical_to_source	10	src_a
+M	r_basic	precursor_canonical_to_source	3	src_b
+M	r_basic	precursor_canonical_to_source	42	src_d
+M	r_basic	transition_canonical_to_source	1	t_b
+M	r_basic	transition_canonical_to_source	5	t_a
+M	r_basic	transition_canonical_to_source	6	t_a
+M	r_basic	transition_canonical_to_source	77	t_d
+OK	r_basic
+F	r_list_proteins	precursors.parquet	r_list_proteins__precursors.parquet
+F	r_list_proteins	transitions.parquet	r_list_proteins__transitions.parquet
+E	r_list_proteins	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Precursors table schema validation failed: Type mismatch for field 'protein_accessions': got list<element: string>, expected string
+F	r_extra_column	precursors.parquet	r_extra_column__precursors.parquet
+F	r_extra_column	transitions.parquet	r_extra_column__transitions.parquet
+C	r_extra_column	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_extra_column	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_extra_column	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_extra_column	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_extra_column	0	5	10	100	300.10000000000002	500.5	-1	1	0	1	0	1	3	y	y3^1
+T	r_extra_column	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4	unknown	unknown4^2
+T	r_extra_column	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_extra_column	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_extra_column	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_extra_column	0	P2		
+P	r_extra_column	1			
+P	r_extra_column	2	P9		
+P	r_extra_column	3	DECOY_P1		
+P	r_extra_column	4	P1		
+M	r_extra_column	precursor_source_to_canonical	src_a	10
+M	r_extra_column	precursor_source_to_canonical	src_b	3
+M	r_extra_column	precursor_source_to_canonical	src_d	42
+M	r_extra_column	precursor_canonical_to_source	10	src_a
+M	r_extra_column	precursor_canonical_to_source	3	src_b
+M	r_extra_column	precursor_canonical_to_source	42	src_d
+M	r_extra_column	transition_canonical_to_source	1	t_b
+M	r_extra_column	transition_canonical_to_source	5	t_a
+M	r_extra_column	transition_canonical_to_source	6	t_a
+M	r_extra_column	transition_canonical_to_source	77	t_d
+OK	r_extra_column
+F	r_missing_traml_col	precursors.parquet	r_missing_traml_col__precursors.parquet
+F	r_missing_traml_col	transitions.parquet	r_missing_traml_col__transitions.parquet
+C	r_missing_traml_col	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_missing_traml_col	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_missing_traml_col	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_missing_traml_col	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_missing_traml_col	0	5	10	100	300.10000000000002	500.5	-1	1	0	1	0	1	3	y	y3^1
+T	r_missing_traml_col	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4	unknown	unknown4^2
+T	r_missing_traml_col	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_missing_traml_col	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_missing_traml_col	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_missing_traml_col	0	P2		
+P	r_missing_traml_col	1			
+P	r_missing_traml_col	2	P9		
+P	r_missing_traml_col	3	DECOY_P1		
+P	r_missing_traml_col	4	P1		
+M	r_missing_traml_col	transition_canonical_to_source	1	t_b
+M	r_missing_traml_col	transition_canonical_to_source	5	t_a
+M	r_missing_traml_col	transition_canonical_to_source	6	t_a
+M	r_missing_traml_col	transition_canonical_to_source	77	t_d
+OK	r_missing_traml_col
+F	r_missing_annotation_col	precursors.parquet	r_missing_annotation_col__precursors.parquet
+F	r_missing_annotation_col	transitions.parquet	r_missing_annotation_col__transitions.parquet
+C	r_missing_annotation_col	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_missing_annotation_col	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_missing_annotation_col	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_missing_annotation_col	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_missing_annotation_col	0	5	10	100	300.10000000000002	500.5	-1	1	0	1	0	1	3	y	y3^1
+T	r_missing_annotation_col	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4		
+T	r_missing_annotation_col	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_missing_annotation_col	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_missing_annotation_col	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_missing_annotation_col	0	P2		
+P	r_missing_annotation_col	1			
+P	r_missing_annotation_col	2	P9		
+P	r_missing_annotation_col	3	DECOY_P1		
+P	r_missing_annotation_col	4	P1		
+M	r_missing_annotation_col	precursor_source_to_canonical	src_a	10
+M	r_missing_annotation_col	precursor_source_to_canonical	src_b	3
+M	r_missing_annotation_col	precursor_source_to_canonical	src_d	42
+M	r_missing_annotation_col	precursor_canonical_to_source	10	src_a
+M	r_missing_annotation_col	precursor_canonical_to_source	3	src_b
+M	r_missing_annotation_col	precursor_canonical_to_source	42	src_d
+M	r_missing_annotation_col	transition_canonical_to_source	1	t_b
+M	r_missing_annotation_col	transition_canonical_to_source	5	t_a
+M	r_missing_annotation_col	transition_canonical_to_source	6	t_a
+M	r_missing_annotation_col	transition_canonical_to_source	77	t_d
+OK	r_missing_annotation_col
+F	r_missing_type_col	precursors.parquet	r_missing_type_col__precursors.parquet
+F	r_missing_type_col	transitions.parquet	r_missing_type_col__transitions.parquet
+E	r_missing_type_col	OpenMS::Exception::MissingInformation	Missing required column 'type'
+F	r_charge_int64	precursors.parquet	r_charge_int64__precursors.parquet
+F	r_charge_int64	transitions.parquet	r_charge_int64__transitions.parquet
+E	r_charge_int64	OpenMS::Exception::InvalidValue	the value '' was used but is not valid; Transitions table schema validation failed: Type mismatch for field 'charge': got int64, expected int32
+F	r_dup_precursor	precursors.parquet	r_dup_precursor__precursors.parquet
+F	r_dup_precursor	transitions.parquet	r_dup_precursor__transitions.parquet
+E	r_dup_precursor	OpenMS::Exception::InvalidValue	the value '10' was used but is not valid; Duplicate precursor_id in OSWPQ precursor table
+F	r_unknown_precursor	precursors.parquet	r_unknown_precursor__precursors.parquet
+F	r_unknown_precursor	transitions.parquet	r_unknown_precursor__transitions.parquet
+E	r_unknown_precursor	OpenMS::Exception::MissingInformation	Transition references unknown precursor_id
+F	r_null_mz	precursors.parquet	r_null_mz__precursors.parquet
+F	r_null_mz	transitions.parquet	r_null_mz__transitions.parquet
+E	r_null_mz	OpenMS::Exception::MissingInformation	Required numeric value is null
+F	r_ambiguous_traml	precursors.parquet	r_ambiguous_traml__precursors.parquet
+F	r_ambiguous_traml	transitions.parquet	r_ambiguous_traml__transitions.parquet
+E	r_ambiguous_traml	OpenMS::Exception::InvalidValue	the value 'src_a' was used but is not valid; Ambiguous OSWPQ precursor traml_id maps to multiple precursor_id values
+C	r_ambiguous_traml_noids	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_ambiguous_traml_noids	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_ambiguous_traml_noids	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_ambiguous_traml_noids	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_ambiguous_traml_noids	0	5	10	100	300.10000000000002	500.5	-1	1	0	1	0	1	3	y	y3^1
+T	r_ambiguous_traml_noids	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4	unknown	unknown4^2
+T	r_ambiguous_traml_noids	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_ambiguous_traml_noids	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_ambiguous_traml_noids	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_ambiguous_traml_noids	0	P2		
+P	r_ambiguous_traml_noids	1			
+P	r_ambiguous_traml_noids	2	P9		
+P	r_ambiguous_traml_noids	3	DECOY_P1		
+P	r_ambiguous_traml_noids	4	P1		
+OK	r_ambiguous_traml_noids
+F	r_dup_transition	precursors.parquet	r_dup_transition__precursors.parquet
+F	r_dup_transition	transitions.parquet	r_dup_transition__transitions.parquet
+E	r_dup_transition	OpenMS::Exception::InvalidValue	the value '5' was used but is not valid; Canonical transition IDs must be unique
+F	r_negative_precursor	precursors.parquet	r_negative_precursor__precursors.parquet
+F	r_negative_precursor	transitions.parquet	r_negative_precursor__transitions.parquet
+E	r_negative_precursor	OpenMS::Exception::InvalidValue	the value '-4' was used but is not valid; Precursor ID must be a non-negative Int64 in canonical decimal form
+F	r_wrapping_casts	precursors.parquet	r_wrapping_casts__precursors.parquet
+F	r_wrapping_casts	transitions.parquet	r_wrapping_casts__transitions.parquet
+C	r_wrapping_casts	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_wrapping_casts	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_wrapping_casts	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_wrapping_casts	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_wrapping_casts	0	5	10	100	300.10000000000002	500.5	-1	44	0	1	0	1	3	y	y3^44
+T	r_wrapping_casts	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4464	unknown	unknown4464^2
+T	r_wrapping_casts	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_wrapping_casts	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_wrapping_casts	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_wrapping_casts	0	P2		
+P	r_wrapping_casts	1			
+P	r_wrapping_casts	2	P9		
+P	r_wrapping_casts	3	DECOY_P1		
+P	r_wrapping_casts	4	P1		
+M	r_wrapping_casts	precursor_source_to_canonical	src_a	10
+M	r_wrapping_casts	precursor_source_to_canonical	src_b	3
+M	r_wrapping_casts	precursor_source_to_canonical	src_d	42
+M	r_wrapping_casts	precursor_canonical_to_source	10	src_a
+M	r_wrapping_casts	precursor_canonical_to_source	3	src_b
+M	r_wrapping_casts	precursor_canonical_to_source	42	src_d
+M	r_wrapping_casts	transition_canonical_to_source	1	t_b
+M	r_wrapping_casts	transition_canonical_to_source	5	t_a
+M	r_wrapping_casts	transition_canonical_to_source	6	t_a
+M	r_wrapping_casts	transition_canonical_to_source	77	t_d
+OK	r_wrapping_casts
+F	r_parse_error	precursors.parquet	r_parse_error__precursors.parquet
+F	r_parse_error	transitions.parquet	r_parse_error__transitions.parquet
+E	r_parse_error	OpenMS::Exception::ParseError	Cannot convert string to peptide modification: missing ')' in: PEPT(UniMod:35
+F	r_missing_transitions_file	precursors.parquet	r_missing_transitions_file__precursors.parquet
+E	r_missing_transitions_file	OpenMS::Exception::FileNotFound	the file '<WORK>/r_missing_transitions_file.oswpq/library/transitions.parquet' could not be found
+E	r_missing_dir	OpenMS::Exception::FileNotFound	the file '<WORK>/does_not_exist.oswpq' could not be found
+OK	r_zip_build
+C	r_zip	0	42	99	1.5	2	AAA(Foo)K	P2||P9|			nan	nan						
+C	r_zip	1	3	45.5	0.5	3	KEDITPEP	DECOY_P1			nan	nan						
+C	r_zip	2	0	0	-1	1	M(Oxidation)PEPK			0:35,	nan	nan						
+C	r_zip	3	10	30	-1	2	PEPTIDEK	P1|P2			nan	nan						
+T	r_zip	0	5	10	100	300.10000000000002	500.5	-1	1	0	1	0	1	3	y	y3^1
+T	r_zip	1	1	3	50	310.19999999999999	600.25	0.5	2	1	1	1	0	4	unknown	unknown4^2
+T	r_zip	2	0	0	0	320.30000000000001	700.125	-1	1	0	0	0	0	-1		
+T	r_zip	3	77	42	25	330.39999999999998	800	1.5	3	0	1	0	1	0	prec	prec
+T	r_zip	4	6	10	10	340.5	500.5	-1	1	0	1	0	1	2	b	b2^1
+P	r_zip	0	P2		
+P	r_zip	1			
+P	r_zip	2	P9		
+P	r_zip	3	DECOY_P1		
+P	r_zip	4	P1		
+M	r_zip	precursor_source_to_canonical	src_a	10
+M	r_zip	precursor_source_to_canonical	src_b	3
+M	r_zip	precursor_source_to_canonical	src_d	42
+M	r_zip	precursor_canonical_to_source	10	src_a
+M	r_zip	precursor_canonical_to_source	3	src_b
+M	r_zip	precursor_canonical_to_source	42	src_d
+M	r_zip	transition_canonical_to_source	1	t_b
+M	r_zip	transition_canonical_to_source	5	t_a
+M	r_zip	transition_canonical_to_source	6	t_a
+M	r_zip	transition_canonical_to_source	77	t_d
+OK	r_zip

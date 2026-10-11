@@ -1,0 +1,15 @@
+OK	fs_class
+F	fs_class	fs_class.parquet
+OK	fs_empty
+F	fs_empty	fs_empty.parquet
+OK	fs_rich
+F	fs_rich	fs_rich.parquet
+OK	fs_empty_cols
+F	fs_empty_cols	fs_empty_cols.parquet
+OK	ts_class
+F	ts_class	ts_class.parquet
+OK	ts_empty
+F	ts_empty	ts_empty.parquet
+OK	ts_rich
+F	ts_rich	ts_rich.parquet
+E	err_unwritable	OpenMS::Exception::FileNotWritable	the file '<OUT>/no/such/dir/x.parquet' is not writable for the current user
