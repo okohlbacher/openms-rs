@@ -18,8 +18,8 @@ executed comparison). Manifest:
 
 The exporters take *rows*; reading them out of an OSW or Parquet file is
 `FORMAT/OSWFile.h` (`readOpenSwathExportRows`), which is not part of these
-headers. The Parquet arm of both exporters needs `FORMAT/ParquetFile.h`; see
-"Parquet" below.
+headers. The Parquet arm of both exporters is `ExportTable::write_parquet` over
+`table()` behind the `arrow` feature (group O integration); see "Parquet" below.
 
 ## API mapping: `OpenSwathExportData.h`
 
@@ -94,9 +94,9 @@ empty or absent.
 
 | Source | Here | Why |
 | --- | --- | --- |
-| Parquet output built with Arrow | `Err(Error::Unsupported)` from `write` / `write_matrix`; `table()` returns the typed columns (names, types, null policy) as an `ExportTable` | `FORMAT/ParquetFile.h` and `FORMAT/ArrowIOHelpers.h` are ported by another lane behind the `arrow` feature; an exporter that wrote the file would have to depend on it. Wiring is `ParquetFile::write_table` over `ExportTable`. |
+| Parquet output built with Arrow | `ExportTable::to_record_batch` and `write_parquet` (feature `arrow`; `ArrowIOHelpers::writeTableToParquet` is `format::arrow_io_helpers::write_table_to_parquet` with its default configuration); without the feature `write` / `write_matrix` return `Error::Unsupported` and create nothing | the exporters build the typed columns themselves (`table()`) and hand the batch to the shared writer; every field is nullable as `arrow::field(name, type)` makes it |
 | `FileNotWritable` | `Error::Io` | the crate's error set |
-| Parquet-first column helper `ParquetFile::appendOrThrow` | not needed for TSV | no Arrow builders are involved in the TSV path |
+| Parquet-first column helper `ParquetFile::appendOrThrow` | arrays are built from the typed columns (`Vec<Option<T>>`), which cannot fail | no Arrow builders are involved |
 | partial file on a failed write | same | not atomic in the source either |
 
 ## Checked boundaries and evidence
@@ -111,11 +111,25 @@ produced by `../oracle/O5a-export/driver.cpp` on ibminode06 (Linux x86_64,
 run twice with identical output. The replay compares text byte for byte:
 34 of 34 matrix scenarios and the results table are equal.
 
+The Parquet arm has its own tier-1 run, `../oracle/integ-O-parquet/driver.cpp`
+(the same case file; ibminode06, the same Release install, run twice, the 35
+Parquet files byte-identical between runs): `OpenSwathMatrixExporter::writeMatrix`
+and `OpenSwathResultsExporter::write` with format Parquet for every scenario,
+retained as `tests/data/openswath_export/parquet/*.parquet`. The replay
+(`matrix_exporter_parquet_arm_matches_the_release_build`,
+`results_exporter_parquet_arm_matches_the_release_build`, feature `arrow`)
+writes each scenario through this crate, reads both files back with
+`ParquetFile::read_table` and compares the tables: schema (names, Arrow types,
+nullability) and every value. 34 of 34 matrix files and the 59-column results
+file are equal.
+
 **Tier 3, source review.** `OpenSwathResultsExporter_test.cpp`,
 `OpenSwathMatrixExporter_test.cpp` and the matrix and shape sections of
 `OpenSwathExport_test.cpp` are transcribed; the Parquet reading sections of the
-upstream tests have no counterpart until `ParquetFile` lands (the schema half of
-them, 59 columns and their names, is checked on `table()`).
+upstream tests are transcribed as `results_exporter_writes_the_parquet_of_the_upstream_test`
+(feature `arrow`): the two-row export read back column by column with
+`ParquetFile`, nulls and 64-bit values included, and the empty export's 59
+columns.
 
 **Tier 4.** Hand-derived peptide, protein and gene summaries and the
 normalization; the label rules; the number formats.

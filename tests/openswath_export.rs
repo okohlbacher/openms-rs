@@ -298,8 +298,11 @@ fn results_exporter_parquet_schema_is_59_typed_columns() {
     );
 }
 
+/// Without the `arrow` feature the Parquet arm is a refusal that creates
+/// nothing.
+#[cfg(not(feature = "arrow"))]
 #[test]
-fn results_exporter_parquet_is_refused_until_parquet_file_is_ported() {
+fn results_exporter_parquet_is_refused_without_the_arrow_feature() {
     let path = temp("results.parquet");
     let config = OpenSwathResultsExportConfig {
         format: OpenSwathExportFileFormat::Parquet,
@@ -308,6 +311,85 @@ fn results_exporter_parquet_is_refused_until_parquet_file_is_ported() {
     let error = OpenSwathResultsExporter::write(&path, &[], &config).unwrap_err();
     assert!(matches!(error, Error::Unsupported(_)));
     assert!(!path.exists(), "a refused export must not create the file");
+}
+
+/// OpenSwathResultsExporter_test.cpp, "Parquet output (same column names, read
+/// back via ParquetFile)" and "empty Parquet output preserves the schema":
+/// written through `OpenSwathResultsExporter::write` and read back with
+/// `ParquetFile`, as the class test does.
+#[cfg(feature = "arrow")]
+#[test]
+fn results_exporter_writes_the_parquet_of_the_upstream_test() {
+    use arrow_array::Array;
+    use openms::format::parquet_file::ParquetFile;
+    let config = OpenSwathResultsExportConfig {
+        format: OpenSwathExportFileFormat::Parquet,
+        ..OpenSwathResultsExportConfig::default()
+    };
+    let mut rows = vec![
+        results_row(7777, "TG1", "PEPTIDEK"),
+        results_row(8888, "TG2", "SAMPLER"),
+    ];
+    rows[0].aggr_prec_peak_area = Some(321.5);
+    rows[0].alignment_group_id = Some(1_234_567_890_123);
+    rows[0].gene_name = "GENE1".into();
+    rows[0].decoy = true;
+    rows[0].from_alignment = true;
+    let path = temp("rows.parquet");
+    OpenSwathResultsExporter::write(&path, &rows, &config).unwrap();
+    let table = ParquetFile::read_table(&path).unwrap();
+    let _ = std::fs::remove_file(&path);
+    assert_eq!(table.num_rows(), 2);
+    let column = |name: &str| ParquetFile::get_column(&table, name).unwrap();
+    let fid = column("feature_id");
+    assert_eq!(
+        ParquetFile::get_int64(Some(fid.as_ref()), 0, -1, false).unwrap(),
+        7777
+    );
+    assert_eq!(
+        ParquetFile::get_int64(Some(fid.as_ref()), 1, -1, false).unwrap(),
+        8888
+    );
+    assert_eq!(
+        ParquetFile::get_string(Some(column("Sequence").as_ref()), 0).unwrap(),
+        "PEPTIDEK"
+    );
+    assert_eq!(
+        ParquetFile::get_string(Some(column("transition_group_id").as_ref()), 1).unwrap(),
+        "TG2"
+    );
+    let area = column("aggr_prec_Peak_Area");
+    let value = ParquetFile::get_double(Some(area.as_ref()), 0, -1.0, false).unwrap();
+    assert!((value - 321.5).abs() < 1e-5);
+    assert!(area.is_null(1));
+    let alignment = column("alignment_group_id");
+    assert_eq!(
+        ParquetFile::get_int64(Some(alignment.as_ref()), 0, -1, false).unwrap(),
+        1_234_567_890_123
+    );
+    assert!(alignment.is_null(1));
+    let gene = column("GeneName");
+    assert_eq!(
+        ParquetFile::get_string(Some(gene.as_ref()), 0).unwrap(),
+        "GENE1"
+    );
+    assert!(gene.is_null(1));
+    let decoy = column("decoy");
+    assert!(ParquetFile::get_bool(Some(decoy.as_ref()), 0, false, false).unwrap());
+    assert!(!ParquetFile::get_bool(Some(decoy.as_ref()), 1, false, false).unwrap());
+    let from_alignment = column("from_alignment");
+    assert!(ParquetFile::get_bool(Some(from_alignment.as_ref()), 0, false, false).unwrap());
+    assert!(!ParquetFile::get_bool(Some(from_alignment.as_ref()), 1, false, false).unwrap());
+
+    // an empty export keeps the schema
+    let path = temp("empty.parquet");
+    OpenSwathResultsExporter::write(&path, &[], &config).unwrap();
+    let table = ParquetFile::read_table(&path).unwrap();
+    let _ = std::fs::remove_file(&path);
+    assert_eq!(table.num_rows(), 0);
+    assert_eq!(table.num_columns(), 59);
+    assert_eq!(table.schema().field(0).name(), "run_id");
+    assert_eq!(table.schema().field(58).name(), "ipf_peptidoform_m_score");
 }
 
 // --- OpenSwathMatrixExporter ---------------------------------------------

@@ -162,8 +162,8 @@ fn matrix_exporter_matches_the_release_build() {
     }
 }
 
-#[test]
-fn results_exporter_matches_the_release_build() {
+/// The 40 rows of the results scenario of `cases.tsv`.
+fn results_rows() -> Vec<OpenSwathExportRow> {
     let mut rows = Vec::new();
     for line in read("cases.tsv").lines() {
         let f: Vec<&str> = line.split('\t').collect();
@@ -240,6 +240,12 @@ fn results_exporter_matches_the_release_build() {
         r.ipf_peptidoform_m_score = opt_f(next());
         rows.push(r);
     }
+    rows
+}
+
+#[test]
+fn results_exporter_matches_the_release_build() {
+    let rows = results_rows();
     assert_eq!(rows.len(), 40);
     let mut actual = String::from("### results_all_fields\n");
     actual.push_str(&OpenSwathResultsExporter::tsv_string(&rows).unwrap());
@@ -255,6 +261,151 @@ fn results_exporter_matches_the_release_build() {
         format!("### results_all_fields\n{written}"),
         read("oracle_results.out")
     );
+}
+
+// --- The Parquet arm ----------------------------------------------------------
+//
+// `../oracle/integ-O-parquet` (ibminode06, Release install, run twice,
+// identical) wrote `OpenSwathMatrixExporter::writeMatrix` and
+// `OpenSwathResultsExporter::write` with format Parquet for every scenario of
+// the case file above. The files are retained under
+// `tests/data/openswath_export/parquet/`; each test writes the same scenario
+// through this crate, reads both files back and compares the tables: schema
+// (names, Arrow types, nullability) and every value.
+
+#[cfg(feature = "arrow")]
+fn parquet_fixture(name: &str) -> PathBuf {
+    data(&format!("parquet/pq_{name}.parquet"))
+}
+
+#[cfg(feature = "arrow")]
+fn assert_same_table(
+    actual: &arrow_array::RecordBatch,
+    expected: &arrow_array::RecordBatch,
+    what: &str,
+) {
+    assert_eq!(actual.schema(), expected.schema(), "{what}: schema");
+    assert_eq!(actual.num_rows(), expected.num_rows(), "{what}: rows");
+    assert_eq!(
+        actual.num_columns(),
+        expected.num_columns(),
+        "{what}: columns"
+    );
+    for (i, (a, e)) in actual.columns().iter().zip(expected.columns()).enumerate() {
+        assert_eq!(
+            a.as_ref(),
+            e.as_ref(),
+            "{what}: column {i} ({})",
+            actual.schema().field(i).name()
+        );
+    }
+}
+
+#[cfg(feature = "arrow")]
+#[test]
+fn matrix_exporter_parquet_arm_matches_the_release_build() {
+    use openms::analysis::openswath::openswath_export_data::OpenSwathExportFileFormat;
+    use openms::format::parquet_file::ParquetFile;
+    let mut name = String::new();
+    let mut config = OpenSwathMatrixExportConfig::default();
+    let mut rows: Vec<OpenSwathExportRow> = Vec::new();
+    let mut scenarios = 0;
+    let mut errors = 0;
+    let dir = std::env::temp_dir().join(format!("openms_integ_o_pq_{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let expected_status = read("oracle_matrix_parquet.out");
+    for line in read("cases.tsv").lines() {
+        let f: Vec<&str> = line.split('\t').collect();
+        match f[0] {
+            "M" => {
+                name = f[1].to_owned();
+                config = OpenSwathMatrixExportConfig {
+                    level: level_of(f[2]),
+                    normalization: norm_of(f[3]),
+                    top_n: f[4].parse().unwrap(),
+                    consistent_top: f[5] == "1",
+                    format: OpenSwathExportFileFormat::Parquet,
+                    ..OpenSwathMatrixExportConfig::default()
+                };
+                rows.clear();
+            }
+            "R" if !name.is_empty() => rows.push(OpenSwathExportRow {
+                run_id: f[1].parse().unwrap(),
+                run_name: f[2].into(),
+                transition_group_id: f[3].into(),
+                sequence: f[4].into(),
+                full_peptide_name: f[5].into(),
+                protein_name: f[6].into(),
+                gene_name: f[7].into(),
+                charge: f[8].parse().unwrap(),
+                intensity: f[9].parse().unwrap(),
+                m_score: f[10].parse().unwrap(),
+                feature_id: f[11].parse().unwrap(),
+                ..OpenSwathExportRow::default()
+            }),
+            "E" if !name.is_empty() => {
+                scenarios += 1;
+                let section = expected_status
+                    .split("### ")
+                    .find(|s| s.lines().next() == Some(name.as_str()))
+                    .unwrap();
+                let cpp_ok = section.lines().nth(1) == Some("OK");
+                match OpenSwathMatrixExporter::build_matrix(&rows, &config) {
+                    Ok(matrix) => {
+                        assert!(
+                            cpp_ok,
+                            "{name}: the Release build failed, the port built a matrix"
+                        );
+                        let path = dir.join(format!("{name}.parquet"));
+                        OpenSwathMatrixExporter::write_matrix(&path, &matrix, &config).unwrap();
+                        let ours = ParquetFile::read_table(&path).unwrap();
+                        let theirs = ParquetFile::read_table(parquet_fixture(&name)).unwrap();
+                        assert_same_table(&ours, &theirs, &name);
+                        // the typed columns the port builds are the same table
+                        let built = OpenSwathMatrixExporter::table(&matrix)
+                            .unwrap()
+                            .to_record_batch()
+                            .unwrap();
+                        assert_same_table(&built, &theirs, &format!("{name} (in memory)"));
+                    }
+                    Err(_) => {
+                        errors += 1;
+                        assert!(
+                            !cpp_ok,
+                            "{name}: the port refused a matrix the Release build wrote"
+                        );
+                    }
+                }
+                name.clear();
+            }
+            _ => {}
+        }
+    }
+    std::fs::remove_dir_all(&dir).unwrap();
+    assert!(scenarios >= 34, "{scenarios} scenarios");
+    assert!(scenarios > errors);
+}
+
+#[cfg(feature = "arrow")]
+#[test]
+fn results_exporter_parquet_arm_matches_the_release_build() {
+    use openms::analysis::openswath::openswath_export_data::OpenSwathExportFileFormat;
+    use openms::format::parquet_file::ParquetFile;
+    let rows = results_rows();
+    let config = OpenSwathResultsExportConfig {
+        format: OpenSwathExportFileFormat::Parquet,
+        ..OpenSwathResultsExportConfig::default()
+    };
+    let dir = std::env::temp_dir().join(format!("openms_integ_o_pqr_{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("results.parquet");
+    OpenSwathResultsExporter::write(&path, &rows, &config).unwrap();
+    let ours = ParquetFile::read_table(&path).unwrap();
+    let theirs = ParquetFile::read_table(parquet_fixture("results_all_fields")).unwrap();
+    std::fs::remove_dir_all(&dir).unwrap();
+    assert_eq!(theirs.num_rows(), 40);
+    assert_eq!(theirs.num_columns(), 59);
+    assert_same_table(&ours, &theirs, "results_all_fields");
 }
 
 // --- OSW row preparation --------------------------------------------------

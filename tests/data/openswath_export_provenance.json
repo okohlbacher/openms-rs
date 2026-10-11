@@ -108,6 +108,191 @@
       "path": "tests/data/openswath_export/oracle_scheduler.out",
       "sha256": "8550276794e8adca5b632434ef4761ae768c319de8807dd529c25d55467734ff",
       "origin": "../oracle/O5a-export/results/scheduler.out"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_median_cons_top3.parquet",
+      "sha256": "2f00e3bc65edab2a2e871d20843f06e3163624784036db32e4605d2cf4c88813",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_median_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_median_run_top3.parquet",
+      "sha256": "6853beaddf58713972c85a37a565aefc65136274fde8873ea8e5d7157298d454",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_median_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_medianmedian_cons_top3.parquet",
+      "sha256": "978f0127b14081083f0e7c4ee429b51b080313a97cd1bebc5c710125757381aa",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_medianmedian_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_medianmedian_run_top3.parquet",
+      "sha256": "0c0c6da9d91571ecc601143c16561619a75d7707961cffb48a14483257e6efa5",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_medianmedian_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_none_cons_top3.parquet",
+      "sha256": "1bd48d6ef0db872b16d78d7050a46c96810021c502ce3935205b298ac7103f36",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_none_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_none_run_top3.parquet",
+      "sha256": "963e6e505cdd3d86e26ac55e2c43559e7ea97c86779f9afd57055d742e3cb2dc",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_none_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_gene_top1_perrun.parquet",
+      "sha256": "7c85dc76b06162c3a050a61704d89f1db045e2467cb1d3fbb4acb511f1f25670",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_gene_top1_perrun.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_name_collisions.parquet",
+      "sha256": "c48ad77024f8c51f4f40f77de1596ee7126b03748c972d499e7d152732604878",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_name_collisions.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_median_cons_top3.parquet",
+      "sha256": "d94e4c8e4b06a8cdbf6659594bce3e79ad5574d22d8816e51dc623a8197845d5",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_median_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_median_run_top3.parquet",
+      "sha256": "4e387923ad21582c05495232d4a804de30a3be66f9a6ecc39a2b3d6c1782b4ae",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_median_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_medianmedian_cons_top3.parquet",
+      "sha256": "231fad51ecbba273aa360ad2ee1f80dab0eb3ba80b1be97cba21783e728b40d7",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_medianmedian_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_medianmedian_run_top3.parquet",
+      "sha256": "98280ca95e4204a9ce180a5fe9ee8fcf709576004bcfaa0af38bb540f7d7c383",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_medianmedian_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_none_cons_top3.parquet",
+      "sha256": "499a2fe50fddbb13bd2c094a518657e02b4d75abbecea8c8747994967b49ec14",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_none_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_none_run_top3.parquet",
+      "sha256": "7f4b0da7047eedf6e345ba9eb8168e04b70dd91189451db317c69ea30fae7a78",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_none_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_top10.parquet",
+      "sha256": "4b3b1bc8bdc767bdc3449d4ff98d9a74ab8170854287120ab8924c6ebda29383",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_top10.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_top1_consistent.parquet",
+      "sha256": "baf314951918d81b7724f3156124853e87aee861916c730ef5f970f7778cee09",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_top1_consistent.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_peptide_top1_perrun.parquet",
+      "sha256": "9581cdda5fd04b81efa1d6a0efb17d2de74c4622b9d5c0384fef0716109cc48c",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_peptide_top1_perrun.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_precursor_median_cons_top3.parquet",
+      "sha256": "bc1c2de2bcb19bea5884c5b355942339074e2dfde2e709753215a152ba7757b4",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_precursor_median_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_precursor_medianmedian_cons_top3.parquet",
+      "sha256": "7c2c791f9d6a8ac52a6ee1cf2550ec1b2ca038965c5489a01b1b353b2bb6a0d9",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_precursor_medianmedian_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_precursor_none_cons_top3.parquet",
+      "sha256": "a727433613573082f51f36cdeb786611151753ef3b986a85413bc045e8071cfd",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_precursor_none_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_median_cons_top3.parquet",
+      "sha256": "10f88a87eff9a58196d5f2d9b0fa6410de389a8d82d3ad3a6f83b9ea4353c00c",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_median_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_median_run_top3.parquet",
+      "sha256": "809f821fd90a925afa51ee3c46aaa3175693311a52119f2d7d7ef5df36f41cb9",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_median_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_medianmedian_cons_top3.parquet",
+      "sha256": "d1fb1642284d89ec8e4ee1eeb9af8cd303426ff6f61f7098e9bbf3b6eaa69175",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_medianmedian_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_medianmedian_run_top3.parquet",
+      "sha256": "43361c5593e348421cf3de59591648628f0c85c9dd81bb3715dedd1ba85895b7",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_medianmedian_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_none_cons_top3.parquet",
+      "sha256": "6ea07b2ad803e36bf8ea2d2444dd040edca46b9e1dc22afa7582df1bd8be3851",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_none_cons_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_none_run_top3.parquet",
+      "sha256": "59d19203740116425eedd42ecc87d8359cc077c90c67dae786778ed5e28f8c27",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_none_run_top3.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_protein_top2_consistent.parquet",
+      "sha256": "4f7208571abc2060563af80a112055690a6f87fb34f23a0b5cb6fa6af688ee50",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_protein_top2_consistent.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_results_all_fields.parquet",
+      "sha256": "c1dde542ee3c7670d324f90df8ce0f1fd0b5e0c5454dbfdfd929c7e8a5ec5fe8",
+      "origin": "../oracle/integ-O-parquet/results/parquet_results/pq_results_all_fields.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_single_run.parquet",
+      "sha256": "87ecc546eb9edb01ad170371ab5f81f80a9e9eaa8521f7094726602f1b64f988",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_single_run.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_sparse.parquet",
+      "sha256": "533741d8aa2f629a90e8ca8d2f072bb0e4352b540369e72b693b1e68392d90ac",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_sparse.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_ties_peptide.parquet",
+      "sha256": "be437da5398fd6fbd3ffe107aa882ee21e8409369132accb5d333b897d67bc23",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_ties_peptide.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_ties_precursor.parquet",
+      "sha256": "0567fd433df935b14f6056b983b0fa57e8eb413968d9d4094dc42497197fe21a",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_ties_precursor.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_unannotated_gene.parquet",
+      "sha256": "f7af4bddf5098aa33c715270a169f205ecb2744407d5caf63f58e1f6ddf4bea3",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_unannotated_gene.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_unannotated_protein.parquet",
+      "sha256": "5f1090ee0d7d768a22e11e75b737d585943428e4c86c279a9a3294beb00b9395",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_unannotated_protein.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/parquet/pq_unnamed_run.parquet",
+      "sha256": "d86860b80b90457dcfbe51fa6e3de09150ee9d91c2a8368444abff00abd1693d",
+      "origin": "../oracle/integ-O-parquet/results/parquet_matrix/pq_unnamed_run.parquet"
+    },
+    {
+      "path": "tests/data/openswath_export/oracle_matrix_parquet.out",
+      "sha256": "7b017505af8599af44c204745b267ec683e257e12db053b9c35be92fc961cbf7",
+      "origin": "../oracle/integ-O-parquet/results/matrix.out"
+    },
+    {
+      "path": "tests/data/openswath_export/oracle_results_parquet.out",
+      "sha256": "fb104de120c6dd1a5b4a4fa292acd465861a1fb468a28e1e4c9402827a2b9723",
+      "origin": "../oracle/integ-O-parquet/results/results.out"
     }
   ],
   "evidence_tier": 1,
@@ -173,6 +358,48 @@
       "sha256": "0daf0f2e6321cec902f1cbefc942f45463aa45bad1ac6d308207f5e4ad3ee39e",
       "location": "outside this repository",
       "origin_key": "reference_outputs"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/driver.cpp",
+      "sha256": "b0ab05127329123ff145c050b63e5ee6e281c5013d4a0e879f9b61065c902348",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/remote_run.sh",
+      "sha256": "5dd8509361a20b4db13b049835d41b868a602b558d27e16aedd7a3dab70d1016",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/run.sh",
+      "sha256": "6a19f87127a14f60d9a6d11701580abfb90c6eb672f5416d4590aa52e4d4f460",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/cases.tsv",
+      "sha256": "07b2f3ed6fda89c17cf68e60f033e64377de98d6de093ccb3588544d41a95a82",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/results/hashes.txt",
+      "sha256": "db680da77b42d97666d3ef6139d3129ca29f1a5ecbf851b179234ce2fd27c335",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/results/output_hashes.txt",
+      "sha256": "2dbcc13f11414ba21ccde79841699a7b43c0ba520b7399e027bba3ab4d3ea101",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-parquet/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
     }
   ],
   "external_reference_note": "The C++ oracle driver and its run scripts live outside this repository (no C++ is committed); the retained stdout of the Release build is the fixtures above, hashed here. The install is /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06; its libOpenMS.so has sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c."

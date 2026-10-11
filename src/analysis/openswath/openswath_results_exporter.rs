@@ -10,14 +10,14 @@
 //! agnostic of the input: reading the rows out of an OSW or Parquet file is the
 //! business of the readers, as in the source.
 //!
-//! The Parquet arm of the source goes through `FORMAT/ParquetFile.h`, which is
-//! not part of this module. What this module owns of it is the schema:
+//! The Parquet arm of the source assembles an Arrow table and hands it to
+//! `ArrowIOHelpers::writeTableToParquet`. Here
 //! [`OpenSwathResultsExporter::table`] returns the 59 typed columns, their
-//! names and their null policy as an [`ExportTable`], and a writer built on
-//! the `ParquetFile` port turns that into the file. Until then
-//! [`OpenSwathResultsExporter::write`] with
-//! [`OpenSwathExportFileFormat::Parquet`] returns
-//! [`Error::Unsupported`](crate::Error::Unsupported) and writes nothing.
+//! names and their null policy as an [`ExportTable`], and with the `arrow`
+//! feature [`OpenSwathResultsExporter::write`] with
+//! [`OpenSwathExportFileFormat::Parquet`] writes that table; without the
+//! feature it returns [`Error::Unsupported`](crate::Error::Unsupported) and
+//! writes nothing.
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXPORT_SUPPORT.md).
 //!
 //! # Example
@@ -160,6 +160,60 @@ pub struct ExportTable {
     pub columns: Vec<(String, ExportColumn)>,
 }
 
+#[cfg(feature = "arrow")]
+impl ExportTable {
+    /// The table as an Arrow record batch, as the source assembles it: one
+    /// array per column, every field nullable (`arrow::field(name, type)`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] when the columns differ in length.
+    pub fn to_record_batch(&self) -> Result<arrow_array::RecordBatch> {
+        use arrow_array::{ArrayRef, BooleanArray, Float64Array, Int64Array, StringArray};
+        use arrow_schema::{DataType, Field, Schema};
+        use std::sync::Arc;
+        let mut fields = Vec::with_capacity(self.columns.len());
+        let mut arrays: Vec<ArrayRef> = Vec::with_capacity(self.columns.len());
+        for (name, column) in &self.columns {
+            let (data_type, array): (DataType, ArrayRef) = match column {
+                ExportColumn::Int64(v) => (DataType::Int64, Arc::new(Int64Array::from(v.clone()))),
+                ExportColumn::Float64(v) => {
+                    (DataType::Float64, Arc::new(Float64Array::from(v.clone())))
+                }
+                ExportColumn::Utf8(v) => (DataType::Utf8, Arc::new(StringArray::from(v.clone()))),
+                ExportColumn::Boolean(v) => {
+                    (DataType::Boolean, Arc::new(BooleanArray::from(v.clone())))
+                }
+            };
+            fields.push(Field::new(name, data_type, true));
+            arrays.push(array);
+        }
+        arrow_array::RecordBatch::try_new(Arc::new(Schema::new(fields)), arrays)
+            .map_err(|e| Error::InvalidValue(format!("Failed to build export table: {e}")))
+    }
+
+    /// Write the table to a Parquet file with the default settings of the
+    /// source's `ArrowIOHelpers::writeTableToParquet`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when the file cannot be written (source
+    /// `Exception::FileNotWritable`) and the errors of
+    /// [`to_record_batch`](Self::to_record_batch).
+    pub fn write_parquet(&self, filename: impl AsRef<Path>) -> Result<()> {
+        use crate::format::arrow_io_helpers::{ParquetWriteConfig, write_table_to_parquet};
+        let batch = self.to_record_batch()?;
+        write_table_to_parquet(&batch, filename.as_ref(), &ParquetWriteConfig::default()).map_err(
+            |e| {
+                Error::Io(std::io::Error::other(format!(
+                    "the file '{}' could not be written: {e}",
+                    filename.as_ref().display()
+                )))
+            },
+        )
+    }
+}
+
 impl ExportTable {
     /// The number of rows (zero without columns).
     pub fn num_rows(&self) -> usize {
@@ -210,8 +264,9 @@ impl OpenSwathResultsExporter {
     ///
     /// [`Error::Io`] when the file cannot be created or written (source
     /// `Exception::FileNotWritable`), and [`Error::Unsupported`] for
-    /// [`OpenSwathExportFileFormat::Parquet`]: the Parquet writer needs the
-    /// `FORMAT/ParquetFile.h` port. Nothing is created then.
+    /// [`OpenSwathExportFileFormat::Parquet`] in a build without the `arrow`
+    /// feature. Nothing is created then. With the feature the Parquet file is
+    /// [`ExportTable::write_parquet`] of [`table`](Self::table).
     pub fn write(
         filename: impl AsRef<Path>,
         rows: &[OpenSwathExportRow],
@@ -224,11 +279,19 @@ impl OpenSwathResultsExporter {
                 file.flush()?;
                 Ok(())
             }
-            OpenSwathExportFileFormat::Parquet => Err(Error::Unsupported(
-                "Parquet output of the OpenSWATH results needs the FORMAT/ParquetFile.h port; \
-                 OpenSwathResultsExporter::table builds the typed columns it will write"
-                    .into(),
-            )),
+            OpenSwathExportFileFormat::Parquet => {
+                #[cfg(feature = "arrow")]
+                {
+                    Self::table(rows).write_parquet(filename)
+                }
+                #[cfg(not(feature = "arrow"))]
+                {
+                    let _ = filename;
+                    Err(Error::Unsupported(
+                        "Parquet output of the OpenSWATH results needs the `arrow` feature".into(),
+                    ))
+                }
+            }
         }
     }
 

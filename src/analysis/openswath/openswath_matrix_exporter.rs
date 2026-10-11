@@ -12,11 +12,12 @@
 //! with an optional median or median-of-medians normalization.
 //! [`OpenSwathMatrixExporter::write_matrix`] writes the result as TSV.
 //!
-//! As for the results exporter, the Parquet arm of the source needs the
-//! `FORMAT/ParquetFile.h` port; [`OpenSwathMatrixExporter::table`] returns the
-//! typed columns it will write and [`write_matrix`](crate::analysis::openswath::openswath_matrix_exporter::OpenSwathMatrixExporter::write_matrix)
-//! with [`OpenSwathExportFileFormat::Parquet`] returns
-//! [`Error::Unsupported`] after the checks of the source.
+//! As for the results exporter, the Parquet arm of the source writes an Arrow
+//! table: [`OpenSwathMatrixExporter::table`] returns the typed columns and
+//! [`write_matrix`](crate::analysis::openswath::openswath_matrix_exporter::OpenSwathMatrixExporter::write_matrix)
+//! with [`OpenSwathExportFileFormat::Parquet`] writes them with the `arrow`
+//! feature and returns [`Error::Unsupported`] without it, after the checks of
+//! the source.
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXPORT_SUPPORT.md).
 //!
 //! # Example
@@ -572,8 +573,9 @@ impl OpenSwathMatrixExporter {
     /// without rows, with different identifier and value row counts, or a
     /// row whose width differs from its column names; nothing is written
     /// then. [`Error::Io`] when the file cannot be created or written.
-    /// [`Error::Unsupported`] for Parquet, which needs the
-    /// `FORMAT/ParquetFile.h` port ([`table`](Self::table) has the columns).
+    /// [`Error::Unsupported`] for Parquet in a build without the `arrow`
+    /// feature; with it the file is [`table`](Self::table) written by
+    /// `ExportTable::write_parquet`.
     pub fn write_matrix(
         filename: impl AsRef<Path>,
         matrix: &OpenSwathQuantMatrix,
@@ -587,11 +589,19 @@ impl OpenSwathMatrixExporter {
                 file.flush()?;
                 Ok(())
             }
-            OpenSwathExportFileFormat::Parquet => Err(Error::Unsupported(
-                "Parquet output of an OpenSWATH matrix needs the FORMAT/ParquetFile.h port; \
-                 OpenSwathMatrixExporter::table builds the typed columns it will write"
-                    .into(),
-            )),
+            OpenSwathExportFileFormat::Parquet => {
+                #[cfg(feature = "arrow")]
+                {
+                    Self::table(matrix)?.write_parquet(filename)
+                }
+                #[cfg(not(feature = "arrow"))]
+                {
+                    let _ = filename;
+                    Err(Error::Unsupported(
+                        "Parquet output of an OpenSWATH matrix needs the `arrow` feature".into(),
+                    ))
+                }
+            }
         }
     }
 
