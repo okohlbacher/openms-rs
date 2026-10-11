@@ -6,3 +6,17 @@
 //!
 //! Submodules are registered below, one per ported header or cohesive group of
 //! headers. Parallel porting lanes each append their own `pub mod` lines here.
+/// `ConsensusIDAlgorithm` and its eight variants.
+pub mod consensus_id;
+/// `ConsensusMapMergerAlgorithm`: merge the identification runs of a consensus map.
+pub mod consensus_map_merger;
+/// `IDDecoyProbability`: target/decoy score-distribution probabilities.
+pub mod id_decoy_probability;
+/// `IDMergerAlgorithm`: merge identification runs into one run.
+pub mod id_merger;
+/// `IDScoreSwitcherAlgorithm`: switch main scores to a meta-value score.
+pub mod id_score_switcher;
+/// `NeedlemanWunsch` (`ANALYSIS/SEQUENCE`), used by the PEPMatrix consensus.
+pub mod needleman_wunsch;
+/// `PeptideProteinResolution`: resolve shared peptides between protein groups.
+pub mod peptide_protein_resolution;
