@@ -25,7 +25,7 @@ pub const LABELS_PARAM_HANDLER_NAME: &str = "labels";
 pub const MAX_DELTA_MASS_PATTERNS: usize = 100_000;
 
 /// The labels the source accepts outside numeric labelling, as one
-/// space-separated string (source `MultiplexDeltaMassesGenerator.cpp:309`).
+/// space-separated string (source `MultiplexDeltaMassesGenerator.cpp:169`).
 /// A label is accepted when it is a **substring** of this string; see
 /// [`MultiplexDeltaMassesGenerator::new`].
 pub const KNOWN_LABELS: &str = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";

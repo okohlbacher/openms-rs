@@ -487,6 +487,17 @@ included). `FeatureGroupingAlgorithmKD` builds the aligner from its own
   `tests/mapmatching_kd_grouping_oracle.rs` (KD defaults tree;
   FeatureLinkerUnlabeledKD_1 to _8 paths including consensus input, LOWESS
   warp, charge and adduct merging, `best ion` and `LinkedGroups`).
+- Tier 1 for the warp's LOWESS options (integration oracle
+  `integ-X-kdlowess`, same host, install and driver with cases `kd9` to
+  `kd20`, two identical runs): `auto_span` (CV-selected spans 0.8, 0.7, 0.15,
+  0.8 and 0.7 for the five maps, under mae, and a different grouping from the
+  default warp), `akima`, linear interpolation with global-linear
+  extrapolation, `num_iterations` 70, `span`/`delta`/two-point extrapolation,
+  and the same options with a 3 s linking window, all in
+  `tests/mapmatching_kd_grouping_oracle.rs`. Only `auto_span` changes the
+  grouping on these inputs; the other options reproduce the baseline grouping
+  exactly, as the Release build does. This oracle also found that a native cap
+  of 64 on `num_iterations` refused a value the source accepts (removed).
 - Tier 1 against retained outputs: `tests/mapmatching_labeled_grouping_topp.rs`
   (FeatureLinkerLabeled_1, _2; case 2's retained qualities predate the pin's
   `GaussFitter` and differ from the Release build by up to 3.7e-4 relative,

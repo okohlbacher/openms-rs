@@ -639,6 +639,26 @@
       "path": "tests/data/feature_linker_unlabeled_qt_5_output.consensusXML",
       "sha256": "e4053af30ca72676127a9b97056f8ffc6321fb6d5c92993f0224b7cd327fd62f",
       "kind": "test-data 0cb15f2 topp/FeatureLinkerUnlabeledQT_5_output.consensusXML, verbatim (carries date=0000-00-00T00:00:00, which the readers refuse; the test replaces it only when refused)"
+    },
+    {
+      "path": "tests/data/kd_grouping_oracle_kd9.tsv",
+      "sha256": "b4edf8b37d312b8ad7167f2c587b9302e815bdcb046c9e70d0808222084d10e7",
+      "kind": "C++ Release oracle integ-X-kdlowess output (oracle/integ-X-kdlowess/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical): the size and kdcf lines of the case, verbatim; the CV log lines of the auto_span cases are not retained"
+    },
+    {
+      "path": "tests/data/kd_grouping_oracle_kd15.tsv",
+      "sha256": "8ce0541fa55afd0a264ef0241bc503b5bbf4de2caaad4a87392dca2c3738c202",
+      "kind": "C++ Release oracle integ-X-kdlowess output (oracle/integ-X-kdlowess/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical): the size and kdcf lines of the case, verbatim; the CV log lines of the auto_span cases are not retained"
+    },
+    {
+      "path": "tests/data/kd_grouping_oracle_kd16.tsv",
+      "sha256": "bf8cbe47e8bba12aa34329b9642bc1781ee7f55d6e180ce19214f4552f0b6a0f",
+      "kind": "C++ Release oracle integ-X-kdlowess output (oracle/integ-X-kdlowess/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical): the size and kdcf lines of the case, verbatim; the CV log lines of the auto_span cases are not retained"
+    },
+    {
+      "path": "tests/data/kd_grouping_oracle_kd20.tsv",
+      "sha256": "bf8cbe47e8bba12aa34329b9642bc1781ee7f55d6e180ce19214f4552f0b6a0f",
+      "kind": "C++ Release oracle integ-X-kdlowess output (oracle/integ-X-kdlowess/driver.cpp, ibminode06, install openms4-release-bc9cc12-c19e494-174b576, conda-forge g++ 14.4.0, two runs identical): the size and kdcf lines of the case, verbatim; the CV log lines of the auto_span cases are not retained"
     }
   ],
   "upstream_test_definition": [
@@ -734,16 +754,7 @@
     "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --features featurexml,consensusxml,paramxml --test mapmatching_wnet --test mapmatching_wnet_oracle --test mapmatching_wnet_grouping_oracle --test mapmatching_wnet_topp  # 18 + 33 + 18 + 1 passed",
     "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --features featurexml,consensusxml,paramxml --test hash_order_oracle --test ml_grid_clustering --test ml_clustering_oracle --test mapmatching_qt_tie_order_oracle --test mapmatching_qt_cluster --test mapmatching_qt_cluster_finder --test mapmatching_qt_cluster_finder_topp"
   ],
-  "partial": [
-    {
-      "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h",
-      "gap": "LOWESS fit through LowessModel; TransformationModelLowess auto_span (cross-validation), akima interpolation and more than 64 iterations are Error::Unsupported"
-    },
-    {
-      "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h",
-      "gap": "inherits the MapAlignmentAlgorithmKD LOWESS gap when warp:enabled"
-    }
-  ],
+  "partial": [],
   "external_oracles": [
     {
       "name": "M2-labeled",
@@ -809,6 +820,39 @@
       "driver_sha256": "7a91b65ef3de5d6cce14394291f2c7eb6f57e279d5dfbfc50c69491f0c3b1206",
       "cases": "primes, std_<8 scripts>, grid_<6 scripts>",
       "runs": "two, fresh processes, identical algorithm output"
+    },
+    {
+      "name": "integ-X-kdlowess",
+      "location": "oracle/integ-X-kdlowess (outside the repository)",
+      "host": "ibminode06 (Linux x86_64)",
+      "install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+      "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+      "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+      "driver_sha256": "b19167e60fe4360dd7d3d5e3d7b244100d65151623041f332ca4fda38599937c",
+      "cases": {
+        "kd9": "LOWESS:auto_span=true on the five-map dc input (kd4 ini, With_charge_zero / Any)",
+        "kd10": "kd9 with auto_metric=rmse and auto_k_folds=3 (output identical to kd9)",
+        "kd11": "LOWESS:interpolation_type=akima (output identical to the retained kd5)",
+        "kd12": "linear interpolation with global-linear extrapolation (identical to kd5)",
+        "kd13": "num_iterations=70, above the 64 an earlier native cap allowed (identical to kd5)",
+        "kd14": "span 0.4, delta 5, two-point-linear extrapolation (identical to kd5)",
+        "kd15": "akima on the three-map FeatureLinkerUnlabeledKD_1 input",
+        "kd16": "link:rt_tol=3 with the default LOWESS",
+        "kd17": "kd16 with akima (identical to kd16)",
+        "kd18": "kd16 with linear and global-linear (identical to kd16)",
+        "kd19": "kd16 with span 0.2, 70 iterations, two-point-linear (identical to kd16)",
+        "kd20": "kd16 with auto_span=true"
+      },
+      "runs": "two, fresh processes, identical stdout/stderr/exit/out (results/differ.txt empty)",
+      "artifacts_outside_the_repository": {
+        "driver.cpp": "b19167e60fe4360dd7d3d5e3d7b244100d65151623041f332ca4fda38599937c",
+        "cases.txt": "57e906a74ee0326f36793857d30e277c14d2e9e09ab79e4c21856b01a012108e",
+        "remote_run.sh": "2531aa5c6e4314a37c1794450010cbc320c23bfac94f21050966f2c7bf132155",
+        "run.sh": "26970c94cae733539dab70b9fed978d6121080d107c429aa722204eb0c8252c5",
+        "results/hashes.txt": "d7c649d2986f27cfbbc4d9183ed7d0c6f5b45ee13e0c80a940ef95fa75fc3630",
+        "results/case_hashes.txt": "4c174b523df6cefd0ec4d07530adc95aad52d21e18ac2f9d5104bdf7a3298148"
+      },
+      "note": "Same driver as M2-labeled with cases kd9 to kd20 added and typed command-line overrides; the libOpenMS.so sha256 is in results/hashes.txt (abd4fc99...)."
     }
   ],
   "external_artifacts": [

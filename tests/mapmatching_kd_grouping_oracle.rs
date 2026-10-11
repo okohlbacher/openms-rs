@@ -29,11 +29,22 @@
 //! RT and m/z to a relative 1e-12, intensity and quality (`float` in the
 //! source) to one `f32` unit, the charge, the `best ion` and `LinkedGroups`
 //! annotations exactly, and the number of peptide identifications.
+//!
+//! Cases `kd9` to `kd15` come from the integration oracle
+//! `oracle/integ-X-kdlowess` (the same driver with seven more cases, same
+//! host, install and build, two runs identical). They put the warp's
+//! `TransformationModelLowess` options that lane M2's own LOWESS refused
+//! (`auto_span`, `akima`, more than 64 LOWESS iterations) and a few it accepted
+//! through the real grouping, on the five-map `dc` input, whose connected
+//! components hold far more than the 50 points per map below which the warp
+//! falls back to the identity; see `warp_collects_enough_points`.
 
 #![cfg(all(feature = "featurexml", feature = "consensusxml", feature = "paramxml"))]
 
+use openms::analysis::mapmatching::alignment_kd::MapAlignmentAlgorithmKD;
 use openms::analysis::mapmatching::feature_grouping_algorithm::FeatureGroupingAlgorithm;
 use openms::analysis::mapmatching::feature_grouping_algorithm_kd::FeatureGroupingAlgorithmKD;
+use openms::analysis::mapmatching::kd_tree_feature_maps::KDTreeFeatureMaps;
 use openms::format::{consensusxml, featurexml, paramxml};
 use openms::kernel::features::{ConsensusMap, FeatureMap};
 use openms::metadata::MetaValue;
@@ -285,5 +296,222 @@ fn oracle_kd_8_defaults_any_charge() {
             "feature_linker_unlabeled_kd_charge_any_input1.featureXML",
             "feature_linker_unlabeled_kd_charge_any_input2.featureXML",
         ],
+    );
+}
+
+/// Cases of the integration oracle: the defaults updated with the `.ini`
+/// section, then typed command-line overrides. `expected` names the retained
+/// output file; the oracle's outputs that were byte-identical to another
+/// case's are retained once (`kd10` is `kd9`, `kd11` to `kd14` are `kd5`,
+/// `kd17` to `kd19` are `kd16`).
+fn lowess_case(
+    expected: &str,
+    ini: &str,
+    charge: bool,
+    overrides: &[(&str, ParamValue)],
+    inputs: &[&str],
+) {
+    let mut p = FeatureGroupingAlgorithmKD::defaults().unwrap();
+    let full = paramxml::load(format!("{DIR}/{ini}")).unwrap();
+    let section = full
+        .copy("FeatureLinkerUnlabeledKD:1:algorithm:", true)
+        .unwrap();
+    p.update(&section, false).unwrap();
+    if charge {
+        set(
+            &mut p,
+            "link:charge_merging",
+            ParamValue::String("With_charge_zero".into()),
+        );
+        set(
+            &mut p,
+            "link:adduct_merging",
+            ParamValue::String("Any".into()),
+        );
+    }
+    for (key, value) in overrides {
+        set(&mut p, key, value.clone());
+    }
+    let mut algorithm = FeatureGroupingAlgorithmKD::from_param(&p).unwrap();
+    let maps: Vec<FeatureMap> = inputs.iter().map(|f| load(f)).collect();
+    let mut out = ConsensusMap::new();
+    algorithm.group(&maps, &mut out).unwrap();
+    compare(expected, &out);
+}
+
+fn s(value: &str) -> ParamValue {
+    ParamValue::String(value.into())
+}
+
+const KD4: &str = "feature_linker_unlabeled_kd_4_parameters.ini";
+
+/// The warp of the `dc` cases has real LOWESS input: every map collects at
+/// least the 50 points below which `fitLOWESS` substitutes the identity.
+#[test]
+fn warp_collects_enough_points() {
+    let maps: Vec<FeatureMap> = DC.iter().map(|f| load(f)).collect();
+    let kd = KDTreeFeatureMaps::from_maps(&maps).unwrap();
+    let algorithm = parameters(
+        Some(KD4),
+        &[
+            ("link:charge_merging", "With_charge_zero"),
+            ("link:adduct_merging", "Any"),
+        ],
+    );
+    let mut aligner =
+        MapAlignmentAlgorithmKD::new(maps.len(), &algorithm.to_param().unwrap()).unwrap();
+    aligner.add_rt_fit_data(&kd).unwrap();
+    for (map, data) in aligner.fit_data().iter().enumerate() {
+        assert!(
+            data.len() >= 50,
+            "map {map} collected {} points",
+            data.len()
+        );
+    }
+}
+
+#[test]
+fn oracle_kd_9_auto_span() {
+    lowess_case("kd9", KD4, true, &[("LOWESS:auto_span", s("true"))], &DC);
+}
+
+#[test]
+fn oracle_kd_10_auto_span_rmse_three_folds() {
+    // Different spans are selected (rmse, 3 folds), the grouping is kd9's.
+    lowess_case(
+        "kd9",
+        KD4,
+        true,
+        &[
+            ("LOWESS:auto_span", s("true")),
+            ("LOWESS:auto_metric", s("rmse")),
+            ("LOWESS:auto_k_folds", ParamValue::Integer(3)),
+        ],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_11_akima() {
+    lowess_case(
+        "kd5",
+        KD4,
+        true,
+        &[("LOWESS:interpolation_type", s("akima"))],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_12_linear_interpolation_global_extrapolation() {
+    lowess_case(
+        "kd5",
+        KD4,
+        true,
+        &[
+            ("LOWESS:interpolation_type", s("linear")),
+            ("LOWESS:extrapolation_type", s("global-linear")),
+        ],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_13_seventy_iterations() {
+    lowess_case(
+        "kd5",
+        KD4,
+        true,
+        &[("LOWESS:num_iterations", ParamValue::Integer(70))],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_14_span_delta_two_point_extrapolation() {
+    lowess_case(
+        "kd5",
+        KD4,
+        true,
+        &[
+            ("LOWESS:span", ParamValue::Float(0.4)),
+            ("LOWESS:delta", ParamValue::Float(5.0)),
+            ("LOWESS:extrapolation_type", s("two-point-linear")),
+        ],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_15_akima_on_the_small_input() {
+    lowess_case(
+        "kd15",
+        "feature_linker_unlabeled_kd_1_parameters.ini",
+        false,
+        &[("LOWESS:interpolation_type", s("akima"))],
+        &UNLABELED_1,
+    );
+}
+
+// The same five-map input with a 3 s linking window, where the warp matters
+// more. Of the options below only the automatic span changes the grouping.
+
+#[test]
+fn oracle_kd_16_tight_window_default_lowess() {
+    lowess_case(
+        "kd16",
+        KD4,
+        true,
+        &[("link:rt_tol", ParamValue::Float(3.0))],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_17_to_19_tight_window_other_lowess_options() {
+    let rt_tol = ("link:rt_tol", ParamValue::Float(3.0));
+    lowess_case(
+        "kd16",
+        KD4,
+        true,
+        &[rt_tol.clone(), ("LOWESS:interpolation_type", s("akima"))],
+        &DC,
+    );
+    lowess_case(
+        "kd16",
+        KD4,
+        true,
+        &[
+            rt_tol.clone(),
+            ("LOWESS:interpolation_type", s("linear")),
+            ("LOWESS:extrapolation_type", s("global-linear")),
+        ],
+        &DC,
+    );
+    lowess_case(
+        "kd16",
+        KD4,
+        true,
+        &[
+            rt_tol,
+            ("LOWESS:span", ParamValue::Float(0.2)),
+            ("LOWESS:num_iterations", ParamValue::Integer(70)),
+            ("LOWESS:extrapolation_type", s("two-point-linear")),
+        ],
+        &DC,
+    );
+}
+
+#[test]
+fn oracle_kd_20_tight_window_auto_span() {
+    lowess_case(
+        "kd20",
+        KD4,
+        true,
+        &[
+            ("link:rt_tol", ParamValue::Float(3.0)),
+            ("LOWESS:auto_span", s("true")),
+        ],
+        &DC,
     );
 }

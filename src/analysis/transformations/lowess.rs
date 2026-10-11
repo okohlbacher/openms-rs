@@ -37,8 +37,13 @@ pub struct LowessOptions {
     /// a precondition of `FastLowessSmoothing::lowess` and checks it only in
     /// debug builds; it is checked here.
     pub span: f64,
-    /// Robustifying passes after the initial fit, at most 64 (source
-    /// `num_iterations`, default 3, minimum 0; the cap is native).
+    /// Robustifying passes after the initial fit (source `num_iterations`,
+    /// default 3, minimum 0, no maximum). The cost is bounded by
+    /// [`LowessOptions::max_work`], which every pass charges against, so an
+    /// absurd count fails with the work-limit error instead of a native cap
+    /// on the count (an earlier cap of 64 refused values the source accepts;
+    /// the Release build's grouping with `num_iterations` 70 is reproduced
+    /// by `tests/mapmatching_kd_grouping_oracle.rs`).
     pub iterations: usize,
     /// Distance within which fits are interpolated instead of computed (source
     /// `delta`). `None` uses one percent of the x range, which the source
@@ -75,7 +80,6 @@ impl LowessOptions {
         if !self.span.is_finite()
             || self.span <= 0.0
             || self.span > 1.0
-            || self.iterations > 64
             || self.max_points < 2
             || self.max_work == 0
             || self.delta.is_some_and(|v| !v.is_finite() || v < 0.0)
