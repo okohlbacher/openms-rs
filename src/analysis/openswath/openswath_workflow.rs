@@ -521,6 +521,27 @@ impl std::fmt::Debug for OpenSwathWorkflow {
     }
 }
 
+/// A well-mixed combination of two 64-bit keys (SplitMix64 finalizer).
+fn mix_seed(a: u64, b: u64) -> u64 {
+    let mut z = a ^ b
+        .wrapping_mul(0x9E37_79B9_7F4A_7C15)
+        .wrapping_add(0x1234_5678_9ABC_DEF1);
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+
+/// The generator key of one assay of one swath: `seed` combined with the FNV-1a
+/// hash of the assay identifier.
+fn assay_seed(seed: u64, assay: &str) -> u64 {
+    let mut hash: u64 = 0xCBF2_9CE4_8422_2325;
+    for byte in assay.as_bytes() {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(0x0000_0100_0000_01B3);
+    }
+    mix_seed(seed, hash)
+}
+
 fn lock<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(|e| e.into_inner())
 }
@@ -835,6 +856,9 @@ impl OpenSwathWorkflow {
         let cp = chromatogram_extraction_params;
         let user_inner_batch_size = inner_batch_size;
         let user_max_concurrent_swaths = max_concurrent_swaths;
+        // every identifier is keyed by this and the swath and assay it belongs
+        // to, so none depends on the thread count or the scheduling
+        let base_seed = self.draw_seed();
         let ms1_only = swath_maps.len() == 1 && swath_maps[0].ms1;
         let store_features = store_features_in_feature_file;
 
@@ -854,7 +878,7 @@ impl OpenSwathWorkflow {
                 mrm_mapping_param,
             )?;
             let mut feature_file = FeatureMap::new();
-            let seed = self.draw_seed();
+            let seed = mix_seed(base_seed, u64::MAX);
             self.score_all_chromatograms_seeded(
                 &filtered,
                 &[],
@@ -930,7 +954,7 @@ impl OpenSwathWorkflow {
                 ms1_isotopes,
             )?;
             let mut feature_file = FeatureMap::new();
-            let seed = self.draw_seed();
+            let seed = mix_seed(base_seed, u64::MAX - 1);
             self.score_all_chromatograms_seeded(
                 &[],
                 &ms1_chromatograms,
@@ -1023,6 +1047,7 @@ impl OpenSwathWorkflow {
                 &estimate,
                 &tr_win_map,
                 &mut progress,
+                base_seed,
             )?;
             self.base.end_progress(0)?;
             return Ok(());
@@ -1051,6 +1076,7 @@ impl OpenSwathWorkflow {
             &estimate,
             &tr_win_map,
             &mut progress,
+            base_seed,
         )?;
         self.base.end_progress(0)?;
         Ok(())
@@ -1158,6 +1184,7 @@ impl OpenSwathWorkflow {
         estimate: &ConcurrencyEstimate,
         tr_win_map: &[Option<usize>],
         progress: &mut i64,
+        base_seed: u64,
     ) -> Result<()> {
         let scoring_threads = scheduler_options.scoring_threads;
         let waves = OpenSwathWorkflowScheduler::plan_waves(swath_maps, scheduler_options, estimate);
@@ -1308,7 +1335,7 @@ impl OpenSwathWorkflow {
                 let chunk_end = (next_job + chunk_size).min(queue.len());
                 let chunk: Vec<(InnerBatchScoringJob, u64)> = queue[next_job..chunk_end]
                     .iter()
-                    .map(|job| (job.clone(), self.draw_seed()))
+                    .map(|job| (job.clone(), mix_seed(base_seed, job.context_index as u64)))
                     .collect();
                 next_job = chunk_end;
 
@@ -1473,6 +1500,7 @@ impl OpenSwathWorkflow {
         estimate: &ConcurrencyEstimate,
         tr_win_map: &[Option<usize>],
         progress: &mut i64,
+        base_seed: u64,
     ) -> Result<()> {
         let limiter = if load_into_memory
             && !ms1_only
@@ -1504,7 +1532,10 @@ impl OpenSwathWorkflow {
             threads.get().max(1)
         };
         for chunk in indices.chunks(chunk_size) {
-            let seeds: Vec<u64> = chunk.iter().map(|_| self.draw_seed()).collect();
+            let seeds: Vec<u64> = chunk
+                .iter()
+                .map(|&i| mix_seed(base_seed, i as u64))
+                .collect();
             let entries: Vec<(usize, u64)> = chunk.iter().copied().zip(seeds).collect();
             let process = |entry: &(usize, u64),
                            mut mobilogram: Option<&mut (dyn MobilogramSink + '_)>|
@@ -1544,7 +1575,6 @@ impl OpenSwathWorkflow {
                     0
                 };
                 let mut batches = Vec::with_capacity(nr_batches);
-                let mut generator = UniqueIdGenerator::from_seed(seed);
                 for pep_idx in 0..nr_batches {
                     let transition_exp_used =
                         select_compounds_for_batch(&transition_exp_used_all, batch_size, pep_idx);
@@ -1562,7 +1592,6 @@ impl OpenSwathWorkflow {
                     tmp[0].sptr = Some(Arc::clone(&current_swath_map));
                     let mut features = FeatureMap::new();
                     let mut osw = OswData::default();
-                    let batch_seed = generator.get_unique_id();
                     self.score_all_chromatograms_seeded(
                         &chromatograms,
                         &ms1_chromatograms,
@@ -1577,7 +1606,7 @@ impl OpenSwathWorkflow {
                         false,
                         mobilogram.as_deref_mut(),
                         Some(&mut osw),
-                        batch_seed,
+                        seed,
                     )?;
                     batches.push(ScoredBatch {
                         chromatograms,
@@ -1735,7 +1764,6 @@ impl OpenSwathWorkflow {
         }
         let picker = MRMTransitionGroupPicker::from_param(&picker_param)?;
         feature_finder.prepare_protein_peptide_maps(transition_exp);
-        let mut ids = UniqueIdGenerator::from_seed(seed);
 
         let ms1_chromatogram_map: HashMap<&str, usize> = ms1_chromatograms
             .iter()
@@ -1890,6 +1918,13 @@ impl OpenSwathWorkflow {
                 )));
             }
 
+            // the identifiers of this assay's features: the picker's and the
+            // finder's (subordinates) streams are keyed by the swath (`seed`)
+            // and the assay, never by the schedule
+            let assay_key = assay_seed(seed, id);
+            let mut ids = UniqueIdGenerator::from_seed(assay_key);
+            feature_finder
+                .set_unique_id_generator(UniqueIdGenerator::from_seed(mix_seed(assay_key, 1)));
             match picker.pick_transition_group(&mut transition_group, &mut ids) {
                 Ok(()) => {}
                 Err(error) => {
