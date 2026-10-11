@@ -29,3 +29,9 @@ pub mod isotope_model;
 pub mod peak_width_estimator;
 /// `SeedListGenerator`: seed lists for feature detection.
 pub mod seed_list_generator;
+/// `FeatureFinderIdentificationAlgorithm`: ID-guided MS1 feature detection, the algorithm behind the TOPP tool `FeatureFinderIdentification`.
+pub mod feature_finder_identification;
+/// `FeatureFinderAlgorithmMetaboIdent`: targeted MS1 feature detection from a table of metabolite targets, the algorithm behind the TOPP tool `FeatureFinderMetaboIdent`.
+pub mod feature_finder_metabo_ident;
+/// The steps the two targeted MS1 feature finders share (not public API).
+pub(crate) mod ms1_targeted;
