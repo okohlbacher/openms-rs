@@ -1,0 +1,389 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c06",
+ "group": "feature_finder_identification",
+ "work_package": "FF3 (Phase C wave 4): FeatureFinderIdentificationAlgorithm and FeatureFinderAlgorithmMetaboIdent",
+ "method": "Port of FEATUREFINDER/FeatureFinderIdentificationAlgorithm and FeatureFinderAlgorithmMetaboIdent on the OpenSWATH classes of the other lanes. The three class-test sections are transcribed with their literals; the retained outputs of TOPP_FeatureFinderIdentification_1/_3/_5 (and the 22-peptide summary) and TOPP_FeatureFinderMetaboIdent_1 are replayed through the files and compared with the upstream FuzzyDiff rule. An oracle driver linking the executed C++ Release build runs both algorithms on the TOPP inputs and on variants (seeds, offset peptides, decoys, score cutoff, CalcMass shift, FAIMS, ion mobility, adducts, isotope distributions, RT ranges, overlapping targets, contract skips) and on the extractor alone, and prints every feature, library entry and candidate as %.17g records; the Rust tests replay those records bit for bit. The driver ran twice in fresh processes with a clean environment; standard output, standard error and exit code are byte-identical.",
+ "evidence_tier": "tier 1 (executed C++ Release on ibminode06: tests/feature_finder_identification_oracle.rs, and the retained TOPP outputs of tests/feature_finder_identification_topp.rs); tier 3 (transcribed class-test literals); tier 4 (native guards and derived invariants)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h",
+   "sha256": "141c63e4ade65b28a597bfcd72892c8088f3bfb225dc4327389d2646c9cdb3a5"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.cpp",
+   "sha256": "b69fd132496c2e71cbee80fffd80cdeb68f25639787176999ae3b6658f6173dc"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h",
+   "sha256": "d0b60d6f65447a667bb26179843ada52ab294bade78b6eafc33f3d3d36655a41"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.cpp",
+   "sha256": "836acb126fa7770a6848ffaa975e47d957e8d4ccda53620450227108f35ed21b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureFinderIdentificationAlgorithm_test.cpp",
+   "sha256": "5c301be4bf889f5b83611f6e54c10baea71d483cd988df0a228effde1ba3ed12"
+  }
+ ],
+ "package_revisions": {
+  "topp": "174b576",
+  "cli": "c19e494",
+  "test-data": "0cb15f2"
+ },
+ "native_implementation": [
+  "src/analysis/featurefinder/feature_finder_identification.rs",
+  "src/analysis/featurefinder/feature_finder_metabo_ident.rs",
+  "src/analysis/featurefinder/ms1_targeted.rs",
+  "src/chemistry/sequence.rs (AASequence::formula_for_source)",
+  "src/analysis/openswath/openswath_scoring.rs (one line: formula_for_source)",
+  "src/analysis/openswath/mrm_feature_finder_scoring.rs (set_shared_unique_id_generator)",
+  "src/analysis/openswath/chromatogram_extractor_algorithm.rs (extract_value_tophat_im_lagged: the source's separate im_it position)",
+  "src/analysis/openswath/stats_helpers.rs and scoring.rs (library scores sum in Eigen's reduction order)"
+ ],
+ "native_tests": [
+  "tests/feature_finder_identification.rs",
+  "tests/feature_finder_identification_topp.rs",
+  "tests/feature_finder_identification_oracle.rs",
+  "tests/support/ffid_inputs.rs"
+ ],
+ "support_document": "docs/FEATURE_FINDER_IDENTIFICATION_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderIdentification_1_input.idXML",
+   "sha256": "a52d2c5e13ff7e406e17ca4724a3bec39d3888aa863d3f220712954c398de5d9",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderIdentification_1_input.idXML byte for byte"
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderIdentification_1_input.mzML.gz",
+   "sha256": "f1faa5d486631950ccbf3665ff03224fca5d069f573e60a024e866e7f771281b",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderIdentification_1_input.mzML, gzip -9 -n of the upstream file (sha256 of the uncompressed file recorded); input of TOPP_FeatureFinderIdentification_1/_3/_5 and of the oracle",
+   "uncompressed_sha256": "d4bde93c77ec9e948cc62f4c022b8d54591073fd1170e264b69a79dc8d259830"
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderIdentification_1_output.featureXML",
+   "sha256": "0308998dfe91cac5151506849c2b8aff3b3d5af6663415afce92897d6e9c60d5",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderIdentification_1_output.featureXML byte for byte: retained expectation of TOPP_FeatureFinderIdentification_1 and _5_out1",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderIdentification_3_output.featureXML",
+   "sha256": "b30d72979fafe2e24e9055a98870ad5c88efccac0168cf6141aff1674ae82a2b",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderIdentification_3_output.featureXML byte for byte: retained expectation of TOPP_FeatureFinderIdentification_3",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderIdentification_5_candidates.featureXML",
+   "sha256": "a4a18d153d1c490358c26515b5d2be43536860c77abc771736edb4f537567bcd",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderIdentification_5_candidates.featureXML byte for byte: retained expectation of TOPP_FeatureFinderIdentification_5_out2",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderMetaboIdent_1_input.mzML.gz",
+   "sha256": "d1694c9ea32b194a7b8869197ad675ed7ee3cc6e568f93705108481958d02a9d",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderMetaboIdent_1_input.mzML, gzip -9 -n of the upstream file (sha256 of the uncompressed file recorded); input of TOPP_FeatureFinderMetaboIdent_1 and of the oracle",
+   "uncompressed_sha256": "6b26a6c69ae98852393bcf22d1c28ad6ac88c35af9df616d5bf27871046a34e3"
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderMetaboIdent_1_input.tsv",
+   "sha256": "fbd886ef04bd7d7da738e55e23522f94f9d9f88f3484ed0148ab9d4aa5341a95",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderMetaboIdent_1_input.tsv byte for byte"
+  },
+  {
+   "path": "tests/data/feature_finder_identification/FeatureFinderMetaboIdent_1_output.featureXML",
+   "sha256": "e2270924ca7a2c102c163f25837f8bced87abad290a453b56b9aa126e8cb2e85",
+   "kind": "upstream test data (test-data 0cb15f2): topp/FeatureFinderMetaboIdent_1_output.featureXML byte for byte: retained expectation of TOPP_FeatureFinderMetaboIdent_1",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_asymmetric.stdout",
+   "sha256": "97d63e75f1d26a39b30fc1de3dd5c809dd9ddd1f3459271208323d293b931805",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_asymmetric, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_batch10_candidates.stdout",
+   "sha256": "b0d438199fe86096ac9ba9ee21c6caadb0f3447c2f2a6619c96eb3294c507f5b",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_batch10_candidates, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_calcmass.stdout",
+   "sha256": "6681f0b6dc19dfcbf07cbdc2a24d30bb2fcd4fe4fa6e9e05b00672c6811cd0df",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_calcmass, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_decoys.stdout",
+   "sha256": "e9869682f983b2ca7199526e069e4077d2741e587720f19cc6db372d213c45bf",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_decoys, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_decoys_quantified.stdout",
+   "sha256": "6d8da0ddb1cb442aa51ec255652e3dc39db0c2de91a392e11a941f677a779b4a",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_decoys_quantified, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_faims.stdout",
+   "sha256": "c835393e449fba9f2ce157eb12dd9d2764434a5ed1d898ca9b0bccbf5ae56ed0",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_faims, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_faims_ids.stdout",
+   "sha256": "19795a041bac001eef766aca4f93446d109c2615335b9a489bc3366d65a194a7",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_faims_ids, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_im.stdout",
+   "sha256": "86f164b3ddae318d4c95027363bc27f8a6c9d4cfe4b2732d2b07eb40967bc070",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_im, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_im_off.stdout",
+   "sha256": "a88cc626100b3c7f99878489d7edfa1aabab72ad4044bd84f2d0a43810667aa9",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_im_off, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_mapping_tolerance.stdout",
+   "sha256": "f55505150ae59e3cdf164f154e22161e484cc7fb2054dd202a99a8aafb69c973",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_mapping_tolerance, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_none.stdout",
+   "sha256": "37873930aad7676dbcf0fdc80ab621b603a25f9ca05129663310b47e36bc8282",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_none, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_pmin.stdout",
+   "sha256": "ededed4f9eac01ac4d8ed80089aac178d6c1a980b634b1e5ef4f17e50b50a44e",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_pmin, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_ppm.stdout",
+   "sha256": "6d1280f11dc5061e9d26f3567569c3cdc5d714e6c4c524958504c6d40b635bb8",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_ppm, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_psm_cutoff_string.stdout",
+   "sha256": "2521129128aad576b3fe6e9a0dd105d473e7c45bb2cbb50e20f8b2775c465c0d",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_psm_cutoff_string, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_seeds.seeds.featureXML",
+   "sha256": "7e6568a4d682fcc580db6c81ad3e072667cd7357b728f32b46f1fe9e5b312213",
+   "kind": "seed features the driver generated from the data and the Rust test reads back (the driver reloads this file before its run): case ffid_seeds",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_seeds.stdout",
+   "sha256": "a54a6c152e0d648c4a62c35f3e8a03d8bb9aa0d30accd5587c51b50d2f22b1f1",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_seeds, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_seeds_apex_off.seeds.featureXML",
+   "sha256": "7e6568a4d682fcc580db6c81ad3e072667cd7357b728f32b46f1fe9e5b312213",
+   "kind": "seed features the driver generated from the data and the Rust test reads back (the driver reloads this file before its run): case ffid_seeds_apex_off",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_seeds_apex_off.stdout",
+   "sha256": "912dcd51ff86e450c7234831c85a8e8d2b05d7072d6af9bd5fceafa931cfbb84",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_seeds_apex_off, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_seeds_offset.seeds.featureXML",
+   "sha256": "7e6568a4d682fcc580db6c81ad3e072667cd7357b728f32b46f1fe9e5b312213",
+   "kind": "seed features the driver generated from the data and the Rust test reads back (the driver reloads this file before its run): case ffid_seeds_offset",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_seeds_offset.stdout",
+   "sha256": "f09f3dae8090c74e505c54d14cd16b319713a5676df24e14a6c9f3eb81fcf92e",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_seeds_offset, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/ffid_symmetric.stdout",
+   "sha256": "45e95f55b705dbe70a6a7872200f6b4326afcbf52101b0cac8504d67ea0c423c",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case ffid_symmetric, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_asymmetric.stdout",
+   "sha256": "6ec62f8dcff3e2e27737be633496a98af4a6f4c454dc0ec081f05c3c3e90516c",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_asymmetric, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_faims.stdout",
+   "sha256": "7acb96c1f14a1aedd452a32c217896c5c1ccc4f1607ffa6cd12cbd0909bc271f",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_faims, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_im.stdout",
+   "sha256": "307118db05fbf62a052b4fde4cf6837942c3a3eb603faa61b390e23383efe0ca",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_im, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_im_off.stdout",
+   "sha256": "69998aa93f15d3dfc45ec4a1f8e5760a2c2fb184530545aa45128fdf88d3e40c",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_im_off, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_no_candidates.stderr",
+   "sha256": "bb9cc06de8023d3090f5814d14958b862d8bebe62abf145d8b464bdf1ffda58d",
+   "kind": "the standard error of the Release run of case mi_no_candidates (the exception message)",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_no_candidates.stdout",
+   "sha256": "b17edb9a855a54a0507d8352f2ad06853449c9a17c7d6d4f47ea38132f26a39c",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_no_candidates, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_none_candidates.stdout",
+   "sha256": "791b8f83c6c73171389da39dbebbf104410a2cd3af78139085f839bf9a820e31",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_none_candidates, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_pmin.stdout",
+   "sha256": "cda35b8002e626cbdc41fec10a41e275672c2059104089b883f5e112a87754ad",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_pmin, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_rt_window_default.stdout",
+   "sha256": "d5631f7c497f3e26f221f6362b2edfac835e15069eee37f7ede65855dc393949",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_rt_window_default, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_tsv.stdout",
+   "sha256": "cfec8b72f464ac7462049a12e3675ebdf23889ccc45f9285cb0a824b595ff350",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_tsv, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_variants.stdout",
+   "sha256": "a7fdab6059ca935de7bcfcb1f8f2c054cdec43303e5417fb3fac2e4d8d064897",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_variants, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/mi_variants_none.stdout",
+   "sha256": "7436be798e8156b4637a113aaf140bc7b0195cbccee479de9f6d073ad99230b2",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case mi_variants_none, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/xic_im.stdout",
+   "sha256": "3275f8e9e7c98a79624209ec6682baa5509121c569f064c2ec74253011310073",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case xic_im, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/xic_im_all.stdout",
+   "sha256": "c1eaeda5e09e576869b936168e51054351c8027a6e9d07c1761e57692d6f00fe",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case xic_im_all, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  },
+  {
+   "path": "tests/data/feature_finder_identification/oracle/xic_im_mixed.stdout",
+   "sha256": "84ffed9a32b5cb195a9165d4600a287b87159c7e73c4f809902fcde07992224e",
+   "kind": "executed C++ oracle record file (key<TAB>value, doubles %.17g): ../oracle/FF3-ffid/driver.cpp, case xic_im_mixed, Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 on ibminode06, two runs with identical standard output",
+   "evidence_tier": 1
+  }
+ ],
+ "class_test_review": {
+  "paths": [
+   "src/tests/class_tests/openms/source/FeatureFinderIdentificationAlgorithm_test.cpp"
+  ],
+  "literal_extraction": "All three sections transcribed into tests/feature_finder_identification.rs (class_test_*); FeatureFinderAlgorithmMetaboIdent has no class test at bc9cc12.",
+  "evidence_tier": 3
+ },
+ "upstream_test_definition": {
+  "path": "packages/test-data/topp/CMakeLists.txt",
+  "lines": "434-459 (FeatureFinderIdentification_1, _summary_count, _3, _5; _4 is disabled upstream), 4267-4270 (FeatureFinderMetaboIdent_1)",
+  "revision": "0cb15f2",
+  "method": "the retained outputs compared decoded with the upstream FuzzyDiff rule (ratio 1.01 or absolute difference 0.01), generated ids and the run path skipped as the upstream whitelists do",
+  "evidence_tier": 1
+ },
+ "cpp_oracle": {
+  "host": "ibminode06",
+  "platform": [
+   "ibminode06",
+   "Linux ibminode06 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux"
+  ],
+  "build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "runs": 2,
+  "runs_identical": true,
+  "runs_identical_scope": "standard output, standard error and exit code of every case; the written result.featureXML differs between runs in the identifiers of subordinate features (unseeded thread-local stream) and is not used",
+  "hashes": [
+   "57061713d78b6c826b6a011c15eb28905feb4bab4af47db28d290640d59503c9  driver.cpp",
+   "1a4e6988515b60b37ddf6d4486c6e9a5f0d7890a329662a5306a8d319699af37  cases.txt",
+   "b0bea8c27b318dc47a5245550d328ff5db27f8277fca8883337816990ddcb049  build/ff3_driver",
+   "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c  /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576/lib/libOpenMS.so",
+   "a52d2c5e13ff7e406e17ca4724a3bec39d3888aa863d3f220712954c398de5d9  data/FeatureFinderIdentification_1_input.idXML",
+   "d4bde93c77ec9e948cc62f4c022b8d54591073fd1170e264b69a79dc8d259830  data/FeatureFinderIdentification_1_input.mzML",
+   "6b26a6c69ae98852393bcf22d1c28ad6ac88c35af9df616d5bf27871046a34e3  data/FeatureFinderMetaboIdent_1_input.mzML",
+   "fbd886ef04bd7d7da738e55e23522f94f9d9f88f3484ed0148ab9d4aa5341a95  data/FeatureFinderMetaboIdent_1_input.tsv"
+  ]
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/FF3-ffid/driver.cpp",
+   "sha256": "57061713d78b6c826b6a011c15eb28905feb4bab4af47db28d290640d59503c9",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF3-ffid/remote_run.sh",
+   "sha256": "05b51e7025525c5d62600f47b01925ce0447c431c5c8648d73755c67219ac85c",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF3-ffid/run.sh",
+   "sha256": "7ff0d04e519d867ad7e66f80aff6cdb33defddd68334db8840172974a60da450",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  },
+  {
+   "path": "../oracle/FF3-ffid/cases.txt",
+   "sha256": "1a4e6988515b60b37ddf6d4486c6e9a5f0d7890a329662a5306a8d319699af37",
+   "location": "outside this repository",
+   "origin_key": "cpp_oracle"
+  }
+ ],
+ "external_reference_note": "The oracle driver and scripts live outside this repository under ../oracle/ so that no C++ is committed here.",
+ "license": "BSD-3-Clause for source-derived code and literals",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}

@@ -44,8 +44,8 @@ use crate::analysis::transformations::TransformationDescription;
 use crate::chemistry::isotopes::ProbabilityPrecision;
 use crate::chemistry::{
     AASequence, CoarseIsotopePatternGenerator, CoarseMassMode, EmpiricalFormula,
-    IsotopeDistribution,
-    ModificationsDB, PeptideFragmentType, SequenceModification, TermSpecificity,
+    IsotopeDistribution, ModificationsDB, PeptideFragmentType, SequenceModification,
+    TermSpecificity,
 };
 use crate::concept::constants::user_param::{FAIMS_CV, IM};
 use crate::concept::progress_logger::ProgressLogger;
@@ -911,6 +911,9 @@ impl FeatureFinderIdentificationAlgorithm {
     /// `getLibrary`): peptides, proteins and transitions accumulated over the
     /// batches. Empty for FAIMS data with several voltages, where every group
     /// has its own library.
+    // the source's `getLibrary` returns `output_library_`; the working library of
+    // a batch is `library`
+    #[allow(clippy::misnamed_getters)]
     pub fn library(&self) -> &TargetedExperiment {
         &self.output_library
     }
@@ -2284,10 +2287,13 @@ impl FeatureFinderIdentificationAlgorithm {
             let (rt_min, rt_max) = self.calculate_rt_bounds(rt_min, rt_max);
             let lower = rt_ids.partition_point(|e| e.0.total_cmp(&rt_min) == Ordering::Less);
             let upper = rt_ids.partition_point(|e| e.0.total_cmp(&rt_max) != Ordering::Greater);
-            let mut id_count = 0usize;
-            for position in lower..upper.max(lower) {
-                feat_ids.entry(i).or_default().push(rt_ids[position].1);
-                id_count += 1;
+            let matched = &rt_ids[lower..upper.max(lower)];
+            let id_count = matched.len();
+            if !matched.is_empty() {
+                feat_ids
+                    .entry(i)
+                    .or_default()
+                    .extend(matched.iter().map(|entry| entry.1));
             }
             // "total" only includes the IDs of this RT region
             let total = rt_ids.len();

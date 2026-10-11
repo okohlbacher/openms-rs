@@ -34,7 +34,6 @@ use openms::analysis::openswath::chromatogram_extractor_algorithm::{
     ChromatogramExtractorAlgorithm, ExtractionCoordinates,
 };
 use openms::analysis::openswath::data_structures::Chromatogram;
-use openms::analysis::openswath::spectrum_access::SpectrumAccess;
 use openms::analysis::openswath::spectrum_access_openms::SimpleOpenMSSpectraFactory;
 use openms::analysis::openswath::targeted_experiment::TargetedExperiment;
 use openms::chemistry::{AASequence, EmpiricalFormula, PROTON_MASS_U};
@@ -314,7 +313,13 @@ fn as_written_meta(value: f64) -> f64 {
 }
 
 /// The members of a feature that are `float`s in the source.
-const FLOAT_MEMBERS: &[&str] = &[".quality", ".quality_rt", ".quality_mz", ".width", ".intensity"];
+const FLOAT_MEMBERS: &[&str] = &[
+    ".quality",
+    ".quality_rt",
+    ".quality_mz",
+    ".width",
+    ".intensity",
+];
 
 /// A `float` as the source's writer prints it and its reader reads it back:
 /// fixed notation with six decimals for zero and magnitudes in [1e-2, 1e4),
@@ -374,7 +379,8 @@ fn compare(case: &str, produced: &Out, ignore_suffixes: &[&str]) {
                     // written (and compared) in full.
                     let x = &if key.starts_with("cand.") && key.contains(".meta.") {
                         as_written_meta(*x)
-                    } else if key.starts_with("cand.") && FLOAT_MEMBERS.iter().any(|m| key.ends_with(m))
+                    } else if key.starts_with("cand.")
+                        && FLOAT_MEMBERS.iter().any(|m| key.ends_with(m))
                     {
                         as_written_float(*x as f32)
                     } else {
@@ -1253,35 +1259,34 @@ fn unique_ids_follow_the_source_stream() {
 fn xic_access() -> openms::analysis::openswath::spectrum_access::SpectrumAccessPtr {
     let mut experiment = load_ms1("FeatureFinderIdentification_1_input.mzML.gz");
     add_per_peak_im(&mut experiment);
-    SimpleOpenMSSpectraFactory::spectrum_access_openms_ptr(std::sync::Arc::new(experiment))
-        .unwrap()
+    SimpleOpenMSSpectraFactory::spectrum_access_openms_ptr(std::sync::Arc::new(experiment)).unwrap()
 }
 
 /// Monoisotopic m/z and charge of the 23 features of the `ffid_none` case.
 const XIC_FEATURES: [(f64, f64); 23] = [
     (461.74765303542097, 2.0),
     (395.72652290782094, 2.0),
-    (455.75528053542098, 2.0),
-    (569.75261839302107, 2.0),
-    (443.71126790782091, 2.0),
+    (455.755280535421, 2.0),
+    (569.7526183930211, 2.0),
+    (443.7112679078209, 2.0),
     (487.73253447162097, 2.0),
-    (325.49078180333771, 3.0),
-    (554.26060201207099, 2.0),
-    (646.30468413227095, 2.0),
-    (431.20554824377092, 3.0),
+    (325.4907818033377, 3.0),
+    (554.260602012071, 2.0),
+    (646.304684132271, 2.0),
+    (431.2055482437709, 3.0),
     (379.71510077282096, 2.0),
-    (532.24874658327099, 2.0),
-    (404.20341232807101, 2.0),
-    (300.19552859760432, 3.0),
-    (368.86210990473768, 3.0),
+    (532.248746583271, 2.0),
+    (404.203412328071, 2.0),
+    (300.1955285976043, 3.0),
+    (368.8621099047377, 3.0),
     (449.74438990042097, 2.0),
     (300.1653520892043, 3.0),
     (395.2394634875709, 2.0),
     (501.79513472682095, 2.0),
-    (358.17457648633768, 3.0),
+    (358.1745764863377, 3.0),
     (421.75835453542095, 2.0),
-    (613.30659575872096, 2.0),
-    (464.25036251947103, 2.0),
+    (613.306595758721, 2.0),
+    (464.250362519471, 2.0),
 ];
 
 /// Four isotope traces of every feature, one sorted walk, with and without the
@@ -1290,7 +1295,6 @@ const XIC_FEATURES: [(f64, f64); 23] = [
 fn xic_all(mixed: bool) -> Out {
     let access = xic_access();
     let mut coords: Vec<ExtractionCoordinates> = Vec::new();
-    let mut ids: Vec<String> = Vec::new();
     for (i, &(mz, z)) in XIC_FEATURES.iter().enumerate() {
         for k in 0..4 {
             let mut c = ExtractionCoordinates {
@@ -1334,7 +1338,10 @@ fn xic_all(mixed: bool) -> Out {
             let pre = format!("mode{mode}.{}", coord.id);
             out.p(&format!("{pre}.mz"), coord.mz);
             out.pi(&format!("{pre}.n"), chrom.time_array().data.len() as i64);
-            out.p(&format!("{pre}.sum"), chrom.intensity_array().data.iter().sum());
+            out.p(
+                &format!("{pre}.sum"),
+                chrom.intensity_array().data.iter().sum(),
+            );
         }
     }
     out

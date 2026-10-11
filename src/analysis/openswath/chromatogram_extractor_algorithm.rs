@@ -37,11 +37,12 @@
 //! integrator, so after a coordinate without ion mobility (a negative
 //! `ion_mobility`) the iterator lags behind the m/z iterator for the rest of
 //! the spectrum, and every later ion-mobility coordinate filters on the ion
-//! mobility of an earlier peak. [`ChromatogramExtractorAlgorithm::extract_chromatograms`]
+//! mobility of an earlier peak.
+//! [`extract_chromatograms`](crate::analysis::openswath::chromatogram_extractor_algorithm::ChromatogramExtractorAlgorithm::extract_chromatograms)
 //! reproduces the lag (see
-//! [`ChromatogramExtractorAlgorithm::extract_value_tophat_im_lagged`]); an
-//! extraction in which every coordinate carries ion mobility, or none does, is
-//! not affected.
+//! [`extract_value_tophat_im_lagged`](crate::analysis::openswath::chromatogram_extractor_algorithm::ChromatogramExtractorAlgorithm::extract_value_tophat_im_lagged));
+//! an extraction in which every coordinate carries ion mobility, or none does,
+//! is not affected.
 //!
 //! # Ceilings
 //!
@@ -392,15 +393,9 @@ impl ChromatogramExtractorAlgorithm {
         let right_im = target_im + im_extraction_window / 2.0;
         let lag = *pos - *im_pos;
         let before = *pos;
-        let integrated = tophat_walk(
-            mz,
-            intensity,
-            pos,
-            target_mz,
-            left,
-            right,
-            |i| i >= lag && ion_mobility[i - lag] > left_im && ion_mobility[i - lag] < right_im,
-        );
+        let integrated = tophat_walk(mz, intensity, pos, target_mz, left, right, |i| {
+            i >= lag && ion_mobility[i - lag] > left_im && ion_mobility[i - lag] < right_im
+        });
         *im_pos += *pos - before;
         Ok(integrated)
     }

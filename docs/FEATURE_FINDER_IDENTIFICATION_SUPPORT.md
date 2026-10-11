@@ -16,7 +16,7 @@ test sections, parameters, behaviour on small synthetic MS1 data; no feature),
 [`tests/feature_finder_identification_topp.rs`](../tests/feature_finder_identification_topp.rs)
 (the retained upstream TOPP outputs; `mzml` + `featurexml` + `idxml`) and
 [`tests/feature_finder_identification_oracle.rs`](../tests/feature_finder_identification_oracle.rs)
-(executed Release build, 29 cases; same features). Support code
+(executed Release build, 29 feature-finder cases and 3 extractor cases; same features). Support code
 [`tests/support/ffid_inputs.rs`](../tests/support/ffid_inputs.rs). Fixtures:
 [`tests/data/feature_finder_identification/`](../tests/data/feature_finder_identification/).
 Manifest:
@@ -24,12 +24,21 @@ Manifest:
 
 The source has no OpenMP pragma in either file, so both are serial here. No crate was added.
 
-One addition outside the two files: `AASequence::formula_for_source`
-([`src/chemistry/sequence.rs`](../src/chemistry/sequence.rs)) and the one line of
-[`openswath_scoring.rs`](../src/analysis/openswath/openswath_scoring.rs) that uses it
-(see *Preserved source conventions*, "an anonymous modification has no atoms"), and
-`MRMFeatureFinderScoring::set_shared_unique_id_generator`
-([`src/analysis/openswath/mrm_feature_finder_scoring.rs`](../src/analysis/openswath/mrm_feature_finder_scoring.rs)).
+Additions outside the two files, each forced by an executed difference to the Release build:
+
+* `AASequence::formula_for_source`
+  ([`src/chemistry/sequence.rs`](../src/chemistry/sequence.rs)) and the one line of
+  [`openswath_scoring.rs`](../src/analysis/openswath/openswath_scoring.rs) that uses it
+  (see *Preserved source conventions*, "an anonymous modification has no atoms").
+* `MRMFeatureFinderScoring::set_shared_unique_id_generator`
+  ([`src/analysis/openswath/mrm_feature_finder_scoring.rs`](../src/analysis/openswath/mrm_feature_finder_scoring.rs)).
+* `ChromatogramExtractorAlgorithm::extract_value_tophat_im_lagged` and a per-spectrum ion-mobility
+  position in `extract_chromatograms`
+  ([`src/analysis/openswath/chromatogram_extractor_algorithm.rs`](../src/analysis/openswath/chromatogram_extractor_algorithm.rs));
+  see *Preserved source conventions*, "the ion-mobility iterator lags".
+* The library scores of the MRM scorer sum in Eigen's reduction order
+  ([`stats_helpers.rs`](../src/analysis/openswath/stats_helpers.rs),
+  [`scoring.rs`](../src/analysis/openswath/scoring.rs)); see "Eigen reduces in packets".
 
 ## API mapping
 
@@ -113,6 +122,28 @@ One addition outside the two files: `AASequence::formula_for_source`
   (`ProbabilityPrecision::SourceSingle`); library intensities and `isotope_probability` are those
   `float` values widened. `float(counter)` and `float(mass)`/`float(rt)` in the ids are kept
   (`StringUtils::toStr(float)`).
+* **The ion-mobility iterator lags.** The source's top-hat integrator advances its ion-mobility
+  iterator `im_it` only inside the overload that filters on ion mobility; the m/z-only overload,
+  which a coordinate without ion mobility (a peptide whose identifications carry none) takes,
+  advances `mz_it` and `int_it` and leaves `im_it` behind. Every ion-mobility coordinate after the
+  first m/z-only one of a spectrum then filters on the ion mobility of an earlier peak, and the lag
+  grows with each further m/z-only advance. A run on data with per-peak ion mobility and
+  identifications with and without `IM` therefore loses most of the signal of the peptides after
+  the first one without (executed: `ffid_im` reports 18 features, `ffid_im_off` 23). The extractor
+  reproduces the lag; reads before the start of the array, undefined behaviour in the source, count
+  as outside the window. Executed in isolation by `xic_im_mixed` (92 coordinates, 52 sums
+  changed, equal bit for bit).
+* **Eigen reduces in packets.** The library scores of the MRM scorer (`norm`, `dot_prod`,
+  `manhattan_dist`, `normalize_sum`, `root_mean_square_deviation`, `spectral_angle`) are Eigen
+  expressions in the source; Eigen sums four or more terms in packets, not left to right, and the
+  last digits of `var_library_*` differ with the order. They use `eigen_sum`/`eigen_dot` of
+  `math::fitters::levenberg_marquardt` here.
+* **The weight is summed as the source does.** `AASequence::getMZ` adds the charge, the terminal
+  and the residue weights in a fixed order (each residue as its full formula weight less water);
+  the native `mz` differs by one unit in the last place for some sequences, which moves a
+  transition. `source_mz` (public, used by the library builder) follows the source's order; an
+  anonymous mass tag is a delta on its residue or an absolute residue weight, as the source reads
+  its text.
 * **MetaboIdent keeps stale target state.** The target object is reused across charges and
   RTs: `expected_im` and `adduct` persist when a later RT has none; a failed adduct parse leaves
   the charge on the formula for the following charges.
@@ -139,6 +170,7 @@ One addition outside the two files: `AASequence::formula_for_source`
 | identification without hits in `addOffsetPeptides_` | skipped | the source reads `getHits()[0]` unchecked |
 | hit without charge | `Error::InvalidValue` | the m/z would be infinite |
 | `candidates_out` as FeatureParquet | `Error::Unsupported` before anything runs | FeatureParquet writing is a backlog item (dependency: the Arrow/Parquet FORMAT port) |
+| the candidates are written to `candidates_out` and read back by the caller | `set_capture_candidates(true)` keeps them in memory (`candidates()`); the file is written as well, without the peptide identifications whose run is not in the file, as the source's writer leaves them out | the native writer refuses such an identification; the in-memory candidates keep the identifications and the full precision of the values |
 | `debug >= 668` dumps `debug.traml` | the dump is not written, a message says so | the TraML writer (`FORMAT/TraMLFile.h`) is not ported; the run is unaffected |
 | `MSExperiment::updateRanges` before `getMinMobility` | ranges are computed on demand | no range state in this port |
 | `setModificationByDiffMonoMass` (`CalcMass` meta value) | the best modification within 0.002 Da of the registry, else an anonymous mass tag | the unknown-modification database entry is not mutated |
@@ -162,7 +194,7 @@ One addition outside the two files: `AASequence::formula_for_source`
 | --- | --- | --- |
 | `FeatureFinderIdentificationAlgorithm_test.cpp`, all three sections | 3 | `feature_finder_identification.rs` (`class_test_*`) |
 | `TOPP_FeatureFinderIdentification_1`, `_3`, `_5` (both outputs), `_summary_count`; `TOPP_FeatureFinderMetaboIdent_1`; reprocessing of the retained candidates | 1 (upstream retained outputs, `FuzzyDiff` 1.01 / 0.01) | `feature_finder_identification_topp.rs` |
-| 29 cases of the Release build (below), values bit for bit | 1 | `feature_finder_identification_oracle.rs` |
+| 29 cases of the Release build (below), values bit for bit; the extractor alone in three cases (`xic_im`, `xic_im_all`, `xic_im_mixed`) | 1 | `feature_finder_identification_oracle.rs` |
 | parameters, RT window rule, relative minimum width, decoys, cutoff direction, seed overlap rule, offset peptides, determinism, table contract, adduct defaults | 4 | `feature_finder_identification.rs` |
 
 The oracle driver is `../oracle/FF3-ffid/driver.cpp`, run on ibminode06 against the Linux x86-64
@@ -170,7 +202,11 @@ Release install `openms4-release-bc9cc12-c19e494-174b576`, twice in fresh proces
 standard output (the written `result.featureXML` differs between the runs in the identifiers
 of subordinate features, which are drawn from an unseeded thread-local stream and are not
 compared). The identification run identifiers of the loaded idXML (`<engine>_<date>_<random>`) are
-not compared either. Cases:
+not compared either. The candidates of the Release run are read back from the file the run wrote,
+so their values carry the file's text: a `float` with six decimals and a double meta value with
+fifteen decimals in [1e-2, 1e4) (`Internal::NumericFormatting::appendNumeric`); the test puts the
+port's in-memory values through the same text before comparing, and every other value is compared
+in full. Cases:
 
 | Case | What it adds to the TOPP tests |
 | --- | --- |
@@ -183,6 +219,7 @@ not compared either. Cases:
 | `mi_variants`, `mi_variants_none` | charges 1, 2 and -1; adducts (`M+Na;1+`, `M+K;1+`, an unparsable one); mass without formula; isotope distribution given; RT ranges; overlapping targets; contract violations |
 | `mi_faims`, `mi_im`, `mi_im_off` | FAIMS; ion mobility per target with the window; the window off |
 | `mi_no_candidates` | the empty-range exception |
+| `xic_im`, `xic_im_all`, `xic_im_mixed` | the extractor alone: the four isotope traces of one peptide with every point; 92 coordinates with and without the window; the same with coordinates lacking ion mobility and with RT windows (the iterator lag) |
 
 `ffid_psm_cutoff_string` documents the defect: with `min_psm_cutoff` set to a string, the Release
 build treats the cutoff as a number near zero and sets nearly every identification aside. It is not
@@ -204,7 +241,16 @@ compared (`tests` assert the intended behaviour at tier 4); the record file keep
    iterations of the reused target object (listed above).
 6. `addTargetAnnotations_`: `library_.getCompounds().size() - found_refs.size()` is an unsigned
    subtraction that wraps when more references than compounds were found (duplicate targets).
-7. `annotateFeatures_` ends the feature loop with `ref_rt_map[peptide_ref]` for a possibly empty
+7. `ChromatogramExtractorAlgorithm::extractChromatograms`, ion-mobility overload of the top-hat
+   integrator: `im_it` is advanced only in that overload. A spectrum that mixes coordinates with
+   and without ion mobility (`ion_mobility < 0` takes the m/z-only overload) filters later
+   coordinates on the ion mobility of earlier peaks, and a walk to the left of the first peaks
+   reads before the start of the array. `FeatureFinderIdentification` produces such spectra when
+   some peptides have no `IM` annotation.
+8. The `-candidates_in` workflow of the TOPP tool cannot work: `candidates_out` is written before the
+   protein identifications are set, so the file holds no identification (the writer leaves out a
+   hit whose run is absent), and `runOnCandidates` keeps nothing of them.
+9. `annotateFeatures_` ends the feature loop with `ref_rt_map[peptide_ref]` for a possibly empty
    `peptide_ref`, creating an empty map entry (harmless).
 
 ## Findings in other lanes' code (not fixed here)
@@ -219,6 +265,15 @@ compared (`tests` assert the intended behaviour at tier 4); the record file keep
 * `AASequence::formula_for` refuses an anonymous mass modification (the source omits it): the MS1
   isotope score of `OpenSwathScoring` failed on the two such peptides of that input. Fixed through
   `formula_for_source`.
+* `ChromatogramExtractorAlgorithm` did not carry the source's separate ion-mobility position; see
+  "the ion-mobility iterator lags". Added here with the oracle that shows it
+  (`xic_im_mixed`); the lane that ported the extractor is asked to take it over.
+* The library scores of the MRM scorer summed left to right where the source's Eigen expressions
+  do not (`var_library_*` differed in the last digits). Changed here in `stats_helpers.rs` and
+  `scoring.rs`; the oracle tests of the lane that ported them still pass.
+* `AASequence::mz` differs by one unit in the last place from the source's `getMZ` for some
+  sequences (the order of the sum); `source_mz` here follows the source's order. The native method
+  is not changed.
 * The native featureXML writer requires `ProteinIdentification::date_time`, where the source writes
   the zero date of an unset `DateTime`; `FeatureFinderMetaboIdent` sets `0000-00-00T00:00:00` on
   the run it creates.
