@@ -43,6 +43,7 @@ use crate::concept::constants::user_param::{
     MSM_INCHI_STRING, MSM_METABOLITE_NAME, MSM_SMILES_STRING,
 };
 use crate::concept::progress_logger::{ProgressLogger, ProgressReporter, progress_value};
+use crate::data_structures::string_utils::{split, to_double, to_int32};
 use crate::interfaces::MSDataConsumer;
 use crate::kernel::SpectrumType;
 use crate::metadata::MetaValue;
@@ -166,40 +167,13 @@ fn simplify(text: &str) -> String {
     result
 }
 
-/// `StringUtils::split(s, c, out)` semantics: an empty input yields no chunks,
-/// an input without the separator yields the whole string as one chunk, and
-/// otherwise the separator partitions the input, keeping empty chunks.
-fn source_split(text: &str, separator: char) -> Vec<&str> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).collect()
-    }
-}
-
-/// `StringUtils::toDouble`: leading and trailing space, tab, CR and LF are
-/// skipped, one leading `+` is consumed, and the remainder must be a complete
-/// decimal, `inf` or `nan` token. The source's `nan(payload)` extension is not
-/// accepted, because Rust's parser has no such form and no caller writes one.
-///
-/// The remainder then goes to `std::from_chars`, which refuses a *second* `+`
-/// and reports an overflowing decimal literal as `result_out_of_range` — a
-/// conversion error, not an infinity. Rust's own parser accepts both, so `++5`
-/// and `1e999` are rejected here explicitly; only the `inf`/`nan` words
-/// themselves convert to a non-finite value, exactly as they do upstream.
+/// `StringUtils::toDouble` through the shared
+/// [`crate::data_structures::string_utils::to_double`]: the Release build's
+/// `std::from_chars` rules, so a second `+`, an overflowing literal and a
+/// nonzero literal that underflows to zero are conversion errors; only the
+/// `inf`/`nan` words convert to a non-finite value, exactly as upstream.
 fn source_double(text: &str) -> Option<f64> {
-    let text = trim(text);
-    let body = text.strip_prefix('+').unwrap_or(text);
-    if body.starts_with('+') {
-        return None;
-    }
-    let value = body.parse::<f64>().ok()?;
-    if value.is_finite() {
-        return Some(value);
-    }
-    let word = body.strip_prefix('-').unwrap_or(body);
-    let head = word.get(..3).unwrap_or("");
-    (head.eq_ignore_ascii_case("inf") || head.eq_ignore_ascii_case("nan")).then_some(value)
+    to_double(text).ok()
 }
 
 /// [`source_double`] restricted to finite values.
@@ -212,17 +186,10 @@ fn finite_double(text: &str, line: usize, label: &str) -> Result<f64> {
         .ok_or_else(|| parse_error(line, format!("invalid finite {label}: {text:?}")))
 }
 
-/// `StringUtils::toInt32`: leading and trailing space, tab, CR and LF, one
-/// optional `+`, then a complete `i32`. Trailing characters and range overflow
-/// are conversion errors, and so is a second `+`, which `std::from_chars`
-/// refuses even though Rust's own parser accepts it.
+/// `StringUtils::toInt32` through the shared
+/// [`crate::data_structures::string_utils::to_int32`].
 fn source_int32(text: &str) -> Option<i32> {
-    let text = trim(text);
-    let body = text.strip_prefix('+').unwrap_or(text);
-    if body.starts_with('+') {
-        return None;
-    }
-    body.parse::<i32>().ok()
+    to_int32(text).ok()
 }
 
 /// `std::stoi`, used only by the source's `MSLEVEL=` branch: leading
@@ -331,14 +298,11 @@ fn precursor_mut(spectrum: &mut MSSpectrum) -> &mut Precursor {
 fn read_title(spectrum: &mut MSSpectrum, text: &str, line: usize) -> Result<()> {
     if text.contains("min") {
         let mut failed = false;
-        for chunk in source_split(text, ',') {
+        for chunk in split(text, ',') {
             if !chunk.contains("min") {
                 continue;
             }
-            let first = source_split(trim(chunk), ' ')
-                .first()
-                .copied()
-                .unwrap_or("");
+            let first = split(trim(chunk), ' ').first().copied().unwrap_or("");
             match source_double(trim(first)) {
                 Some(minutes) => {
                     let value = minutes * 60.0;
@@ -354,7 +318,7 @@ fn read_title(spectrum: &mut MSSpectrum, text: &str, line: usize) -> Result<()> 
             }
         }
         if failed {
-            let parts = source_split(text, '=');
+            let parts = split(text, '=');
             if parts.len() >= 2 && !parts[1].is_empty() {
                 spectrum
                     .metadata
@@ -607,7 +571,7 @@ impl<R: BufRead> MascotGenericReader<R> {
             // middle one empty — and is a parse error. Only the peak lines get
             // the whitespace collapsing.
             let substituted = value.replace('\t', " ");
-            let fields = source_split(&substituted, ' ');
+            let fields = split(&substituted, ' ');
             match fields.len() {
                 1 => {
                     let mz = finite_double(fields[0], line, "precursor m/z")?;

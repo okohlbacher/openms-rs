@@ -80,6 +80,7 @@
 //! # Ok::<(), openms::Error>(())
 //! ```
 
+use crate::data_structures::string_utils::trim;
 use crate::format::file_types::{self, FileType};
 use crate::format::mztab::{
     MzTab, MzTabCell, MzTabDouble, MzTabMetaData, MzTabNucleicAcidSectionRow, MzTabOSMSectionRow,
@@ -115,12 +116,6 @@ fn parse_error(line: usize, message: impl Into<String>) -> Error {
         line,
         message: message.into(),
     }
-}
-
-/// `StringUtils::trim`: ASCII space, tab, CR and LF only, matched by characters
-/// so a multi-byte character can never be split.
-fn trim_source(text: &str) -> &str {
-    text.trim_matches(|c| c == ' ' || c == '\t' || c == '\n' || c == '\r')
 }
 
 fn has_separator(text: &str) -> bool {
@@ -162,7 +157,7 @@ pub fn extract_bracket_index(key: &str, prefix: &str) -> Result<usize> {
         key.replace(prefix, "")
     };
     let digits = stripped.replace(']', "");
-    let token = trim_source(&digits);
+    let token = trim(&digits);
     let value: i64 = token
         .strip_prefix('+')
         .unwrap_or(token)
@@ -3510,7 +3505,7 @@ fn parse_reference_list(text: &str, label: &str, line: usize) -> Result<Vec<i32>
     }
     let mut values = Vec::with_capacity(fields.len());
     for field in fields {
-        let token = trim_source(field);
+        let token = trim(field);
         let value: i32 = token
             .strip_prefix('+')
             .unwrap_or(token)
@@ -3919,7 +3914,7 @@ impl MzTabFile {
                 .filter(|&total| total <= Self::MAX_BYTES)
                 .ok_or_else(|| bad("MzTab input exceeds its byte limit"))?;
 
-            let text = trim_source(&buffer);
+            let text = trim(&buffer);
             // The source records every line shorter than three bytes as an empty
             // row, so a one- or two-character line is discarded rather than
             // parsed.

@@ -20,6 +20,7 @@
 //! does not reproduce is listed in `docs/MASCOT_XML_SUPPORT.md`.
 
 use crate::chemistry::{AASequence, ModificationsDB, ProteaseDB};
+use crate::data_structures::string_utils::{split, to_double, to_int32, trim};
 use crate::format::spectrum_meta_data_lookup::{
     DEFAULT_SCAN_REGEXP, MetaDataFlags, SpectrumMetaData as LookupMetaData, SpectrumMetaDataLookup,
 };
@@ -104,44 +105,25 @@ fn parse(message: impl Into<String>) -> Error {
     }
 }
 
-/// `StringUtils::trim`: only space, tab, CR and LF are stripped.
-fn trim(text: &str) -> &str {
-    text.trim_matches([' ', '\t', '\n', '\r'])
-}
-/// `StringUtils::toDouble` restricted to finite values.
-///
-/// One leading `+` is consumed and the remainder goes to `std::from_chars`,
-/// which refuses a *second* `+` even though Rust's own parser accepts it; an
-/// overflowing decimal literal is `result_out_of_range` there and a conversion
-/// error here, not an infinity.
+/// `StringUtils::toDouble` restricted to finite values, through the shared
+/// [`crate::data_structures::string_utils::to_double`]: the Release build's
+/// `std::from_chars` rules, so a second `+`, an overflowing literal and a
+/// nonzero literal that underflows to zero are conversion errors, not an
+/// infinity or a silent zero.
 fn number(text: &str, label: &str) -> Result<f64> {
     let text = trim(text);
-    let body = text.strip_prefix('+').unwrap_or(text);
-    let value = if body.starts_with('+') {
-        None
-    } else {
-        body.parse::<f64>().ok().filter(|v| v.is_finite())
-    };
-    value.ok_or_else(|| parse(format!("Could not convert {text:?} to a finite {label}")))
+    to_double(text)
+        .ok()
+        .filter(|v| v.is_finite())
+        .ok_or_else(|| parse(format!("Could not convert {text:?} to a finite {label}")))
 }
-/// `StringUtils::toInt32`, which likewise refuses a second `+`.
+/// `StringUtils::toInt32` through the shared
+/// [`crate::data_structures::string_utils::to_int32`].
 fn integer(text: &str, label: &str) -> Result<i32> {
     let text = trim(text);
-    let body = text.strip_prefix('+').unwrap_or(text);
-    let value = if body.starts_with('+') {
-        None
-    } else {
-        body.parse::<i32>().ok()
-    };
-    value.ok_or_else(|| parse(format!("Could not convert {text:?} to an integer {label}")))
-}
-/// `StringUtils::split(s, c, out)` semantics.
-fn split(text: &str, separator: char) -> Vec<&str> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).collect()
-    }
+    to_int32(text)
+        .ok()
+        .ok_or_else(|| parse(format!("Could not convert {text:?} to an integer {label}")))
 }
 
 /// Per-spectrum meta data the title lookup can supply, the ported subset of

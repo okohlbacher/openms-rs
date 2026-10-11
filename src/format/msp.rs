@@ -26,7 +26,7 @@
 
 use crate::chemistry::AASequence;
 use crate::concept::constants::PROTON_MASS_U;
-use crate::data_structures::string_utils::{to_double, to_float, to_int32};
+use crate::data_structures::string_utils::{split, to_double, to_float, to_int32};
 use crate::format::file_info::text_format::ostream_g;
 use crate::format::file_types::{FileType, has_valid_extension};
 use crate::format::line_reader::{LineLimits, LineReader};
@@ -788,17 +788,6 @@ fn write_entry(spectrum: &MSSpectrum, hit: &PeptideHit, writer: &mut impl Write)
     }
     writeln!(writer)?;
     Ok(())
-}
-
-/// Source `StringUtils::split(s, char, out)`: an empty string yields no
-/// fields; otherwise every separator ends a field, so consecutive separators
-/// yield empty fields.
-fn split(text: &str, separator: char) -> Vec<&str> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).collect()
-    }
 }
 
 /// Source `StringUtils::prefix(s, char)`: the text before the first

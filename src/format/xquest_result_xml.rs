@@ -65,6 +65,7 @@ use crate::chemistry::{ResidueModification, SequenceModification, TermSpecificit
 use crate::comparison::Tolerance;
 use crate::concept::constants::{PROTON_MASS_U, user_param};
 use crate::data_structures::DateTime;
+use crate::data_structures::string_utils::split;
 use crate::format::file_info::text_format::{list_to_string, ostream_g, to_str};
 use crate::format::file_types::{FileType, has_valid_extension};
 use crate::format::pepxml_mascot::permissive;
@@ -516,20 +517,10 @@ fn short(what: &str, text: &str) -> Error {
     ))
 }
 
-/// `StringUtils::split(s, c)` (also the `std::string` splitter overload with
-/// a one-character separator): an empty subject yields nothing.
-fn split<'a>(text: &'a str, separator: &str) -> Vec<&'a str> {
-    if text.is_empty() {
-        Vec::new()
-    } else {
-        text.split(separator).collect()
-    }
-}
-
 /// `StringUtils::toInt32` for the source's `ListUtils::create<Int>`, which
 /// trims first.
 fn list_ints(text: &str) -> Result<Vec<i32>> {
-    split(text, ",")
+    split(text, ',')
         .into_iter()
         .map(|part| {
             to_int32(part.trim_matches([' ', '\t', '\n', '\r']))
@@ -687,7 +678,7 @@ impl Reader {
 
     /// `extractDateTime_`.
     fn date_time(&self, text: &str) -> Result<DateTime> {
-        let parts = split(text, " ");
+        let parts = split(text, ' ');
         let mut date_time = DateTime::default();
         if self.is_openpepxl {
             // Example: 2017-03-17 23:04:50
@@ -770,7 +761,7 @@ impl Reader {
         if let Some(text) = attributes.get("fixed_mod") {
             if !text.is_empty() {
                 params.fixed_modifications =
-                    split(text, ",").into_iter().map(str::to_owned).collect();
+                    split(text, ',').into_iter().map(str::to_owned).collect();
             }
         }
 
@@ -807,7 +798,7 @@ impl Reader {
 
         if let Some(text) = attributes.get("monolinkmw") {
             if !text.is_empty() {
-                let masses = split(text, ",")
+                let masses = split(text, ',')
                     .into_iter()
                     .map(|mass| to_double(mass.trim_matches([' ', '\t', '\n', '\r'])))
                     .collect::<Result<Vec<f64>>>()?;
@@ -845,7 +836,7 @@ impl Reader {
 
         let nterm_linkable = stream_bool(attributes.required("ntermxlinkable")?);
         let residues = |text: &str| -> Vec<String> {
-            split(text, ",").into_iter().map(str::to_owned).collect()
+            split(text, ',').into_iter().map(str::to_owned).collect()
         };
         match attributes.get("AArequired").filter(|text| !text.is_empty()) {
             // Older xQuest versions only allowed homobifunctional linkers.
@@ -912,7 +903,7 @@ impl Reader {
 
     fn spectrum_search(&mut self, attributes: &Attributes) -> Result<()> {
         let rt_text = attributes.required("rtsecscans")?;
-        let rt = split(rt_text, ":");
+        let rt = split(rt_text, ':');
         let (Some(light), Some(heavy)) = (rt.first(), rt.get(1)) else {
             return Err(short("rtsecscans", rt_text));
         };
@@ -925,7 +916,7 @@ impl Reader {
             self.mz_light = precursor;
             self.mz_heavy = precursor;
         } else {
-            let mz = split(mz_text, ":");
+            let mz = split(mz_text, ':');
             let (Some(light), Some(heavy)) = (mz.first(), mz.get(1)) else {
                 return Err(short("mzscans", mz_text));
             };
@@ -941,7 +932,7 @@ impl Reader {
             let params = &mut self.protein.search_parameters;
             if !params.metadata.contains_key("input_mzML") {
                 let spectrum = attributes.required("spectrum")?;
-                let file = split(spectrum, ".");
+                let file = split(spectrum, '.');
                 let Some(file) = file.first() else {
                     return Err(short("spectrum", spectrum));
                 };
@@ -961,8 +952,8 @@ impl Reader {
             // middle, each with its file name and indices.
             let spectrum = attributes.required("spectrum")?;
             let [light, heavy] = XQuestResultXmlHandler::split_by_middle(spectrum, '_')?;
-            let light = split(&light, ".");
-            let heavy = split(&heavy, ".");
+            let light = split(&light, '.');
+            let heavy = split(&heavy, '.');
             let Some(file) = light.first() else {
                 return Err(short("spectrum", spectrum));
             };
@@ -985,7 +976,7 @@ impl Reader {
     /// `setPeptideEvidence_`: one evidence per comma-separated accession, and
     /// one protein hit per accession not seen before.
     fn evidences(&mut self, proteins: &str, hit: &mut PeptideHit) -> Result<()> {
-        let accessions = split(proteins, ",");
+        let accessions = split(proteins, ',');
         if accessions.len() > self.limits.max_accessions_per_hit {
             return Err(limit("accessions per hit"));
         }
@@ -1432,7 +1423,7 @@ fn attribute_double(attributes: &Attributes, name: &str) -> Result<f64> {
 /// positions; the second is 0 when there is not exactly a second one.
 fn link_position(attributes: &Attributes) -> Result<(i64, i64)> {
     let text = attributes.required("xlinkposition")?;
-    let parts = split(text, ",");
+    let parts = split(text, ',');
     let first = parts.first().ok_or_else(|| short("xlinkposition", text))?;
     let first = i64::from(to_int32(first)?);
     let second = if parts.len() == 2 {
@@ -2080,7 +2071,7 @@ fn write_hit(
 
         let base_name = if !input_filename.is_empty() {
             let file = input_filename.split('/').next_back().unwrap_or_default();
-            let parts = split(file, ".");
+            let parts = split(file, '.');
             parts
                 .first()
                 .map(|part| (*part).to_owned())
