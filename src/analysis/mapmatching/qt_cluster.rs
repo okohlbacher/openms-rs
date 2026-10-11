@@ -13,7 +13,8 @@
 //! its body; a consumer that needs cheap handles keeps clusters in a vector and
 //! heaps their indices. The source keeps the per-map neighbours in
 //! `std::unordered_map`s, whose iteration order decides the order of
-//! [`QTCluster::all_neighbors`] and [`QTCluster::elements`] and the order in
+//! [`QTCluster::all_neighbors`](crate::analysis::mapmatching::qt_cluster::QTCluster::all_neighbors) and
+//! [`QTCluster::elements`](crate::analysis::mapmatching::qt_cluster::QTCluster::elements) and the order in
 //! which neighbour distances are summed for the quality (floating-point
 //! addition is not associative). The port keeps them in
 //! [`StdHashMap`](crate::math::hash_order::StdHashMap), which reproduces

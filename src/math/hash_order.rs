@@ -15,7 +15,7 @@
 //! reproduces two implementations, as the Linux x86_64 Release build uses
 //! them:
 //!
-//! - [`StdHashMap`]: libstdc++ 14's `std::unordered_map<size_t, V>` (a
+//! - [`StdHashMap`](crate::math::hash_order::StdHashMap): libstdc++ 14's `std::unordered_map<size_t, V>` (a
 //!   `std::unordered_set<size_t>` is the same table with no value). The
 //!   identity hash and the prime rehash policy (`_Prime_rehash_policy`, load
 //!   factor 1, growth factor 2, the `__fast_bkt` table and the `__prime_list`
@@ -23,7 +23,7 @@
 //!   linked list, a node entering an empty bucket at the head of the list and
 //!   one entering a non-empty bucket in front of that bucket's first node;
 //!   `clear` keeps the bucket count and the policy's resize threshold.
-//! - [`BoostTable`]: Boost 1.89's node-based `boost::unordered_map` and
+//! - [`BoostTable`](crate::math::hash_order::BoostTable): Boost 1.89's node-based `boost::unordered_map` and
 //!   `boost::unordered_multimap` (`boost/unordered/detail/fca.hpp`,
 //!   `implementation.hpp`): a prime bucket count (`prime_fmod_size`), the
 //!   bucket of a hash `h` is `(u32(h) + u32(h >> 32)) % prime`, a new node goes

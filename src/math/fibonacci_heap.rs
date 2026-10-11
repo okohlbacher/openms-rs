@@ -6,12 +6,12 @@
 //! which element is on top among elements the comparison does not separate.
 //!
 //! The heap orders items by a caller-supplied strict "less" (the max-heap of
-//! `boost::heap` with `std::less`: [`top`](FibonacciHeap::top) is an item no
+//! `boost::heap` with `std::less`: [`top`](crate::math::fibonacci_heap::FibonacciHeap::top) is an item no
 //! other item is greater than, except after a lazy update, see below). Items
 //! are identified by `usize` handles (the node numbers
-//! [`push`](FibonacciHeap::push) returns), and their values live outside the
+//! [`push`](crate::math::fibonacci_heap::FibonacciHeap::push) returns), and their values live outside the
 //! heap: the caller's `less(a, b)` reads them, so a value changed in place and
-//! reported with [`update_lazy`](FibonacciHeap::update_lazy) is seen at once,
+//! reported with [`update_lazy`](crate::math::fibonacci_heap::FibonacciHeap::update_lazy) is seen at once,
 //! as `boost::heap`'s `*handle` reference is.
 //!
 //! What is reproduced, step by step as `boost/heap/fibonacci_heap.hpp` does it
@@ -29,7 +29,7 @@
 //!   the *front* of the root list (without resetting its mark or cutting its
 //!   parent's ancestors), its children are appended to the end of the root
 //!   list, and it becomes the top when `less(top, node)`. A node whose value
-//!   *decreased* is not removed from the top: the next [`pop`](FibonacciHeap::pop)
+//!   *decreased* is not removed from the top: the next [`pop`](crate::math::fibonacci_heap::FibonacciHeap::pop)
 //!   repairs it, but a `top` before that may be stale, and `QTClusterFinder`
 //!   uses that top.
 //!

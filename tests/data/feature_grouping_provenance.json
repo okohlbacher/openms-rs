@@ -634,6 +634,11 @@
       "path": "tests/data/hash_order_oracle.tsv",
       "sha256": "4c62e4338d0183a75b02269ee7ce780660d447b3ccb35bb6408443c62d4812c1",
       "kind": "C++ Release oracle M2-hashorder output (oracle/M2-hashorder/driver.cpp, ibminode06, libstdc++ 14.4.0, Boost 1.89 through OpenMS::HashGrid, two runs identical), filtered to the order, cells and pairs lines"
+    },
+    {
+      "path": "tests/data/feature_linker_unlabeled_qt_5_output.consensusXML",
+      "sha256": "e4053af30ca72676127a9b97056f8ffc6321fb6d5c92993f0224b7cd327fd62f",
+      "kind": "test-data 0cb15f2 topp/FeatureLinkerUnlabeledQT_5_output.consensusXML, verbatim (carries date=0000-00-00T00:00:00, which the readers refuse; the test replaces it only when refused)"
     }
   ],
   "upstream_test_definition": [
