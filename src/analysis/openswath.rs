@@ -25,22 +25,34 @@ pub mod include_exclude_target;
 pub mod ion_mobility_scoring;
 /// Feature, peak-group, transition-group and S/N access traits, from `OPENSWATHALGO/DATAACCESS/ITransition.h`.
 pub mod itransition;
+/// Correlation of mass traces into pseudo-spectra, from `ANALYSIS/OPENSWATH/MasstraceCorrelator.h`.
+pub mod masstrace_correlator;
 /// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
 pub mod metabo_targeted_target_decoy;
 /// Test doubles for the access traits, from `OPENSWATHALGO/DATAACCESS/MockObjects.h`.
 pub mod mock_objects;
+/// `MRMAssay`: assay generation (annotation, restriction, detecting and UIS transitions) from raw targeted experiments.
+pub mod mrm_assay;
+/// `MRMDecoy`: reverse, pseudo-reverse and shuffle decoys for targeted assay libraries.
+pub mod mrm_decoy;
 /// Access-trait implementations over kernel types, from `ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h`.
 pub mod mrm_feature_access;
+/// `MRMIonSeries`: theoretical fragment ion series and transition annotation for assays and decoys.
+pub mod mrm_ion_series;
 /// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
 pub mod mrm_mapping;
 /// Cross-correlation, library, S/N and mutual-information scores of SRM/MRM peak groups, from `ANALYSIS/OPENSWATH/MRMScoring.h`.
 pub mod mrm_scoring;
+/// Peak-group picking across the chromatograms of one precursor, from `ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h`.
+pub mod mrm_transition_group_picker;
 /// Helpers shared by the OpenSWATH tools, from `ANALYSIS/OPENSWATH/OpenSwathHelper.h`.
 pub mod openswath_helper;
 /// `OpenSwath_Scores_Usage` and the LDA scoring methods of `OpenSwath_Scores`, from `ANALYSIS/OPENSWATH/OpenSwathScores.h`.
 pub mod openswath_scores;
 /// The driver calling the chromatographic, library, DIA and ion mobility scores, from `ANALYSIS/OPENSWATH/OpenSwathScoring.h`.
 pub mod openswath_scoring;
+/// Peak picking in a single ion mobilogram, from `ANALYSIS/OPENSWATH/PeakPickerMobilogram.h`.
+pub mod peak_picker_mobilogram;
 /// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
 pub mod reaction_monitoring_transition;
 /// Distances, cross-correlation, ranks and mutual information, from `OPENSWATHALGO/ALGO/Scoring.h`.
@@ -66,28 +78,10 @@ pub mod targeted_experiment_helper;
 pub mod transition_experiment;
 /// Transition grouping and compound lookup, from `OPENSWATHALGO/DATAACCESS/TransitionHelper.h`.
 pub mod transition_helper;
-/// The nested targeted experiment, from `OPENSWATHALGO/DATAACCESS/Transitions.h`.
-pub mod transitions;
-/// `IncludeExcludeTarget`: an inclusion or exclusion target of a targeted experiment.
-pub mod include_exclude_target;
-/// `MetaboTargetedTargetDecoy`: resolve overlapping and missing decoys in targeted metabolomics assay libraries.
-pub mod metabo_targeted_target_decoy;
-/// `MRMAssay`: assay generation (annotation, restriction, detecting and UIS transitions) from raw targeted experiments.
-pub mod mrm_assay;
-/// `MRMDecoy`: reverse, pseudo-reverse and shuffle decoys for targeted assay libraries.
-pub mod mrm_decoy;
-/// `MRMIonSeries`: theoretical fragment ion series and transition annotation for assays and decoys.
-pub mod mrm_ion_series;
-/// `MRMMapping`: map targeted assays to chromatograms by precursor and product m/z.
-pub mod mrm_mapping;
-/// `ReactionMonitoringTransition`: one SRM/MRM transition of an assay library.
-pub mod reaction_monitoring_transition;
-/// `TargetedExperiment`: the in-memory TraML document (transitions, analytes, metadata).
-pub mod targeted_experiment;
-/// `TargetedExperimentHelper`: the TraML value types (CV, protein, peptide, compound, retention time, product ion).
-pub mod targeted_experiment_helper;
 /// `TransitionPQPFile`: read and write PQP (SQLite) transition libraries.
 #[cfg(feature = "sqlite")]
 pub mod transition_pqp_file;
 /// `TransitionTSVFile`: read and write OpenSWATH transition lists (TSV/CSV/MRM).
 pub mod transition_tsv_file;
+/// The nested targeted experiment, from `OPENSWATHALGO/DATAACCESS/Transitions.h`.
+pub mod transitions;

@@ -347,20 +347,29 @@ pub(crate) fn read_processing(node: &Node, options: &ReadOptions) -> Result<Data
         &["software", "processingAction", "UserParam"],
     )?;
     let mut software = node.children.iter().filter(|n| n.name == "software");
-    let source = software
-        .next()
-        .ok_or_else(|| bad("dataProcessing needs software"))?;
+    // The source handlers (`ConsensusXMLHandler.cpp:580-592`, and the
+    // `FeatureXMLHandler.cpp:416-427` alike) create the entry on `dataProcessing` and fill
+    // the software only when a `software` child follows, so a missing one
+    // leaves the default (empty) software; the retained class-test fixture
+    // `Masstraces_Testdata.consensusXML` has such an entry.
+    let source = software.next();
     if software.next().is_some() {
         return Err(bad("duplicate software"));
     }
-    source.check(&["name", "version"], &[])?;
+    let software = match source {
+        Some(source) => {
+            source.check(&["name", "version"], &[])?;
+            Software {
+                name: source.get("name")?.into(),
+                version: source.get("version")?.into(),
+                ..Default::default()
+            }
+        }
+        None => Software::default(),
+    };
     let timestamp = node.get("completion_time")?;
     let mut value = DataProcessing {
-        software: Software {
-            name: source.get("name")?.into(),
-            version: source.get("version")?.into(),
-            ..Default::default()
-        },
+        software,
         completion_time: Some(timestamp.parse()?),
         metadata: xml::read_meta(node, options)?,
         ..Default::default()

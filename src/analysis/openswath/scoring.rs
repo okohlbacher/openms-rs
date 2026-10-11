@@ -18,11 +18,23 @@
 //! # Summation order
 //!
 //! As in [`stats_helpers`](crate::analysis::openswath::stats_helpers), the source's Eigen
-//! reductions add in blocks and the port adds left to right; results agree to
-//! rounding and are identical on every machine. The upstream class test pins
-//! the source's own Eigen cross-correlation against a left-to-right reference
-//! loop with a relative tolerance, which is exactly the port's loop.
+//! reductions add in blocks and most of the port adds left to right; results
+//! agree to rounding and are identical on every machine. The upstream class
+//! test pins the source's own Eigen cross-correlation against a left-to-right
+//! reference loop with a relative tolerance.
+//!
+//! [`standardize_data`](crate::analysis::openswath::scoring::standardize_data) and
+//! [`calculate_cross_correlation`](crate::analysis::openswath::scoring::calculate_cross_correlation)
+//! (and so
+//! [`normalized_cross_correlation`](crate::analysis::openswath::scoring::normalized_cross_correlation)) add in Eigen's own order instead, with the
+//! Eigen 5.0.1 two-lane kernels of the Linux x86-64 Release build that
+//! `crate::math::fitters::levenberg_marquardt` already carries and measured:
+//! the vectorised `redux` for `mean()` and `inner_product_impl` for `dot()`.
+//! `MRMTransitionGroupPicker`'s peak quality is built from them and is compared
+//! with that build bit for bit (`tests/openswath_peak_picking.rs`); a
+//! left-to-right sum moved it by one unit in the last place.
 
+use crate::math::fitters::levenberg_marquardt::{eigen_dot, eigen_sum};
 use crate::{Error, Result};
 
 /// A 2-D position `(row, column)`. Source typedef `Scoring::pos2D`.
@@ -157,14 +169,19 @@ pub fn spectral_angle(x: &[f64], y: &[f64]) -> Result<f64> {
 ///
 /// An empty vector and an all-zero vector are left unchanged; a constant
 /// non-zero vector (standard deviation 0) is divided by 1 instead, so it
-/// becomes all zeros.
+/// becomes all zeros. Both sums are Eigen `mean()` reductions (see the module
+/// documentation).
 pub fn standardize_data(data: &mut [f64]) {
     if data.is_empty() {
         return;
     }
     let n = data.len() as f64;
-    let mean = data.iter().sum::<f64>() / n;
-    let mut stdev = (data.iter().map(|v| (v - mean) * (v - mean)).sum::<f64>() / n).sqrt();
+    let mean = eigen_sum(data.len(), |i| data[i]) / n;
+    let mut stdev = (eigen_sum(data.len(), |i| {
+        let centred = data[i] - mean;
+        centred * centred
+    }) / n)
+        .sqrt();
     if mean == 0.0 && stdev == 0.0 {
         return;
     }
@@ -200,7 +217,8 @@ fn xcorr_entries(maxdelay: i32, lag: i32) -> Result<usize> {
 /// For every delay `d` from `-maxdelay` to `maxdelay` in steps of `lag`, the
 /// entry is `(d, sum_i data1[i] * data2[i + d])` over the indices where both
 /// exist; a delay with no overlap yields 0. A negative `maxdelay` yields an
-/// empty array.
+/// empty array. Each entry is an Eigen `dot()` (see the module
+/// documentation).
 ///
 /// # Errors
 ///
@@ -234,11 +252,7 @@ pub fn calculate_cross_correlation(
             // Both bounds lie in [0, size], so the conversions cannot fail.
             let (s, e) = (start as usize, end as usize);
             let shifted = (start + delay) as usize;
-            sxy = data1[s..e]
-                .iter()
-                .zip(&data2[shifted..shifted + (e - s)])
-                .map(|(a, b)| a * b)
-                .sum();
+            sxy = eigen_dot(e - s, |i| data1[s + i], |i| data2[shifted + i]);
         }
         // |delay| <= maxdelay, which fits i32.
         result.data.push((delay as i32, sxy));
