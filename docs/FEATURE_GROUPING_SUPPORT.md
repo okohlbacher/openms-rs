@@ -363,10 +363,12 @@ included). `FeatureGroupingAlgorithmKD` builds the aligner from its own
 - QT does not sort the input features' peptide hits in place (the source
   `const_cast`s its `const` input to sort them); the grouping never reads
   them afterwards.
-- `Adduct::toAdductString` (`DATASTRUCTURES/Adduct.h`, not ported) is
-  reproduced privately for plain elements; an isotope-labelled adduct formula
-  is `Error::Unsupported`. Non-string `Group` meta values are an error (the
-  source stringifies them).
+- `Adduct::toAdductString` (`DATASTRUCTURES/Adduct.h`, not ported as a class)
+  is reproduced privately for a molecule multiplier of one, including
+  isotope-labelled atoms (`(13)C`, `(2)H`, which `EmpiricalFormula::symbol_counts`
+  spells as the source's `getSymbol()` does and which sort before plain
+  elements). Non-string `Group` meta values are an error (the source
+  stringifies them).
 - `MAX_FEATURES` (2^24) bounds a QT run; the partition count must fit the
   source's `int`.
 

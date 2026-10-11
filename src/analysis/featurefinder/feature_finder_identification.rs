@@ -840,9 +840,9 @@ impl FeatureFinderIdentificationAlgorithm {
     /// The assay library used and produced by the last run (source
     /// `getLibrary`): peptides, proteins and transitions accumulated over the
     /// batches. Empty for FAIMS data with several voltages, where every group
-    /// has its own library.
-    // the source's `getLibrary` returns `output_library_`; the working library of
-    // a batch is `library`
+    /// has its own library. The source's `getLibrary` returns
+    /// `output_library_`; the working library of a batch is the private
+    /// `library`, which this getter deliberately does not return.
     #[allow(clippy::misnamed_getters)]
     pub fn library(&self) -> &TargetedExperiment {
         &self.output_library

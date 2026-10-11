@@ -62,7 +62,7 @@ use super::feature_grouping_algorithm::insert_base_feature;
 use super::grid_feature::GridFeature;
 use super::params::{add_float, add_int, add_string, bad, flag, flag_text, float, int};
 use super::qt_cluster::{BulkData, Element, QTCluster};
-use crate::chemistry::{EmpiricalFormula, element_table};
+use crate::chemistry::EmpiricalFormula;
 use crate::concept::constants::user_param::{
     ADDUCT_GROUP, DC_CHARGE_ADDUCTS, IIMN_BEST_ION, IIMN_LINKED_GROUPS,
 };
@@ -650,37 +650,27 @@ fn math_functions_quantile(x: &[f64], q: f64) -> Result<f64> {
 }
 
 /// `Adduct::toAdductString(ion_string, charge)`: `[M` then each element,
-/// sorted by symbol, as sign, count when above one, and symbol, then `]`, the
-/// absolute charge when above one, and its sign.
+/// sorted by symbol string, as sign, count when above one, and symbol, then
+/// `]`, the absolute charge when above one, and its sign. An isotope label is
+/// part of the symbol (`(13)C`, `(2)H`), as the source's `getSymbol()` has it.
+///
+/// `DATASTRUCTURES/Adduct.h` is not ported as a class; this is its static
+/// `toAdductString` with the molecule multiplier of one, which is all the
+/// grouping algorithms call.
 ///
 /// # Errors
 ///
-/// The [`EmpiricalFormula::parse`] error, and [`Error::Unsupported`] for a
-/// formula with isotope-labelled atoms, whose source symbols this port does
-/// not enumerate.
+/// The [`EmpiricalFormula::parse`] error.
 pub(super) fn to_adduct_string(ion_string: &str, charge: i32) -> Result<String> {
     let formula = EmpiricalFormula::parse(ion_string)?;
-    let mut entries: BTreeMap<&str, i32> = BTreeMap::new();
-    let mut covered = 0i64;
-    for element in element_table() {
-        let count = formula.count(element.symbol())?;
-        if count != 0 {
-            entries.insert(element.symbol(), count);
-            covered += i64::from(count);
-        }
-    }
-    if covered != formula.atom_count() {
-        return Err(Error::Unsupported(format!(
-            "adduct string of isotope-labelled formula '{ion_string}'"
-        )));
-    }
+    let entries: BTreeMap<String, i32> = formula.symbol_counts().into_iter().collect();
     let mut s = String::from("[M");
     for (symbol, count) in entries {
         s.push(if count > 0 { '+' } else { '-' });
         if count.unsigned_abs() > 1 {
             s.push_str(&count.unsigned_abs().to_string());
         }
-        s.push_str(symbol);
+        s.push_str(&symbol);
     }
     s.push(']');
     if charge.unsigned_abs() > 1 {
@@ -931,4 +921,24 @@ impl<'a> Clustering<'_, 'a> {
 /// A meta value as the source's `DataValue::toString()` renders a string.
 pub(super) fn meta_text(value: &MetaValue) -> Result<String> {
     Ok(value.as_str()?.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::to_adduct_string;
+
+    /// Tier 4, derived from `Adduct::toAdductString` (`Adduct.cpp:156-187`)
+    /// and `ElementDB::storeIsotopes_` (`ElementDB.cpp:640-641`: an isotope's
+    /// symbol is `(mass number)` followed by the element symbol): the
+    /// elements are keyed and sorted by that symbol string, so `(13)C` and
+    /// `(2)H` sort before every plain element.
+    #[test]
+    fn adduct_string_orders_by_symbol_string_and_keeps_isotope_labels() {
+        assert_eq!(to_adduct_string("H2O", 1).unwrap(), "[M+2H+O]+");
+        assert_eq!(to_adduct_string("H-1", -1).unwrap(), "[M-H]-");
+        assert_eq!(to_adduct_string("Na1H-3", 2).unwrap(), "[M-3H+Na]2+");
+        assert_eq!(to_adduct_string("(13)C2H3", 1).unwrap(), "[M+2(13)C+3H]+");
+        // `D` is `(2)H`, which sorts before the natural `H`.
+        assert_eq!(to_adduct_string("D1H2", 1).unwrap(), "[M+(2)H+2H]+");
+    }
 }
