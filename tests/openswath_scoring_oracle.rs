@@ -72,31 +72,22 @@ fn oracle() -> BTreeMap<String, String> {
         .collect()
 }
 
-/// Keys whose C++ value comes from an accumulation in a different order,
-/// compared with relative tolerance 1e-12 instead of exactly (see
-/// `docs/OPENSWATH_SCORING_SUPPORT.md`, "Tolerance"):
+/// Keys compared with relative tolerance 1e-12 instead of exactly (see
+/// `docs/OPENSWATH_SCORING_SUPPORT.md`, "Tolerance").
 ///
-/// - cross-correlation apex values (every `shape` score): `Scoring.cpp`
-///   reduces with Eigen, whose vectorised `dot`/`sum` add in blocks; the port
-///   adds left to right (as `analysis::openswath::scoring` documents);
-/// - `StatsHelpers.cpp` `dotProd`, `norm`, `manhattanDist` and the sums of
-///   `dotprodScoring`/`manhattanScoring`, likewise Eigen: the prescore
-///   (`prescore*`, `with_iso*`, `*dotprod_score_dia`, `*manhatt_score_dia`) and
-///   library (`lib.dot`, `lib.man`) scores;
-/// - `by2.*` and `theor1.*`, fragment m/z from the chemistry port's
-///   `TheoreticalSpectrumGenerator`, which adds the protons after the residues
-///   where the source starts from `PROTON_MASS_U * charge` and adds residues
-///   (`TheoreticalSpectrumGenerator.cpp:724-794`); outside this port's scope and
-///   reported to the chemistry owner.
+/// Only the fragment m/z values of the chemistry port's
+/// `TheoreticalSpectrumGenerator` remain (`by2.*`, `theor1.*`): it adds the
+/// protons after the residues where the source starts from
+/// `PROTON_MASS_U * charge` and adds residues
+/// (`TheoreticalSpectrumGenerator.cpp:724-794`), which moves the last bits;
+/// outside this port's scope and reported to the chemistry owner.
+///
+/// The Eigen reductions of `Scoring.cpp` and `StatsHelpers.cpp` (every `shape`
+/// score, `prescore*`, `with_iso*`, `lib.dot`, `lib.man`, `*dotprod_score_dia`,
+/// `*manhatt_score_dia`) were a second class here while the port added left to
+/// right; the port now adds in Eigen's own order and they are compared exactly.
 fn reordered(key: &str) -> bool {
-    key.contains("shape")
-        || key.contains("dotprod_score_dia")
-        || key.contains("manhatt_score_dia")
-        || [
-            "prescore", "with_iso", "lib.dot", "lib.man", "by2.", "theor1.",
-        ]
-        .iter()
-        .any(|p| key.starts_with(p))
+    ["by2.", "theor1."].iter().any(|p| key.starts_with(p))
 }
 
 fn compare(port: &Rec, prefix: &str) {

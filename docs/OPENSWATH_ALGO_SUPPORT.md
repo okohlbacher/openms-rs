@@ -67,10 +67,14 @@ interfaces are documented in [OPENSWATH_DATAACCESS_SUPPORT.md](OPENSWATH_DATAACC
 
 ## Native differences
 
-- **Summation order.** Eigen reduces in vector blocks; the port adds left to right. Results agree to
-  rounding and are identical on every machine; the class test itself pins Eigen against a left-to-right
-  loop with a relative tolerance. No crate was taken for these reductions: they are one-line loops, and
-  `nalgebra` (considered) neither reproduces Eigen's block order nor adds anything a slice iterator lacks.
+- **Summation order.** Eigen reduces in vector blocks. The `f64` reductions of `StatsHelpers.cpp`
+  (`norm`, `dot_prod`, `manhattan_dist` and the sums of `manhattanScoring`) and of `Scoring.cpp`
+  (`standardize_data`, `calculate_cross_correlation`) add in Eigen's own order, with the Eigen 5.0.1
+  two-lane kernels of the Linux x86-64 Release build that `math::fitters::levenberg_marquardt` carries
+  and measured; they agree with that build bit for bit (`tests/openswath_scoring_oracle.rs`,
+  `tests/openswath_peak_picking.rs`) and are identical on every machine. The `f32` and `i32` dot
+  products accumulate in plain order. No crate was taken for these reductions: `nalgebra` (considered)
+  does not reproduce Eigen's block order.
 - **Checked preconditions.** `OPENSWATH_PRECONDITION` is compiled out of release builds; the port checks
   every one (equal non-zero lengths, non-empty cross-correlation array, ranks within their maximum) and
   returns `Error::InvalidValue`. The iterator-pair functions check that the second sequence is at least

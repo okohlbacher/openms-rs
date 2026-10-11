@@ -312,7 +312,7 @@ pub(crate) fn eigen_sum(size: usize, term: impl Fn(usize) -> f64) -> f64 {
 
 /// `squaredNorm()` of `size` coefficients (`Dot.h:21-27`): the reduction of
 /// the squares. Zero for an empty vector, as Eigen's `sum()`.
-fn eigen_squared_norm(size: usize, coeff: impl Fn(usize) -> f64) -> f64 {
+pub(crate) fn eigen_squared_norm(size: usize, coeff: impl Fn(usize) -> f64) -> f64 {
     if size == 0 {
         return 0.0;
     }

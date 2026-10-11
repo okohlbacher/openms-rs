@@ -189,20 +189,17 @@ and precursor scores need it.
   precursor scores), the IonMobilityScoring routines and `computeIonMobilogram`,
   and OpenSwathScoring's DIA, precursor, chromatographic, ID and library scores
   in both addition modes.
-- **Tolerance:** records compare **exactly** (bit for bit), NaN to NaN, except
-  three declared classes compared with relative tolerance 1e-12, each an
-  accumulation-order difference (the observed differences are 1-3 ulp):
-  1. cross-correlation apex values (every `shape` score): `Scoring.cpp`
-     reduces with Eigen's blocked `dot`/`sum`, the port adds left to right;
-  2. `StatsHelpers.cpp` `dotProd`/`norm`/`manhattanDist` and the sums in
-     `dotprodScoring`/`manhattanScoring` (Eigen): prescore, `dotprod_score_dia`,
-     `manhatt_score_dia`, `lib.dot`, `lib.man`;
-  3. fragment m/z from the chemistry port's `TheoreticalSpectrumGenerator`
-     (`by2.*`, `theor1.*`): the source starts from `PROTON_MASS_U * charge` and
-     adds residue masses (`TheoreticalSpectrumGenerator.cpp:724-794`), the port
-     adds the protons last. This is outside the OpenSWATH port and is reported
-     as a chemistry-port divergence; the b/y *counts* built from those m/z
-     values match exactly.
+- **Tolerance:** records compare **exactly** (bit for bit), NaN to NaN, except one declared
+  class compared with relative tolerance 1e-12 (observed 1-3 ulp): fragment m/z from the chemistry
+  port's `TheoreticalSpectrumGenerator` (`by2.*`, `theor1.*`): the source starts from
+  `PROTON_MASS_U * charge` and adds residue masses (`TheoreticalSpectrumGenerator.cpp:724-794`), the
+  port adds the protons last. This is outside the OpenSWATH port and is reported as a chemistry-port
+  divergence; the b/y *counts* built from those m/z values match exactly. Two further classes the
+  lane declared (cross-correlation apex values of `Scoring.cpp`, and the `StatsHelpers.cpp`
+  `dotProd`/`norm`/`manhattanDist`/sums behind the prescore, `dotprod_score_dia`,
+  `manhatt_score_dia`, `lib.dot` and `lib.man`) were accumulation-order differences against Eigen's
+  blocked reductions; integration (group O) moved both modules onto the measured Eigen 5.0.1
+  two-lane kernels and they are compared exactly.
 - **Tier 3 (source review):** every section of `DIAHelper_test.cpp`,
   `DIAPrescoring_test.cpp`, `DIAScoring_test.cpp`, `MRMScoring_test.cpp`,
   `IonMobilityScoring_test.cpp`, `OpenSwathScores_test.cpp` and

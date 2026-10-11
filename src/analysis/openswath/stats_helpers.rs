@@ -11,10 +11,14 @@
 //! # Summation order
 //!
 //! The source reduces with Eigen (`norm`, `dot`, `sum`), whose vectorised
-//! reductions add in blocks, not left to right. The port adds left to right, so
-//! a result can differ from the source in the last bits; it is identical on
-//! every machine. The upstream class tests compare with a relative tolerance
-//! of 1e-5, which such differences are far below.
+//! reductions add in blocks, not left to right. The `f64` reductions
+//! ([`norm`], [`dot_prod`], [`manhattan_dist`] and the sums of
+//! [`manhattan_scoring`]) add in Eigen's own order, with the Eigen 5.0.1
+//! two-lane kernels of the Linux x86-64 Release build that
+//! `crate::math::fitters::levenberg_marquardt` carries and measured, so they
+//! agree with that build to the last bit (`tests/openswath_scoring_oracle.rs`)
+//! and are identical on every machine. The `f32` and `i32` dot products keep
+//! their element-type accumulation in plain order.
 //!
 //! # Lengths
 //!
@@ -23,7 +27,17 @@
 //! [`Error::InvalidValue`](crate::Error::InvalidValue) when the second is
 //! shorter; a longer second slice is allowed, as in the source.
 
+use crate::math::fitters::levenberg_marquardt::{eigen_dot, eigen_squared_norm, eigen_sum};
 use crate::{Error, Result};
+
+/// `Eigen::Map<VectorXd>::sum()`: zero for an empty vector.
+fn eigen_total(values: &[f64]) -> f64 {
+    if values.is_empty() {
+        0.0
+    } else {
+        eigen_sum(values.len(), |i| values[i])
+    }
+}
 
 fn check_second_len(first: usize, second: usize) -> Result<()> {
     if second < first {
@@ -72,7 +86,10 @@ pub(super) fn normalize_in_place(values: &mut [f64], normalization_factor: f64) 
 
 /// The Euclidean norm of `values`; 0 for an empty slice.
 pub fn norm(values: &[f64]) -> f64 {
-    values.iter().map(|v| v * v).sum::<f64>().sqrt()
+    if values.is_empty() {
+        return 0.0;
+    }
+    eigen_squared_norm(values.len(), |i| values[i]).sqrt()
 }
 
 /// The dot product of `exp` and the first `exp.len()` elements of `theo`.
@@ -82,7 +99,10 @@ pub fn norm(values: &[f64]) -> f64 {
 /// [`Error::InvalidValue`] when `theo` is shorter than `exp`.
 pub fn dot_prod(exp: &[f64], theo: &[f64]) -> Result<f64> {
     check_second_len(exp.len(), theo.len())?;
-    Ok(exp.iter().zip(theo).map(|(a, b)| a * b).sum())
+    if exp.is_empty() {
+        return Ok(0.0);
+    }
+    Ok(eigen_dot(exp.len(), |i| exp[i], |i| theo[i]))
 }
 
 /// The dot product of two `f32` sequences, accumulated in `f32` and widened
@@ -149,7 +169,10 @@ pub fn dotprod_scoring(mut int_exp: Vec<f64>, mut theorint: Vec<f64>) -> Result<
 /// [`Error::InvalidValue`] when `theo` is shorter than `exp`.
 pub fn manhattan_dist(exp: &[f64], theo: &[f64]) -> Result<f64> {
     check_second_len(exp.len(), theo.len())?;
-    Ok(exp.iter().zip(theo).map(|(a, b)| (a - b).abs()).sum())
+    if exp.is_empty() {
+        return Ok(0.0);
+    }
+    Ok(eigen_sum(exp.len(), |i| (exp[i] - theo[i]).abs()))
 }
 
 /// The Manhattan score of an experimental against a theoretical intensity
@@ -166,8 +189,8 @@ pub fn manhattan_scoring(mut int_exp: Vec<f64>, mut theorint: Vec<f64>) -> Resul
     check_second_len(int_exp.len(), theorint.len())?;
     int_exp.iter_mut().for_each(|v| *v = v.sqrt());
     theorint.iter_mut().for_each(|v| *v = v.sqrt());
-    let exp_total: f64 = int_exp.iter().sum();
-    let theo_total: f64 = theorint.iter().sum();
+    let exp_total = eigen_total(&int_exp);
+    let theo_total = eigen_total(&theorint);
     normalize_in_place(&mut int_exp, exp_total);
     normalize_in_place(&mut theorint, theo_total);
     manhattan_dist(&int_exp, &theorint)
