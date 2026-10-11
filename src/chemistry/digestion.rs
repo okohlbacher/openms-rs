@@ -809,7 +809,7 @@ impl ProteaseDigestion {
     /// [`Self::min_length`] and [`Self::max_length`] (`None` is the source's
     /// 0, unbounded) as the length filter.
     ///
-    /// The tokenisation is [`Protease::source_tokenize`]'s, so a sequence an
+    /// The tokenisation is `Protease::source_tokenize`'s, so a sequence an
     /// Asp-N, Asp-N_ambic or Lys-N expression matches at its first residue
     /// starts with two token positions 0: the first token is empty and is
     /// counted in [`SourceDigestion::discarded`], the first product is repeated
@@ -1147,15 +1147,14 @@ impl ProteaseDigestion {
                 && at(pos.checked_sub(1).ok_or_else(overflow)?)? == b'D'
                 && at(pos)? == b'P'
         };
-        let spec_c = if end == size {
-            true
-        } else if usize::try_from(end).is_ok_and(|end| positions.contains(&end)) {
-            true
-        } else {
-            options.allow_random_asp_pro_cleavage
-                && at(end.checked_sub(1).ok_or_else(overflow)?)? == b'D'
-                && at(end)? == b'P'
-        };
+        let spec_c =
+            if end == size || usize::try_from(end).is_ok_and(|end| positions.contains(&end)) {
+                true
+            } else {
+                options.allow_random_asp_pro_cleavage
+                    && at(end.checked_sub(1).ok_or_else(overflow)?)? == b'D'
+                    && at(end)? == b'P'
+            };
         let specific = (spec_n && spec_c)
             || (self.specificity == DigestionSpecificity::Semi && (spec_n || spec_c));
         if !specific {
