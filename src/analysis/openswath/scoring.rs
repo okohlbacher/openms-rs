@@ -23,8 +23,10 @@
 //! test pins the source's own Eigen cross-correlation against a left-to-right
 //! reference loop with a relative tolerance.
 //!
-//! [`standardize_data`] and [`calculate_cross_correlation`] (and so
-//! [`normalized_cross_correlation`]) add in Eigen's own order instead, with the
+//! [`standardize_data`](crate::analysis::openswath::scoring::standardize_data) and
+//! [`calculate_cross_correlation`](crate::analysis::openswath::scoring::calculate_cross_correlation)
+//! (and so
+//! [`normalized_cross_correlation`](crate::analysis::openswath::scoring::normalized_cross_correlation)) add in Eigen's own order instead, with the
 //! Eigen 5.0.1 two-lane kernels of the Linux x86-64 Release build that
 //! `crate::math::fitters::levenberg_marquardt` already carries and measured:
 //! the vectorised `redux` for `mean()` and `inner_product_impl` for `dot()`.
