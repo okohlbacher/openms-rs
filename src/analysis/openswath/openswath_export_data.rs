@@ -19,6 +19,7 @@
 //! # Example
 //!
 //! ```
+//! use openms::analysis::openswath::openswath_export_config::OpenSwathMatrixExportConfig;
 //! use openms::analysis::openswath::openswath_export_data::{
 //!     OpenSwathExportRow, OpenSwathMatrixLevel,
 //! };
@@ -26,7 +27,14 @@
 //! let row = OpenSwathExportRow::default();
 //! assert_eq!(row.run_id, -1);
 //! assert_eq!(row.charge, 0);
-//! assert_eq!(OpenSwathMatrixLevel::default().as_str(), "peptide");
+//! // The enumeration itself value-initialises to its first enumerator; the
+//! // `peptide` default belongs to the export configuration
+//! // (`OpenSwathExportConfig.h:66`).
+//! assert_eq!(OpenSwathMatrixLevel::default().as_str(), "precursor");
+//! assert_eq!(
+//!     OpenSwathMatrixExportConfig::default().level,
+//!     OpenSwathMatrixLevel::Peptide
+//! );
 //! ```
 //!
 //! [`OpenSwathExportFileFormat`]: crate::analysis::openswath::openswath_export_data::OpenSwathExportFileFormat
