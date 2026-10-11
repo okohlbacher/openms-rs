@@ -219,6 +219,15 @@ pub(crate) fn xml_text(value: &str) -> Result<()> {
     }
 }
 pub(crate) fn date(value: &str) -> Result<()> {
+    // `DateTime::get` of a default-constructed (unset) `DateTime` is
+    // `0000-00-00 00:00:00`, so the source writes `0000-00-00T00:00:00` for a
+    // run that has no date and reads it back as an invalid `DateTime` without
+    // complaint. Upstream fixtures carry it (the MRMFeatureSelector featureXML
+    // test data). It is accepted verbatim, and only this exact string: every
+    // other date still goes through the calendar validator below.
+    if value == "0000-00-00T00:00:00" {
+        return Ok(());
+    }
     // The native wall-clock validator checks calendar fields; preserve optional
     // xs:dateTime fractional seconds and explicit timezone without conversion.
     if value.len() < 19 || !value.is_ascii() || value.as_bytes()[10] != b'T' {

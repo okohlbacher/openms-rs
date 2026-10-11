@@ -56,6 +56,24 @@ impl DecoyRandom {
         shuffle_from(|| self.next_u64(), data, remaining_draws)
     }
 
+    /// The same descending Fisher-Yates over a slice of any element type, as
+    /// `Math::RandomShuffler::portable_random_shuffle` runs it over any
+    /// random-access range. `ConfidenceScoring` shuffles its decoy index list
+    /// through this.
+    pub(crate) fn shuffle_slice<T>(
+        &mut self,
+        data: &mut [T],
+        remaining_draws: &mut usize,
+    ) -> Result<()> {
+        for end in (1..data.len()).rev() {
+            let high = u64::try_from(end)
+                .map_err(|_| Error::InvalidValue("shuffle range exceeds u64".into()))?;
+            let selected = bounded_from(|| self.next_u64(), high, remaining_draws)? as usize;
+            data.swap(end, selected);
+        }
+        Ok(())
+    }
+
     /// One raw 64-bit engine word.
     pub(crate) fn next_u64(&mut self) -> u64 {
         self.engine.next_u64()

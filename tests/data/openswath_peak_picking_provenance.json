@@ -1,0 +1,269 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "license": "BSD-3-Clause",
+ "group": "openswath_peak_picking",
+ "work_package": "O3a (Phase C wave 4): chromatogram peak picking",
+ "method": "Port of ANALYSIS/OPENSWATH/MRMTransitionGroupPicker, PeakPickerMobilogram and MasstraceCorrelator, completion of the DefaultParamHandler surfaces of PeakPickerChromatogram and PeakIntegrator and of PeakIntegrator's six ConstIterator overloads. Every section of the three class tests is transcribed with its literals, TEST_REAL_SIMILAR replayed at its defaults (ClassTest.cpp: absolute 1e-5 or ratio 1 + 1e-5). MRMTransitionGroupPicker is additionally replayed bit for bit against a driver linking the Linux x86_64 Release install (tier 1). Scoring.cpp is listed because standardize_data and calculateCrossCorrelation now use the two-lane Eigen mean() and dot() kernels already in src/math/fitters/levenberg_marquardt.rs (made pub(crate)); LinearResamplerAlign.h and MSChromatogram.h/.cpp because the picker reproduces raster(iterators) and sortByIntensity; GaussFilter.cpp, SavitzkyGolayFilter.h and PeakPickerHiRes.cpp because PeakPickerMobilogram relies on their Mobilogram overloads being the chromatogram template code; ConsensusXMLHandler.cpp and FeatureXMLHandler.cpp because src/format/map_xml.rs now accepts a dataProcessing element without software, as both handlers do (the MasstraceCorrelator class-test fixture has one).",
+ "evidence_tier": "tier 1 (MRMTransitionGroupPicker: 32 cases, 3,358 records; PeakPickerMobilogram: 8 cases; MasstraceCorrelator: 5 createPseudoSpectra cases and 6 scoreHullpoints pairs; all bit-identical to the executed Release build on ibminode06); tier 3 (transcribed class-test literals: MRMTransitionGroupPicker_test, PeakPickerChromatogram_test through getDefaults/setParameters, PeakIntegrator_test getParameters and the ConstIterator sections, PeakPickerMobilogram_test, MasstraceCorrelator_test over the retained Masstraces_Testdata.consensusXML); tier 4 (parameter round trips, refusals and unit tests of the raster, bound emulation and Eigen summation order)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h",
+   "sha256": "a4ad5a43d42eaa665bf0f3e69d75a036750b266d9bda31e3fe20b231a3ff86ba"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.cpp",
+   "sha256": "8f88e5dd65b9916c49ba8a7bb4977503441c4a065d401a389f263d6f02303c1b"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MRMTransitionGroupPicker_test.cpp",
+   "sha256": "bb65f0664bfa589d4cd3a7f33e23d3b475434d3d991ea1a09259365d9d0782f2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerChromatogram.h",
+   "sha256": "835e9bb87beaaba121abf96e92fdbaf73642180f14c8c453ceb59466ee436056"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakPickerChromatogram.cpp",
+   "sha256": "95164ec3705651d9cfe548d6dfab3d50e5ba5663acc87404e21d4e6471d552c7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakPickerChromatogram_test.cpp",
+   "sha256": "2f2092579de4ab142ee149424efa20ac92a4ee8c7d2bc14d5bb417e18ba99420"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h",
+   "sha256": "93fbfa46f512181bd8a646026014f56a9614222dd1222cecb6fc8785ea693c86"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakIntegrator.cpp",
+   "sha256": "0c88cb7d0c88dd618039ae641186993af958f8d4b41e9bbbd8662bcba70367fb"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakIntegrator_test.cpp",
+   "sha256": "dfda657e349d84ec132c60a3ab8e554178e9a485d3d4034758b1eed3add56a2f"
+  },
+  {
+   "path": "src/openswathalgo/source/OPENSWATHALGO/ALGO/Scoring.cpp",
+   "sha256": "9b3d7575dcdaa50b56726e47f76047fdc5c066903f2c49978c570522d5bd7004"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
+   "sha256": "e56ee678f5b984b0f4ed81a7e24521e7e5c3607a5a92e07472539f4a7743e536"
+  },
+  {
+   "path": "src/openms/include/OpenMS/KERNEL/MSChromatogram.h",
+   "sha256": "3f9f2f06c2e259dd719b328b160874c846ae24c73294c61b36f1573f46984117"
+  },
+  {
+   "path": "src/openms/source/KERNEL/MSChromatogram.cpp",
+   "sha256": "e29198d31abde2302e8e01c4d8e49c1856b788266fc95f767f881ed0f098e78a"
+  },
+  {
+   "path": "src/testframework/source/CONCEPT/ClassTest.cpp",
+   "sha256": "204ee5d065697f1a634efac42191a4579d51764c2a08657565add9def7a6233f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/PeakPickerMobilogram.h",
+   "sha256": "e9116b9c00eddf76efd53a75ab7bf01c99729e3992928e7567cf8f89e945a5f7"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/PeakPickerMobilogram.cpp",
+   "sha256": "e4525f6f0e2a9bfdbb60c824529afac9f5948319edd5439311eb266786318d0d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakPickerMobilogram_test.cpp",
+   "sha256": "794cae20b1350166a5d9c9a873791863f64b9d034f16e9f32a3587485de849f8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h",
+   "sha256": "5014897ad693b08963b556fcb93971277ce5d8026d19a09f5fad38c7f325a67e"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/OPENSWATH/MasstraceCorrelator.cpp",
+   "sha256": "3cec77ff3750f3b4151dc042e4e61996264f9309e15dca6f29d463a6fc047a7c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MasstraceCorrelator_test.cpp",
+   "sha256": "3a17dafa044a17d27a6ae702292130f5b32fa1fc047052b3097c8bdf9ffe3b5e"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/ConsensusXMLHandler.cpp",
+   "sha256": "644fc07a41fb609c1672c8eb0edac89c040a778f5c3ea68cc18a01c106771c7a"
+  },
+  {
+   "path": "src/openms/source/FORMAT/HANDLERS/FeatureXMLHandler.cpp",
+   "sha256": "1430b1286eeaf0f8c40f8ddd882d6f680e3932149ed743fb6e0f7dbc909e58fc"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/SMOOTHING/GaussFilter.cpp",
+   "sha256": "8d6ddcd32c7825f6f1157580f92be0ceb9214017e28ece00d54aa8f667d8f3df"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/SMOOTHING/SavitzkyGolayFilter.h",
+   "sha256": "65964ce9690052ed33cd7e2769eae1cb6c099b5579ffdb8b219f44ced75525c8"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/CENTROIDING/PeakPickerHiRes.cpp",
+   "sha256": "160f5cae6edfa02acb664daec881f41c26ce349b5ac0bc76d125ebcc30dd3fca"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/chromatogram_processing_traces.tsv",
+   "sha256": "598cb1c22925ce82b5c8f63f111bb7e603dda3985ffd7b6effa03c082c7f224a",
+   "registered_by": "tests/data/chromatogram_processing_provenance.json"
+  },
+  {
+   "path": "tests/data/chromatogram_processing_picked.tsv",
+   "sha256": "3b51f3e2609096b549bbd55410a9b1b849347b356e506fe63a6623df403c8aee",
+   "registered_by": "tests/data/chromatogram_processing_provenance.json"
+  },
+  {
+   "path": "tests/data/chromatogram_processing_backgrounds.tsv",
+   "sha256": "8adc5fdcf845d4496fe354dd70e1d6e601950ffc81a5f6ebd71d175c96a89fa1",
+   "registered_by": "tests/data/chromatogram_processing_provenance.json"
+  },
+  {
+   "path": "tests/data/chromatogram_processing_shape.tsv",
+   "sha256": "02d0a9ff60bff06bb1ebd4859b0526d6a1034d9ae8a12a0f0d83cbfaa970032b",
+   "registered_by": "tests/data/chromatogram_processing_provenance.json"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/openswath_peak_picking_groups.tsv",
+   "sha256": "8ed241b483811a1feaef8fd2b8c9bc4014f2e22ad54be84b8f12d84006afd243",
+   "rows": 18,
+   "kind": "driver input: 18 chromatograms of five groups; g1 and g2 are the class-test groups (MRMTransitionGroupPicker_test.cpp setup_transition_group and setup_transition_group2), g3-g5 are synthetic, generated by ../oracle/O3a-mrm-picker/gen_cases.py as decimal text"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_configs.tsv",
+   "sha256": "938b4d185b067760344c6871dc19f487e9a8d236eb242c5b05e5d4321550378a",
+   "rows": 32,
+   "kind": "driver input: 32 cases, each a group and parameter settings applied on top of getDefaults()"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_oracle.tsv",
+   "sha256": "a3d1a3c0d044ad6cd2bb7727fcb62bcf7825b8698f4cb4e4e889784c763d5d6d",
+   "rows": 3358,
+   "kind": "executed C++ output: results/records.tsv of the ibminode06 Release-build run, one record per value (doubles as C99 hex floats), copied verbatim"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_mobilograms.tsv",
+   "sha256": "c72342124bdf2500b92d80b3680fead5dcd3bcca79e3b07b2215f538cdffb325",
+   "rows": 3,
+   "kind": "oracle-2 driver input: the PeakPickerMobilogram class-test mobilogram (its literals) and two synthetic mobilograms, generated by ../oracle/O3a-mobilogram-masstrace/gen_cases.py"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_mob_configs.tsv",
+   "sha256": "4ce4684112ad3d024b4376aa3de93b8e979ed54f1d89bdecdd318d342e97032b",
+   "rows": 8,
+   "kind": "oracle-2 driver input: 8 mobilogram cases"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_maps.tsv",
+   "sha256": "cc26d7a7e2bb42887c31895f3905d6489839a107ab28d7e9d38d635a3348d88f",
+   "rows": 14,
+   "kind": "oracle-2 driver input: a synthetic 14-feature consensus map"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_corr_configs.tsv",
+   "sha256": "00a986228ce0ffb2fa024675ac699ed23dea061de4a58ad06bdcf546a6a294ef",
+   "rows": 5,
+   "kind": "oracle-2 driver input: 5 createPseudoSpectra cases"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_pairs.tsv",
+   "sha256": "26770b2d53d328d9d2765868e270b3e4ef41565466183c36ed8633c49eb54bd8",
+   "rows": 6,
+   "kind": "oracle-2 driver input: 6 scoreHullpoints pairs"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_oracle2.tsv",
+   "sha256": "582741a7ffdc993b45e6db7a856639165321b157698c1b844e9e50c377184c0b",
+   "rows": 399,
+   "kind": "executed C++ output: results/records.tsv of the second ibminode06 Release-build run (../oracle/O3a-mobilogram-masstrace), copied verbatim"
+  },
+  {
+   "path": "tests/data/openswath_peak_picking_masstraces.consensusXML",
+   "sha256": "4ef7837b45db4f2f9b33c449ac91167402b6a16c63c77d40fd1a480600aacd09",
+   "rows": 69,
+   "kind": "pinned upstream class-test input, byte-identical to src/tests/class_tests/openms/data/Masstraces_Testdata.consensusXML at bc9cc12 (MasstraceCorrelator_test.cpp:289)"
+  }
+ ],
+ "external_reference_note": "The oracle driver and its scripts live in ../oracle/O3a-mrm-picker (no C++ in this repository). run.sh push copies them to ibminode06, node.sh builds the driver with libOpenMS's core flags and runs it twice in fresh processes with a clean environment; the two record streams were identical (results/differ.txt empty).",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/O3a-mrm-picker/driver.cpp",
+   "sha256": "354625365589753ef6d4e3431771182acb0f085981aaa11f68cc6a2e9cabc28b",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mrm-picker/node.sh",
+   "sha256": "79c9962568760a5ccc284fdb91269b53ddbc7f852cb1afc97d38878a5b5ba9dd",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mrm-picker/run.sh",
+   "sha256": "1863df83debd41915917b8602581fc3534df06d5e23762d1cc5b5edee4192910",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mrm-picker/gen_cases.py",
+   "sha256": "b959d15004fe65ebf716734d96ae8341c84ba1793ea04598c8b1a69c5377e8e0",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mobilogram-masstrace/driver.cpp",
+   "sha256": "74f638e93c8392ea7aab940687c99909ade721bae9368e7b31cd8217775b8fee",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mobilogram-masstrace/node.sh",
+   "sha256": "caf6c7f8535ab8964461161b64f5954692112cfe2956278c9800e9289bd8e746",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mobilogram-masstrace/run.sh",
+   "sha256": "667921ab67e40bc1ba5e7e9d92414241b6815a519ed5279d911f6a6539e2346a",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/O3a-mobilogram-masstrace/gen_cases.py",
+   "sha256": "63c35d5fb94caec8bef6aa051bb13a690f58ffddc8b5d935bee96cbabfc1b08e",
+   "origin_key": "fixtures"
+  }
+ ],
+ "execution": {
+  "node": "ibminode06 (Linux 6.8.0-124-generic x86_64); never ibminode05",
+  "cpp_build": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (Linux x86_64 Release)",
+  "driver_build": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp, linked against libOpenMS and libOpenSwathAlgo",
+  "environment": "env -i PATH=/usr/bin:/bin OPENMS_DISABLE_UPDATE_CHECK=ON OPENMS_DATA_PATH=<prefix>/share/OpenMS/4.0.0",
+  "repeats": "each driver ran twice; records.tsv and exit identical byte for byte",
+  "second_run": "../oracle/O3a-mobilogram-masstrace: PeakPickerMobilogram (constructed in zeroed storage, so its never-assigned remove_overlapping_ reads false) and MasstraceCorrelator, same node, install, compiler and flags; build/o3a2_driver 46c1e25f01e50587177f33719b3d3f7b194dee50f9b424a93231fc1a81249947, records.tsv 582741a7ffdc993b45e6db7a856639165321b157698c1b844e9e50c377184c0b; stderr records the source's non-fatal 'Double conversion error of \"4the_second_seed202.0\"' while loading the class-test consensusXML",
+  "binaries": {
+   "lib/libOpenMS.so": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+   "lib/libOpenSwathAlgo.so": "7556e54f1c06fae6a97b986e67504c5f054557084fdfc36ae702ea907cbddaae",
+   "build/o3a_driver": "f4a32c85c2608c9950c8af3338268b22bd09e74b0562bf83518e68462fd35f3b"
+  }
+ },
+ "native_implementation": [
+  "src/analysis/openswath/mrm_transition_group_picker.rs",
+  "src/processing/chromatogram.rs",
+  "src/analysis/peak_integrator.rs",
+  "src/analysis/openswath/scoring.rs",
+  "src/analysis/openswath/peak_picker_mobilogram.rs",
+  "src/analysis/openswath/masstrace_correlator.rs",
+  "src/format/map_xml.rs"
+ ],
+ "native_tests": [
+  "tests/openswath_peak_picking.rs"
+ ],
+ "support_document": [
+  "docs/MRM_TRANSITION_GROUP_PICKER_SUPPORT.md",
+  "docs/CHROMATOGRAM_PICKING_SUPPORT.md",
+  "docs/PEAK_INTEGRATION_SUPPORT.md"
+ ]
+}

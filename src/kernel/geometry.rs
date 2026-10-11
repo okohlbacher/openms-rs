@@ -170,6 +170,21 @@ struct Scan {
     max_mz: f64,
 }
 
+impl Scan {
+    /// Source `DBoundingBox<1>::enlarge`: replace a bound only on a strict
+    /// `<` or `>`, so an equal m/z - in particular `-0.0` against `+0.0` -
+    /// keeps the value that came first, as `ConvexHull2D::addPoint` does.
+    /// `f64::min`/`f64::max` leave the sign of equal zeros unspecified.
+    fn enlarge(&mut self, mz: f64) {
+        if mz < self.min_mz {
+            self.min_mz = mz;
+        }
+        if mz > self.max_mz {
+            self.max_mz = mz;
+        }
+    }
+}
+
 /// OpenMS's hull: one m/z interval per RT scan, linearly joined between scans.
 ///
 /// This representation can be non-convex. [`Self::from_points`] builds scan
@@ -261,8 +276,7 @@ impl ConvexHull2D {
             Ok(i) => {
                 let scan = &mut self.scans[i];
                 let changed = point.mz < scan.min_mz || point.mz > scan.max_mz;
-                scan.min_mz = scan.min_mz.min(point.mz);
-                scan.max_mz = scan.max_mz.max(point.mz);
+                scan.enlarge(point.mz);
                 Ok(changed)
             }
             Err(i) => {
@@ -298,8 +312,8 @@ impl ConvexHull2D {
         scans.sort_by(|a, b| a.rt.partial_cmp(&b.rt).unwrap());
         scans.dedup_by(|later, earlier| {
             if later.rt == earlier.rt {
-                earlier.min_mz = earlier.min_mz.min(later.min_mz);
-                earlier.max_mz = earlier.max_mz.max(later.max_mz);
+                earlier.enlarge(later.min_mz);
+                earlier.enlarge(later.max_mz);
                 true
             } else {
                 false

@@ -1,0 +1,379 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h",
+      "sha256": "14cb2f05cacf8c97e90842acbabf770f7a5f280f0a7112b59969c2be67c91198"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureQC.cpp",
+      "sha256": "9a07f8806f84ad6e866bb2ef3bf4a7a383addeeb5f0e0dc0cfdb6ad3a695255b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h",
+      "sha256": "05edff0ac15cd4731a401c511db6c012a5f1393c6c6bfbfc262d68357bb16813"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFilter.cpp",
+      "sha256": "e33307878dcb7649ac2b640a8cdbd87701f0d3bf23e49e9311b981f63924d724"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h",
+      "sha256": "7295eeba66a5c5d5c8449773f1941f1ba8cd0063cd07a4abd5dc5bd6d9c2c627"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeaturePicker.cpp",
+      "sha256": "7776bc6d91502519739eecd411495a2c520475bc02763213c33bb81eabb1b76f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h",
+      "sha256": "a7ffbfa740b6a579ada91162df8e1213d5a71a695f486acdb1c2f2bb4e18ffd9"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureSelector.cpp",
+      "sha256": "ba3549fc84c466d2cfa77220091fa1866bda9a39216d49e4f5801259f6cad6f0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h",
+      "sha256": "c32d383ea852402bb82497881648216e6ba9a95613581c89baca31afd871dde6"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.cpp",
+      "sha256": "06b0930c0988f30dfe7e09b25d56f60e16adbace1faf5caf77110bd9132d840a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h",
+      "sha256": "4ffa183c3dbba5fb0ee7a5af152d4393479534505a90b9cf99d9db26be2247f1"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/ConfidenceScoring.cpp",
+      "sha256": "7edd7c0b5652c58c06622be790921236da7e8676b9dae0d24c577845cfe8c83b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h",
+      "sha256": "4d8af3f2a3e501be04d1ff2f59eda48074034f290227bb3a75ded734878c0a19"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.cpp",
+      "sha256": "90d331695058d3ec9b6cb6105f56d1153a71d3baa61c2531a4258784c2400cbe"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MRMFeatureQCFile.h",
+      "sha256": "18f13379c996af9c752fc16076b9ad37ea1b0dff91758991ef4e9a9c49355ca8"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MRMFeatureQCFile.cpp",
+      "sha256": "ff6177ce708d9a7595517e9975ddc8ce9bb13f88094bbde4f34459c095570ec3"
+    },
+    {
+      "path": "src/openms/include/OpenMS/FORMAT/MRMFeaturePickerFile.h",
+      "sha256": "35b21e4b145df40f81df797af045ed2d910bacb5ed37931fa588aa57f45b3c94"
+    },
+    {
+      "path": "src/openms/source/FORMAT/MRMFeaturePickerFile.cpp",
+      "sha256": "d37ff0e4a58a76c7abd15c8a17ec2f1fc123e676bd65fa130c375c207ca56a46"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+      "sha256": "3df291c5ab72f54708f29ba6e73b0baf373bc8c757e79c90a7d36507c56f4537"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp",
+      "sha256": "c06c5c9c429648595a5eb3ae5bac8d9d230de1d39bd3a44a09279fbcb6046079"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeatureQC_test.cpp",
+      "sha256": "9a588351284c2c0ba815831559f13c91779d1caa88bdc90f81598dd84018deaa"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeatureQCFile_test.cpp",
+      "sha256": "21a90b396659e8c84ce72affcc272a4f235a04cd90531e5b46b920461d3be8f2"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeaturePicker_test.cpp",
+      "sha256": "8fa6bb9121c3b32d3eca4a77876bacbc5475e48fb8130d7745e2e31e6b8718e8"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeaturePickerFile_test.cpp",
+      "sha256": "a6ddcbb805c2430dcc1c7fcda65824273747de44b485ae58e437198b30147b7e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeatureFilter_test.cpp",
+      "sha256": "27e3cb7d8f9c01dfec21223953433fa4494ddcf7aa15dcc962d9edbf37e224e4"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeatureSelector_test.cpp",
+      "sha256": "55bae386143a61ba0d15baa348c409e73e4fe543f9257339de8b19af494daba9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMBatchFeatureSelector_test.cpp",
+      "sha256": "a005d02c0bf9b2a9cc0896102deb7ceb4d3bb13149e082beb29d53118dde1e51"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/ConfidenceScoring_test.cpp",
+      "sha256": "f4b3134547ab9a5880e9ab75610bd04d7b61a526e9187a153323b65ead4142f8"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeatureFinderScoring_test.cpp",
+      "sha256": "9ef3a1e63a21e90305be56ca6502814e233a867156d93461b99f675600921450"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeatureQCFile_1.csv",
+      "sha256": "d744ebf3a9f8e6d35c7a1f4d3d7cd1a7e7ef8070f9ecc08e4a2fd5097d5a87aa"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeatureQCFile_2.csv",
+      "sha256": "c31273e38a464f30a40f36c3565d6b2a3bf68d0e5dfd9a4e8783949e8408b760"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeatureQCFile_1_test.csv",
+      "sha256": "45e2ace0eff30ecd238e66d8edef805d70ceca97e6f56b186d2dd4133dd0b59e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeatureQCFile_2_test.csv",
+      "sha256": "ed764176fb1b3d84f05a2df66d5bb14c8c55c509a7d162056499e4c2e59c7d8e"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeaturePickerFile.csv",
+      "sha256": "5d9dedd4e8631aef6d1b10bc58a2632b071ad9d85b2825f15d1c54c020887ca1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeatureSelector_100ug.featureXML",
+      "sha256": "43d0c4d322f5b4826d5e10a2b7e552d429aabef5da1d41fa562681b4dca4ce3c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1_reduced.featureXML",
+      "sha256": "e526587d9deb6f06ab33537b3cde13d02ec36270223cd8ed305265df4311aaed"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/OpenSwath_generic_input.mzML",
+      "sha256": "006eefa522dd5218ef4efe21636ecd4dc58d901f596e1f3b281f228a0cff3983"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/OpenSwath_generic_input.TraML",
+      "sha256": "26d38517850d033bfe99b15573c05e25db0a4f4d147a510671746d94e90bdd53"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/OpenSwath_identification_input.TraML",
+      "sha256": "593a344ba475b5e62c72c0835d7a40e3fd066a1ebaff95adf251e70eba9fa159"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/mrm_feature_qc.rs",
+    "src/analysis/openswath/mrm_feature_picker.rs",
+    "src/analysis/openswath/mrm_feature_filter.rs",
+    "src/analysis/openswath/mrm_feature_support.rs",
+    "src/analysis/openswath/mrm_feature_selector.rs",
+    "src/analysis/openswath/mrm_batch_feature_selector.rs",
+    "src/analysis/openswath/confidence_scoring.rs",
+    "src/analysis/openswath/mrm_feature_finder_scoring.rs",
+    "src/analysis/openswath/data_access_helper.rs",
+    "src/format/mrm_feature_qc_file.rs",
+    "src/format/mrm_feature_picker_file.rs"
+  ],
+  "native_tests": [
+    "tests/mrm_feature_qc.rs",
+    "tests/mrm_feature_filter.rs",
+    "tests/mrm_feature_selector.rs",
+    "tests/confidence_scoring.rs",
+    "tests/mrm_feature_finder_scoring.rs",
+    "tests/mrm_oracle.rs"
+  ],
+  "support": "docs/MRM_FEATURE_QC_SUPPORT.md",
+  "support_documents": [
+    "docs/MRM_FEATURE_QC_SUPPORT.md",
+    "docs/MRM_FEATURE_SELECTOR_SUPPORT.md",
+    "docs/MRM_FEATURE_FINDER_SUPPORT.md"
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/MRMFeatureQCFile_1.csv",
+      "sha256": "d744ebf3a9f8e6d35c7a1f4d3d7cd1a7e7ef8070f9ecc08e4a2fd5097d5a87aa",
+      "origin": "src/tests/class_tests/openms/data/MRMFeatureQCFile_1.csv"
+    },
+    {
+      "path": "tests/data/MRMFeatureQCFile_2.csv",
+      "sha256": "c31273e38a464f30a40f36c3565d6b2a3bf68d0e5dfd9a4e8783949e8408b760",
+      "origin": "src/tests/class_tests/openms/data/MRMFeatureQCFile_2.csv"
+    },
+    {
+      "path": "tests/data/MRMFeatureQCFile_1_test.csv",
+      "sha256": "45e2ace0eff30ecd238e66d8edef805d70ceca97e6f56b186d2dd4133dd0b59e",
+      "origin": "src/tests/class_tests/openms/data/MRMFeatureQCFile_1_test.csv"
+    },
+    {
+      "path": "tests/data/MRMFeatureQCFile_2_test.csv",
+      "sha256": "ed764176fb1b3d84f05a2df66d5bb14c8c55c509a7d162056499e4c2e59c7d8e",
+      "origin": "src/tests/class_tests/openms/data/MRMFeatureQCFile_2_test.csv"
+    },
+    {
+      "path": "tests/data/MRMFeaturePickerFile.csv",
+      "sha256": "5d9dedd4e8631aef6d1b10bc58a2632b071ad9d85b2825f15d1c54c020887ca1",
+      "origin": "src/tests/class_tests/openms/data/MRMFeaturePickerFile.csv"
+    },
+    {
+      "path": "tests/data/MRMFeatureSelector_100ug.featureXML",
+      "sha256": "43d0c4d322f5b4826d5e10a2b7e552d429aabef5da1d41fa562681b4dca4ce3c",
+      "origin": "src/tests/class_tests/openms/data/MRMFeatureSelector_100ug.featureXML"
+    },
+    {
+      "path": "tests/data/MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1_reduced.featureXML",
+      "sha256": "e526587d9deb6f06ab33537b3cde13d02ec36270223cd8ed305265df4311aaed",
+      "origin": "src/tests/class_tests/openms/data/MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1_reduced.featureXML"
+    },
+    {
+      "path": "tests/data/OpenSwath_generic_input.mzML",
+      "sha256": "006eefa522dd5218ef4efe21636ecd4dc58d901f596e1f3b281f228a0cff3983",
+      "origin": "src/tests/class_tests/openms/data/OpenSwath_generic_input.mzML"
+    },
+    {
+      "path": "tests/data/OpenSwath_generic_input.TraML",
+      "sha256": "26d38517850d033bfe99b15573c05e25db0a4f4d147a510671746d94e90bdd53",
+      "origin": "src/tests/class_tests/openms/data/OpenSwath_generic_input.TraML"
+    },
+    {
+      "path": "tests/data/OpenSwath_identification_input.TraML",
+      "sha256": "593a344ba475b5e62c72c0835d7a40e3fd066a1ebaff95adf251e70eba9fa159",
+      "origin": "src/tests/class_tests/openms/data/OpenSwath_identification_input.TraML"
+    },
+    {
+      "path": "tests/data/mrm_oracle/confidence.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/confidence/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/confidence.stdout",
+      "sha256": "9e5e430ecc102d545419dface747f802809e74b9681260d05f305dbbf1ccee31",
+      "origin": "../oracle/O3b-mrm/results/cases/confidence/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/filter.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/filter/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/filter.stdout",
+      "sha256": "63204990f12dfd837ce710a822c92bbed10d8944b844edd4227ad7ef0ed4c911",
+      "origin": "../oracle/O3b-mrm/results/cases/filter/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/finder.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/finder/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/finder.stdout",
+      "sha256": "519d9f68d88a44b314579b669603d542645b766f690d18d47c6155dbc817a87a",
+      "origin": "../oracle/O3b-mrm/results/cases/finder/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/pickerfile.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/pickerfile/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/pickerfile.stdout",
+      "sha256": "efb86091b1987ee9fe02337051e49ecb25fc5be46aa4346a6f54abef3a48f830",
+      "origin": "../oracle/O3b-mrm/results/cases/pickerfile/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/qcfile.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/qcfile/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/qcfile.stdout",
+      "sha256": "5403de85a632a17078186fe9e0ff004e1fac32cf036b2aaadebcd158f79d05fd",
+      "origin": "../oracle/O3b-mrm/results/cases/qcfile/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/qcfile_components.csv",
+      "sha256": "45e2ace0eff30ecd238e66d8edef805d70ceca97e6f56b186d2dd4133dd0b59e",
+      "origin": "../oracle/O3b-mrm/results/cases/qcfile/components.csv"
+    },
+    {
+      "path": "tests/data/mrm_oracle/qcfile_groups.csv",
+      "sha256": "ed764176fb1b3d84f05a2df66d5bb14c8c55c509a7d162056499e4c2e59c7d8e",
+      "origin": "../oracle/O3b-mrm/results/cases/qcfile/groups.csv"
+    },
+    {
+      "path": "tests/data/mrm_oracle/selector_dupname.exit",
+      "sha256": "e726b440cc164001999e718b51780d80314709efe06e7857282377be9111127b",
+      "origin": "../oracle/O3b-mrm/results/cases/selector_dupname/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/selector_dupname.stdout",
+      "sha256": "7af498da1c51b2205b57118c78ae14438c8352d2fb51d4a91a39e9617ddaef5d",
+      "origin": "../oracle/O3b-mrm/results/cases/selector_dupname/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/selector_qmip.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/selector_qmip/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/selector_qmip.stdout",
+      "sha256": "4720d0241cdad6e49240b5e751bfc6da16497310d08d204d33019e552cb1d2f8",
+      "origin": "../oracle/O3b-mrm/results/cases/selector_qmip/stdout.bin"
+    },
+    {
+      "path": "tests/data/mrm_oracle/selector_score.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O3b-mrm/results/cases/selector_score/exit"
+    },
+    {
+      "path": "tests/data/mrm_oracle/selector_score.stdout",
+      "sha256": "de0580acaebf75b67fe2d8f5d49e626aa395273881f0cbc65c1cb040e6883c67",
+      "origin": "../oracle/O3b-mrm/results/cases/selector_score/stdout.bin"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (executed differential) for MRMFeatureQCFile, MRMFeaturePickerFile, MRMFeatureFilter, MRMFeatureSelectorScore, MRMBatchFeatureSelector (the features its QMIP batches keep), ConfidenceScoring and MRMFeatureFinderScoring: key<TAB>%.17g records from driver ../oracle/O3b-mrm/driver.cpp built with x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0 -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp against the Linux x86-64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c, linked with libOpenSwathAlgo.so) on ibminode06; Linux ibminode06 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux; every case ran twice in fresh processes with byte-identical stdout, stderr, exit code and written files (results/differ.txt empty). Case selector_dupname aborts (exit 134, GLPK duplicate row name), which tests/mrm_oracle.rs asserts. The class tests of the nine headers are also transcribed (tier 3), every section.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O3b-mrm/driver.cpp",
+      "sha256": "c94f672a9cb49acfa10cb4a5e3f9609c5aaa3dd092e07710ee1ef1b9a3ca3856",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O3b-mrm/remote_run.sh",
+      "sha256": "d71bd0bcdb9591e3deb0b0435fd6f61ab2099fa3cd464bcb25a7dadd285d8adc",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O3b-mrm/run.sh",
+      "sha256": "bfd93618747b3ae4892a181bcbd048996d8979d4b065543bb5f11905bce6f9ff",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O3b-mrm/cases.txt",
+      "sha256": "d2f4aa2e0cbe5074a5d8f0677fcead7a9b564cbf4b2ce0cb10b352f8a57847eb",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O3b-mrm/results/hashes.txt",
+      "sha256": "b7fa774e3348d9ae2ae94ac12de81e347850484ab70d5bdb3ec15a8050723a67",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O3b-mrm/results/case_hashes.txt",
+      "sha256": "04b82a75a713d5ab6140ac30626be3e65d054db4747ad230ec82bf9e4a6aa37b",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "The C++ oracle driver and its run scripts live outside this repository (no C++ is committed); its retained stdout and exit codes are the fixtures under tests/data/mrm_oracle/."
+}
