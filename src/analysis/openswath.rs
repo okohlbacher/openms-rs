@@ -39,6 +39,8 @@ pub mod mrm_batch_feature_selector;
 pub mod mrm_feature_access;
 /// Flagging and filtering of MRM features against QC bounds, from `ANALYSIS/OPENSWATH/MRMFeatureFilter.h`.
 pub mod mrm_feature_filter;
+/// Finding and scoring of MRM features, from `ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h`.
+pub mod mrm_feature_finder_scoring;
 /// Per-component and per-component-group picker parameters, from `ANALYSIS/OPENSWATH/MRMFeaturePicker.h`.
 pub mod mrm_feature_picker;
 /// Quality-control bounds for MRM components and component groups, from `ANALYSIS/OPENSWATH/MRMFeatureQC.h`.
