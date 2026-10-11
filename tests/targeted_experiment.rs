@@ -1534,6 +1534,70 @@ fn oracle_mrm_mapping() {
     }
 }
 
+/// `MRMMapping::mapExperiment(PeakMap, LightTargetedExperiment, PeakMap&)`
+/// converts the light experiment and calls the heavy overload (source
+/// `MRMMapping.cpp`), so a light experiment holding the assays of
+/// [`oracle_mrm_mapping`] must produce the records the Release build printed for
+/// that run: same chromatograms, native ids, peptide sequences, descriptions
+/// and the same multiple-assay refusal.
+#[test]
+fn oracle_mrm_mapping_light_overload() {
+    use openms::analysis::openswath::transition_experiment::{
+        LightCompound, LightTargetedExperiment, LightTransition,
+    };
+    let mut light = LightTargetedExperiment::default();
+    light.compounds_mut().push(LightCompound {
+        id: "pep1".into(),
+        sequence: "PEPTIDE".into(),
+        ..LightCompound::default()
+    });
+    for (id, pep_ref, pre) in [("t1", "pep1", 400.0), ("t2", "unknown_ref", 500.0)] {
+        light.transitions_mut().push(LightTransition {
+            transition_name: id.into(),
+            peptide_ref: pep_ref.into(),
+            precursor_mz: pre,
+            product_mz: 300.0,
+            ..LightTransition::default()
+        });
+    }
+    let mut c1 = MSChromatogram::default();
+    c1.native_id = "c1".into();
+    c1.precursor.mz = 400.05;
+    c1.product.mz = 300.0;
+    let mut c2 = c1.clone();
+    c2.native_id = "c2".into();
+    c2.precursor.mz = 500.0;
+    let mut exp = MSExperiment::default();
+    exp.chromatograms = vec![c1.clone(), c2];
+    let out = MRMMapping::new()
+        .map_experiment_light(&exp, &light)
+        .unwrap();
+    let count = oracle_records(ORACLE_MAPPING, "mapping");
+    assert_eq!(out.chromatograms.len().to_string(), count[0][2]);
+    let chroms: Vec<_> = count.iter().filter(|r| r[1] == "chrom").collect();
+    assert_eq!(chroms.len(), out.chromatograms.len());
+    for (c, record) in out.chromatograms.iter().zip(chroms) {
+        let meta = &c.precursor.cv_terms.metadata;
+        assert_eq!(c.native_id, record[2]);
+        assert_eq!(meta["peptide_sequence"], MetaValue::from(record[3]));
+        assert_eq!(meta["description"], MetaValue::from(record[4]));
+    }
+
+    let mut c3 = c1;
+    c3.precursor.mz = 450.0;
+    let mut exp2 = MSExperiment::default();
+    exp2.chromatograms = vec![c3];
+    let mut p = MRMMapping::defaults().unwrap();
+    p.set_value("precursor_tolerance", ParamValue::Float(100.0), "", &[])
+        .unwrap();
+    let m = MRMMapping::from_param(&p).unwrap();
+    let multi = count.iter().find(|r| r[1] == "multi").unwrap();
+    match m.map_experiment_light(&exp2, &light) {
+        Err(Error::InvalidValue(message)) => assert_eq!(message, multi[3]),
+        other => panic!("expected the multiple-assay refusal, got {other:?}"),
+    }
+}
+
 fn metabo_transition(
     id: &str,
     compound_ref: &str,

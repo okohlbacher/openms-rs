@@ -11,17 +11,23 @@
 //! copies of the mapped chromatograms.
 //!
 //! The source's second overload, taking an OpenSWATH
-//! `LightTargetedExperiment`, converts it to a `TargetedExperiment` and calls
-//! the first; it is not ported here because `LightTargetedExperiment`
-//! (`OPENSWATHALGO/DATAACCESS/TransitionExperiment.h`) is ported by a parallel
-//! lane. See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TARGETED_EXPERIMENT_SUPPORT.md).
+//! `LightTargetedExperiment`, converts it to a `TargetedExperiment` (peptides
+//! with id and sequence, proteins with id and sequence, transitions with
+//! native id, peptide reference, m/z, library intensity and flags) and calls
+//! the first: [`MRMMapping::map_experiment_light`].
+//! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TARGETED_EXPERIMENT_SUPPORT.md).
 //!
 //! The source contains no `#pragma omp`; the port is serial.
 //!
 //! [`MRMMapping::map_experiment`]: crate::analysis::openswath::mrm_mapping::MRMMapping::map_experiment
 //! [`TargetedExperiment`]: crate::analysis::openswath::targeted_experiment::TargetedExperiment
 
+use crate::analysis::openswath::reaction_monitoring_transition::{
+    DecoyTransitionType, ReactionMonitoringTransition,
+};
 use crate::analysis::openswath::targeted_experiment::TargetedExperiment;
+use crate::analysis::openswath::targeted_experiment_helper::{Peptide, Protein};
+use crate::analysis::openswath::transition_experiment::LightTargetedExperiment;
 use crate::kernel::{MSChromatogram, MSExperiment};
 use crate::metadata::MetaValue;
 use crate::param::{DefaultParamHandler, Param, ParamEntry, ParamNode, ParamValue};
@@ -318,5 +324,63 @@ impl MRMMapping {
             }
         }
         Ok(output)
+    }
+
+    /// Map chromatograms to the assays of a [`LightTargetedExperiment`]
+    /// (the source overload `mapExperiment(PeakMap, LightTargetedExperiment,
+    /// PeakMap&)`).
+    ///
+    /// The light experiment is converted to a [`TargetedExperiment`] as the
+    /// source does and [`map_experiment`](Self::map_experiment) runs on it:
+    /// each compound becomes a peptide carrying only its id and sequence,
+    /// each protein a protein with its id and sequence, and each transition a
+    /// transition with its native id (the light transition name), peptide
+    /// reference, precursor and product m/z, library intensity, the detecting,
+    /// quantifying and identifying flags, and the decoy type
+    /// ([`DecoyTransitionType::Decoy`] when the light transition is a decoy,
+    /// otherwise [`DecoyTransitionType::Target`]). Everything else the light
+    /// types carry (retention times, charges, fragment annotations) is
+    /// dropped, as in the source, and none of it is read by the mapping.
+    ///
+    /// # Errors
+    ///
+    /// As [`map_experiment`](Self::map_experiment).
+    pub fn map_experiment_light(
+        &self,
+        input: &MSExperiment,
+        targeted: &LightTargetedExperiment,
+    ) -> Result<MSExperiment> {
+        let mut converted = TargetedExperiment::new();
+        for compound in targeted.compounds() {
+            let mut peptide = Peptide::default();
+            peptide.base.id = compound.id.clone();
+            peptide.sequence = compound.sequence.clone();
+            converted.add_peptide(peptide);
+        }
+        for protein in targeted.proteins() {
+            converted.add_protein(Protein {
+                id: protein.id.clone(),
+                sequence: protein.sequence.clone(),
+                ..Protein::default()
+            });
+        }
+        for light in targeted.transitions() {
+            let mut transition = ReactionMonitoringTransition::new();
+            transition.set_native_id(light.transition_name.clone());
+            transition.set_peptide_ref(light.peptide_ref.clone());
+            transition.set_precursor_mz(light.precursor_mz);
+            transition.set_product_mz(light.product_mz);
+            transition.set_library_intensity(light.library_intensity);
+            transition.set_detecting_transition(light.flags.detecting());
+            transition.set_quantifying_transition(light.flags.quantifying());
+            transition.set_identifying_transition(light.flags.identifying());
+            transition.set_decoy_transition_type(if light.decoy() {
+                DecoyTransitionType::Decoy
+            } else {
+                DecoyTransitionType::Target
+            });
+            converted.add_transition(transition);
+        }
+        self.map_experiment(input, &converted)
     }
 }

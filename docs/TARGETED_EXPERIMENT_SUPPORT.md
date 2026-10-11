@@ -8,7 +8,7 @@ Ports of the OpenMS core pin `bc9cc12` headers
 | `ANALYSIS/MRM/ReactionMonitoringTransition.h` (+ `.cpp`) | `src/analysis/openswath/reaction_monitoring_transition.rs` | complete |
 | `ANALYSIS/TARGETED/IncludeExcludeTarget.h` (+ `.cpp`) | `src/analysis/openswath/include_exclude_target.rs` | complete |
 | `ANALYSIS/TARGETED/TargetedExperiment.h` (+ `.cpp`) | `src/analysis/openswath/targeted_experiment.rs` | complete |
-| `ANALYSIS/TARGETED/MRMMapping.h` (+ `.cpp`) | `src/analysis/openswath/mrm_mapping.rs` | partial: the `LightTargetedExperiment` overload waits for `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h` |
+| `ANALYSIS/TARGETED/MRMMapping.h` (+ `.cpp`) | `src/analysis/openswath/mrm_mapping.rs` | complete: the `LightTargetedExperiment` overload is `map_experiment_light` (integration of group O, with lane OA's `transition_experiment.rs`) |
 | `ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h` (+ `.cpp`) | `src/analysis/openswath/metabo_targeted_target_decoy.rs` | complete |
 
 Tests: `tests/targeted_experiment.rs`. Provenance: `tests/data/targeted_experiment_provenance.json`.
@@ -127,7 +127,7 @@ items that depend on the types ported here; no format is re-scoped out.
 |---|---|
 | ctor (defaults `precursor_tolerance` 0.1, `product_tolerance` 0.1, `map_multiple_assays` false, `error_on_unmapped` false) | `new`/`Default`, `defaults() -> Result<Param>`, `to_param`, `from_param`, `from_param_with_warnings` |
 | `mapExperiment(PeakMap, TargetedExperiment, PeakMap&)` | `map_experiment(&MSExperiment, &TargetedExperiment) -> Result<MSExperiment>` |
-| `mapExperiment(PeakMap, LightTargetedExperiment, PeakMap&)` | **not ported**: needs `LightTargetedExperiment` (lane OA) |
+| `mapExperiment(PeakMap, LightTargetedExperiment, PeakMap&)` | `MRMMapping::map_experiment_light`: the source's minimal conversion (peptides and proteins with id and sequence; transitions with native id, peptide reference, m/z, library intensity, the three flags and the decoy type) then `map_experiment`. Evidence: the Release run of `oracle_mrm_mapping` on the equivalent assays (`oracle_mrm_mapping_light_overload`) |
 | copy ctor / assignment (protected), `updateMembers_` | `Clone`; `from_param` |
 | — | native `max_output_points` ceiling |
 
