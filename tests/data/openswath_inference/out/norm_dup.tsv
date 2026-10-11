@@ -1,0 +1,2 @@
+HAS_CANONICAL_BEFORE	0	0
+ERROR	InvalidValue	the value 'duplicate' was used but is not valid; Source compound IDs must be unique

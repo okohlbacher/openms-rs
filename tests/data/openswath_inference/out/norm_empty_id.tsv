@@ -1,0 +1,2 @@
+HAS_CANONICAL_BEFORE	0	0
+ERROR	InvalidValue	the value '' was used but is not valid; Source compound ID must not be empty
