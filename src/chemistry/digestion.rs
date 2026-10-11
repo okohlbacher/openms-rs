@@ -16,6 +16,12 @@ mod protease_db;
 pub use enzymes::Protease;
 pub use protease_db::ProteaseDB;
 
+/// `EnzymaticDigestion::NoCleavage`, the name of the enzyme that never cleaves.
+pub const NO_CLEAVAGE: &str = "no cleavage";
+/// `EnzymaticDigestion::UnspecificCleavage`, the name of the enzyme that cuts
+/// at every site.
+pub const UNSPECIFIC_CLEAVAGE: &str = "unspecific cleavage";
+
 /// Longest protein sequence, in residues, that digestion and cleavage-site
 /// scans accept; the source has no ceiling.
 pub const MAX_DIGESTION_SEQUENCE_LENGTH: usize = 1_000_000;
@@ -206,23 +212,61 @@ impl Protease {
     /// As [`Protease::cleavage_sites`].
     pub(crate) fn source_token_cleavage_count(self, sequence: &str) -> Result<i64> {
         let internal = self.count_internal_cleavage_sites(sequence)?;
-        let leading = match self.metadata().rule {
+        let leading = self.matches_with_zero_width_at_start(sequence);
+        Ok(i64::try_from(internal).unwrap_or(i64::MAX) + i64::from(leading))
+    }
+
+    /// Whether the enzyme's expression matches with zero width before the
+    /// first residue: a lookahead-only rule (Asp-N `(?=[DBX])`, Lys-N
+    /// `(?=[KX])`) on a sequence that starts with one of its residues.
+    fn matches_with_zero_width_at_start(self, sequence: &str) -> bool {
+        match self.metadata().rule {
             CleavageRule::Boundary {
                 previous,
                 previous_two,
                 next,
                 forbidden_next,
             } => {
-                let bytes = sequence.as_bytes();
                 previous.is_empty()
                     && previous_two.is_empty()
-                    && bytes.first().is_some_and(|first| {
+                    && sequence.as_bytes().first().is_some_and(|first| {
                         (next.is_empty() || next.contains(first)) && !forbidden_next.contains(first)
                     })
             }
             CleavageRule::Never => false,
-        };
-        Ok(i64::try_from(internal).unwrap_or(i64::MAX) + i64::from(leading))
+        }
+    }
+
+    /// `EnzymaticDigestion::tokenize_(sequence)` at `bc9cc12`
+    /// (`EnzymaticDigestion.cpp:92-116`): the start of every token Boost's
+    /// `sregex_token_iterator` (submatch -1) splits the sequence into, without
+    /// the end position.
+    ///
+    /// It differs from [`Self::cleavage_sites`] in the source's own ways: a
+    /// zero-width match at the first residue (see
+    /// [`Self::matches_with_zero_width_at_start`]) yields position 0 twice, a
+    /// match at the end adds no token, the empty sequence yields no token,
+    /// except for the `no cleavage` entry, whose expression `()` is not split
+    /// at all and yields `[0]`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::cleavage_sites`].
+    pub(crate) fn source_tokenize(self, sequence: &str) -> Result<Vec<usize>> {
+        let cuts = self.cleavage_sites(sequence)?;
+        if self == Self::NoCleavage {
+            return Ok(vec![0]);
+        }
+        if sequence.is_empty() {
+            return Ok(Vec::new());
+        }
+        // `cuts` is `[0, internal sites..., len]` for a nonempty sequence.
+        let mut positions = Vec::with_capacity(cuts.len());
+        if self.matches_with_zero_width_at_start(sequence) {
+            positions.push(0);
+        }
+        positions.extend_from_slice(&cuts[..cuts.len() - 1]);
+        Ok(positions)
     }
 }
 impl FromStr for Protease {
@@ -239,28 +283,104 @@ impl fmt::Display for Protease {
 
 /// How many termini of a product must be enzymatic cleavage sites
 /// (`EnzymaticDigestion::Specificity`).
+///
+/// [`Full`](Self::Full), [`Semi`](Self::Semi) and [`None`](Self::None) are the
+/// values a digestion enumerates with. The source enumeration has three more,
+/// which a digestion object can hold and which behave as follows there:
+/// `SPEC_UNKNOWN`, the value [`DigestionSpecificity::by_name`] answers for a
+/// name it does not know, and `SPEC_NOCTERM` and `SPEC_NONTERM`, "currently not
+/// supported in the class". `ProteaseDigestion::digest` refuses all three
+/// with `Exception::InvalidValue`; `isValidProduct` and `digestUnmodified`
+/// treat each as full specificity, as here.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum DigestionSpecificity {
-    /// Both termini must be protein boundaries or cleavage sites.
+    /// Both termini must be protein boundaries or cleavage sites
+    /// (`SPEC_FULL`, 2).
     #[default]
     Full,
-    /// At least one terminus must be a protein boundary or cleavage site.
+    /// At least one terminus must be a protein boundary or cleavage site
+    /// (`SPEC_SEMI`, 1).
     Semi,
-    /// Enumerate every substring in the length interval, without enzyme limits.
+    /// Enumerate every substring in the length interval, without enzyme limits
+    /// (`SPEC_NONE`, 0).
     None,
+    /// `SPEC_UNKNOWN` (3).
+    Unknown,
+    /// `SPEC_NOCTERM` (8): no requirement on the C-terminus, "currently not
+    /// supported in the class".
+    NoCTerm,
+    /// `SPEC_NONTERM` (9): no requirement on the N-terminus, "currently not
+    /// supported in the class".
+    NoNTerm,
 }
 impl DigestionSpecificity {
-    /// The source's parameter spelling: `full`, `semi` or `none`.
+    /// `EnzymaticDigestion::NamesOfSpecificity`, indexed by the source's
+    /// enumeration value: the entries 3 to 7 of the source's table are all
+    /// `unknown`, and only 3 is an enumeration value.
+    pub const NAMES_OF_SPECIFICITY: [&'static str; 10] = [
+        "none", "semi", "full", "unknown", "unknown", "unknown", "unknown", "unknown", "no-cterm",
+        "no-nterm",
+    ];
+
+    /// The source's parameter spelling: `full`, `semi`, `none`, `unknown`,
+    /// `no-cterm` or `no-nterm`.
     pub fn name(self) -> &'static str {
+        Self::NAMES_OF_SPECIFICITY[usize::from(self.value())]
+    }
+
+    /// The source's enumeration value: `SPEC_NONE` 0, `SPEC_SEMI` 1,
+    /// `SPEC_FULL` 2, `SPEC_UNKNOWN` 3, `SPEC_NOCTERM` 8, `SPEC_NONTERM` 9.
+    /// Some engines report just the number of required termini, which is why
+    /// the first three are what they are.
+    pub fn value(self) -> u8 {
         match self {
-            Self::Full => "full",
-            Self::Semi => "semi",
-            Self::None => "none",
+            Self::None => 0,
+            Self::Semi => 1,
+            Self::Full => 2,
+            Self::Unknown => 3,
+            Self::NoCTerm => 8,
+            Self::NoNTerm => 9,
         }
+    }
+
+    /// The member of a source enumeration value, or `None` for a number the
+    /// enumeration has no member for (4 to 7, and `SIZE_OF_SPECIFICITY`).
+    pub fn from_value(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(Self::None),
+            1 => Some(Self::Semi),
+            2 => Some(Self::Full),
+            3 => Some(Self::Unknown),
+            8 => Some(Self::NoCTerm),
+            9 => Some(Self::NoNTerm),
+            _ => Option::None,
+        }
+    }
+
+    /// `EnzymaticDigestion::getSpecificityByName`: the first entry of
+    /// [`NAMES_OF_SPECIFICITY`](Self::NAMES_OF_SPECIFICITY) equal to `name`, and
+    /// [`Unknown`](Self::Unknown) when there is none. Unlike [`FromStr`] it
+    /// never refuses a name.
+    pub fn by_name(name: &str) -> Self {
+        Self::NAMES_OF_SPECIFICITY
+            .iter()
+            .position(|candidate| *candidate == name)
+            .and_then(|index| u8::try_from(index).ok())
+            .and_then(Self::from_value)
+            .unwrap_or(Self::Unknown)
+    }
+
+    /// Whether `ProteaseDigestion::digest` enumerates with this value: full
+    /// and semi.
+    fn digest_supports(self) -> bool {
+        matches!(self, Self::Full | Self::Semi)
     }
 }
 impl FromStr for DigestionSpecificity {
     type Err = Error;
+    /// The three names a digestion is configured with: `full`, `semi` and
+    /// `none`. [`DigestionSpecificity::by_name`] is the source's lookup, which
+    /// answers `unknown` for any other name instead of refusing it.
     fn from_str(s: &str) -> Result<Self> {
         match s {
             "full" => Ok(Self::Full),
@@ -403,6 +523,14 @@ impl ProteaseDigestion {
     /// accepted alphabet or length, or an exceeded product, work or
     /// [`MAX_DIGESTED_RESIDUES`] ceiling.
     pub fn digest(&self, protein: &AASequence) -> Result<Vec<DigestedPeptide>> {
+        if !self.specificity.digest_supports() && self.specificity != DigestionSpecificity::None {
+            // ProteaseDigestion.cpp:93-98 refuses what is neither full nor
+            // semi; the native digest also accepts none, see the module notes.
+            return Err(invalid(format!(
+                "Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest(). Value: {}",
+                self.specificity.value()
+            )));
+        }
         let ranges = self.digest_ranges(protein.as_str())?;
         let mut residue_count = 0_usize;
         for product in &ranges {
@@ -543,10 +671,14 @@ impl ProteaseDigestion {
         };
         let n_term = cuts.binary_search(&start).is_ok() || random_site(start);
         let c_term = cuts.binary_search(&end).is_ok() || random_site(end);
+        // The source treats every value but none and semi as full.
         let specific = match self.specificity {
-            DigestionSpecificity::Full => n_term && c_term,
             DigestionSpecificity::Semi => n_term || c_term,
             DigestionSpecificity::None => true,
+            DigestionSpecificity::Full
+            | DigestionSpecificity::Unknown
+            | DigestionSpecificity::NoCTerm
+            | DigestionSpecificity::NoNTerm => n_term && c_term,
         };
         Ok(specific
             && (options.ignore_missed_cleavages
@@ -632,6 +764,293 @@ impl ProteaseDigestion {
             }
         }
         Ok(count)
+    }
+}
+
+/// What the source's `ProteaseDigestion::digest` (pair overload) returns: the
+/// products as `(start, past-the-end)` pairs and its count of discarded
+/// candidates.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SourceDigestion {
+    /// The products, in the source's output order.
+    pub ranges: Vec<(usize, usize)>,
+    /// The source's return value `wrong_size`: candidates the length filter
+    /// rejected, including the empty first token the source's tokenisation
+    /// yields when a lookahead-only expression matches at the first residue.
+    pub discarded: usize,
+}
+
+/// The source's own tokenisation and loops, selected by calling these methods
+/// instead of [`ProteaseDigestion::digest_ranges`] and
+/// [`ProteaseDigestion::peptide_count`].
+///
+/// The native operations (see `docs/DIGESTION_SUPPORT.md`) keep each cleavage
+/// boundary once and order and count by the settings; the source's
+/// `ProteaseDigestion::digest` and `peptideCount` split the sequence with a
+/// Boost token iterator and loop over its positions as they come, with
+/// unsigned arithmetic. The methods below port those loops literally, so every
+/// result is the Release build's, including its defects on a sequence that a
+/// lookahead-only expression (Asp-N, Asp-N_ambic, Lys-N) matches at the first
+/// residue, and its ordering of an unspecific digest.
+impl ProteaseDigestion {
+    /// `ProteaseDigestion::digest(const AASequence&, vector<pair<size_t,size_t>>&,
+    /// min_length, max_length)` (`ProteaseDigestion.cpp:87-158`), with
+    /// [`Self::min_length`] and [`Self::max_length`] (`None` is the source's
+    /// 0, unbounded) as the length filter.
+    ///
+    /// The tokenisation is [`Protease::source_tokenize`]'s, so a sequence an
+    /// Asp-N, Asp-N_ambic or Lys-N expression matches at its first residue
+    /// starts with two token positions 0: the first token is empty and is
+    /// counted in [`SourceDigestion::discarded`], the first product is repeated
+    /// as a product with a missed cleavage, and the semi-specific scan
+    /// (`EnzymaticDigestion::semiSpecificDigestion_`, with the source's
+    /// `Size` wrap of a negative length) never advances its forward cursor and
+    /// loses products. For `unspecific cleavage` the missed-cleavage ceiling
+    /// is the source's `numeric_limits<Size>::max()`, so the products come
+    /// ordered by length, then position.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for [`DigestionSpecificity::None`], which the
+    /// source's `digest` refuses with `Exception::InvalidValue`, for invalid
+    /// settings or a sequence outside the accepted alphabet or length, and for
+    /// an exceeded product or work ceiling.
+    pub fn digest_ranges_source(&self, sequence: &str) -> Result<SourceDigestion> {
+        self.validate()?;
+        if !self.specificity.digest_supports() {
+            return Err(invalid(format!(
+                "Specificity value set on current ProteaseDigestion object is not supported by ProteaseDigestion::digest(). Value: {}",
+                self.specificity.value()
+            )));
+        }
+        validate_sequence(sequence)?;
+        let size = sequence.len();
+        let max_length = self.max_length.map_or(size, |max| max.min(size));
+        let min_length = self.min_length;
+        let mc = if self.enzyme == Protease::UnspecificCleavage {
+            usize::MAX
+        } else {
+            self.missed_cleavages
+        };
+
+        let mut positions = self.enzyme.source_tokenize(sequence)?;
+        positions.push(size);
+        let count = positions.len();
+
+        let mut ranges: Vec<(usize, usize)> = Vec::new();
+        let mut discarded = 0_usize;
+        let mut work = size;
+        if work > self.max_work {
+            return Err(invalid("digestion sequence scan exceeds work limit"));
+        }
+        // Source `variant` / the inline checks: `Size` arithmetic wraps.
+        let mut candidate = |start: usize, end: usize| -> Result<()> {
+            work = work
+                .checked_add(1)
+                .ok_or_else(|| invalid("digestion work overflows"))?;
+            if work > self.max_work {
+                return Err(invalid("digestion candidate work limit exceeded"));
+            }
+            let length = end.wrapping_sub(start);
+            if length >= min_length && length <= max_length {
+                if ranges.len() >= self.max_products {
+                    return Err(invalid("digestion product limit exceeded"));
+                }
+                ranges.push((start, end));
+            } else {
+                discarded += 1;
+            }
+            Ok(())
+        };
+
+        let mut begin = positions[0];
+        for &position in &positions[1..] {
+            candidate(begin, position)?;
+            begin = position;
+        }
+
+        // missed cleavages
+        if count > 1 && mc != 0 {
+            let mut mcs = 1_usize;
+            while mcs <= mc && mcs < count - 1 {
+                begin = positions[0];
+                for j in 1..count - mcs {
+                    candidate(begin, positions[j + mcs])?;
+                    begin = positions[j];
+                }
+                mcs += 1;
+            }
+        }
+
+        // semi-specific variants
+        if self.specificity == DigestionSpecificity::Semi {
+            // Source: fewer than two positions throws InvalidValue.
+            if count < 2 {
+                return Err(invalid(
+                    "Too few cleavage positions - at least sequence start and end positions are required.",
+                ));
+            }
+            let mc = i64::try_from(self.missed_cleavages).unwrap_or(i64::MAX);
+            let first = positions[0];
+            let last = positions[count - 1];
+            let length = last - first;
+            let mut forward = 1_usize;
+            // The reverse iterator, as an offset from the end: position
+            // `count - 1 - backward`.
+            let mut backward = 1_usize;
+            for shift in 1..length {
+                if first + shift != positions[forward] {
+                    let mut i = 0_i64;
+                    while i < mc.saturating_add(1) {
+                        let Some(&end) = usize::try_from(i)
+                            .ok()
+                            .and_then(|i| positions.get(forward + i))
+                        else {
+                            break;
+                        };
+                        candidate(first + shift, end)?;
+                        if end == last {
+                            break;
+                        }
+                        i += 1;
+                    }
+                } else {
+                    forward += 1;
+                }
+                if last - shift != positions[count - 1 - backward] {
+                    let mut i = 0_i64;
+                    while i < mc.saturating_add(1) {
+                        let Some(&start) = usize::try_from(i)
+                            .ok()
+                            .and_then(|i| (backward + i).checked_add(1))
+                            .and_then(|back| count.checked_sub(back))
+                            .and_then(|index| positions.get(index))
+                        else {
+                            break;
+                        };
+                        candidate(start, last - shift)?;
+                        if start == first {
+                            break;
+                        }
+                        i += 1;
+                    }
+                } else {
+                    backward += 1;
+                }
+            }
+        }
+        Ok(SourceDigestion { ranges, discarded })
+    }
+
+    /// `EnzymaticDigestion::digestUnmodified`, pair overload
+    /// (`EnzymaticDigestion.cpp:505-564`), as `(start, past-the-end)` pairs;
+    /// the source writes `(start, length)`.
+    ///
+    /// It is [`Self::digest_ranges_source`] but for three things the source
+    /// does before it tokenises: a sequence shorter than
+    /// [`Self::min_length`] yields nothing and counts nothing, `unspecific
+    /// cleavage` and specificity `none` enumerate every substring ordered by
+    /// start and then length with nothing discarded, and a specificity that is
+    /// neither (`SPEC_UNKNOWN`, `SPEC_NOCTERM`, `SPEC_NONTERM`) is digested as
+    /// full instead of being refused.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::digest_ranges_source`], without the refusal of a
+    /// specificity.
+    pub fn digest_unmodified_source(&self, sequence: &str) -> Result<SourceDigestion> {
+        self.validate()?;
+        validate_sequence(sequence)?;
+        if sequence.len() < self.min_length {
+            return Ok(SourceDigestion {
+                ranges: Vec::new(),
+                discarded: 0,
+            });
+        }
+        if self.enzyme == Protease::UnspecificCleavage
+            || self.specificity == DigestionSpecificity::None
+        {
+            let ranges = self
+                .digest_ranges(sequence)?
+                .into_iter()
+                .map(|product| (product.start, product.end))
+                .collect();
+            return Ok(SourceDigestion {
+                ranges,
+                discarded: 0,
+            });
+        }
+        if self.specificity.digest_supports() {
+            return self.digest_ranges_source(sequence);
+        }
+        Self {
+            specificity: DigestionSpecificity::Full,
+            ..self.clone()
+        }
+        .digest_ranges_source(sequence)
+    }
+
+    /// `ProteaseDigestion::peptideCount` (`ProteaseDigestion.cpp:48-69`): the
+    /// number of tokens plus those of every missed-cleavage level up to
+    /// [`Self::missed_cleavages`], counted from the source's tokenisation
+    /// without the length filter and without the semi-specific products;
+    /// `unspecific cleavage` is `n (n + 1) / 2`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::InvalidValue`] for a sequence outside the accepted alphabet or
+    /// length.
+    pub fn peptide_count_source(&self, sequence: &str) -> Result<usize> {
+        validate_sequence(sequence)?;
+        let size = sequence.len();
+        if self.enzyme == Protease::UnspecificCleavage {
+            // Bounded by MAX_DIGESTION_SEQUENCE_LENGTH, so no overflow.
+            return Ok((size + 1) * size / 2);
+        }
+        let count = self.enzyme.source_tokenize(sequence)?.len();
+        let mut sum = count;
+        for i in 1..count {
+            if i > self.missed_cleavages {
+                break;
+            }
+            sum += count - i;
+        }
+        Ok(sum)
+    }
+
+    /// `EnzymaticDigestion::countInternalCleavageSites`
+    /// (`EnzymaticDigestion.cpp:195-198`): `tokenize_(sequence).size() - 1`
+    /// in `Size` arithmetic, which is one above
+    /// [`Self::count_internal_cleavage_sites`] for a sequence a lookahead-only
+    /// expression matches at its first residue and wraps to `usize::MAX` for
+    /// the empty sequence (no token) of every enzyme but `no cleavage`.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::peptide_count_source`].
+    pub fn count_internal_cleavage_sites_source(&self, sequence: &str) -> Result<usize> {
+        validate_sequence(sequence)?;
+        Ok(self.enzyme.source_tokenize(sequence)?.len().wrapping_sub(1))
+    }
+
+    /// `EnzymaticDigestion::filterByMissedCleavages`
+    /// (`EnzymaticDigestion.cpp:205-209`): `filter` receives
+    /// [`Self::count_internal_cleavage_sites_source`] as the source's `Int`
+    /// (`const int mc = countInternalCleavageSites(sequence)`, which wraps the
+    /// empty sequence's `Size` result to `-1`) and says whether the sequence
+    /// is to be filtered out.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::count_internal_cleavage_sites_source`].
+    pub fn filter_by_missed_cleavages(
+        &self,
+        sequence: &str,
+        filter: impl FnOnce(i32) -> bool,
+    ) -> Result<bool> {
+        let count = self.count_internal_cleavage_sites_source(sequence)?;
+        // Source: `Size` to `int`, modulo 2^32 on the Linux x86_64 build.
+        Ok(filter(count as u32 as i32))
     }
 }
 

@@ -339,9 +339,15 @@ fn generation_matches_exhaustive_validity_oracle_and_ranges_are_unique() {
                             let valid = unrestricted
                                 || (mc <= missed
                                     && match specificity {
-                                        Specificity::Full => n && c,
                                         Specificity::Semi => n || c,
                                         Specificity::None => true,
+                                        // isValidProduct_ tests only none and
+                                        // semi, so the three values the loop
+                                        // does not run are the full test too.
+                                        Specificity::Full
+                                        | Specificity::Unknown
+                                        | Specificity::NoCTerm
+                                        | Specificity::NoNTerm => n && c,
                                     });
                             if valid && (2..=5).contains(&(end - start)) {
                                 expected.insert((start, end, mc));

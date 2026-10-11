@@ -18,6 +18,10 @@ available from `openms::chemistry`.
 | `peptide_count`, `peptide_count_unmodified` | Counts matching the same specificity and length constraints as generation, without allocating peptide strings or range outputs |
 | `count_internal_cleavage_sites`, `count_missed_cleavages` | All internal sites or sites strictly inside a specified protein range |
 | `is_valid_product`, `is_valid_product_unmodified` | Terminal specificity and optional missed-cleavage checks with explicit `ProductValidation` allowances |
+| `DigestionSpecificity`, `NAMES_OF_SPECIFICITY`, `by_name`, `value`, `from_value` | The source's `Specificity` enumeration with all six members (`SPEC_NONE` 0, `SPEC_SEMI` 1, `SPEC_FULL` 2, `SPEC_UNKNOWN` 3, `SPEC_NOCTERM` 8, `SPEC_NONTERM` 9), `NamesOfSpecificity` and `getSpecificityByName`; `digest` refuses the last three, validation treats them as full |
+| `filter_by_missed_cleavages` | `filterByMissedCleavages`: the predicate receives the source's `Int` count |
+| `NO_CLEAVAGE`, `UNSPECIFIC_CLEAVAGE` | `EnzymaticDigestion::NoCleavage` and `UnspecificCleavage` |
+| `digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source`, `count_internal_cleavage_sites_source` | The source's own arithmetic, ported literally: `ProteaseDigestion::digest` (pair overload) with its `wrong_size`, `EnzymaticDigestion::digestUnmodified` (pair overload), `peptideCount` and `countInternalCleavageSites`, over `EnzymaticDigestion::tokenize_`'s positions; see [Source arithmetic](#source-arithmetic) |
 
 Full specificity requires both peptide ends to be protein termini or enzyme
 cleavage sites. Semi specificity requires at least one such end. `None`
@@ -249,6 +253,61 @@ product), and the port matches all 17,376 of its oracle answers. Without a
 leading site the port matches every oracle record (`countInternalCleavageSites`,
 both digest paths in order, fully specific `peptideCount`).
 `tests/digestion_leading_site.rs` asserts all of this.
+
+### Source arithmetic
+
+The native operations above keep each boundary once and count by the
+generation settings. The source's `ProteaseDigestion::digest` and `peptideCount`
+loop over `tokenize_`'s positions as Boost's token iterator yields them, with
+`Size` arithmetic, so their results differ from the native ones in the ways
+listed above and in these:
+
+- `unspecific cleavage` has the missed-cleavage ceiling `numeric_limits<Size>::max()`
+  (`ProteaseDigestion.cpp:106`), so `digest` emits every product of one length
+  before the next (by length, then position); the native digest orders by start,
+  then length, as `EnzymaticDigestion::digestUnmodified` does.
+- `peptideCount` is `n (n + 1) / 2` for `unspecific cleavage`, and otherwise the
+  token count plus the missed-cleavage levels, without the length filter and
+  without semi-specific products.
+- `digest` with specificity `none` throws `Exception::InvalidValue`
+  (`ProteaseDigestion.cpp:93-98`); a semi-specific digest of the empty sequence
+  throws it too (`EnzymaticDigestion.cpp:121-126`).
+- `countInternalCleavageSites` of the empty sequence is `0 - 1` in `Size`
+  arithmetic, every enzyme but `no cleavage` (whose expression `()` is not
+  split and yields position 0).
+- The semi-specific scan (`semiSpecificDigestion_`) computes a length with
+  `Size` arithmetic, so a candidate whose end precedes its start wraps and is
+  discarded. With a leading zero-width site the forward cursor is parked on the
+  duplicated position 0 for the whole scan and every start `1 .. n-1` is paired
+  with it, which is how the source loses the products its own `isValidProduct`
+  accepts.
+
+`digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source` and
+`count_internal_cleavage_sites_source` port exactly these loops over the
+crate-private `Protease::source_tokenize`, so a caller that must reproduce the
+Release build's output, defects included, selects them by name.
+`digest_unmodified_source` is `digestUnmodified`'s pair overload, which
+differs from `digest` in three things it does before tokenising: it returns
+nothing, and counts nothing, for a sequence shorter than `min_length`; it
+enumerates every substring ordered by start, then length, for `unspecific
+cleavage` and specificity `none`; and it digests a specificity that is none of
+full, semi and none (`SPEC_UNKNOWN`, `SPEC_NOCTERM`, `SPEC_NONTERM`) as full
+where `digest` refuses it. Evidence: tier 1,
+`../oracle/integ-B-digest-source` on ibminode06 (Linux x86_64 Release install
+`openms4-release-bc9cc12-c19e494-174b576`, conda g++ 14.4.0, `-O3 -DNDEBUG`,
+every enzyme in its own process, two byte-identical runs), 13,952 records over
+eight enzymes (Asp-N, Asp-N_ambic, Lys-N, Trypsin, Trypsin/P, Chymotrypsin,
+`unspecific cleavage`, `no cleavage`), sixteen sequences including the empty
+one, specificities full, semi and none, 0, 1, 2 and 5 missed cleavages and four
+length filters, retained as `tests/data/digestion_source_oracle.tsv` and
+asserted record by record by `tests/digestion_source_tokenization.rs`:
+`digest` (6,144 records, products, order and discarded count, and the refusals),
+`digestUnmodified`'s pair overload (6,144 records, as `(start, length)`),
+`peptideCount` (1,536) and `countInternalCleavageSites` (128). The specificity
+enumeration and `filterByMissedCleavages` are tier 3 (`EnzymaticDigestion.h:41-49`
+and `EnzymaticDigestion.cpp:20, 205-209`; the `Size` to `Int` conversion of the
+empty sequence's count is the implementation-defined modulo wrap of the Linux
+x86_64 build and was not executed).
 
 ## Resource limits and remaining capabilities
 

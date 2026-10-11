@@ -1,0 +1,115 @@
+{
+ "group": "digestion_source",
+ "package": "INTEG-B (Phase 3 wave 4 integration, group B): the source's own arithmetic of ProteaseDigestion::digest, ::peptideCount and EnzymaticDigestion::countInternalCleavageSites (tokenize_, the semi-specific scan, unspecific cleavage, the empty sequence)",
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/EnzymaticDigestion.h",
+   "sha256": "ecddf6367faafe9c80170b1d3cb01c937d0d8e8b9adedc081336e0ddfb38709f"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/EnzymaticDigestion.cpp",
+   "sha256": "d9205b1fcb7bca227f3c941f76341f517809e14eebdfc82d82a7095a4121040b"
+  },
+  {
+   "path": "src/openms/include/OpenMS/CHEMISTRY/ProteaseDigestion.h",
+   "sha256": "56c405f0c83f793737b588d0cec61265eda53201e116072f5acbd0cf49ad44c1"
+  },
+  {
+   "path": "src/openms/source/CHEMISTRY/ProteaseDigestion.cpp",
+   "sha256": "2f9f20d2ac22d83cc1f91635b4355f0a6382f58f12bb1f6c0d3016cca1cc767a"
+  },
+  {
+   "path": "share/OpenMS/CHEMISTRY/Enzymes.xml",
+   "sha256": "2f160f3ec32db6257cb4eee43fd594b48cb36398a17b7af21bbba76bc8b16995"
+  }
+ ],
+ "native_implementation": [
+  "src/chemistry/digestion.rs",
+  "src/chemistry/digestion/enzymes.rs"
+ ],
+ "native_tests": [
+  "tests/digestion_source_tokenization.rs"
+ ],
+ "support_document": "docs/DIGESTION_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/digestion_source_oracle.tsv",
+   "sha256": "16bc1fe218dc3f4f300f3774ce01457c796b25df9089565f9e1974a27d5c2265",
+   "bytes": 1358471,
+   "evidence_tier": 1,
+   "kind": "oracle-generated: ../oracle/integ-B-digest-source/results/records.tsv verbatim behind three leading comment lines (13,952 records: 128 count, 6,144 digest, 1,536 pepcnt, 6,144 unmod); Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 on ibminode06 (conda-forge GCC 14.4.0; driver flags -O3 -DNDEBUG -std=gnu++23 -mssse3 -ffp-contract=off), the driver run once per enzyme in a fresh process, twice, with byte-identical records"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/integ-B-digest-source/driver.cpp",
+   "sha256": "08a63c9bc16e84fa6f264e5d2a29d557680b2fe9cdc619a05ed7fd5b68355bfe",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/remote_run.sh",
+   "sha256": "e1085884804b9dc013063ca539ec1ce8c96f4f1d53ce86b6a8427e26027c5cbf",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/run.sh",
+   "sha256": "427c927d3314a15a3d2b350d908a4f2172d4fba9a9fb9a5dd72ff76c0bd5fe62",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/records.tsv",
+   "sha256": "74a1757e2383f94f18609289f67cbf610fcb42103358c1b0116b8376b3ecf09b",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/hashes.txt",
+   "sha256": "d48a3c5a78d724680371e112d81e9962e0bd9aab7b7c80feddd02a0c1c8f94c7",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/host.txt",
+   "sha256": "5f975faa88741db105a078b571dfabbd39b1bd8d65022c8e76ae27e4a361235c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/compiler.txt",
+   "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/flags.txt",
+   "sha256": "0daf0f2e6321cec902f1cbefc942f45463aa45bad1ac6d308207f5e4ad3ee39e",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/differ.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/stderr.txt",
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/integ-B-digest-source/results/exit.txt",
+   "sha256": "eddfa671531f25b5840e72e7116d9f43eda737b8aaca5c7f541bf20b059a261c",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "The oracle directory lives beside the repository (../oracle/integ-B-digest-source); results/host.txt names ibminode06 and the Release install, results/differ.txt and results/stderr.txt are empty and results/exit.txt lists exit code 0 for each of the eight enzymes."
+}

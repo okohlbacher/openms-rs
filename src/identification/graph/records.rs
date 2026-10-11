@@ -1203,6 +1203,9 @@ fn specificity(value: Option<DigestionSpecificity>) -> u8 {
         Some(DigestionSpecificity::Semi) => 1,
         Some(DigestionSpecificity::None) => 2,
         None => 3,
+        Some(DigestionSpecificity::Unknown) => 4,
+        Some(DigestionSpecificity::NoCTerm) => 5,
+        Some(DigestionSpecificity::NoNTerm) => 6,
     }
 }
 fn checked_sum(a: usize, b: usize) -> Result<usize> {
