@@ -1,0 +1,853 @@
+### tsv1
+n_transitions	14
+n_compounds	6
+n_proteins	2
+transition.0	name=tr&1	ref=tr_gr>1	lib=1	prod=628.43499999999995	prec=500	im=4.5	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.1	name=tr&2	ref=tr_gr>1	lib=2	prod=654.38	prec=500	im=4.5	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.2	name=tr3	ref=tr_gr2	lib=10000	prod=618.30999999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.3	name=tr4	ref=tr_gr2	lib=2000	prod=628.43499999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.4	name=tr5	ref=tr_gr2	lib=4300	prod=651.29999999999995	prec=501	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.5	name=454	ref=78	lib=2714	prod=358.17899999999997	prec=722.68499999999995	im=9	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=6	type=a	ann=a6^2	forms=
+transition.6	name=tr1_heavy	ref=tr_gr1_heavy	lib=1	prod=628.43499999999995	prec=510.00826899999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.7	name=tr2_heavy	ref=tr_gr1_heavy	lib=2	prod=654.38	prec=510.00826899999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.8	name=tr3_heavy	ref=tr_gr2_heavy	lib=10000	prod=618.30999999999995	prec=509.01419900000002	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.9	name=tr4_heavy	ref=tr_gr2_heavy	lib=2000	prod=628.43499999999995	prec=509.01419900000002	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.10	name=tr5_heavy	ref=tr_gr2_heavy	lib=4300	prod=651.29999999999995	prec=730.69919900000002	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.11	name=tr3_heavy2	ref=tr_gr2_different_heavy	lib=10000	prod=618.30999999999995	prec=900	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.12	name=tr4_heavy2	ref=tr_gr2_different_heavy	lib=2000	prod=628.43499999999995	prec=900	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.13	name=tr5_heavy2	ref=tr_gr2_different_heavy	lib=4300	prod=651.29999999999995	prec=900	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+compound.0	id=tr_gr>1	im=4.5	rt=0.44	rts=nan	rte=nan	charge=2	seq=PEPTIDEAR	prots=ProteinA	label=tr_gr1	gene=	sum=	name=	ltype=light	smiles=	adducts=	mods=
+compound.1	id=tr_gr2	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK	prots=ProteinA	label=tr_gr2	gene=	sum=	name=	ltype=light	smiles=	adducts=	mods=3:21;7:4;
+compound.2	id=78	im=9	rt=52.200000000000003	rts=nan	rte=nan	charge=3	seq=(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	prots=ProteinC	label=78	gene=	sum=	name=	ltype=light	smiles=	adducts=	mods=-1:5;19:11;5:4;
+compound.3	id=tr_gr1_heavy	im=-1	rt=0.44	rts=nan	rte=nan	charge=2	seq=PEPTIDEAR(13C(6) 15N(4) Silac label)	prots=ProteinA	label=tr_gr1	gene=	sum=	name=	ltype=heavy	smiles=	adducts=	mods=8:267;
+compound.4	id=tr_gr2_heavy	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	prots=ProteinA	label=tr_gr2	gene=	sum=	name=	ltype=silac	smiles=	adducts=	mods=3:21;7:4;9:259;
+compound.5	id=tr_gr2_different_heavy	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK	prots=ProteinA	label=tr_gr2	gene=	sum=	name=	ltype=silac	smiles=	adducts=	mods=3:21;7:4;
+protein.0	id=ProteinA	seq=	uniprot=uniprot_nr_1
+protein.1	id=ProteinC	seq=	uniprot=uniprot_nr_2
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+500.0	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light					ProteinA	uniprot_nr_1	NA	b	1	b1^2	-1.0	4.5	tr_gr>1	tr&1	0	1	0	1	
+500.0	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light					ProteinA	uniprot_nr_1	NA	b	2	b2^2	-1.0	4.5	tr_gr>1	tr&2	0	1	0	1	
+501.0	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2	tr3	0	1	0	1	
+501.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2	tr4	0	1	0	1	
+501.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2	tr5	0	1	0	1	
+722.684999999999945	358.178999999999974	3	2	2714.0	52.200000000000003	QVFIGCPASVADQDAFERM	(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	78	light					ProteinC	uniprot_nr_2	NA	a	6	a6^2	-1.0	9.0	78	454	0	1	0	1	
+510.008268999999984	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR(13C(6) 15N(4) Silac label)	tr_gr1	heavy					ProteinA	uniprot_nr_1	NA	b	1	b1^2	-1.0	-1.0	tr_gr1_heavy	tr1_heavy	0	1	0	1	
+510.008268999999984	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR(13C(6) 15N(4) Silac label)	tr_gr1	heavy					ProteinA	uniprot_nr_1	NA	b	2	b2^2	-1.0	-1.0	tr_gr1_heavy	tr2_heavy	0	1	0	1	
+509.014199000000019	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2_heavy	tr3_heavy	0	1	0	1	
+509.014199000000019	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2_heavy	tr4_heavy	0	1	0	1	
+730.699199000000021	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2_heavy	tr5_heavy	0	1	0	1	
+900.0	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2_different_heavy	tr3_heavy2	0	1	0	1	
+900.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2_different_heavy	tr4_heavy2	0	1	0	1	
+900.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2_different_heavy	tr5_heavy2	0	1	0	1	
+### tsv2
+n_transitions	6
+n_compounds	3
+n_proteins	2
+transition.0	name=tr1	ref=tr_gr1	lib=1	prod=628.43499999999995	prec=500	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.1	name=tr2	ref=tr_gr1	lib=2	prod=654.38	prec=500	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.2	name=tr3	ref=tr_gr2	lib=10000	prod=618.30999999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.3	name=tr4	ref=tr_gr2	lib=2000	prod=628.43499999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.4	name=tr5	ref=tr_gr2	lib=4300	prod=651.29999999999995	prec=501	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.5	name=454	ref=78	lib=2714	prod=358.17899999999997	prec=722.68499999999995	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=6	type=a	ann=a6^2	forms=
+compound.0	id=tr_gr1	im=-1	rt=44	rts=nan	rte=nan	charge=2	seq=PEPTIDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.1	id=tr_gr2	im=-1	rt=20	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)E	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=3:21;7:4;
+compound.2	id=78	im=-1	rt=52.200000000000003	rts=nan	rte=nan	charge=3	seq=(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	prots=ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=-1:5;19:11;5:4;
+protein.0	id=ProteinA	seq=	uniprot=uniprot_nr_1
+protein.1	id=ProteinC	seq=	uniprot=uniprot_nr_2
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+500.0	628.434999999999945	2	2	1.0	44.0	PEPTIDEA	PEPTIDEA	NA						ProteinA	uniprot_nr_1	NA	b	1	b1^2	-1.0	-1.0	tr_gr1	tr1	0	1	0	1	
+500.0	654.379999999999995	2	2	2.0	44.0	PEPTIDEA	PEPTIDEA	NA						ProteinA	uniprot_nr_1	NA	b	2	b2^2	-1.0	-1.0	tr_gr1	tr2	0	1	0	1	
+501.0	618.309999999999945	2	2	1.0e04	20.0	PEPTIDECE	PEPT(Phospho)IDEC(Carbamidomethyl)E	NA						ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2	tr3	0	1	0	1	
+501.0	628.434999999999945	2	2	2000.0	20.0	PEPTIDECE	PEPT(Phospho)IDEC(Carbamidomethyl)E	NA						ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2	tr4	0	1	0	1	
+501.0	651.299999999999955	2	3	4300.0	20.0	PEPTIDECE	PEPT(Phospho)IDEC(Carbamidomethyl)E	NA						ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2	tr5	0	1	0	1	
+722.684999999999945	358.178999999999974	3	2	2714.0	52.200000000000003	QVFIGCPASVADQDAFERM	(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	NA						ProteinC	uniprot_nr_2	NA	a	6	a6^2	-1.0	-1.0	78	454	0	1	0	1	
+### mrm4
+n_transitions	133
+n_compounds	5
+n_proteins	5
+transition.0	name=1	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=10000	prod=303.11219999999997	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.1	name=2	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=9631.8700000000008	prod=228.1343	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.2	name=4	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=7537.7399999999998	prod=844.36180000000002	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=8	type=b	ann=b8^1	forms=
+transition.3	name=5	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=7381.1000000000004	prod=212.10300000000001	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.4	name=9	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=7084.3800000000001	prod=991.43020000000001	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=9	type=b	ann=b9^1	forms=
+transition.5	name=13	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5946.3400000000001	prod=615.29190000000006	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=b	ann=b6^1	forms=
+transition.6	name=14	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5881.9300000000003	prod=246.1448	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.7	name=15	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5727.0200000000004	prod=136.0633	prec=758.33690000000001	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^3	forms=
+transition.8	name=16	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5634.6099999999997	prod=374.14929999999998	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.9	name=17	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5524.9799999999996	prod=229.1183	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.10	name=18	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5295.96	prod=749.32470000000001	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=7	type=y	ann=y7^1	forms=
+transition.11	name=20	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=5080.7799999999997	prod=502.20780000000002	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=b	ann=b5^1	forms=
+transition.12	name=21	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=4995.1700000000001	prod=912.38800000000003	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=8	type=y	ann=y8^1	forms=
+transition.13	name=25	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=4358.5699999999997	prod=283.14010000000002	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.14	name=27	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=4291.3999999999996	prod=1104.5142000000001	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=10	type=b	ann=b10^1	forms=
+transition.15	name=30	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=4062.8099999999999	prod=473.21600000000001	prec=758.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=9	type=b	ann=b9^2	forms=
+transition.16	name=31	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=4054.25	prod=974.40359999999998	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=9	type=b	ann=b9^1	forms=
+transition.17	name=34	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=3996.3499999999999	prod=681.31129999999996	prec=758.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=12	type=b	ann=b12^2	forms=
+transition.18	name=37	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=3728.4699999999998	prod=406.1755	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.19	name=40	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=3622.5900000000001	prod=389.14890000000003	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.20	name=41	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=3592.1900000000001	prod=463.19690000000003	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.21	name=42	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=3548.0700000000002	prod=591.25549999999998	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.22	name=48	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=3090.7399999999998	prod=692.30319999999995	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^1	forms=
+transition.23	name=58	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2776.04	prod=1361.6153999999999	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=12	type=b	ann=b12^1	forms=
+transition.24	name=60	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2710.02	prod=118.08629999999999	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=1	type=y	ann=y1^1	forms=
+transition.25	name=61	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2670.79	prod=729.33479999999997	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=7	type=b	ann=b7^1	forms=
+transition.26	name=62	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2642.0799999999999	prod=186.0728	prec=758.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.27	name=63	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2640.8000000000002	prod=573.245	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.28	name=64	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2627.9499999999998	prod=912.42269999999996	prec=758.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=17	type=b	ann=b17^2	forms=
+transition.29	name=65	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2618.4299999999998	prod=275.11720000000003	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=a	ann=a3^1	forms=
+transition.30	name=68	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2518	prod=1087.4876999999999	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=10	type=b	ann=b10^1	forms=
+transition.31	name=77	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2276.9499999999998	prod=446.17039999999997	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.32	name=80	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2180.6900000000001	prod=860.40229999999997	prec=758.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=16	type=b	ann=b16^2	forms=
+transition.33	name=84	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=2070.3800000000001	prod=895.3614	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=8	type=y	ann=y8^1	forms=
+transition.34	name=88	ref=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	lib=1352.1099999999999	prod=1344.5889	prec=758.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=12	type=b	ann=b12^1	forms=
+transition.35	name=91	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=8098.1999999999998	prod=1197.5721000000001	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=10	type=y	ann=y10^1	forms=
+transition.36	name=92	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=7737.8000000000002	prod=908.44470000000001	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=7	type=y	ann=y7^1	forms=
+transition.37	name=100	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=4425.3999999999996	prod=532.32420000000002	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.38	name=101	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=4233.1999999999998	prod=272.17169999999999	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.39	name=104	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=3803.6999999999998	prod=1254.5935999999999	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=11	type=y	ann=y11^1	forms=
+transition.40	name=114	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=3121.5999999999999	prod=255.14519999999999	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.41	name=117	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=3021.9000000000001	prod=175.119	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=1	type=y	ann=y1^1	forms=
+transition.42	name=121	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=3006.0999999999999	prod=303.11219999999997	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.43	name=131	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=2584.5	prod=1100.5192999999999	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=9	type=y	ann=y9^1	forms=
+transition.44	name=135	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=2576.6999999999998	prod=419.24009999999998	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.45	name=149	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=2155	prod=138.06229999999999	prec=778.85289999999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=a	ann=a3^2	forms=
+transition.46	name=155	ref=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	lib=2085.9000000000001	prod=603.36130000000003	prec=778.85289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.47	name=184	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=5242.1000000000004	prod=303.11219999999997	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.48	name=196	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=2227.6999999999998	prod=243.13390000000001	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.49	name=197	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=2190.5	prod=1136.4775999999999	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=9	type=y	ann=y9^1	forms=
+transition.50	name=198	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=2160.3000000000002	prod=306.15539999999999	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^2	forms=
+transition.51	name=202	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1933.7	prod=212.10300000000001	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.52	name=203	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1886.5999999999999	prod=976.44690000000003	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=8	type=y	ann=y8^1	forms=
+transition.53	name=209	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1749.5	prod=905.40980000000002	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=7	type=y	ann=y7^1	forms=
+transition.54	name=212	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1690.2	prod=518.28200000000004	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.55	name=213	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1646.5999999999999	prod=776.36720000000003	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^1	forms=
+transition.56	name=219	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1559.9000000000001	prod=1118.4670000000001	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=9	type=y	ann=y9^1	forms=
+transition.57	name=224	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1450.3	prod=325.18700000000001	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.58	name=227	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1359.5999999999999	prod=1249.5616	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=10	type=y	ann=y10^1	forms=
+transition.59	name=232	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1255.8	prod=647.32460000000003	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.60	name=233	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1253.9000000000001	prod=416.19619999999998	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.61	name=237	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1202.0999999999999	prod=388.2013	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=a	ann=a4^1	forms=
+transition.62	name=239	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1163.2	prod=710.78959999999995	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=12	type=b	ann=b12^2	forms=
+transition.63	name=240	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1163.2	prod=1291.5292999999999	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=11	type=b	ann=b11^1	forms=
+transition.64	name=249	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=1098.3	prod=576.2269	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=b	ann=b5^1	forms=
+transition.65	name=265	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=959.39999999999998	prod=354.166	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.66	name=270	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=951.70000000000005	prod=705.2998	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=11	type=y	ann=y11^2	forms=
+transition.67	name=271	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=936.60000000000002	prod=143.08150000000001	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^1	forms=
+transition.68	name=272	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=936.60000000000002	prod=275.11720000000003	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=a	ann=a3^1	forms=
+transition.69	name=274	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=887.79999999999995	prod=115.0866	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=a	ann=a2^1	forms=
+transition.70	name=281	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=846	prod=696.78650000000005	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=11	type=y	ann=y11^2	forms=
+transition.71	name=294	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=772.5	prod=758.35670000000005	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^1	forms=
+transition.72	name=295	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=768.70000000000005	prod=372.17649999999998	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.73	name=296	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=768.70000000000005	prod=623.26549999999997	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=11	type=b	ann=b11^2	forms=
+transition.74	name=301	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=740.29999999999995	prod=343.15230000000003	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=7	type=b	ann=b7^2	forms=
+transition.75	name=302	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=740.20000000000005	prod=485.21769999999998	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=b	ann=b5^1	forms=
+transition.76	name=310	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=725.10000000000002	prod=646.26829999999995	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=11	type=b	ann=b11^2	forms=
+transition.77	name=312	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=695.20000000000005	prod=439.18079999999998	prec=776.33690000000001	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=8	type=a	ann=a8^2	forms=
+transition.78	name=320	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=647.79999999999995	prod=261.14449999999999	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.79	name=325	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=636.39999999999998	prod=647.26400000000001	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=b	ann=b6^1	forms=
+transition.80	name=332	ref=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	lib=634.5	prod=132.1019	prec=776.33690000000001	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=1	type=y	ann=y1^1	forms=
+transition.81	name=334	ref=AAC(Carbamidomethyl)LLPK_2	lib=4071.0100000000002	prod=244.16560000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.82	name=335	ref=AAC(Carbamidomethyl)LLPK_2	lib=4021.6500000000001	prod=630.36429999999996	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.83	name=337	ref=AAC(Carbamidomethyl)LLPK_2	lib=1376.8800000000001	prod=115.0866	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=a	ann=a2^1	forms=
+transition.84	name=338	ref=AAC(Carbamidomethyl)LLPK_2	lib=1154.3399999999999	prod=143.08150000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^1	forms=
+transition.85	name=340	ref=AAC(Carbamidomethyl)LLPK_2	lib=942.99000000000001	prod=470.33370000000002	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.86	name=342	ref=AAC(Carbamidomethyl)LLPK_2	lib=919.66999999999996	prod=701.40139999999997	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^1	forms=
+transition.87	name=343	ref=AAC(Carbamidomethyl)LLPK_2	lib=836.88999999999999	prod=303.11219999999997	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.88	name=344	ref=AAC(Carbamidomethyl)LLPK_2	lib=829.50999999999999	prod=357.24959999999999	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.89	name=346	ref=AAC(Carbamidomethyl)LLPK_2	lib=720.30999999999995	prod=315.68579999999997	prec=386.72289999999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^2	forms=
+transition.90	name=348	ref=AAC(Carbamidomethyl)LLPK_2	lib=694.11000000000001	prod=147.11279999999999	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=1	type=y	ann=y1^1	forms=
+transition.91	name=351	ref=AAC(Carbamidomethyl)LLPK_2	lib=640.95000000000005	prod=226.155	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.92	name=357	ref=AAC(Carbamidomethyl)LLPK_2	lib=483.75999999999999	prod=129.10220000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=1	type=y	ann=y1^1	forms=
+transition.93	name=358	ref=AAC(Carbamidomethyl)LLPK_2	lib=476.92000000000002	prod=529.28030000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=b	ann=b5^1	forms=
+transition.94	name=363	ref=AAC(Carbamidomethyl)LLPK_2	lib=368.55000000000001	prod=416.19619999999998	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.95	name=365	ref=AAC(Carbamidomethyl)LLPK_2	lib=319.91000000000003	prod=351.20440000000002	prec=386.72289999999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^2	forms=
+transition.96	name=370	ref=AAC(Carbamidomethyl)LLPK_2	lib=244.50999999999999	prod=130.08629999999999	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=1	type=y	ann=y1^1	forms=
+transition.97	name=371	ref=AAC(Carbamidomethyl)LLPK_2	lib=243.05000000000001	prod=325.18700000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.98	name=377	ref=AAC(Carbamidomethyl)LLPK_2	lib=214.63999999999999	prod=212.10300000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.99	name=386	ref=AAC(Carbamidomethyl)LLPK_2	lib=175.13	prod=501.28539999999998	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=a	ann=a5^1	forms=
+transition.100	name=392	ref=AAC(Carbamidomethyl)LLPK_2	lib=156.56999999999999	prod=209.1285	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.101	name=396	ref=AAC(Carbamidomethyl)LLPK_2	lib=153.06	prod=227.13900000000001	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.102	name=398	ref=AAC(Carbamidomethyl)LLPK_2	lib=143.80000000000001	prod=613.33780000000002	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.103	name=403	ref=AAC(Carbamidomethyl)LLPK_2	lib=115.75	prod=626.33299999999997	prec=386.72289999999998	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=b	ann=b6^1	forms=
+transition.104	name=404	ref=AAC(Carbamidomethyl)LLPK_2	lib=113.87	prod=306.68049999999999	prec=386.72289999999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^2	forms=
+transition.105	name=414	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=2120.5500000000002	prod=650.34879999999998	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=11	type=y	ann=y11^2	forms=
+transition.106	name=418	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=1566.9200000000001	prod=303.11219999999997	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.107	name=424	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=1200.47	prod=843.44820000000004	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=14	type=y	ann=y14^2	forms=
+transition.108	name=425	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=1108.6500000000001	prod=961.45849999999996	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=8	type=y	ann=y8^1	forms=
+transition.109	name=426	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=1064.51	prod=1074.5425	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=9	type=y	ann=y9^1	forms=
+transition.110	name=428	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=1041.6600000000001	prod=204.1343	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=y	ann=y2^1	forms=
+transition.111	name=429	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=1035.0599999999999	prod=706.89080000000001	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=12	type=y	ann=y12^2	forms=
+transition.112	name=431	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=883.57000000000005	prod=143.08150000000001	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^1	forms=
+transition.113	name=436	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=764.65999999999997	prod=1202.6375	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=10	type=y	ann=y10^1	forms=
+transition.114	name=437	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=764.30999999999995	prod=315.16629999999998	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.115	name=445	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=707.83000000000004	prod=763.43280000000004	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=13	type=y	ann=y13^2	forms=
+transition.116	name=446	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=699.08000000000004	prod=212.10300000000001	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.117	name=448	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=695.16999999999996	prod=846.43150000000003	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=7	type=y	ann=y7^1	forms=
+transition.118	name=450	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=670	prod=325.18700000000001	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.119	name=451	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=658.73000000000002	prod=115.0866	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=2	type=a	ann=a2^1	forms=
+transition.120	name=452	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=642.19000000000005	prod=717.38900000000001	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^1	forms=
+transition.121	name=453	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=636.24000000000001	prod=562.6345	prec=609.99260000000004	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=14	type=y	ann=y14^3	forms=
+transition.122	name=457	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=607.13999999999999	prod=416.19619999999998	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.123	name=458	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=593.86000000000001	prod=601.82240000000002	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=10	type=y	ann=y10^2	forms=
+transition.124	name=459	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=579.78999999999996	prod=333.17680000000001	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.125	name=465	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=562.33000000000004	prod=586.31359999999995	prec=609.99260000000004	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=15	type=y	ann=y15^3	forms=
+transition.126	name=475	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=510.75	prod=641.34349999999995	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=11	type=y	ann=y11^2	forms=
+transition.127	name=478	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=491.39999999999998	prod=604.30489999999998	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^1	forms=
+transition.128	name=480	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=470.69999999999999	prod=275.11720000000003	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=a	ann=a3^1	forms=
+transition.129	name=484	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=461.81999999999999	prod=359.19810000000001	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=6	type=y	ann=y6^2	forms=
+transition.130	name=489	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=445.13	prod=501.28539999999998	prec=609.99260000000004	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=a	ann=a5^1	forms=
+transition.131	name=490	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=444.66000000000003	prod=748.40049999999997	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=13	type=b	ann=b13^2	forms=
+transition.132	name=497	ref=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	lib=412.68000000000001	prod=812.92179999999996	prec=609.99260000000004	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=14	type=b	ann=b14^2	forms=
+compound.0	id=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	im=-1	rt=57.299999999999997	rts=nan	rte=nan	charge=3	seq=AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	prots=P0C0L5;P0C0L4	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=2:4;17:4;
+compound.1	id=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	im=-1	rt=51.299999999999997	rts=nan	rte=nan	charge=2	seq=AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	prots=Q9HCU0	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=2:4;7:4;
+compound.2	id=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	im=-1	rt=20.510000000000002	rts=nan	rte=nan	charge=2	seq=AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	prots=Q9BX93	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=2:4;4:4;
+compound.3	id=AAC(Carbamidomethyl)LLPK_2	im=-1	rt=2.2010000000000001	rts=nan	rte=nan	charge=2	seq=AAC(Carbamidomethyl)LLPK	prots=P02768	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=2:4;
+compound.4	id=AAC(Carbamidomethyl)LLPKLDELRDEGK_3	im=-1	rt=51.299999999999997	rts=nan	rte=nan	charge=3	seq=AAC(Carbamidomethyl)LLPKLDELRDEGK	prots=P02768	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=2:4;
+protein.0	id=P0C0L5	seq=	uniprot=
+protein.1	id=P0C0L4	seq=	uniprot=
+protein.2	id=Q9HCU0	seq=	uniprot=
+protein.3	id=Q9BX93	seq=	uniprot=
+protein.4	id=P02768	seq=	uniprot=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+758.336900000000014	303.112199999999973	3	1	1.0e04	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	1	0	1	0	1	
+758.336900000000014	228.134299999999996	3	1	9631.8700000000008	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	2	0	1	0	1	
+758.336900000000014	844.361800000000017	3	1	7537.739999999999782	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	8	b8^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	4	0	1	0	1	
+758.336900000000014	212.103000000000009	3	1	7381.100000000000364	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	5	0	1	0	1	
+758.336900000000014	991.430200000000013	3	1	7084.380000000000109	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	9	b9^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	9	0	1	0	1	
+758.336900000000014	615.291900000000055	3	1	5946.340000000000146	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	6	b6^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	13	0	1	0	1	
+758.336900000000014	246.144800000000004	3	1	5881.930000000000291	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	14	0	1	0	1	
+758.336900000000014	136.063299999999998	3	3	5727.020000000000437	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	3	y3^3	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	15	0	1	0	1	
+758.336900000000014	374.149299999999982	3	1	5634.609999999999673	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	16	0	1	0	1	
+758.336900000000014	229.118300000000005	3	1	5524.979999999999563	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	17	0	1	0	1	
+758.336900000000014	749.324700000000007	3	1	5295.960000000000036	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	7	y7^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	18	0	1	0	1	
+758.336900000000014	502.20780000000002	3	1	5080.779999999999745	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	5	b5^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	20	0	1	0	1	
+758.336900000000014	912.388000000000034	3	1	4995.170000000000073	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	8	y8^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	21	0	1	0	1	
+758.336900000000014	283.140100000000018	3	1	4358.569999999999709	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	25	0	1	0	1	
+758.336900000000014	1104.514200000000073	3	1	4291.399999999999636	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	10	b10^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	27	0	1	0	1	
+758.336900000000014	473.216000000000008	3	2	4062.809999999999945	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	9	b9^2	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	30	0	1	0	1	
+758.336900000000014	974.403599999999983	3	1	4054.25	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	9	b9^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	31	0	1	0	1	
+758.336900000000014	681.31129999999996	3	2	3996.349999999999909	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	12	b12^2	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	34	0	1	0	1	
+758.336900000000014	406.1755	3	1	3728.4699999999998	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	37	0	1	0	1	
+758.336900000000014	389.148900000000026	3	1	3622.590000000000146	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	40	0	1	0	1	
+758.336900000000014	463.196900000000028	3	1	3592.190000000000055	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	4	y4^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	41	0	1	0	1	
+758.336900000000014	591.255499999999984	3	1	3548.070000000000164	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	42	0	1	0	1	
+758.336900000000014	692.303199999999947	3	1	3090.739999999999782	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	6	y6^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	48	0	1	0	1	
+758.336900000000014	1361.615399999999909	3	1	2776.039999999999964	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	12	b12^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	58	0	1	0	1	
+758.336900000000014	118.086299999999994	3	1	2710.019999999999982	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	1	y1^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	60	0	1	0	1	
+758.336900000000014	729.334799999999973	3	1	2670.789999999999964	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	7	b7^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	61	0	1	0	1	
+758.336900000000014	186.072800000000001	3	2	2642.079999999999927	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	3	y3^2	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	62	0	1	0	1	
+758.336900000000014	573.245000000000005	3	1	2640.800000000000182	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	63	0	1	0	1	
+758.336900000000014	912.422699999999963	3	2	2627.949999999999818	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	17	b17^2	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	64	0	1	0	1	
+758.336900000000014	275.117200000000025	3	1	2618.429999999999836	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	a	3	a3^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	65	0	1	0	1	
+758.336900000000014	1087.487699999999904	3	1	2518.0	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	10	b10^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	68	0	1	0	1	
+758.336900000000014	446.170399999999972	3	1	2276.949999999999818	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	4	y4^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	77	0	1	0	1	
+758.336900000000014	860.402299999999968	3	2	2180.690000000000055	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	16	b16^2	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	80	0	1	0	1	
+758.336900000000014	895.361400000000003	3	1	2070.380000000000109	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	y	8	y8^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	84	0	1	0	1	
+758.336900000000014	1344.588899999999967	3	1	1352.1099999999999	57.299999999999997	AACAQLNDFLQEYGTQGCQV	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV	NA						P0C0L5;P0C0L4		NA	b	12	b12^1	-1.0	-1.0	AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3	88	0	1	0	1	
+778.852899999999977	1197.572100000000091	2	1	8098.199999999999818	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	10	y10^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	91	0	1	0	1	
+778.852899999999977	908.444700000000012	2	1	7737.800000000000182	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	7	y7^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	92	0	1	0	1	
+778.852899999999977	532.324200000000019	2	1	4425.399999999999636	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	4	y4^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	100	0	1	0	1	
+778.852899999999977	272.171699999999987	2	1	4233.199999999999818	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	101	0	1	0	1	
+778.852899999999977	1254.593599999999924	2	1	3803.699999999999818	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	11	y11^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	104	0	1	0	1	
+778.852899999999977	255.145199999999988	2	1	3121.599999999999909	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	114	0	1	0	1	
+778.852899999999977	175.119	2	1	3021.900000000000091	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	1	y1^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	117	0	1	0	1	
+778.852899999999977	303.112199999999973	2	1	3006.099999999999909	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	121	0	1	0	1	
+778.852899999999977	1100.51929999999993	2	1	2584.5	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	9	y9^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	131	0	1	0	1	
+778.852899999999977	419.240099999999984	2	1	2576.699999999999818	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	135	0	1	0	1	
+778.852899999999977	138.062299999999993	2	2	2155.0	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	a	3	a3^2	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	149	0	1	0	1	
+778.852899999999977	603.361300000000028	2	1	2085.900000000000091	51.299999999999997	AACGPSSCYALFPR	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR	NA						Q9HCU0		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2	155	0	1	0	1	
+776.336900000000014	303.112199999999973	2	1	5242.100000000000364	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	184	0	1	0	1	
+776.336900000000014	243.133900000000011	2	1	2227.699999999999818	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	196	0	1	0	1	
+776.336900000000014	1136.477599999999939	2	1	2190.5	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	9	y9^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	197	0	1	0	1	
+776.336900000000014	306.155399999999986	2	2	2160.300000000000182	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	5	y5^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	198	0	1	0	1	
+776.336900000000014	212.103000000000009	2	1	1933.700000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	202	0	1	0	1	
+776.336900000000014	976.446900000000028	2	1	1886.599999999999909	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	8	y8^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	203	0	1	0	1	
+776.336900000000014	905.409800000000018	2	1	1749.5	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	7	y7^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	209	0	1	0	1	
+776.336900000000014	518.282000000000039	2	1	1690.200000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	4	y4^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	212	0	1	0	1	
+776.336900000000014	776.367200000000025	2	1	1646.599999999999909	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	6	y6^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	213	0	1	0	1	
+776.336900000000014	1118.467000000000098	2	1	1559.900000000000091	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	9	y9^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	219	0	1	0	1	
+776.336900000000014	325.187000000000012	2	1	1450.299999999999955	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	224	0	1	0	1	
+776.336900000000014	1249.561599999999999	2	1	1359.599999999999909	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	10	y10^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	227	0	1	0	1	
+776.336900000000014	647.324600000000032	2	1	1255.799999999999955	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	232	0	1	0	1	
+776.336900000000014	416.196199999999976	2	1	1253.900000000000091	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	233	0	1	0	1	
+776.336900000000014	388.201300000000003	2	1	1202.099999999999909	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	a	4	a4^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	237	0	1	0	1	
+776.336900000000014	710.78959999999995	2	2	1163.200000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	12	b12^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	239	0	1	0	1	
+776.336900000000014	1291.529299999999921	2	1	1163.200000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	11	b11^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	240	0	1	0	1	
+776.336900000000014	576.226900000000001	2	1	1098.299999999999955	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	5	b5^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	249	0	1	0	1	
+776.336900000000014	354.165999999999997	2	1	959.399999999999977	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	265	0	1	0	1	
+776.336900000000014	705.299800000000005	2	2	951.700000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	11	y11^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	270	0	1	0	1	
+776.336900000000014	143.081500000000005	2	1	936.600000000000023	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	2	b2^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	271	0	1	0	1	
+776.336900000000014	275.117200000000025	2	1	936.600000000000023	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	a	3	a3^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	272	0	1	0	1	
+776.336900000000014	115.086600000000004	2	1	887.799999999999955	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	a	2	a2^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	274	0	1	0	1	
+776.336900000000014	696.786500000000046	2	2	846.0	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	11	y11^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	281	0	1	0	1	
+776.336900000000014	758.356700000000046	2	1	772.5	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	6	y6^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	294	0	1	0	1	
+776.336900000000014	372.176499999999976	2	1	768.700000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	295	0	1	0	1	
+776.336900000000014	623.265499999999975	2	2	768.700000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	11	b11^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	296	0	1	0	1	
+776.336900000000014	343.152300000000025	2	2	740.299999999999955	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	7	b7^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	301	0	1	0	1	
+776.336900000000014	485.217699999999979	2	1	740.200000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	5	b5^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	302	0	1	0	1	
+776.336900000000014	646.268299999999954	2	2	725.100000000000023	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	11	b11^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	310	0	1	0	1	
+776.336900000000014	439.180799999999977	2	2	695.200000000000045	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	a	8	a8^2	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	312	0	1	0	1	
+776.336900000000014	261.144499999999994	2	1	647.799999999999955	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	320	0	1	0	1	
+776.336900000000014	647.26400000000001	2	1	636.399999999999977	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	b	6	b6^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	325	0	1	0	1	
+776.336900000000014	132.101900000000001	2	1	634.5	20.510000000000002	AACICAEEEKEEL	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL	NA						Q9BX93		NA	y	1	y1^1	-1.0	-1.0	AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2	332	0	1	0	1	
+386.722899999999981	244.165600000000012	2	1	4071.010000000000218	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	334	0	1	0	1	
+386.722899999999981	630.364299999999957	2	1	4021.650000000000091	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	335	0	1	0	1	
+386.722899999999981	115.086600000000004	2	1	1376.880000000000109	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	a	2	a2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	337	0	1	0	1	
+386.722899999999981	143.081500000000005	2	1	1154.339999999999918	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	2	b2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	338	0	1	0	1	
+386.722899999999981	470.333700000000022	2	1	942.990000000000009	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	4	y4^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	340	0	1	0	1	
+386.722899999999981	701.401399999999967	2	1	919.669999999999959	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	6	y6^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	342	0	1	0	1	
+386.722899999999981	303.112199999999973	2	1	836.889999999999986	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	343	0	1	0	1	
+386.722899999999981	357.249599999999987	2	1	829.509999999999991	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	344	0	1	0	1	
+386.722899999999981	315.685799999999972	2	2	720.309999999999945	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	5	y5^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	346	0	1	0	1	
+386.722899999999981	147.112799999999993	2	1	694.110000000000014	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	1	y1^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	348	0	1	0	1	
+386.722899999999981	226.155000000000001	2	1	640.950000000000045	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	351	0	1	0	1	
+386.722899999999981	129.102200000000011	2	1	483.759999999999991	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	1	y1^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	357	0	1	0	1	
+386.722899999999981	529.280300000000011	2	1	476.920000000000016	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	5	b5^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	358	0	1	0	1	
+386.722899999999981	416.196199999999976	2	1	368.550000000000011	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	363	0	1	0	1	
+386.722899999999981	351.204400000000021	2	2	319.910000000000025	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	6	y6^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	365	0	1	0	1	
+386.722899999999981	130.086299999999994	2	1	244.509999999999991	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	1	y1^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	370	0	1	0	1	
+386.722899999999981	325.187000000000012	2	1	243.050000000000011	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	371	0	1	0	1	
+386.722899999999981	212.103000000000009	2	1	214.639999999999986	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	377	0	1	0	1	
+386.722899999999981	501.285399999999981	2	1	175.129999999999995	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	a	5	a5^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	386	0	1	0	1	
+386.722899999999981	209.128500000000003	2	1	156.569999999999993	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	392	0	1	0	1	
+386.722899999999981	227.13900000000001	2	1	153.060000000000002	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	396	0	1	0	1	
+386.722899999999981	613.337800000000016	2	1	143.800000000000011	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	398	0	1	0	1	
+386.722899999999981	626.33299999999997	2	1	115.75	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	b	6	b6^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	403	0	1	0	1	
+386.722899999999981	306.680499999999995	2	2	113.870000000000005	2.201	AACLLPK	AAC(Carbamidomethyl)LLPK	NA						P02768		NA	y	5	y5^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPK_2	404	0	1	0	1	
+609.992600000000039	650.348799999999983	3	2	2120.550000000000182	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	11	y11^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	414	0	1	0	1	
+609.992600000000039	303.112199999999973	3	1	1566.920000000000073	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	418	0	1	0	1	
+609.992600000000039	843.448200000000043	3	2	1200.470000000000027	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	14	y14^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	424	0	1	0	1	
+609.992600000000039	961.458499999999958	3	1	1108.650000000000091	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	8	y8^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	425	0	1	0	1	
+609.992600000000039	1074.542500000000018	3	1	1064.509999999999991	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	9	y9^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	426	0	1	0	1	
+609.992600000000039	204.134299999999996	3	1	1041.660000000000082	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	2	y2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	428	0	1	0	1	
+609.992600000000039	706.890800000000013	3	2	1035.059999999999945	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	12	y12^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	429	0	1	0	1	
+609.992600000000039	143.081500000000005	3	1	883.57000000000005	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	2	b2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	431	0	1	0	1	
+609.992600000000039	1202.637500000000045	3	1	764.659999999999968	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	10	y10^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	436	0	1	0	1	
+609.992600000000039	315.166299999999978	3	1	764.309999999999945	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	437	0	1	0	1	
+609.992600000000039	763.432800000000043	3	2	707.830000000000041	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	13	y13^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	445	0	1	0	1	
+609.992600000000039	212.103000000000009	3	1	699.080000000000041	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	3	b3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	446	0	1	0	1	
+609.992600000000039	846.431500000000028	3	1	695.169999999999959	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	7	y7^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	448	0	1	0	1	
+609.992600000000039	325.187000000000012	3	1	670.0	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	450	0	1	0	1	
+609.992600000000039	115.086600000000004	3	1	658.730000000000018	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	a	2	a2^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	451	0	1	0	1	
+609.992600000000039	717.38900000000001	3	1	642.190000000000055	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	6	y6^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	452	0	1	0	1	
+609.992600000000039	562.634500000000003	3	3	636.240000000000009	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	14	y14^3	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	453	0	1	0	1	
+609.992600000000039	416.196199999999976	3	1	607.139999999999986	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	4	b4^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	457	0	1	0	1	
+609.992600000000039	601.822400000000016	3	2	593.860000000000014	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	10	y10^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	458	0	1	0	1	
+609.992600000000039	333.176800000000014	3	1	579.789999999999964	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	3	y3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	459	0	1	0	1	
+609.992600000000039	586.313599999999951	3	3	562.330000000000041	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	15	y15^3	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	465	0	1	0	1	
+609.992600000000039	641.343499999999949	3	2	510.75	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	11	y11^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	475	0	1	0	1	
+609.992600000000039	604.304899999999975	3	1	491.399999999999977	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	5	y5^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	478	0	1	0	1	
+609.992600000000039	275.117200000000025	3	1	470.699999999999989	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	a	3	a3^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	480	0	1	0	1	
+609.992600000000039	359.198100000000011	3	2	461.819999999999993	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	y	6	y6^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	484	0	1	0	1	
+609.992600000000039	501.285399999999981	3	1	445.129999999999995	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	a	5	a5^1	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	489	0	1	0	1	
+609.992600000000039	748.400499999999965	3	2	444.660000000000025	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	13	b13^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	490	0	1	0	1	
+609.992600000000039	812.921799999999962	3	2	412.680000000000007	51.299999999999997	AACLLPKLDELRDEGK	AAC(Carbamidomethyl)LLPKLDELRDEGK	NA						P02768		NA	b	14	b14^2	-1.0	-1.0	AAC(Carbamidomethyl)LLPKLDELRDEGK_3	497	0	1	0	1	
+### tsv5
+n_transitions	15
+n_compounds	2
+n_proteins	0
+transition.0	name=tr5	ref=compound_1	lib=0.062815578499999997	prod=89.024963380000003	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.1	name=tr6	ref=compound_1	lib=0.54928980819999995	prod=96.081497189999993	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.2	name=tr7	ref=compound_1	lib=0.098743278899999995	prod=101.06062319999999	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.3	name=tr8	ref=compound_1	lib=0.086168703099999994	prod=109.0291519	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.4	name=tr9	ref=compound_1	lib=0.25763798259999998	prod=116.0711136	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.5	name=tr10	ref=compound_1	lib=0.065341755099999996	prod=120.0812531	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.6	name=tr11	ref=compound_1	lib=0.1081274607	prod=126.0915756	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.7	name=tr12	ref=compound_1	lib=0.2081801254	prod=138.09202579999999	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.8	name=tr13	ref=compound_1	lib=0.1051499068	prod=156.10258479999999	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.9	name=tr14	ref=compound_1	lib=1	prod=158.08132929999999	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.10	name=tr15	ref=compound_1	lib=0.061275868300000001	prod=180.10165405000001	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.11	name=tr16	ref=compound_1	lib=0.051515004099999998	prod=234.13331600000001	prec=278.12450000000001	im=-1	fcharge=0	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.12	name=tr17	ref=compound_2	lib=0.25	prod=158.08132929999999	prec=244.12299999999999	im=-1	fcharge=-1	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.13	name=tr18	ref=compound_2	lib=1	prod=180.10165405000001	prec=244.12299999999999	im=-1	fcharge=-1	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.14	name=tr19	ref=compound_2	lib=0.29999999999999999	prod=234.13331600000001	prec=244.12299999999999	im=-1	fcharge=-1	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+compound.0	id=compound_1	im=-1	rt=-1	rts=nan	rte=nan	charge=-1	seq=	prots=	label=	gene=	sum=C11H21NO7	name=N-(1-Deoxy-1-fructosyl)valine	ltype=	smiles=	adducts=	mods=
+compound.1	id=compound_2	im=-1	rt=-1	rts=nan	rte=nan	charge=0	seq=	prots=	label=	gene=	sum=C5H11NO2	name=valine	ltype=	smiles=	adducts=	mods=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+278.124500000000012	89.024963380000003	-1	NA	0.0628155785	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr5	0	1	0	1	
+278.124500000000012	96.081497189999993	-1	NA	0.5492898082	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr6	0	1	0	1	
+278.124500000000012	101.060623199999995	-1	NA	0.0987432789	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr7	0	1	0	1	
+278.124500000000012	109.029151900000002	-1	NA	0.0861687031	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr8	0	1	0	1	
+278.124500000000012	116.071113600000004	-1	NA	0.2576379826	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr9	0	1	0	1	
+278.124500000000012	120.081253099999998	-1	NA	0.0653417551	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr10	0	1	0	1	
+278.124500000000012	126.091575599999999	-1	NA	0.1081274607	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr11	0	1	0	1	
+278.124500000000012	138.092025799999988	-1	NA	0.2081801254	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr12	0	1	0	1	
+278.124500000000012	156.102584799999988	-1	NA	0.1051499068	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr13	0	1	0	1	
+278.124500000000012	158.081329299999993	-1	NA	1.0	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr14	0	1	0	1	
+278.124500000000012	180.101654050000008	-1	NA	0.0612758683	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr15	0	1	0	1	
+278.124500000000012	234.133316000000008	-1	NA	0.0515150041	-1.0	NA	NA	NA		N-(1-Deoxy-1-fructosyl)valine	C11H21NO7			NA		NA		-1	NA	-1.0	-1.0	compound_1	tr16	0	1	0	1	
+244.12299999999999	158.081329299999993	NA	-1	0.25	-1.0	NA	NA	NA		valine	C5H11NO2			NA		NA		-1	NA	-1.0	-1.0	compound_2	tr17	0	1	0	1	
+244.12299999999999	180.101654050000008	NA	-1	1.0	-1.0	NA	NA	NA		valine	C5H11NO2			NA		NA		-1	NA	-1.0	-1.0	compound_2	tr18	0	1	0	1	
+244.12299999999999	234.133316000000008	NA	-1	0.3	-1.0	NA	NA	NA		valine	C5H11NO2			NA		NA		-1	NA	-1.0	-1.0	compound_2	tr19	0	1	0	1	
+### tsv6
+n_transitions	14
+n_compounds	5
+n_proteins	2
+transition.0	name=1	ref=PEPTIDEAR_2	lib=1	prod=628.43499999999995	prec=500	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.1	name=2	ref=PEPTIDEAR_2	lib=2	prod=654.38	prec=500	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.2	name=3	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	lib=10000	prod=618.30999999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.3	name=4	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	lib=2000	prod=628.43499999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.4	name=5	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	lib=4300	prod=651.29999999999995	prec=501	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.5	name=6	ref=.(Carbamyl)QVFIGC(Carbamidomethyl)PASVADQDAFERM.(Met->Hsl)_3	lib=2714	prod=358.17899999999997	prec=722.68499999999995	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=6	type=a	ann=a6^2	forms=
+transition.6	name=7	ref=PEPTIDEAR(Label:13C(6)15N(4))_2	lib=1	prod=628.43499999999995	prec=510.00826899999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.7	name=8	ref=PEPTIDEAR(Label:13C(6)15N(4))_2	lib=2	prod=654.38	prec=510.00826899999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.8	name=9	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	lib=10000	prod=618.30999999999995	prec=509.01419900000002	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.9	name=10	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	lib=2000	prod=628.43499999999995	prec=509.01419900000002	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.10	name=11	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	lib=4300	prod=651.29999999999995	prec=730.69919900000002	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.11	name=12	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	lib=10000	prod=618.30999999999995	prec=900	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.12	name=13	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	lib=2000	prod=628.43499999999995	prec=900	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.13	name=14	ref=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	lib=4300	prod=651.29999999999995	prec=900	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+compound.0	id=PEPTIDEAR_2	im=-1	rt=0.44	rts=nan	rte=nan	charge=2	seq=PEPTIDEAR	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.1	id=PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=3:21;7:4;
+compound.2	id=.(Carbamyl)QVFIGC(Carbamidomethyl)PASVADQDAFERM.(Met->Hsl)_3	im=-1	rt=52.200000000000003	rts=nan	rte=nan	charge=3	seq=(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	prots=ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=-1:5;19:11;5:4;
+compound.3	id=PEPTIDEAR(Label:13C(6)15N(4))_2	im=-1	rt=0.44	rts=nan	rte=nan	charge=2	seq=PEPTIDEAR(13C(6) 15N(4) Silac label)	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=8:267;
+compound.4	id=PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=3:21;7:4;9:259;
+protein.0	id=ProteinA	seq=	uniprot=
+protein.1	id=ProteinC	seq=	uniprot=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+500.0	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR	NA						ProteinA		NA	b	1	b1^2	-1.0	-1.0	PEPTIDEAR_2	1	0	1	0	1	
+500.0	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR	NA						ProteinA		NA	b	2	b2^2	-1.0	-1.0	PEPTIDEAR_2	2	0	1	0	1	
+501.0	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	NA						ProteinA		NA	y	3	y3^2	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	3	0	1	0	1	
+501.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	NA						ProteinA		NA	y	4	y4^2	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	4	0	1	0	1	
+501.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	NA						ProteinA		NA	y	5	y5^3	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	5	0	1	0	1	
+722.684999999999945	358.178999999999974	3	2	2714.0	52.200000000000003	QVFIGCPASVADQDAFERM	(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	NA						ProteinC		NA	a	6	a6^2	-1.0	-1.0	.(Carbamyl)QVFIGC(Carbamidomethyl)PASVADQDAFERM.(Met->Hsl)_3	6	0	1	0	1	
+510.008268999999984	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR(13C(6) 15N(4) Silac label)	NA						ProteinA		NA	b	1	b1^2	-1.0	-1.0	PEPTIDEAR(Label:13C(6)15N(4))_2	7	0	1	0	1	
+510.008268999999984	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR(13C(6) 15N(4) Silac label)	NA						ProteinA		NA	b	2	b2^2	-1.0	-1.0	PEPTIDEAR(Label:13C(6)15N(4))_2	8	0	1	0	1	
+509.014199000000019	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	NA						ProteinA		NA	y	3	y3^2	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	9	0	1	0	1	
+509.014199000000019	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	NA						ProteinA		NA	y	4	y4^2	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	10	0	1	0	1	
+730.699199000000021	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	NA						ProteinA		NA	y	5	y5^3	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK(Label:13C(6)15N(2))_2	11	0	1	0	1	
+900.0	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	NA						ProteinA		NA	y	3	y3^2	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	12	0	1	0	1	
+900.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	NA						ProteinA		NA	y	4	y4^2	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	13	0	1	0	1	
+900.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	NA						ProteinA		NA	y	5	y5^3	-1.0	-1.0	PEPT(Phospho)IDEC(Carbamidomethyl)EK_2	14	0	1	0	1	
+### tfc8
+n_transitions	111
+n_compounds	2
+n_proteins	2
+transition.0	name=0	ref=19	lib=1927.05	prod=329.1807	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.1	name=1	ref=1	lib=-1	prod=351.65570000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.2	name=2	ref=1	lib=-1	prod=352.14830000000001	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^2	forms=IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.3	name=3	ref=1	lib=-1	prod=352.46039999999999	prec=405.51949999999999	im=-1	fcharge=3	decoy=1	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^3	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.4	name=4	ref=1	lib=-1	prod=355.14949999999999	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.5	name=5	ref=1	lib=2058.6999999999998	prod=357.21319999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.6	name=6	ref=1	lib=-1	prod=357.21319999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=3	type=b	ann=b3^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.7	name=7	ref=1	lib=-1	prod=357.64589999999998	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^2	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.8	name=8	ref=1	lib=-1	prod=358.6823	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^2	forms=KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.9	name=9	ref=1	lib=-1	prod=362.82119999999998	prec=405.51949999999999	im=-1	fcharge=3	decoy=0	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^3	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.10	name=10	ref=1	lib=-1	prod=368.19159999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=3	type=y	ann=y3^1	forms=IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.11	name=11	ref=1	lib=-1	prod=369.17689999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=4	type=b	ann=b4^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.12	name=12	ref=1	lib=-1	prod=380.68419999999998	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=7	type=y	ann=y7^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.13	name=13	ref=1	lib=-1	prod=386.1567	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^2	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.14	name=14	ref=1	lib=-1	prod=386.2022	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=3	type=y	ann=y3^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+transition.15	name=15	ref=1	lib=-1	prod=386.65899999999999	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.16	name=16	ref=1	lib=-1	prod=387.18740000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=4	type=b	ann=b4^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.17	name=17	ref=1	lib=-1	prod=391.6388	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^2	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.18	name=18	ref=1	lib=-1	prod=392.13150000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+transition.19	name=19	ref=1	lib=-1	prod=393.19299999999998	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.20	name=20	ref=1	lib=-1	prod=398.66550000000001	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+transition.21	name=21	ref=1	lib=-1	prod=401.21710000000002	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=3	type=y	ann=y3^1	forms=KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.22	name=22	ref=1	lib=-1	prod=405.51949999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=-1	type=	ann=	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.23	name=23	ref=1	lib=1927.05	prod=419.22770000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^1	forms=
+transition.24	name=24	ref=1	lib=-1	prod=419.22770000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=3	type=y	ann=y3^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+transition.25	name=25	ref=19	lib=2058.6999999999998	prod=424.1592	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=1	quant=1	ident=0	nr=3	type=b	ann=b3^1	forms=
+transition.26	name=26	ref=1	lib=-1	prod=426.23469999999998	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=4	type=b	ann=b4^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.27	name=27	ref=1	lib=-1	prod=429.67270000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=7	type=y	ann=y7^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.28	name=28	ref=1	lib=-1	prod=435.1549	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=7	type=y	ann=y7^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.29	name=29	ref=1	lib=-1	prod=435.64749999999998	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.30	name=30	ref=1	lib=-1	prod=438.1977	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.31	name=31	ref=1	lib=-1	prod=442.18150000000003	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.32	name=32	ref=19	lib=1912.5999999999999	prod=442.26479999999998	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.33	name=33	ref=1	lib=-1	prod=443.68049999999999	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.34	name=34	ref=1	lib=1026.51	prod=444.24529999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.35	name=35	ref=1	lib=-1	prod=444.24529999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=4	type=b	ann=b4^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.36	name=36	ref=1	lib=-1	prod=450.68770000000001	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.37	name=37	ref=1	lib=-1	prod=455.22359999999998	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=4	type=y	ann=y4^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.38	name=38	ref=1	lib=-1	prod=466.16849999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=3	type=y	ann=y3^1	forms=IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.39	name=39	ref=1	lib=-1	prod=466.72730000000001	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.40	name=40	ref=1	lib=-1	prod=467.15379999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=4	type=b	ann=b4^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.41	name=41	ref=1	lib=-1	prod=473.23419999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=4	type=y	ann=y4^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.42	name=42	ref=1	lib=-1	prod=479.19839999999999	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.43	name=43	ref=1	lib=-1	prod=483.21980000000002	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=5	type=b	ann=b5^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.44	name=44	ref=1	lib=-1	prod=483.25619999999998	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=5	type=b	ann=b5^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.45	name=45	ref=1	lib=-1	prod=487.18619999999999	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.46	name=46	ref=1	lib=-1	prod=488.2491	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=4	type=y	ann=y4^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.47	name=47	ref=1	lib=-1	prod=492.66890000000001	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.48	name=48	ref=1	lib=-1	prod=494.73970000000003	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.49	name=49	ref=1	lib=-1	prod=499.19400000000002	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=3	type=y	ann=y3^1	forms=KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.50	name=50	ref=1	lib=-1	prod=499.67619999999999	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.51	name=51	ref=1	lib=-1	prod=501.23039999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=5	type=b	ann=b5^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.52	name=52	ref=1	lib=2080.0799999999999	prod=501.26670000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=5	type=b	ann=b5^1	forms=
+transition.53	name=53	ref=1	lib=-1	prod=501.26670000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=5	type=b	ann=b5^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.54	name=54	ref=1	lib=-1	prod=506.25970000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=4	type=y	ann=y4^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.55	name=55	ref=19	lib=1026.51	prod=511.19119999999998	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=1	quant=1	ident=0	nr=4	type=b	ann=b4^1	forms=
+transition.56	name=56	ref=1	lib=-1	prod=515.71569999999997	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.57	name=57	ref=1	lib=-1	prod=524.21159999999998	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=4	type=b	ann=b4^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.58	name=58	ref=1	lib=-1	prod=528.18690000000004	prec=405.51949999999999	im=-1	fcharge=2	decoy=1	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^2	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.59	name=59	ref=1	lib=-1	prod=543.72820000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^2	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.60	name=60	ref=1	lib=-1	prod=553.20050000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=4	type=y	ann=y4^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.61	name=61	ref=1	lib=-1	prod=570.25059999999996	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.62	name=62	ref=1	lib=-1	prod=581.19669999999996	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=5	type=b	ann=b5^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.63	name=63	ref=1	lib=-1	prod=581.23310000000004	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=5	type=b	ann=b5^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.64	name=64	ref=1	lib=1912.5999999999999	prod=586.226	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^1	forms=
+transition.65	name=65	ref=1	lib=-1	prod=586.226	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=4	type=y	ann=y4^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.66	name=66	ref=1	lib=-1	prod=588.26120000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.67	name=67	ref=1	lib=-1	prod=598.24670000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.68	name=68	ref=1	lib=-1	prod=611.31479999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.69	name=69	ref=1	lib=-1	prod=616.25729999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.70	name=70	ref=1	lib=-1	prod=616.30769999999995	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.71	name=71	ref=19	lib=2080.0799999999999	prod=626.21820000000002	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=1	quant=1	ident=0	nr=5	type=b	ann=b5^1	forms=
+transition.72	name=72	ref=1	lib=1231.5999999999999	prod=629.32529999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=1	quant=1	ident=0	nr=6	type=b	ann=b6^1	forms=
+transition.73	name=73	ref=1	lib=-1	prod=629.32529999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.74	name=74	ref=1	lib=-1	prod=634.31830000000002	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.75	name=75	ref=1	lib=-1	prod=668.22749999999996	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.76	name=76	ref=1	lib=-1	prod=673.32920000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.77	name=77	ref=1	lib=-1	prod=684.29349999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.78	name=78	ref=1	lib=-1	prod=685.27880000000005	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+transition.79	name=79	ref=1	lib=-1	prod=691.33969999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.80	name=80	ref=1	lib=-1	prod=696.22360000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.81	name=81	ref=1	lib=-1	prod=698.34680000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+transition.82	name=82	ref=1	lib=-1	prod=702.30409999999995	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+transition.83	name=83	ref=1	lib=-1	prod=703.28930000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^1	forms=IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.84	name=84	ref=1	lib=-1	prod=709.29169999999999	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=6	type=b	ann=b6^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+transition.85	name=85	ref=1	lib=-1	prod=714.28459999999995	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=5	type=y	ann=y5^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.86	name=86	ref=1	lib=-1	prod=716.35730000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^1	forms=KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.87	name=87	ref=1	lib=-1	prod=760.36120000000005	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=7	type=y	ann=y7^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.88	name=88	ref=1	lib=-1	prod=771.30610000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^1	forms=KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.89	name=89	ref=1	lib=-1	prod=772.31079999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.90	name=90	ref=19	lib=1231.5999999999999	prod=773.28660000000002	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=1	quant=1	ident=0	nr=6	type=b	ann=b6^1	forms=
+transition.91	name=91	ref=1	lib=-1	prod=782.2704	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=6	type=y	ann=y6^1	forms=IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.92	name=92	ref=1	lib=-1	prod=783.25570000000005	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+transition.93	name=93	ref=1	lib=-1	prod=785.37879999999996	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.94	name=94	ref=1	lib=-1	prod=796.32370000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=7	type=b	ann=b7^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+transition.95	name=95	ref=1	lib=-1	prod=858.33810000000005	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=7	type=y	ann=y7^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.96	name=96	ref=1	lib=-1	prod=869.30240000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=7	type=y	ann=y7^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.97	name=97	ref=1	lib=-1	prod=870.28769999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.98	name=98	ref=1	lib=-1	prod=875.38810000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.99	name=99	ref=1	lib=-1	prod=883.35569999999996	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=8	type=b	ann=b8^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.100	name=100	ref=1	lib=-1	prod=886.3537	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.101	name=101	ref=1	lib=-1	prod=900.36810000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.102	name=102	ref=1	lib=-1	prod=932.44719999999995	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.103	name=103	ref=1	lib=-1	prod=957.38959999999997	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.104	name=104	ref=1	lib=-1	prod=973.36500000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.105	name=105	ref=1	lib=-1	prod=984.3306	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.106	name=106	ref=1	lib=-1	prod=988.47220000000004	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.107	name=107	ref=1	lib=-1	prod=998.34500000000003	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=8	type=y	ann=y8^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.108	name=108	ref=1	lib=-1	prod=1030.4241	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=9	type=b	ann=b9^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+transition.109	name=109	ref=1	lib=-1	prod=1055.3665000000001	prec=405.51949999999999	im=-1	fcharge=1	decoy=1	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^1	forms=IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+transition.110	name=110	ref=1	lib=-1	prod=1086.4491	prec=405.51949999999999	im=-1	fcharge=1	decoy=0	det=0	quant=0	ident=1	nr=9	type=y	ann=y9^1	forms=KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+compound.0	id=19	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=KS(UniMod:21)QSDFLGSR(UniMod:267)	prots=DECOY_KLDSGQSSFR	label=NA	gene=Gene1	sum=	name=	ltype=	smiles=	adducts=	mods=1:21;9:267;
+compound.1	id=1	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=KLDSGQS(UniMod:21)SFR(UniMod:267)	prots=KLDSGQSSFR	label=1	gene=Gene2	sum=	name=	ltype=	smiles=	adducts=	mods=6:21;9:267;
+protein.0	id=DECOY_KLDSGQSSFR	seq=	uniprot=
+protein.1	id=KLDSGQSSFR	seq=	uniprot=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+405.519499999999994	329.180700000000002	3	1	1927.049999999999955	-30.600000000000001	KSQSDFLGSR	KS(UniMod:21)QSDFLGSR(UniMod:267)	NA						DECOY_KLDSGQSSFR		Gene1	y	3	y3^1	-1.0	-1.0	19	0	1	1	0	1	
+405.519499999999994	351.655700000000024	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^2	-1.0	-1.0	1	1	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	352.148300000000006	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^2	-1.0	-1.0	1	2	1	0	1	0	IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	352.460399999999993	3	3	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^3	-1.0	-1.0	1	3	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	355.149499999999989	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^2	-1.0	-1.0	1	4	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	357.213199999999972	3	1	2058.699999999999818	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	3	b3^1	-1.0	-1.0	1	5	0	1	0	1	
+405.519499999999994	357.213199999999972	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	3	b3^1	-1.0	-1.0	1	6	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	357.645899999999983	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^2	-1.0	-1.0	1	7	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	358.682299999999998	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^2	-1.0	-1.0	1	8	0	0	1	0	KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	362.821199999999976	3	3	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^3	-1.0	-1.0	1	9	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	368.191599999999994	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	10	1	0	1	0	IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	369.176899999999989	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	11	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	380.684199999999976	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	7	y7^2	-1.0	-1.0	1	12	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	386.156700000000001	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^2	-1.0	-1.0	1	13	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	386.202200000000005	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	14	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+405.519499999999994	386.658999999999992	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^2	-1.0	-1.0	1	15	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	387.187400000000025	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	16	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	391.638800000000003	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^2	-1.0	-1.0	1	17	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	392.131500000000017	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^2	-1.0	-1.0	1	18	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+405.519499999999994	393.192999999999984	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^2	-1.0	-1.0	1	19	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	398.665500000000009	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^2	-1.0	-1.0	1	20	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+405.519499999999994	401.217100000000016	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	21	0	0	1	0	KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	405.519499999999994	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2		-1	NA	-1.0	-1.0	1	22	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	419.227700000000027	3	1	1927.049999999999955	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	23	0	1	0	1	
+405.519499999999994	419.227700000000027	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	24	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+405.519499999999994	424.159199999999998	3	1	2058.699999999999818	-30.600000000000001	KSQSDFLGSR	KS(UniMod:21)QSDFLGSR(UniMod:267)	NA						DECOY_KLDSGQSSFR		Gene1	b	3	b3^1	-1.0	-1.0	19	25	1	1	0	1	
+405.519499999999994	426.234699999999975	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	26	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	429.67270000000002	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	7	y7^2	-1.0	-1.0	1	27	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	435.154899999999998	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	7	y7^2	-1.0	-1.0	1	28	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	435.64749999999998	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^2	-1.0	-1.0	1	29	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	438.197699999999998	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^2	-1.0	-1.0	1	30	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	442.181500000000028	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^2	-1.0	-1.0	1	31	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	442.26479999999998	3	1	1912.599999999999909	-30.600000000000001	KSQSDFLGSR	KS(UniMod:21)QSDFLGSR(UniMod:267)	NA						DECOY_KLDSGQSSFR		Gene1	y	4	y4^1	-1.0	-1.0	19	32	1	1	0	1	
+405.519499999999994	443.680499999999995	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^2	-1.0	-1.0	1	33	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	444.245299999999986	3	1	1026.509999999999991	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	34	0	1	0	1	
+405.519499999999994	444.245299999999986	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	35	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	450.687700000000007	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^2	-1.0	-1.0	1	36	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	455.223599999999976	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	37	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	466.168499999999995	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	38	1	0	1	0	IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	466.727300000000014	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^2	-1.0	-1.0	1	39	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	467.15379999999999	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	40	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	473.234199999999987	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	41	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	479.198399999999992	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^2	-1.0	-1.0	1	42	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	483.219800000000021	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	43	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	483.256199999999978	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	44	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	487.186199999999985	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^2	-1.0	-1.0	1	45	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	488.249099999999999	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	46	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	492.668900000000008	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^2	-1.0	-1.0	1	47	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	494.739700000000028	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^2	-1.0	-1.0	1	48	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	499.194000000000017	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	3	y3^1	-1.0	-1.0	1	49	0	0	1	0	KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	499.676199999999994	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^2	-1.0	-1.0	1	50	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	501.230399999999975	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	51	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	501.266700000000014	3	1	2080.079999999999927	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	52	0	1	0	1	
+405.519499999999994	501.266700000000014	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	53	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	506.259700000000009	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	54	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	511.191199999999981	3	1	1026.509999999999991	-30.600000000000001	KSQSDFLGSR	KS(UniMod:21)QSDFLGSR(UniMod:267)	NA						DECOY_KLDSGQSSFR		Gene1	b	4	b4^1	-1.0	-1.0	19	55	1	1	0	1	
+405.519499999999994	515.71569999999997	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^2	-1.0	-1.0	1	56	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	524.211599999999976	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	4	b4^1	-1.0	-1.0	1	57	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	528.186900000000037	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^2	-1.0	-1.0	1	58	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	543.728200000000015	3	2	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^2	-1.0	-1.0	1	59	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	553.200500000000034	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	60	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	570.250599999999963	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^1	-1.0	-1.0	1	61	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	581.196699999999964	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	62	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	581.233100000000036	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	5	b5^1	-1.0	-1.0	1	63	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	586.225999999999999	3	1	1912.599999999999909	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	64	0	1	0	1	
+405.519499999999994	586.225999999999999	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	4	y4^1	-1.0	-1.0	1	65	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	588.261200000000031	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^1	-1.0	-1.0	1	66	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	598.246700000000033	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	67	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	611.314799999999991	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	68	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	616.257299999999987	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	69	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	616.307699999999954	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^1	-1.0	-1.0	1	70	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	626.218200000000024	3	1	2080.079999999999927	-30.600000000000001	KSQSDFLGSR	KS(UniMod:21)QSDFLGSR(UniMod:267)	NA						DECOY_KLDSGQSSFR		Gene1	b	5	b5^1	-1.0	-1.0	19	71	1	1	0	1	
+405.519499999999994	629.32529999999997	3	1	1231.599999999999909	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	72	0	1	0	1	
+405.519499999999994	629.32529999999997	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	73	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	634.318300000000022	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^1	-1.0	-1.0	1	74	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	668.227499999999964	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^1	-1.0	-1.0	1	75	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	673.329200000000014	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^1	-1.0	-1.0	1	76	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	684.293499999999995	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^1	-1.0	-1.0	1	77	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	685.278800000000047	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^1	-1.0	-1.0	1	78	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+405.519499999999994	691.339699999999993	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^1	-1.0	-1.0	1	79	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	696.223600000000033	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	80	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	698.34680000000003	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^1	-1.0	-1.0	1	81	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+405.519499999999994	702.304099999999949	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^1	-1.0	-1.0	1	82	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))
+405.519499999999994	703.289300000000026	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^1	-1.0	-1.0	1	83	1	0	1	0	IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	709.291699999999992	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	6	b6^1	-1.0	-1.0	1	84	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))
+405.519499999999994	714.284599999999955	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	5	y5^1	-1.0	-1.0	1	85	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	716.357300000000009	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^1	-1.0	-1.0	1	86	0	0	1	0	KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	760.361200000000053	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	7	y7^1	-1.0	-1.0	1	87	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	771.306100000000015	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^1	-1.0	-1.0	1	88	0	0	1	0	KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	772.310799999999972	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^1	-1.0	-1.0	1	89	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	773.286600000000021	3	1	1231.599999999999909	-30.600000000000001	KSQSDFLGSR	KS(UniMod:21)QSDFLGSR(UniMod:267)	NA						DECOY_KLDSGQSSFR		Gene1	b	6	b6^1	-1.0	-1.0	19	90	1	1	0	1	
+405.519499999999994	782.270399999999995	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	6	y6^1	-1.0	-1.0	1	91	1	0	1	0	IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	783.255700000000047	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^1	-1.0	-1.0	1	92	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))
+405.519499999999994	785.378799999999956	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^1	-1.0	-1.0	1	93	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	796.323700000000031	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	7	b7^1	-1.0	-1.0	1	94	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))
+405.519499999999994	858.338100000000054	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	7	y7^1	-1.0	-1.0	1	95	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	869.302400000000034	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	7	y7^1	-1.0	-1.0	1	96	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	870.287699999999973	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^1	-1.0	-1.0	1	97	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	875.388100000000009	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^1	-1.0	-1.0	1	98	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	883.355699999999956	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	8	b8^1	-1.0	-1.0	1	99	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	886.353700000000003	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^1	-1.0	-1.0	1	100	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	900.368100000000027	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^1	-1.0	-1.0	1	101	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	932.447199999999953	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^1	-1.0	-1.0	1	102	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	957.389599999999973	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^1	-1.0	-1.0	1	103	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	973.365000000000009	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^1	-1.0	-1.0	1	104	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	984.330600000000004	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^1	-1.0	-1.0	1	105	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	988.472200000000043	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^1	-1.0	-1.0	1	106	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	998.345000000000027	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	8	y8^1	-1.0	-1.0	1	107	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	1030.424099999999953	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	b	9	b9^1	-1.0	-1.0	1	108	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+405.519499999999994	1055.366500000000087	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^1	-1.0	-1.0	1	109	1	0	1	0	IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))
+405.519499999999994	1086.449100000000044	3	1	-1.0	-30.600000000000001	KLDSGQSSFR	KLDSGQS(UniMod:21)SFR(UniMod:267)	1						KLDSGQSSFR		Gene2	y	9	y9^1	-1.0	-1.0	1	110	0	0	1	0	KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))
+### tfc12
+n_transitions	13
+n_compounds	13
+n_proteins	6
+transition.0	name=1	ref=PEPTIDEA_3	lib=100	prod=351.65570000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.1	name=2	ref=PEPT(Phospho)IDEA_3	lib=100	prod=352.14830000000001	prec=415.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.2	name=3	ref=PEPTIDEB_3	lib=100	prod=352.46039999999999	prec=425.51949999999999	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.3	name=4	ref=PEPTIDEC_3	lib=100	prod=355.14949999999999	prec=435.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.4	name=5	ref=PEPTIDED_3	lib=100	prod=355.55185	prec=445.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.5	name=6	ref=PEPTIDEE_3	lib=100	prod=356.63119999999998	prec=455.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.6	name=7	ref=PEPTIDEF_3	lib=100	prod=357.71055000000001	prec=465.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.7	name=8	ref=PEPTIDEG_3	lib=100	prod=358.78989999999999	prec=475.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.8	name=9	ref=PEPTIDEH_3	lib=100	prod=359.86925000000002	prec=485.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.9	name=10	ref=PEPTIDEI_3	lib=100	prod=360.9486	prec=495.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.10	name=11	ref=PEPTIDEJ_3	lib=100	prod=362.02794999999998	prec=505.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.11	name=12	ref=PEPTIDEK_3	lib=100	prod=363.10730000000001	prec=515.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.12	name=13	ref=PEPTIDEL_3	lib=100	prod=364.18664999999999	prec=525.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+compound.0	id=PEPTIDEA_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.1	id=PEPT(Phospho)IDEA_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPT(UniMod:21)IDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=3:21;
+compound.2	id=PEPTIDEB_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEB	prots=ProteinB	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.3	id=PEPTIDEC_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEC	prots=ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.4	id=PEPTIDED_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDED	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.5	id=PEPTIDEE_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEE	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.6	id=PEPTIDEF_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEF	prots=ProteinA;ProteinF;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.7	id=PEPTIDEG_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEG	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.8	id=PEPTIDEH_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEH	prots=ProteinA;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.9	id=PEPTIDEI_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEI	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.10	id=PEPTIDEJ_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEJ	prots=ProteinA;ProteinB;ProteinE	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.11	id=PEPTIDEK_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEK	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.12	id=PEPTIDEL_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEL	prots=ProteinA;ProteinB;ProteinD	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+protein.0	id=ProteinA	seq=	uniprot=
+protein.1	id=ProteinB	seq=	uniprot=
+protein.2	id=ProteinC	seq=	uniprot=
+protein.3	id=ProteinF	seq=	uniprot=
+protein.4	id=ProteinE	seq=	uniprot=
+protein.5	id=ProteinD	seq=	uniprot=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+405.519499999999994	351.655700000000024	3	2	100.0	-30.600000000000001	PEPTIDEA	PEPTIDEA	NA						ProteinA		NA		-1	NA	-1.0	-1.0	PEPTIDEA_3	1	0	1	0	1	
+415.519499999999994	352.148300000000006	3	2	100.0	-30.600000000000001	PEPTIDEA	PEPT(UniMod:21)IDEA	NA						ProteinA		NA		-1	NA	-1.0	-1.0	PEPT(Phospho)IDEA_3	2	0	1	0	1	
+425.519499999999994	352.460399999999993	3	3	100.0	-30.600000000000001	PEPTIDEB	PEPTIDEB	NA						ProteinB		NA		-1	NA	-1.0	-1.0	PEPTIDEB_3	3	0	1	0	1	
+435.519499999999994	355.149499999999989	3	2	100.0	-30.600000000000001	PEPTIDEC	PEPTIDEC	NA						ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEC_3	4	0	1	0	1	
+445.519499999999994	355.551850000000002	3	2	100.0	-30.600000000000001	PEPTIDED	PEPTIDED	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDED_3	5	0	1	0	1	
+455.519499999999994	356.631199999999978	3	2	100.0	-30.600000000000001	PEPTIDEE	PEPTIDEE	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEE_3	6	0	1	0	1	
+465.519499999999994	357.710550000000012	3	2	100.0	-30.600000000000001	PEPTIDEF	PEPTIDEF	NA						ProteinA;ProteinF;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEF_3	7	0	1	0	1	
+475.519499999999994	358.789899999999989	3	2	100.0	-30.600000000000001	PEPTIDEG	PEPTIDEG	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEG_3	8	0	1	0	1	
+485.519499999999994	359.869250000000022	3	2	100.0	-30.600000000000001	PEPTIDEH	PEPTIDEH	NA						ProteinA;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEH_3	9	0	1	0	1	
+495.519499999999994	360.948599999999999	3	2	100.0	-30.600000000000001	PEPTIDEI	PEPTIDEI	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEI_3	10	0	1	0	1	
+505.519499999999994	362.027949999999976	3	2	100.0	-30.600000000000001	PEPTIDEJ	PEPTIDEJ	NA						ProteinA;ProteinB;ProteinE		NA		-1	NA	-1.0	-1.0	PEPTIDEJ_3	11	0	1	0	1	
+515.519499999999994	363.107300000000009	3	2	100.0	-30.600000000000001	PEPTIDEK	PEPTIDEK	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEK_3	12	0	1	0	1	
+525.519499999999994	364.186649999999986	3	2	100.0	-30.600000000000001	PEPTIDEL	PEPTIDEL	NA						ProteinA;ProteinB;ProteinD		NA		-1	NA	-1.0	-1.0	PEPTIDEL_3	13	0	1	0	1	
+### tfc12_minutes
+n_transitions	13
+n_compounds	13
+n_proteins	6
+transition.0	name=1	ref=PEPTIDEA_3	lib=100	prod=351.65570000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.1	name=2	ref=PEPT(Phospho)IDEA_3	lib=100	prod=352.14830000000001	prec=415.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.2	name=3	ref=PEPTIDEB_3	lib=100	prod=352.46039999999999	prec=425.51949999999999	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.3	name=4	ref=PEPTIDEC_3	lib=100	prod=355.14949999999999	prec=435.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.4	name=5	ref=PEPTIDED_3	lib=100	prod=355.55185	prec=445.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.5	name=6	ref=PEPTIDEE_3	lib=100	prod=356.63119999999998	prec=455.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.6	name=7	ref=PEPTIDEF_3	lib=100	prod=357.71055000000001	prec=465.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.7	name=8	ref=PEPTIDEG_3	lib=100	prod=358.78989999999999	prec=475.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.8	name=9	ref=PEPTIDEH_3	lib=100	prod=359.86925000000002	prec=485.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.9	name=10	ref=PEPTIDEI_3	lib=100	prod=360.9486	prec=495.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.10	name=11	ref=PEPTIDEJ_3	lib=100	prod=362.02794999999998	prec=505.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.11	name=12	ref=PEPTIDEK_3	lib=100	prod=363.10730000000001	prec=515.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.12	name=13	ref=PEPTIDEL_3	lib=100	prod=364.18664999999999	prec=525.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+compound.0	id=PEPTIDEA_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.1	id=PEPT(Phospho)IDEA_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPT(UniMod:21)IDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=3:21;
+compound.2	id=PEPTIDEB_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEB	prots=ProteinB	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.3	id=PEPTIDEC_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEC	prots=ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.4	id=PEPTIDED_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDED	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.5	id=PEPTIDEE_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEE	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.6	id=PEPTIDEF_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEF	prots=ProteinA;ProteinF;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.7	id=PEPTIDEG_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEG	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.8	id=PEPTIDEH_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEH	prots=ProteinA;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.9	id=PEPTIDEI_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEI	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.10	id=PEPTIDEJ_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEJ	prots=ProteinA;ProteinB;ProteinE	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.11	id=PEPTIDEK_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEK	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.12	id=PEPTIDEL_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEL	prots=ProteinA;ProteinB;ProteinD	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+protein.0	id=ProteinA	seq=	uniprot=
+protein.1	id=ProteinB	seq=	uniprot=
+protein.2	id=ProteinC	seq=	uniprot=
+protein.3	id=ProteinF	seq=	uniprot=
+protein.4	id=ProteinE	seq=	uniprot=
+protein.5	id=ProteinD	seq=	uniprot=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+405.519499999999994	351.655700000000024	3	2	100.0	-30.600000000000001	PEPTIDEA	PEPTIDEA	NA						ProteinA		NA		-1	NA	-1.0	-1.0	PEPTIDEA_3	1	0	1	0	1	
+415.519499999999994	352.148300000000006	3	2	100.0	-30.600000000000001	PEPTIDEA	PEPT(UniMod:21)IDEA	NA						ProteinA		NA		-1	NA	-1.0	-1.0	PEPT(Phospho)IDEA_3	2	0	1	0	1	
+425.519499999999994	352.460399999999993	3	3	100.0	-30.600000000000001	PEPTIDEB	PEPTIDEB	NA						ProteinB		NA		-1	NA	-1.0	-1.0	PEPTIDEB_3	3	0	1	0	1	
+435.519499999999994	355.149499999999989	3	2	100.0	-30.600000000000001	PEPTIDEC	PEPTIDEC	NA						ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEC_3	4	0	1	0	1	
+445.519499999999994	355.551850000000002	3	2	100.0	-30.600000000000001	PEPTIDED	PEPTIDED	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDED_3	5	0	1	0	1	
+455.519499999999994	356.631199999999978	3	2	100.0	-30.600000000000001	PEPTIDEE	PEPTIDEE	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEE_3	6	0	1	0	1	
+465.519499999999994	357.710550000000012	3	2	100.0	-30.600000000000001	PEPTIDEF	PEPTIDEF	NA						ProteinA;ProteinF;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEF_3	7	0	1	0	1	
+475.519499999999994	358.789899999999989	3	2	100.0	-30.600000000000001	PEPTIDEG	PEPTIDEG	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEG_3	8	0	1	0	1	
+485.519499999999994	359.869250000000022	3	2	100.0	-30.600000000000001	PEPTIDEH	PEPTIDEH	NA						ProteinA;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEH_3	9	0	1	0	1	
+495.519499999999994	360.948599999999999	3	2	100.0	-30.600000000000001	PEPTIDEI	PEPTIDEI	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEI_3	10	0	1	0	1	
+505.519499999999994	362.027949999999976	3	2	100.0	-30.600000000000001	PEPTIDEJ	PEPTIDEJ	NA						ProteinA;ProteinB;ProteinE		NA		-1	NA	-1.0	-1.0	PEPTIDEJ_3	11	0	1	0	1	
+515.519499999999994	363.107300000000009	3	2	100.0	-30.600000000000001	PEPTIDEK	PEPTIDEK	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEK_3	12	0	1	0	1	
+525.519499999999994	364.186649999999986	3	2	100.0	-30.600000000000001	PEPTIDEL	PEPTIDEL	NA						ProteinA;ProteinB;ProteinD		NA		-1	NA	-1.0	-1.0	PEPTIDEL_3	13	0	1	0	1	
+### tfc12_override
+n_transitions	13
+n_compounds	13
+n_proteins	6
+transition.0	name=1	ref=PEPTIDEA_3	lib=100	prod=351.65570000000002	prec=405.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.1	name=2	ref=PEPT(Phospho)IDEA_3	lib=100	prod=352.14830000000001	prec=415.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.2	name=3	ref=PEPTIDEB_3	lib=100	prod=352.46039999999999	prec=425.51949999999999	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.3	name=4	ref=PEPTIDEC_3	lib=100	prod=355.14949999999999	prec=435.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.4	name=5	ref=PEPTIDED_3	lib=100	prod=355.55185	prec=445.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.5	name=6	ref=PEPTIDEE_3	lib=100	prod=356.63119999999998	prec=455.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.6	name=7	ref=PEPTIDEF_3	lib=100	prod=357.71055000000001	prec=465.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.7	name=8	ref=PEPTIDEG_3	lib=100	prod=358.78989999999999	prec=475.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.8	name=9	ref=PEPTIDEH_3	lib=100	prod=359.86925000000002	prec=485.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.9	name=10	ref=PEPTIDEI_3	lib=100	prod=360.9486	prec=495.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.10	name=11	ref=PEPTIDEJ_3	lib=100	prod=362.02794999999998	prec=505.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.11	name=12	ref=PEPTIDEK_3	lib=100	prod=363.10730000000001	prec=515.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+transition.12	name=13	ref=PEPTIDEL_3	lib=100	prod=364.18664999999999	prec=525.51949999999999	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=-1	type=	ann=	forms=
+compound.0	id=PEPTIDEA_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.1	id=PEPT(Phospho)IDEA_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPT(UniMod:21)IDEA	prots=ProteinA	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=3:21;
+compound.2	id=PEPTIDEB_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEB	prots=ProteinB	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.3	id=PEPTIDEC_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEC	prots=ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.4	id=PEPTIDED_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDED	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.5	id=PEPTIDEE_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEE	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.6	id=PEPTIDEF_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEF	prots=ProteinA;ProteinF;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.7	id=PEPTIDEG_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEG	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.8	id=PEPTIDEH_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEH	prots=ProteinA;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.9	id=PEPTIDEI_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEI	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.10	id=PEPTIDEJ_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEJ	prots=ProteinA;ProteinB;ProteinE	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.11	id=PEPTIDEK_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEK	prots=ProteinA;ProteinB;ProteinC	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+compound.12	id=PEPTIDEL_3	im=-1	rt=-30.600000000000001	rts=nan	rte=nan	charge=3	seq=PEPTIDEL	prots=ProteinA;ProteinB;ProteinD	label=	gene=	sum=	name=	ltype=	smiles=	adducts=	mods=
+protein.0	id=ProteinA	seq=	uniprot=
+protein.1	id=ProteinB	seq=	uniprot=
+protein.2	id=ProteinC	seq=	uniprot=
+protein.3	id=ProteinF	seq=	uniprot=
+protein.4	id=ProteinE	seq=	uniprot=
+protein.5	id=ProteinD	seq=	uniprot=
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+405.519499999999994	351.655700000000024	3	2	100.0	-30.600000000000001	PEPTIDEA	PEPTIDEA	NA						ProteinA		NA		-1	NA	-1.0	-1.0	PEPTIDEA_3	1	0	1	0	1	
+415.519499999999994	352.148300000000006	3	2	100.0	-30.600000000000001	PEPTIDEA	PEPT(UniMod:21)IDEA	NA						ProteinA		NA		-1	NA	-1.0	-1.0	PEPT(Phospho)IDEA_3	2	0	1	0	1	
+425.519499999999994	352.460399999999993	3	3	100.0	-30.600000000000001	PEPTIDEB	PEPTIDEB	NA						ProteinB		NA		-1	NA	-1.0	-1.0	PEPTIDEB_3	3	0	1	0	1	
+435.519499999999994	355.149499999999989	3	2	100.0	-30.600000000000001	PEPTIDEC	PEPTIDEC	NA						ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEC_3	4	0	1	0	1	
+445.519499999999994	355.551850000000002	3	2	100.0	-30.600000000000001	PEPTIDED	PEPTIDED	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDED_3	5	0	1	0	1	
+455.519499999999994	356.631199999999978	3	2	100.0	-30.600000000000001	PEPTIDEE	PEPTIDEE	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEE_3	6	0	1	0	1	
+465.519499999999994	357.710550000000012	3	2	100.0	-30.600000000000001	PEPTIDEF	PEPTIDEF	NA						ProteinA;ProteinF;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEF_3	7	0	1	0	1	
+475.519499999999994	358.789899999999989	3	2	100.0	-30.600000000000001	PEPTIDEG	PEPTIDEG	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEG_3	8	0	1	0	1	
+485.519499999999994	359.869250000000022	3	2	100.0	-30.600000000000001	PEPTIDEH	PEPTIDEH	NA						ProteinA;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEH_3	9	0	1	0	1	
+495.519499999999994	360.948599999999999	3	2	100.0	-30.600000000000001	PEPTIDEI	PEPTIDEI	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEI_3	10	0	1	0	1	
+505.519499999999994	362.027949999999976	3	2	100.0	-30.600000000000001	PEPTIDEJ	PEPTIDEJ	NA						ProteinA;ProteinB;ProteinE		NA		-1	NA	-1.0	-1.0	PEPTIDEJ_3	11	0	1	0	1	
+515.519499999999994	363.107300000000009	3	2	100.0	-30.600000000000001	PEPTIDEK	PEPTIDEK	NA						ProteinA;ProteinB;ProteinC		NA		-1	NA	-1.0	-1.0	PEPTIDEK_3	12	0	1	0	1	
+525.519499999999994	364.186649999999986	3	2	100.0	-30.600000000000001	PEPTIDEL	PEPTIDEL	NA						ProteinA;ProteinB;ProteinD		NA		-1	NA	-1.0	-1.0	PEPTIDEL_3	13	0	1	0	1	
+### tsv1_force
+n_transitions	14
+n_compounds	6
+n_proteins	2
+transition.0	name=tr&1	ref=tr_gr>1	lib=1	prod=628.43499999999995	prec=500	im=4.5	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.1	name=tr&2	ref=tr_gr>1	lib=2	prod=654.38	prec=500	im=4.5	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.2	name=tr3	ref=tr_gr2	lib=10000	prod=618.30999999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.3	name=tr4	ref=tr_gr2	lib=2000	prod=628.43499999999995	prec=501	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.4	name=tr5	ref=tr_gr2	lib=4300	prod=651.29999999999995	prec=501	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.5	name=454	ref=78	lib=2714	prod=358.17899999999997	prec=722.68499999999995	im=9	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=6	type=a	ann=a6^2	forms=
+transition.6	name=tr1_heavy	ref=tr_gr1_heavy	lib=1	prod=628.43499999999995	prec=510.00826899999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=1	type=b	ann=b1^2	forms=
+transition.7	name=tr2_heavy	ref=tr_gr1_heavy	lib=2	prod=654.38	prec=510.00826899999998	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=2	type=b	ann=b2^2	forms=
+transition.8	name=tr3_heavy	ref=tr_gr2_heavy	lib=10000	prod=618.30999999999995	prec=509.01419900000002	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.9	name=tr4_heavy	ref=tr_gr2_heavy	lib=2000	prod=628.43499999999995	prec=509.01419900000002	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.10	name=tr5_heavy	ref=tr_gr2_heavy	lib=4300	prod=651.29999999999995	prec=730.69919900000002	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+transition.11	name=tr3_heavy2	ref=tr_gr2_different_heavy	lib=10000	prod=618.30999999999995	prec=900	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=3	type=y	ann=y3^2	forms=
+transition.12	name=tr4_heavy2	ref=tr_gr2_different_heavy	lib=2000	prod=628.43499999999995	prec=900	im=-1	fcharge=2	decoy=0	det=1	quant=1	ident=0	nr=4	type=y	ann=y4^2	forms=
+transition.13	name=tr5_heavy2	ref=tr_gr2_different_heavy	lib=4300	prod=651.29999999999995	prec=900	im=-1	fcharge=3	decoy=0	det=1	quant=1	ident=0	nr=5	type=y	ann=y5^3	forms=
+compound.0	id=tr_gr>1	im=4.5	rt=0.44	rts=nan	rte=nan	charge=2	seq=PEPTIDEAR	prots=ProteinA	label=tr_gr1	gene=	sum=	name=	ltype=light	smiles=	adducts=	mods=
+compound.1	id=tr_gr2	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK	prots=ProteinA	label=tr_gr2	gene=	sum=	name=	ltype=light	smiles=	adducts=	mods=3:21;7:4;
+compound.2	id=78	im=9	rt=52.200000000000003	rts=nan	rte=nan	charge=3	seq=(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	prots=ProteinC	label=78	gene=	sum=	name=	ltype=light	smiles=	adducts=	mods=-1:5;19:11;5:4;
+compound.3	id=tr_gr1_heavy	im=-1	rt=0.44	rts=nan	rte=nan	charge=2	seq=PEPTIDEAR(13C(6) 15N(4) Silac label)	prots=ProteinA	label=tr_gr1	gene=	sum=	name=	ltype=heavy	smiles=	adducts=	mods=8:267;
+compound.4	id=tr_gr2_heavy	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	prots=ProteinA	label=tr_gr2	gene=	sum=	name=	ltype=silac	smiles=	adducts=	mods=3:21;7:4;9:259;
+compound.5	id=tr_gr2_different_heavy	im=-1	rt=0.20000000000000001	rts=nan	rte=nan	charge=2	seq=PEPT(Phospho)IDEC(Carbamidomethyl)EK	prots=ProteinA	label=tr_gr2	gene=	sum=	name=	ltype=silac	smiles=	adducts=	mods=3:21;7:4;
+protein.0	id=ProteinA	seq=	uniprot=uniprot_nr_1
+protein.1	id=ProteinC	seq=	uniprot=uniprot_nr_2
+--- tsv
+PrecursorMz	ProductMz	PrecursorCharge	ProductCharge	LibraryIntensity	NormalizedRetentionTime	PeptideSequence	ModifiedPeptideSequence	PeptideGroupLabel	LabelType	CompoundName	SumFormula	SMILES	Adducts	ProteinId	UniprotId	GeneName	FragmentType	FragmentSeriesNumber	Annotation	CollisionEnergy	PrecursorIonMobility	TransitionGroupId	TransitionId	Decoy	DetectingTransition	IdentifyingTransition	QuantifyingTransition	Peptidoforms
+500.0	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light					ProteinA	uniprot_nr_1	NA	b	1	b1^2	-1.0	4.5	tr_gr>1	tr&1	0	1	0	1	
+500.0	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR	tr_gr1	light					ProteinA	uniprot_nr_1	NA	b	2	b2^2	-1.0	4.5	tr_gr>1	tr&2	0	1	0	1	
+501.0	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2	tr3	0	1	0	1	
+501.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2	tr4	0	1	0	1	
+501.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	light					ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2	tr5	0	1	0	1	
+722.684999999999945	358.178999999999974	3	2	2714.0	52.200000000000003	QVFIGCPASVADQDAFERM	(UniMod:5)QVFIGC(UniMod:4)PASVADQDAFERM(UniMod:11)	78	light					ProteinC	uniprot_nr_2	NA	a	6	a6^2	-1.0	9.0	78	454	0	1	0	1	
+510.008268999999984	628.434999999999945	2	2	1.0	0.44	PEPTIDEAR	PEPTIDEAR(13C(6) 15N(4) Silac label)	tr_gr1	heavy					ProteinA	uniprot_nr_1	NA	b	1	b1^2	-1.0	-1.0	tr_gr1_heavy	tr1_heavy	0	1	0	1	
+510.008268999999984	654.379999999999995	2	2	2.0	0.44	PEPTIDEAR	PEPTIDEAR(13C(6) 15N(4) Silac label)	tr_gr1	heavy					ProteinA	uniprot_nr_1	NA	b	2	b2^2	-1.0	-1.0	tr_gr1_heavy	tr2_heavy	0	1	0	1	
+509.014199000000019	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2_heavy	tr3_heavy	0	1	0	1	
+509.014199000000019	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2_heavy	tr4_heavy	0	1	0	1	
+730.699199000000021	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK(13C(6) 15N(2) Silac label)	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2_heavy	tr5_heavy	0	1	0	1	
+900.0	618.309999999999945	2	2	1.0e04	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	3	y3^2	-1.0	-1.0	tr_gr2_different_heavy	tr3_heavy2	0	1	0	1	
+900.0	628.434999999999945	2	2	2000.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	4	y4^2	-1.0	-1.0	tr_gr2_different_heavy	tr4_heavy2	0	1	0	1	
+900.0	651.299999999999955	2	3	4300.0	0.2	PEPTIDECEK	PEPT(Phospho)IDEC(Carbamidomethyl)EK	tr_gr2	silac					ProteinA	uniprot_nr_1	NA	y	5	y5^3	-1.0	-1.0	tr_gr2_different_heavy	tr5_heavy2	0	1	0	1	

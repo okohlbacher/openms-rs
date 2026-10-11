@@ -1,0 +1,6 @@
+Warning: No UniMod id set for modification on peptide TESTPEPTIDE. Will try to infer modification id by mass next.
+Warning: No UniMod id set for modification on peptide TESTPEPTIDER. Will try to infer modification id by mass next.
+Warning: No UniMod id set for modification on peptide TESTMPEPTIDE. Will try to infer modification id by mass next.
+Warning: No UniMod id set for modification on peptide PEPMTIDE. Will try to infer modification id by mass next.
+Warning: Could not determine modification with delta mass 5000 for peptide PEPMTIDE at position 3
+Skipping this modification

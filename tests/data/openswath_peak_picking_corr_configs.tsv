@@ -1,0 +1,6 @@
+# case	map	min_peak_nr	min_correlation	max_lag	max_rt_apex_difference
+c_classtest_0	classtest	0	0.7	1	3
+c_classtest_1	classtest	1	0.7	1	3
+c_syn_default	syn	0	0.7	1	3
+c_syn_loose	syn	0	0.3	3	10
+c_syn_strict	syn	1	0.95	0	2

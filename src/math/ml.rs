@@ -8,3 +8,14 @@
 //! Submodules are registered below. An `ML` port that needs kernel or format
 //! types belongs in the analysis domain that uses it instead, because `math`
 //! is a sink in the module graph and must stay one.
+
+/// `LinearInterpolation`: linearly interpolated values and derivatives.
+pub mod linear_interpolation;
+/// `LinearRegression`: least-squares line fits with goodness-of-fit statistics.
+pub mod linear_regression;
+/// `LinearRegressionWithoutIntercept`: least-squares line through the origin.
+pub mod linear_regression_without_intercept;
+/// `QuadraticRegression`: (weighted) least-squares quadratic fits.
+pub mod quadratic_regression;
+/// `RANSAC`, `RANSACModel`, `RANSACModelLinear`, `RANSACModelQuadratic`: outlier detection.
+pub mod ransac;

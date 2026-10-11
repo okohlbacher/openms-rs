@@ -1,0 +1,261 @@
+C	cmp0	100.0	PEPTIDE0K	prot0,prot3
+C	cmp1	108.5	PEPTIDE1K	
+C	cmp2	117.0	PEPTIDE2K	prot2
+C	cmp3	122.75	PEPTIDE3K	
+C	cmp4	131.25	PEPTIDE4K	prot4
+C	cmp5	139.75	PEPTIDE5K	prot1
+C	cmp6	145.5	PEPTIDE6K	prot6
+C	cmp7	154.0	PEPTIDE7K	
+C	cmp8	162.5	PEPTIDE8K	prot1
+C	cmp9	168.25	PEPTIDE9K	
+C	cmp10	176.75	PEPTIDE10K	prot3,prot6
+C	cmp11	182.5	PEPTIDE11K	
+C	cmp12	191.0	PEPTIDE12K	prot5
+C	cmp13	199.5	PEPTIDE13K	
+C	cmp14	205.25	PEPTIDE14K	prot0
+C	cmp15	213.75	PEPTIDE15K	prot4
+C	cmp16	222.25	PEPTIDE16K	prot2
+C	cmp17	228.0	PEPTIDE17K	
+C	cmp18	236.5	PEPTIDE18K	prot4
+C	cmp19	245.0	PEPTIDE19K	
+C	cmp20	250.75	PEPTIDE20K	prot6,prot2
+C	cmp21	259.25	PEPTIDE21K	
+C	cmp22	265.0	PEPTIDE22K	prot1
+C	cmp23	273.5	PEPTIDE23K	
+C	cmp24	282.0	PEPTIDE24K	prot3
+C	cmp25	287.75	PEPTIDE25K	prot0
+C	cmp26	296.25	PEPTIDE26K	prot5
+C	cmp27	304.75	PEPTIDE27K	
+C	cmp28	310.5	PEPTIDE28K	prot0
+C	cmp29	319.0	PEPTIDE29K	
+C	cmp30	327.5	PEPTIDE30K	prot2,prot5
+C	cmp31	333.25	PEPTIDE31K	
+C	cmp32	341.75	PEPTIDE32K	prot4
+C	cmp33	347.5	PEPTIDE33K	
+C	cmp34	356.0	PEPTIDE34K	prot6
+C	cmp35	364.5	PEPTIDE35K	prot3
+C	cmp36	370.25	PEPTIDE36K	prot1
+C	cmp37	378.75	PEPTIDE37K	
+C	cmp38	387.25	PEPTIDE38K	prot3
+C	cmp39	393.0	PEPTIDE39K	
+C	cmp40	401.5	PEPTIDE40K	prot5,prot1
+C	cmp41	410.0	PEPTIDE41K	
+C	cmp42	415.75	PEPTIDE42K	prot0
+C	cmp43	424.25	PEPTIDE43K	
+C	cmp44	430.0	PEPTIDE44K	prot2
+C	cmp45	438.5	PEPTIDE45K	prot6
+C	cmp46	447.0	PEPTIDE46K	prot4
+C	cmp47	452.75	PEPTIDE47K	
+C	cmp48	461.25	PEPTIDE48K	prot6
+C	cmp49	469.75	PEPTIDE49K	
+C	cmp50	475.5	PEPTIDE0K	prot1,prot4
+C	cmp51	484.0	PEPTIDE1K	
+C	cmp52	492.5	PEPTIDE2K	prot3
+C	cmp53	498.25	PEPTIDE3K	
+C	cmp54	506.75	PEPTIDE4K	prot5
+C	cmp55	512.5	PEPTIDE5K	prot2
+C	cmp56	521.0	PEPTIDE6K	prot0
+C	cmp57	529.5	PEPTIDE7K	
+C	cmp58	535.25	PEPTIDE8K	prot2
+C	cmp59	543.75	PEPTIDE9K	
+T	tr0_0	cmp0	1.0	0
+T	tr0_1	cmp0	6.0	0
+T	tr0_2	cmp0	2.0	0
+T	tr1_0	cmp1	4.0	0
+T	tr1_1	cmp1	9.0	0
+T	tr1_2	cmp1	5.0	0
+T	tr2_0	cmp2	7.0	0
+T	tr2_1	cmp2	3.0	0
+T	tr2_2	cmp2	8.0	0
+T	tr3_0	cmp3	1.0	0
+T	tr3_1	cmp3	6.0	0
+T	tr3_2	cmp3	2.0	0
+T	tr4_0	cmp4	4.0	0
+T	tr4_1	cmp4	9.0	0
+T	tr4_2	cmp4	5.0	0
+T	tr5_0	cmp5	7.0	0
+T	tr5_1	cmp5	3.0	0
+T	tr5_2	cmp5	8.0	0
+T	tr6_0	cmp6	1.0	0
+T	tr6_1	cmp6	6.0	0
+T	tr6_2	cmp6	2.0	0
+T	tr7_0	cmp7	4.0	0
+T	tr7_1	cmp7	9.0	0
+T	tr7_2	cmp7	5.0	0
+T	tr8_0	cmp8	7.0	0
+T	tr8_1	cmp8	3.0	0
+T	tr8_2	cmp8	8.0	0
+T	tr9_0	cmp9	1.0	0
+T	tr9_1	cmp9	6.0	0
+T	tr9_2	cmp9	2.0	0
+T	tr10_0	cmp10	4.0	0
+T	tr10_1	cmp10	9.0	0
+T	tr10_2	cmp10	5.0	0
+T	tr11_0	cmp11	7.0	0
+T	tr11_1	cmp11	3.0	0
+T	tr11_2	cmp11	8.0	0
+T	tr12_0	cmp12	1.0	0
+T	tr12_1	cmp12	6.0	0
+T	tr12_2	cmp12	2.0	0
+T	tr13_0	cmp13	4.0	0
+T	tr13_1	cmp13	9.0	0
+T	tr13_2	cmp13	5.0	0
+T	tr14_0	cmp14	7.0	0
+T	tr14_1	cmp14	3.0	0
+T	tr14_2	cmp14	8.0	0
+T	tr15_0	cmp15	1.0	0
+T	tr15_1	cmp15	6.0	0
+T	tr15_2	cmp15	2.0	0
+T	tr16_0	cmp16	4.0	0
+T	tr16_1	cmp16	9.0	0
+T	tr16_2	cmp16	5.0	0
+T	tr17_0	cmp17	7.0	0
+T	tr17_1	cmp17	3.0	0
+T	tr17_2	cmp17	8.0	0
+T	tr18_0	cmp18	1.0	0
+T	tr18_1	cmp18	6.0	0
+T	tr18_2	cmp18	2.0	0
+T	tr19_0	cmp19	4.0	0
+T	tr19_1	cmp19	9.0	0
+T	tr19_2	cmp19	5.0	0
+T	tr20_0	cmp20	7.0	0
+T	tr20_1	cmp20	3.0	0
+T	tr20_2	cmp20	8.0	0
+T	tr21_0	cmp21	1.0	0
+T	tr21_1	cmp21	6.0	0
+T	tr21_2	cmp21	2.0	0
+T	tr22_0	cmp22	4.0	0
+T	tr22_1	cmp22	9.0	0
+T	tr22_2	cmp22	5.0	0
+T	tr23_0	cmp23	7.0	0
+T	tr23_1	cmp23	3.0	0
+T	tr23_2	cmp23	8.0	0
+T	tr24_0	cmp24	1.0	0
+T	tr24_1	cmp24	6.0	0
+T	tr24_2	cmp24	2.0	0
+T	tr25_0	cmp25	4.0	0
+T	tr25_1	cmp25	9.0	0
+T	tr25_2	cmp25	5.0	0
+T	tr26_0	cmp26	7.0	0
+T	tr26_1	cmp26	3.0	0
+T	tr26_2	cmp26	8.0	0
+T	tr27_0	cmp27	1.0	0
+T	tr27_1	cmp27	6.0	0
+T	tr27_2	cmp27	2.0	0
+T	tr28_0	cmp28	4.0	0
+T	tr28_1	cmp28	9.0	0
+T	tr28_2	cmp28	5.0	0
+T	tr29_0	cmp29	7.0	0
+T	tr29_1	cmp29	3.0	0
+T	tr29_2	cmp29	8.0	0
+T	tr30_0	cmp30	1.0	0
+T	tr30_1	cmp30	6.0	0
+T	tr30_2	cmp30	2.0	0
+T	tr31_0	cmp31	4.0	0
+T	tr31_1	cmp31	9.0	0
+T	tr31_2	cmp31	5.0	0
+T	tr32_0	cmp32	7.0	0
+T	tr32_1	cmp32	3.0	0
+T	tr32_2	cmp32	8.0	0
+T	tr33_0	cmp33	1.0	0
+T	tr33_1	cmp33	6.0	0
+T	tr33_2	cmp33	2.0	0
+T	tr34_0	cmp34	4.0	0
+T	tr34_1	cmp34	9.0	0
+T	tr34_2	cmp34	5.0	0
+T	tr35_0	cmp35	7.0	0
+T	tr35_1	cmp35	3.0	0
+T	tr35_2	cmp35	8.0	0
+T	tr36_0	cmp36	1.0	0
+T	tr36_1	cmp36	6.0	0
+T	tr36_2	cmp36	2.0	0
+T	tr37_0	cmp37	4.0	0
+T	tr37_1	cmp37	9.0	0
+T	tr37_2	cmp37	5.0	0
+T	tr38_0	cmp38	7.0	0
+T	tr38_1	cmp38	3.0	0
+T	tr38_2	cmp38	8.0	0
+T	tr39_0	cmp39	1.0	0
+T	tr39_1	cmp39	6.0	0
+T	tr39_2	cmp39	2.0	0
+T	tr40_0	cmp40	4.0	0
+T	tr40_1	cmp40	9.0	0
+T	tr40_2	cmp40	5.0	0
+T	tr41_0	cmp41	7.0	0
+T	tr41_1	cmp41	3.0	0
+T	tr41_2	cmp41	8.0	0
+T	tr42_0	cmp42	1.0	0
+T	tr42_1	cmp42	6.0	0
+T	tr42_2	cmp42	2.0	0
+T	tr43_0	cmp43	4.0	0
+T	tr43_1	cmp43	9.0	0
+T	tr43_2	cmp43	5.0	0
+T	tr44_0	cmp44	7.0	0
+T	tr44_1	cmp44	3.0	0
+T	tr44_2	cmp44	8.0	0
+T	tr45_0	cmp45	1.0	0
+T	tr45_1	cmp45	6.0	0
+T	tr45_2	cmp45	2.0	0
+T	tr46_0	cmp46	4.0	0
+T	tr46_1	cmp46	9.0	0
+T	tr46_2	cmp46	5.0	0
+T	tr47_0	cmp47	7.0	0
+T	tr47_1	cmp47	3.0	0
+T	tr47_2	cmp47	8.0	0
+T	tr48_0	cmp48	1.0	0
+T	tr48_1	cmp48	6.0	0
+T	tr48_2	cmp48	2.0	0
+T	tr49_0	cmp49	4.0	0
+T	tr49_1	cmp49	9.0	0
+T	tr49_2	cmp49	5.0	0
+T	tr50_0	cmp50	7.0	0
+T	tr50_1	cmp50	3.0	0
+T	tr50_2	cmp50	8.0	0
+T	tr51_0	cmp51	1.0	0
+T	tr51_1	cmp51	6.0	0
+T	tr51_2	cmp51	2.0	0
+T	tr52_0	cmp52	4.0	0
+T	tr52_1	cmp52	9.0	0
+T	tr52_2	cmp52	5.0	0
+T	tr53_0	cmp53	7.0	0
+T	tr53_1	cmp53	3.0	0
+T	tr53_2	cmp53	8.0	0
+T	tr54_0	cmp54	1.0	0
+T	tr54_1	cmp54	6.0	0
+T	tr54_2	cmp54	2.0	0
+T	tr55_0	cmp55	4.0	0
+T	tr55_1	cmp55	9.0	0
+T	tr55_2	cmp55	5.0	0
+T	tr56_0	cmp56	7.0	0
+T	tr56_1	cmp56	3.0	0
+T	tr56_2	cmp56	8.0	0
+T	tr57_0	cmp57	1.0	0
+T	tr57_1	cmp57	6.0	0
+T	tr57_2	cmp57	2.0	0
+T	tr58_0	cmp58	4.0	0
+T	tr58_1	cmp58	9.0	0
+T	tr58_2	cmp58	5.0	0
+T	tr59_0	cmp59	7.0	0
+T	tr59_1	cmp59	3.0	0
+T	tr59_2	cmp59	8.0	0
+T	decoy0	cmp0	50.0	1
+T	decoy5	cmp5	50.0	1
+T	decoy10	cmp10	50.0	1
+T	decoy15	cmp15	50.0	1
+T	decoy20	cmp20	50.0	1
+T	decoy25	cmp25	50.0	1
+T	decoy30	cmp30	50.0	1
+T	decoy35	cmp35	50.0	1
+T	decoy40	cmp40	50.0	1
+T	decoy45	cmp45	50.0	1
+T	decoy50	cmp50	50.0	1
+T	decoy55	cmp55	50.0	1
+C	onlydecoy	300.0	DECOYONLYK	
+T	decoyonly_0	onlydecoy	99.0	1
+P	prot0
+P	prot1
+P	prot2
+P	prot3
+P	prot4
+P	prot5
+P	prot6

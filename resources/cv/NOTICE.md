@@ -60,3 +60,10 @@ the mzData semantic validator. `psi-mzdata.obo` is the 2006 PSI mzData
 vocabulary (saved by `whetzel`, OBO-Edit 1.000) and carries no embedded license
 statement; the mapping was written for OpenMS and falls under its BSD-3-Clause
 license. Hashes are in [the provenance manifest](../../tests/data/mzdata_semantic_provenance.json).
+## TraML mapping resource
+
+`TraML-mapping.xml` is an unchanged copy of `share/OpenMS/MAPPING/TraML-mapping.xml`
+from OpenMS4-core revision `bc9cc12`. It contains the source TraML semantic
+mapping rules that `TraMLFile::isSemanticallyValid` loads, and has no separate
+embedded license notice. Its SHA-256 is recorded in
+[the TraML provenance manifest](../../tests/data/traml_provenance.json).

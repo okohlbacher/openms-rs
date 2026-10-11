@@ -60,6 +60,10 @@ pub mod file_types;
 pub mod mascot_generic;
 /// Streaming MGF peak lists and their supported text metadata.
 pub mod mgf;
+/// MRM component and component group picker parameters from a CSV file (`MRMFeaturePickerFile.h`).
+pub mod mrm_feature_picker_file;
+/// MRM feature QC criteria from and to a CSV file (`MRMFeatureQCFile.h`).
+pub mod mrm_feature_qc_file;
 /// MS2 peak-list input and output with explicit transport boundaries.
 pub mod ms2;
 /// Long-format MSstats and MSstatsTMT CSV writer (`MSstatsFile.h`).
@@ -330,6 +334,9 @@ pub mod cached_mzml;
 pub mod cached_mzml_handler;
 /// Chromeleon HPLC text exports into one chromatogram (`ChromeleonFile.h`).
 pub mod chromeleon;
+/// File-system operations for directory-or-archive containers, re-exported
+/// from `system::file` for the OpenSWATH Parquet formats.
+pub mod container_io;
 /// Enhanced DTA feature tables into consensus maps, and their writers (`EDTAFile.h`).
 pub mod edta;
 /// Read-only `fid` intensities of a Bruker XMass spectrum (`FidHandler.h`).
@@ -414,6 +421,12 @@ pub mod sqmass_file;
 /// `BrukerTimsFile.h` (`TimsDataHandle`, frame codec, linear calibrations).
 #[cfg(feature = "bruker-tdf")]
 pub mod tims_data_handle;
+/// HUPO PSI TraML transition lists (`TraMLFile.h`).
+#[cfg(feature = "traml")]
+pub mod traml;
+/// The TraML reader and writer (`HANDLERS/TraMLHandler.h`).
+#[cfg(feature = "traml")]
+pub mod traml_handler;
 /// Unimod XML modification databases and their registry provider
 /// (`UnimodXMLFile.h`, `UnimodXMLHandler.h`, `UnimodXMLDataProvider.h`).
 #[cfg(feature = "kb-xml")]

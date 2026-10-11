@@ -108,7 +108,7 @@ use crate::kernel::{
 };
 use crate::param::{DefaultParamHandling, Param, ParamEntry, ParamNode, ParamValue};
 use crate::{Error, Result};
-use noise::{flag, flag_entry, float, float_entry, int_entry, integer, string_entry};
+pub(crate) use noise::{flag, flag_entry, float, float_entry, int_entry, integer, string_entry};
 
 fn bad(message: &str) -> Error {
     Error::InvalidValue(message.into())

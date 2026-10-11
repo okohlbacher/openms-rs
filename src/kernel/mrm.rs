@@ -24,10 +24,12 @@
 //! [`chromatogram_ids_match`](crate::kernel::mrm::MRMTransitionGroup::chromatogram_ids_match)
 //! is what checks that they agree.
 //!
-//! The group is generic over its transition type because the source's
-//! `ReactionMonitoringTransition` (`ANALYSIS/MRM`) is not ported. The
-//! [`Transition`](crate::kernel::mrm::Transition) trait carries only what the
-//! group and its immediate consumers need;
+//! The group is generic over its transition type, because the kernel sits
+//! below the analysis layer that holds the source's
+//! `ReactionMonitoringTransition` (`ANALYSIS/MRM`, ported as
+//! `analysis::openswath::reaction_monitoring_transition`, which implements
+//! the trait). The [`Transition`](crate::kernel::mrm::Transition) trait
+//! carries only what the group and its immediate consumers need;
 //! [`SimpleTransition`](crate::kernel::mrm::SimpleTransition) is a concrete
 //! implementation for tests and for callers with no assay library type of
 //! their own. The chromatogram parameter is likewise generic over
@@ -100,8 +102,10 @@ impl NativeIdentified for MSSpectrum {
 
 /// The assay metadata a transition group needs from one transition.
 ///
-/// The source class is `ReactionMonitoringTransition` in `ANALYSIS/MRM`, which
-/// is not ported; this trait is the minimal replacement. Only
+/// The source class is `ReactionMonitoringTransition` in `ANALYSIS/MRM`; the
+/// group is written against this minimal trait instead, which that class's
+/// port (`analysis::openswath::reaction_monitoring_transition`) implements.
+/// Only
 /// [`Transition::native_id`] and [`Transition::library_intensity`] are read by
 /// `MRMTransitionGroup` itself (in `subset`, `subsetDependent` and
 /// `getLibraryIntensity`). The precursor and product m/z and the three
@@ -132,8 +136,8 @@ pub trait Transition {
 /// Not a port of `ReactionMonitoringTransition`: it holds the seven trait
 /// values and nothing else — no peptide or compound reference, no decoy type,
 /// no CV terms, no interpretation list. It exists so that
-/// [`MRMTransitionGroup`] can be constructed and tested without the unported
-/// assay-library types, and so that callers who only need the group's
+/// [`MRMTransitionGroup`] can be constructed and tested without the
+/// assay-library types of the analysis layer, and so that callers who only need the group's
 /// bookkeeping need not define a type of their own.
 ///
 /// The source class defaults `isDetectingTransition` and
@@ -219,9 +223,9 @@ impl Transition for SimpleTransition {
 /// `calculate_lda_prescore`, `calculate_lda_single_transition`,
 /// `calculate_swath_lda_prescore`) live in
 /// `ANALYSIS/OPENSWATH/OpenSwathScores.cpp` and belong to the OpenSWATH
-/// analysis port, not to this kernel work package; they are not ported here.
-/// `OpenSwath_Scores_Usage` is likewise an analysis-side switchboard and is not
-/// ported.
+/// analysis port: they are implemented on this struct in
+/// `analysis::openswath::openswath_scores`, which also ports the analysis-side
+/// switchboard `OpenSwath_Scores_Usage` as `OpenSwathScoresUsage`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct OpenSwathScores {
     pub elution_model_fit_score: f64,
@@ -1006,7 +1010,8 @@ impl MRMFeature {
 /// TransitionType>`. `C` is the raw-data type — the source header notes that
 /// not every OpenMS function accepts `MSChromatogram`, so `MSSpectrum` must
 /// work too — and `T` is the assay transition, generic because the source's
-/// `ReactionMonitoringTransition` is not ported.
+/// `ReactionMonitoringTransition` lives in the analysis layer above the
+/// kernel (`analysis::openswath::reaction_monitoring_transition`).
 ///
 /// The group stores three keyed lists: the transitions, the fragment-ion
 /// chromatograms measured for them, and the precursor chromatograms extracted

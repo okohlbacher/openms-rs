@@ -1,0 +1,315 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "test_data_revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+  "license": "BSD-3-Clause",
+  "method": "Executed differential: the oracle driver links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06 and runs twice in a clean environment; both runs produced byte-identical records and files (results/differ.txt empty). The Rust tests replay the reader on every container the executed library wrote or read and compare field by field, and run the writer on the same inputs and compare every table value by value and metadata.json byte by byte except build_time. Both sections of TransitionParquetFile_test.cpp are transcribed.",
+  "evidence_tier": "1 (executed differential on the Release build; the class test transcribed as tier 2)",
+  "reference_tools": "../oracle/O5c-parquet (driver.cpp, node.sh, run.sh)",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TransitionParquetFile.h",
+      "sha256": "57cb2602475dc05a5c25337b2c89cdd7b17ec5038567fa923bb5b1576678399a"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionParquetFile.cpp",
+      "sha256": "5e1c17a4a65718de7c40a59d205416c2e1406c3145bc2143a31ab979b856cfa1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TransitionParquetFile_test.cpp",
+      "sha256": "f1322bf2cc380b44eb8db324b332275391246aba86ee2b30e9b4ab511ebfb50e"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/transition_parquet_file/records.tsv",
+      "sha256": "7a2c7feaa1e680c1c409015a798f4968aada6523507e44f6cb4b1bff37f5a9db",
+      "kind": "record stream of the executed Release oracle O5c-parquet (run 1; run 2 identical)"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/host.txt",
+      "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+      "kind": "host, compiler, flags and Arrow version the oracle ran with"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_ambiguous_traml__precursors.parquet",
+      "sha256": "8031f2fe8d80059c24105e32b9d3c6ac7600abee5691f0ba8b1b8d9001a8e255",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_ambiguous_traml__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_basic__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_basic__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_charge_int64__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_charge_int64__transitions.parquet",
+      "sha256": "bcb2a6b3735638c199ac829ade00da7f4392e124075b1b32b362b9b772773a0b",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_dup_precursor__precursors.parquet",
+      "sha256": "2d8505683a7c28a9066405f8a76fe7b8bdc63b55f6b5c4a8bf208223f53a9d19",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_dup_precursor__transitions.parquet",
+      "sha256": "210728dd1c60a7b377575a84797f33c7dd30206f34ce7fa0544d2117b36ea655",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_dup_transition__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_dup_transition__transitions.parquet",
+      "sha256": "99316052da2560dd0c7a3c6940b4edee82894138a11fbf0c32f3d591c219e7f6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_extra_column__precursors.parquet",
+      "sha256": "b0a4a4b4fe0c65ae435d3db7fb851fd9fd3a68b40677d24205a54fcbd4fe3352",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_extra_column__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_list_proteins__precursors.parquet",
+      "sha256": "61e3028f14178b85780dbb6de35f7ff86adfb54dbc6619a2eb3939ac80ca6d6c",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_list_proteins__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_annotation_col__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_annotation_col__transitions.parquet",
+      "sha256": "8e0849d6f093356988f37000fcb3a26bc14be95e67d7c720b3f5f9b629be911f",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_traml_col__precursors.parquet",
+      "sha256": "39c420ed089d9c331f572e2fe050cc2c1393683d2a326d515875eb5f1d00f5ee",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_traml_col__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_transitions_file__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_type_col__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_missing_type_col__transitions.parquet",
+      "sha256": "3b63fc4dd4901a6a06a256d573af4cb9097ec4f3ffa77fe16e3cc99e0dcde2d1",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_negative_precursor__precursors.parquet",
+      "sha256": "4d3aaa15e466ae6fb98fac0b93fbd204f6435c6ee98da0ea75902ec8f26bb460",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_negative_precursor__transitions.parquet",
+      "sha256": "cfd5f9cae09094aeecd96980573833b8f569d6543b308f1718997cbfffddfb3f",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_null_mz__precursors.parquet",
+      "sha256": "4a707a69e4a5af65b074428cc3449497ca5c5816c2d49b6f1da3877b7425fb3c",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_null_mz__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_parse_error__precursors.parquet",
+      "sha256": "eb3783bf42ce629f3f3fcf120953e2cdd3a3d2b24cf86527fe99584bf4d169c3",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_parse_error__transitions.parquet",
+      "sha256": "2292101783b46aa61829d70fb9858afb24528ea582d98710ada051e0edbeb2a6",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_unknown_precursor__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_unknown_precursor__transitions.parquet",
+      "sha256": "822e4cfe056199318d0db33144f875db8a00e04ff6b75678e268e9fc9f4842d3",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_wrapping_casts__precursors.parquet",
+      "sha256": "8d7f192ce38e759434f2728f2778122b1ab7e46190e9dbda0e0f4e4139b3a380",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/r_wrapping_casts__transitions.parquet",
+      "sha256": "253c42171087283857b772ba8530675eb856c4c9bb836d403385293e7fad6507",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/syn_write__metadata.json",
+      "sha256": "bccc31088b8b1fc0c732bd951ed3839c3f5686ab5b2538e2eecdf920aa77bc42",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/syn_write__precursors.parquet",
+      "sha256": "9e087eecd538f3177a528f5dbac054c0064b3c1c83b254ef586a33f6d4a142c7",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/syn_write__transitions.parquet",
+      "sha256": "f421cbf16b5e427868a9d535aa4a7e77056b121a64ed58811150001ee63e004e",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/syn_write_noids__metadata.json",
+      "sha256": "bccc31088b8b1fc0c732bd951ed3839c3f5686ab5b2538e2eecdf920aa77bc42",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/syn_write_noids__precursors.parquet",
+      "sha256": "a100a9c2298b50459201f0144c7b2a423853510c00da33b7e45cec461db94a95",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/syn_write_noids__transitions.parquet",
+      "sha256": "dbd1db82d2ae082f98e18a57cddb76957c9666c141bb910a2abcd2aa6166f140",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_dir_write__metadata.json",
+      "sha256": "068bcf30c5bef0626bb08052f127d20a4f9f22ab4b1fb27c7dbb95f5b9e6f248",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_dir_write__precursors.parquet",
+      "sha256": "c1c51d69cc882e8505f32f9fec4988ec7fdb9f3f9aed67f7aa32aebaae9bcd12",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_dir_write__transitions.parquet",
+      "sha256": "772ffb9a4053841daaf82f6dad4f713a6e9dfe4f6294cfb1446a1dc5632d0d21",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_norm_write__metadata.json",
+      "sha256": "068bcf30c5bef0626bb08052f127d20a4f9f22ab4b1fb27c7dbb95f5b9e6f248",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_norm_write__precursors.parquet",
+      "sha256": "c1c51d69cc882e8505f32f9fec4988ec7fdb9f3f9aed67f7aa32aebaae9bcd12",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_norm_write__transitions.parquet",
+      "sha256": "772ffb9a4053841daaf82f6dad4f713a6e9dfe4f6294cfb1446a1dc5632d0d21",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_zip_write__metadata.json",
+      "sha256": "068bcf30c5bef0626bb08052f127d20a4f9f22ab4b1fb27c7dbb95f5b9e6f248",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_zip_write__precursors.parquet",
+      "sha256": "c1c51d69cc882e8505f32f9fec4988ec7fdb9f3f9aed67f7aa32aebaae9bcd12",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/traml_zip_write__transitions.parquet",
+      "sha256": "772ffb9a4053841daaf82f6dad4f713a6e9dfe4f6294cfb1446a1dc5632d0d21",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/w_empty__metadata.json",
+      "sha256": "76f5ebf54fd76933fa935a0b563e73760aeb1b469e2efe1a303d19823c795e0b",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/w_empty__precursors.parquet",
+      "sha256": "02652e955594576fa5e611d332b86aada25becc58fae280fbdbd0a7c8c6811ed",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/transition_parquet_file/files/w_empty__transitions.parquet",
+      "sha256": "64068ff845fd7c12215c28fdd0f8a6ab47d9cabd07aaec340736eebb2158f82e",
+      "kind": "Parquet table or metadata.json written by the executed Release build, oracle O5c-parquet"
+    },
+    {
+      "path": "tests/data/traml/MRMAssay_detectingTransistionCompound_input.TraML",
+      "sha256": "5513a89582f02e9249adf69b2eec8598d2727a9939fd8d228fcde5a330f0d7b1",
+      "kind": "class-test input the oracle converted (fixture registered by lane O1b)"
+    }
+  ],
+  "native_implementation": "src/analysis/openswath/transition_parquet_file.rs",
+  "native_tests": "tests/transition_parquet_file.rs",
+  "support_document": "docs/OPENSWATH_PARQUET_SUPPORT.md",
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O5c-parquet/driver.cpp",
+      "sha256": "fdd152716f497e9c0cc6085f21b0961c1e9e2bdf57c0098f3ab97ccc59910d51",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-parquet/node.sh",
+      "sha256": "e0a503ec62b2aa5c1cd64983bc314c9c00d7b51dd43abb64d56dc7cedcfcc227",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-parquet/run.sh",
+      "sha256": "2b6b0678e0cfccb44d450b915dd4f5773fcc9cd8fac86a810bce835a12e23e11",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-parquet/results/hashes.txt",
+      "sha256": "e2908f3fe571b6655bf09bf82529d43abb842e521c7519806d53f1ddcb1d7cdf",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "The oracle driver is C++ and stays outside the repository; its records and every file it wrote were copied verbatim into tests/data/transition_parquet_file/ (hashes above). results/hashes.txt of the oracle hashes the driver, the built binary, libOpenMS.so and the record stream. Error messages in the records mask the per-run work directory as <WORK>."
+}

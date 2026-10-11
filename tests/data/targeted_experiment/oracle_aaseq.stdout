@@ -1,0 +1,8 @@
+aaseq	phospho	TES(Phospho)TPEPTIDE	TESTPEPTIDE
+aaseq	label	TESTPEPTIDER(Label:13C(6)15N(4))	TESTPEPTIDER
+aaseq	oxidation	TESTM(Oxidation)PEPTIDE	TESTMPEPTIDE
+aaseq	unimod35	PEPM(Oxidation)TIDE	PEPMTIDE
+aaseq	unresolved	PEPMTIDE	PEPMTIDE
+aaseq	cterm_unimod	PEPTIDEK.(Amidated)	PEPTIDEK
+aaseq	nterm_unimod	.(Acetyl)PEPTIDEK	PEPTIDEK
+setmod	combined	.(Acetyl)PEPTIDEK(Label:13C(6)15N(2)).(Amidated)

@@ -373,6 +373,25 @@ fn adaptive_residual_windows_sparse_dense_small_and_inverse_units() {
     );
 }
 
+/// A residual set with a zero inter-quartile range: `Math::tukeyUpperFence`
+/// returns +inf unless `iqr > 0`, so there is no fence, no value lies above
+/// it, the robust and the raw quantile coincide and the window is the raw
+/// 0.99 quantile, 5, whatever the two outliers (2% of the points) would
+/// weigh. Derived from the source's `if (!(iqr > 0.0))` guard.
+#[test]
+fn adaptive_residual_window_with_zero_iqr_is_the_raw_quantile() {
+    let mut points: Vec<_> = (0..98).map(|_| DataPoint::new(0., 0.)).collect();
+    points.extend([DataPoint::new(0., 5.), DataPoint::new(0., 5.)]);
+    let description = TransformationDescription::new(points).unwrap();
+    let options = WindowOptions {
+        quantile: 0.99,
+        inverse: false,
+        full_window: false,
+        padding_factor: 1.,
+    };
+    assert_eq!(description.estimate_window(options).unwrap(), 5.);
+}
+
 #[test]
 fn empty_and_single_anchor_statistics_have_checked_small_sample_behavior() {
     let empty = TransformationDescription::default();

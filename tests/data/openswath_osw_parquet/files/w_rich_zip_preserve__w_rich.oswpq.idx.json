@@ -1,0 +1,14 @@
+{
+  "library/precursors.parquet": 2447,
+  "library/transitions.parquet": 2816,
+  "library/metadata.json": 829,
+  "runs/runs.parquet": 559,
+  "runs/run_id=42/feature_transition.parquet": 9365,
+  "runs/run_id=42/feature_precursor.parquet": 1306,
+  "runs/run_id=42/features.parquet": 14305,
+  "metadata.json": 600,
+  "w_rich.oswpq.idx.json": 313,
+  "runs/run_id=7/feature_transition.parquet": 8264,
+  "runs/run_id=7/feature_precursor.parquet": 540,
+  "runs/run_id=7/features.parquet": 12716
+}

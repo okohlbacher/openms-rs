@@ -56,7 +56,7 @@ path = "src/bin/FuzzyDiff.rs"
 required-features = ["paramxml"]
 
 [features]
-default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "cv-mapping", "parallel"]
+default = ["mzml", "idxml", "rna-json", "paramxml", "featurexml", "consensusxml", "traml", "cv-mapping", "parallel"]
 mzml = ["dep:quick-xml", "dep:sha1", "file-compression", "numpress"]
 numpress = ["dep:base64", "dep:flate2"]
 idxml = ["dep:quick-xml"]
@@ -65,6 +65,8 @@ proforma-json = ["dep:serde_json"]
 paramxml = ["dep:quick-xml", "dep:serde_json", "file-compression"]
 featurexml = ["dep:quick-xml", "file-compression"]
 consensusxml = ["dep:quick-xml", "file-compression"]
+# TraML transition lists (TraMLFile, TraMLHandler).
+traml = ["dep:quick-xml", "file-compression"]
 semantic-validation = ["cv-mapping"]
 mzml-validation = ["mzml", "semantic-validation"]
 mzml-schema = ["mzml", "xml-schema"]

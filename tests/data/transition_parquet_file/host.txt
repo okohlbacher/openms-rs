@@ -1,0 +1,6 @@
+ibminode06
+Linux ibminode06 6.8.0-124-generic #124-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 13:00:45 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0
+flags: -O2 -DNDEBUG -std=gnu++23
+install: /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576
+#define ARROW_VERSION_STRING "23.0.1"

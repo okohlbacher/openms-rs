@@ -377,7 +377,7 @@ fn entry(name: &str, value: ParamValue, description: &str, advanced: bool) -> Pa
     entry
 }
 
-pub(super) fn int_entry(
+pub(crate) fn int_entry(
     name: &str,
     value: i64,
     description: &str,
@@ -395,7 +395,7 @@ pub(super) fn int_entry(
     e
 }
 
-pub(super) fn float_entry(
+pub(crate) fn float_entry(
     name: &str,
     value: f64,
     description: &str,
@@ -413,7 +413,7 @@ pub(super) fn float_entry(
     e
 }
 
-pub(super) fn flag_entry(name: &str, value: bool, description: &str, advanced: bool) -> ParamEntry {
+pub(crate) fn flag_entry(name: &str, value: bool, description: &str, advanced: bool) -> ParamEntry {
     string_entry(
         name,
         if value { "true" } else { "false" },
@@ -423,7 +423,7 @@ pub(super) fn flag_entry(name: &str, value: bool, description: &str, advanced: b
     )
 }
 
-pub(super) fn string_entry(
+pub(crate) fn string_entry(
     name: &str,
     value: &str,
     description: &str,
@@ -440,11 +440,11 @@ pub(super) fn string_entry(
     e
 }
 
-pub(super) fn integer(param: &Param, key: &str) -> Result<i64> {
+pub(crate) fn integer(param: &Param, key: &str) -> Result<i64> {
     param.value(key)?.to_i64()
 }
 
-pub(super) fn float(param: &Param, key: &str) -> Result<f64> {
+pub(crate) fn float(param: &Param, key: &str) -> Result<f64> {
     match param.value(key)? {
         ParamValue::Float(value) => Ok(*value),
         _ => Err(bad(&format!(
@@ -453,7 +453,7 @@ pub(super) fn float(param: &Param, key: &str) -> Result<f64> {
     }
 }
 
-pub(super) fn flag(param: &Param, key: &str) -> Result<bool> {
+pub(crate) fn flag(param: &Param, key: &str) -> Result<bool> {
     param.value(key)?.to_bool()
 }
 

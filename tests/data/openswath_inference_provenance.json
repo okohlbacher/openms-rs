@@ -1,0 +1,2549 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceData.h",
+      "sha256": "6a4be65d38fa8653719a71dcd068388e68a36b19048b400a930d4b234b1e9939"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathInferenceConfig.h",
+      "sha256": "9cf14e1a9da1cb47bb080927bfc1b8cef16300fe1f048d9dc59e327b98485d9a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/LevelContextInference.h",
+      "sha256": "d7b41ed7e0f2145e4833a97f40f88f6197f3dfa958df4b7a4070e2fb2f7cd497"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/LevelContextInference.cpp",
+      "sha256": "c38e34927703fdf88800d7881bd02a4cc76983e448c1fc9a1731797dca9636bc"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.h",
+      "sha256": "f1fed86a7e7488ff568c0398fbd3291da9b04146f155d1a7e6d8d91090b3643c"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathPeptideInference.cpp",
+      "sha256": "c866600835d3ec00f1b86c8302362a686a211af894e59bc7c2a295e6b8cbc1cf"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathProteinInference.h",
+      "sha256": "cfca72eada61405f0cbc01d1d6d95605096403bd3129a89f9bf59040b2a880ac"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathProteinInference.cpp",
+      "sha256": "62d8669db7a8e1a99550d6f2f5ece0f6da1b9b0c935ea651755836f2cc423e72"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathGeneInference.h",
+      "sha256": "4034e2eaf080337ab3ab49d619c9dbe0386fcbd01652f8007769ea8fbf9ddaf8"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathGeneInference.cpp",
+      "sha256": "75d915be91a7bc4b3bfbeb6cb96003e14bd26ba6836ef0694d62dc7cdd798e56"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.h",
+      "sha256": "2b37ac61783fb911dfa2e318df64aba9dd71f4d1471c0b08598e0a8139142dc0"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathPeptidoformInference.cpp",
+      "sha256": "c367fcb65b28b5bae951000e6b6e251c0e5e6a2c9a96fe0d4c29c82b63cbca3b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.h",
+      "sha256": "86988921648d3eafe39cf07fd0a956b75b249feec4fcd9199b39e5483a995c6f"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathLibraryIDNormalizer.cpp",
+      "sha256": "20ea11416fcc340ddbb94a5de098c125be842540e4fca8753e513d3ea1e05604"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/LevelContextInference_test.cpp",
+      "sha256": "ebbb747a060242e32fb1992f29433f0a3f8f102c859aa1ebae7efd64b8abca72"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/PeptidoformInference_test.cpp",
+      "sha256": "c08017cdb6973c374c4457c808d54fd12e78885a49c69ac8092d8a521c9a48d1"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OpenSwathLibraryIDNormalizer_test.cpp",
+      "sha256": "1dadbb79f0c74ad406fcaee79589d52cb83f6311b694d6a7c56295d32b534be4"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OSWFileInference_test.cpp",
+      "sha256": "a57f989b1a4252830384e5a7b0c2c7d88143b16e467b8c30e84abd40e9325503"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/PyProphet_inference_test.osw",
+      "sha256": "8c6b9bb7dea77097a2b3fc4333ae34c4f6e7232985a77556c63ca502059892a4"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/openswath_inference_data.rs",
+    "src/analysis/openswath/openswath_inference_config.rs",
+    "src/analysis/openswath/level_context_inference.rs",
+    "src/analysis/openswath/openswath_peptide_inference.rs",
+    "src/analysis/openswath/openswath_protein_inference.rs",
+    "src/analysis/openswath/openswath_gene_inference.rs",
+    "src/analysis/openswath/openswath_peptidoform_inference.rs",
+    "src/analysis/openswath/openswath_library_id_normalizer.rs"
+  ],
+  "native_tests": [
+    "tests/openswath_inference.rs"
+  ],
+  "support": "docs/OPENSWATH_INFERENCE_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/openswath_inference/cases.txt",
+      "sha256": "312df4660274f0f5363510224402a947418c4b9121e4477a60057146264747fa",
+      "origin": "../oracle/O5b-inference/cases.txt with the five IPF transition dumps that are byte-identical to out/ipf_fixture_default.trans.tsv redirected to it"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/bm1.tsv",
+      "sha256": "0d8723a4a85a8ce4a5d8b5047319128c95def4da0d24088b09e9aad26a1ffeca",
+      "origin": "../oracle/O5b-inference/inputs/bm1.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/bm2.tsv",
+      "sha256": "ed77aac320ef9bd3230bec543ba7beac0931914127bea063b5ab34750499d086",
+      "origin": "../oracle/O5b-inference/inputs/bm2.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/bm3.tsv",
+      "sha256": "48fff566356b43b176672cece3d90cb0914014562a3fe3ecaa96e1f9f6f74587",
+      "origin": "../oracle/O5b-inference/inputs/bm3.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/empty.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/inputs/empty.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf1.prec.tsv",
+      "sha256": "a45a2a38d4423e8c29c325612895c4393377309f09885a52c7776716aad91f27",
+      "origin": "../oracle/O5b-inference/inputs/ipf1.prec.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf1.trans.tsv",
+      "sha256": "4b03739dc233b14606f8157cc225d548aa2a7933a63351204f9a96f9bfd7704d",
+      "origin": "../oracle/O5b-inference/inputs/ipf1.trans.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf2.prec.tsv",
+      "sha256": "2ce141e4e47cda2d6cb0b13a57ad8e6bb8a651e7f6ca727cb210160da8f3fe05",
+      "origin": "../oracle/O5b-inference/inputs/ipf2.prec.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf2.trans.tsv",
+      "sha256": "1378110b27a5527232da8beadf66abf3274b59c9746a018e7c46d1ab309d2d06",
+      "origin": "../oracle/O5b-inference/inputs/ipf2.trans.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf3.align.tsv",
+      "sha256": "31d00489021425388fa9e30ed1f0efe56a04f15a85e9fc33e71dffa5e1996374",
+      "origin": "../oracle/O5b-inference/inputs/ipf3.align.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf3.prec.tsv",
+      "sha256": "2ce141e4e47cda2d6cb0b13a57ad8e6bb8a651e7f6ca727cb210160da8f3fe05",
+      "origin": "../oracle/O5b-inference/inputs/ipf3.prec.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf3.trans.tsv",
+      "sha256": "695b1e84682705f6c03de6d52d904fa22925cdb90935a760843748e30776c2fe",
+      "origin": "../oracle/O5b-inference/inputs/ipf3.trans.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf4.prec.tsv",
+      "sha256": "606edea5ecfd2bda280a6aaad8ed79e4a38f3e6a278ac13658547f51707b4319",
+      "origin": "../oracle/O5b-inference/inputs/ipf4.prec.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf4.trans.tsv",
+      "sha256": "079acd9a2aa0b08e4a307211cd38442eed6f683837568b477ab10ddb4b732c8d",
+      "origin": "../oracle/O5b-inference/inputs/ipf4.trans.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf5.trans.tsv",
+      "sha256": "7320686d6872ad34d86f7a90cb6d95911feabcdc8d9c412e3a8e0ed0ed8f318c",
+      "origin": "../oracle/O5b-inference/inputs/ipf5.trans.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf6.align.tsv",
+      "sha256": "02bc3aa09263ba77bb75c753c801278f377596c66be4513d2a5de624b55c5bde",
+      "origin": "../oracle/O5b-inference/inputs/ipf6.align.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf6.prec.tsv",
+      "sha256": "79eb1a47b5dea2c56bf6660c4c1f7a551d193734fffc9ef61bc763801616f491",
+      "origin": "../oracle/O5b-inference/inputs/ipf6.prec.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/ipf6.trans.tsv",
+      "sha256": "6dc7efb7efde5574ba851e1583bc3ba5a52feeb88b11e2ea083dfb95d0374f7a",
+      "origin": "../oracle/O5b-inference/inputs/ipf6.trans.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_exp8.tsv",
+      "sha256": "c665ce429d856dccdf8369884bf54ecbeab091da7fa7bc6f432e3a6b93d4d1fc",
+      "origin": "../oracle/O5b-inference/inputs/lc_exp8.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_global4.tsv",
+      "sha256": "26b842f0b983ea3006e1121ef3ef827282fef6505e68e79580ed486feaac0ba2",
+      "origin": "../oracle/O5b-inference/inputs/lc_global4.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_mixed.tsv",
+      "sha256": "3e9f9c55bd15c818cab091330dd03aeb853804588586f7c7c665c306cbf649fa",
+      "origin": "../oracle/O5b-inference/inputs/lc_mixed.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_nan_decoys.tsv",
+      "sha256": "ee7302b4439b53c477287099d2af68e3d135a418656649dd17a0bba8d7fdc792",
+      "origin": "../oracle/O5b-inference/inputs/lc_nan_decoys.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_no_targets.tsv",
+      "sha256": "6d88d3bf651d7cb5851bdf8c2d5b6a817287a555a10c1ebbb47d2b100c2093b2",
+      "origin": "../oracle/O5b-inference/inputs/lc_no_targets.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_run_missing.tsv",
+      "sha256": "bccc5ec3e6a901c959d3d22e637efbf0e0031707a900a065865f0489d9cb8e17",
+      "origin": "../oracle/O5b-inference/inputs/lc_run_missing.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_run_nodecoy.tsv",
+      "sha256": "f1cda11295470490af33154ea82841fe97c31de9068cba5e4aa4768511ac24fa",
+      "origin": "../oracle/O5b-inference/inputs/lc_run_nodecoy.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_runs8.tsv",
+      "sha256": "6055f812344e895298690fd4c449bf2a04e6ac960b740c44554759f499ca8855",
+      "origin": "../oracle/O5b-inference/inputs/lc_runs8.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_runs_mixed.tsv",
+      "sha256": "d132546c62a735b4114db99b4945b6ce8490e9daba66b6430684f4c6cdf0b6b2",
+      "origin": "../oracle/O5b-inference/inputs/lc_runs_mixed.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/lc_single.tsv",
+      "sha256": "524b02f9dfd5541a1146a3e2d1a2598fd85aa9e9265e789bfd95c8eb3db3a174",
+      "origin": "../oracle/O5b-inference/inputs/lc_single.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/mfdr1.tsv",
+      "sha256": "0a23cffabb0673539edfb7e24484f2a59fb331674694e9ffae444a7db6a9e5d9",
+      "origin": "../oracle/O5b-inference/inputs/mfdr1.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/mfdr2.tsv",
+      "sha256": "4789e0ca52046dbb9f8511d3b8cb03850503b1a654b7b8bbec6c8665e74c309f",
+      "origin": "../oracle/O5b-inference/inputs/mfdr2.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/mfdr3.tsv",
+      "sha256": "33438366d1f98bbed39e569c21e75b779567b4ef42b8e4e4bbed9eb69405e693",
+      "origin": "../oracle/O5b-inference/inputs/mfdr3.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm1.tsv",
+      "sha256": "c1aef04c16b92e2e635bacff9967b51cd3c0d05c7ce3478597cd1eaba73e8a10",
+      "origin": "../oracle/O5b-inference/inputs/norm1.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm2.tsv",
+      "sha256": "f35e4b4344c417c71f930ea2be2b7979f2cbacbc8bf940c290644db45ea2f041",
+      "origin": "../oracle/O5b-inference/inputs/norm2.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm3.tsv",
+      "sha256": "d78bc31a7518f5f39f4e03103072c24363d4d91d9424c9ca2fbe4e0d5163b343",
+      "origin": "../oracle/O5b-inference/inputs/norm3.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm4.tsv",
+      "sha256": "7f26392d8fe19a1831413dc08f2b05e52251b0e79d7395314c93804d0b6a6958",
+      "origin": "../oracle/O5b-inference/inputs/norm4.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm_canonical.tsv",
+      "sha256": "425105bff5116ae81e35d7433414bc4151beb2ad96038fc811f610e7085c066e",
+      "origin": "../oracle/O5b-inference/inputs/norm_canonical.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm_dup.tsv",
+      "sha256": "323cc68c0ffcd3d87dba2f4f870c25b8b43972d0406a7c8b907be2a8ea075dcb",
+      "origin": "../oracle/O5b-inference/inputs/norm_dup.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm_empty_id.tsv",
+      "sha256": "e5ce202b104f1b535926ba9043625643fd9cfb4e3181625973a0b81d7b6241ad",
+      "origin": "../oracle/O5b-inference/inputs/norm_empty_id.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm_empty_ref.tsv",
+      "sha256": "55aa2da62219112eca179bc2ea6db2474f709f390236df98aa2d4484170b5b54",
+      "origin": "../oracle/O5b-inference/inputs/norm_empty_ref.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/inputs/norm_missing.tsv",
+      "sha256": "33bd0a1cb80a1d569316a64f9821aa5979986a13eef9b453a18b67273c926642",
+      "origin": "../oracle/O5b-inference/inputs/norm_missing.tsv (written by make_inputs.py)"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/bm1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/bm1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/bm2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/bm2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/bm3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/bm3.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_gene_experiment-wide.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_gene_experiment-wide.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_gene_global.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_gene_global.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_gene_run-specific.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_gene_run-specific.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_ipf_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_ipf_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_ipf_grouped.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_ipf_grouped.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_ipf_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_ipf_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_ipf_ms1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_ipf_ms1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_ipf_ms1ms2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_ipf_ms1ms2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_ipf_ms2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_ipf_ms2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_peptide_experiment-wide.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_peptide_experiment-wide.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_peptide_global.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_peptide_global.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_peptide_run-specific.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_peptide_run-specific.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_protein_experiment-wide.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_protein_experiment-wide.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_protein_global.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_protein_global.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/dump_protein_run-specific.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/dump_protein_run-specific.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf1_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf1_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf1_grouped.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf1_grouped.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf1_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf1_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf2_grouped.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf2_grouped.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf2_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf2_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf3_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf3_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf3_propagate.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf3_propagate.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_grouped.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_grouped.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_ms1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_ms1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_ms1ms2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_ms1ms2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_ms1ms2_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_ms1ms2_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf4_ms2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf4_ms2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf5_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf5_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf6_grouped.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf6_grouped.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf6_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf6_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf6_propagate.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf6_propagate.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf6_propagate_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf6_propagate_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf_fixture_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf_fixture_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf_fixture_grouped.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf_fixture_grouped.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf_fixture_loose.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf_fixture_loose.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf_fixture_ms1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf_fixture_ms1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf_fixture_ms1ms2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf_fixture_ms1ms2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/ipf_fixture_ms2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/ipf_fixture_ms2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_exp8_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_exp8_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_exp8_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_exp8_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_exp8_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_exp8_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_exp8_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_exp8_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_exp8_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_exp8_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_exp8_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_exp8_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_experiment-wide_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_experiment-wide_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_global_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_global_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_gene_run-specific_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_gene_run-specific_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_global4_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_global4_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_global4_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_global4_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_global4_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_global4_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_global4_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_global4_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_global4_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_global4_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_global4_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_global4_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_peptidoform.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_peptidoform.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_mixed_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_mixed_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_nan_decoys_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_nan_decoys_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_nan_decoys_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_nan_decoys_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_nan_decoys_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_nan_decoys_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_nan_decoys_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_nan_decoys_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_nan_decoys_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_nan_decoys_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_nan_decoys_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_nan_decoys_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_no_targets_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_no_targets_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_no_targets_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_no_targets_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_no_targets_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_no_targets_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_no_targets_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_no_targets_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_no_targets_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_no_targets_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_no_targets_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_no_targets_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_experiment-wide_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_experiment-wide_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_global_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_global_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_peptide_run-specific_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_peptide_run-specific_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_experiment-wide_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_experiment-wide_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_global_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_global_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_lambda_single.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_lambda_single.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_notrunc_nomono.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_notrunc_nomono.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_protein_run-specific_smoother_log.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_protein_run-specific_smoother_log.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_missing_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_missing_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_missing_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_missing_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_missing_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_missing_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_missing_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_missing_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_missing_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_missing_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_missing_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_missing_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_nodecoy_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_nodecoy_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_nodecoy_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_nodecoy_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_nodecoy_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_nodecoy_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_nodecoy_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_nodecoy_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_nodecoy_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_nodecoy_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_run_nodecoy_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_run_nodecoy_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs8_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs8_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs8_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs8_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs8_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs8_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs8_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs8_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs8_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs8_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs8_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs8_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_default.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_logit.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_parametric.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_pfdr.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_protein_global.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_protein_global.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_runs_mixed_smoother.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_runs_mixed_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_single_default.exit",
+      "sha256": "690e07064753123c967bbac0180f32da6a753a5bd8b79a47644cef58e776d9f0",
+      "origin": "../oracle/O5b-inference/results/log/lc_single_default.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_single_lambda_bad.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/lc_single_lambda_bad.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_single_logit.exit",
+      "sha256": "690e07064753123c967bbac0180f32da6a753a5bd8b79a47644cef58e776d9f0",
+      "origin": "../oracle/O5b-inference/results/log/lc_single_logit.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_single_parametric.exit",
+      "sha256": "690e07064753123c967bbac0180f32da6a753a5bd8b79a47644cef58e776d9f0",
+      "origin": "../oracle/O5b-inference/results/log/lc_single_parametric.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_single_pfdr.exit",
+      "sha256": "690e07064753123c967bbac0180f32da6a753a5bd8b79a47644cef58e776d9f0",
+      "origin": "../oracle/O5b-inference/results/log/lc_single_pfdr.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/lc_single_smoother.exit",
+      "sha256": "690e07064753123c967bbac0180f32da6a753a5bd8b79a47644cef58e776d9f0",
+      "origin": "../oracle/O5b-inference/results/log/lc_single_smoother.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/mfdr1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/mfdr1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/mfdr2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/mfdr2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/mfdr3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/mfdr3.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm2.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm2.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm3.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm3.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm4.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm_canonical.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm_canonical.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm_dup.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm_dup.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm_empty_id.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm_empty_id.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm_empty_ref.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm_empty_ref.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/norm_missing.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/norm_missing.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/pbm_ipf1.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/pbm_ipf1.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/pbm_ipf4.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/pbm_ipf4.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_gene_gene.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_gene_gene.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_gene_peptide.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_gene_peptide.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_gene_peptidoform.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_gene_peptidoform.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_gene_protein.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_gene_protein.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_peptide_gene.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_peptide_gene.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_peptide_peptide.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_peptide_peptide.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_peptide_peptidoform.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_peptide_peptidoform.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_peptide_protein.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_peptide_protein.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_protein_gene.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_protein_gene.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_protein_peptide.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_protein_peptide.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_protein_peptidoform.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_protein_peptidoform.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/log/wrap_protein_protein.exit",
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "origin": "../oracle/O5b-inference/results/log/wrap_protein_protein.exit"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/bm1.tsv",
+      "sha256": "b96282e9a57719b48fc030a7437f7bb33b04568822da02c5486d4ee109e6bffb",
+      "origin": "../oracle/O5b-inference/results/out/bm1.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/bm2.tsv",
+      "sha256": "593b58ff6694d8fbd9a0eef51c1f8237e6ea01f7a1bd6ebdc835841b1a16f89e",
+      "origin": "../oracle/O5b-inference/results/out/bm2.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/bm3.tsv",
+      "sha256": "684ac574789ba81ba025a1fa302f6b9af015d2fe7f8fbc39ad74d00026948ccb",
+      "origin": "../oracle/O5b-inference/results/out/bm3.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_gene_experiment-wide.tsv",
+      "sha256": "aa90c813674f1d5a3b5595245a40ff4cad3d9a7e703905945c5b1a32d08a02ba",
+      "origin": "../oracle/O5b-inference/results/out/dump_gene_experiment-wide.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_gene_global.tsv",
+      "sha256": "8f1894bda2fba9e423c46e59d2863ac50e657aebfae779baaa654d003bea37fa",
+      "origin": "../oracle/O5b-inference/results/out/dump_gene_global.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_gene_run-specific.tsv",
+      "sha256": "c0c664d3edf0c0260b1d0eaf94303240d040b3a002a19b410328f17ddd7b98ed",
+      "origin": "../oracle/O5b-inference/results/out/dump_gene_run-specific.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_peptide_experiment-wide.tsv",
+      "sha256": "4d43d968ecc7ae29d5b6eab7b858a447ff6d891c07dab4f8d96aa6e33739cc4d",
+      "origin": "../oracle/O5b-inference/results/out/dump_peptide_experiment-wide.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_peptide_global.tsv",
+      "sha256": "a504ec091e75bf5dc3664c4d4cf5ea1e876b06d61acb0c43c6c480ae3f7bf020",
+      "origin": "../oracle/O5b-inference/results/out/dump_peptide_global.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_peptide_run-specific.tsv",
+      "sha256": "c125a98214b978eadb37ab67e6772ee04d08a35091228f3a63cfaabfbc857c86",
+      "origin": "../oracle/O5b-inference/results/out/dump_peptide_run-specific.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_protein_experiment-wide.tsv",
+      "sha256": "aa90c813674f1d5a3b5595245a40ff4cad3d9a7e703905945c5b1a32d08a02ba",
+      "origin": "../oracle/O5b-inference/results/out/dump_protein_experiment-wide.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_protein_global.tsv",
+      "sha256": "8f1894bda2fba9e423c46e59d2863ac50e657aebfae779baaa654d003bea37fa",
+      "origin": "../oracle/O5b-inference/results/out/dump_protein_global.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/dump_protein_run-specific.tsv",
+      "sha256": "c0c664d3edf0c0260b1d0eaf94303240d040b3a002a19b410328f17ddd7b98ed",
+      "origin": "../oracle/O5b-inference/results/out/dump_protein_run-specific.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf1_default.tsv",
+      "sha256": "77557a286bff80ff9a719426133b56ef3afb7d2eebd68b52d901d2035322789d",
+      "origin": "../oracle/O5b-inference/results/out/ipf1_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf1_grouped.tsv",
+      "sha256": "77557a286bff80ff9a719426133b56ef3afb7d2eebd68b52d901d2035322789d",
+      "origin": "../oracle/O5b-inference/results/out/ipf1_grouped.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf1_loose.tsv",
+      "sha256": "77557a286bff80ff9a719426133b56ef3afb7d2eebd68b52d901d2035322789d",
+      "origin": "../oracle/O5b-inference/results/out/ipf1_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf2_grouped.tsv",
+      "sha256": "fd6bb5b01fcd584b688a508ed1bbde71e747b6073b1688ad5e6530fec7ffd329",
+      "origin": "../oracle/O5b-inference/results/out/ipf2_grouped.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf2_loose.tsv",
+      "sha256": "c80b170211b2ba4e90605320739d2c2f90b11d4f858c4e3d5c68873e45da059b",
+      "origin": "../oracle/O5b-inference/results/out/ipf2_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf3_loose.tsv",
+      "sha256": "47c6112ff147c4c672672e619bb9482e1245f23602b2648eb8abee939abb703e",
+      "origin": "../oracle/O5b-inference/results/out/ipf3_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf3_propagate.tsv",
+      "sha256": "b55a4825af81bb0324760d83f7b01a760a3c04e429efb4c8e3b99424ed1c8b79",
+      "origin": "../oracle/O5b-inference/results/out/ipf3_propagate.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_default.tsv",
+      "sha256": "8e7f5f805590478bbd6ac880f1819bb6033cf071b9352a42c0f0e3de66b0c3cd",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_grouped.tsv",
+      "sha256": "8e7f5f805590478bbd6ac880f1819bb6033cf071b9352a42c0f0e3de66b0c3cd",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_grouped.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_loose.tsv",
+      "sha256": "8e7f5f805590478bbd6ac880f1819bb6033cf071b9352a42c0f0e3de66b0c3cd",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_ms1.tsv",
+      "sha256": "ae789303bda18579312b46c76a44b965b477559f2c075ff7ac3a2d30f21744b3",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_ms1.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_ms1ms2.tsv",
+      "sha256": "ea614345f88b4450ca0d830e531ddf984d5473a4546ed2cf0318c72da8a91287",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_ms1ms2.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_ms1ms2_loose.tsv",
+      "sha256": "4d486b164456442f71421c8d2a5ae194bb351c7fa53eba52b62c02c66c748c84",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_ms1ms2_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf4_ms2.tsv",
+      "sha256": "872ebfe009640633d6087b75a7028d88b390451661b4c8df6a218a8dee0de108",
+      "origin": "../oracle/O5b-inference/results/out/ipf4_ms2.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf5_loose.tsv",
+      "sha256": "24850d746972cfb48e700fe74d7f43312076ab06c0985be667bf96e6f57220fa",
+      "origin": "../oracle/O5b-inference/results/out/ipf5_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf6_grouped.tsv",
+      "sha256": "11bc870834f4587e5db58367c2392d468ee36c9012d27a2030943e1288791429",
+      "origin": "../oracle/O5b-inference/results/out/ipf6_grouped.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf6_loose.tsv",
+      "sha256": "11bc870834f4587e5db58367c2392d468ee36c9012d27a2030943e1288791429",
+      "origin": "../oracle/O5b-inference/results/out/ipf6_loose.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf6_propagate.tsv",
+      "sha256": "50f12294cb0165922e472610096cbe6071ddf6ca4b9c69eae486533c90633de9",
+      "origin": "../oracle/O5b-inference/results/out/ipf6_propagate.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf6_propagate_default.tsv",
+      "sha256": "4bceefcb8ae3388d68bd6021760494d5cea1479600cd3440dbe1dc5d3eef172b",
+      "origin": "../oracle/O5b-inference/results/out/ipf6_propagate_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_default.align.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_default.align.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_default.prec.tsv",
+      "sha256": "6c007f067e2800d1de92b61deaec85bbde0b565784da902379303d2740215dcb",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_default.prec.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_default.result.tsv",
+      "sha256": "53b3fabb4554ebb367114c193e506b566acb152d98db7817dde30057e01139cb",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_default.result.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_default.trans.tsv",
+      "sha256": "b3affdb2e39440e34a83a408f4103e547c1eacab2ff617363d202c157f5aece9",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_default.trans.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_grouped.align.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_grouped.align.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_grouped.prec.tsv",
+      "sha256": "6c007f067e2800d1de92b61deaec85bbde0b565784da902379303d2740215dcb",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_grouped.prec.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_grouped.result.tsv",
+      "sha256": "2f0301a8cd57b4422032a6a0e2f283084520796f1846adcad559c2a1fc909fd4",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_grouped.result.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_loose.align.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_loose.align.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_loose.prec.tsv",
+      "sha256": "6c007f067e2800d1de92b61deaec85bbde0b565784da902379303d2740215dcb",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_loose.prec.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_loose.result.tsv",
+      "sha256": "53b3fabb4554ebb367114c193e506b566acb152d98db7817dde30057e01139cb",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_loose.result.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms1.align.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms1.align.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms1.prec.tsv",
+      "sha256": "f2579d8b1cd5d175a4328b715cebe65388447afaaaae7272f194e4c146941615",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms1.prec.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms1.result.tsv",
+      "sha256": "6d6e0461417b5634ef80c109609ebb6c9e0455148eb0e174900a39840bc42b0b",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms1.result.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms1ms2.align.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms1ms2.align.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms1ms2.prec.tsv",
+      "sha256": "eca8a1dac69acf698d3634744e75b8a65674637a797be9bb59ccf8a1d06fc1cd",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms1ms2.prec.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms1ms2.result.tsv",
+      "sha256": "3a0d4926b92b2f1faaa668671a3363f5048bc3e50b0ebe838b477c6a26e09b29",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms1ms2.result.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms2.align.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms2.align.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms2.prec.tsv",
+      "sha256": "ec2cea8ac3fc7fb0d3345039996fe9ed10a0197c354a5836c83d099ee0f411b4",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms2.prec.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/ipf_fixture_ms2.result.tsv",
+      "sha256": "3b0163f7ca0ece9c0d4c5f39598614fbfb721c84b9db92086ee19380501263b7",
+      "origin": "../oracle/O5b-inference/results/out/ipf_fixture_ms2.result.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_exp8_default.tsv",
+      "sha256": "c8b6b7e62afbbb5b14ba510b1efb8d7ea1034a339a81f51e291b2cab79d4d7b8",
+      "origin": "../oracle/O5b-inference/results/out/lc_exp8_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_exp8_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_exp8_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_exp8_logit.tsv",
+      "sha256": "c8b6b7e62afbbb5b14ba510b1efb8d7ea1034a339a81f51e291b2cab79d4d7b8",
+      "origin": "../oracle/O5b-inference/results/out/lc_exp8_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_exp8_parametric.tsv",
+      "sha256": "75e474478fc8f24e256452badaef6b02ffe5938c752560902cfee0d8f99e7fe5",
+      "origin": "../oracle/O5b-inference/results/out/lc_exp8_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_exp8_pfdr.tsv",
+      "sha256": "c8b6b7e62afbbb5b14ba510b1efb8d7ea1034a339a81f51e291b2cab79d4d7b8",
+      "origin": "../oracle/O5b-inference/results/out/lc_exp8_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_exp8_smoother.tsv",
+      "sha256": "32dbe149f37b0ed127914d1198ae69b62cc5bfc2e2254d5980a5fbe981c47337",
+      "origin": "../oracle/O5b-inference/results/out/lc_exp8_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_default.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_lambda_single.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_logit.tsv",
+      "sha256": "94c2a11092633a3486447adc4a366bc66cf48c26ce67ac918c71c7fb2220deab",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_notrunc_nomono.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_parametric.tsv",
+      "sha256": "3757aecb14170fba87a79dd741259598620befa5ec9a74bc4b4226ccdd7177ff",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_pfdr.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_smoother.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_experiment-wide_smoother_log.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_experiment-wide_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_default.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_lambda_single.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_logit.tsv",
+      "sha256": "cd30d29e480d42e7966a2cfeaca37136c3949533d73d03296b2f38e9eec789aa",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_notrunc_nomono.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_parametric.tsv",
+      "sha256": "e0a395f41f1156c4ea4e90dfc0c16a6f1e440b615d8232548543652322ff57ba",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_pfdr.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_smoother.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_global_smoother_log.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_global_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_default.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_lambda_single.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_logit.tsv",
+      "sha256": "6bf658f9f66d1076ab0cd138d43579df477b7ec585119754e82bcef0fb0274fa",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_notrunc_nomono.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_parametric.tsv",
+      "sha256": "d2ca983f178ba8b2e5dcc8b334e08247571a69d48ea415d525c0f2f93c4978f7",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_pfdr.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_smoother.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_gene_run-specific_smoother_log.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_gene_run-specific_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_global4_default.tsv",
+      "sha256": "e0dea46c98f9b0c2cc3fd2ca30f906ac30f99a54628f4abb08e1b7223f1bb1fd",
+      "origin": "../oracle/O5b-inference/results/out/lc_global4_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_global4_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_global4_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_global4_logit.tsv",
+      "sha256": "2c6e10e9c40a06a31b071094ceb90bc7341f0dd0f9207d4e8c6553d2179df152",
+      "origin": "../oracle/O5b-inference/results/out/lc_global4_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_global4_parametric.tsv",
+      "sha256": "087cb8f7a72ffa29342709fd18e7f85ece616411f0038b5ffb33ce912c9ae6f7",
+      "origin": "../oracle/O5b-inference/results/out/lc_global4_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_global4_pfdr.tsv",
+      "sha256": "3e0134df192bb63c6bde3328ce6dd5539f276dd1f3a9cd094cc56a857e5d2925",
+      "origin": "../oracle/O5b-inference/results/out/lc_global4_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_global4_smoother.tsv",
+      "sha256": "e0dea46c98f9b0c2cc3fd2ca30f906ac30f99a54628f4abb08e1b7223f1bb1fd",
+      "origin": "../oracle/O5b-inference/results/out/lc_global4_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_default.tsv",
+      "sha256": "933abead7afd2194654b544f65b9ec578eca7fc332a7f1f1d7060bdc3f78a11e",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_logit.tsv",
+      "sha256": "cc65f18e590eb501342bba5227c7944db16574ecf857f9147974f7544b9bc368",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_parametric.tsv",
+      "sha256": "b2d62a682d6900628641c7e644307d61da3f4eb49dbee45f1db89ff19c1d44e1",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_peptidoform.tsv",
+      "sha256": "3f442c8bc137aa09f379fe78cbf7e70e57f2b9b49e4de495cfbb8c6011aef094",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_peptidoform.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_pfdr.tsv",
+      "sha256": "ba24cf4ee6826db768e16bb8f167f84c069d0876a29eec490c747668adb2f3cc",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_mixed_smoother.tsv",
+      "sha256": "b48bd99e6daaacf48e7ac82ff0e151a30d2d3dbd1708d72353b8258c15e886c0",
+      "origin": "../oracle/O5b-inference/results/out/lc_mixed_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_nan_decoys_default.tsv",
+      "sha256": "3300b24558fc2130de83716be1369dcab279ca23865ef40b39ad372b42d49727",
+      "origin": "../oracle/O5b-inference/results/out/lc_nan_decoys_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_nan_decoys_lambda_bad.tsv",
+      "sha256": "3300b24558fc2130de83716be1369dcab279ca23865ef40b39ad372b42d49727",
+      "origin": "../oracle/O5b-inference/results/out/lc_nan_decoys_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_nan_decoys_logit.tsv",
+      "sha256": "3300b24558fc2130de83716be1369dcab279ca23865ef40b39ad372b42d49727",
+      "origin": "../oracle/O5b-inference/results/out/lc_nan_decoys_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_nan_decoys_parametric.tsv",
+      "sha256": "3300b24558fc2130de83716be1369dcab279ca23865ef40b39ad372b42d49727",
+      "origin": "../oracle/O5b-inference/results/out/lc_nan_decoys_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_nan_decoys_pfdr.tsv",
+      "sha256": "3300b24558fc2130de83716be1369dcab279ca23865ef40b39ad372b42d49727",
+      "origin": "../oracle/O5b-inference/results/out/lc_nan_decoys_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_nan_decoys_smoother.tsv",
+      "sha256": "3300b24558fc2130de83716be1369dcab279ca23865ef40b39ad372b42d49727",
+      "origin": "../oracle/O5b-inference/results/out/lc_nan_decoys_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_no_targets_default.tsv",
+      "sha256": "b88d3e4c4bd93c0ef3ee3d4c9bea7154e3195e64c00f4fac0beb590ef6bb42d0",
+      "origin": "../oracle/O5b-inference/results/out/lc_no_targets_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_no_targets_lambda_bad.tsv",
+      "sha256": "b88d3e4c4bd93c0ef3ee3d4c9bea7154e3195e64c00f4fac0beb590ef6bb42d0",
+      "origin": "../oracle/O5b-inference/results/out/lc_no_targets_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_no_targets_logit.tsv",
+      "sha256": "b88d3e4c4bd93c0ef3ee3d4c9bea7154e3195e64c00f4fac0beb590ef6bb42d0",
+      "origin": "../oracle/O5b-inference/results/out/lc_no_targets_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_no_targets_parametric.tsv",
+      "sha256": "b88d3e4c4bd93c0ef3ee3d4c9bea7154e3195e64c00f4fac0beb590ef6bb42d0",
+      "origin": "../oracle/O5b-inference/results/out/lc_no_targets_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_no_targets_pfdr.tsv",
+      "sha256": "b88d3e4c4bd93c0ef3ee3d4c9bea7154e3195e64c00f4fac0beb590ef6bb42d0",
+      "origin": "../oracle/O5b-inference/results/out/lc_no_targets_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_no_targets_smoother.tsv",
+      "sha256": "b88d3e4c4bd93c0ef3ee3d4c9bea7154e3195e64c00f4fac0beb590ef6bb42d0",
+      "origin": "../oracle/O5b-inference/results/out/lc_no_targets_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_default.tsv",
+      "sha256": "dc22031eb94a03b23cd96fdb4c08ea9322d26c0048ebe8346fb16836ea1371a4",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_lambda_single.tsv",
+      "sha256": "dc22031eb94a03b23cd96fdb4c08ea9322d26c0048ebe8346fb16836ea1371a4",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_logit.tsv",
+      "sha256": "0632d2ff145575964ee5e5b87d58bd3814e99d61d395c655ae021467e0e8d818",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_notrunc_nomono.tsv",
+      "sha256": "bfe886ff62daa9bf272dedfa29b34c6a6f8e8b751fc2fb166ae760b26e873248",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_parametric.tsv",
+      "sha256": "ee17bb082c8f4e643f7543300383b7be68fa7faede7666fcd0369c8291d2b4cb",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_pfdr.tsv",
+      "sha256": "a5f73fe9fd83fcac11d7d4f598aab11f1f8840dbb9998304d885d93a3abe24e1",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_smoother.tsv",
+      "sha256": "ed45f09aeaac6b69a337696d54ea0bf60d8b45b157c8c21b8764fe933e67d259",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_experiment-wide_smoother_log.tsv",
+      "sha256": "fbbdfd2ddae6a7730f1fc3e61448d1469e86f1a5eaf6a33502ab0d969ac48b8a",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_experiment-wide_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_default.tsv",
+      "sha256": "d16ecaf82c599aedc471cd9c2e6258144e93109768d9f24612d73e74d8662b9c",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_lambda_single.tsv",
+      "sha256": "d16ecaf82c599aedc471cd9c2e6258144e93109768d9f24612d73e74d8662b9c",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_logit.tsv",
+      "sha256": "a9f26e31e968a60165d9f4faa4766da4002eb86ac52d1f88a335fbf623d10792",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_notrunc_nomono.tsv",
+      "sha256": "4b91c156177cf2e19c57c4fab2a581fb0ea6be4fa59f11d3fbea979522b3354a",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_parametric.tsv",
+      "sha256": "67bcbf02f48ce8e4cc7303781824a7350e4525a136473d8447776b93a5a30fa1",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_pfdr.tsv",
+      "sha256": "1aa09b4297b49a8f54fcc09e9bc5c92cd7c0009e5b97ada284328e45749c0d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_smoother.tsv",
+      "sha256": "ec2939e21128d65174665f1be5cecbf3e5b40adf0bf1888e1387bbf0cd6d3a70",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_global_smoother_log.tsv",
+      "sha256": "6d787ce74a7253c2c3f6a201b24bc6ae38dadc0030cf1da94c3988f295c0acd7",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_global_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_default.tsv",
+      "sha256": "f1cc432c6cdb3f603788f3b0d635b69356cbf3111e6fc27cf7a80c1d1efdd618",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_lambda_single.tsv",
+      "sha256": "f1cc432c6cdb3f603788f3b0d635b69356cbf3111e6fc27cf7a80c1d1efdd618",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_logit.tsv",
+      "sha256": "3edc60a7ee8743ba8ed3ab910942aa4b4c49a7efba30e4fd09024c8932a903bb",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_notrunc_nomono.tsv",
+      "sha256": "25e785fa84207ff64daf57b729bdf118ae3172b3c0bd085c0ee1f339dd9c749e",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_parametric.tsv",
+      "sha256": "0d7ee793cb718c041a9a4e0c2528c15e3081199312b840d00eb352ad8ab7fbf7",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_pfdr.tsv",
+      "sha256": "92c5ea7652769299d65d2b1cd27e0394af66433ae753428a9b30dff2bcaf1c7e",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_smoother.tsv",
+      "sha256": "12eb5ad97f478a051b9100e4797062eb6d817bdd9cfb40141f4a1687b384cde9",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_peptide_run-specific_smoother_log.tsv",
+      "sha256": "762a2a4487cc6f020260a7087a05a6529eace5ffdae276d4e959ce949823ecb2",
+      "origin": "../oracle/O5b-inference/results/out/lc_peptide_run-specific_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_default.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_lambda_single.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_logit.tsv",
+      "sha256": "94c2a11092633a3486447adc4a366bc66cf48c26ce67ac918c71c7fb2220deab",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_notrunc_nomono.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_parametric.tsv",
+      "sha256": "3757aecb14170fba87a79dd741259598620befa5ec9a74bc4b4226ccdd7177ff",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_pfdr.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_smoother.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_experiment-wide_smoother_log.tsv",
+      "sha256": "411f73619d9d08e1fa6b6fbb02963c42862148da037c7e858980128145e2b852",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_experiment-wide_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_default.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_lambda_single.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_logit.tsv",
+      "sha256": "cd30d29e480d42e7966a2cfeaca37136c3949533d73d03296b2f38e9eec789aa",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_notrunc_nomono.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_parametric.tsv",
+      "sha256": "e0a395f41f1156c4ea4e90dfc0c16a6f1e440b615d8232548543652322ff57ba",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_pfdr.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_smoother.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_global_smoother_log.tsv",
+      "sha256": "eb45b9124bc1e066ca9d2b7b7cf40c150d29c285c8bb342c080d90ea59f15d74",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_global_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_default.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_lambda_single.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_lambda_single.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_logit.tsv",
+      "sha256": "6bf658f9f66d1076ab0cd138d43579df477b7ec585119754e82bcef0fb0274fa",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_notrunc_nomono.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_notrunc_nomono.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_parametric.tsv",
+      "sha256": "d2ca983f178ba8b2e5dcc8b334e08247571a69d48ea415d525c0f2f93c4978f7",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_pfdr.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_smoother.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_protein_run-specific_smoother_log.tsv",
+      "sha256": "b1b0c356efa8593a27ffd921c3cb4ee2e721ccc80b0216a31cde7d66a26ecde3",
+      "origin": "../oracle/O5b-inference/results/out/lc_protein_run-specific_smoother_log.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_missing_default.tsv",
+      "sha256": "e4d86afaccfc6ee2a170d6c7a341ca4c6534fc7dc0f5197f086719595562de02",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_missing_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_missing_lambda_bad.tsv",
+      "sha256": "e4d86afaccfc6ee2a170d6c7a341ca4c6534fc7dc0f5197f086719595562de02",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_missing_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_missing_logit.tsv",
+      "sha256": "e4d86afaccfc6ee2a170d6c7a341ca4c6534fc7dc0f5197f086719595562de02",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_missing_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_missing_parametric.tsv",
+      "sha256": "e4d86afaccfc6ee2a170d6c7a341ca4c6534fc7dc0f5197f086719595562de02",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_missing_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_missing_pfdr.tsv",
+      "sha256": "e4d86afaccfc6ee2a170d6c7a341ca4c6534fc7dc0f5197f086719595562de02",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_missing_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_missing_smoother.tsv",
+      "sha256": "e4d86afaccfc6ee2a170d6c7a341ca4c6534fc7dc0f5197f086719595562de02",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_missing_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_nodecoy_default.tsv",
+      "sha256": "0243704ae3b3c2919e8c69bf6d1f0925e8d48f3a9a537913d59bef4583b48638",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_nodecoy_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_nodecoy_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_nodecoy_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_nodecoy_logit.tsv",
+      "sha256": "0243704ae3b3c2919e8c69bf6d1f0925e8d48f3a9a537913d59bef4583b48638",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_nodecoy_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_nodecoy_parametric.tsv",
+      "sha256": "0243704ae3b3c2919e8c69bf6d1f0925e8d48f3a9a537913d59bef4583b48638",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_nodecoy_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_nodecoy_pfdr.tsv",
+      "sha256": "0243704ae3b3c2919e8c69bf6d1f0925e8d48f3a9a537913d59bef4583b48638",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_nodecoy_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_run_nodecoy_smoother.tsv",
+      "sha256": "0243704ae3b3c2919e8c69bf6d1f0925e8d48f3a9a537913d59bef4583b48638",
+      "origin": "../oracle/O5b-inference/results/out/lc_run_nodecoy_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs8_default.tsv",
+      "sha256": "2119d6e531b1f0d6dca16c5fd5ed274ac430455411b82bb19d635727a4e010c4",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs8_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs8_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs8_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs8_logit.tsv",
+      "sha256": "80757c29b2a1728b367a4394436e5bbde38df5819f8112b586316ae52bdd29fe",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs8_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs8_parametric.tsv",
+      "sha256": "7bde6fcee4a24cd2997aba86d9ba56b901cc7ccae058aecdaa818f9c62db1941",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs8_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs8_pfdr.tsv",
+      "sha256": "a918f6be4c07ccd5320a557f3e2e5eedaf65830c6e54a95f9795822a4b6838c5",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs8_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs8_smoother.tsv",
+      "sha256": "2119d6e531b1f0d6dca16c5fd5ed274ac430455411b82bb19d635727a4e010c4",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs8_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_default.tsv",
+      "sha256": "e8aa466aa2ff8a5f7b54a7a41b7edd9431291f4b5c9741a2aab41050c362c17c",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_logit.tsv",
+      "sha256": "ded7701706e10fdcdc39df8b56405a5b5b7acf00532163bfc7576e4e2447952a",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_parametric.tsv",
+      "sha256": "4d72e250d4a0fff5b0788d012138a77f9798035d921e19ea6870abe56abaf786",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_pfdr.tsv",
+      "sha256": "f1ca474b2d8fc968a85992f0f73175afc030990589892ccc820948fc018ceab4",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_protein_global.tsv",
+      "sha256": "80c7171e319ec927338a1efdceac22cc29269e1101d7617eff9bd8fa2c567ccf",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_protein_global.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_runs_mixed_smoother.tsv",
+      "sha256": "4a5dbf9ea934412074bd88e4a9ee16a8e253ecd815ccc031df5852fbc89ca0bb",
+      "origin": "../oracle/O5b-inference/results/out/lc_runs_mixed_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_single_default.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/lc_single_default.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_single_lambda_bad.tsv",
+      "sha256": "478637e93d263efe215276a78e9f32834d695cc85d153f11a420f4ca190967ae",
+      "origin": "../oracle/O5b-inference/results/out/lc_single_lambda_bad.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_single_logit.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/lc_single_logit.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_single_parametric.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/lc_single_parametric.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_single_pfdr.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/lc_single_pfdr.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/lc_single_smoother.tsv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "../oracle/O5b-inference/results/out/lc_single_smoother.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/mfdr1.tsv",
+      "sha256": "9282f4e8bb48d50781a0081d393e554b7e84f530a57fd38c84abcac6b3dfc9f3",
+      "origin": "../oracle/O5b-inference/results/out/mfdr1.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/mfdr2.tsv",
+      "sha256": "edde54c81151ddd20699a0b9543fb64de6c5957c955f54184a3d5b9b5eebcfa6",
+      "origin": "../oracle/O5b-inference/results/out/mfdr2.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/mfdr3.tsv",
+      "sha256": "529beac7a490d7c1e17a76bb23e10ccfb0f9803c7fc41ca8bd2fa445573ea79a",
+      "origin": "../oracle/O5b-inference/results/out/mfdr3.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm1.tsv",
+      "sha256": "2da37e9f6f2fd62988f5afaae106eadcfc572bccf98dc56a19e002435580f4ab",
+      "origin": "../oracle/O5b-inference/results/out/norm1.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm2.tsv",
+      "sha256": "bd30edcfd6dd4f01c8ce6dcb47723389c9c3403af61965ecf7b88c2d883a4e8f",
+      "origin": "../oracle/O5b-inference/results/out/norm2.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm3.tsv",
+      "sha256": "99d5fe8422002246f6097121ccf6ca54d560d98189e744fd2ca71dc3735d225e",
+      "origin": "../oracle/O5b-inference/results/out/norm3.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm4.tsv",
+      "sha256": "b101a83f4e93977a26186fd0c2e7a4ce5650c18545b0acddf19304676fa172ea",
+      "origin": "../oracle/O5b-inference/results/out/norm4.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm_canonical.tsv",
+      "sha256": "82ff5c7c0ca6953204494bf88817dd9b62e29ccb850effc05a5e38be8e967495",
+      "origin": "../oracle/O5b-inference/results/out/norm_canonical.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm_dup.tsv",
+      "sha256": "0ce3ab2374f889be7b50a9a5f87d3ec4bad88f4a48d233e61187e1c39c3de05c",
+      "origin": "../oracle/O5b-inference/results/out/norm_dup.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm_empty_id.tsv",
+      "sha256": "a3a5677f0c1dbfad89e9dcb2659f0e6614d3fd44757d33a77726a3449afb1a77",
+      "origin": "../oracle/O5b-inference/results/out/norm_empty_id.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm_empty_ref.tsv",
+      "sha256": "45e8e1e5fbe29be44b8d8b786e1223b657c7a5c53668edc2c387abd635d77f30",
+      "origin": "../oracle/O5b-inference/results/out/norm_empty_ref.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/norm_missing.tsv",
+      "sha256": "f99c7d48a2a1d32986e64f5a0601d730d48f38edc0bb2dc55e7c2fd1a93e1d6e",
+      "origin": "../oracle/O5b-inference/results/out/norm_missing.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/pbm_ipf1.tsv",
+      "sha256": "4e667e706cf6c1388df1117acb92c88c66f2101c5e0763e2c9998471701853ed",
+      "origin": "../oracle/O5b-inference/results/out/pbm_ipf1.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/pbm_ipf4.tsv",
+      "sha256": "8ae3ecb6509ca682d3f471f0c0e56b8f2e394f0c7de0808caa70fbbf35153894",
+      "origin": "../oracle/O5b-inference/results/out/pbm_ipf4.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_gene_gene.tsv",
+      "sha256": "5266f9f6de2f3df32ed3510c6f330273b2a0e0be50d08c322467a1f9e1b81f54",
+      "origin": "../oracle/O5b-inference/results/out/wrap_gene_gene.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_gene_peptide.tsv",
+      "sha256": "87784660771bfec1aeb2bb5a7348894f63ee45d6d1115d6d548905ab5aea2fe0",
+      "origin": "../oracle/O5b-inference/results/out/wrap_gene_peptide.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_gene_peptidoform.tsv",
+      "sha256": "87784660771bfec1aeb2bb5a7348894f63ee45d6d1115d6d548905ab5aea2fe0",
+      "origin": "../oracle/O5b-inference/results/out/wrap_gene_peptidoform.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_gene_protein.tsv",
+      "sha256": "87784660771bfec1aeb2bb5a7348894f63ee45d6d1115d6d548905ab5aea2fe0",
+      "origin": "../oracle/O5b-inference/results/out/wrap_gene_protein.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_peptide_gene.tsv",
+      "sha256": "aa686933f653444267df7727acb48f3065704c7d0f82d34d717aa3a85b8e1231",
+      "origin": "../oracle/O5b-inference/results/out/wrap_peptide_gene.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_peptide_peptide.tsv",
+      "sha256": "5266f9f6de2f3df32ed3510c6f330273b2a0e0be50d08c322467a1f9e1b81f54",
+      "origin": "../oracle/O5b-inference/results/out/wrap_peptide_peptide.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_peptide_peptidoform.tsv",
+      "sha256": "aa686933f653444267df7727acb48f3065704c7d0f82d34d717aa3a85b8e1231",
+      "origin": "../oracle/O5b-inference/results/out/wrap_peptide_peptidoform.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_peptide_protein.tsv",
+      "sha256": "aa686933f653444267df7727acb48f3065704c7d0f82d34d717aa3a85b8e1231",
+      "origin": "../oracle/O5b-inference/results/out/wrap_peptide_protein.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_protein_gene.tsv",
+      "sha256": "3145ff35370ada1cf108433edb44af9ce4c0ebd669abd265019ffda5f4085eb7",
+      "origin": "../oracle/O5b-inference/results/out/wrap_protein_gene.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_protein_peptide.tsv",
+      "sha256": "3145ff35370ada1cf108433edb44af9ce4c0ebd669abd265019ffda5f4085eb7",
+      "origin": "../oracle/O5b-inference/results/out/wrap_protein_peptide.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_protein_peptidoform.tsv",
+      "sha256": "3145ff35370ada1cf108433edb44af9ce4c0ebd669abd265019ffda5f4085eb7",
+      "origin": "../oracle/O5b-inference/results/out/wrap_protein_peptidoform.tsv"
+    },
+    {
+      "path": "tests/data/openswath_inference/out/wrap_protein_protein.tsv",
+      "sha256": "5266f9f6de2f3df32ed3510c6f330273b2a0e0be50d08c322467a1f9e1b81f54",
+      "origin": "../oracle/O5b-inference/results/out/wrap_protein_protein.tsv"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (executed differential): driver ../oracle/O5b-inference/driver.cpp built with x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0 -O3 -DNDEBUG against the Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c) on ibminode06; 212 cases, each run twice in fresh processes with byte-identical outputs, logs and exit codes (results/differ.txt empty). tests/openswath_inference.rs replays the 197 non-reader cases: 155 agree within 1e-12 absolute (measured maximum 6.0e-15), ids, flags and error texts exactly, 5 are cases on which the Release build crashes (SIGSEGV, single p-value in lfdr), and 42 are the documented probit divergence of math::multiple_testing (probe ../oracle/O5b-inference/probe, same host and install). Tier 3: every section of LevelContextInference_test.cpp, PeptidoformInference_test.cpp and OpenSwathLibraryIDNormalizer_test.cpp, plus the reader counts of OSWFileInference_test.cpp on the Release reader's rows. Tier 4 for native checks.",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O5b-inference/driver.cpp",
+      "sha256": "1b0a47065f2926a7f763ff93a86e7d9f20f9f2180009154bcb2f4cbdf7ab6250",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5b-inference/make_inputs.py",
+      "sha256": "b0ec8629fc318588fde0f85b6422fddaddb43192a2367d9c3c8b63450439ce25",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5b-inference/remote_run.sh",
+      "sha256": "548ce3af58608b551510f6661a852df93557d88a67ad7f504417fb18354905e5",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5b-inference/run.sh",
+      "sha256": "c563f370c8d5f148036415dac80cc79da72424a78a7bbc8be5f46445e68b7ad4",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5b-inference/cases.txt",
+      "sha256": "21f68c7851ceed494b1c89ca2c5c2e421ddba94e09999cd0d93ad1a2abde8d5e",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/data/PyProphet_inference_test.osw",
+      "sha256": "8c6b9bb7dea77097a2b3fc4333ae34c4f6e7232985a77556c63ca502059892a4",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/results/hashes.txt",
+      "sha256": "e3e0e63500ede6bec4446d6c3e851ebe4b3875e81d8493517cd03113c52f6c9f",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/results/case_hashes.txt",
+      "sha256": "123195355c462cfaa8200004126985c8d87cf824e621a4594d5ad2f8fcda8ab4",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/results/differ.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/results/compiler.txt",
+      "sha256": "149bf683c88687e0bed22aa1bdaf6d2c0ef8de023bf5b2de981251ec01e42ccb",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    },
+    {
+      "path": "../oracle/O5b-inference/probe/probe.cpp",
+      "sha256": "2c99632f543093a4475706f8d42056d9b1886a4a45c37ea82dde999f89560238",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5b-inference/probe/remote_probe.sh",
+      "sha256": "afe46c9a55cd16f67c9e083deebabb9b96431bcae278ed4dedb2dc0f1c2c8503",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5b-inference/probe/probe.out",
+      "sha256": "8bf37033cf6226eb762550a0acf5e1bd2eb18b906b5895553ad2cae4f7a8ed95",
+      "location": "outside this repository",
+      "origin_key": "fixtures"
+    }
+  ],
+  "external_reference_note": "The C++ oracle driver, its input generator, run scripts and the probe live outside this repository (no C++ is committed); their retained outputs are the fixtures under tests/data/openswath_inference/."
+}

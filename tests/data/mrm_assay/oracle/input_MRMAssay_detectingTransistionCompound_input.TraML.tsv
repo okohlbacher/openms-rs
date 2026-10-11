@@ -1,0 +1,52 @@
+compound	4_Cyproconazole_0	NA	410.14499999999998
+compound	0_Dimethachlor_0	NA	388.16699999999997
+compound	1_Dimethachlor_0	NA	388.58699999999999
+compound	5_Fenamiphos_0	NA	423.78400000002
+compound	7_Flubendiamide_0	NA	450.57199999997999
+compound	6_Flufenacet_0	NA	456.87199999998001
+compound	3_Isoprothiolane_0	NA	450.57199999997999
+compound	2_Myclobutanil_0	NA	425.02399999997999
+transition	0_0_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	132.08077599999999	1	0	101	NA		annotation=s:C9H9N
+transition	0_1_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	105.06987700000001	0.54965782165527299	0	101	NA		annotation=s:C8H8
+transition	0_2_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	133.08860100000001	0.47792315483093301	0	101	NA		annotation=s:C9H10N
+transition	0_3_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	146.09642600000001	0.23892782628536199	0	101	NA		annotation=s:C10H11N
+transition	0_4_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	79.054226999999997	0.21453599631786299	0	101	NA		annotation=s:C6H6
+transition	0_5_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	118.06512600000001	0.202484920620918	0	101	NA		annotation=s:C8H7N
+transition	0_6_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	103.054227	0.117609620094299	0	101	NA		annotation=s:C8H6
+transition	0_7_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	174.09134	0.115704223513603	0	101	NA		annotation=s:C11H11NO
+transition	0_8_Dimethachlor_0		0_Dimethachlor_0	256.10988300000002	130.06512599999999	0.108522295951843	0	101	NA		annotation=s:C9H7N
+transition	1_0_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	118.06272	1	0	101	NA		annotation=s:C6H9N
+transition	1_1_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	146.09402	0.62518608570098899	0	101	NA		annotation=s:C8H13N
+transition	1_2_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	160.10966999999999	0.46888956427574202	0	101	NA		annotation=s:C9H15N
+transition	1_3_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	144.07837000000001	0.40637093782424899	0	101	NA		annotation=s:C8H11N
+transition	1_4_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	188.10458499999999	0.25007444620132402	0	101	NA		annotation=s:C10H15NO
+transition	1_5_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	116.059646	0.18755581974983199	0	101	NA		annotation=s:C7H9
+transition	1_6_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	228.09949900000001	0.18755581974983199	0	101	NA		annotation=s:C12H15NO2
+transition	1_7_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	162.12531999999999	0.156296521425247	0	101	NA		annotation=s:C9H17N
+transition	1_8_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	105.067471	0.12503722310066201	0	101	NA		annotation=s:C6H10
+transition	1_9_Dimethachlor_0		1_Dimethachlor_0	278.09182700000002	119.08312100000001	0.12503722310066201	0	101	NA		annotation=s:C7H12
+transition	2_0_Myclobutanil_0		2_Myclobutanil_0	289.12145099999998	125.015254	1	0	101	NA		annotation=s:C7H5Cl
+transition	3_0_Isoprothiolane_0		3_Isoprothiolane_0	291.07192800000001	231.01441299999999	1	0	101	NA		annotation=s:C9H10O3S2
+transition	3_1_Isoprothiolane_0		3_Isoprothiolane_0	291.07192800000001	172.97254799999999	0.35872665047645602	0	101	NA		annotation=s:C6H4O2S2
+transition	3_2_Isoprothiolane_0		3_Isoprothiolane_0	291.07192800000001	61.010648000000003	0.282854944467545	0	101	NA		annotation=s:C2H4S
+transition	3_3_Isoprothiolane_0		3_Isoprothiolane_0	291.07192800000001	188.96746200000001	0.24895463883876801	0	101	NA		annotation=s:C6H4O3S2
+transition	3_4_Isoprothiolane_0		3_Isoprothiolane_0	291.07192800000001	88.951418000000004	0.239635765552521	0	101	NA		annotation=s:C2S2
+transition	3_5_Isoprothiolane_0		3_Isoprothiolane_0	291.07192800000001	84.974261999999996	0.18928921222686801	0	101	NA		annotation=s:C3OS
+transition	4_0_Cyproconazole_0		4_Cyproconazole_0	292.12111599999997	125.015254	1	0	101	NA		annotation=s:C7H5Cl
+transition	5_0_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	234.03482700000001	1	0	101	NA		annotation=s:C8H12NO3PS
+transition	5_1_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	276.08177799999999	0.42122146487236001	0	101	NA		annotation=s:C11H18NO3PS
+transition	5_2_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	153.03686200000001	0.192885711789131	0	101	NA		annotation=s:C8H8OS
+transition	5_3_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	184.98206300000001	0.17585217952728299	0	101	NA		annotation=s:C7H5O2PS
+transition	5_4_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	262.06612699999999	0.175382480025291	0	101	NA		annotation=s:C10H16NO3PS
+transition	5_5_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	198.997714	0.122402869164944	0	101	NA		annotation=s:C8H7O2PS
+transition	5_6_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	60.080776	0.10693221539259	0	101	NA		annotation=s:C3H9N
+transition	5_7_Fenamiphos_0		5_Fenamiphos_0	304.11307799999997	155.05251200000001	0.105000659823418	0	101	NA		annotation=s:C8H10OS
+transition	6_0_Flufenacet_0		6_Flufenacet_0	364.07373699999999	124.056847	1	0	101	NA		annotation=s:C4H7F2NO
+transition	6_1_Flufenacet_0		6_Flufenacet_0	364.07373699999999	194.09871200000001	0.35369905829429599	0	101	NA		annotation=s:C8H13F2NO2
+transition	6_2_Flufenacet_0		6_Flufenacet_0	364.07373699999999	109.045948	0.163496643304825	0	101	NA		annotation=s:C4H6F2O
+transition	7_0_Flubendiamide_0		7_Flubendiamide_0	700.05156709934397	325.89158600000002	1	0	101	NA		annotation=s:C5H4F2IO4S
+transition	7_1_Flubendiamide_0		7_Flubendiamide_0	700.05156709934397	367.938536	0.67509132623672496	0	101	NA		annotation=s:C8H10F2IO4S
+transition	7_2_Flubendiamide_0		7_Flubendiamide_0	700.05156709934397	409.98548599999998	0.61388552188873302	0	101	NA		annotation=s:C11H16F2IO4S
+transition	7_3_Flubendiamide_0		7_Flubendiamide_0	700.05156709934397	307.88102099999998	0.57518273591995195	0	101	NA		annotation=s:C5H2F2IO3S
+transition	7_4_Flubendiamide_0		7_Flubendiamide_0	700.05156709934397	263.89004899999998	0.52304100990295399	0	101	NA		annotation=s:C7HFIS
+transition	7_5_Flubendiamide_0		7_Flubendiamide_0	700.05156709934397	700.05714899999998	0.25040599703788802	0	101	NA		annotation=s:C23H25F7IN3O4S

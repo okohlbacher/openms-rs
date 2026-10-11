@@ -1,0 +1,570 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "test_data_revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+  "license": "BSD-3-Clause",
+  "method": "Executed differential: the oracle driver links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06 and runs twice in a clean environment; both runs produced byte-identical records and files (results/differ.txt empty). The Rust tests run the writer on the driver's inputs and compare every table cell by cell with the Release files (the stale cells of the Release build, an unspecified-evaluation-order defect, are modelled and must differ exactly as modelled), metadata.json byte for byte except build_time, archive entry sets, and every writer error by kind and message; they run the reader on the upstream fixture and on every Release-written container and compare every returned column. The three class tests (Writer, Reader, RoundTrip) are transcribed.",
+  "evidence_tier": "1 (executed differential on the Release build; the class tests transcribed as tier 2)",
+  "reference_tools": "../oracle/O5c-oswpq (driver.cpp, node.sh, run.sh)",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.h",
+      "sha256": "86baa931d11564114e1b7a84407a3a4ee929bc684b478ba0db9c76110af2a247"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathOSWParquetWriter.cpp",
+      "sha256": "a00f65aff14cca6c20c0f13a199699acb11f20099278f0a46a29d80a474e69c2"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.h",
+      "sha256": "5fbede92e1243752a49336e2c2c7f9fc6df39d0d4a30f2da6e588232db0cb839"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathOSWParquetReader.cpp",
+      "sha256": "c64b583ccee271dfbf6581afa2c7bb0418e0e4a6f5983d024181f41491d7c8f6"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OpenSwathOSWParquetWriter_test.cpp",
+      "sha256": "8ce517b8ddfba006c86cec5435749d740c94931de7f67aa3692500e251795778"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OpenSwathOSWParquetReader_test.cpp",
+      "sha256": "3d3c2f3d16e090575a6092f41fc66a9a34bba386f22303fad84f64c287b5fa2c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OpenSwathOSWParquetRoundTrip_test.cpp",
+      "sha256": "620de0b392f5c432edf81438d931082365c569369cb005c475d55bb97121772c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/data/OpenSwathWorkflow_tworuns_1_17.output.oswpq",
+      "sha256": "8bf0136c97e9727ddd66924ee4b312890d5dd81b3b863592fd867df72725135a"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/openswath_osw_parquet/OpenSwathWorkflow_tworuns_1_17.output.oswpq",
+      "sha256": "8bf0136c97e9727ddd66924ee4b312890d5dd81b3b863592fd867df72725135a",
+      "kind": "upstream class-test data, verbatim from core bc9cc12 src/tests/class_tests/openms/data/"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/records.tsv",
+      "sha256": "67aaddec6b140c75932c8624a298b7e83dbbf4b410fee4bc196d70974829c0e2",
+      "kind": "record stream of the executed Release oracle O5c-oswpq (run 1; run 2 identical)"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/host.txt",
+      "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+      "kind": "host, compiler, flags and Arrow version the oracle ran with"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_no_runs_files__library#precursors.parquet",
+      "sha256": "75aaa6e2aeb56b1cea23d7100703f00a04f2b101f41bf6bca809c1427ddd1737",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_no_runs_files__library#transitions.parquet",
+      "sha256": "b4ece8e6639df646cdc777ad34ccbbf9583268d99de038ad90661a990633a7a9",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_feature_files__library#precursors.parquet",
+      "sha256": "75aaa6e2aeb56b1cea23d7100703f00a04f2b101f41bf6bca809c1427ddd1737",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_feature_files__library#transitions.parquet",
+      "sha256": "50c91d53fcb4c1a1174ea013072034d92df12be40edbedda3eaf3509ae9fc33f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_feature_files__runs#run_id=4#feature_transition.parquet",
+      "sha256": "d278f337c235cf7e27c8594f8ba035005b85f7477159332d4b3d12a087e7653f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_feature_files__runs#run_id=4#features.parquet",
+      "sha256": "23aa2e6e660cc05e9dc8846c8b3b6b24570224e3ea3e47651a7dab0c49c72ddd",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_feature_files__runs#runs.parquet",
+      "sha256": "e962062466fc1762e4e484e9a3716460d35c487ad742dbac690ff8086e062dec",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_precursor_files__library#precursors.parquet",
+      "sha256": "75aaa6e2aeb56b1cea23d7100703f00a04f2b101f41bf6bca809c1427ddd1737",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_precursor_files__library#transitions.parquet",
+      "sha256": "50c91d53fcb4c1a1174ea013072034d92df12be40edbedda3eaf3509ae9fc33f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_precursor_files__runs#run_id=4#feature_transition.parquet",
+      "sha256": "f40e4db762020cbd24ceecdca7212a6cdb5b335020c460a3cd000d8f5172522c",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_precursor_files__runs#run_id=4#features.parquet",
+      "sha256": "cf8c7a99fc7ce9a05423800474c034ef2509c8d9151a0ed9e849218c62773c98",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_precursor_files__runs#runs.parquet",
+      "sha256": "e962062466fc1762e4e484e9a3716460d35c487ad742dbac690ff8086e062dec",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_transition_files__library#precursors.parquet",
+      "sha256": "75aaa6e2aeb56b1cea23d7100703f00a04f2b101f41bf6bca809c1427ddd1737",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_transition_files__library#transitions.parquet",
+      "sha256": "50c91d53fcb4c1a1174ea013072034d92df12be40edbedda3eaf3509ae9fc33f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_transition_files__runs#run_id=4#feature_transition.parquet",
+      "sha256": "ad4c8cff95b70ed48d845f0b833dd4cc2836a9583c3abb131f001c8be4713de9",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_transition_files__runs#run_id=4#features.parquet",
+      "sha256": "23aa2e6e660cc05e9dc8846c8b3b6b24570224e3ea3e47651a7dab0c49c72ddd",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_err_unknown_transition_files__runs#runs.parquet",
+      "sha256": "e962062466fc1762e4e484e9a3716460d35c487ad742dbac690ff8086e062dec",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_minimal_files__library#precursors.parquet",
+      "sha256": "16ff55e7bebe15e38210e161a6d8cfcf2f69551244fea1eaadc8c8f755ef2f90",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_minimal_files__library#transitions.parquet",
+      "sha256": "f5dbf56b4a43256532c0ba88b6ac60cc7a4b51b8d4511b780c44607a56a4cd6e",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_minimal_files__runs#run_id=1#feature_transition.parquet",
+      "sha256": "76686db73b6939463ea198b15eeee75597b4bc032e406425b2dbe46fae51661f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_minimal_files__runs#run_id=1#features.parquet",
+      "sha256": "1e3f31f5ffff3a009484543f40ef0196a17548a3c79cc425ce5dd197d3be271b",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_minimal_files__runs#runs.parquet",
+      "sha256": "2dfd7c15ab6b7f799af61776d231b3b1ce0b1e50387040511502b778673a686b",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__library#peptides.parquet",
+      "sha256": "c09bb47ed69919d5cbc527b55c5c6c5ebc718cf81425fb56f12b1cc72c410555",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__library#precursor_peptide_mapping.parquet",
+      "sha256": "3a66273d112279945f0fe4c025d197800caae4dec0197cd209c6bfd84ed2f6ff",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__library#precursors.parquet",
+      "sha256": "ef6efd53ea83fea85984a2862aae0df3ca11b7b113dc30277b1ae8b98f34baaf",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__library#transitions.parquet",
+      "sha256": "511198c4ff009e20e868afb513b08848ff7ea812e2b59a8f344b6b54c1f09d96",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__runs#run_id=1#feature_transition.parquet",
+      "sha256": "cb9878841fa9fd6ce79841bcda60b1e96e3dc020597442f2989254cc8ee52001",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__runs#run_id=1#features.parquet",
+      "sha256": "02cfc17eba3df8a7e32317df5e4ae5410390a1a78015095bd168ee29ec66b4fe",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__runs#run_id=3#feature_transition.parquet",
+      "sha256": "f2fee4ee459fd26278070d19b0c97c3c02798b75ffa464fa732ac3b9a580820c",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__runs#run_id=3#features.parquet",
+      "sha256": "e98805944f1a3e122365334740e2f325ba09da31bf83942e708358569352d694",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/r_ties_files__runs#runs.parquet",
+      "sha256": "6ba390417efcf19c54b282c14aea409004495cad3cfece3e557bd50a569a9065",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__library#metadata.json",
+      "sha256": "c00a1b8b4554bcd3e9625c66c1025d29ad857731255c5906b7e667bd44d80e29",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__library#precursors.parquet",
+      "sha256": "ebe806769adbb91259e1732de341dca12d4e38779c5920623b4b01ee5f74bb68",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__library#transitions.parquet",
+      "sha256": "27c462ba836aee0b4e67f47713a62d8f143e597ce940ab8e8ea4902e3115d1f1",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__metadata.json",
+      "sha256": "537e67822eef9f8e985c995e1540c63cda53c621f5d648a00a1bd2f11beb889f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__runs#run_id=90#feature_precursor.parquet",
+      "sha256": "319caad5131c8c9aed3720fc984b470cff70d29816f3da3d769ab7f108eaa1bc",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__runs#run_id=90#feature_transition.parquet",
+      "sha256": "4452e1cb0a51ed718d861656b876a067e75e2b4dd16fac2b5a1253e99e2b086a",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__runs#run_id=90#features.parquet",
+      "sha256": "bcc391df24ac7214c11ed42e3a8577215074703bcc743e5b3db955753dcc47af",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_class__runs#runs.parquet",
+      "sha256": "f31c568a8a6522ed39625df1dd01d02d0f37046108dcdb373d64dabf61f875af",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__library#metadata.json",
+      "sha256": "cd7e8078c402788e00f07edc5ab47e4ffcc015cdfaf5cb047186f3d27b183cda",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__library#precursors.parquet",
+      "sha256": "dd66f34295df3ce6209dff3d9db8a9ac1bc69da4d8b390c9327189d8e1b09be2",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__library#transitions.parquet",
+      "sha256": "b6f27dbe761fdca7b45fdfc190ca040f5dd95dbf6ab27f0767a04bf5ab41616a",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__metadata.json",
+      "sha256": "7bac854fb11b0a4d5ffa1c72acd583c8287a33392c7a40b7ce4514b53e7fa16d",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__runs#run_id=1#feature_precursor.parquet",
+      "sha256": "319caad5131c8c9aed3720fc984b470cff70d29816f3da3d769ab7f108eaa1bc",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__runs#run_id=1#feature_transition.parquet",
+      "sha256": "b506addeca8f614c4a4f65904bba8a8ec47db49bf90d9d7c1eb3011076a27e44",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__runs#run_id=1#features.parquet",
+      "sha256": "bd13392ef5fb60402498a9af1a8247836213833602d513d20a6daa7a2600963b",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_empty_fmap__runs#runs.parquet",
+      "sha256": "f9c6d9d384b6d1d5c70d06f9c53ceda16a719e9f0367333602f1b560e2cdacc7",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__library#metadata.json",
+      "sha256": "cd7e8078c402788e00f07edc5ab47e4ffcc015cdfaf5cb047186f3d27b183cda",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__library#precursors.parquet",
+      "sha256": "22302369422bf7b6079fa4dc0833e26624543c4a5197e01e36f6afdc6f309aa7",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__library#transitions.parquet",
+      "sha256": "d7d6d2735faf7be15e3bc6b159cd608d5d61e697edee780c5e937b255ba43b8e",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__metadata.json",
+      "sha256": "0e42dc9ecf4a0ac335c9084d641973f7a2cf00921d67f9e14edd5a0f4ac756fd",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__runs#run_id=42#feature_precursor.parquet",
+      "sha256": "e9fcdc2a6272440976edca263ce30b672184553be79f347e3c4a7ebcb0080302",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__runs#run_id=42#feature_transition.parquet",
+      "sha256": "90b4710462a4eed9752a31473e67d0e25ced5b94ddefbc296f00d8e564954612",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__runs#run_id=42#features.parquet",
+      "sha256": "3079aed9f93a83c845123011a66143c205c063d15cf284e694a92c29cdb71052",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir__runs#runs.parquet",
+      "sha256": "6c99f9d9f7a7842f7180084a14b45cef4a17d7c10c84e1d11dd8b09d058c8324",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__library#metadata.json",
+      "sha256": "cd7e8078c402788e00f07edc5ab47e4ffcc015cdfaf5cb047186f3d27b183cda",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__library#precursors.parquet",
+      "sha256": "22302369422bf7b6079fa4dc0833e26624543c4a5197e01e36f6afdc6f309aa7",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__library#transitions.parquet",
+      "sha256": "d7d6d2735faf7be15e3bc6b159cd608d5d61e697edee780c5e937b255ba43b8e",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__metadata.json",
+      "sha256": "94452be37d8ac0a451c6a846975588afaac0aeb497dbe963806e1d83a16e05bd",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#run_id=42#feature_precursor.parquet",
+      "sha256": "e9fcdc2a6272440976edca263ce30b672184553be79f347e3c4a7ebcb0080302",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#run_id=42#feature_transition.parquet",
+      "sha256": "90b4710462a4eed9752a31473e67d0e25ced5b94ddefbc296f00d8e564954612",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#run_id=42#features.parquet",
+      "sha256": "3079aed9f93a83c845123011a66143c205c063d15cf284e694a92c29cdb71052",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#run_id=7#feature_precursor.parquet",
+      "sha256": "319caad5131c8c9aed3720fc984b470cff70d29816f3da3d769ab7f108eaa1bc",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#run_id=7#feature_transition.parquet",
+      "sha256": "ec621feea1e0d96db559f52478cb03a5d250ed53e4cdb9ce3e58b8eb74eaf7cb",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#run_id=7#features.parquet",
+      "sha256": "84691a93e276711e851d363cc3891a2408da57e4e572215ac94635b70d06b7fe",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_dir_append__runs#runs.parquet",
+      "sha256": "7afcb8650c00709e095f9167ce8a6205a728491fd269eee738a85402ac4807cd",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__library#metadata.json",
+      "sha256": "cd7e8078c402788e00f07edc5ab47e4ffcc015cdfaf5cb047186f3d27b183cda",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__library#precursors.parquet",
+      "sha256": "dd66f34295df3ce6209dff3d9db8a9ac1bc69da4d8b390c9327189d8e1b09be2",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__library#transitions.parquet",
+      "sha256": "b6f27dbe761fdca7b45fdfc190ca040f5dd95dbf6ab27f0767a04bf5ab41616a",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__metadata.json",
+      "sha256": "2410c0c69fa7463430da971d4d50337768d56c259fb3529fe49bd8ab842c235f",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__runs#run_id=42#feature_precursor.parquet",
+      "sha256": "e9fcdc2a6272440976edca263ce30b672184553be79f347e3c4a7ebcb0080302",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__runs#run_id=42#feature_transition.parquet",
+      "sha256": "90b4710462a4eed9752a31473e67d0e25ced5b94ddefbc296f00d8e564954612",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__runs#run_id=42#features.parquet",
+      "sha256": "3079aed9f93a83c845123011a66143c205c063d15cf284e694a92c29cdb71052",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__runs#runs.parquet",
+      "sha256": "82bac03768b5d42a5b2ccb6f34d28f763c0b88b2bd3d4f4f0fa69fd4a234cba9",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip__w_rich.oswpq.idx.json",
+      "sha256": "0b6a5bd537aef85bc395c60c646b3657d8420ed876da1d0e961b2b9099477e98",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__library#metadata.json",
+      "sha256": "cd7e8078c402788e00f07edc5ab47e4ffcc015cdfaf5cb047186f3d27b183cda",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__library#precursors.parquet",
+      "sha256": "dd66f34295df3ce6209dff3d9db8a9ac1bc69da4d8b390c9327189d8e1b09be2",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__library#transitions.parquet",
+      "sha256": "b6f27dbe761fdca7b45fdfc190ca040f5dd95dbf6ab27f0767a04bf5ab41616a",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__metadata.json",
+      "sha256": "1e5e9d7259ab9b7baf5b6934599d4faa92a0f3dc0375b73caeef675527dc03c0",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#run_id=42#feature_precursor.parquet",
+      "sha256": "e9fcdc2a6272440976edca263ce30b672184553be79f347e3c4a7ebcb0080302",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#run_id=42#feature_transition.parquet",
+      "sha256": "90b4710462a4eed9752a31473e67d0e25ced5b94ddefbc296f00d8e564954612",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#run_id=42#features.parquet",
+      "sha256": "3079aed9f93a83c845123011a66143c205c063d15cf284e694a92c29cdb71052",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#run_id=7#feature_precursor.parquet",
+      "sha256": "319caad5131c8c9aed3720fc984b470cff70d29816f3da3d769ab7f108eaa1bc",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#run_id=7#feature_transition.parquet",
+      "sha256": "ec621feea1e0d96db559f52478cb03a5d250ed53e4cdb9ce3e58b8eb74eaf7cb",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#run_id=7#features.parquet",
+      "sha256": "84691a93e276711e851d363cc3891a2408da57e4e572215ac94635b70d06b7fe",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__runs#runs.parquet",
+      "sha256": "b9f562b8c7429c50ae4aa5a644236b162fd49f42ccb8dc85cdf721d75794cd4e",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_preserve__w_rich.oswpq.idx.json",
+      "sha256": "402fc988d0ee0bfde5bce7763307ee8576d3eae07410feb224d92e54dddc4ac3",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__library#metadata.json",
+      "sha256": "cd7e8078c402788e00f07edc5ab47e4ffcc015cdfaf5cb047186f3d27b183cda",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__library#precursors.parquet",
+      "sha256": "dd66f34295df3ce6209dff3d9db8a9ac1bc69da4d8b390c9327189d8e1b09be2",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__library#transitions.parquet",
+      "sha256": "b6f27dbe761fdca7b45fdfc190ca040f5dd95dbf6ab27f0767a04bf5ab41616a",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__metadata.json",
+      "sha256": "e6cd9b10592a97136e0d50161b2b1cc3ba3bc70b35db04f9b886a47d1e32d3c1",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__runs#run_id=8#feature_precursor.parquet",
+      "sha256": "319caad5131c8c9aed3720fc984b470cff70d29816f3da3d769ab7f108eaa1bc",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__runs#run_id=8#feature_transition.parquet",
+      "sha256": "023cf3d28f5d469ee9075cafae5214d411716a4daea341d1e59957f3ce002e49",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__runs#run_id=8#features.parquet",
+      "sha256": "aeb662418182f98785c0a4cf9a6f71c29a7cec30854d2b36a950215cfd62d09b",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__runs#runs.parquet",
+      "sha256": "c1722c5c4a04f5e2bad0b45292924b091ee987b74c4bcac43dea7ddd7dd1fb3d",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    },
+    {
+      "path": "tests/data/openswath_osw_parquet/files/w_rich_zip_replace__w_rich.oswpq.idx.json",
+      "sha256": "343bb3fcde7ba74e68da5e7e1dc8e4bab8e39eaad72c99ed31fef28596d43046",
+      "kind": "Parquet table, metadata.json or index written by the executed Release build, oracle O5c-oswpq (container path flattened, '/' as '#')"
+    }
+  ],
+  "native_implementation": "src/analysis/openswath/openswath_osw_parquet_writer.rs, src/analysis/openswath/openswath_osw_parquet_reader.rs",
+  "native_tests": "tests/openswath_osw_parquet.rs",
+  "support_document": "docs/OPENSWATH_PARQUET_SUPPORT.md",
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O5c-oswpq/driver.cpp",
+      "sha256": "8f7e288be80b2c44b6612f2c908a32f0b8077c50bc3b3c3e846cb374a80eabe7",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-oswpq/node.sh",
+      "sha256": "2e31b9694b8dcd4f29cd831381667949d52fd6f533e94f57091b5bb6ea2c76dc",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-oswpq/run.sh",
+      "sha256": "641bf8d10782a5e20b8f62f3d7c405ddf74d211f43e0f931ac08cda9414d312e",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-oswpq/results/hashes.txt",
+      "sha256": "dfee08fb6b89d39f44e5b9eab387019af1fd9eba80c28dd91179afd2a240d7c1",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "The oracle driver is C++ and stays outside the repository; its records and every file it wrote were copied verbatim into tests/data/openswath_osw_parquet/ (hashes above). results/hashes.txt of the oracle hashes the driver, the built binary, libOpenMS.so, the record stream and every output file."
+}

@@ -1,0 +1,104 @@
+{
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "test_data_revision": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3",
+  "license": "BSD-3-Clause",
+  "method": "Executed differential: the oracle driver links the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (g++ 14.4.0 -O2 -DNDEBUG, Arrow C++ 23.0.1) on ibminode06 and runs twice in a clean environment; both runs produced byte-identical records and files (results/differ.txt empty). The Rust tests write the same tables and compare every column (name, type, nullability, values, nulls) with the Release file, and check the unwritable-destination error. Both sections of OpenSwathParquetExporter_test.cpp are transcribed; OpenSwathExportData.h defaults and toString are unit tests against the header.",
+  "evidence_tier": "1 (executed differential on the Release build; the class test transcribed as tier 2)",
+  "reference_tools": "../oracle/O5c-export (driver.cpp, node.sh, run.sh)",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.h",
+      "sha256": "d8638934c397d075ef7aeb260d6a9cd7053ebac583bf1864e4b0ef11b5671824"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathParquetExporter.cpp",
+      "sha256": "481e7314e5ba686a1b0b53be2d5d974135db0960f7fc82fcdf0fc6933c9631d6"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathExportData.h",
+      "sha256": "087695e2ccd2183695e2e16755264f7f0dffb3706e0b19cdec7e7a8cff2b1289"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OpenSwathParquetExporter_test.cpp",
+      "sha256": "442f457a6c6b3cc2f4130b6772644310d6a91fcd61e3bfc7735ef34205b831c9"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/openswath_parquet_exporter/records.tsv",
+      "sha256": "a96a7f5bce967807839ca7bb1e69833afc58be3546bc59bc16b94bae4c7e47ba",
+      "kind": "record stream of the executed Release oracle O5c-export (run 1; run 2 identical)"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/host.txt",
+      "sha256": "045325075d349ae238254bce47f46000dcd0c4c7e4112396746c596972681d97",
+      "kind": "host, compiler, flags and Arrow version the oracle ran with"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/fs_class.parquet",
+      "sha256": "823a1d64a241e971d7f8518ab45418cbdbdf658224fb3c396c20fbbb1146463d",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/fs_empty.parquet",
+      "sha256": "0439d880e655acb57c0e1e998d8988af003b5c67c5808d9db9ce4eebdfa69607",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/fs_empty_cols.parquet",
+      "sha256": "1cc0b437e0e3592aaea9b1edc8ccb0c174a46be7cff0ae92e3c7cd0dd5f7d1a4",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/fs_rich.parquet",
+      "sha256": "07e698ab47cf29cfcac980cab7e8f03bab97cbe9133019b1ebc0324fdb2b82ca",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/ts_class.parquet",
+      "sha256": "d5849de44caead9ba622d962b660e7e32ae14e5d8505a1209d4b14e8e35e9e3c",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/ts_empty.parquet",
+      "sha256": "f4f674fa11352f2e5726e1e38dc4c93340488202cd031767df47d1504fde78fd",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    },
+    {
+      "path": "tests/data/openswath_parquet_exporter/files/ts_rich.parquet",
+      "sha256": "b879ae46bc3a0b1ebf9ad5ce86ee8743739a1e3ce1d5fe71854e524d6cc3ca41",
+      "kind": "Parquet file written by the executed Release build, oracle O5c-export"
+    }
+  ],
+  "native_implementation": "src/analysis/openswath/openswath_parquet_exporter.rs, src/analysis/openswath/openswath_export_data.rs",
+  "native_tests": "tests/openswath_parquet_exporter.rs",
+  "support_document": "docs/OPENSWATH_PARQUET_SUPPORT.md",
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/O5c-export/driver.cpp",
+      "sha256": "518c78bcf88382e4410c5d15c7247ad69b40d6a474eccf8f3e8ca0877c8b81ab",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-export/node.sh",
+      "sha256": "29d5a76ebed083abaab90f976d49368694fe358082ff29c203cc047d6441c26b",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-export/run.sh",
+      "sha256": "6db8239a41690056530078eab26d140dd51f2e34076699d3ccc4da1fbe7d204e",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/O5c-export/results/hashes.txt",
+      "sha256": "bda415b5b09e879240303a8368bfebce55258e00a8ece3410c955c45840cd27e",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "The oracle driver is C++ and stays outside the repository; its records and every file it wrote were copied verbatim into tests/data/openswath_parquet_exporter/ (hashes above). results/hashes.txt of the oracle hashes the driver, the built binary, libOpenMS.so, the record stream and every output file. The error message in the records masks the run directory as <OUT>."
+}

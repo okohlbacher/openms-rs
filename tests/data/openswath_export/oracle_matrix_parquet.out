@@ -1,0 +1,68 @@
+### precursor_none_cons_top3
+OK
+### precursor_median_cons_top3
+OK
+### precursor_medianmedian_cons_top3
+OK
+### peptide_none_cons_top3
+OK
+### peptide_none_run_top3
+OK
+### peptide_median_cons_top3
+OK
+### peptide_median_run_top3
+OK
+### peptide_medianmedian_cons_top3
+OK
+### peptide_medianmedian_run_top3
+OK
+### protein_none_cons_top3
+OK
+### protein_none_run_top3
+OK
+### protein_median_cons_top3
+OK
+### protein_median_run_top3
+OK
+### protein_medianmedian_cons_top3
+OK
+### protein_medianmedian_run_top3
+OK
+### gene_none_cons_top3
+OK
+### gene_none_run_top3
+OK
+### gene_median_cons_top3
+OK
+### gene_median_run_top3
+OK
+### gene_medianmedian_cons_top3
+OK
+### gene_medianmedian_run_top3
+OK
+### peptide_top1_consistent
+OK
+### peptide_top1_perrun
+OK
+### peptide_top10
+OK
+### protein_top2_consistent
+OK
+### gene_top1_perrun
+OK
+### ties_precursor
+OK
+### ties_peptide
+OK
+### name_collisions
+OK
+### unnamed_run
+OK
+### sparse
+OK
+### unannotated_protein
+OK
+### unannotated_gene
+OK
+### single_run
+OK

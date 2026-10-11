@@ -10,22 +10,22 @@
 //! class of static members, which become free functions). See
 //! [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!
-//! Not ported yet:
-//!
-//! - the `OpenMS::TargetedExperiment` overload of `selectSwathTransitions` and
-//!   the corresponding instantiation of `checkSwathMapAndSelectTransitions`:
-//!   the heavyweight `ANALYSIS/TARGETED/TargetedExperiment` is not in the crate;
-//! - `sampleExperiment`: it draws through `Math::RandomShuffler`, whose
-//!   source-exact engine is private to
-//!   [`chemistry`](crate::chemistry) today, and seeds from
-//!   `std::random_device` when the seed is 0.
+//! Both `selectSwathTransitions` overloads (the `OpenMS::TargetedExperiment`
+//! one is [`select_swath_transitions_targeted`](crate::analysis::openswath::openswath_helper::select_swath_transitions_targeted)) and the template
+//! `checkSwathMapAndSelectTransitions`, whose two instantiations are one generic
+//! function over [`SwathSelectable`](crate::analysis::openswath::openswath_helper::SwathSelectable), are ported, and so is `sampleExperiment`
+//! ([`sample_experiment`](crate::analysis::openswath::openswath_helper::sample_experiment)), which draws through
+//! [`RandomShuffler`](crate::math::random_shuffler::RandomShuffler).
 
 use super::swath_map::SwathMap;
-use super::transition_experiment::{LightTargetedExperiment, LightTransition};
+use super::targeted_experiment::TargetedExperiment;
+use super::transition_experiment::{LightCompound, LightTargetedExperiment, LightTransition};
 use crate::kernel::MSExperiment;
 use crate::kernel::mrm::MRMTransitionGroup;
+use crate::math::random_shuffler::RandomShuffler;
+use crate::math::source_sort::source_sort_by;
 use crate::{Error, Result};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 /// The unique precursor id `"<transition_group_id>_Precursor_i<isotope>"`; the
 /// monoisotopic precursor of `"groupID"` is `"groupID_Precursor_i0"`.
@@ -93,6 +93,80 @@ pub fn select_swath_transitions(
         if matching_proteins.contains(protein.id.as_str()) {
             selected.proteins.push(protein.clone());
         }
+    }
+}
+
+/// The `OpenMS::TargetedExperiment` overload of [`select_swath_transitions`]
+/// (source `selectSwathTransitions(const TargetedExperiment&,
+/// TargetedExperiment&, ...)`).
+///
+/// Unlike the light overload this one *replaces* the peptides and proteins of
+/// `selected` by all of those of `targeted_exp` (source `setPeptides`,
+/// `setProteins`) and only then appends the transitions whose precursor lies
+/// in the window by the rule of [`select_swath_transitions`]; compounds are not
+/// filtered.
+pub fn select_swath_transitions_targeted(
+    targeted_exp: &TargetedExperiment,
+    selected: &mut TargetedExperiment,
+    min_upper_edge_dist: f64,
+    lower: f64,
+    upper: f64,
+) {
+    selected.set_peptides(targeted_exp.peptides().to_vec());
+    selected.set_proteins(targeted_exp.proteins().to_vec());
+    for tr in targeted_exp.transitions() {
+        if in_window(tr.precursor_mz(), lower, upper, min_upper_edge_dist) {
+            selected.add_transition(tr.clone());
+        }
+    }
+}
+
+/// The two transition-list types `checkSwathMapAndSelectTransitions` is
+/// instantiated for: the light experiment and the heavyweight
+/// `TargetedExperiment`.
+pub trait SwathSelectable: Sized {
+    /// `selectSwathTransitions` for this type.
+    fn select_swath_transitions(
+        &self,
+        selected: &mut Self,
+        min_upper_edge_dist: f64,
+        lower: f64,
+        upper: f64,
+    );
+
+    /// Whether the experiment holds no transition (`getTransitions().empty()`).
+    fn has_no_transitions(&self) -> bool;
+}
+
+impl SwathSelectable for LightTargetedExperiment {
+    fn select_swath_transitions(
+        &self,
+        selected: &mut Self,
+        min_upper_edge_dist: f64,
+        lower: f64,
+        upper: f64,
+    ) {
+        select_swath_transitions(self, selected, min_upper_edge_dist, lower, upper);
+    }
+
+    fn has_no_transitions(&self) -> bool {
+        self.transitions.is_empty()
+    }
+}
+
+impl SwathSelectable for TargetedExperiment {
+    fn select_swath_transitions(
+        &self,
+        selected: &mut Self,
+        min_upper_edge_dist: f64,
+        lower: f64,
+        upper: f64,
+    ) {
+        select_swath_transitions_targeted(self, selected, min_upper_edge_dist, lower, upper);
+    }
+
+    fn has_no_transitions(&self) -> bool {
+        self.transitions().is_empty()
     }
 }
 
@@ -208,10 +282,10 @@ pub fn check_swath_map(swath_map: &MSExperiment) -> Result<(f64, f64, f64)> {
 /// # Errors
 ///
 /// Those of [`check_swath_map`].
-pub fn check_swath_map_and_select_transitions(
+pub fn check_swath_map_and_select_transitions<T: SwathSelectable>(
     exp: &MSExperiment,
-    targeted_exp: &LightTargetedExperiment,
-    selected: &mut LightTargetedExperiment,
+    targeted_exp: &T,
+    selected: &mut T,
     min_upper_edge_dist: f64,
 ) -> Result<bool> {
     if exp
@@ -222,8 +296,8 @@ pub fn check_swath_map_and_select_transitions(
         return Ok(false);
     }
     let (lower, upper, _center) = check_swath_map(exp)?;
-    select_swath_transitions(targeted_exp, selected, min_upper_edge_dist, lower, upper);
-    Ok(!selected.transitions.is_empty())
+    targeted_exp.select_swath_transitions(selected, min_upper_edge_dist, lower, upper);
+    Ok(!selected.has_no_transitions())
 }
 
 /// The `(min, max)` retention time over the compounds of `exp`.
@@ -252,6 +326,217 @@ pub fn estimate_rt_range(exp: &LightTargetedExperiment) -> Result<(f64, f64)> {
         }
     }
     Ok((min, max))
+}
+
+/// Upper bound on `bins` times the number of candidate compounds, the work of
+/// the two sampling passes; checked before any bucket is built.
+pub const MAX_SAMPLING_WORK: usize = 1 << 28;
+
+/// Sample a retention-time-stratified subset of a library, for iRT calibration
+/// (source `sampleExperiment`).
+///
+/// 1. Candidates are the compounds referenced by at least one non-decoy
+///    transition; those whose sequence is in `priority_peptides` form the
+///    priority list, the others the regular list.
+/// 2. With `sort_by_intensity`, both lists are sorted by the summed library
+///    intensity of their non-decoy transitions, descending, with the crate's
+///    emulation of the Release build's `std::sort` (ties are not stable), and
+///    the regular list is cut to its first
+///    `max(1, floor(len * top_fraction))` entries.
+/// 3. Fewer than three candidates in total is an error.
+/// 4. The retention-time range of all candidates is cut into `bins` equal
+///    bins. Priority peptides are sampled first: per bin, the not yet picked
+///    (by *sequence*) priority peptides with `rt` in `[lo, hi)` are shuffled
+///    with a [`RandomShuffler`] seeded with `seed` and the first
+///    `peptides_per_bin` are taken. Then, when fewer than
+///    `bins * peptides_per_bin` are picked and regular candidates exist, every
+///    bin is filled up to `peptides_per_bin` counting everything already picked
+///    in it. The last bin's upper edge is `rt_max` and is exclusive, so a
+///    compound exactly at the maximum is never picked, as in the source.
+/// 5. The result holds the picked compounds in pick order, their non-decoy
+///    transitions in library order and their proteins in library order.
+///
+/// `seed` 0 takes a random seed (the source's `std::random_device`), which the
+/// port draws from the standard library's randomly keyed hasher.
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for `bins` or `peptides_per_bin` of 0 and for a
+/// `top_fraction` outside `(0, 1]` with `sort_by_intensity` (debug-only
+/// preconditions in the source, which divides by zero or misbehaves without
+/// them), for fewer than three candidates (the source's
+/// `Exception::IllegalArgument`, same message), and when `bins` times the
+/// number of candidates exceeds [`MAX_SAMPLING_WORK`].
+pub fn sample_experiment(
+    exp: &LightTargetedExperiment,
+    bins: usize,
+    peptides_per_bin: usize,
+    seed: u32,
+    sort_by_intensity: bool,
+    top_fraction: f64,
+    priority_peptides: &HashSet<String>,
+) -> Result<LightTargetedExperiment> {
+    if bins < 1 {
+        return Err(Error::InvalidValue("bins must be >= 1".into()));
+    }
+    if peptides_per_bin < 1 {
+        return Err(Error::InvalidValue("peptides_per_bin must be >= 1".into()));
+    }
+    if sort_by_intensity && !(top_fraction > 0.0 && top_fraction <= 1.0) {
+        return Err(Error::InvalidValue(
+            "top_fraction must be in (0,1] when sort_by_intensity is true".into(),
+        ));
+    }
+
+    // 0) candidate selection: exclude decoys
+    let good_ids: HashSet<&str> = exp
+        .transitions
+        .iter()
+        .filter(|tr| !tr.flags.decoy())
+        .map(|tr| tr.peptide_ref.as_str())
+        .collect();
+    let mut candidates: Vec<LightCompound> = Vec::new();
+    let mut priority_candidates: Vec<LightCompound> = Vec::new();
+    for compound in &exp.compounds {
+        if good_ids.contains(compound.id.as_str()) {
+            if priority_peptides.contains(&compound.sequence) {
+                priority_candidates.push(compound.clone());
+            } else {
+                candidates.push(compound.clone());
+            }
+        }
+    }
+
+    // 1) optionally sort by library intensity and trim to the top fraction
+    if sort_by_intensity && top_fraction > 0.0 && top_fraction <= 1.0 {
+        let mut intensity_sum: HashMap<&str, f64> = HashMap::new();
+        for tr in &exp.transitions {
+            if !tr.flags.decoy() {
+                *intensity_sum.entry(tr.peptide_ref.as_str()).or_insert(0.0) +=
+                    tr.library_intensity;
+            }
+        }
+        let sum_of = |id: &str| intensity_sum.get(id).copied().unwrap_or(0.0);
+        source_sort_by(&mut candidates, |a, b| sum_of(&a.id) > sum_of(&b.id))?;
+        // `static_cast<Size>(candidates.size() * top_fraction)`
+        let max_keep = std::cmp::max(1, (candidates.len() as f64 * top_fraction) as usize);
+        candidates.truncate(std::cmp::min(max_keep, candidates.len()));
+        source_sort_by(&mut priority_candidates, |a, b| {
+            sum_of(&a.id) > sum_of(&b.id)
+        })?;
+    }
+
+    let total = priority_candidates.len() + candidates.len();
+    if total < 3 {
+        return Err(Error::InvalidValue(format!(
+            "Insufficient candidates for sampling: {total} found, minimum 3 required for meaningful iRT calibration."
+        )));
+    }
+    if bins.saturating_mul(total) > MAX_SAMPLING_WORK {
+        return Err(Error::InvalidValue(format!(
+            "sampling {bins} bins over {total} candidates exceeds the work limit of {MAX_SAMPLING_WORK}"
+        )));
+    }
+
+    // 2) retention-time range over all candidates
+    let mut rt_min = f64::MAX;
+    let mut rt_max = f64::MIN;
+    for compound in priority_candidates.iter().chain(candidates.iter()) {
+        rt_min = rt_min.min(compound.rt);
+        rt_max = rt_max.max(compound.rt);
+    }
+    let bin_width = (rt_max - rt_min) / bins as f64;
+    let edges = |b: usize| {
+        let lo = rt_min + b as f64 * bin_width;
+        let hi = if b + 1 == bins {
+            rt_max
+        } else {
+            lo + bin_width
+        };
+        (lo, hi)
+    };
+
+    // 3) priority peptides first, then the regular quota
+    let mut picked: Vec<LightCompound> = Vec::new();
+    let mut picked_sequences: HashSet<String> = HashSet::new();
+    let mut shuffler = RandomShuffler::default();
+    shuffler.seed(if seed == 0 {
+        u64::from(random_seed())
+    } else {
+        u64::from(seed)
+    });
+
+    if !priority_candidates.is_empty() {
+        for b in 0..bins {
+            let (lo, hi) = edges(b);
+            let mut bucket: Vec<LightCompound> = priority_candidates
+                .iter()
+                .filter(|c| c.rt >= lo && c.rt < hi && !picked_sequences.contains(&c.sequence))
+                .cloned()
+                .collect();
+            if !bucket.is_empty() {
+                shuffler.portable_random_shuffle(&mut bucket);
+                let take = peptides_per_bin.min(bucket.len());
+                for compound in bucket.into_iter().take(take) {
+                    picked_sequences.insert(compound.sequence.clone());
+                    picked.push(compound);
+                }
+            }
+        }
+    }
+
+    let total_quota = bins.saturating_mul(peptides_per_bin);
+    if picked.len() < total_quota && !candidates.is_empty() {
+        for b in 0..bins {
+            let (lo, hi) = edges(b);
+            let priority_in_bin = picked.iter().filter(|p| p.rt >= lo && p.rt < hi).count();
+            let needed = peptides_per_bin.saturating_sub(priority_in_bin);
+            if needed > 0 {
+                let mut bucket: Vec<LightCompound> = candidates
+                    .iter()
+                    .filter(|c| c.rt >= lo && c.rt < hi && !picked_sequences.contains(&c.sequence))
+                    .cloned()
+                    .collect();
+                if !bucket.is_empty() {
+                    shuffler.portable_random_shuffle(&mut bucket);
+                    let take = needed.min(bucket.len());
+                    for compound in bucket.into_iter().take(take) {
+                        picked_sequences.insert(compound.sequence.clone());
+                        picked.push(compound);
+                    }
+                }
+            }
+        }
+    }
+
+    // 4) assemble the output experiment
+    let mut out = LightTargetedExperiment::default();
+    let pep_ids: HashSet<&str> = picked.iter().map(|c| c.id.as_str()).collect();
+    for tr in &exp.transitions {
+        if pep_ids.contains(tr.peptide_ref.as_str()) && !tr.flags.decoy() {
+            out.transitions.push(tr.clone());
+        }
+    }
+    let prot_ids: HashSet<&str> = picked
+        .iter()
+        .flat_map(|c| c.protein_refs.iter().map(String::as_str))
+        .collect();
+    for protein in &exp.proteins {
+        if prot_ids.contains(protein.id.as_str()) {
+            out.proteins.push(protein.clone());
+        }
+    }
+    out.compounds = picked;
+    Ok(out)
+}
+
+/// A random 32-bit seed, the port's `std::random_device{}()`: the low word of
+/// the standard library's randomly keyed hasher.
+fn random_seed() -> u32 {
+    use std::hash::{BuildHasher, Hasher};
+    let mut hasher = std::collections::hash_map::RandomState::new().build_hasher();
+    hasher.write_u8(0);
+    hasher.finish() as u32
 }
 
 /// The retention time of the best-scoring feature of each transition group,

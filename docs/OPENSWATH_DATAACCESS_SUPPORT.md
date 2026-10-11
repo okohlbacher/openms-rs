@@ -124,12 +124,12 @@ Every other OpenSWATH port builds on these types, so the design decisions are st
 |---|---|
 | `computePrecursorId`, `computeTransitionGroupId` | `compute_precursor_id`, `compute_transition_group_id` |
 | `selectSwathTransitions` (Light) | `select_swath_transitions` |
-| `selectSwathTransitions` (`OpenMS::TargetedExperiment`) | **not ported** (TargetedExperiment) |
+| `selectSwathTransitions` (`OpenMS::TargetedExperiment`) | `select_swath_transitions_targeted` (group O integration; replaces the peptides and proteins, appends the transitions in the window) |
 | `selectSwathTransitionsPasef` | `select_swath_transitions_pasef -> Vec<Option<usize>>` |
 | `checkSwathMap` | `check_swath_map -> Result<(lower, upper, center)>` |
-| `checkSwathMapAndSelectTransitions<T>` | `check_swath_map_and_select_transitions` (Light instantiation) |
+| `checkSwathMapAndSelectTransitions<T>` | `check_swath_map_and_select_transitions<T: SwathSelectable>` (both instantiations: `LightTargetedExperiment` and `TargetedExperiment`) |
 | `estimateRTRange` | `estimate_rt_range -> Result<(f64, f64)>` |
-| `sampleExperiment` | **not ported**: needs a crate-visible `Math::RandomShuffler` (the source-exact engine is private to `chemistry/decoy_random.rs`) and `std::random_device` seeding |
+| `sampleExperiment` | `sample_experiment` (group O integration): `Math::RandomShuffler` is `math::random_shuffler::RandomShuffler`, the unstable `std::sort` is `math::source_sort::source_sort_by`, `std::random_device` for seed 0 is the standard library's randomly keyed hasher; evidence tier 1, `oracle_sample_experiment` (`../oracle/integ-O-helper`, ibminode06 Release, seven seeded runs, 548 records) |
 | `simpleFindBestFeature` | `simple_find_best_feature<C>` over `BTreeMap<String, MRMTransitionGroup<C, LightTransition>>` |
 | `SpectrumAddition::addUpSpectra` (3 overloads), `concatenateSpectra`, `sortSpectrumByMZ` | `add_up_spectra`, `add_up_spectra_in_mobility_range(&RangeBase)`, `add_up_ms_spectra`; `concatenate_spectra`; `sort_spectrum_by_mz` (all `Result`) |
 
@@ -198,13 +198,13 @@ Every other OpenSWATH port builds on these types, so the design decisions are st
 | `OpenSwathHelper_test.cpp` (all testable sections), `SpectrumAddition_test.cpp` (all sections, incl. the 25/9/16/28-point grids) | tier 3 |
 | RT-window rules, `getMultipleSpectra` order, `filterByDrift`, cache non-corruption, factory, DataAccessHelper conversions, MRM lanes, PASEF choice, best feature, IM-range addition, concatenation, transitions/compounds/mocks | tier 4 |
 
-Measured on dax: `--all-features` `openswath_data_access` 26 passed, `openswath_sqmass` 4 passed.
+Measured on dax: `--all-features` `openswath_data_access` 30 passed (26 + the two `TargetedExperiment` overload
+tests, `oracle_sample_experiment` and the sampling preconditions), `openswath_sqmass` 4 passed.
 
 ## Gaps (named dependencies)
 
 - `SpectrumAccessOpenMSCached.h` → needs the cached-mzML reader (`CachedMzML`, `CachedMzMLHandler`).
-- `DataAccessHelper.h`: `convertTargetedExp`, `convertTargetedCompound` (×2), `convertPeptideToAASequence`
-  → need `ANALYSIS/TARGETED/TargetedExperiment` and `TargetedExperimentHelper`.
-- `OpenSwathHelper.h`: the `TargetedExperiment` overload of `selectSwathTransitions` (and its
-  `checkSwathMapAndSelectTransitions` instantiation) → TargetedExperiment; `sampleExperiment` → a shared
-  `Math::RandomShuffler`.
+- None further: `DataAccessHelper.h` (`convertTargetedExp`, `convertTargetedCompound` x2,
+  `convertPeptideToAASequence`) was completed by lanes O2 and O3b once `TargetedExperiment` existed, and
+  the `OpenSwathHelper.h` gaps (the `TargetedExperiment` overload, `sampleExperiment`) by group O
+  integration with `RandomShuffler`.

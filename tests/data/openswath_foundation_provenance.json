@@ -1,268 +1,324 @@
 {
- "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
- "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
- "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
- "license": "BSD-3-Clause",
- "group": "openswath_foundation",
- "work_package": "OA (Phase C wave 4): OPENSWATHALGO and OpenSWATH data access",
- "method": "Port of the OPENSWATHALGO headers (DataStructures, ISpectrumAccess, ITransition, Transitions, TransitionExperiment, TransitionHelper, SwathMap, SpectrumHelpers, MockObjects, DataFrameWriter, Scoring, StatsHelpers) and of ANALYSIS/OPENSWATH/DATAACCESS (SpectrumAccessOpenMS, SpectrumAccessOpenMSInMemory, SpectrumAccessTransforming, SpectrumAccessQuadMZTransforming, SpectrumAccessSqMass, SimpleOpenMSSpectraAccessFactory, DataAccessHelper, MRMFeatureAccessOpenMS) plus OpenSwathHelper and SpectrumAddition. Every class-test section at the pin is transcribed with its literals; TEST_REAL_SIMILAR is replayed with relative/absolute tolerance 1e-5. Five files differ between the local core checkout HEAD and the pin (DataStructures.h, ISpectrumAccess.h, SpectrumAccessSqMass.h/.cpp and SpectrumAccessSqMass_test.cpp); they were read and hashed from the pin blobs. All other sources are identical at HEAD and at the pin.",
- "evidence_tier": "tier 3 (transcribed class-test literals: Datastructures_test, SwathMap_test, Scoring_test, StatsHelpers_test, SpectrumAccessOpenMS_test, SpectrumAccessOpenMSInMemory_test, SpectrumAccessQuadMZTransforming_test, SpectrumAccessSqMass_test over the retained SqliteMassFile_1.sqMass, MRMFeatureAccessOpenMS_test, OpenSwathHelper_test, SpectrumAddition_test); tier 4 (independently derived invariants and native guards for everything the class tests do not cover). No tier-1 oracle was run for this group.",
- "sources": [
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
-   "sha256": "3df291c5ab72f54708f29ba6e73b0baf373bc8c757e79c90a7d36507c56f4537"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
-   "sha256": "7090946da2015c1de8fe51b248d2c2504c5240cb6c2d0933cf878896037a489a"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
-   "sha256": "3225c53342bfa8af76e182281e3fa6adea692bb7b69dc88c19872788576972b0"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
-   "sha256": "f405b489bdaa5c3920df36537d11d1f6b8e18a6ce99bc20e2c36dd961fd31ee7"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h",
-   "sha256": "75e7e01f2ae46871277d53ec9a2bd22c988f803cc590934a4a6bad509c814f9b"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h",
-   "sha256": "dc6c3905aea3491da9ed84b29808d7ef90be1558b5b898afaa7032b10f8f2436"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h",
-   "sha256": "1febb49c6a4c3f696f07dbab8fbd91afd4b099007340bbd75d45a31197261634"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h",
-   "sha256": "36dd136a48ce4b2a54e44ff35ef670f62f169ef4031cc089bf19d52bae684440"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h",
-   "sha256": "e505022fdd4cf33434b24a556ab5651e4d908aebcf90ccfdd07072c996ce958f"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
-   "sha256": "e8db63a7eb529630591004d277d43105f33980ae5042168464fe2e0441c5315d"
-  },
-  {
-   "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h",
-   "sha256": "826e5527d7f47c5a8ca9b7e2178d30d5165913e37383e405234642bc69f05c46"
-  },
-  {
-   "path": "src/openms/include/OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
-   "sha256": "e56ee678f5b984b0f4ed81a7e24521e7e5c3607a5a92e07472539f4a7743e536"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp",
-   "sha256": "c06c5c9c429648595a5eb3ae5bac8d9d230de1d39bd3a44a09279fbcb6046079"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.cpp",
-   "sha256": "37e8636ade4aef8494e495ac76d290265b32d4527c8e1c4ef2db650fd3711a39"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.cpp",
-   "sha256": "218769e1cd21fe360d2d4318e8e648b7a9275be97a2ece6fdfcdbd9a9f7e1c14"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.cpp",
-   "sha256": "aa00fd8f0991219ea4de8b7df1e31f23872dc768c5d103413b5e47a265171a35"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.cpp",
-   "sha256": "8c6d7f2a0e7fea29dae6b9eeb525caf436e0f9403ed377230dcf3b76ec1b081d"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.cpp",
-   "sha256": "0273326dfa1c9bb038b730b2a84d10ea98a806693e138d1c7fa3078306c271c8"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.cpp",
-   "sha256": "64358aeca6b863b02506bbe09836ef727aeace44d297182af4354516b6691069"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
-   "sha256": "92ef1299c98208d08eb8454ca5bdecad304deaf81f63345d74d9112fcf2b1c4c"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.cpp",
-   "sha256": "fb0caafc53df56832cbc71669452943a0c3b749d972fdcbfc924ea382114308a"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathHelper.cpp",
-   "sha256": "0f2d26e03367f7f16108454b908a4a6afb7d1c8f70e7dc0c5202761ad430b922"
-  },
-  {
-   "path": "src/openms/source/ANALYSIS/OPENSWATH/SpectrumAddition.cpp",
-   "sha256": "0faf27b59a191db03b637ae743e64582176bdaf4d69a2d8845ae54f4bc2ec727"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/ALGO/Scoring.h",
-   "sha256": "36e4648e075b700424873c970ec6b20af54fa137752c25680c5160a288e1bcd8"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h",
-   "sha256": "223e099d236171c41647533f76319cfe2bf48d2302764fdc6ae2f6382ae49032"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h",
-   "sha256": "ccb6a1b0c6815b7acdb5ae6096b205ee4a1b81a8025077ebd276db19b0c1210e"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h",
-   "sha256": "b3f7174a877cbe978338af1ba509c22c0de4759f74adca4bcde806b8222c0073"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
-   "sha256": "ef458af6d8d8eb0bfb779d56c918016800e78cffb87a8087d43b57bafeb89e50"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h",
-   "sha256": "9bd74f24dde0b12045d9faa9a76c4a1b44a6243ffed77e03ac8dbf6d66dc6b22"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h",
-   "sha256": "14464e7b3820a2caa43b45804e81fb2cceca01fdbb1811599cb239f199646867"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h",
-   "sha256": "cfce62a736f4519a2607322692d54fd31155fb97c2cd7eb1ed4b75194a048fe6"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
-   "sha256": "a2e370ab9f8b152a8047d18c813ab9a8c9225e1956e84e95e7de0256b49f637b"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h",
-   "sha256": "0218f8840edd3e1323a4c6ca2fbb8565b9c118902d9a9ef471fb04538716cdf2"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/TransitionHelper.h",
-   "sha256": "4cf2bfe0a690e271d58a420586459dde3703ee0e261a655f8f9a8835b93ddef5"
-  },
-  {
-   "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/Transitions.h",
-   "sha256": "37971a284e444bdc97609476172e90f83e1ebf4da0ec4b4705b33115c5137422"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/ALGO/Scoring.cpp",
-   "sha256": "9b3d7575dcdaa50b56726e47f76047fdc5c066903f2c49978c570522d5bd7004"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/ALGO/StatsHelpers.cpp",
-   "sha256": "cb636831782561844a6fff40377f9fd20832460809fd748fdbd988fc04460d09"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/DataFrameWriter.cpp",
-   "sha256": "335d5c0841242ee50ebdfabbb7c9c5f0fbc10d5627292131221cc2d819737e21"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.cpp",
-   "sha256": "546f50e8fe74525885a88779c9e498590e275246d130665b2e87c9bebad1d9cd"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/MockObjects.cpp",
-   "sha256": "d1e09e9aa5f121e5e017fab0a185c59d3faaefe21c0f38d1c8d0c252c45b6603"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.cpp",
-   "sha256": "9a6125e4f4622ac7b41e283a2401a341d594fbc42bc5e0ceda0b179b6efd837e"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/SwathMap.cpp",
-   "sha256": "c9d0f01d920a450a58ffd99e563ac8953c49060a2b78af888995959f423b7ff2"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/TransitionHelper.cpp",
-   "sha256": "3ba0b950b9905d2b4a37eae21b59794e6287d625c146fe836f44bb85570d9939"
-  },
-  {
-   "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/Transitions.cpp",
-   "sha256": "a61d42e7ad0fccb60924593d9070eebfce93e564285fe86722618c71cd9c7712"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/MRMFeatureAccessOpenMS_test.cpp",
-   "sha256": "425b61c6948e7852d443dc0b8101638f0eeeccb090626015e37ce4d06198d1ac"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/OpenSwathHelper_test.cpp",
-   "sha256": "f55b411a37cc4e05e0323482ffa40197f66ea2c99f8ed4fdfa18d2487378fce0"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/SpectrumAccessOpenMSInMemory_test.cpp",
-   "sha256": "46620d48f0b002628c69b349a6a9c28b141d91ef344c316ae6b4f9f0f3a5e792"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/SpectrumAccessOpenMS_test.cpp",
-   "sha256": "ee24f61905cfa262f6653fc7f8f496aa8a98cd18fa2e8840e236f13644d44190"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/SpectrumAccessQuadMZTransforming_test.cpp",
-   "sha256": "54fb3818ae015f6f58c551a7768a2ebb1af7223ef8ba8c2afb53dc2ebc7fab5c"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/SpectrumAccessSqMass_test.cpp",
-   "sha256": "3c79e765b446f769202ddea7a5cabf09fce67a36e38fcb99390e4c9940072abe"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/SpectrumAddition_test.cpp",
-   "sha256": "3945f1ecf18b7cb6dcae8be1bbbac3040d830829bb3cad164d7f085f105ae2c9"
-  },
-  {
-   "path": "src/tests/class_tests/openms/source/StatsHelpers_test.cpp",
-   "sha256": "71deb9ae497aa95a46236c6080367be2ce453c064370e509e80bc96c840c3e00"
-  },
-  {
-   "path": "src/tests/class_tests/openswathalgo/Datastructures_test.cpp",
-   "sha256": "0bc40e5f7cc9858cb16d837e782278ed3e1260735516ec8ff91323d15d90825e"
-  },
-  {
-   "path": "src/tests/class_tests/openswathalgo/Scoring_test.cpp",
-   "sha256": "bb7a36bfb3a629f5a3cb0dbf3af81581bea91228b58fcc5c9a2de50e52ade193"
-  },
-  {
-   "path": "src/tests/class_tests/openswathalgo/SwathMap_test.cpp",
-   "sha256": "de360df4f414459fdb674d3478ccf65b8aec5a9a59534cd4ccb42e72130dc82a"
-  }
- ],
- "reused_fixtures": [
-  {
-   "path": "tests/data/sqlite_s1_source_review/SqliteMassFile_1.sqMass",
-   "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
-   "registered_by": "tests/data/mzml_sqlite_handler_provenance.json"
-  }
- ],
- "native_implementation": [
-  "src/analysis/openswath/data_structures.rs",
-  "src/analysis/openswath/spectrum_access.rs",
-  "src/analysis/openswath/spectrum_access_openms.rs",
-  "src/analysis/openswath/spectrum_access_sqmass.rs",
-  "src/analysis/openswath/transition_experiment.rs",
-  "src/analysis/openswath/transitions.rs",
-  "src/analysis/openswath/transition_helper.rs",
-  "src/analysis/openswath/itransition.rs",
-  "src/analysis/openswath/swath_map.rs",
-  "src/analysis/openswath/mock_objects.rs",
-  "src/analysis/openswath/stats_helpers.rs",
-  "src/analysis/openswath/scoring.rs",
-  "src/analysis/openswath/data_frame_writer.rs",
-  "src/analysis/openswath/data_access_helper.rs",
-  "src/analysis/openswath/mrm_feature_access.rs",
-  "src/analysis/openswath/openswath_helper.rs",
-  "src/analysis/openswath/spectrum_addition.rs"
- ],
- "native_tests": [
-  "tests/openswath_algo.rs",
-  "tests/openswath_data_access.rs",
-  "tests/openswath_sqmass.rs"
- ],
- "support_document": [
-  "docs/OPENSWATH_ALGO_SUPPORT.md",
-  "docs/OPENSWATH_DATAACCESS_SUPPORT.md"
- ],
- "fixtures": []
+  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+  "license": "BSD-3-Clause",
+  "group": "openswath_foundation",
+  "work_package": "OA (Phase C wave 4): OPENSWATHALGO and OpenSWATH data access",
+  "method": "Port of the OPENSWATHALGO headers (DataStructures, ISpectrumAccess, ITransition, Transitions, TransitionExperiment, TransitionHelper, SwathMap, SpectrumHelpers, MockObjects, DataFrameWriter, Scoring, StatsHelpers) and of ANALYSIS/OPENSWATH/DATAACCESS (SpectrumAccessOpenMS, SpectrumAccessOpenMSInMemory, SpectrumAccessTransforming, SpectrumAccessQuadMZTransforming, SpectrumAccessSqMass, SimpleOpenMSSpectraAccessFactory, DataAccessHelper, MRMFeatureAccessOpenMS) plus OpenSwathHelper and SpectrumAddition. Every class-test section at the pin is transcribed with its literals; TEST_REAL_SIMILAR is replayed with relative/absolute tolerance 1e-5. Five files differ between the local core checkout HEAD and the pin (DataStructures.h, ISpectrumAccess.h, SpectrumAccessSqMass.h/.cpp and SpectrumAccessSqMass_test.cpp); they were read and hashed from the pin blobs. All other sources are identical at HEAD and at the pin.",
+  "evidence_tier": "tier 3 (transcribed class-test literals: Datastructures_test, SwathMap_test, Scoring_test, StatsHelpers_test, SpectrumAccessOpenMS_test, SpectrumAccessOpenMSInMemory_test, SpectrumAccessQuadMZTransforming_test, SpectrumAccessSqMass_test over the retained SqliteMassFile_1.sqMass, MRMFeatureAccessOpenMS_test, OpenSwathHelper_test, SpectrumAddition_test); tier 4 (independently derived invariants and native guards for everything the class tests do not cover). The only tier-1 run of this group is the OpenSwathHelper::sampleExperiment one noted below. Group O integration added one tier-1 run for OpenSwathHelper::sampleExperiment (../oracle/integ-O-helper: seven seeded runs over a 60-compound library, 548 records, ibminode06, Release install openms4-release-bc9cc12-c19e494-174b576, g++ 14.4.0, run twice byte-identical), replayed record for record by oracle_sample_experiment in tests/openswath_data_access.rs; the TargetedExperiment overload of selectSwathTransitions is tier 3 (OpenSwathHelper_test.cpp lines 58-82).",
+  "sources": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h",
+      "sha256": "3df291c5ab72f54708f29ba6e73b0baf373bc8c757e79c90a7d36507c56f4537"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h",
+      "sha256": "7090946da2015c1de8fe51b248d2c2504c5240cb6c2d0933cf878896037a489a"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
+      "sha256": "3225c53342bfa8af76e182281e3fa6adea692bb7b69dc88c19872788576972b0"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
+      "sha256": "f405b489bdaa5c3920df36537d11d1f6b8e18a6ce99bc20e2c36dd961fd31ee7"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h",
+      "sha256": "75e7e01f2ae46871277d53ec9a2bd22c988f803cc590934a4a6bad509c814f9b"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h",
+      "sha256": "dc6c3905aea3491da9ed84b29808d7ef90be1558b5b898afaa7032b10f8f2436"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h",
+      "sha256": "1febb49c6a4c3f696f07dbab8fbd91afd4b099007340bbd75d45a31197261634"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h",
+      "sha256": "36dd136a48ce4b2a54e44ff35ef670f62f169ef4031cc089bf19d52bae684440"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h",
+      "sha256": "e505022fdd4cf33434b24a556ab5651e4d908aebcf90ccfdd07072c996ce958f"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h",
+      "sha256": "e8db63a7eb529630591004d277d43105f33980ae5042168464fe2e0441c5315d"
+    },
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h",
+      "sha256": "826e5527d7f47c5a8ca9b7e2178d30d5165913e37383e405234642bc69f05c46"
+    },
+    {
+      "path": "src/openms/include/OpenMS/PROCESSING/RESAMPLING/LinearResamplerAlign.h",
+      "sha256": "e56ee678f5b984b0f4ed81a7e24521e7e5c3607a5a92e07472539f4a7743e536"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp",
+      "sha256": "c06c5c9c429648595a5eb3ae5bac8d9d230de1d39bd3a44a09279fbcb6046079"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.cpp",
+      "sha256": "37e8636ade4aef8494e495ac76d290265b32d4527c8e1c4ef2db650fd3711a39"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.cpp",
+      "sha256": "218769e1cd21fe360d2d4318e8e648b7a9275be97a2ece6fdfcdbd9a9f7e1c14"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.cpp",
+      "sha256": "aa00fd8f0991219ea4de8b7df1e31f23872dc768c5d103413b5e47a265171a35"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.cpp",
+      "sha256": "8c6d7f2a0e7fea29dae6b9eeb525caf436e0f9403ed377230dcf3b76ec1b081d"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.cpp",
+      "sha256": "0273326dfa1c9bb038b730b2a84d10ea98a806693e138d1c7fa3078306c271c8"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.cpp",
+      "sha256": "64358aeca6b863b02506bbe09836ef727aeace44d297182af4354516b6691069"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.cpp",
+      "sha256": "92ef1299c98208d08eb8454ca5bdecad304deaf81f63345d74d9112fcf2b1c4c"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.cpp",
+      "sha256": "fb0caafc53df56832cbc71669452943a0c3b749d972fdcbfc924ea382114308a"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/OpenSwathHelper.cpp",
+      "sha256": "0f2d26e03367f7f16108454b908a4a6afb7d1c8f70e7dc0c5202761ad430b922"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/SpectrumAddition.cpp",
+      "sha256": "0faf27b59a191db03b637ae743e64582176bdaf4d69a2d8845ae54f4bc2ec727"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/ALGO/Scoring.h",
+      "sha256": "36e4648e075b700424873c970ec6b20af54fa137752c25680c5160a288e1bcd8"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h",
+      "sha256": "223e099d236171c41647533f76319cfe2bf48d2302764fdc6ae2f6382ae49032"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h",
+      "sha256": "ccb6a1b0c6815b7acdb5ae6096b205ee4a1b81a8025077ebd276db19b0c1210e"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h",
+      "sha256": "b3f7174a877cbe978338af1ba509c22c0de4759f74adca4bcde806b8222c0073"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h",
+      "sha256": "ef458af6d8d8eb0bfb779d56c918016800e78cffb87a8087d43b57bafeb89e50"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h",
+      "sha256": "9bd74f24dde0b12045d9faa9a76c4a1b44a6243ffed77e03ac8dbf6d66dc6b22"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h",
+      "sha256": "14464e7b3820a2caa43b45804e81fb2cceca01fdbb1811599cb239f199646867"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h",
+      "sha256": "cfce62a736f4519a2607322692d54fd31155fb97c2cd7eb1ed4b75194a048fe6"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h",
+      "sha256": "a2e370ab9f8b152a8047d18c813ab9a8c9225e1956e84e95e7de0256b49f637b"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h",
+      "sha256": "0218f8840edd3e1323a4c6ca2fbb8565b9c118902d9a9ef471fb04538716cdf2"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/TransitionHelper.h",
+      "sha256": "4cf2bfe0a690e271d58a420586459dde3703ee0e261a655f8f9a8835b93ddef5"
+    },
+    {
+      "path": "src/openswathalgo/include/OpenMS/OPENSWATHALGO/DATAACCESS/Transitions.h",
+      "sha256": "37971a284e444bdc97609476172e90f83e1ebf4da0ec4b4705b33115c5137422"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/ALGO/Scoring.cpp",
+      "sha256": "9b3d7575dcdaa50b56726e47f76047fdc5c066903f2c49978c570522d5bd7004"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/ALGO/StatsHelpers.cpp",
+      "sha256": "cb636831782561844a6fff40377f9fd20832460809fd748fdbd988fc04460d09"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/DataFrameWriter.cpp",
+      "sha256": "335d5c0841242ee50ebdfabbb7c9c5f0fbc10d5627292131221cc2d819737e21"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.cpp",
+      "sha256": "546f50e8fe74525885a88779c9e498590e275246d130665b2e87c9bebad1d9cd"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/MockObjects.cpp",
+      "sha256": "d1e09e9aa5f121e5e017fab0a185c59d3faaefe21c0f38d1c8d0c252c45b6603"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.cpp",
+      "sha256": "9a6125e4f4622ac7b41e283a2401a341d594fbc42bc5e0ceda0b179b6efd837e"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/SwathMap.cpp",
+      "sha256": "c9d0f01d920a450a58ffd99e563ac8953c49060a2b78af888995959f423b7ff2"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/TransitionHelper.cpp",
+      "sha256": "3ba0b950b9905d2b4a37eae21b59794e6287d625c146fe836f44bb85570d9939"
+    },
+    {
+      "path": "src/openswathalgo/source/OPENSWATHALGO/DATAACCESS/Transitions.cpp",
+      "sha256": "a61d42e7ad0fccb60924593d9070eebfce93e564285fe86722618c71cd9c7712"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/MRMFeatureAccessOpenMS_test.cpp",
+      "sha256": "425b61c6948e7852d443dc0b8101638f0eeeccb090626015e37ce4d06198d1ac"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/OpenSwathHelper_test.cpp",
+      "sha256": "f55b411a37cc4e05e0323482ffa40197f66ea2c99f8ed4fdfa18d2487378fce0"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAccessOpenMSInMemory_test.cpp",
+      "sha256": "46620d48f0b002628c69b349a6a9c28b141d91ef344c316ae6b4f9f0f3a5e792"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAccessOpenMS_test.cpp",
+      "sha256": "ee24f61905cfa262f6653fc7f8f496aa8a98cd18fa2e8840e236f13644d44190"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAccessQuadMZTransforming_test.cpp",
+      "sha256": "54fb3818ae015f6f58c551a7768a2ebb1af7223ef8ba8c2afb53dc2ebc7fab5c"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAccessSqMass_test.cpp",
+      "sha256": "3c79e765b446f769202ddea7a5cabf09fce67a36e38fcb99390e4c9940072abe"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/SpectrumAddition_test.cpp",
+      "sha256": "3945f1ecf18b7cb6dcae8be1bbbac3040d830829bb3cad164d7f085f105ae2c9"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/StatsHelpers_test.cpp",
+      "sha256": "71deb9ae497aa95a46236c6080367be2ce453c064370e509e80bc96c840c3e00"
+    },
+    {
+      "path": "src/tests/class_tests/openswathalgo/Datastructures_test.cpp",
+      "sha256": "0bc40e5f7cc9858cb16d837e782278ed3e1260735516ec8ff91323d15d90825e"
+    },
+    {
+      "path": "src/tests/class_tests/openswathalgo/Scoring_test.cpp",
+      "sha256": "bb7a36bfb3a629f5a3cb0dbf3af81581bea91228b58fcc5c9a2de50e52ade193"
+    },
+    {
+      "path": "src/tests/class_tests/openswathalgo/SwathMap_test.cpp",
+      "sha256": "de360df4f414459fdb674d3478ccf65b8aec5a9a59534cd4ccb42e72130dc82a"
+    }
+  ],
+  "reused_fixtures": [
+    {
+      "path": "tests/data/sqlite_s1_source_review/SqliteMassFile_1.sqMass",
+      "sha256": "de5bc7b1f695b3da53ade6e6113a58f6dc9e3609b1efc78ebffc0bb10a0da55f",
+      "registered_by": "tests/data/mzml_sqlite_handler_provenance.json"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/data_structures.rs",
+    "src/analysis/openswath/spectrum_access.rs",
+    "src/analysis/openswath/spectrum_access_openms.rs",
+    "src/analysis/openswath/spectrum_access_sqmass.rs",
+    "src/analysis/openswath/transition_experiment.rs",
+    "src/analysis/openswath/transitions.rs",
+    "src/analysis/openswath/transition_helper.rs",
+    "src/analysis/openswath/itransition.rs",
+    "src/analysis/openswath/swath_map.rs",
+    "src/analysis/openswath/mock_objects.rs",
+    "src/analysis/openswath/stats_helpers.rs",
+    "src/analysis/openswath/scoring.rs",
+    "src/analysis/openswath/data_frame_writer.rs",
+    "src/analysis/openswath/data_access_helper.rs",
+    "src/analysis/openswath/mrm_feature_access.rs",
+    "src/analysis/openswath/openswath_helper.rs",
+    "src/analysis/openswath/spectrum_addition.rs"
+  ],
+  "native_tests": [
+    "tests/openswath_algo.rs",
+    "tests/openswath_data_access.rs",
+    "tests/openswath_sqmass.rs"
+  ],
+  "support_document": [
+    "docs/OPENSWATH_ALGO_SUPPORT.md",
+    "docs/OPENSWATH_DATAACCESS_SUPPORT.md"
+  ],
+  "fixtures": [
+    {
+      "path": "tests/data/openswath_helper/sample_inputs.tsv",
+      "sha256": "c60a45b1c9293e567df6f0b11bd94a5217ee8c157f922e6f64fd02b3ab92d1a4",
+      "origin": "../oracle/integ-O-helper/inputs.tsv"
+    },
+    {
+      "path": "tests/data/openswath_helper/sample_oracle.stdout",
+      "sha256": "d4b2fcf8c4196c4d25a739ed785e3a78e4edb0db3c373a26991441fc108e1a65",
+      "origin": "../oracle/integ-O-helper/results/stdout.txt"
+    }
+  ],
+  "external_reference_artifacts": [
+    {
+      "path": "../oracle/integ-O-helper/driver.cpp",
+      "sha256": "f175d91f87a7c640856264086c62a8e91336769312b29eb926803887f966512f",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-helper/remote_run.sh",
+      "sha256": "531ae1f3e53683b58948367d717f86ae3ca05dc60e2ba41213698d83f6e0c44a",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-helper/run.sh",
+      "sha256": "ae3e9e5d43b59603335a6d8c63648e7505eb3782f267c013ac110771f6928736",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-helper/inputs.tsv",
+      "sha256": "c60a45b1c9293e567df6f0b11bd94a5217ee8c157f922e6f64fd02b3ab92d1a4",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-helper/results/hashes.txt",
+      "sha256": "a5c4b65489c6d5b7603f064493eb4504557d47b3bda693b5a26dfbee664bcb7a",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-helper/results/output_hashes.txt",
+      "sha256": "d017b9b5fe49a234383267d56c562e5739668b1133d8972116af99beca0a1be0",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-helper/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "The C++ oracle driver and its run scripts live outside this repository (no C++ is committed); its retained stdout is the fixture under tests/data/openswath_helper/."
 }

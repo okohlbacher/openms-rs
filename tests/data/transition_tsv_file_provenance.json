@@ -1,0 +1,215 @@
+{
+  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "license": "BSD-3-Clause",
+  "target_verification": {
+    "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+    "source_revisions": [
+      "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+    ],
+    "source_changes": []
+  },
+  "source_files": [
+    {
+      "path": "src/openms/include/OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h",
+      "sha256": "4cb12c809b306aca5ec9f27216740d5a52dcdcbe20483361ffe72601cbf8de8e"
+    },
+    {
+      "path": "src/openms/source/ANALYSIS/OPENSWATH/TransitionTSVFile.cpp",
+      "sha256": "e49ff74fcba3da1e8a2570cfab32625eb769d6d135a6e0752e40818c527f4a35"
+    },
+    {
+      "path": "src/tests/class_tests/openms/source/TransitionTSVFile_test.cpp",
+      "sha256": "2723e4bde4109a0158a1d3d30a67899cbc2faf31fad8e997da7b29c283c43589"
+    }
+  ],
+  "native_implementation": [
+    "src/analysis/openswath/transition_tsv_file.rs"
+  ],
+  "native_tests": [
+    "tests/transition_tsv_file.rs"
+  ],
+  "support": "docs/TRANSITION_TSV_SUPPORT.md",
+  "fixtures": [
+    {
+      "path": "tests/data/traml/MRMAssay_detectingTransistionCompound_input.TraML",
+      "sha256": "5513a89582f02e9249adf69b2eec8598d2727a9939fd8d228fcde5a330f0d7b1",
+      "origin": "src/tests/class_tests/openms/data/MRMAssay_detectingTransistionCompound_input.TraML at core bc9cc12"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_1_input.tsv",
+      "sha256": "3d59ade576d8d4f610ec8bda708e3442c2b278124cce95e2c2310fb984a1844a",
+      "origin": "topp/ConvertTSVToTraML_1_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_2_input.tsv",
+      "sha256": "35efb6a376566e6c47c4f7c609cfc817ed919c90a19f47ed1a41ca80f55dbed0",
+      "origin": "topp/ConvertTSVToTraML_2_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_4_input.mrm",
+      "sha256": "74b612be5d2901f92a96d8af5b143ad22ecbcab2f8a553bd2c2e49f6c23d721d",
+      "origin": "topp/ConvertTSVToTraML_4_input.mrm at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_4_output.TraML",
+      "sha256": "678b84d7704323e280f2f4b8612ebbe604492daa799086aec4a482d27a6ff70c",
+      "origin": "topp/ConvertTSVToTraML_4_output.TraML at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_5_input.tsv",
+      "sha256": "c23bd9b7bf09a09126498857abcbc4ea46f2812c6524bb35597972c4a4c71387",
+      "origin": "topp/ConvertTSVToTraML_5_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTSVToTraML_6_input.tsv",
+      "sha256": "302c6029fdf043b6c6cf5ac09f808d96afcf5c8c42ce591369da432f26019e9e",
+      "origin": "topp/ConvertTSVToTraML_6_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTraMLToTSV_output.tsv",
+      "sha256": "b72a713df13bb45b0f8cb70635f6106455c6f8a27e8f34f64449947517461506",
+      "origin": "topp/ConvertTraMLToTSV_output.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/ConvertTraMLToTSV_output_2.tsv",
+      "sha256": "ebcb943a5f338f931b0da852c4481a1e95d1a1c1b5c095de67ce974acd317386",
+      "origin": "topp/ConvertTraMLToTSV_output_2.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_8_input.tsv",
+      "sha256": "50b6b44eb89c49b5a0a6c28f648e02d70a0742a5778421566b8f32bda2fc5732",
+      "origin": "topp/TargetedFileConverter_8_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/traml/TargetedFileConverter_12_input.tsv",
+      "sha256": "49108f73155195ff00fc61f81066968d245a954fe2385f26fe84f1bcd999dc91",
+      "origin": "topp/TargetedFileConverter_12_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/transition_tsv_light/cases.tsv",
+      "sha256": "ca1f177541ee31ba74ae22b8c60211006444cc4d31b60d1cb243d82ebd11a08f",
+      "origin": "../oracle/integ-O-tsvlight/cases.tsv"
+    },
+    {
+      "path": "tests/data/transition_tsv_light/oracle.stdout",
+      "sha256": "861d5ac5915310e99c26d90781f403c2047be92a25bdbe1544caee028311522d",
+      "origin": "../oracle/integ-O-tsvlight/results/stdout.txt"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/cases.tsv",
+      "sha256": "8bfb6fb95a1fca54e5b9a9789a300532330212cc2b08af1343d90529a0fc9417",
+      "origin": "../oracle/integ-O-tsvprogress/cases.tsv"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/oracle.stdout",
+      "sha256": "f56eb4e6d098d991acf0ed58fc3c1ae8736c8696eee6f5d7cfc3692b86e4a3e6",
+      "origin": "../oracle/integ-O-tsvprogress/results/stdout.txt"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/bad_line.tsv",
+      "sha256": "5432aebada72534291c613086b9cbc107530433eca021e742ed7294cf93c23d3",
+      "origin": "../oracle/integ-O-tsvprogress/inputs/bad_line.tsv"
+    },
+    {
+      "path": "tests/data/transition_tsv_progress/header_only.tsv",
+      "sha256": "b05aea9570754a5e681c84dd11506b41bf1f83c6452963cbf7d1d52b3ee3b6ef",
+      "origin": "../oracle/integ-O-tsvprogress/inputs/header_only.tsv"
+    }
+  ],
+  "evidence_tier": 1,
+  "evidence": "Tier 1 (retained C++ output): the TargetedFileConverter heavy path (openswath e29e7ee TargetedFileConverter.cpp:229-276) reproduces ConvertTSVToTraML 1-6 (incl. minutes/seconds and the SpectraST MRM list) and TargetedFileConverter 5, 6, 8 and 13 against retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1736-1864), tokens compared with numbers as identical doubles. Tier 3: TransitionTSVFile_test.cpp heavy sections. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test transition_tsv_file`: 10 passed. Light path (group O integration): ../oracle/integ-O-tsvlight, ten cases, ibminode06 Release, dump and TSV equal (tests/transition_tsv_file.rs::light_path_matches_the_release_build). ProgressLogger base (group O integration): ../oracle/integ-O-tsvprogress, nine lists x four conversions, recorded backend calls equal (tests/transition_tsv_file.rs::progress_calls_match_the_release_build).",
+  "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1736-1864",
+  "external_reference_artifacts": [
+    {
+      "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
+      "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/driver.cpp",
+      "sha256": "d7865af9d4ab23a110159ed62802ad7ae5fdd314746eea67ff18816c7163f8f1",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/remote_run.sh",
+      "sha256": "c2531cb953b91a08a84973987dcd3bb3dc8f3b88931a6971d6fe2e5d85744999",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/run.sh",
+      "sha256": "0da98a5dcea99f2852b570c4f199f635f801b909124fec39ccd4b23c66155785",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/cases.tsv",
+      "sha256": "ca1f177541ee31ba74ae22b8c60211006444cc4d31b60d1cb243d82ebd11a08f",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/results/hashes.txt",
+      "sha256": "321d80a5f4c2a3060bf67e71268d4ae6ebb16c6bc34ddcc47ce7eb1b90efc6b5",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/results/output_hashes.txt",
+      "sha256": "c2bb41f056c85352c549b73ac2ad73760d55cbddcba1c747cdcf00c190a62a30",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/driver.cpp",
+      "sha256": "6e639ad26f0e14f9126df20f3a0d5064209f10c7f460deb0ee2e65471bf7584c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/remote_run.sh",
+      "sha256": "074581e0b2209923092bd90c61f0f34de06c3e142633b05ca6c2c4a708d5f7cd",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/run.sh",
+      "sha256": "fe013c90532b052009fd7610347a47c375c99df6e114be9bdf55dd9e3aecf0eb",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/cases.tsv",
+      "sha256": "8bfb6fb95a1fca54e5b9a9789a300532330212cc2b08af1343d90529a0fc9417",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/results/hashes.txt",
+      "sha256": "00bdc08a28d6045838dab61067491bda631761918198f89b8d1677bb3953b9af",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/results/output_hashes.txt",
+      "sha256": "ff730518ce581c542dc9a51d539805dafd2665f0bc40cf9c72503d7249beb8db",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvprogress/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    }
+  ],
+  "external_reference_note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed."
+}

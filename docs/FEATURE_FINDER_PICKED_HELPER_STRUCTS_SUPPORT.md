@@ -178,7 +178,7 @@ this header and is outside this module.
 | `reserve` fails only at the allocator's limit | `reserve` refuses more than `MAX_TRACES` (100,000) and maps allocation failure to `Error::InvalidValue` | Bounded pre-allocation; the collection is unchanged on error. |
 | `IsotopePattern(Size)` always allocates | `IsotopePattern::new` refuses more than `MAX_SIZE` (100,000) isotopes | Bounded allocation. |
 | `getConvexhull` accepts any coordinates into a `std::map` | `convex_hull` refuses non-finite coordinates (from `ConvexHull2D::from_points`) and more than `MAX_PEAKS` peaks | A NaN key breaks the map's ordering; infinities are not hull coordinates. |
-| `ConvexHull2D::addPoint` keeps the first m/z of a retention time when a later one is equal: it skips a point its `DBoundingBox<1>` encloses, and `enlarge` replaces only on strict `<` or `>` | `convex_hull` merges the m/z range of one retention time with `f64::min` and `f64::max` in kernel `ConvexHull2D::add_points` | Known difference, not a design choice. For `-0.0` and `+0.0` m/z at one retention time, Rust leaves the sign that `min` and `max` return unspecified. An independent review fuzz against the product-SDK libOpenMS (705 cases, not retained) matched every hull bit for bit except a hand-built signed-zero case: 2 differing rows on Linux x86-64, 1 on macOS arm64. m/z is positive on the FeatureFinderCentroided path, and the retained oracle rows hold no signed zero. The fix belongs in the kernel: strict comparisons that keep the first value. |
+| `ConvexHull2D::addPoint` keeps the first m/z of a retention time when a later one is equal: it skips a point its `DBoundingBox<1>` encloses, and `enlarge` replaces only on strict `<` or `>` | kernel `ConvexHull2D::add_point`/`add_points` enlarge a scan's m/z range with the same strict comparisons, keeping the first of equal values | Preserved (lane FF1, wave 4). Formerly merged with `f64::min`/`f64::max`, which leave the sign of equal zeros unspecified; now bit-identical to the Linux x86_64 Release build on a signed-zero hull and trace (`tests/featurefinder_oracle.rs`, `convex_hull_keeps_the_first_equal_mz_as_the_release_build`, oracle `../oracle/FF1-models`). |
 | `computeIntensityProfile` on an empty collection dereferences `begin()` | returns an empty profile | Undefined behaviour in the source. |
 | `computeIntensityProfile` never terminates when a NaN retention time meets a profile entry | returns `Error::InvalidValue` | A hang is not a result. A NaN that is only copied or appended passes through as in the source. |
 | `computeIntensityProfile` fills a caller's list, documented as empty | returns a new `Vec` | That contract as a return value; an index-linked list keeps the source's insertion cost. |
@@ -223,8 +223,9 @@ Tier 1 covers every computational member: `getConvexhull`, `updateMaximum`,
 `getAvgMZ`, both `isValid`, `getPeakCount`, `getTheoreticalmaxPosition`,
 `updateBaseline`, `getRTBounds`, `computeIntensityProfile`, `Seed::operator<`,
 `IsotopePattern(Size)` and `TheoreticalIsotopePattern::size`. The accessors
-have tier 4 evidence only (below). No hull row holds a signed-zero m/z, where
-the port has a known difference (see native differences).
+have tier 4 evidence only (below). No hull row here holds a signed-zero m/z;
+that case is executed in `tests/featurefinder_oracle.rs` (hull and
+`MassTrace::convex_hull`, bit-identical including zero signs).
 
 The rows cover:
 - `avg_mz` exactly 1000 for `mt1`, the `mt_avg` value, and an inexact
