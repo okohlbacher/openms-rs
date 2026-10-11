@@ -31,7 +31,7 @@ use openms::analysis::openswath::transition_experiment::{
 use openms::analysis::openswath::transition_parquet_file::TransitionParquetFile;
 use openms::format::parquet_file::ParquetFile;
 use openms::format::zip_archive_file::ZipArchiveFile;
-use openms::kernel::{Feature, FeatureMap};
+use openms::kernel::{BaseFeature, Feature, FeatureMap};
 use openms::metadata::MetaValue;
 use openms::system::file::TempDir;
 
@@ -667,12 +667,12 @@ fn set(feature: &mut Feature, key: &str, value: MetaValue) {
 }
 
 fn feature(unique_id: u64, rt: f64, intensity: f32) -> Feature {
-    Feature {
+    Feature::from(BaseFeature {
         unique_id,
         rt,
         intensity,
-        ..Feature::default()
-    }
+        ..BaseFeature::default()
+    })
 }
 
 /// The driver's `sub(level, native_id, intensity)`.
