@@ -84,15 +84,67 @@
       "path": "tests/data/traml/TargetedFileConverter_12_input.tsv",
       "sha256": "49108f73155195ff00fc61f81066968d245a954fe2385f26fe84f1bcd999dc91",
       "origin": "topp/TargetedFileConverter_12_input.tsv at test-data 0cb15f2"
+    },
+    {
+      "path": "tests/data/transition_tsv_light/cases.tsv",
+      "sha256": "ca1f177541ee31ba74ae22b8c60211006444cc4d31b60d1cb243d82ebd11a08f",
+      "origin": "../oracle/integ-O-tsvlight/cases.tsv"
+    },
+    {
+      "path": "tests/data/transition_tsv_light/oracle.stdout",
+      "sha256": "861d5ac5915310e99c26d90781f403c2047be92a25bdbe1544caee028311522d",
+      "origin": "../oracle/integ-O-tsvlight/results/stdout.txt"
     }
   ],
   "evidence_tier": 1,
-  "evidence": "Tier 1 (retained C++ output): the TargetedFileConverter heavy path (openswath e29e7ee TargetedFileConverter.cpp:229-276) reproduces ConvertTSVToTraML 1-6 (incl. minutes/seconds and the SpectraST MRM list) and TargetedFileConverter 5, 6, 8 and 13 against retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1736-1864), tokens compared with numbers as identical doubles. Tier 3: TransitionTSVFile_test.cpp heavy sections. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test transition_tsv_file`: 10 passed.",
+  "evidence": "Tier 1 (retained C++ output): the TargetedFileConverter heavy path (openswath e29e7ee TargetedFileConverter.cpp:229-276) reproduces ConvertTSVToTraML 1-6 (incl. minutes/seconds and the SpectraST MRM list) and TargetedFileConverter 5, 6, 8 and 13 against retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1736-1864), tokens compared with numbers as identical doubles. Tier 3: TransitionTSVFile_test.cpp heavy sections. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation --test transition_tsv_file`: 10 passed. Light path (group O integration): ../oracle/integ-O-tsvlight, ten cases, ibminode06 Release, dump and TSV equal (tests/transition_tsv_file.rs::light_path_matches_the_release_build).",
   "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1736-1864",
   "external_reference_artifacts": [
     {
       "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
       "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/driver.cpp",
+      "sha256": "d7865af9d4ab23a110159ed62802ad7ae5fdd314746eea67ff18816c7163f8f1",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/remote_run.sh",
+      "sha256": "c2531cb953b91a08a84973987dcd3bb3dc8f3b88931a6971d6fe2e5d85744999",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/run.sh",
+      "sha256": "0da98a5dcea99f2852b570c4f199f635f801b909124fec39ccd4b23c66155785",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/cases.tsv",
+      "sha256": "ca1f177541ee31ba74ae22b8c60211006444cc4d31b60d1cb243d82ebd11a08f",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/results/hashes.txt",
+      "sha256": "321d80a5f4c2a3060bf67e71268d4ae6ebb16c6bc34ddcc47ce7eb1b90efc6b5",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/results/output_hashes.txt",
+      "sha256": "c2bb41f056c85352c549b73ac2ad73760d55cbddcba1c747cdcf00c190a62a30",
+      "location": "outside this repository",
+      "origin_key": "reference_tools"
+    },
+    {
+      "path": "../oracle/integ-O-tsvlight/results/host.txt",
+      "sha256": "37dad647f8f3867f7bf9023f0e5f06fcda0a593cf2d00e148c5e193a5b5ece7c",
       "location": "outside this repository",
       "origin_key": "reference_tools"
     }

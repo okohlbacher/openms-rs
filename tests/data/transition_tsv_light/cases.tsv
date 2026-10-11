@@ -1,0 +1,10 @@
+tsv1	inputs/ConvertTSVToTraML_1_input.tsv	TSV
+tsv2	inputs/ConvertTSVToTraML_2_input.tsv	TSV
+mrm4	inputs/ConvertTSVToTraML_4_input.mrm	MRM
+tsv5	inputs/ConvertTSVToTraML_5_input.tsv	TSV
+tsv6	inputs/ConvertTSVToTraML_6_input.tsv	TSV
+tfc8	inputs/TargetedFileConverter_8_input.tsv	TSV
+tfc12	inputs/TargetedFileConverter_12_input.tsv	TSV
+tfc12_minutes	inputs/TargetedFileConverter_12_input.tsv	TSV	retentionTimeInterpretation=minutes
+tfc12_override	inputs/TargetedFileConverter_12_input.tsv	TSV	override_group_label_check=true
+tsv1_force	inputs/ConvertTSVToTraML_1_input.tsv	TSV	force_invalid_mods=true

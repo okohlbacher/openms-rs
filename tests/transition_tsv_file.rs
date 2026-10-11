@@ -338,3 +338,176 @@ fn an_experiment_with_invalid_references_is_not_written() {
     assert!(handler.write_targeted_experiment(Vec::new(), &exp).is_err());
     assert!(handler.validate_targeted_experiment(&exp).is_err());
 }
+
+// ---------------------------------------------------------------------------
+// The LightTargetedExperiment members (group O integration)
+// ---------------------------------------------------------------------------
+//
+// `../oracle/integ-O-tsvlight` (ibminode06, Release install
+// `openms4-release-bc9cc12-c19e494-174b576`, run twice, byte-identical) loaded
+// ten cases through `convertTSVToTargetedExperiment(Light)` and wrote each
+// experiment with `convertLightTargetedExperimentToTSV`; the dump of the light
+// experiment (`%.17g`) and the TSV are the expected values.
+
+fn light_dump(
+    exp: &openms::analysis::openswath::transition_experiment::LightTargetedExperiment,
+) -> String {
+    use openms::format::file_info::text_format::ostream_g;
+    use std::fmt::Write as _;
+    let g = |v: f64| ostream_g(v, 17);
+    let mut out = String::new();
+    let _ = writeln!(out, "n_transitions\t{}", exp.transitions.len());
+    let _ = writeln!(out, "n_compounds\t{}", exp.compounds.len());
+    let _ = writeln!(out, "n_proteins\t{}", exp.proteins.len());
+    for (i, t) in exp.transitions.iter().enumerate() {
+        let _ = writeln!(
+            out,
+            "transition.{i}\tname={}\tref={}\tlib={}\tprod={}\tprec={}\tim={}\tfcharge={}\tdecoy={}\tdet={}\tquant={}\tident={}\tnr={}\ttype={}\tann={}\tforms={}",
+            t.transition_name,
+            t.peptide_ref,
+            g(t.library_intensity),
+            g(t.product_mz),
+            g(t.precursor_mz),
+            g(t.precursor_im),
+            t.fragment_charge,
+            u8::from(t.decoy()),
+            u8::from(t.is_detecting_transition()),
+            u8::from(t.is_quantifying_transition()),
+            u8::from(t.is_identifying_transition()),
+            t.fragment_nr,
+            t.fragment_type_str(),
+            t.annotation(),
+            t.peptidoforms.join("|"),
+        );
+    }
+    for (i, c) in exp.compounds.iter().enumerate() {
+        let mods: String = c
+            .modifications
+            .iter()
+            .map(|m| format!("{}:{};", m.location, m.unimod_id))
+            .collect();
+        let _ = writeln!(
+            out,
+            "compound.{i}\tid={}\tim={}\trt={}\trts={}\trte={}\tcharge={}\tseq={}\tprots={}\tlabel={}\tgene={}\tsum={}\tname={}\tltype={}\tsmiles={}\tadducts={}\tmods={mods}",
+            c.id,
+            g(c.drift_time),
+            g(c.rt),
+            g(c.rt_start),
+            g(c.rt_end),
+            c.charge,
+            c.sequence,
+            c.protein_refs.join(";"),
+            c.peptide_group_label,
+            c.gene_name,
+            c.sum_formula,
+            c.compound_name,
+            c.label_type,
+            c.smiles,
+            c.adducts,
+        );
+    }
+    for (i, p) in exp.proteins.iter().enumerate() {
+        let _ = writeln!(
+            out,
+            "protein.{i}\tid={}\tseq={}\tuniprot={}",
+            p.id, p.sequence, p.uniprot_id
+        );
+    }
+    out
+}
+
+/// `convertTSVToTargetedExperiment(Light)` and `convertLightTargetedExperimentToTSV`
+/// against the Release build, for the TSV and SpectraST MRM inputs of the
+/// heavy-path tests, with the three parameters varied once.
+#[test]
+fn light_path_matches_the_release_build() {
+    let expected = std::fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/data/transition_tsv_light/oracle.stdout"),
+    )
+    .unwrap();
+    let cases = std::fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/transition_tsv_light/cases.tsv"),
+    )
+    .unwrap();
+    let mut sections: Vec<(String, String)> = Vec::new();
+    for line in cases.lines().filter(|l| !l.is_empty()) {
+        let f: Vec<&str> = line.split('\t').collect();
+        let mut reader = TransitionTSVFile::new();
+        for kv in &f[3..] {
+            let (key, value) = kv.split_once('=').unwrap();
+            match key {
+                "retentionTimeInterpretation" => {
+                    reader.retention_time_interpretation = match value {
+                        "minutes" => RetentionTimeInterpretation::Minutes,
+                        "seconds" => RetentionTimeInterpretation::Seconds,
+                        _ => RetentionTimeInterpretation::Irt,
+                    }
+                }
+                "override_group_label_check" => reader.override_group_label_check = value == "true",
+                "force_invalid_mods" => reader.force_invalid_mods = value == "true",
+                other => panic!("unknown parameter {other}"),
+            }
+        }
+        let file = data(f[1].rsplit('/').next().unwrap());
+        let file_type = if f[2] == "MRM" {
+            FileType::Mrm
+        } else {
+            FileType::Tsv
+        };
+        let mut text = String::new();
+        match reader.convert_tsv_to_light_targeted_experiment(&file, file_type) {
+            Ok((exp, _warnings)) => {
+                text.push_str(&light_dump(&exp));
+                text.push_str("--- tsv\n");
+                let mut bytes = Vec::new();
+                reader
+                    .write_light_targeted_experiment(&mut bytes, &exp)
+                    .unwrap();
+                text.push_str(&String::from_utf8(bytes).unwrap());
+            }
+            Err(error) => text.push_str(&format!("ERROR\t{error}\n")),
+        }
+        sections.push((f[0].to_owned(), text));
+    }
+    let want: Vec<(String, String)> = expected
+        .split("### ")
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            let (name, body) = s.split_once('\n').unwrap();
+            (name.to_owned(), body.to_owned())
+        })
+        .collect();
+    assert_eq!(sections.len(), want.len());
+    assert!(sections.len() >= 10);
+    for ((name, got), (want_name, want_body)) in sections.iter().zip(&want) {
+        assert_eq!(name, want_name);
+        // the numbers of the TSV are `toStr(double)` text in both
+        assert_eq!(got, want_body, "case {name}");
+    }
+}
+
+/// TransitionTSVFile_test.cpp "[EXTRA] Light path TSV roundtrip": TraML -> heavy
+/// -> TSV -> light -> TSV loads data and writes a non-trivial file.
+#[test]
+fn class_test_light_path_tsv_roundtrip() {
+    let heavy = traml::load(data("MRMAssay_detectingTransistionCompound_input.TraML")).unwrap();
+    let reader = TransitionTSVFile::new();
+    let tsv = temp("light_roundtrip.tsv");
+    reader
+        .convert_targeted_experiment_to_tsv(&tsv, &heavy)
+        .unwrap();
+    let (light, _) = reader
+        .convert_tsv_to_light_targeted_experiment(&tsv, FileType::Tsv)
+        .unwrap();
+    assert!(!light.transitions.is_empty());
+    assert!(!light.compounds.is_empty());
+    let out = temp("light_roundtrip_out.tsv");
+    reader
+        .convert_light_targeted_experiment_to_tsv(&out, &light)
+        .unwrap();
+    let text = std::fs::read_to_string(&out).unwrap();
+    assert!(text.lines().count() > 1);
+    // one line per transition after the header
+    assert_eq!(text.lines().count(), light.transitions.len() + 1);
+}

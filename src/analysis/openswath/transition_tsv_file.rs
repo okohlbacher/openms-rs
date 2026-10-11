@@ -60,8 +60,10 @@
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/TRANSITION_TSV_SUPPORT.md)
 //! for the member mapping and the evidence. The source contains no
 //! `#pragma omp`; the port is serial. The source's `ProgressLogger` base is not
-//! ported, and the `OpenSwath::LightTargetedExperiment` overloads wait for
-//! `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h`.
+//! ported. The `OpenSwath::LightTargetedExperiment` members are
+//! [`TransitionTSVFile::read_light_targeted_experiment`] (with the streaming
+//! `streamTSVToLightTargetedExperiment_` it wraps) and
+//! [`TransitionTSVFile::write_light_targeted_experiment`].
 
 use crate::analysis::openswath::reaction_monitoring_transition::{
     DecoyTransitionType, ReactionMonitoringTransition,
@@ -70,6 +72,9 @@ use crate::analysis::openswath::targeted_experiment::TargetedExperiment;
 use crate::analysis::openswath::targeted_experiment_helper::{
     Compound, Interpretation, Peptide, PeptideModification, Protein, RTType, RTUnit, RetentionTime,
     UnresolvedModificationPolicy, get_aa_sequence_with,
+};
+use crate::analysis::openswath::transition_experiment::{
+    LightCompound, LightModification, LightProtein, LightTargetedExperiment, LightTransition,
 };
 use crate::chemistry::{AASequence, ModificationsDB, PeptideFragmentType, SequenceModification};
 use crate::format::FileType;
@@ -1196,6 +1201,342 @@ impl TransitionTSVFile {
             text.push('\n');
         }
         out.write_all(text.as_bytes())?;
+        Ok(())
+    }
+
+    /// Read a transition list file into a [`LightTargetedExperiment`]
+    /// (`convertTSVToTargetedExperiment(const char*, FileTypes::Type,
+    /// LightTargetedExperiment&)`, which calls
+    /// `streamTSVToLightTargetedExperiment_`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when the file cannot be read, and everything
+    /// [`read_light_targeted_experiment`](Self::read_light_targeted_experiment)
+    /// returns.
+    pub fn convert_tsv_to_light_targeted_experiment(
+        &self,
+        path: impl AsRef<Path>,
+        file_type: FileType,
+    ) -> Result<(LightTargetedExperiment, Vec<String>)> {
+        let file = std::io::BufReader::new(std::fs::File::open(path.as_ref())?);
+        self.read_light_targeted_experiment(file, file_type)
+    }
+
+    /// Read a transition list from a stream into a [`LightTargetedExperiment`]
+    /// (source `streamTSVToLightTargetedExperiment_`). Returns the experiment
+    /// and the warnings the source logs.
+    ///
+    /// The lines are parsed exactly as for the heavyweight reader
+    /// ([`read_transitions`](Self::read_transitions)); what differs is what is
+    /// built from them, and those differences are the source's:
+    ///
+    /// * every line is a [`LightTransition`] (`peptide_ref` is the group id,
+    ///   `precursor_im` the drift time, the fragment charge truncated to
+    ///   8 bits and the fragment number to 16, the fragment type through
+    ///   `setFragmentType`), and the first line of a group creates its
+    ///   [`LightCompound`]: **the retention time is the column as read**,
+    ///   `retentionTimeInterpretation` is not applied (the heavyweight path
+    ///   converts minutes to seconds); the sequence is the full peptide name
+    ///   or else the plain sequence; modifications are read from that
+    ///   sequence and a sequence that does not parse leaves them empty;
+    /// * a protein is created at its first line with the UniProt accession at
+    ///   its own position when the line has that many (the heavyweight reader
+    ///   requires equal list lengths);
+    /// * peptide label groups are checked while reading: the first sequence
+    ///   seen for a label is the group's, a later transition with a different
+    ///   non-empty sequence takes its group id as label (unless
+    ///   [`override_group_label_check`](Self::override_group_label_check));
+    ///   unlike [`resolve_mixed_sequence_groups`](Self::resolve_mixed_sequence_groups)
+    ///   an empty sequence never conflicts and the check sees the lines in
+    ///   file order, and only a compound's first line sets its label;
+    /// * nothing is validated afterwards.
+    ///
+    /// The source streams line by line; this reads the transitions first
+    /// (bounded by [`limits`](Self::limits)) and then builds the experiment.
+    ///
+    /// # Errors
+    ///
+    /// Those of [`read_transitions`](Self::read_transitions), and
+    /// [`Error::InvalidValue`] for a charge that does not convert.
+    pub fn read_light_targeted_experiment(
+        &self,
+        input: impl BufRead,
+        file_type: FileType,
+    ) -> Result<(LightTargetedExperiment, Vec<String>)> {
+        let (transitions, mut warnings) = self.read_transitions(input, file_type)?;
+        // the streaming reader never reports the SpectraST legacy notice
+        warnings.retain(|w| !w.starts_with("Warning: SpectraST was not run"));
+        let mut exp = LightTargetedExperiment::new();
+        let mut compound_ids = std::collections::BTreeSet::new();
+        let mut protein_ids = std::collections::BTreeSet::new();
+        let mut label_to_sequence: BTreeMap<String, String> = BTreeMap::new();
+        for t in &transitions {
+            // inline mixed sequence group detection
+            let mut effective_label = t.peptide_group_label.clone();
+            if !effective_label.is_empty() {
+                match label_to_sequence.get(&effective_label) {
+                    None => {
+                        label_to_sequence
+                            .insert(effective_label.clone(), t.peptide_sequence.clone());
+                    }
+                    Some(first)
+                        if !first.is_empty()
+                            && !t.peptide_sequence.is_empty()
+                            && *first != t.peptide_sequence =>
+                    {
+                        if self.override_group_label_check {
+                            warnings.push(format!("Warning: Found multiple peptide sequences for peptide label group {effective_label}. Since 'override_group_label_check' is on, nothing will be changed."));
+                        } else {
+                            warnings.push(format!("Warning: Found multiple peptide sequences for peptide label group {effective_label}. This is most likely an error and to fix this, a new peptide label group will be inferred - to override this decision, please use the override_group_label_check parameter."));
+                            effective_label = t.group_id.clone();
+                        }
+                    }
+                    Some(_) => {}
+                }
+            }
+
+            let mut transition = LightTransition {
+                transition_name: t.transition_name.clone(),
+                peptide_ref: t.group_id.clone(),
+                library_intensity: t.library_intensity,
+                product_mz: t.product,
+                precursor_mz: t.precursor,
+                precursor_im: t.drift_time,
+                fragment_charge: 0,
+                ..LightTransition::default()
+            };
+            if !t.fragment_charge.is_empty() && t.fragment_charge != "NA" {
+                // `static_cast<int8_t>(toInt32(...))`
+                transition.fragment_charge = to_int32(&t.fragment_charge)? as i8;
+            }
+            transition.set_decoy(t.decoy);
+            transition.set_detecting_transition(t.detecting_transition);
+            transition.set_identifying_transition(t.identifying_transition);
+            transition.set_quantifying_transition(t.quantifying_transition);
+            // `static_cast<int16_t>(fragment_nr)`
+            transition.fragment_nr = t.fragment_nr as i16;
+            transition.set_fragment_type(&t.fragment_type);
+            transition.peptidoforms = t.peptidoforms.clone();
+            exp.transitions.push(transition);
+
+            if compound_ids.insert(t.group_id.clone()) {
+                let mut compound = LightCompound {
+                    id: t.group_id.clone(),
+                    drift_time: t.drift_time,
+                    rt: t.rt_calibrated,
+                    charge: 0,
+                    ..LightCompound::default()
+                };
+                if !t.precursor_charge.is_empty() && t.precursor_charge != "NA" {
+                    compound.charge = to_int32(&t.precursor_charge)?;
+                }
+                compound.peptide_group_label = effective_label.clone();
+                compound.gene_name = t.gene_name.clone();
+                if t.is_peptide() {
+                    let sequence = if t.full_peptide_name.is_empty() {
+                        t.peptide_sequence.clone()
+                    } else {
+                        t.full_peptide_name.clone()
+                    };
+                    compound.sequence = sequence.clone();
+                    compound.protein_refs = t.protein_name.clone();
+                    // modifications from the sequence; a sequence that does not
+                    // parse leaves them empty, as the source's catch does
+                    if let Ok(aa_sequence) = AASequence::parse(&sequence) {
+                        let unimod = |m: &SequenceModification| {
+                            m.record_id()
+                                .and_then(|id| i32::try_from(id).ok())
+                                .unwrap_or(-1)
+                        };
+                        if let Some(m) = aa_sequence.n_terminal_modification() {
+                            compound.modifications.push(LightModification {
+                                location: -1,
+                                unimod_id: unimod(m),
+                            });
+                        }
+                        if let Some(m) = aa_sequence.c_terminal_modification() {
+                            compound.modifications.push(LightModification {
+                                location: i32::try_from(aa_sequence.len()).unwrap_or(i32::MAX),
+                                unimod_id: unimod(m),
+                            });
+                        }
+                        for index in 0..aa_sequence.len() {
+                            if let Ok(Some(m)) = aa_sequence.residue_modification(index) {
+                                compound.modifications.push(LightModification {
+                                    location: i32::try_from(index).unwrap_or(i32::MAX),
+                                    unimod_id: unimod(m),
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    compound.compound_name = t.compound_name.clone();
+                    compound.sum_formula = t.sum_formula.clone();
+                }
+                compound.label_type = t.label_type.clone();
+                compound.smiles = t.smiles.clone();
+                compound.adducts = t.adducts.clone();
+                exp.compounds.push(compound);
+            }
+
+            for (i, name) in t.protein_name.iter().enumerate() {
+                if t.is_peptide() && protein_ids.insert(name.clone()) {
+                    exp.proteins.push(LightProtein {
+                        id: name.clone(),
+                        uniprot_id: t.uniprot_id.get(i).cloned().unwrap_or_default(),
+                        ..LightProtein::default()
+                    });
+                }
+            }
+        }
+        Ok((exp, warnings))
+    }
+
+    /// Write a [`LightTargetedExperiment`] as a transition list
+    /// (`convertLightTargetedExperimentToTSV`): the same 29 columns as
+    /// [`write_targeted_experiment`](Self::write_targeted_experiment), one line
+    /// per transition.
+    ///
+    /// The light types do not store the collision energy (`-1`), and a
+    /// compound's drift time falls back to the transition's precursor ion
+    /// mobility; an empty group label, gene name, plain sequence, full peptide
+    /// name or annotation is written as `NA`, as are the protein ids; empty
+    /// label type, compound name, sum formula, SMILES, adducts and UniProt ids
+    /// stay empty. A transition whose compound is unknown is written with the
+    /// defaults. The source writes with `std::ofstream` and does not check
+    /// that the file opened.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] from `out`.
+    pub fn write_light_targeted_experiment(
+        &self,
+        mut out: impl Write,
+        exp: &LightTargetedExperiment,
+    ) -> Result<()> {
+        use crate::param::value::format_float;
+        let f = |x: f64| format_float(x, true);
+        let b = |x: bool| if x { "1" } else { "0" };
+        let mut compounds: BTreeMap<&str, &LightCompound> = BTreeMap::new();
+        for compound in &exp.compounds {
+            compounds.insert(compound.id.as_str(), compound);
+        }
+        let mut proteins: BTreeMap<&str, &LightProtein> = BTreeMap::new();
+        for protein in &exp.proteins {
+            proteins.insert(protein.id.as_str(), protein);
+        }
+        let na = |s: String| if s.is_empty() { "NA".to_owned() } else { s };
+        let mut text = HEADER_NAMES.join("\t");
+        text.push('\n');
+        for tr in &exp.transitions {
+            let compound = compounds.get(tr.peptide_ref.as_str()).copied();
+            let mut protein_names: Vec<String> = Vec::new();
+            let mut uniprot_ids: Vec<String> = Vec::new();
+            if let Some(compound) = compound {
+                for reference in &compound.protein_refs {
+                    protein_names.push(reference.clone());
+                    if let Some(protein) = proteins.get(reference.as_str()) {
+                        if !protein.uniprot_id.is_empty() {
+                            uniprot_ids.push(protein.uniprot_id.clone());
+                        }
+                    }
+                }
+            }
+            let precursor_charge = match compound {
+                Some(c) if c.charge != 0 => c.charge.to_string(),
+                _ => "NA".to_owned(),
+            };
+            let fragment_charge = if tr.fragment_charge != 0 {
+                tr.fragment_charge.to_string()
+            } else {
+                "NA".to_owned()
+            };
+            let (mut group_label, mut label_type, mut compound_name, mut sum_formula) =
+                (String::new(), String::new(), String::new(), String::new());
+            let (mut smiles, mut adducts, mut gene_name) =
+                (String::new(), String::new(), String::new());
+            let (mut peptide_sequence, mut full_peptide_name) = (String::new(), String::new());
+            let mut rt_calibrated = -1.0;
+            let mut drift_time = -1.0;
+            if let Some(c) = compound {
+                group_label = c.peptide_group_label.clone();
+                label_type = c.label_type.clone();
+                gene_name = c.gene_name.clone();
+                rt_calibrated = c.rt;
+                drift_time = c.drift_time;
+                if c.is_peptide() {
+                    full_peptide_name = c.sequence.clone();
+                    peptide_sequence = match AASequence::parse(&c.sequence) {
+                        Ok(sequence) => sequence.as_str().to_owned(),
+                        Err(_) => c.sequence.clone(),
+                    };
+                } else {
+                    compound_name = c.compound_name.clone();
+                    sum_formula = c.sum_formula.clone();
+                    smiles = c.smiles.clone();
+                    adducts = c.adducts.clone();
+                }
+            }
+            if drift_time < 0.0 && tr.precursor_im >= 0.0 {
+                drift_time = tr.precursor_im;
+            }
+            let fields = [
+                f(tr.precursor_mz),
+                f(tr.product_mz),
+                precursor_charge,
+                fragment_charge,
+                f(tr.library_intensity),
+                f(rt_calibrated),
+                na(peptide_sequence),
+                na(full_peptide_name),
+                na(group_label),
+                label_type,
+                compound_name,
+                sum_formula,
+                smiles,
+                adducts,
+                if protein_names.is_empty() {
+                    "NA".to_owned()
+                } else {
+                    protein_names.join(";")
+                },
+                uniprot_ids.join(";"),
+                na(gene_name),
+                tr.fragment_type_str().to_owned(),
+                tr.fragment_nr.to_string(),
+                na(tr.annotation()),
+                f(-1.0),
+                f(drift_time),
+                tr.peptide_ref.clone(),
+                tr.transition_name.clone(),
+                b(tr.decoy()).to_owned(),
+                b(tr.is_detecting_transition()).to_owned(),
+                b(tr.is_identifying_transition()).to_owned(),
+                b(tr.is_quantifying_transition()).to_owned(),
+                tr.peptidoforms.join("|"),
+            ];
+            text.push_str(&fields.join("\t"));
+            text.push('\n');
+        }
+        out.write_all(text.as_bytes())?;
+        Ok(())
+    }
+
+    /// [`write_light_targeted_experiment`](Self::write_light_targeted_experiment)
+    /// to a file (`convertLightTargetedExperimentToTSV`).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Io`] when the file cannot be created or written.
+    pub fn convert_light_targeted_experiment_to_tsv(
+        &self,
+        path: impl AsRef<Path>,
+        exp: &LightTargetedExperiment,
+    ) -> Result<()> {
+        let mut file = std::io::BufWriter::new(std::fs::File::create(path.as_ref())?);
+        self.write_light_targeted_experiment(&mut file, exp)?;
+        file.flush()?;
         Ok(())
     }
 }

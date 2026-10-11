@@ -27,7 +27,8 @@ OpenMS4-core `bc9cc12`. Rust: `src/analysis/openswath/transition_tsv_file.rs`
 | `convertTargetedExperimentToTSV` | `convert_targeted_experiment_to_tsv(path, &exp)` | |
 | `convertTSVToTargetedExperiment` (TraML structure) | `convert_tsv_to_targeted_experiment(path, FileType)`, `..._with_warnings`, `read_targeted_experiment(reader, FileType)` | |
 | `validateTargetedExperiment` | `validate_targeted_experiment(&exp)` | |
-| `convertTSVToTargetedExperiment` (`LightTargetedExperiment`), `streamTSVToLightTargetedExperiment_`, `convertLightTargetedExperimentToTSV` | **not ported** | need `OPENSWATHALGO/DATAACCESS/TransitionExperiment.h` (unmapped) |
+| `convertTSVToTargetedExperiment` (`LightTargetedExperiment`), `streamTSVToLightTargetedExperiment_` | `convert_tsv_to_light_targeted_experiment(path, type)` / `read_light_targeted_experiment(reader, type)` (group O integration). The lines are parsed by `read_transitions` and the experiment is built with the streaming reader's rules: the retention time as read (`retentionTimeInterpretation` is not applied), modifications parsed from the sequence (a failure leaves them empty), a protein's UniProt accession at its own position, the label group check inline and in file order | the source streams; the port reads the transitions first (bounded by the reader's limits) |
+| `convertLightTargetedExperimentToTSV` | `convert_light_targeted_experiment_to_tsv(path, exp)` / `write_light_targeted_experiment(writer, exp)` | the same 29 columns; `NA` for an empty group label, gene, sequence, full name, annotation and protein ids; collision energy -1 |
 | `ProgressLogger` base | not ported | no progress reporting |
 
 ## Preserved source conventions
@@ -90,3 +91,16 @@ OpenMS4-core `bc9cc12`. Rust: `src/analysis/openswath/transition_tsv_file.rs`
 3. `extractName<bool>` (`TransitionTSVFile.cpp:70-86`) treats an invalid flag
    as absent and silently tries the next synonym.
 4. `TransitionTSVFile.cpp:1648`/`1651` write `b-H20`/`y-H20` (digit zero).
+
+## Light path evidence (group O integration)
+
+Tier 1: `../oracle/integ-O-tsvlight/driver.cpp` (ibminode06, Release install
+`openms4-release-bc9cc12-c19e494-174b576`, g++ 14.4.0, run twice byte-identical) loaded ten cases with
+`convertTSVToTargetedExperiment(Light)` (the TSV inputs `ConvertTSVToTraML_1/2/5/6`,
+`TargetedFileConverter_8/12`, the SpectraST list `ConvertTSVToTraML_4_input.mrm`, and
+`retentionTimeInterpretation=minutes`, `override_group_label_check=true` and `force_invalid_mods=true`
+variants) and wrote each with `convertLightTargetedExperimentToTSV`. `light_path_matches_the_release_build`
+replays the ten cases and compares the dump of the light experiment (every field, `%.17g`) and the TSV text.
+Tier 3: the class test section "[EXTRA] Light path TSV roundtrip"
+(`class_test_light_path_tsv_roundtrip`); the other two light sections of the class test go through
+`TransitionPQPFile`'s light members.
