@@ -76,3 +76,7 @@ Prereq merged: worktree-wf_cd066dab-0a7-34 (FF2a: ML clustering, GridFeature, QT
 
 - Incarnation 4 (12:05): prereqs -52/-34 verified ancestors. Ledger M2.json already written (18 entries, 10:20).
   Sweep running -> scratchpad/sweep1; proposed slices measured -> scratchpad/slice{1..4}.out. Report M2.md NOT yet written.
+
+- Incarnation 5 (wf_97065d91-48e-2, 2026-10-11): brief named only -52/-34; also fast-forward merged
+  worktree-wf_a10fdd71-2d2-10 (my own incarnation 4: Labeled, KD tree, FeatureMapping, KD all done) -- reported to lead.
+  Remaining: report M2.md (not written), CI sweep slice counts, WNet/WNetMatcher (wnetalign dep), PipEcho.
