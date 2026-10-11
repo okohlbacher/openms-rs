@@ -32,3 +32,11 @@ pub mod fragment_index;
 pub mod neighbor_seq;
 /// Minimal in-memory search engine (`SimpleSearchEngineAlgorithm.h`).
 pub mod simple_search_engine;
+/// Aho-Corasick matching with ambiguous residues and mismatches (`AhoCorasickAmbiguous.h`).
+pub mod aho_corasick_ambiguous;
+/// Phosphosite localisation with the AScore (`AScore.h`).
+pub mod ascore;
+/// Comet `variable_modXX` entries and their merging (`CometModification.h`).
+pub mod comet_modification;
+/// The Andromeda-style PScore and windowed peak ranks (`PScore.h`).
+pub mod pscore;

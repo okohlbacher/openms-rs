@@ -1,0 +1,34 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/CometModification.h",
+   "sha256": "f3029d82108e6dcfe780d2ee9e54f2be7d2af7d33710346154785197b7ff5e19"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/CometModification.cpp",
+   "sha256": "068ff1267a6d25cbf78be3edd1e918f04b2f05a3d55671dbef1e25e0d61f6e98"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/CometModification_test.cpp",
+   "sha256": "2f5c6948ceee3c9f89f015b06c1c2ee83be208ba98f1257b0ae964be899824a4"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/id/comet_modification.rs"
+ ],
+ "native_tests": [
+  "tests/comet_modification.rs"
+ ],
+ "support_document": "docs/COMET_MODIFICATION_SUPPORT.md",
+ "evidence_tier": "3 (source review: every section and literal of CometModification_test.cpp transcribed) plus 4 (native: number formatting and the merged-terminal behaviour, derived from the source code)",
+ "openmp": "No #pragma omp in CometModification.cpp.",
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ }
+}
