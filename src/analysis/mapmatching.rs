@@ -12,3 +12,25 @@ pub mod grid_feature;
 /// A quality-threshold cluster for QT feature grouping (source
 /// `DATASTRUCTURES/QTCluster.h`).
 pub mod qt_cluster;
+
+/// Alignment precision and recall against a ground truth
+/// (`MapAlignmentEvaluationAlgorithm*`).
+pub mod alignment_evaluation;
+/// Alignment based on peptide identifications
+/// (`MapAlignmentAlgorithmIdentification`).
+pub mod alignment_identification;
+/// Reference-free alignment on a kd-tree of pooled features
+/// (`MapAlignmentAlgorithmKD`).
+pub mod alignment_kd;
+/// Alignment based on pose clustering (`MapAlignmentAlgorithmPoseClustering`).
+pub mod alignment_pose_clustering;
+/// Identification-based alignment guided by a clustering of the maps
+/// (`MapAlignmentAlgorithmTreeGuided`).
+pub mod alignment_tree_guided;
+/// Affine superimposer by pose clustering (`PoseClusteringAffineSuperimposer`).
+pub mod pose_clustering_affine;
+/// Shift superimposer by pose clustering (`PoseClusteringShiftSuperimposer`).
+pub mod pose_clustering_shift;
+/// The superimposer interface (`BaseSuperimposer`) and the shared voting
+/// histograms.
+pub mod superimposer;

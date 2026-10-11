@@ -1,0 +1,143 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "evidence_tier": "1 for the B-spline, interpolation (including Akima), LOWESS (including the automatic span) and description summaries via tests/map_alignment_oracle.rs (executed Release build; manifest tests/data/map_alignment_provenance.json); 3 (transcribed class-test literals); 4 for the derived checks named in the tests",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h",
+   "sha256": "371606447873612a0ee78aa538d70387fff8df5dfa9df0f43193643606be301a"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationDescription.cpp",
+   "sha256": "e4e74833b21270b137a6b0f75ffef8e1290e4563b33e76050fc9a04e94fbec29"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h",
+   "sha256": "15d3cca2e35b6062ae693866bd446a8ae0a67681dac527220ef7e0dd9093f9e1"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModel.cpp",
+   "sha256": "670e4fa807ee04db27a4f0ed350428ee39c0910747a5b81e32be08b212a75844"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h",
+   "sha256": "89fea751d824d6908fc9910f1796d760f921508ae68b94a9700a035f0a034e6e"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.cpp",
+   "sha256": "8ab294029aab443a27019f0f565f4c299ce66e457e864d5080f4250b10da7434"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h",
+   "sha256": "79545e3b5f66a37b086a39040706964a2d5ef4a7cf93281099decdaca7dc54e9"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelLowess.cpp",
+   "sha256": "6f40557b1d92f325777ee47a6b6a751331d47ec88b7569a47fb2f63634e9d003"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h",
+   "sha256": "86440f83adc3da421b0a23a616bc877c106179afe7e9107ab0720200fb83f99f"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelBSpline.cpp",
+   "sha256": "81cca378b644cd8c72f51c665713dc463495b9a2c321c24e552bcbad4cfb5a33"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/TransformationModelDefaults.h",
+   "sha256": "d56b38d81cf4b0e502f2777cedf4b27619ff732a7c49f615a434e24d8e74bd09"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/TransformationModelDefaults.cpp",
+   "sha256": "efd590bb11f4dad35d2e1f734df61aa891ffb9e0128cb3a055c369909c2d5f70"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/CROSSVALIDATION/CrossValidation.h",
+   "sha256": "76b2561e37c5a468b520a1ae1016342499e9ba4a0be9d2c08a5180d5564799f1",
+   "role": "Header-only makeKFolds and gridSearch1D, which TransformationModelLowess's automatic span selection calls; reproduced inside LowessModel::select_span rather than ported as a module (not in this lane's scope)."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationModel_test.cpp",
+   "sha256": "4fb131439805d0505dfb0f7138dae18f173995b66f37ab2d9e2227c3299915a8",
+   "role": "Oracle for check_valid_weight, weight_datum, unweight_datum, check_datum_range, ModelWeights and DataPoint ordering (tests/transformation_models.rs)."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationModelBSpline_test.cpp",
+   "sha256": "df3973b40266c3d496ee7490eeb9b184b9da6806cdd41127e44ea3b22adbaa9d",
+   "role": "Oracle for the 41 b_spline predictions and the three extrapolation pairs; its x[]/y[] arrays are byte-identical to the LOWESS test's, so tests/data/transformations_lowess_input.tsv is reused."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationModelInterpolated_test.cpp",
+   "sha256": "48f2e9a25047274254ce8bb9d115aa5c2baa125fc6c556cedfa99d6713f3ff60",
+   "role": "Oracle for akima against the GSL table's third column and for the defaults and extrapolation through Param."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationModelLowess_test.cpp",
+   "sha256": "d5a7683fcd77a15915eb98e39da27789fdf894b369dd3f88b8b427c0bad023ca",
+   "role": "Oracle for the Param route of the sine predictions, getParameters and the auto-span tie section (added since the 7c029e8 fixtures were extracted)."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationModelDefaults_test.cpp",
+   "sha256": "e49b85161a6e3f54784e7df2f527ab184c43347a6306d7ad52179ecc5815678b",
+   "role": "Oracle for transformation_model_defaults; its second section needs MapAlignmentAlgorithmTreeGuided and is not run."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationDescription_test.cpp",
+   "sha256": "95a3f00ffd4ffcd566be6aea6f2de4d7bae470b0e6082725a5a4279e983153a5",
+   "role": "Oracle for fitModel by name (linear, b_spline, lowess, identity), getModelParameters, getModelTypes and the exact printSummary text."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/transformations_interpolation_input.tsv",
+   "source_path": "src/tests/class_tests/openms/data/TransformationModelInterpolated_base_data.txt",
+   "sha256": "7ebe1395abb3c401a361f3ae322a38a1ce2db54cb43c2389b4b4d5e93cb8a18e",
+   "role": "Existing byte-for-byte copy (tests/data/transformations_provenance.json); unchanged at bc9cc12."
+  },
+  {
+   "path": "tests/data/transformations_interpolation_golden.tsv",
+   "source_path": "src/tests/class_tests/openms/data/TransformationModelInterpolated_gsl_data.txt",
+   "sha256": "7312be97370c97bf89b3fea3113047e4198bd2bcf79802f8fbe08e1b5163911c",
+   "role": "Existing byte-for-byte copy; unchanged at bc9cc12. Column 3 (akima) is now asserted too."
+  },
+  {
+   "path": "tests/data/transformations_lowess_input.tsv",
+   "sha256": "506e6f0741ac44187493b1f424ffc68b7b6b1c23df9cef39848fbf621ee618dd",
+   "role": "Existing extraction of the sine x[]/y[] literals, shared by the B-spline test."
+  },
+  {
+   "path": "tests/data/transformations_lowess_golden.tsv",
+   "sha256": "d5ee5c3adfb046faaafb063469d3647ed9cfb64b3a3906ba63af906eb525b722",
+   "role": "Existing extraction of pred_low[]."
+  }
+ ],
+ "external_sources_read": [
+  {
+   "path": "src/openms/extern/GTE/Mathematics/IntpAkima1.h",
+   "sha256": "ca3108755a2ce5e2c974ba104ac98c566ff06d120a060947471310b3309847ff",
+   "role": "Vendored Geometric Tools Engine (Boost Software License 1.0) read at the pin; ComputeDerivative and the clamped evaluation ported in src/analysis/transformations/akima.rs."
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/IntpAkimaNonuniform1.h",
+   "sha256": "1ca66baaf60334264153bbe470cf5d6395c2a197f92861f126add5d0c2c2df8d",
+   "role": "The slope padding, the cubic pieces and Lookup, ported operation for operation."
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/transformations.rs",
+  "src/analysis/transformations/params.rs",
+  "src/analysis/transformations/b_spline.rs",
+  "src/analysis/transformations/akima.rs",
+  "src/analysis/transformations/lowess.rs",
+  "src/format/transformation_xml.rs"
+ ],
+ "native_tests": [
+  "tests/transformation_models.rs",
+  "tests/transformations.rs",
+  "tests/transformation_xml.rs",
+  "tests/map_alignment_oracle.rs"
+ ],
+ "support_document": "docs/TRANSFORMATIONS_SUPPORT.md",
+ "notes": "Class-test comparisons follow ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364); printSummary and the parameter layouts are compared exactly. The executed-oracle comparison and its artifacts are recorded in tests/data/map_alignment_provenance.json."
+}
