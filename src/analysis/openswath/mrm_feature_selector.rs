@@ -286,8 +286,11 @@ pub trait LpSolver {
 ///
 /// These are the programs of [`MRMFeatureSelectorScore`]. For such a program
 /// the continuous and the integer optimum coincide. When several columns of a
-/// row have the same smallest objective the **first** is chosen; the source
-/// leaves that choice to GLPK's pivoting, which this does not reproduce.
+/// row have the same smallest objective the **last** is chosen: the source
+/// leaves that choice to the solver's pivoting, and the Release build's GLPK
+/// was measured to take the last of two and of three tied columns on the
+/// upstream data (`tests/mrm_oracle.rs`, seven parameter sets). That is an
+/// observation about one solver, not a guarantee.
 /// A program of any other shape is refused with [`Error::Unsupported`].
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct PartitionSolver;
@@ -337,7 +340,7 @@ impl LpSolver for PartitionSolver {
             for &c in &row.indices {
                 let better = match best {
                     None => true,
-                    Some(b) => problem.columns[c].objective < problem.columns[b].objective,
+                    Some(b) => problem.columns[c].objective <= problem.columns[b].objective,
                 };
                 if better {
                     best = Some(c);
