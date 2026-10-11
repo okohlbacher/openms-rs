@@ -24,3 +24,9 @@ pub use crate::system::file::{
     CopyOptions, TempDir, absolute_path, copy_dir_recursively, exists, is_directory, make_dir,
     remove, remove_dir_recursively, rename,
 };
+
+/// The free system memory in KiB (`SysInfo::getFreeSystemMemory`), re-exported
+/// for the OpenSWATH workflow scheduler, which sizes its waves and write
+/// buffers from it and reaches `system` through this layer for the same reason
+/// as the file operations above.
+pub use crate::system::sys_info::free_system_memory;

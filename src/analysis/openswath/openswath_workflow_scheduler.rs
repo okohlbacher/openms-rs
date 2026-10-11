@@ -43,28 +43,14 @@ use std::sync::{Condvar, Mutex};
 /// The free system memory in KiB, or `None` when the platform does not report
 /// it here.
 ///
-/// Linux reads `MemAvailable` of `/proc/meminfo`, falling back to `MemFree`
-/// (the source's own primary path); other platforms report nothing, as
-/// `system::sys_info::free_system_memory` does. That function is the same query:
-/// this module cannot import it, since a dependency of `analysis` on `system`
-/// would close the cycle `analysis` - `system` - `format` - `analysis`
-/// (`tools/check_module_cycles.py`).
+/// This is `system::sys_info::free_system_memory`, reached through
+/// [`crate::format::container_io`] because a direct dependency of `analysis` on
+/// `system` would close the cycle `analysis` - `system` - `format` -
+/// `analysis` (`tools/check_module_cycles.py`). Linux reads `MemAvailable` of
+/// `/proc/meminfo`, falling back to `MemFree` (the source's own primary path);
+/// other platforms report nothing.
 pub fn free_memory_kib() -> Option<u64> {
-    #[cfg(target_os = "linux")]
-    {
-        let text = std::fs::read_to_string("/proc/meminfo").ok()?;
-        let field = |key: &str| {
-            text.lines().find_map(|line| {
-                let rest = line.strip_prefix(key)?;
-                rest.split_whitespace().next()?.parse::<u64>().ok()
-            })
-        };
-        field("MemAvailable:").or_else(|| field("MemFree:"))
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        None
-    }
+    crate::format::container_io::free_system_memory()
 }
 
 const GIB: u64 = 1024 * 1024 * 1024;
