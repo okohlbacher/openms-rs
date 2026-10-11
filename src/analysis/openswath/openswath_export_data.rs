@@ -28,6 +28,17 @@
 //! assert_eq!(row.charge, 0);
 //! assert_eq!(OpenSwathMatrixLevel::default().as_str(), "peptide");
 //! ```
+//!
+//! [`OpenSwathExportFileFormat`]: crate::analysis::openswath::openswath_export_data::OpenSwathExportFileFormat
+//! [`OpenSwathIPFExportMode`]: crate::analysis::openswath::openswath_export_data::OpenSwathIPFExportMode
+//! [`OpenSwathMatrixLevel`]: crate::analysis::openswath::openswath_export_data::OpenSwathMatrixLevel
+//! [`OpenSwathMatrixNormalization`]: crate::analysis::openswath::openswath_export_data::OpenSwathMatrixNormalization
+//! [`OpenSwathExportRow`]: crate::analysis::openswath::openswath_export_data::OpenSwathExportRow
+//! [`OpenSwathFeatureScoreRow`]: crate::analysis::openswath::openswath_export_data::OpenSwathFeatureScoreRow
+//! [`OpenSwathFeatureScoreTable`]: crate::analysis::openswath::openswath_export_data::OpenSwathFeatureScoreTable
+//! [`OpenSwathTransitionScoreRow`]: crate::analysis::openswath::openswath_export_data::OpenSwathTransitionScoreRow
+//! [`OpenSwathTransitionScoreTable`]: crate::analysis::openswath::openswath_export_data::OpenSwathTransitionScoreTable
+//! [`OpenSwathQuantMatrix`]: crate::analysis::openswath::openswath_export_data::OpenSwathQuantMatrix
 
 use std::fmt;
 

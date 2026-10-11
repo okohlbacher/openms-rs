@@ -16,7 +16,7 @@
 //!    [`select_swath_transitions`](crate::analysis::openswath::openswath_helper::select_swath_transitions)
 //!    (or the best-matching window for PRM and diaPASEF data);
 //! 3. extract the chromatograms of each batch of compounds
-//!    ([`prepare_extraction_coordinates`](OpenSwathWorkflowBase::prepare_extraction_coordinates),
+//!    ([`prepare_extraction_coordinates`](crate::analysis::openswath::openswath_workflow::OpenSwathWorkflowBase::prepare_extraction_coordinates),
 //!    [`ChromatogramExtractor`], [`return_chromatogram`]);
 //! 4. score them ([`OpenSwathWorkflow::score_all_chromatograms`]) with the
 //!    transition group picker and [`MRMFeatureFinderScoring`];
@@ -74,6 +74,18 @@
 //! let params = ChromExtractParams::default();
 //! assert_eq!(params.rt_extraction_window, 0.0);
 //! ```
+//!
+//! [`OpenSwathWorkflow::perform_extraction`]: crate::analysis::openswath::openswath_workflow::OpenSwathWorkflow::perform_extraction
+//! [`SwathMap`]: crate::analysis::openswath::swath_map::SwathMap
+//! [`OpenSwathWorkflowBase::ms1_extraction`]: crate::analysis::openswath::openswath_workflow::OpenSwathWorkflowBase::ms1_extraction
+//! [`ChromatogramExtractor`]: crate::analysis::openswath::chromatogram_extractor::ChromatogramExtractor
+//! [`return_chromatogram`]: crate::analysis::openswath::chromatogram_extractor::return_chromatogram
+//! [`OpenSwathWorkflow::score_all_chromatograms`]: crate::analysis::openswath::openswath_workflow::OpenSwathWorkflow::score_all_chromatograms
+//! [`MRMFeatureFinderScoring`]: crate::analysis::openswath::mrm_feature_finder_scoring::MRMFeatureFinderScoring
+//! [`OpenSwathWorkflow::set_threads`]: crate::analysis::openswath::openswath_workflow::OpenSwathWorkflow::set_threads
+//! [`OpenSwathWorkflow::set_unique_id_generator`]: crate::analysis::openswath::openswath_workflow::OpenSwathWorkflow::set_unique_id_generator
+//! [`OpenSwathWorkflow::take_log`]: crate::analysis::openswath::openswath_workflow::OpenSwathWorkflow::take_log
+//! [`ChromatogramHandler`]: crate::analysis::openswath::openswath_workflow::ChromatogramHandler
 
 use super::chromatogram_extractor::{
     ChromatogramExtractor, prepare_coordinates, return_chromatogram,
@@ -314,7 +326,7 @@ impl OpenSwathWorkflowBase {
     /// # Errors
     ///
     /// The errors of
-    /// [`prepare_coordinates`](super::chromatogram_extractor::prepare_coordinates)
+    /// [`prepare_coordinates`]
     /// and of the transformation.
     pub fn prepare_extraction_coordinates(
         &self,

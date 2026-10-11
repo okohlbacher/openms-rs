@@ -41,6 +41,12 @@
 //! assert_eq!(fields[3], "7777");
 //! assert_eq!(fields[14], "120.5");
 //! ```
+//!
+//! [`OpenSwathResultsExporter::write`]: crate::analysis::openswath::openswath_results_exporter::OpenSwathResultsExporter::write
+//! [`OpenSwathExportRow`]: crate::analysis::openswath::openswath_export_data::OpenSwathExportRow
+//! [`OpenSwathResultsExporter::table`]: crate::analysis::openswath::openswath_results_exporter::OpenSwathResultsExporter::table
+//! [`ExportTable`]: crate::analysis::openswath::openswath_results_exporter::ExportTable
+//! [`OpenSwathExportFileFormat::Parquet`]: crate::analysis::openswath::openswath_export_data::OpenSwathExportFileFormat::Parquet
 
 use super::openswath_export_config::OpenSwathResultsExportConfig;
 use super::openswath_export_data::{OpenSwathExportFileFormat, OpenSwathExportRow};

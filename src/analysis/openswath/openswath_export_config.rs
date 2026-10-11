@@ -23,6 +23,11 @@
 //! assert!(config.consistent_top);
 //! assert_eq!(config.filters.max_rs_peakgroup_qvalue, 0.05);
 //! ```
+//!
+//! [`OpenSwathExportFilterConfig`]: crate::analysis::openswath::openswath_export_config::OpenSwathExportFilterConfig
+//! [`OpenSwathResultsExportConfig`]: crate::analysis::openswath::openswath_export_config::OpenSwathResultsExportConfig
+//! [`OpenSwathMatrixExportConfig`]: crate::analysis::openswath::openswath_export_config::OpenSwathMatrixExportConfig
+//! [`OpenSwathParquetExportConfig`]: crate::analysis::openswath::openswath_export_config::OpenSwathParquetExportConfig
 
 use super::openswath_export_data::{
     OpenSwathExportFileFormat, OpenSwathIPFExportMode, OpenSwathMatrixLevel,

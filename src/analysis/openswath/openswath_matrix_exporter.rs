@@ -14,7 +14,7 @@
 //!
 //! As for the results exporter, the Parquet arm of the source needs the
 //! `FORMAT/ParquetFile.h` port; [`OpenSwathMatrixExporter::table`] returns the
-//! typed columns it will write and [`write_matrix`](OpenSwathMatrixExporter::write_matrix)
+//! typed columns it will write and [`write_matrix`](crate::analysis::openswath::openswath_matrix_exporter::OpenSwathMatrixExporter::write_matrix)
 //! with [`OpenSwathExportFileFormat::Parquet`] returns
 //! [`Error::Unsupported`] after the checks of the source.
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_EXPORT_SUPPORT.md).
@@ -54,6 +54,12 @@
 //! assert_eq!(matrix.sample_column_names, ["runA", "runB"]);
 //! assert_eq!(matrix.values, [[Some(1000.0), Some(2000.0)]]);
 //! ```
+//!
+//! [`OpenSwathMatrixExporter::build_matrix`]: crate::analysis::openswath::openswath_matrix_exporter::OpenSwathMatrixExporter::build_matrix
+//! [`OpenSwathMatrixExporter::write_matrix`]: crate::analysis::openswath::openswath_matrix_exporter::OpenSwathMatrixExporter::write_matrix
+//! [`OpenSwathMatrixExporter::table`]: crate::analysis::openswath::openswath_matrix_exporter::OpenSwathMatrixExporter::table
+//! [`OpenSwathExportFileFormat::Parquet`]: crate::analysis::openswath::openswath_export_data::OpenSwathExportFileFormat::Parquet
+//! [`Error::Unsupported`]: crate::Error::Unsupported
 
 use super::openswath_export_config::OpenSwathMatrixExportConfig;
 use super::openswath_export_data::{

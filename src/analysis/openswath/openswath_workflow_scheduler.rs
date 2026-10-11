@@ -30,6 +30,12 @@
 //!     5000
 //! );
 //! ```
+//!
+//! [`OpenSwathWorkflowScheduler::estimate_concurrency`]: crate::analysis::openswath::openswath_workflow_scheduler::OpenSwathWorkflowScheduler::estimate_concurrency
+//! [`OpenSwathWorkflowScheduler::plan_waves`]: crate::analysis::openswath::openswath_workflow_scheduler::OpenSwathWorkflowScheduler::plan_waves
+//! [`OpenSwathWorkflowScheduler::choose_inner_batch_size`]: crate::analysis::openswath::openswath_workflow_scheduler::OpenSwathWorkflowScheduler::choose_inner_batch_size
+//! [`ConcurrencyLimiter`]: crate::analysis::openswath::openswath_workflow_scheduler::ConcurrencyLimiter
+//! [`ScopedSlot`]: crate::analysis::openswath::openswath_workflow_scheduler::ScopedSlot
 
 use super::swath_map::SwathMap;
 use std::sync::{Condvar, Mutex};

@@ -14,10 +14,10 @@
 //! transition library format; see the support document.
 //!
 //! The row preparation is pure Rust and always present. The members that
-//! touch the database ([`write_header`](OpenSwathOSWWriter::write_header),
-//! [`add_run`](OpenSwathOSWWriter::add_run),
-//! [`write_rows`](OpenSwathOSWWriter::write_rows),
-//! [`write_lines`](OpenSwathOSWWriter::write_lines)) need the `sqlite` feature
+//! touch the database ([`write_header`](crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter::write_header),
+//! [`add_run`](crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter::add_run),
+//! [`write_rows`](crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter::write_rows),
+//! [`write_lines`](crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter::write_lines)) need the `sqlite` feature
 //! and return [`Error::Unsupported`](crate::Error::Unsupported) without it, so
 //! the workflow that drives the writer compiles either way.
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_OSW_WRITER_SUPPORT.md).
@@ -33,6 +33,12 @@
 //! assert_eq!(OswValue::parse("NaN"), OswValue::Null);
 //! assert_eq!(OswValue::parse("NIAGGLEK_2"), OswValue::Text("NIAGGLEK_2".into()));
 //! ```
+//!
+//! [`OpenSwathOSWWriter`]: crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter
+//! [`OswData`]: crate::analysis::openswath::openswath_osw_writer::OswData
+//! [`OswValue`]: crate::analysis::openswath::openswath_osw_writer::OswValue
+//! [`OpenSwathOSWWriter::prepare_rows`]: crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter::prepare_rows
+//! [`OpenSwathOSWWriter::write_rows`]: crate::analysis::openswath::openswath_osw_writer::OpenSwathOSWWriter::write_rows
 
 use super::mrm_feature_support::data_value_to_string;
 use super::transition_experiment::{LightCompound, LightTransition};
