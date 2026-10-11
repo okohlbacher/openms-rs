@@ -2352,3 +2352,112 @@ fn swath_map_mass_correction_correct_im_class_test() {
     real_similar(trafo.apply(20.0).unwrap(), 10.089552238806);
     real_similar(trafo.apply(30.0).unwrap(), 19.3432835820896);
 }
+
+// ---------------------------------------------------------------------------
+// return_chromatogram over the heavyweight TargetedExperiment (group O
+// integration)
+// ---------------------------------------------------------------------------
+
+/// `ChromatogramExtractor_input.TraML` through the ported `TraMLFile` and
+/// `convertTargetedExp` is the experiment this file transcribed before either
+/// existed, and `return_chromatogram<TargetedExperiment>` annotates exactly
+/// what `return_chromatogram<LightTargetedExperiment>` does for it, MS2 and MS1.
+#[cfg(all(feature = "mzml", feature = "traml"))]
+#[test]
+fn return_chromatogram_for_the_targeted_experiment_matches_the_light_instantiation() {
+    use openms::analysis::openswath::data_access_helper::convert_targeted_exp;
+    let heavy = openms::format::traml::load(data(
+        "openswath_extraction_ChromatogramExtractor_input.TraML",
+    ))
+    .unwrap();
+    let converted = convert_targeted_exp(&heavy).unwrap();
+    let transcribed = traml_light_experiment();
+    assert_eq!(converted.compounds().len(), transcribed.compounds().len());
+    for (got, want) in converted.compounds().iter().zip(transcribed.compounds()) {
+        assert_eq!(got.id, want.id);
+        assert_eq!(got.sequence, want.sequence);
+        assert_eq!(got.rt, want.rt);
+    }
+    assert_eq!(
+        converted.transitions().len(),
+        transcribed.transitions().len()
+    );
+    for (got, want) in converted
+        .transitions()
+        .iter()
+        .zip(transcribed.transitions())
+    {
+        assert_eq!(got.transition_name, want.transition_name);
+        assert_eq!(got.peptide_ref, want.peptide_ref);
+        assert_eq!(got.precursor_mz, want.precursor_mz);
+        assert_eq!(got.product_mz, want.product_mz);
+        assert_eq!(got.library_intensity, want.library_intensity);
+    }
+
+    let bytes = std::fs::read(data(
+        "openswath_extraction_ChromatogramExtractor_input.mzML",
+    ))
+    .unwrap();
+    let exp = Arc::new(openms::format::mzml::read(bytes.as_slice()).unwrap());
+    let input = SpectrumAccessOpenMS::new(Arc::clone(&exp));
+    for (ms1, isotopes, im_width) in [(false, 0, 0.0), (true, 1, 0.2)] {
+        let mut output = Vec::new();
+        let mut coords = Vec::new();
+        prepare_coordinates(&mut output, &mut coords, &converted, -1.0, ms1, isotopes).unwrap();
+        if ms1 {
+            coords[0].ion_mobility = 0.9;
+        } else {
+            ChromatogramExtractor::new()
+                .extract_chromatograms(&input, &mut output, &coords, 0.05, false, "tophat")
+                .unwrap();
+        }
+        let mut from_light = Vec::new();
+        return_chromatogram(
+            &output,
+            &coords,
+            &converted,
+            &exp.spectra[0],
+            &mut from_light,
+            ms1,
+            im_width,
+        )
+        .unwrap();
+        let mut from_heavy = Vec::new();
+        return_chromatogram(
+            &output,
+            &coords,
+            &heavy,
+            &exp.spectra[0],
+            &mut from_heavy,
+            ms1,
+            im_width,
+        )
+        .unwrap();
+        assert!(!from_heavy.is_empty());
+        assert_eq!(from_heavy, from_light, "ms1 = {ms1}");
+    }
+
+    // Derived from `extract_id_<TargetedExperiment>`: an id that is neither a
+    // peptide nor a compound annotates the empty sequence and charge 0, where
+    // the light instantiation dereferences a missing compound.
+    let mut coord = coord(500.0, 0.0, 1.0, "tr1_Precursor_i0", -1.0);
+    coord.mz_precursor = 500.0;
+    let mut stray = heavy.clone();
+    stray.set_peptides(Vec::new());
+    let mut out = Vec::new();
+    return_chromatogram(
+        &[Chromatogram::new()],
+        std::slice::from_ref(&coord),
+        &stray,
+        &exp.spectra[0],
+        &mut out,
+        true,
+        0.0,
+    )
+    .unwrap();
+    assert_eq!(
+        out[0].precursor.cv_terms.metadata["peptide_sequence"],
+        MetaValue::from("")
+    );
+    assert_eq!(out[0].precursor.charge, 0);
+}

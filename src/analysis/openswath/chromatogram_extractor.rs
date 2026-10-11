@@ -31,6 +31,7 @@ use super::data_access_helper::convert_to_openms_chromatogram;
 use super::data_structures::Chromatogram;
 use super::openswath_helper::{compute_precursor_id, compute_transition_group_id};
 use super::spectrum_access::SpectrumAccess;
+use super::targeted_experiment::TargetedExperiment;
 use super::transition_experiment::{LightCompound, LightTargetedExperiment, LightTransition};
 use crate::constants::C13C12_MASSDIFF_U;
 use crate::kernel::{MSChromatogram, MSSpectrum, Precursor};
@@ -295,23 +296,103 @@ pub fn prepare_coordinates(
     Ok(())
 }
 
-/// The id (peptide sequence, else compound name) and charge of compound
-/// `id`, source `extract_id_<LightTargetedExperiment>`.
-fn extract_id(exp: &LightTargetedExperiment, id: &str) -> Result<(String, i32)> {
-    let comp = exp.compound_by_ref(id).ok_or_else(|| {
-        Error::MissingInformation(format!(
-            "compound '{id}' is not part of the targeted experiment"
-        ))
-    })?;
-    // An empty sequence falls through to the compound name, which may itself
-    // be empty (iRT calibration peptides); consumers expect an empty
-    // peptide_sequence then.
-    let name = if comp.sequence.is_empty() {
-        comp.compound_name.clone()
-    } else {
-        comp.sequence.clone()
-    };
-    Ok((name, comp.charge))
+/// What [`return_chromatogram`] reads of one transition: the same four
+/// accessors both transition types of the source template provide.
+#[derive(Clone, Copy, Debug)]
+pub struct TransitionSummary<'a> {
+    /// `getNativeID()`.
+    pub native_id: &'a str,
+    /// `getPrecursorMZ()`.
+    pub precursor_mz: f64,
+    /// `getProductMZ()`.
+    pub product_mz: f64,
+    /// `getPeptideRef()`.
+    pub peptide_ref: &'a str,
+    /// `getCompoundRef()`.
+    pub compound_ref: &'a str,
+}
+
+/// The transition lists `return_chromatogram` is instantiated for: the light
+/// experiment and the heavyweight [`TargetedExperiment`] (the source's
+/// `TransitionExpT` template parameter and its two `extract_id_`
+/// specialisations).
+pub trait ChromatogramAnnotationSource {
+    /// The transitions, in list order.
+    fn transition_summaries(&self) -> Vec<TransitionSummary<'_>>;
+
+    /// The sequence (or compound name) and the charge to annotate for the
+    /// compound or peptide `id`, the source's `extract_id_`.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::MissingInformation`] where the source dereferences a missing
+    /// compound (the light experiment).
+    fn extract_id(&self, id: &str) -> Result<(String, i32)>;
+}
+
+impl ChromatogramAnnotationSource for LightTargetedExperiment {
+    fn transition_summaries(&self) -> Vec<TransitionSummary<'_>> {
+        self.transitions()
+            .iter()
+            .map(|t| TransitionSummary {
+                native_id: t.native_id(),
+                precursor_mz: t.precursor_mz(),
+                product_mz: t.product_mz(),
+                peptide_ref: t.peptide_ref(),
+                compound_ref: t.compound_ref(),
+            })
+            .collect()
+    }
+
+    /// The id (peptide sequence, else compound name) and charge of compound
+    /// `id`, source `extract_id_<LightTargetedExperiment>`.
+    fn extract_id(&self, id: &str) -> Result<(String, i32)> {
+        let comp = self.compound_by_ref(id).ok_or_else(|| {
+            Error::MissingInformation(format!(
+                "compound '{id}' is not part of the targeted experiment"
+            ))
+        })?;
+        // An empty sequence falls through to the compound name, which may
+        // itself be empty (iRT calibration peptides); consumers expect an empty
+        // peptide_sequence then.
+        let name = if comp.sequence.is_empty() {
+            comp.compound_name.clone()
+        } else {
+            comp.sequence.clone()
+        };
+        Ok((name, comp.charge))
+    }
+}
+
+impl ChromatogramAnnotationSource for TargetedExperiment {
+    fn transition_summaries(&self) -> Vec<TransitionSummary<'_>> {
+        self.transitions()
+            .iter()
+            .map(|t| TransitionSummary {
+                native_id: t.native_id(),
+                precursor_mz: t.precursor_mz(),
+                product_mz: t.product_mz(),
+                peptide_ref: t.peptide_ref(),
+                compound_ref: t.compound_ref(),
+            })
+            .collect()
+    }
+
+    /// Source `extract_id_<TargetedExperiment>`: a peptide id gives the
+    /// peptide's sequence and its charge when it has one, else a compound id
+    /// gives the compound's *id* and its charge when it has one, and an
+    /// unknown id gives the empty string and charge 0.
+    fn extract_id(&self, id: &str) -> Result<(String, i32)> {
+        if let Ok(peptide) = self.peptide_by_ref(id) {
+            let charge = peptide.base.charge_state().unwrap_or(0);
+            return Ok((peptide.sequence.clone(), charge));
+        }
+        if let Ok(compound) = self.compound_by_ref(id) {
+            let charge = compound.base.charge_state().unwrap_or(0);
+            return Ok((compound.id.clone(), charge));
+        }
+        Ok((String::new(), 0))
+    }
 }
 
 /// Convert light chromatograms into annotated [`MSChromatogram`]s and append
@@ -355,10 +436,10 @@ fn extract_id(exp: &LightTargetedExperiment, id: &str) -> Result<(String, i32)> 
 /// - [`Error::MissingInformation`] when an MS2 coordinate id names no
 ///   transition, or a compound reference names no compound; the source
 ///   dereferences a null pointer in both cases.
-pub fn return_chromatogram(
+pub fn return_chromatogram<E: ChromatogramAnnotationSource>(
     chromatograms: &[Chromatogram],
     coordinates: &[ExtractionCoordinates],
-    transition_exp_used: &LightTargetedExperiment,
+    transition_exp_used: &E,
     settings: &MSSpectrum,
     output_chromatograms: &mut Vec<MSChromatogram>,
     ms1: bool,
@@ -371,9 +452,9 @@ pub fn return_chromatogram(
             coordinates.len()
         )));
     }
-    let mut trans_map: HashMap<&str, &LightTransition> = HashMap::new();
-    for transition in transition_exp_used.transitions() {
-        trans_map.insert(transition.native_id(), transition);
+    let mut trans_map: HashMap<&str, TransitionSummary<'_>> = HashMap::new();
+    for transition in transition_exp_used.transition_summaries() {
+        trans_map.insert(transition.native_id, transition);
     }
     let data_processing: Vec<Arc<crate::metadata::DataProcessing>> = settings
         .data_processing
@@ -399,7 +480,7 @@ pub fn return_chromatogram(
             chrom.chromatogram_type = ChromatogramType::BasePeak;
             let transition_group_id = compute_transition_group_id(&coord.id);
             if !transition_group_id.is_empty() {
-                let (name, charge) = extract_id(transition_exp_used, &transition_group_id)?;
+                let (name, charge) = transition_exp_used.extract_id(&transition_group_id)?;
                 prec.charge = charge;
                 prec.cv_terms
                     .metadata
@@ -412,22 +493,22 @@ pub fn return_chromatogram(
                     coord.id
                 ))
             })?;
-            prec.mz = transition.precursor_mz();
+            prec.mz = transition.precursor_mz;
             if let Some(first) = settings.precursors.first() {
                 prec.isolation_window_lower_offset = first.isolation_window_lower_offset;
                 prec.isolation_window_upper_offset = first.isolation_window_upper_offset;
             }
             chrom.product = Product {
-                mz: transition.product_mz(),
+                mz: transition.product_mz,
                 ..Product::default()
             };
             chrom.chromatogram_type = ChromatogramType::SelectedReactionMonitoring;
-            let reference = if transition.peptide_ref().is_empty() {
-                transition.compound_ref()
+            let reference = if transition.peptide_ref.is_empty() {
+                transition.compound_ref
             } else {
-                transition.peptide_ref()
+                transition.peptide_ref
             };
-            let (name, charge) = extract_id(transition_exp_used, reference)?;
+            let (name, charge) = transition_exp_used.extract_id(reference)?;
             prec.charge = charge;
             prec.cv_terms
                 .metadata

@@ -107,6 +107,11 @@
    "kind": "upstream class-test data, byte-identical copy at the core pin"
   },
   {
+    "path": "tests/data/openswath_extraction_ChromatogramExtractor_input.TraML",
+    "sha256": "8d2bb31638df9a67c78eb04f95f443b421a09c5b020b455f5b186c0e7f4bc64c",
+    "origin": "src/tests/class_tests/openms/data/ChromatogramExtractor_input.TraML at core bc9cc12"
+  },
+  {
    "path": "tests/data/openswath_extraction_oracle.tsv",
    "sha256": "578c1ebb89638649b101d5a44ee67676b55196c96714ba63d3329c3f822e5ff6",
    "rows": 525,

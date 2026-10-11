@@ -11,7 +11,7 @@ The data types these ports build on (`SpectrumAccess`, light `Spectrum`/`Chromat
 | Header | Rust | Status |
 |---|---|---|
 | `ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h` | `chromatogram_extractor_algorithm.rs` | complete |
-| `ANALYSIS/OPENSWATH/ChromatogramExtractor.h` | `chromatogram_extractor.rs` | partial: `return_chromatogram<TargetedExperiment>` |
+| `ANALYSIS/OPENSWATH/ChromatogramExtractor.h` | `chromatogram_extractor.rs` | complete (`return_chromatogram<TargetedExperiment>` ported at group O integration; the private members no public member calls are not ported) |
 | `ANALYSIS/OPENSWATH/PeakMapExtractor.h` | `peak_map_extractor.rs` | complete |
 | `ANALYSIS/OPENSWATH/SwathWindowLoader.h` | `swath_window_loader.rs` | complete |
 | `ANALYSIS/OPENSWATH/SwathQC.h` | `swath_qc.rs` | complete |
@@ -44,9 +44,9 @@ The data types these ports build on (`SpectrumAccess`, light `Spectrum`/`Chromat
 | `extractChromatograms` (7 args) | `ChromatogramExtractor::extract_chromatograms_im` |
 | static `prepare_coordinates(output, coords, LightTargetedExperiment, rt_window, ms1 = false, ms1_isotopes = 0)` | free fn `prepare_coordinates(&mut Vec<Chromatogram>, &mut Vec<ExtractionCoordinates>, &LightTargetedExperiment, f64, bool, i32) -> Result<()>` |
 | static template `return_chromatogram<LightTargetedExperiment>` (also `const`) | free fn `return_chromatogram(.., settings: &MSSpectrum, &mut Vec<MSChromatogram>, ms1, im_extraction_width) -> Result<()>` |
-| static template `return_chromatogram<TargetedExperiment>` | **not ported**: the heavyweight `ANALYSIS/TARGETED/TargetedExperiment` is not ported |
+| static template `return_chromatogram<TargetedExperiment>` | the same `return_chromatogram`, generic over `ChromatogramAnnotationSource` (implemented for `LightTargetedExperiment` and `TargetedExperiment`); group O integration |
 | private `extract_id_<LightTargetedExperiment>` (+ `const`) | private `extract_id` |
-| private `extract_id_<TargetedExperiment>` | not ported (heavyweight `TargetedExperiment`) |
+| private `extract_id_<TargetedExperiment>` | `ChromatogramAnnotationSource::extract_id` for `TargetedExperiment`: a peptide gives its sequence and charge, else a compound its id and charge, else `""` and 0 |
 | private `prepareSpectra_`, `outsideExtractionWindow_`, `getFilterNr_`, `populatePeptideRTMap_`, `PeptideRTMap_` | not ported: private, and no public member of the pinned source calls them (the source marks three "TODO deprecate") |
 | file-local `populateMS1Transition`, `populateMS2Transition` | inlined in `prepare_coordinates` |
 | — | `MAX_COORDINATES` |
@@ -209,8 +209,10 @@ The data types these ports build on (`SpectrumAccess`, light `Spectrum`/`Chromat
 - None for `SwathMapMassCorrection.h`: `correctMZ` / `correctIM` were ported at group O integration
   once `OpenSwathScoring::fetchSpectrumSwath`, `DIAHelpers`, `LinearRegression` and
   `QuadraticRegression` were in the tree.
-- `ChromatogramExtractor::return_chromatogram<TargetedExperiment>` needs
-  `ANALYSIS/TARGETED/TargetedExperiment.h`.
-- The class tests load `ChromatogramExtractor_input.TraML` through `TraMLFile` and
-  `OpenSwathDataAccessHelper::convertTargetedExp`; neither is ported, so the tests transcribe the
-  converted experiment (checked against the oracle's print of it).
+- None for `ChromatogramExtractor.h`: `return_chromatogram<TargetedExperiment>` was ported at group O
+  integration (`return_chromatogram_for_the_targeted_experiment_matches_the_light_instantiation`,
+  which also loads `ChromatogramExtractor_input.TraML` through the ported `TraMLFile` and
+  `convertTargetedExp` and checks it against the experiment the other tests transcribe). The
+  upstream class test converts to the light experiment itself since issue #7284 removed the heavy
+  `prepare_coordinates`, so the heavy instantiation has no upstream test; its evidence is tier 4,
+  by equality with the oracle-checked light instantiation.
