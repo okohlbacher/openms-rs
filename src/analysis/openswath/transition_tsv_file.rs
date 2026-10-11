@@ -64,9 +64,9 @@
 //! line, `endProgress` of the four conversions); the plain entry points report
 //! nothing, as a source object whose log type is `NONE`. The
 //! `OpenSwath::LightTargetedExperiment` members are
-//! [`TransitionTSVFile::read_light_targeted_experiment`] (with the streaming
+//! [`TransitionTSVFile::read_light_targeted_experiment`](crate::analysis::openswath::transition_tsv_file::TransitionTSVFile::read_light_targeted_experiment) (with the streaming
 //! `streamTSVToLightTargetedExperiment_` it wraps) and
-//! [`TransitionTSVFile::write_light_targeted_experiment`].
+//! [`TransitionTSVFile::write_light_targeted_experiment`](crate::analysis::openswath::transition_tsv_file::TransitionTSVFile::write_light_targeted_experiment).
 
 use crate::analysis::openswath::reaction_monitoring_transition::{
     DecoyTransitionType, ReactionMonitoringTransition,

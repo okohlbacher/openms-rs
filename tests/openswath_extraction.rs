@@ -2027,7 +2027,6 @@ fn smmc_swath(sptr: SpectrumAccessPtr, lower: f64, upper: f64, im: (f64, f64)) -
         im_lower: im.0,
         im_upper: im.1,
         ms1: false,
-        ..SwathMap::default()
     }
 }
 
@@ -2341,7 +2340,7 @@ fn swath_map_mass_correction_correct_im_class_test() {
         ms2_config(mc);
         mc.ms1_im_calibration = true;
     };
-    match correct(&ms1_config, &[ms1_map.clone()], false) {
+    match correct(&ms1_config, std::slice::from_ref(&ms1_map), false) {
         Err(Error::InvalidValue(message)) => assert!(message.starts_with("UnableToFit")),
         other => panic!("expected UnableToFit, got {other:?}"),
     }
