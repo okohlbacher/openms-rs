@@ -9,10 +9,10 @@
 //! `OpenSwathDataAccessHelper`, whose static members become free functions).
 //! See [the support document](https://github.com/OpenMS/OpenMS4-R/blob/main/docs/OPENSWATH_DATAACCESS_SUPPORT.md).
 //!
-//! Not ported yet, because they read the heavyweight
-//! `ANALYSIS/TARGETED/TargetedExperiment` and `TargetedExperimentHelper`, which
-//! the crate does not have: `convertTargetedExp`, both `convertTargetedCompound`
-//! overloads and `convertPeptideToAASequence`.
+//! `convertPeptideToAASequence` is [`convert_peptide_to_aa_sequence`](crate::analysis::openswath::data_access_helper::convert_peptide_to_aa_sequence), added
+//! with the OpenSWATH scoring port. Not ported yet, because they read the
+//! heavyweight `ANALYSIS/TARGETED/TargetedExperiment`: `convertTargetedExp` and
+//! both `convertTargetedCompound` overloads.
 //!
 //! # Lengths
 //!
@@ -21,6 +21,9 @@
 //! [`Error::InvalidValue`](crate::Error::InvalidValue) before modifying the destination.
 
 use super::data_structures::{Chromatogram, Spectrum};
+use super::targeted_experiment_helper::set_modification;
+use super::transition_experiment::LightCompound;
+use crate::chemistry::AASequence;
 use crate::kernel::{ChromatogramPeak, MSChromatogram, MSSpectrum, Peak1D};
 use crate::{Error, Result};
 
@@ -137,4 +140,40 @@ pub fn convert_to_openms_chromatogram_filter(
         chromatogram.peaks.push(ChromatogramPeak::new(t, i as f32));
     }
     Ok(chromatogram.peaks.len())
+}
+
+/// Convert a light peptide into an [`AASequence`] with its modifications
+/// (source `convertPeptideToAASequence`).
+///
+/// The sequence is parsed, then every modification with a UniMod id other
+/// than -1 is set as `UniMod:<id>` at its location (-1 the N-terminus, the
+/// sequence length the C-terminus), through
+/// [`set_modification`].
+///
+/// # Errors
+///
+/// [`Error::InvalidValue`] for a compound that is not a peptide (a debug-only
+/// precondition in the source), for a sequence longer than `i32::MAX`, and the
+/// errors of [`AASequence::parse`] and of `set_modification` (an unknown
+/// modification or a location out of range).
+pub fn convert_peptide_to_aa_sequence(peptide: &LightCompound) -> Result<AASequence> {
+    if !peptide.is_peptide() {
+        return Err(Error::InvalidValue(
+            "Function needs peptide, not metabolite".into(),
+        ));
+    }
+    let mut aa_sequence = AASequence::parse(&peptide.sequence)?;
+    let max_size = i32::try_from(peptide.sequence.len())
+        .map_err(|_| Error::InvalidValue("peptide sequence is too long".into()))?;
+    for modification in &peptide.modifications {
+        if modification.unimod_id != -1 {
+            set_modification(
+                modification.location,
+                max_size,
+                &format!("UniMod:{}", modification.unimod_id),
+                &mut aa_sequence,
+            )?;
+        }
+    }
+    Ok(aa_sequence)
 }
