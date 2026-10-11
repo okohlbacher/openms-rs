@@ -185,3 +185,5 @@ fn intensity(value: &str, line: usize) -> Result<f32> {
 fn single_line(value: &str) -> bool {
     !value.chars().any(char::is_control)
 }
+/// Fragment annotations from a SIRIUS project space (`SiriusFragmentAnnotation`).
+pub mod sirius_fragment_annotation;

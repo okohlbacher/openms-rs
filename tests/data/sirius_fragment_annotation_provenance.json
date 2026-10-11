@@ -1,0 +1,50 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "method": "Transcription of the upstream class test SiriusFragmentAnnotation_test.cpp over its SIRIUS project-space fixture (TEST_REAL_SIMILAR kept at its default 1e-5 relative tolerance), plus exact values read off the fixture files by hand and independently derived error cases from the source text.",
+ "evidence_tier": "Tier 3 (transcribed class-test literals) for target_annotations_match_class_test, exact_mass_annotations_match_class_test and decoy_annotations_match_class_test; tier 4 (values read off the fixture, source-derived behaviour) for the exact equalities in those tests and the remaining tests.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h",
+   "sha256": "5d94d798f098a91e7e248527bd6dfd5a539d28fc42981df586e7cf5531146402"
+  },
+  {
+   "path": "src/openms/source/FORMAT/DATAACCESS/SiriusFragmentAnnotation.cpp",
+   "sha256": "4a4585252421252f19a6a7aae889ced94e425647e172cbab499ce17a204968c0"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SiriusFragmentAnnotation_test.cpp",
+   "sha256": "c66166bd087eab553f077a7e13b4da794b1c739c1f1b1b6ceb8966f5ba35523d"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/SiriusFragmentAnnotation_test/spectrum.ms",
+   "sha256": "1d14ca9257d450259d739b198e8fb5f5f04967726e5b03aecbd0ed6b5b346ea3",
+   "role": "Class-test fixture: SIRIUS input with ##n_id, ##m_id and ##fid lines"
+  },
+  {
+   "path": "tests/data/SiriusFragmentAnnotation_test/formula_candidates.tsv",
+   "sha256": "7853cb8155cc0a7691cac972254ccd74541f8175ecf8ab22f02589bbbdcfbcbd",
+   "role": "Class-test fixture: one candidate formula, rank 1"
+  },
+  {
+   "path": "tests/data/SiriusFragmentAnnotation_test/spectra/C15H17ClN4_[M+H]+.tsv",
+   "sha256": "eb4eebf291e0b9941d3d5919c108419d2259d097765872c840c9626082afd8f2",
+   "role": "Class-test fixture: target fragment annotations"
+  },
+  {
+   "path": "tests/data/SiriusFragmentAnnotation_test/decoys/C15H17ClN4_[M+H]+.tsv",
+   "sha256": "d2a15534949f4135146facb61293048c404beb5c5b2dffc42c095934a9e12144",
+   "role": "Class-test fixture: decoy fragment annotations"
+  }
+ ],
+ "native_implementation": [
+  "src/format/sirius_fragment_annotation.rs"
+ ],
+ "native_tests": [
+  "tests/sirius_fragment_annotation.rs"
+ ],
+ "support_document": "docs/ID_MAPPER_SUPPORT.md"
+}

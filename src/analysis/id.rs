@@ -40,3 +40,9 @@ pub mod ascore;
 pub mod comet_modification;
 /// The Andromeda-style PScore and windowed peak ranks (`PScore.h`).
 pub mod pscore;
+/// Annotation of spectra, feature maps and consensus maps with peptide identifications (`IDMapper`).
+pub mod id_mapper;
+/// Ion Identity Molecular Networking annotations and the GNPS supplementary-pairs table.
+pub mod ion_identity_molecular_networking;
+/// Spectral-library search for metabolite MS2 spectra (`MetaboliteSpectralMatching`).
+pub mod metabolite_spectral_matching;

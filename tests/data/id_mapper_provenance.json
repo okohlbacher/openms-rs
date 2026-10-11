@@ -1,0 +1,248 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "method": "Library-level reproduction of the upstream IDMapper class test (in-memory literals transcribed; the consensusXML files the class test compares with TEST_FILE_SIMILAR are loaded and compared identification by identification: RT, m/z, hit sequences and charges, and the map_index, spectrum_index and spectrum_reference meta values) and of the six TOPP_IDMapper tests of test-data 0cb15f2 (topp/CMakeLists.txt: the add_test invocations are reproduced as IDMapper parameters plus the TOPP tool's own option defaults from topp 174b576 src/IDMapper.cpp - mz_reference defaults to 'peptide', feature:use_centroid_mz to 'true' - and the retained outputs are compared the same way; for consensus maps the tool's sortPeptideIdentificationsByMapIndex is applied). Run identifiers, dates and data-processing records are not compared: the C++ writer names runs and stamps dates itself, and the FuzzyDiff whitelist exempts them. Three reader defects (idXML/featureXML/consensusXML refuse the unset DateTime text, the flanking residue '*' and a repeated SearchParameters UserParam, all of which C++ reads) are worked around in memory by tests/id_mapper.rs::fixture_text; none of the rewritten fields reaches the mapping. The isobaric (TMT) branch, which no retained output exercises, was run through an executed C++ oracle (see external_reference_artifacts).",
+ "evidence_tier": "Tier 1 (retained C++ outputs: the class-test consensusXML expectations and the TOPP_IDMapper_1..6 outputs) for annotate_consensus_matches_class_test_outputs, annotate_consensus_unidentified_precursors_match_class_test_outputs and topp_idmapper_1..6; tier 1 (executed C++ oracle ../oracle/I4-idmapper-tmt, Release build on ibminode06) for isobaric_mapping_matches_cpp_oracle; tier 3 (transcribed class-test literals) for the parameter, absolute_mz_tolerance, is_match, annotate_spectra, annotate_features and charge-check tests; tier 4 (independently derived from the source text) for annotate_spectra_from_features_fills_coordinates, annotate_spectra_edge_cases, map_precursors_partitions_spectra, the atomicity and limit tests and the unit tests in src/analysis/id/id_mapper.rs.",
+ "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:2963-2992, the '# IDMapper tests' block (TOPP_IDMapper_1 .. TOPP_IDMapper_6_out1)",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IDMapper.h",
+   "sha256": "d91afe426a67669dff22d14925048de4f7fba99d7ad5052cd9edc30a24318847"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/IDMapper.cpp",
+   "sha256": "7f1f1f357a7389f3070bdbd6d7570b5ac128dc49712075d4a9b39ad60705b7bc"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IDMapper_test.cpp",
+   "sha256": "20da61706df8e7242a1f4fa04c2a1772b83e690b8aff2e8ff346457907041a40"
+  },
+  {
+   "path": "src/openms/include/OpenMS/METADATA/AnnotatedMSRun.h",
+   "sha256": "87a27d86683621ac46595c1f3adb76fb411af59f494d3d536abfd7377de86f70"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
+   "sha256": "380dbdff4c92a2f1bcceda2cb23ae4143193b5f7ba00ecafcff2c474c9acfcff"
+  },
+  {
+   "path": "src/openms/source/METADATA/SpectrumNativeIDParser.cpp",
+   "sha256": "a27025952c9d2e8bbdc535f96abd409b1d9e6c37bcc197a125e10661b142e49b"
+  },
+  {
+   "path": "src/openms/source/METADATA/PeptideIdentification.cpp",
+   "sha256": "7785010950d7a1c1d69c2fbbc56af0ab39078cac5103679f7a96a771df38137f"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/IDMapper_1.idXML",
+   "sha256": "ca572511951cc78fdb45832ec40994a77e0903eb99d640e2b0089f86cd7ffb2d",
+   "role": "Class test input: RT mapping to spectra (IDMapper_test.cpp:169)"
+  },
+  {
+   "path": "tests/data/IDMapper_7.idXML",
+   "sha256": "b3afe1591586bb8a79d4ebfda738b3d8c3b059b9fe8e2bdfd586e3acc9c5a6dc",
+   "role": "Class test input: native-ID mapping to spectra (IDMapper_test.cpp:174)"
+  },
+  {
+   "path": "tests/data/IDMapper_2.idXML",
+   "sha256": "24e43054b1cf4bc5aef3b1443b377c2c4f0edffca76dc70a98ebebeda3f8336a",
+   "role": "Class test input: feature-map mapping (IDMapper_test.cpp:293)"
+  },
+  {
+   "path": "tests/data/IDMapper_2.featureXML",
+   "sha256": "1d6e060b6643e3f42136e33146dd8ad7d54164b6f2447afc0b26c0df2f3a9f81",
+   "role": "Class test input: feature map with convex hulls (IDMapper_test.cpp:298)"
+  },
+  {
+   "path": "tests/data/IDMapper_4.idXML",
+   "sha256": "346a43238bd730879bedb96b021fa05f2655dcfd13ca6a16781c336bb908e0f3",
+   "role": "Class test input: ppm feature mapping (IDMapper_test.cpp:409)"
+  },
+  {
+   "path": "tests/data/IDMapper_4.featureXML",
+   "sha256": "2ef3aa32659db40bfbde6b3fddfe6bdfeff862af0c484134e6941bdb87afe3a8",
+   "role": "Class test input: ppm feature mapping (IDMapper_test.cpp:412)"
+  },
+  {
+   "path": "tests/data/IDMapper_3.idXML",
+   "sha256": "ca2e608e39d4cf9d64b97711f8b5c592c2cd6b8dea4ff5691e535643151d3838",
+   "role": "Class test input: consensus mapping (IDMapper_test.cpp:467)"
+  },
+  {
+   "path": "tests/data/IDMapper_3.consensusXML",
+   "sha256": "fa659c0484879c5a0243c8ffe680325e2e220ae2e45751904ef178e075e7e0f5",
+   "role": "Class test input: consensus map (IDMapper_test.cpp:476)"
+  },
+  {
+   "path": "tests/data/IDMapper_5.idXML",
+   "sha256": "b4b781f9a902613ea0cb258f677095bdf8af5b4d211bcae3c005f103352849de",
+   "role": "Class test input: subelement consensus mapping (IDMapper_test.cpp:468)"
+  },
+  {
+   "path": "tests/data/IDMapper_5.consensusXML",
+   "sha256": "41bc24259891393c224246516c8ffad5529f408734711da99eb3a78d3e5cd9e3",
+   "role": "Class test input: consensus map (IDMapper_test.cpp:508)"
+  },
+  {
+   "path": "tests/data/IDMapper_3_out1.consensusXML",
+   "sha256": "d0a2cf992d142a57e2108eaecae0f26668c09d1c0166c02b67a62f17bb0a0e64",
+   "role": "C++ class-test expected output (TEST_FILE_SIMILAR, IDMapper_test.cpp:480): centroid mapping"
+  },
+  {
+   "path": "tests/data/IDMapper_3_out2.consensusXML",
+   "sha256": "3e601181a074a93b91807b34fa1559ca1b3e4b6c612e7ec7378cedf7787dc8a4",
+   "role": "C++ class-test expected output (IDMapper_test.cpp:491): subelement mapping"
+  },
+  {
+   "path": "tests/data/IDMapper_5_out1.consensusXML",
+   "sha256": "4ee4211244d564056ce0807a501d53b8207d254ffa53f59b987ae54bfc77ac06",
+   "role": "C++ class-test expected output (IDMapper_test.cpp:512): subelements with map_index"
+  },
+  {
+   "path": "tests/data/IDMapper_6_out1.consensusXML",
+   "sha256": "dcaf0ee6d178952237e68abf23611855c963ffc5e724be6c49fe49d7d4b22cd2",
+   "role": "C++ class-test expected output (IDMapper_test.cpp:577): unidentified precursors, exact"
+  },
+  {
+   "path": "tests/data/IDMapper_6_out2.consensusXML",
+   "sha256": "5defa3d464fb6bc1c281becb788961b03f19c77668b75a7cf041f5ec83a1de64",
+   "role": "C++ class-test expected output (IDMapper_test.cpp:605): unidentified precursors, half mismatched"
+  },
+  {
+   "path": "tests/data/IDMapper_6_out3.consensusXML",
+   "sha256": "9dd2b7318e0fd1f726ceb7ada865179948f3836f3f692f740c457154993af8e4",
+   "role": "C++ class-test expected output (IDMapper_test.cpp:630): several precursors on one consensus feature"
+  },
+  {
+   "path": "tests/data/IDMapper_1_input.featureXML",
+   "sha256": "17b7a7419456e69f60e381b3fea074e8ac25e62d94f70182b8ba32ff3492a8c2",
+   "role": "TOPP_IDMapper_1 input map (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_1_input.idXML",
+   "sha256": "31adfc71e65bf06c87454d23b7f19376a87600dbe754ea25bb3c29e3174bb25d",
+   "role": "TOPP_IDMapper_1 input identifications (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_1_output.featureXML",
+   "sha256": "996c5e9265a5848d3b3a14ea330a9ecf1d256564c6f6dd9f085656ca0b3e609a",
+   "role": "TOPP_IDMapper_1 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_2_input.consensusXML",
+   "sha256": "c81834766f4a1d7c568b40ee4bdf99b1fbebc176de5a464f4b95d7c0e955ebcb",
+   "role": "TOPP_IDMapper_2 input map (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_2_input.idXML",
+   "sha256": "ca2e608e39d4cf9d64b97711f8b5c592c2cd6b8dea4ff5691e535643151d3838",
+   "role": "TOPP_IDMapper_2 input identifications (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_2_output.consensusXML",
+   "sha256": "94efbfe862236b0bad83e704715bd5b97dd89d15669ae62f0176c400c67a597f",
+   "role": "TOPP_IDMapper_2 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_3_input.featureXML",
+   "sha256": "2ef3aa32659db40bfbde6b3fddfe6bdfeff862af0c484134e6941bdb87afe3a8",
+   "role": "TOPP_IDMapper_3 input map (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_3_input.idXML",
+   "sha256": "346a43238bd730879bedb96b021fa05f2655dcfd13ca6a16781c336bb908e0f3",
+   "role": "TOPP_IDMapper_3 input identifications (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_3_output.featureXML",
+   "sha256": "8ee199e58cee5a1ad0d6f48da5734c5644f18bded43238dbe39585c541c87697",
+   "role": "TOPP_IDMapper_3 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_4_input.featureXML",
+   "sha256": "4aeb64187736b22eac95203889b1514bd89be903a00ae1e0f8c825752519f61c",
+   "role": "TOPP_IDMapper_4 input map (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_4_input.idXML",
+   "sha256": "d29aba297d2f00cb251a3ed1134d7d9b1787f18a6b2e2b87658408a90206c1a3",
+   "role": "TOPP_IDMapper_4 input identifications (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_4_input.mzML",
+   "sha256": "e0ecbc3a3c89331b28b62c79d6a41bf61c9edd31331163e0fb6cd7e77f8c11e1",
+   "role": "TOPP_IDMapper_4 -spectra:in (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_4_output.featureXML",
+   "sha256": "1603d1f77f88f458e9e5b9e917fc32e19ed601819ff04144789b45151e1f5f6f",
+   "role": "TOPP_IDMapper_4 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_5_input.featureXML",
+   "sha256": "46af25e0aac03c493487bd3948b662f7d939a67728abb6b56cc2519071366032",
+   "role": "TOPP_IDMapper_5 input map (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_5_input.idXML",
+   "sha256": "37f0664c02f5504e6054088c11032874b6a1daebaf41161219cf0327752294b8",
+   "role": "TOPP_IDMapper_5 input identifications (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_5_input.mzML",
+   "sha256": "3a944efa43b7ac13f3f4dd955b18ba7912f749612e636966301cc85355d4f602",
+   "role": "TOPP_IDMapper_5 -spectra:in (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_5_output.featureXML",
+   "sha256": "e1fb189b2c32359c12dc07bc15c7d3791bb50bd5e47a377f2041e41be6f40981",
+   "role": "TOPP_IDMapper_5 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_6_input.consensusXML",
+   "sha256": "f3fa157e875cfe9fb8432a09190df53745d620c3a3a945aa0d36cf2a5db87889",
+   "role": "TOPP_IDMapper_6 input map (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_6_input.idXML",
+   "sha256": "5abe679d4d5c7b78d78634ece9d8fb1866b76586708c531fcd8a577f81440a71",
+   "role": "TOPP_IDMapper_6 input identifications (test-data 0cb15f2 topp/)"
+  },
+  {
+   "path": "tests/data/IDMapper_6_output.consensusXML",
+   "sha256": "ee7f738cd479485e14c44598efdceb41f0e5c01bc3b026f5f473a8b74c6a1dff",
+   "role": "TOPP_IDMapper_6 retained C++ output, the ${DIFF} reference (test-data 0cb15f2 topp/)"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I4-idmapper-tmt/driver.cpp",
+   "sha256": "ef8482e7a5bf895ae3d5928ea2bab19877a64593358a4062581a11f07f18a863",
+   "location": "outside this repository",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/I4-idmapper-tmt/remote_run.sh",
+   "sha256": "b49f8117bab9d15387ad56d44f491eeb6fb7881ad6f8cecfc0ed2b8cdb2a5c44",
+   "location": "outside this repository",
+   "origin_key": "method"
+  },
+  {
+   "path": "../oracle/I4-idmapper-tmt/results/records.tsv",
+   "sha256": "8660e5a365e451e422dae08542c6546b4000f7abab572ca9c589836329b6bba5",
+   "location": "outside this repository",
+   "origin_key": "method"
+  }
+ ],
+ "external_reference_note": "The isobaric oracle ran on ibminode06 (Linux x86_64) against the Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c), built with conda-forge g++ 14.4.0 and libOpenMS's core flags; two runs in fresh processes agreed byte for byte. tests/id_mapper.rs::isobaric_mapping_matches_cpp_oracle transcribes its four records.",
+ "native_implementation": [
+  "src/analysis/id/id_mapper.rs"
+ ],
+ "native_tests": [
+  "tests/id_mapper.rs"
+ ],
+ "support_document": "docs/ID_MAPPER_SUPPORT.md"
+}
