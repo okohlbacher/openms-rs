@@ -59,13 +59,15 @@
   "evidence_tier": 1,
   "evidence": "Tier 1 (retained C++ output): TargetedFileConverter 3, 4, 11 and 12 (TraML to PQP to TraML) and 10 (a C++-written PQP read with legacy ids, to TraML, to TSV) reproduce their retained outputs at test-data 0cb15f2 (topp/CMakeLists.txt:1762-1851) via the heavy path of openswath e29e7ee TargetedFileConverter.cpp:229-276. Tier 3: TransitionPQPFile_test.cpp:71-137 and 163-206 heavy halves. Measured on dax (x86_64 Linux) with `cargo test --features semantic-validation,sqlite --test transition_pqp_file`: 7 passed.",
   "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1762-1851",
-  "external_reference_artifacts": [
-    {
-      "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
-      "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
-      "location": "outside this repository",
-      "origin_key": "reference_tools"
-    }
-  ],
-  "external_reference_note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed."
+  "upstream_package_sources": {
+    "files": [
+      {
+        "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
+        "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
+        "location": "outside this repository",
+        "origin_key": "reference_tools"
+      }
+    ],
+    "note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed. These are source files of the OpenMS4-tests package, not C++ oracle artifacts under ../oracle, so they are not external_reference_artifacts (the gate asks those for ../oracle paths)."
+  }
 }

@@ -28,13 +28,15 @@ jobs:
       - if: matrix.leg == 'all-features'
         run: cargo test --locked --all-features --doc
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler --test sqlite_connector
+        run: cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler --test openswath_export --test openswath_export_oracle --test sqlite_connector
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test mzml_sqlite_swath_handler --test sqlite_connector
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features sqmass --test mzml_precursor_activation --test mzml_sqlite_handler
+        run: cargo test --locked --no-default-features --features "sqlite file-compression" --test oms_file
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_precursor_activation --test mzml_sqlite_handler
+        run: cargo test --locked --no-default-features --features sqmass --test mzml_precursor_activation --test mzml_sqlite_handler --test sqmass_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_precursor_activation --test mzml_sqlite_handler --test sqmass_file
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features
       - if: matrix.leg == 'slices'
@@ -48,9 +50,13 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "mzml paramxml parallel" --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features mzml --test mzml_source_file_round_trip
+        run: cargo test --locked --no-default-features --features mzml --test mzml_source_file_round_trip --test openswath_extraction --test targeted_spectra_extractor
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler
+        run: cargo test --locked --no-default-features --features "mzml semantic-validation" --test mzdata
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "mzml featurexml" --test zip_input_oracle
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features featurexml --test featurexml --test file_handler --test mapmatching_labeled_grouping
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - if: matrix.leg == 'slices'
@@ -60,7 +66,7 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features mzml-schema --test mzml_schema --test mzml_schema_offline
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test file_handler
+        run: cargo test --locked --no-default-features --features consensusxml --test consensus_map_merger --test consensusxml --test file_handler --test openswath_peak_picking
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "consensusxml idxml" --test file_info_a7
       - if: matrix.leg == 'slices'
@@ -69,6 +75,10 @@ jobs:
         run: cargo test --locked --no-default-features --features "xml-schema mzml-schema consensusxml featurexml idxml paramxml" --test xml_schema_formats
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "consensusxml featurexml idxml mzml" --test progress_format_readers
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features arrow --test openswath_export --test openswath_export_oracle
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "arrow mzml" --test openswath_parquet_writers
   minimum-rust:
     runs-on: ubuntu-latest
     strategy:
@@ -89,15 +99,17 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler --test sqlite_connector
+        run: cargo test --locked --no-default-features --features sqlite --test mzml_sqlite_swath_handler --test oms_file --test openswath_osw_writer --test sqlite_connector
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "sqlite rusqlite/extra_check" --test mzml_sqlite_swath_handler --test sqlite_connector
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features sqmass --test mzml_precursor_activation --test mzml_sqlite_handler
+        run: cargo test --locked --no-default-features --features "sqlite file-compression" --test oms_file
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_precursor_activation --test mzml_sqlite_handler
+        run: cargo test --locked --no-default-features --features sqmass --test ms_data_sql_consumer --test mzml_precursor_activation --test mzml_sqlite_handler --test openswath_sqmass --test sqmass_file
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features featurexml --test data_array_xml --test featurexml --test file_handler --test transformation_xml
+        run: cargo test --locked --no-default-features --features "sqmass rusqlite/extra_check" --test mzml_precursor_activation --test mzml_sqlite_handler --test sqmass_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features featurexml --test data_array_xml --test featurefinder_elution --test featurexml --test file_handler --test map_alignment_tree_guided --test mapmatching_kd_tree_feature_maps_oracle --test mapmatching_labeled_grouping --test mapmatching_labeled_grouping_oracle --test mrm_feature_selector --test transformation_xml
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features cv-mapping --test cv_mapping_file --test cv_mapping_values
       - if: matrix.leg == 'slices'
@@ -107,33 +119,69 @@ jobs:
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features mzml-schema --test mzml_schema --test mzml_schema_offline
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features consensusxml --test consensusxml --test data_array_xml --test file_handler --test msstats --test transformation_xml
+        run: cargo test --locked --no-default-features --features consensusxml --test consensus_map_merger --test consensusxml --test data_array_xml --test file_handler --test map_alignment_evaluation --test mapmatching_consensus_map_normalizer_topp --test msstats --test openswath_peak_picking --test peptide_identification_consensus --test transformation_xml
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features numpress --test numpress --test numpress_coder
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features paramxml --test param_ctd --test parameter_information --test paramxml --test qcml --test system_file --test topp_fuzzy_diff
+        run: cargo test --locked --no-default-features --features paramxml --test console_utils --test default_param_handling --test param_ctd --test param_cwl --test param_json --test param_json_syntax --test parameter_information --test paramxml --test paramxml_zip_input --test qcml --test system_file --test topp_cli_base_classes --test topp_fuzzy_diff --test topp_write_ini_text
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features mzml --test data_array_xml --test faims_helper --test file_info_checks --test im_data_converter --test imzml_all_modes --test imzml_file --test imzml_handler --test imzml_writer --test indexed_mzml --test indexed_mzml_handler --test ms_data_writing_consumer --test mzdata --test mzml --test mzml_acquisition --test mzml_acquisition_guards --test mzml_auxiliary_review --test mzml_auxiliary_writer_review --test mzml_centroid --test mzml_consumer --test mzml_counts --test mzml_header --test mzml_header_leniency --test mzml_isolation --test mzml_list_counts --test mzml_load_options --test mzml_mobility --test mzml_normalization --test mzml_numpress --test mzml_param_groups --test mzml_paths --test mzml_precursor_activation --test mzml_product --test mzml_reader_scale --test mzml_review --test mzml_settings --test mzml_source_file_round_trip --test mzml_typed_transport --test mzml_write_options --test mzml_writer_scale --test mzxml --test numpress_coder --test on_disc_experiment --test on_disc_imzml_experiment --test peak_type_estimator --test record_metadata
+        run: cargo test --locked --no-default-features --features mzml --test biosaur2 --test cached_mzml --test data_array_xml --test faims_helper --test featurefinder_multiplex_filtering --test file_handler_load --test file_info_checks --test im_data_converter --test imaging_types --test imzml_all_modes --test imzml_file --test imzml_handler --test imzml_writer --test indexed_mzml --test indexed_mzml_file_loader --test indexed_mzml_handler --test map_alignment_pose_clustering_class --test mrm_feature_finder_scoring --test ms_data_cached_consumer --test ms_data_consumers --test ms_data_writing_consumer --test mzdata --test mzml --test mzml_acquisition --test mzml_acquisition_guards --test mzml_auxiliary_review --test mzml_auxiliary_writer_review --test mzml_centroid --test mzml_consumer --test mzml_counts --test mzml_header --test mzml_header_leniency --test mzml_im_peak_type --test mzml_isolation --test mzml_list_counts --test mzml_load_options --test mzml_mobility --test mzml_normalization --test mzml_numpress --test mzml_param_groups --test mzml_paths --test mzml_precursor_activation --test mzml_product --test mzml_reader_scale --test mzml_review --test mzml_settings --test mzml_source_file_round_trip --test mzml_typed_transport --test mzml_write_options --test mzml_writer_scale --test mzxml --test mzxml_transform_progress --test numpress_coder --test on_disc_experiment --test on_disc_imzml_experiment --test openswath_extraction --test peak_type_estimator --test record_metadata --test search_engine_inspect_outfile --test targeted_spectra_extractor --test targeted_spectra_extractor_oracle
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "mzml semantic-validation" --test mzdata
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features arrow --test arrow_parquet --test feature_map_arrow_io --test msexperiment_arrow_export --test openswath_export --test openswath_export_oracle --test openswath_parquet --test openswath_parquet_exporter --test openswath_parquet_oracle --test openswath_parquet_writers --test protein_identification_arrow_io --test psm_arrow_io --test qpx_collection_export --test qpx_file --test qpx_identity --test qpx_value_validation
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "arrow mzml" --test openswath_parquet_writers
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features proforma-json --test proforma_json
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features idxml --test data_array_xml --test identification_paths --test identification_pipeline --test idxml --test idxml_definitions --test mascot_xml --test mzidentml --test pepxml --test protein_workflow
+        run: cargo test --locked --no-default-features --features idxml --test consensus_id --test data_array_xml --test id_filter_oracle --test id_merger --test id_score_switcher --test identification_paths --test identification_pipeline --test idxml --test idxml_definitions --test map_alignment_identification --test mascot_xml --test mascot_xml_regex --test mzidentml --test peptide_protein_resolution --test pepxml --test pepxml_mascot --test percolator_feature_set_helper --test percolator_outfile --test protein_workflow --test protxml --test search_engine_oracle --test search_engine_ptm_infiles --test search_engine_xml_files --test xquest_result_xml
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection --test file_info
+        run: cargo test --locked --no-default-features --features "mzml featurexml" --test file_handler_type_detection --test file_info --test mrm_oracle --test zip_input --test zip_input_oracle
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "consensusxml idxml" --test file_info_a7
+        run: cargo test --locked --no-default-features --features "consensusxml idxml" --test file_info_a7 --test map_alignment_oracle
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features "xml-schema mzml-schema consensusxml featurexml idxml paramxml" --test xml_schema_formats
       - if: matrix.leg == 'mzml-paramxml'
-        run: cargo test --locked --no-default-features --features "mzml paramxml" --test feature_finder_picked_seeds --test peak_picking_experiment --test signal_to_noise --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_completion --test topp_cli_console --test topp_cli_lifecycle --test topp_dta_extractor --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
+        run: cargo test --locked --no-default-features --features "mzml paramxml" --test feature_finder_picked_seeds --test featurefinder_multiplex_algorithm --test peak_picking_experiment --test signal_to_noise --test topp_baseline_filter --test topp_baseline_filter_edges --test topp_cli_completion --test topp_cli_console --test topp_cli_lifecycle --test topp_dta_extractor --test topp_json_ini --test topp_map_normalizer --test topp_mzml_splitter --test topp_peak_picker_hi_res --test topp_spectra_filter_window_mower --test topp_threads
       - if: matrix.leg == 'mzml-paramxml'
-        run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked --test feature_finder_picked_instrumentation --test feature_finder_picked_seeds --test file_info_a8 --test file_info_checks --test topp_cli_completion --test topp_cli_console --test topp_feature_finder_centroided --test topp_file_info
+        run: cargo test --locked --no-default-features --features "mzml paramxml featurexml" --test feature_finder_picked --test feature_finder_picked_instrumentation --test feature_finder_picked_seeds --test file_info_a8 --test file_info_checks --test topp_b0_release --test topp_cli_completion --test topp_cli_console --test topp_feature_finder_centroided --test topp_feature_finder_lfq --test topp_file_info
       - if: matrix.leg == 'mzml-paramxml'
         run: cargo test --locked --no-default-features --features "mzml paramxml parallel" --test peak_picking_experiment --test topp_peak_picker_hi_res --test topp_threads
       - if: matrix.leg == 'slices'
-        run: cargo test --locked --no-default-features --features "consensusxml featurexml idxml mzml" --test progress_format_readers
+        run: cargo test --locked --no-default-features --features "arrow file-compression" --test openswath_osw_parquet --test transition_parquet_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features bruker-tdf --test bruker_tims_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "bruker-tdf mzml" --test bruker_tims_imaging_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml featurexml idxml" --test mztab_export
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml featurexml idxml mzml" --test id_mapper --test progress_format_readers
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml featurexml mzml paramxml" --test featurefinder_multiplex_topp
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml featurexml paramxml" --test mapmatching_feature_grouping_topp --test mapmatching_kd_grouping_oracle --test mapmatching_kd_grouping_topp --test mapmatching_labeled_grouping_topp --test mapmatching_qt_cluster_finder_topp --test mapmatching_wnet_grouping_oracle --test mapmatching_wnet_topp
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "consensusxml mzml" --test f4_progress --test featurefinder_io --test gnps_mgf_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "featurexml idxml mzml" --test feature_finder_identification_oracle --test feature_finder_identification_topp --test mzqc_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "featurexml mzml traml" --test openswath_workflow
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "featurexml paramxml" --test map_alignment_oracle_kd_tree --test mapmatching_qt_tie_order_oracle
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features file-compression --test compressed_streams --test compressed_streams_oracle
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "idxml mzml paramxml" --test simple_search_engine
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features kb-xml --test ptm_xml --test unimod_xml --test uniprot_xml
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features network --test network --test network_get_request --test update_check
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features "sqlite traml" --test transition_pqp_file
+      - if: matrix.leg == 'slices'
+        run: cargo test --locked --no-default-features --features traml --test traml --test transition_tsv_file
       - if: matrix.leg == 'slices'
         run: cargo test --locked --no-default-features --features xml-schema --test xml_schema --test xml_schema_formats --test xml_schema_includes --test xml_schema_offline
   # <<< end of generated jobs

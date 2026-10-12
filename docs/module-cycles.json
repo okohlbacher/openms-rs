@@ -17,7 +17,6 @@
    "data_structures",
    "identification",
    "kernel",
-   "math",
    "metadata",
    "param"
   ],
@@ -77,6 +76,9 @@
    "kernel",
    "param",
    "system"
+  ],
+  "param": [
+   "concept"
   ],
   "processing": [
    "chemistry",

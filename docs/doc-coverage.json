@@ -1,13 +1,13 @@
 {
  "note": "Per-module rustdoc coverage floors. Modules may only improve; regenerate with tools/check_doc_coverage.py --write after documenting a module.",
  "total": {
-  "items": 6157,
-  "documented": 4853
+  "items": 11523,
+  "documented": 10491
  },
  "modules": {
   "src/analysis/alignment_transformer.rs": {
-   "items": 7,
-   "documented": 5
+   "items": 8,
+   "documented": 8
   },
   "src/analysis/elution_peak_detection.rs": {
    "items": 17,
@@ -18,8 +18,8 @@
    "documented": 12
   },
   "src/analysis/false_discovery_rate.rs": {
-   "items": 23,
-   "documented": 16
+   "items": 44,
+   "documented": 37
   },
   "src/analysis/feature_finder_picked/algorithm.rs": {
    "items": 35,
@@ -30,8 +30,8 @@
    "documented": 33
   },
   "src/analysis/feature_finder_picked/defs.rs": {
-   "items": 12,
-   "documented": 12
+   "items": 9,
+   "documented": 9
   },
   "src/analysis/feature_finder_picked/egh_trace_fitter.rs": {
    "items": 18,
@@ -85,29 +85,665 @@
    "items": 32,
    "documented": 11
   },
+  "src/analysis/featurefinder/base_model.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/featurefinder/biosaur2/hills.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/featurefinder/biosaur2/isotopes.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/featurefinder/biosaur2/output.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/featurefinder/biosaur2/preprocess.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/analysis/featurefinder/biosaur2.rs": {
+   "items": 27,
+   "documented": 27
+  },
+  "src/analysis/featurefinder/elution_model_fitter.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/featurefinder/emg_scoring.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/featurefinder/feature_finder_algorithm.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/featurefinder/feature_finder_identification.rs": {
+   "items": 33,
+   "documented": 33
+  },
+  "src/analysis/featurefinder/feature_finder_metabo_ident.rs": {
+   "items": 36,
+   "documented": 36
+  },
+  "src/analysis/featurefinder/fitter1d.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/analysis/featurefinder/fitters.rs": {
+   "items": 20,
+   "documented": 20
+  },
+  "src/analysis/featurefinder/gauss_models.rs": {
+   "items": 24,
+   "documented": 24
+  },
+  "src/analysis/featurefinder/isotope_model.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/analysis/featurefinder/multiplex/algorithm.rs": {
+   "items": 33,
+   "documented": 33
+  },
+  "src/analysis/featurefinder/multiplex/clustering.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/analysis/featurefinder/multiplex/delta_masses.rs": {
+   "items": 19,
+   "documented": 19
+  },
+  "src/analysis/featurefinder/multiplex/delta_masses_generator.rs": {
+   "items": 30,
+   "documented": 30
+  },
+  "src/analysis/featurefinder/multiplex/filtered_ms_experiment.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/analysis/featurefinder/multiplex/filtered_peak.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/featurefinder/multiplex/filtering.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/analysis/featurefinder/multiplex/filtering_centroided.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/featurefinder/multiplex/filtering_profile.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/featurefinder/multiplex/isotopic_peak_pattern.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/analysis/featurefinder/multiplex/satellite.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/featurefinder/multiplex.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/featurefinder/peak_width_estimator.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/analysis/featurefinder/seed_list_generator.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/featurefinder.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/analysis/id/aho_corasick_ambiguous.rs": {
+   "items": 57,
+   "documented": 57
+  },
+  "src/analysis/id/ascore.rs": {
+   "items": 27,
+   "documented": 27
+  },
+  "src/analysis/id/comet_modification.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/id/consensus_id.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/analysis/id/consensus_map_merger.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/analysis/id/fragment_index.rs": {
+   "items": 44,
+   "documented": 44
+  },
+  "src/analysis/id/fragment_index_parameters.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/id/id_decoy_probability.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/id/id_mapper.rs": {
+   "items": 24,
+   "documented": 24
+  },
+  "src/analysis/id/id_merger.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/id/id_score_switcher.rs": {
+   "items": 29,
+   "documented": 29
+  },
+  "src/analysis/id/ion_identity_molecular_networking.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/id/metabolite_spectral_matching.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/analysis/id/needleman_wunsch.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/id/neighbor_seq.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/analysis/id/peptide_protein_resolution.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/id/percolator.rs": {
+   "items": 26,
+   "documented": 26
+  },
+  "src/analysis/id/percolator_feature_set_helper.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/analysis/id/percolator_types.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/analysis/id/posterior_error_probability_scores.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/id/pscore.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/analysis/id/simple_search_engine.rs": {
+   "items": 19,
+   "documented": 19
+  },
+  "src/analysis/id.rs": {
+   "items": 21,
+   "documented": 21
+  },
   "src/analysis/id_conflict_resolver.rs": {
    "items": 6,
    "documented": 5
   },
+  "src/analysis/id_filter/digestion.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/analysis/id_filter/identification_data.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/analysis/id_filter/predicates.rs": {
+   "items": 56,
+   "documented": 56
+  },
+  "src/analysis/id_filter/selection.rs": {
+   "items": 14,
+   "documented": 14
+  },
   "src/analysis/id_filter.rs": {
    "items": 30,
-   "documented": 26
+   "documented": 30
   },
   "src/analysis/id_ripper.rs": {
    "items": 8,
    "documented": 2
+  },
+  "src/analysis/mapmatching/alignment_evaluation.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/mapmatching/alignment_identification.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/analysis/mapmatching/alignment_kd.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/analysis/mapmatching/alignment_pose_clustering.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/analysis/mapmatching/alignment_tree_guided.rs": {
+   "items": 22,
+   "documented": 22
+  },
+  "src/analysis/mapmatching/base_group_finder.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/mapmatching/consensus_map_normalizer_median.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/mapmatching/consensus_map_normalizer_quantile.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/mapmatching/consensus_map_normalizer_threshold.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/mapmatching/feature_distance.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/analysis/mapmatching/feature_grouping_algorithm.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/mapmatching/feature_grouping_algorithm_kd.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/analysis/mapmatching/feature_grouping_algorithm_labeled.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/mapmatching/feature_grouping_algorithm_qt.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/mapmatching/feature_grouping_algorithm_unlabeled.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/mapmatching/feature_grouping_algorithm_wnet.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/mapmatching/feature_mapping.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/mapmatching/grid_feature.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/mapmatching/kd_tree_feature_maps.rs": {
+   "items": 25,
+   "documented": 25
+  },
+  "src/analysis/mapmatching/labeled_pair_finder.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/mapmatching/pose_clustering_affine.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/mapmatching/pose_clustering_shift.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/mapmatching/qt_cluster.rs": {
+   "items": 27,
+   "documented": 27
+  },
+  "src/analysis/mapmatching/qt_cluster_finder.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/mapmatching/stable_pair_finder.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/mapmatching/superimposer.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/mapmatching/wnet_aligner.rs": {
+   "items": 20,
+   "documented": 20
+  },
+  "src/analysis/mapmatching/wnet_matcher.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/mapmatching.rs": {
+   "items": 28,
+   "documented": 28
   },
   "src/analysis/mass_trace_detection.rs": {
    "items": 12,
    "documented": 7
   },
   "src/analysis/mod.rs": {
+   "items": 24,
+   "documented": 1
+  },
+  "src/analysis/openswath/chromatogram_extractor.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/openswath/chromatogram_extractor_algorithm.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/analysis/openswath/confidence_scoring.rs": {
+   "items": 16,
+   "documented": 16
+  },
+  "src/analysis/openswath/data_access_helper.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/openswath/data_frame_writer.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/openswath/data_structures.rs": {
+   "items": 42,
+   "documented": 42
+  },
+  "src/analysis/openswath/dia_helper.rs": {
+   "items": 26,
+   "documented": 26
+  },
+  "src/analysis/openswath/dia_prescoring.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/analysis/openswath/dia_scoring.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/analysis/openswath/include_exclude_target.rs": {
+   "items": 29,
+   "documented": 29
+  },
+  "src/analysis/openswath/ion_mobility_scoring.rs": {
+   "items": 16,
+   "documented": 16
+  },
+  "src/analysis/openswath/itransition.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/openswath/level_context_inference.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/openswath/masstrace_correlator.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/openswath/metabo_targeted_target_decoy.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/openswath/mock_objects.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/openswath/mrm_assay.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/analysis/openswath/mrm_batch_feature_selector.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/analysis/openswath/mrm_decoy.rs": {
+   "items": 26,
+   "documented": 26
+  },
+  "src/analysis/openswath/mrm_feature_access.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/analysis/openswath/mrm_feature_filter.rs": {
+   "items": 37,
+   "documented": 37
+  },
+  "src/analysis/openswath/mrm_feature_finder_scoring.rs": {
+   "items": 20,
+   "documented": 20
+  },
+  "src/analysis/openswath/mrm_feature_picker.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/analysis/openswath/mrm_feature_qc.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/openswath/mrm_feature_selector.rs": {
+   "items": 29,
+   "documented": 29
+  },
+  "src/analysis/openswath/mrm_ion_series.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/analysis/openswath/mrm_mapping.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/openswath/mrm_rt_normalizer.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/openswath/mrm_scoring.rs": {
+   "items": 59,
+   "documented": 59
+  },
+  "src/analysis/openswath/mrm_transition_group_picker.rs": {
+   "items": 55,
+   "documented": 55
+  },
+  "src/analysis/openswath/openswath_export_config.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/openswath/openswath_export_data.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/analysis/openswath/openswath_gene_inference.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/openswath/openswath_helper.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/analysis/openswath/openswath_inference_config.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/analysis/openswath/openswath_inference_data.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/analysis/openswath/openswath_library_id_normalizer.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/analysis/openswath/openswath_matrix_exporter.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/openswath/openswath_osw_parquet_reader.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/analysis/openswath/openswath_osw_parquet_writer.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/openswath/openswath_osw_writer.rs": {
+   "items": 55,
+   "documented": 55
+  },
+  "src/analysis/openswath/openswath_parquet_exporter.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/analysis/openswath/openswath_peptide_inference.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/openswath/openswath_peptidoform_inference.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/openswath/openswath_protein_inference.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/openswath/openswath_results_exporter.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/analysis/openswath/openswath_scores.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/openswath/openswath_scoring.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/analysis/openswath/openswath_workflow.rs": {
+   "items": 30,
+   "documented": 30
+  },
+  "src/analysis/openswath/openswath_workflow_scheduler.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/openswath/peak_map_extractor.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/openswath/peak_picker_mobilogram.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/openswath/reaction_monitoring_transition.rs": {
+   "items": 46,
+   "documented": 46
+  },
+  "src/analysis/openswath/scoring.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/openswath/spectrum_access.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/openswath/spectrum_access_openms.rs": {
+   "items": 23,
+   "documented": 23
+  },
+  "src/analysis/openswath/spectrum_access_sqmass.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/openswath/spectrum_addition.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/analysis/openswath/stats_helpers.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/analysis/openswath/swath_map.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/openswath/swath_map_mass_correction.rs": {
    "items": 22,
-   "documented": 0
+   "documented": 22
+  },
+  "src/analysis/openswath/swath_qc.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/analysis/openswath/swath_window_loader.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/analysis/openswath/targeted_experiment.rs": {
+   "items": 58,
+   "documented": 58
+  },
+  "src/analysis/openswath/targeted_experiment_helper.rs": {
+   "items": 50,
+   "documented": 50
+  },
+  "src/analysis/openswath/targeted_spectra_extractor.rs": {
+   "items": 40,
+   "documented": 40
+  },
+  "src/analysis/openswath/transition_experiment.rs": {
+   "items": 54,
+   "documented": 54
+  },
+  "src/analysis/openswath/transition_helper.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/analysis/openswath/transition_parquet_file.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/analysis/openswath/transition_pqp_file.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/analysis/openswath/transition_tsv_file.rs": {
+   "items": 36,
+   "documented": 36
+  },
+  "src/analysis/openswath/transitions.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/openswath.rs": {
+   "items": 72,
+   "documented": 72
   },
   "src/analysis/peak_integrator.rs": {
-   "items": 14,
-   "documented": 6
+   "items": 32,
+   "documented": 32
   },
   "src/analysis/peptide_indexing.rs": {
    "items": 16,
@@ -133,17 +769,57 @@
    "items": 10,
    "documented": 4
   },
-  "src/analysis/scores.rs": {
-   "items": 21,
-   "documented": 8
+  "src/analysis/qc/feature_summary.rs": {
+   "items": 5,
+   "documented": 5
   },
-  "src/analysis/transformations/lowess.rs": {
+  "src/analysis/qc/identification_summary.rs": {
    "items": 7,
+   "documented": 7
+  },
+  "src/analysis/qc/missed_cleavages.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/qc/qc_base.rs": {
+   "items": 22,
+   "documented": 22
+  },
+  "src/analysis/qc/spectrum_count.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/analysis/qc/tic.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/qc.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/analysis/scores.rs": {
+   "items": 22,
+   "documented": 15
+  },
+  "src/analysis/spectra_clustering.rs": {
+   "items": 1,
    "documented": 1
   },
+  "src/analysis/transformations/b_spline.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/analysis/transformations/lowess.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/analysis/transformations/params.rs": {
+   "items": 33,
+   "documented": 33
+  },
   "src/analysis/transformations.rs": {
-   "items": 47,
-   "documented": 11
+   "items": 63,
+   "documented": 63
   },
   "src/chemistry/aa_index.rs": {
    "items": 10,
@@ -159,15 +835,31 @@
   },
   "src/chemistry/decoy_generator.rs": {
    "items": 15,
-   "documented": 7
+   "documented": 15
   },
   "src/chemistry/digestion/enzymes.rs": {
    "items": 2,
-   "documented": 1
+   "documented": 2
+  },
+  "src/chemistry/digestion/protease_db.rs": {
+   "items": 19,
+   "documented": 19
   },
   "src/chemistry/digestion.rs": {
-   "items": 52,
-   "documented": 14
+   "items": 54,
+   "documented": 54
+  },
+  "src/chemistry/element_db.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/chemistry/empirical_formula.rs": {
+   "items": 18,
+   "documented": 18
+  },
+  "src/chemistry/enzymatic_digestion.rs": {
+   "items": 2,
+   "documented": 2
   },
   "src/chemistry/fine_isotopes.rs": {
    "items": 17,
@@ -209,6 +901,14 @@
    "items": 7,
    "documented": 7
   },
+  "src/chemistry/isotopes/distribution_members.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/chemistry/isotopes/generator_members.rs": {
+   "items": 4,
+   "documented": 4
+  },
   "src/chemistry/isotopes.rs": {
    "items": 59,
    "documented": 59
@@ -222,12 +922,20 @@
    "documented": 5
   },
   "src/chemistry/mod.rs": {
-   "items": 59,
-   "documented": 17
+   "items": 63,
+   "documented": 21
+  },
+  "src/chemistry/modification_classification.rs": {
+   "items": 8,
+   "documented": 8
   },
   "src/chemistry/modification_definitions.rs": {
    "items": 31,
    "documented": 14
+  },
+  "src/chemistry/modification_queries.rs": {
+   "items": 10,
+   "documented": 10
   },
   "src/chemistry/modification_records.rs": {
    "items": 3,
@@ -235,7 +943,7 @@
   },
   "src/chemistry/modifications.rs": {
    "items": 53,
-   "documented": 21
+   "documented": 53
   },
   "src/chemistry/modified_na_sequence_generator.rs": {
    "items": 4,
@@ -255,7 +963,7 @@
   },
   "src/chemistry/nucleic_acid_spectrum_generator.rs": {
    "items": 12,
-   "documented": 6
+   "documented": 12
   },
   "src/chemistry/obo.rs": {
    "items": 2,
@@ -294,8 +1002,8 @@
    "documented": 1
   },
   "src/chemistry/ribonucleotide.rs": {
-   "items": 16,
-   "documented": 4
+   "items": 18,
+   "documented": 6
   },
   "src/chemistry/ribonucleotide_db.rs": {
    "items": 15,
@@ -306,12 +1014,12 @@
    "documented": 2
   },
   "src/chemistry/rnase.rs": {
-   "items": 38,
-   "documented": 10
+   "items": 39,
+   "documented": 11
   },
   "src/chemistry/sequence.rs": {
-   "items": 56,
-   "documented": 23
+   "items": 58,
+   "documented": 25
   },
   "src/chemistry/sequence_coverage.rs": {
    "items": 5,
@@ -319,15 +1027,15 @@
   },
   "src/chemistry/spectrum_annotator.rs": {
    "items": 11,
-   "documented": 7
+   "documented": 11
   },
   "src/chemistry/tagger.rs": {
    "items": 16,
    "documented": 9
   },
   "src/chemistry/theoretical.rs": {
-   "items": 11,
-   "documented": 6
+   "items": 12,
+   "documented": 12
   },
   "src/chemistry/theoretical_helpers.rs": {
    "items": 1,
@@ -346,24 +1054,36 @@
    "documented": 0
   },
   "src/cli/console.rs": {
-   "items": 2,
-   "documented": 2
+   "items": 12,
+   "documented": 12
   },
   "src/cli/context.rs": {
-   "items": 37,
-   "documented": 37
+   "items": 39,
+   "documented": 39
   },
   "src/cli/defs.rs": {
-   "items": 3,
-   "documented": 3
+   "items": 6,
+   "documented": 6
+  },
+  "src/cli/external_tool.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/cli/ini_updater.rs": {
+   "items": 13,
+   "documented": 13
   },
   "src/cli/logging.rs": {
    "items": 11,
    "documented": 11
   },
-  "src/cli/outcome.rs": {
+  "src/cli/map_aligner.rs": {
    "items": 7,
    "documented": 7
+  },
+  "src/cli/outcome.rs": {
+   "items": 8,
+   "documented": 8
   },
   "src/cli/param_ctd.rs": {
    "items": 11,
@@ -377,9 +1097,13 @@
    "items": 5,
    "documented": 5
   },
+  "src/cli/search_engine.rs": {
+   "items": 6,
+   "documented": 6
+  },
   "src/cli/spec.rs": {
-   "items": 32,
-   "documented": 32
+   "items": 33,
+   "documented": 33
   },
   "src/cli/tool_description_file.rs": {
    "items": 8,
@@ -400,6 +1124,10 @@
   "src/cli/tools/feature_finder_centroided.rs": {
    "items": 16,
    "documented": 16
+  },
+  "src/cli/tools/feature_finder_lfq.rs": {
+   "items": 3,
+   "documented": 3
   },
   "src/cli/tools/file_info.rs": {
    "items": 1,
@@ -437,6 +1165,14 @@
    "items": 31,
    "documented": 31
   },
+  "src/concept/colorizer.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/concept/common_enums.rs": {
+   "items": 16,
+   "documented": 16
+  },
   "src/concept/constants.rs": {
    "items": 132,
    "documented": 4
@@ -445,29 +1181,65 @@
    "items": 61,
    "documented": 61
   },
+  "src/concept/hash_utils.rs": {
+   "items": 11,
+   "documented": 11
+  },
   "src/concept/log_stream.rs": {
-   "items": 41,
-   "documented": 17
+   "items": 46,
+   "documented": 46
+  },
+  "src/concept/macros.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/concept/math_functions/random_shuffler.rs": {
+   "items": 11,
+   "documented": 11
   },
   "src/concept/math_functions.rs": {
    "items": 33,
    "documented": 33
   },
   "src/concept/mod.rs": {
-   "items": 8,
-   "documented": 4
+   "items": 17,
+   "documented": 13
+  },
+  "src/concept/numeric_formatting.rs": {
+   "items": 3,
+   "documented": 3
   },
   "src/concept/parallel.rs": {
    "items": 7,
    "documented": 7
   },
+  "src/concept/precision_wrapper.rs": {
+   "items": 3,
+   "documented": 3
+  },
   "src/concept/progress_logger.rs": {
    "items": 39,
    "documented": 39
   },
+  "src/concept/types.rs": {
+   "items": 30,
+   "documented": 30
+  },
   "src/concept/unique_id.rs": {
    "items": 11,
    "documented": 11
+  },
+  "src/concept/unique_id_indexer.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/concept/version_info.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/data_structures/binary_tree_node.rs": {
+   "items": 2,
+   "documented": 2
   },
   "src/data_structures/cv_mapping.rs": {
    "items": 11,
@@ -477,9 +1249,17 @@
    "items": 27,
    "documented": 9
   },
+  "src/data_structures/dbounding_box.rs": {
+   "items": 13,
+   "documented": 13
+  },
   "src/data_structures/dinterval.rs": {
    "items": 29,
    "documented": 29
+  },
+  "src/data_structures/distance_matrix.rs": {
+   "items": 13,
+   "documented": 13
   },
   "src/data_structures/dposition.rs": {
    "items": 27,
@@ -489,17 +1269,37 @@
    "items": 43,
    "documented": 43
   },
+  "src/data_structures/flag_set.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/data_structures/isotope_cluster.rs": {
+   "items": 4,
+   "documented": 4
+  },
   "src/data_structures/list.rs": {
    "items": 15,
    "documented": 6
   },
+  "src/data_structures/matched_iterator.rs": {
+   "items": 23,
+   "documented": 23
+  },
+  "src/data_structures/matrix.rs": {
+   "items": 27,
+   "documented": 27
+  },
   "src/data_structures/mod.rs": {
-   "items": 9,
-   "documented": 9
+   "items": 17,
+   "documented": 17
   },
   "src/data_structures/string_list.rs": {
    "items": 6,
    "documented": 1
+  },
+  "src/data_structures/string_utils.rs": {
+   "items": 60,
+   "documented": 60
   },
   "src/data_structures/tool_description.rs": {
    "items": 10,
@@ -513,13 +1313,49 @@
    "items": 2,
    "documented": 2
   },
+  "src/format/acqus_handler.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/arrow_io_helpers.rs": {
+   "items": 40,
+   "documented": 40
+  },
+  "src/format/arrow_schema_registry.rs": {
+   "items": 507,
+   "documented": 507
+  },
+  "src/format/bruker_tims_file.rs": {
+   "items": 20,
+   "documented": 20
+  },
+  "src/format/bruker_tims_imaging_file.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/format/bzip2_ifstream.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/cached_mzml.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/format/cached_mzml_handler.rs": {
+   "items": 20,
+   "documented": 20
+  },
+  "src/format/chromeleon.rs": {
+   "items": 8,
+   "documented": 8
+  },
   "src/format/consensusxml.rs": {
-   "items": 19,
-   "documented": 19
+   "items": 22,
+   "documented": 22
   },
   "src/format/controlled_vocabulary.rs": {
-   "items": 41,
-   "documented": 10
+   "items": 42,
+   "documented": 11
   },
   "src/format/csv.rs": {
    "items": 18,
@@ -534,12 +1370,16 @@
    "documented": 0
   },
   "src/format/dta.rs": {
-   "items": 7,
-   "documented": 7
+   "items": 11,
+   "documented": 11
   },
   "src/format/dta2d.rs": {
-   "items": 19,
-   "documented": 19
+   "items": 22,
+   "documented": 22
+  },
+  "src/format/edta.rs": {
+   "items": 10,
+   "documented": 10
   },
   "src/format/experimental_design_file.rs": {
    "items": 4,
@@ -549,6 +1389,10 @@
    "items": 39,
    "documented": 13
   },
+  "src/format/feature_map_arrow_io.rs": {
+   "items": 3,
+   "documented": 3
+  },
   "src/format/featurexml.rs": {
    "items": 23,
    "documented": 23
@@ -557,9 +1401,13 @@
    "items": 10,
    "documented": 10
   },
+  "src/format/fid_handler.rs": {
+   "items": 6,
+   "documented": 6
+  },
   "src/format/file_handler.rs": {
-   "items": 26,
-   "documented": 26
+   "items": 29,
+   "documented": 29
   },
   "src/format/file_info/model.rs": {
    "items": 20,
@@ -574,8 +1422,8 @@
    "documented": 10
   },
   "src/format/file_info/text_format.rs": {
-   "items": 12,
-   "documented": 12
+   "items": 9,
+   "documented": 9
   },
   "src/format/file_info.rs": {
    "items": 9,
@@ -584,6 +1432,34 @@
   "src/format/file_types.rs": {
    "items": 20,
    "documented": 17
+  },
+  "src/format/flash_deconv_feature_file.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/flash_deconv_spectrum_file.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/gnps_meta_value.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/gnps_mgf.rs": {
+   "items": 16,
+   "documented": 16
+  },
+  "src/format/gnps_quantification.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/gzip_ifstream.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/format/ibspectra.rs": {
+   "items": 4,
+   "documented": 4
   },
   "src/format/identification_xml.rs": {
    "items": 2,
@@ -609,41 +1485,117 @@
    "items": 8,
    "documented": 7
   },
+  "src/format/indexed_mzml_file_loader.rs": {
+   "items": 9,
+   "documented": 9
+  },
   "src/format/indexed_mzml_handler.rs": {
    "items": 27,
    "documented": 27
+  },
+  "src/format/inspect_infile.rs": {
+   "items": 29,
+   "documented": 29
+  },
+  "src/format/inspect_outfile.rs": {
+   "items": 24,
+   "documented": 24
+  },
+  "src/format/kroenik_file.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/format/line_reader.rs": {
+   "items": 1,
+   "documented": 1
   },
   "src/format/map_xml.rs": {
    "items": 1,
    "documented": 1
   },
   "src/format/mascot_generic.rs": {
-   "items": 45,
-   "documented": 45
+   "items": 48,
+   "documented": 48
   },
   "src/format/mascot_xml.rs": {
-   "items": 28,
-   "documented": 28
+   "items": 29,
+   "documented": 29
   },
   "src/format/mgf.rs": {
    "items": 4,
    "documented": 4
   },
+  "src/format/mobilogram_parquet_consumer.rs": {
+   "items": 7,
+   "documented": 7
+  },
   "src/format/mod.rs": {
-   "items": 49,
-   "documented": 49
+   "items": 137,
+   "documented": 137
   },
   "src/format/modification_definitions.rs": {
    "items": 23,
    "documented": 6
   },
+  "src/format/mrm_feature_picker_file.rs": {
+   "items": 4,
+   "documented": 4
+  },
+  "src/format/mrm_feature_qc_file.rs": {
+   "items": 10,
+   "documented": 10
+  },
   "src/format/ms2.rs": {
    "items": 15,
-   "documented": 3
+   "documented": 15
+  },
+  "src/format/ms_chromatogram_parquet_consumer.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/format/ms_data_aggregating_consumer.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/format/ms_data_cached_consumer.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/format/ms_data_chaining_consumer.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/format/ms_data_sql_consumer.rs": {
+   "items": 19,
+   "documented": 19
+  },
+  "src/format/ms_data_storing_consumer.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/format/ms_data_transforming_consumer.rs": {
+   "items": 14,
+   "documented": 14
   },
   "src/format/ms_data_writing_consumer.rs": {
-   "items": 41,
-   "documented": 41
+   "items": 44,
+   "documented": 44
+  },
+  "src/format/ms_inspect_file.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/format/msexperiment_arrow_export.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/format/msp.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/format/msp_generic.rs": {
+   "items": 20,
+   "documented": 20
   },
   "src/format/msstats.rs": {
    "items": 22,
@@ -652,6 +1604,10 @@
   "src/format/mzdata.rs": {
    "items": 49,
    "documented": 49
+  },
+  "src/format/mzdata_validator.rs": {
+   "items": 8,
+   "documented": 8
   },
   "src/format/mzidentml.rs": {
    "items": 30,
@@ -725,21 +1681,33 @@
    "items": 7,
    "documented": 7
   },
+  "src/format/mzqc_file.rs": {
+   "items": 6,
+   "documented": 6
+  },
   "src/format/mztab.rs": {
    "items": 220,
    "documented": 220
   },
+  "src/format/mztab_export.rs": {
+   "items": 26,
+   "documented": 26
+  },
   "src/format/mztab_file.rs": {
-   "items": 40,
-   "documented": 40
+   "items": 44,
+   "documented": 44
   },
   "src/format/mztab_m.rs": {
    "items": 54,
    "documented": 54
   },
   "src/format/mzxml.rs": {
-   "items": 47,
-   "documented": 47
+   "items": 51,
+   "documented": 51
+  },
+  "src/format/noop_ms_data_consumer.rs": {
+   "items": 2,
+   "documented": 2
   },
   "src/format/numpress.rs": {
    "items": 23,
@@ -749,9 +1717,45 @@
    "items": 15,
    "documented": 7
   },
+  "src/format/oms_file.rs": {
+   "items": 29,
+   "documented": 29
+  },
+  "src/format/omssa_csv_file.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/format/omssa_xml_file.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/format/param_cwl.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/param_json.rs": {
+   "items": 8,
+   "documented": 8
+  },
   "src/format/paramxml.rs": {
-   "items": 18,
-   "documented": 18
+   "items": 19,
+   "documented": 19
+  },
+  "src/format/parquet_file.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/format/parquet_filter.rs": {
+   "items": 47,
+   "documented": 47
+  },
+  "src/format/parquet_reader_helpers.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/format/pasef_hill_centroider.rs": {
+   "items": 3,
+   "documented": 3
   },
   "src/format/peak_options.rs": {
    "items": 36,
@@ -761,25 +1765,121 @@
    "items": 4,
    "documented": 4
   },
+  "src/format/peff/read.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/peff/sequences.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/format/peff.rs": {
+   "items": 41,
+   "documented": 41
+  },
+  "src/format/pepnovo_infile.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/format/pepnovo_outfile.rs": {
+   "items": 7,
+   "documented": 7
+  },
   "src/format/pepxml.rs": {
    "items": 30,
    "documented": 30
+  },
+  "src/format/pepxml_mascot.rs": {
+   "items": 9,
+   "documented": 9
   },
   "src/format/percolator_infile.rs": {
    "items": 28,
    "documented": 28
   },
+  "src/format/percolator_outfile.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/protein_identification_arrow_io.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/format/protxml.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/psm_arrow_io.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/format/ptm_xml.rs": {
+   "items": 8,
+   "documented": 8
+  },
   "src/format/qcml.rs": {
    "items": 79,
    "documented": 79
   },
-  "src/format/semantic_validator.rs": {
+  "src/format/qpx_collection_export.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/qpx_file.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/format/qpx_identity.rs": {
    "items": 11,
-   "documented": 5
+   "documented": 11
+  },
+  "src/format/qpx_value_validation.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/format/rational_scan2im_converter.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/format/search_engine_text.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/format/search_engine_xml.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/format/semantic_validator.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/format/sequest_infile.rs": {
+   "items": 63,
+   "documented": 63
+  },
+  "src/format/sequest_outfile.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/sirius_fragment_annotation.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/spec_array_file.rs": {
+   "items": 6,
+   "documented": 6
   },
   "src/format/sqlite_connector.rs": {
    "items": 9,
    "documented": 9
+  },
+  "src/format/sqmass_file.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/string_manager.rs": {
+   "items": 10,
+   "documented": 10
   },
   "src/format/sv_out_stream.rs": {
    "items": 46,
@@ -789,13 +1889,81 @@
    "items": 21,
    "documented": 5
   },
+  "src/format/tims_data_handle.rs": {
+   "items": 27,
+   "documented": 27
+  },
+  "src/format/traml.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/traml_handler.rs": {
+   "items": 8,
+   "documented": 8
+  },
   "src/format/transformation_xml.rs": {
    "items": 21,
    "documented": 21
   },
+  "src/format/unimod_xml.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/format/uniprot_xml.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/xic_parquet_file.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/format/xim_parquet_file.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/format/xipm_parquet_consumer.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/format/xipm_parquet_file.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/format/xmass_file.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/format/xml_attributes.rs": {
+   "items": 10,
+   "documented": 10
+  },
   "src/format/xml_schema.rs": {
    "items": 16,
    "documented": 16
+  },
+  "src/format/xquest_result_xml.rs": {
+   "items": 23,
+   "documented": 23
+  },
+  "src/format/xtandem_infile.rs": {
+   "items": 47,
+   "documented": 47
+  },
+  "src/format/xtandem_xml_file.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/format/zip_archive_file.rs": {
+   "items": 9,
+   "documented": 9
+  },
+  "src/format/zip_ifstream.rs": {
+   "items": 8,
+   "documented": 8
+  },
+  "src/identification/graph/apply.rs": {
+   "items": 2,
+   "documented": 2
   },
   "src/identification/graph/cleanup.rs": {
    "items": 7,
@@ -818,20 +1986,28 @@
    "documented": 11
   },
   "src/identification/graph.rs": {
-   "items": 59,
-   "documented": 21
+   "items": 60,
+   "documented": 23
+  },
+  "src/identification/hits.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/identification/peptide_identification.rs": {
+   "items": 10,
+   "documented": 10
   },
   "src/identification/protein_run.rs": {
-   "items": 11,
-   "documented": 7
+   "items": 16,
+   "documented": 12
   },
   "src/identification/run_mapping.rs": {
    "items": 16,
-   "documented": 9
+   "documented": 16
   },
   "src/identification.rs": {
-   "items": 61,
-   "documented": 14
+   "items": 78,
+   "documented": 78
   },
   "src/interfaces.rs": {
    "items": 1,
@@ -862,12 +2038,12 @@
    "documented": 5
   },
   "src/kernel/data_array.rs": {
-   "items": 2,
-   "documented": 2
+   "items": 8,
+   "documented": 8
   },
   "src/kernel/experiment_2d.rs": {
-   "items": 9,
-   "documented": 9
+   "items": 11,
+   "documented": 11
   },
   "src/kernel/experiment_aggregation.rs": {
    "items": 13,
@@ -878,8 +2054,8 @@
    "documented": 21
   },
   "src/kernel/experiment_summary.rs": {
-   "items": 17,
-   "documented": 17
+   "items": 18,
+   "documented": 18
   },
   "src/kernel/faims_helper.rs": {
    "items": 12,
@@ -898,12 +2074,16 @@
    "documented": 5
   },
   "src/kernel/geometry.rs": {
-   "items": 29,
-   "documented": 29
+   "items": 31,
+   "documented": 31
+  },
+  "src/kernel/im_data_array_utils.rs": {
+   "items": 5,
+   "documented": 5
   },
   "src/kernel/im_data_converter.rs": {
-   "items": 17,
-   "documented": 17
+   "items": 22,
+   "documented": 22
   },
   "src/kernel/map_operations.rs": {
    "items": 40,
@@ -962,8 +2142,8 @@
    "documented": 3
   },
   "src/kernel.rs": {
-   "items": 75,
-   "documented": 75
+   "items": 77,
+   "documented": 77
   },
   "src/lib.rs": {
    "items": 18,
@@ -976,6 +2156,10 @@
   "src/math/fft.rs": {
    "items": 8,
    "documented": 8
+  },
+  "src/math/fibonacci_heap.rs": {
+   "items": 9,
+   "documented": 9
   },
   "src/math/fitters/gamma.rs": {
    "items": 8,
@@ -1001,6 +2185,10 @@
    "items": 5,
    "documented": 5
   },
+  "src/math/hash_order.rs": {
+   "items": 31,
+   "documented": 31
+  },
   "src/math/histogram.rs": {
    "items": 27,
    "documented": 27
@@ -1009,9 +2197,81 @@
    "items": 14,
    "documented": 14
   },
-  "src/math/mod.rs": {
-   "items": 11,
+  "src/math/ml/clustering/average_linkage.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/math/ml/clustering/cluster_analyzer.rs": {
+   "items": 10,
    "documented": 10
+  },
+  "src/math/ml/clustering/cluster_functor.rs": {
+   "items": 3,
+   "documented": 3
+  },
+  "src/math/ml/clustering/cluster_hierarchical.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/math/ml/clustering/clustering_grid.rs": {
+   "items": 13,
+   "documented": 13
+  },
+  "src/math/ml/clustering/complete_linkage.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/math/ml/clustering/euclidean_similarity.rs": {
+   "items": 5,
+   "documented": 5
+  },
+  "src/math/ml/clustering/grid_based_cluster.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/math/ml/clustering/grid_based_clustering.rs": {
+   "items": 12,
+   "documented": 12
+  },
+  "src/math/ml/clustering/hash_grid.rs": {
+   "items": 24,
+   "documented": 24
+  },
+  "src/math/ml/clustering/single_linkage.rs": {
+   "items": 2,
+   "documented": 2
+  },
+  "src/math/ml/clustering.rs": {
+   "items": 11,
+   "documented": 11
+  },
+  "src/math/ml/linear_interpolation.rs": {
+   "items": 21,
+   "documented": 21
+  },
+  "src/math/ml/linear_regression.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/math/ml/linear_regression_without_intercept.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/math/ml/quadratic_regression.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/math/ml/ransac.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/math/ml.rs": {
+   "items": 6,
+   "documented": 6
+  },
+  "src/math/mod.rs": {
+   "items": 14,
+   "documented": 13
   },
   "src/math/multiple_testing.rs": {
    "items": 19,
@@ -1034,8 +2294,8 @@
    "documented": 41
   },
   "src/metadata/acquisition.rs": {
-   "items": 44,
-   "documented": 44
+   "items": 50,
+   "documented": 50
   },
   "src/metadata/document_identifier.rs": {
    "items": 4,
@@ -1061,13 +2321,49 @@
    "items": 20,
    "documented": 20
   },
+  "src/metadata/meta_info_description.rs": {
+   "items": 10,
+   "documented": 10
+  },
+  "src/metadata/meta_info_indexed.rs": {
+   "items": 1,
+   "documented": 1
+  },
+  "src/metadata/meta_info_registry.rs": {
+   "items": 17,
+   "documented": 17
+  },
+  "src/metadata/mod.rs": {
+   "items": 7,
+   "documented": 7
+  },
+  "src/metadata/spectrum_lookup.rs": {
+   "items": 19,
+   "documented": 19
+  },
+  "src/metadata/spectrum_meta_data_lookup.rs": {
+   "items": 25,
+   "documented": 25
+  },
+  "src/metadata/spectrum_native_id_parser.rs": {
+   "items": 15,
+   "documented": 15
+  },
+  "src/metadata/usi.rs": {
+   "items": 20,
+   "documented": 20
+  },
   "src/metadata/value.rs": {
    "items": 49,
    "documented": 18
   },
+  "src/metadata/value_text.rs": {
+   "items": 1,
+   "documented": 1
+  },
   "src/param/handler.rs": {
-   "items": 21,
-   "documented": 9
+   "items": 26,
+   "documented": 26
   },
   "src/param/iteration.rs": {
    "items": 9,
@@ -1086,16 +2382,16 @@
    "documented": 13
   },
   "src/param.rs": {
-   "items": 49,
-   "documented": 10
+   "items": 50,
+   "documented": 11
   },
   "src/processing/baseline.rs": {
    "items": 9,
    "documented": 9
   },
   "src/processing/chromatogram.rs": {
-   "items": 7,
-   "documented": 4
+   "items": 19,
+   "documented": 19
   },
   "src/processing/deisotoping.rs": {
    "items": 7,
@@ -1115,7 +2411,7 @@
   },
   "src/processing/mean_noise.rs": {
    "items": 7,
-   "documented": 2
+   "documented": 7
   },
   "src/processing/noise_estimation.rs": {
    "items": 14,
@@ -1145,21 +2441,33 @@
    "items": 14,
    "documented": 14
   },
+  "src/processing/spline/pi0_smoother.rs": {
+   "items": 3,
+   "documented": 3
+  },
   "src/processing/spline/smoothing.rs": {
    "items": 10,
    "documented": 10
   },
+  "src/processing/spline/spline_interpolated_peaks.rs": {
+   "items": 14,
+   "documented": 14
+  },
+  "src/processing/spline/spline_package.rs": {
+   "items": 7,
+   "documented": 7
+  },
   "src/processing/spline.rs": {
-   "items": 4,
-   "documented": 4
+   "items": 7,
+   "documented": 7
   },
   "src/processing/window_mower.rs": {
    "items": 6,
    "documented": 6
   },
   "src/processing.rs": {
-   "items": 27,
-   "documented": 27
+   "items": 29,
+   "documented": 29
   },
   "src/system/build_info.rs": {
    "items": 13,
@@ -1214,8 +2522,8 @@
    "documented": 13
   },
   "src/system/update_check.rs": {
-   "items": 23,
-   "documented": 23
+   "items": 18,
+   "documented": 18
   }
  }
 }

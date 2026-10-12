@@ -1010,10 +1010,10 @@ fn class_test_run_feature_map() {
     let mut algorithm = configured("itol=20.0;minmz=900.0;maxmz=1100.0");
     algorithm.set_ms_data(class_test_run_input());
     let map = algorithm.run(&mut UniqueIdGenerator::from_seed(1)).unwrap();
-    assert_eq!(map.len(), 1); // :106
+    assert_eq!(map.len(), 1); // Biosaur2Algorithm_test.cpp:106
     let feature = &map.features[0];
-    assert!((feature.mz - 1000.0).abs() <= 1e-5 * 1000.0); // :111
-    assert_eq!(feature.charge, 1); // :112
+    assert!((feature.mz - 1000.0).abs() <= 1e-5 * 1000.0); // Biosaur2Algorithm_test.cpp:111
+    assert_eq!(feature.charge, 1); // Biosaur2Algorithm_test.cpp:112
     assert_eq!(
         feature.metadata["n_isotopes"].data(),
         &MetaValueData::Integer(2)
@@ -1027,21 +1027,21 @@ fn class_test_set_ms_data() {
     experiment.spectra.push(MSSpectrum::default());
     let mut algorithm = Biosaur2Algorithm::new();
     algorithm.set_ms_data(experiment.clone());
-    assert_eq!(algorithm.ms_data().len(), 1); // :132
+    assert_eq!(algorithm.ms_data().len(), 1); // Biosaur2Algorithm_test.cpp:132
     let mut moved = experiment;
     algorithm.set_ms_data(std::mem::take(&mut moved));
-    assert_eq!(algorithm.ms_data().len(), 1); // :145
-    assert_eq!(moved.len(), 0); // :146
+    assert_eq!(algorithm.ms_data().len(), 1); // Biosaur2Algorithm_test.cpp:145
+    assert_eq!(moved.len(), 0); // Biosaur2Algorithm_test.cpp:146
 }
 
 #[test]
 fn class_test_get_ms_data() {
     // Biosaur2Algorithm_test.cpp:150-170
     let mut algorithm = Biosaur2Algorithm::new();
-    assert_eq!(algorithm.ms_data_mut().len(), 0); // :154
+    assert_eq!(algorithm.ms_data_mut().len(), 0); // Biosaur2Algorithm_test.cpp:154
     algorithm.ms_data_mut().spectra.push(MSSpectrum::default());
-    assert_eq!(algorithm.ms_data().len(), 1); // :160
-    assert_eq!(Biosaur2Algorithm::new().ms_data().len(), 0); // :168
+    assert_eq!(algorithm.ms_data().len(), 1); // Biosaur2Algorithm_test.cpp:160
+    assert_eq!(Biosaur2Algorithm::new().ms_data().len(), 0); // Biosaur2Algorithm_test.cpp:168
 }
 
 #[test]
@@ -1062,7 +1062,7 @@ fn class_test_run_with_hills() {
     let output = algorithm
         .run_with_details(&mut UniqueIdGenerator::from_seed(1))
         .unwrap();
-    assert!(!output.hills.is_empty()); // :204
+    assert!(!output.hills.is_empty()); // Biosaur2Algorithm_test.cpp:204
 }
 
 fn class_test_faims_input(profile: bool) -> MSExperiment {
@@ -1125,27 +1125,27 @@ fn class_test_faims_path_preserves_ms_data() {
             .voltages
             .len(),
         2
-    ); // :257
+    ); // Biosaur2Algorithm_test.cpp:257
     let mut algorithm = configured("minmz=400.0;maxmz=600.0;mini=100.0");
     algorithm.set_ms_data(experiment);
     algorithm.run(&mut UniqueIdGenerator::from_seed(1)).unwrap();
     let back = algorithm.ms_data();
-    assert_eq!(back.len(), 20); // :273
-    assert_eq!(back.chromatograms.len(), 1); // :274
+    assert_eq!(back.len(), 20); // Biosaur2Algorithm_test.cpp:273
+    assert_eq!(back.chromatograms.len(), 1); // Biosaur2Algorithm_test.cpp:274
     assert_eq!(
         FaimsHelper::get_compensation_voltages(back)
             .unwrap()
             .voltages
             .len(),
         2
-    ); // :278
+    ); // Biosaur2Algorithm_test.cpp:278
     assert!(back.spectra.windows(2).all(|w| w[0].rt <= w[1].rt)); // :279-284
-    assert_eq!(back.spectra[0].rt, 0.0); // :285
-    assert_eq!(back.spectra[back.len() - 1].rt, 19.0); // :286
+    assert_eq!(back.spectra[0].rt, 0.0); // Biosaur2Algorithm_test.cpp:285
+    assert_eq!(back.spectra[back.len() - 1].rt, 19.0); // Biosaur2Algorithm_test.cpp:286
     let ranges = back.combined_range_manager().unwrap();
-    assert_eq!(ranges.min(MSDim::Rt).unwrap(), 0.0); // :292
-    assert_eq!(ranges.max(MSDim::Rt).unwrap(), 19.0); // :293
-    assert!((ranges.max(MSDim::Mz).unwrap() - 502.003355).abs() <= 1e-5 * 502.003355); // :294
+    assert_eq!(ranges.min(MSDim::Rt).unwrap(), 0.0); // Biosaur2Algorithm_test.cpp:292
+    assert_eq!(ranges.max(MSDim::Rt).unwrap(), 19.0); // Biosaur2Algorithm_test.cpp:293
+    assert!((ranges.max(MSDim::Mz).unwrap() - 502.003355).abs() <= 1e-5 * 502.003355); // Biosaur2Algorithm_test.cpp:294
 }
 
 #[test]
@@ -1158,16 +1158,16 @@ fn class_test_faims_profile_path_keeps_chromatograms_and_settings() {
     algorithm.set_ms_data(experiment);
     algorithm.run(&mut UniqueIdGenerator::from_seed(1)).unwrap();
     let back = algorithm.ms_data();
-    assert_eq!(back.len(), 20); // :347
-    assert_eq!(back.chromatograms.len(), 1); // :348
-    assert_eq!(back.settings.date_time.iso_string(), "2019-09-07T09:40:04"); // :349
+    assert_eq!(back.len(), 20); // Biosaur2Algorithm_test.cpp:347
+    assert_eq!(back.chromatograms.len(), 1); // Biosaur2Algorithm_test.cpp:348
+    assert_eq!(back.settings.date_time.iso_string(), "2019-09-07T09:40:04"); // Biosaur2Algorithm_test.cpp:349
     assert_eq!(
         FaimsHelper::get_compensation_voltages(back)
             .unwrap()
             .voltages
             .len(),
         2
-    ); // :351
+    ); // Biosaur2Algorithm_test.cpp:351
 }
 
 #[test]
@@ -1195,16 +1195,16 @@ fn class_test_profile_path_refreshes_ranges() {
     algorithm.set_ms_data(experiment);
     algorithm.run(&mut UniqueIdGenerator::from_seed(1)).unwrap();
     let back = algorithm.ms_data();
-    assert_eq!(back.len(), 10); // :393
+    assert_eq!(back.len(), 10); // Biosaur2Algorithm_test.cpp:393
     assert!(
         FaimsHelper::get_compensation_voltages(back)
             .unwrap()
             .voltages
             .is_empty()
-    ); // :394
+    ); // Biosaur2Algorithm_test.cpp:394
     let ranges = back.combined_range_manager().unwrap();
-    assert_eq!(ranges.min(MSDim::Rt).unwrap(), 0.0); // :395
-    assert_eq!(ranges.max(MSDim::Rt).unwrap(), 9.0); // :396
+    assert_eq!(ranges.min(MSDim::Rt).unwrap(), 0.0); // Biosaur2Algorithm_test.cpp:395
+    assert_eq!(ranges.max(MSDim::Rt).unwrap(), 9.0); // Biosaur2Algorithm_test.cpp:396
 }
 
 #[test]
@@ -1225,14 +1225,14 @@ fn class_test_non_faims_path_preserves_ms_data() {
             .unwrap()
             .voltages
             .is_empty()
-    ); // :426
+    ); // Biosaur2Algorithm_test.cpp:426
     let mut algorithm = configured("minmz=400.0;maxmz=600.0;mini=100.0");
     algorithm.set_ms_data(experiment);
     algorithm.run(&mut UniqueIdGenerator::from_seed(1)).unwrap();
-    assert_eq!(algorithm.ms_data().len(), 10); // :438
+    assert_eq!(algorithm.ms_data().len(), 10); // Biosaur2Algorithm_test.cpp:438
     let ranges = algorithm.ms_data().combined_range_manager().unwrap();
-    assert_eq!(ranges.min(MSDim::Rt).unwrap(), 0.0); // :440
-    assert_eq!(ranges.max(MSDim::Rt).unwrap(), 9.0); // :441
+    assert_eq!(ranges.min(MSDim::Rt).unwrap(), 0.0); // Biosaur2Algorithm_test.cpp:440
+    assert_eq!(ranges.max(MSDim::Rt).unwrap(), 9.0); // Biosaur2Algorithm_test.cpp:441
 }
 
 // ----- native (tier 4) -----

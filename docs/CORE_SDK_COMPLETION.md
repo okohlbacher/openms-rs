@@ -8,11 +8,11 @@ Validated TOPP workflows: **9** of 124, each reproducing its upstream test again
 
 | Review state | core | cli | Headers |
 | --- | ---: | ---: | ---: |
-| complete | 130 | 2 | 132 |
-| evidence_requires_review | 23 | 0 | 23 |
-| native_equivalent | 91 | 0 | 91 |
-| partial | 140 | 2 | 142 |
-| unmapped | 402 | 4 | 406 |
+| complete | 541 | 5 | 546 |
+| evidence_requires_review | 10 | 0 | 10 |
+| native_equivalent | 9 | 0 | 9 |
+| partial | 109 | 3 | 112 |
+| unmapped | 117 | 0 | 117 |
 
 ## Highest fan-out open SDK dependencies
 
@@ -22,39 +22,39 @@ These counts show direct consumers; they do not establish full dependency closur
 | --- | --- | ---: | --- |
 | `OpenMS/APPLICATIONS/TOPPBase.h` | cli | 108 | partial |
 | `OpenMS/FORMAT/FileHandler.h` | core | 100 | partial |
-| `OpenMS/CONCEPT/LogStream.h` | core | 69 | partial |
-| `OpenMS/KERNEL/MSExperiment.h` | core | 55 | partial |
 | `OpenMS/METADATA/ProteinIdentification.h` | core | 47 | partial |
+| `OpenMS/KERNEL/ConsensusMap.h` | core | 38 | partial |
+| `OpenMS/KERNEL/FeatureMap.h` | core | 18 | partial |
 | `OpenMS/DATASTRUCTURES/StringUtils.h` | core | 12 | partial |
 | `OpenMS/FORMAT/MzMLFile.h` | core | 12 | partial |
 | `OpenMS/CHEMISTRY/ProteaseDB.h` | core | 11 | partial |
-| `OpenMS/METADATA/PeptideIdentification.h` | core | 11 | partial |
 | `OpenMS/PROCESSING/ID/IDFilter.h` | core | 9 | partial |
 | `OpenMS/CHEMISTRY/ModificationsDB.h` | core | 8 | partial |
-| `OpenMS/FORMAT/FeatureXMLFile.h` | core | 8 | partial |
-| `OpenMS/MATH/MathFunctions.h` | core | 8 | partial |
-| `OpenMS/FORMAT/ConsensusXMLFile.h` | core | 7 | partial |
 | `OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h` | core | 7 | partial |
-| `OpenMS/FORMAT/MzTabFile.h` | core | 7 | partial |
-| `OpenMS/APPLICATIONS/TOPPExternalToolBase.h` | cli | 6 | unmapped |
 | `OpenMS/FORMAT/IdXMLFile.h` | core | 6 | partial |
-| `OpenMS/FORMAT/MzTab.h` | core | 6 | partial |
 | `OpenMS/FORMAT/QcMLFile.h` | core | 6 | partial |
 | `OpenMS/CONCEPT/VersionInfo.h` | core | 5 | partial |
-| `OpenMS/FORMAT/OMSFile.h` | core | 5 | unmapped |
 | `OpenMS/FORMAT/PepXMLFile.h` | core | 5 | partial |
 | `OpenMS/PROCESSING/CENTROIDING/PeakPickerHiRes.h` | core | 5 | partial |
 | `OpenMS/SYSTEM/StopWatch.h` | core | 5 | partial |
-| `OpenMS/APPLICATIONS/MapAlignerBase.h` | cli | 4 | unmapped |
-| `OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h` | core | 4 | partial |
-| `OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h` | core | 4 | unmapped |
-| `OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h` | core | 4 | unmapped |
+| `OpenMS/APPLICATIONS/MapAlignerBase.h` | cli | 4 | partial |
 | `OpenMS/ANALYSIS/ID/PeptideIndexing.h` | core | 4 | partial |
-| `OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h` | core | 4 | unmapped |
-| `OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h` | core | 4 | partial |
 | `OpenMS/CONCEPT/Exception.h` | core | 4 | partial |
 | `OpenMS/IONMOBILITY/IMDataConverter.h` | core | 4 | partial |
-| `OpenMS/SYSTEM/JavaInfo.h` | core | 4 | partial |
+| `OpenMS/APPLICATIONS/SearchEngineBase.h` | cli | 3 | partial |
+| `OpenMS/ANALYSIS/ID/SiriusExportAlgorithm.h` | core | 3 | unmapped |
+| `OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h` | core | 3 | partial |
+| `OpenMS/CHEMISTRY/AASequence.h` | core | 3 | partial |
+| `OpenMS/CHEMISTRY/ResidueDB.h` | core | 3 | partial |
+| `OpenMS/FORMAT/MzIdentMLFile.h` | core | 3 | partial |
+| `OpenMS/FORMAT/XQuestResultXMLFile.h` | core | 3 | partial |
+| `OpenMS/METADATA/MetaInfoInterfaceUtils.h` | core | 3 | unmapped |
+| `OpenMS/PROCESSING/CALIBRATION/PrecursorCorrection.h` | core | 3 | unmapped |
+| `OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h` | core | 2 | unmapped |
+| `OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h` | core | 2 | partial |
+| `OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h` | core | 2 | unmapped |
+| `OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h` | core | 2 | unmapped |
+| `OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h` | core | 2 | evidence_requires_review |
 
 ## Completion requirements
 

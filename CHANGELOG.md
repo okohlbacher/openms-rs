@@ -2,6 +2,155 @@
 
 ## Unreleased
 
+- **Wave 4, group A (evidence, debt and chemistry/concept value members).**
+  - EVID-01: the early-TOPP oracles and the `topp-cli-lifecycle` case scripts,
+    which ran on a macOS Debug product SDK, were re-executed twice on the Linux
+    Release build and relabelled; every expectation holds except a directory as
+    `-in` (Release exits 12, the port 10), now a recorded gap (A1).
+  - EVID-02: all 91 `native_equivalent` entries re-audited member by member at
+    `bc9cc12`: 73 complete, 12 partial, 6 stay native_equivalent (A2a, A2b).
+  - DEBT-04: computeRank/rankCorrelationCoefficient, IsInIsolationWindow,
+    isSortedByIM/sortByIonMobility, PeakPickerIterative's sorts, FAIMSHelper
+    voltages, the FFAP abort-reason map, ChromatogramTools' grouping and
+    FeatureOverlapFilter's stable_sort reproduce the Release build on NaN and
+    infinite keys instead of refusing (A3a).
+  - DEBT-03: `docs/OPEN_ITEMS.md` decides every open item and lead decision
+    (A3b); after the integration 14 are resolved.
+  - DEBT-05/EVID-03/EVID-04: the C++ issue log's index matches its 354 entries;
+    `docs/REPRODUCIBILITY.md` measures what an outsider can recompute; the
+    citation checker reads core from the public repository (A4).
+  - Chemistry value members (EmpiricalFormula, ElementDB, IsotopeDistribution,
+    CoarseIsotopePatternGenerator, Ribonucleotide, EnzymaticDigestion,
+    DigestionEnzymeDB) complete against the Release build; ProteaseDB finds
+    lowercase names as the source does; a `unimod-xml` reader (merged into the `kb-xml` one at the integration); CONCEPT basics,
+    Colorizer, UniqueIdIndexer, DBoundingBox, IsotopeCluster, MatchedIterator and
+    ListUtilsIO complete (A5a).
+  - Matrix, USI, MetaInfoRegistry, MetaInfoDescription, SpectrumLookup,
+    SpectrumMetaDataLookup and SpectrumNativeIDParser ported; IdentificationData
+    gains pickScoreType, applyToObservations and allow_missing (A5b).
+  - Pearson and Matthews correlation divide by a zero denominator as the Release
+    build does (the default NaN, a signed infinity on underflow); one Pearson
+    instead of two; `StatisticFunctions.h` complete. The low-layer StringUtils
+    toDouble refuses underflow and keeps the sign of `-nan`; one isTTY for the
+    colorizer, the log streams and the tool console; pi0Est's log-space
+    fallback on an empty lambda is executed on the Release build and matches
+    (INTEG-A).
+
+- **Wave 4, group B (CLI base classes, digestion, StringUtils, ParamValue text).**
+  - **The text of a `ParamValue` is `appendNumeric`.** `ParamValue::to_text`, the `-write_ini` writer
+    and every `ListUtils` text now use `concept::numeric_formatting`; an exact shortest-round-trip tie
+    (`-135169.706298828125`) is `-1.3516970629882812e05` as `std::to_chars` writes it, where the
+    `{:e}`-based text rounded it up. MGF and the PEP gnuplot formula share the one `%g`.
+  - **`ProteaseDigestion` and `EnzymaticDigestion` are complete against the Release build.**
+    `digest_ranges_source`, `digest_unmodified_source`, `peptide_count_source`,
+    `count_internal_cleavage_sites_source`, `is_valid_product_source` and
+    `filter_by_missed_cleavages` reproduce the source's own arithmetic, defects included (position 0
+    twice for Asp-N, Asp-N_ambic and Lys-N on a sequence that starts with their residue; an unspecific
+    digest by length; `peptideCount`'s counting rule; `isValidProduct_`'s `int` arithmetic and
+    warnings). `DigestionSpecificity` has the source's six values and names.
+  - **`SqrtScaler` writes the source's warning** for negative intensities
+    (`filter_spectrum_with_diagnostic` takes the stream).
+  - **`ParamXMLFile` reads one-entry ZIP input**, as every `XMLFile` reader does (`ParamXMLFile.h`
+    complete).
+  - Lane lines: B0 (disallowed input type is `ParseError`, exit 3; LogStream process-exit flushing and
+    the Windows console mode; JSON INI files and the exception arms' exit codes; set2DData mass traces,
+    getFirstProductSpectrum and operator<< of MSExperiment; FileHandler's log type,
+    `rewrite_source_file`, `compute_hash` and SRM conversion; the ProteinIdentification member
+    review), B6 (`param::DefaultParamHandling` and its sixteen implementors; TSG intensities are
+    `f64`), B7 (the cli package's tool base classes), B8a (StringUtils, ZIP input, mzML ion-mobility
+    peak type), B8b (MathFunctions, PeptideIdentification, USI, ProteaseDB, ModificationsDB, IDFilter),
+    B8c (`-write_ini` number text, 64-bit integers, nlohmann syntax errors, `ParamCWLFile`); each
+    lane's own line is in its report (B7 has none: `.planning/lane-reports/B7.md` was never written,
+    only `ledger-fragments/wave4/B7.json`).
+
+- **Wave 4, group F (formats).**
+  - Arrow/Parquet core behind the `arrow` feature: ArrowSchemaRegistry, ParquetFile, ParquetFilter, ArrowIOHelpers, ProteinIdentificationArrowIO, PSMArrowIO and FeatureMapArrowIO's features table, validated against the executed C++ Release build and the retained Parquet bundles; byte-deterministic output; tables that Arrow C++ calls equal (a list's element spelled item or element) concatenate.
+  - OpenSWATH Parquet I/O behind `arrow`: XIC/XIM/XIPM readers and the chromatogram, mobilogram and peak-map writers, MSExperimentArrowExport; QPX export and import (QPXIdentity, QPXValueValidation, QPXFile, QPXCollectionExport::Transaction).
+  - MzQCFile with its QC metrics and FlagSet; the MzTab export surface and streaming MzTabFile stores; OMSFile; MzTab-M end to end.
+  - Identification XML: xQuest result files, Mascot pepXML, Percolator PSM output, protXML; Mascot XML honours a caller-supplied scan_regex; search-engine input and output files (Sequest, Inspect, PepNovo, OMSSA, X! Tandem), SpecArray, msInspect, Kroenik and PTMXML files.
+  - Formats: CachedMzML, ChromeleonFile, EDTAFile, GNPSMGFFile and tables, IBSpectraFile, MSPGenericFile; MSPFile, SqMassFile and the FLASHDeconv writers partial.
+  - Bruker XMass and timsTOF .d (TDF) behind the new `bruker-tdf` feature (pure-Rust zstd).
+  - Knowledge-base XML behind `kb-xml`: PTMXML, Unimod XML (runtime reader and UnimodXMLDataProvider), UniProtKB XML; PEFF read/write and the PEFFEntry sequence members matched against the Release build.
+  - MS data consumers (Noop, Storing, Chaining, Transforming, Sql, Cached), IndexedMzMLFileLoader, MSDataWritingConsumer honours PeakFileOptions; gzip, bzip2 and single-file ZIP input streams, ZipArchiveFile, StringManager, XMLAttributes; every XML loader reads ZIP archives (new dependency zip under file-compression).
+
+- **Wave 4, group O (OpenSWATH).**
+  - Targeted experiment data model (O1a): `TargetedExperiment`, `TargetedExperimentHelper`,
+    `ReactionMonitoringTransition`, `IncludeExcludeTarget`, `MRMMapping` (both overloads) and
+    `MetaboTargetedTargetDecoy`, with a tier-1 C++ oracle.
+  - TraML and transition lists (O1b): `TraMLFile`, `TraMLHandler`, `TransitionTSVFile` (heavy and light paths, progress
+    reporting) and `TransitionPQPFile` (the `TargetedExperiment` path), against retained TOPP outputs and, for the TSV
+    light path and progress, executed Release output.
+  - OpenSWATH foundation (OA): OPENSWATHALGO data structures, the `SpectrumAccess` trait, the light targeted experiment,
+    access traits and mocks, `SwathMap`, `Scoring`, `StatsHelpers`, `DataFrameWriter`; data access (OpenMS, in-memory,
+    quadratic-m/z and sqMass views, `MRMFeatureAccessOpenMS`), `DataAccessHelper`, `OpenSwathHelper` (including
+    `sampleExperiment`) and `SpectrumAddition`.
+  - Assays and decoys (O1c): `MRMIonSeries`, `MRMDecoy`, `MRMAssay` (the `TargetedExperiment` API; the light overloads
+    are open), tier-1 evidence on every TraML-based class-test case.
+  - OpenSWATH scoring (O2): `DIAHelper`, `DIAPrescoring`, `DIAScoring`, `MRMScoring`, `OpenSwathScores`,
+    `IonMobilityScoring` (with ion-mobilogram peak picking) and `OpenSwathScoring`; tier-1 differential against the
+    Linux Release build, cross-correlation and StatsHelpers scores bit for bit.
+  - Chromatogram peak picking (O3a): `MRMTransitionGroupPicker` (partial), `PeakPickerMobilogram`,
+    `MasstraceCorrelator`; Param surface and index overloads for `PeakPickerChromatogram` and `PeakIntegrator`.
+  - OpenSWATH MRM feature finding (O3b): `MRMFeatureFinderScoring`, `ConfidenceScoring`, `MRMFeatureFilter`,
+    `MRMFeatureQC`, `MRMFeaturePicker` and the CSV loaders, and the MRM feature selectors with a typed solver interface
+    and an exact Score solver (QMIP needs a caller-supplied MIP solver).
+  - OpenSWATH extraction (O4a): `ChromatogramExtractorAlgorithm`, `ChromatogramExtractor` (both annotation
+    instantiations), `PeakMapExtractor`, `SwathWindowLoader`, `SwathQC`, `SwathMapMassCorrection` (`correctMZ`,
+    `correctIM`), checked against the executed C++ Release build.
+  - ML regression and RANSAC (O4b): `LinearRegression`, `LinearRegressionWithoutIntercept`, `QuadraticRegression`,
+    `RANSAC*`, `Math::RandomShuffler`, `MRMRTNormalizer`, `TargetedSpectraExtractor` (all but `searchSpectrum` and
+    `storeSpectraMSP`); executed differentials reproduce the Release build bit for bit.
+  - OpenSWATH workflow (O5a): `OpenSwathWorkflow` (DIA, PRM, diaPASEF, MS1-only, wave scheduler, bit-reproducible),
+    `OpenSwathWorkflowScheduler`, `OpenSwathOSWWriter`, `OpenSwathResultsExporter` and `OpenSwathMatrixExporter` (TSV and
+    Parquet), `OpenSwathExportData`, `OpenSwathExportConfig`.
+  - OpenSWATH confidence inference (O5b): `LevelContextInference` and the peptide, protein and gene wrappers,
+    peptidoform inference (IPF), `OpenSwathLibraryIDNormalizer`; Release oracle on 197 cases (protein and gene level
+    open: probit divergence in `math::multiple_testing`).
+  - OpenSWATH Parquet I/O (O5c, feature `arrow`): `TransitionParquetFile`, `OpenSwathOSWParquetWriter/Reader`,
+    `OpenSwathParquetExporter`, `OpenSwathExportData`, differential-tested against the Linux Release build.
+
+- **Wave 4, group X (identification algorithms, feature finding, map alignment).**
+  Identification algorithms (ANALYSIS/ID). ConsensusIDAlgorithm with
+    all eight variants and NeedlemanWunsch, IDScoreSwitcherAlgorithm,
+    IDMergerAlgorithm, ConsensusMapMergerAlgorithm, PeptideProteinResolution and
+    IDDecoyProbability (the retained ConsensusID outputs and a Release-build
+    oracle agree); NeighborSeq and SimpleSearchEngineAlgorithm (the retained TOPP
+    outputs agree to 2e-10); FragmentIndex except the SNES spectrum query; PScore,
+    AScore, CometModification and AhoCorasickAmbiguous (730 and 322 Release-build
+    cases); IDMapper (six retained TOPP outputs and a Release oracle for
+    isobaric labels), IonIdentityMolecularNetworking, SiriusFragmentAnnotation and
+    MetaboliteSpectralMatching without `merge_spectra`.
+  - **Percolator in process, FalseDiscoveryRate complete.** Rescoring, training,
+    model I/O, PercolatorFeatureSetHelper and PercolatorTypes, bit-identical to
+    the serial Release build except `pep_method=nonparametric`; every
+    FalseDiscoveryRate member including `applyToObservationMatches`, checked bit
+    for bit.
+  - **Feature finding family.** The 1-D models and fitters, ElutionModelFitter,
+    EmgScoring, SeedListGenerator, FeatureFinderAlgorithm, ML/CLUSTERING with
+    DistanceMatrix, the three linkages, ClusterAnalyzer and grid-based
+    clustering, the FeatureFinderMultiplex family (all eleven retained TOPP
+    outputs), FeatureFinderIdentification and FeatureFinderMetaboIdent (29
+    Release-build cases bit for bit; the ion-mobility walk of the chromatogram
+    extractor keeps the source's separate iterator), Biosaur2Algorithm and the
+    FeatureFinderLFQ tool (47 Release cases; IM peak type is the one gap).
+  - **Map alignment and feature grouping.** The TransformationModel family,
+    superimposers, MapAlignmentAlgorithmIdentification, KD, PoseClustering and
+    TreeGuided, MapAlignmentEvaluationAlgorithm, FeatureDistance, the pair and
+    QT/KD/labeled/unlabeled/WNet grouping algorithms, KDTreeFeatureMaps,
+    FeatureMapping and the ConsensusMapNormalizer algorithms; QTClusterFinder's
+    extraction order of equal-quality clusters matches the executed C++ (Fibonacci
+    heap and Boost / libstdc++ hash-container orders emulated).
+  - **Integration of group X.** One MapAlignmentAlgorithmKD, on the real kd-tree
+    and the full LOWESS (automatic span, Akima); the pose-clustering alignment
+    composes StablePairFinder and the tree-guided alignment builds its own
+    guide tree with ML/CLUSTERING (Release-build tree replayed). A native cap of
+    64 on LOWESS `num_iterations` that refused a value the source accepts is gone.
+    `std::nth_element`, `std::min`/`std::max`, `AASequence::operator<`,
+    `getAllSearchModifications` and `Math::median(sorted)` each exist once;
+    LinearRegressionWithoutIntercept is ported.
+
+- **Wave-4 integration: one implementation each.** Where two groups ported the same member, one remains and every caller uses it. The StringUtils text-to-number conversions are `concept::string_conversion` (the scanner of B8a with the Release records of three groups replayed against it), wrapped by `data_structures::string_utils`; `concept::numeric_formatting` is B8a's (it holds `ostream_g`); USI is `metadata::usi` (B's Release rows replayed, parse refusals are `Error::Parse` with the source's text); `DigestionSpecificity` is the source's six-valued `Specificity` and `filterByMissedCleavages` the source's arithmetic; Unimod XML is the `kb-xml` reader (A's Release records of `loadModifications()` replayed; the `unimod-xml` feature is gone); `SpectrumMetaDataLookup` is `metadata::spectrum_meta_data_lookup` (PercolatorOutfile and MascotXMLFile call it); ZIP input is `ZipIfstream` (FileEmpty, FileNotReadable and the several-entry ParseError as the Release build throws them, and `mzml::load_size` wraps the first two as `MzMLFile::loadSize` does); `RandomShuffler` is one type with a draw-limited shuffle for the decoy and search-engine code; `LinearRegressionWithoutIntercept` and `getAllSearchModifications` exist once. The wave-4 CI slices are generated by `tools/ci_matrix.py`.
+
 - **A thrown exception and a returned exit code end as the source ends them.**
   `Tool::run` and `Tool::run_io` return `ToolResult`: `Ok(code)` is a `main_`
   that returned, which the closing `<tool> took …` line follows, and a

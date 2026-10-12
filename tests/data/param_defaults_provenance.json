@@ -1,4 +1,5 @@
 {
+ "external_reference_note": "The oracle drivers and their build and run scripts live outside this repository under ../oracle so that no C++ is committed here; their outputs are the fixtures listed in this manifest. They are recorded, not re-verified by the in-repo gate, because they are intentionally absent from the crate.",
  "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
  "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
  "license": "BSD-3-Clause",
@@ -219,51 +220,63 @@
  "external_reference_artifacts": [
   {
    "path": "../oracle/B6-param-defaults/driver.cpp",
-   "sha256": "29c77b548528d4852a1858fde5bd4894a2262b1b266322a332d926943859443b"
+   "sha256": "29c77b548528d4852a1858fde5bd4894a2262b1b266322a332d926943859443b",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-param-defaults/cases.txt",
-   "sha256": "8449a0765ee2e8e42a1ec16da6a533f47546385af4724c945bb73225e8f2042e"
+   "sha256": "8449a0765ee2e8e42a1ec16da6a533f47546385af4724c945bb73225e8f2042e",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-param-defaults/run.sh",
-   "sha256": "935be8dcd546f9633e7f49bcef88e5d4e2312de72d7094099b2d89c15e0d8b1d"
+   "sha256": "935be8dcd546f9633e7f49bcef88e5d4e2312de72d7094099b2d89c15e0d8b1d",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-param-defaults/remote_run.sh",
-   "sha256": "64ac1887fc721e9a1f990bb2424aac5716b5e9cd74512bcf9e53e46437fe58f9"
+   "sha256": "64ac1887fc721e9a1f990bb2424aac5716b5e9cd74512bcf9e53e46437fe58f9",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-param-defaults/results/hashes.txt",
-   "sha256": "7abea8ebab40b9537a6d58a9f39370fda117450ba5ab4c04c89800e6518454cd"
+   "sha256": "7abea8ebab40b9537a6d58a9f39370fda117450ba5ab4c04c89800e6518454cd",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-param-defaults/results/case_hashes.txt",
-   "sha256": "cfbd8ca87343b9219c5d177221f8b718bfc031c307e1bb765a6b881b13dace38"
+   "sha256": "cfbd8ca87343b9219c5d177221f8b718bfc031c307e1bb765a6b881b13dace38",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-tsg-intensity/driver.cpp",
-   "sha256": "3e986d1e31b4a3584cdfebda7903583cd9fb5fbc2eb6e915c239a361b6a42e31"
+   "sha256": "3e986d1e31b4a3584cdfebda7903583cd9fb5fbc2eb6e915c239a361b6a42e31",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-tsg-intensity/cases.txt",
-   "sha256": "ee30428d8546d9f130305dbeb4a595316510c3c211f6eb0a834895e561571f7c"
+   "sha256": "ee30428d8546d9f130305dbeb4a595316510c3c211f6eb0a834895e561571f7c",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-tsg-intensity/run.sh",
-   "sha256": "fc752018d8bdb5fb09d39dd0a58272fba03b503abfa7e3576fa57f0789808e6f"
+   "sha256": "fc752018d8bdb5fb09d39dd0a58272fba03b503abfa7e3576fa57f0789808e6f",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-tsg-intensity/remote_run.sh",
-   "sha256": "ab4bf9392402db7052de75e35ff00b21276fcee1bed6648c1520b3ed2109f60e"
+   "sha256": "ab4bf9392402db7052de75e35ff00b21276fcee1bed6648c1520b3ed2109f60e",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-tsg-intensity/results/hashes.txt",
-   "sha256": "801572530bae1535db9e7e229c41989761bc126c10eabf3f8d57fcff4df2640b"
+   "sha256": "801572530bae1535db9e7e229c41989761bc126c10eabf3f8d57fcff4df2640b",
+   "origin_key": "reference_tools"
   },
   {
    "path": "../oracle/B6-tsg-intensity/results/case_hashes.txt",
-   "sha256": "b97e2521dfd61fba2e00a8aca87f0ba083f1a19667c812a7222352aa72caef40"
+   "sha256": "b97e2521dfd61fba2e00a8aca87f0ba083f1a19667c812a7222352aa72caef40",
+   "origin_key": "reference_tools"
   }
  ],
  "fixtures": [

@@ -9,8 +9,8 @@
 //! layer can reach.
 //!
 //! This is the single implementation behind
-//! [`crate::data_structures::string_utils`]'s public conversions (which add
-//! the crate error type) and behind the low layers (`metadata`, `concept`)
+//! `data_structures::string_utils`'s public conversions (which add the crate
+//! error type) and behind the low layers (`metadata`, `concept`)
 //! that cannot depend on `data_structures` without closing a cycle. The errors
 //! here are the source's `ConversionError` message texts.
 //!
@@ -350,6 +350,7 @@ fn is_c_space(byte: u8) -> bool {
 /// `std::stoll(text)`: leading whitespace, an optional sign and the longest
 /// run of decimal digits, the rest ignored. `None` where `stoll` throws (no
 /// digits, or out of range).
+#[cfg(feature = "arrow")]
 fn c_stoll(text: &str) -> Option<i64> {
     let bytes = text.as_bytes();
     let mut i = bytes.iter().take_while(|b| is_c_space(**b)).count();
@@ -713,6 +714,7 @@ pub(crate) fn stod(text: &str) -> std::result::Result<f64, String> {
 ///
 /// `std::invalid_argument` ("no conversion") when no digit follows, and
 /// `std::out_of_range` when the digits exceed `i64`.
+#[cfg(feature = "arrow")]
 pub(crate) fn stoll(text: &str) -> std::result::Result<i64, String> {
     c_stoll(text).ok_or_else(|| {
         if has_numeric_prefix(text, false) {
@@ -937,6 +939,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "arrow")]
     fn stoll_follows_the_c_library() {
         assert_eq!(stoll("12"), Ok(12));
         assert_eq!(stoll("\x0b\x0c 7"), Ok(7));

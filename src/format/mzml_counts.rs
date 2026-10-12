@@ -57,7 +57,6 @@ pub fn load_size(path: impl AsRef<Path>) -> Result<MzMLCounts> {
 /// `ZipIfstream::open` refuses is reported as `MzMLFile::loadSize` reports it,
 /// a `ParseError` that names the underlying exception (`FileEmpty` or
 /// `FileNotReadable`), where `MzMLFile::load` lets that exception through.
-
 pub fn load_size_with_options(
     path: impl AsRef<Path>,
     scientific: &PeakFileOptions,

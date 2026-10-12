@@ -121,12 +121,6 @@
   "upstream_test_definition": "test-data 0cb15f2 topp/CMakeLists.txt:1736-1864",
   "external_reference_artifacts": [
     {
-      "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
-      "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
-      "location": "outside this repository",
-      "origin_key": "reference_tools"
-    },
-    {
       "path": "../oracle/integ-O-tsvlight/driver.cpp",
       "sha256": "d7865af9d4ab23a110159ed62802ad7ae5fdd314746eea67ff18816c7163f8f1",
       "location": "outside this repository",
@@ -211,5 +205,16 @@
       "origin_key": "reference_tools"
     }
   ],
-  "external_reference_note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed."
+  "external_reference_note": "TargetedFileConverter lives in the openswath package, not the pinned topp package; its source is read at e29e7ee and not committed.",
+  "upstream_package_sources": {
+    "files": [
+      {
+        "path": "OpenMS4-tests/packages/openswath:src/TargetedFileConverter.cpp@e29e7ee",
+        "sha256": "8e74dcd20dc26e2babda5b4dc54562968f5f37bc5e604e0ff06e289c99547df6",
+        "location": "outside this repository",
+        "origin_key": "reference_tools"
+      }
+    ],
+    "note": "Source files of the OpenMS4-tests package read at the revision named in each path and not committed; they are not C++ oracle artifacts under ../oracle, so they are not external_reference_artifacts."
+  }
 }
