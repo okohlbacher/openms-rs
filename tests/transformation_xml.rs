@@ -12,8 +12,8 @@
 
 use openms::Error;
 use openms::analysis::transformations::{
-    DataPoint, Extrapolation, Interpolation, InterpolationOptions, LinearOptions, ModelConfig,
-    TransformationDescription, WeightFunction,
+    BSplineExtrapolation, DataPoint, Extrapolation, Interpolation, InterpolationOptions,
+    LinearOptions, ModelConfig, TransformationDescription, WeightFunction,
 };
 use openms::format::transformation_xml::{
     self as trafo, ReadOptions, SCHEMA_LOCATION, TransformationRecord, VERSION, WriteOptions,
@@ -256,15 +256,23 @@ fn storing_and_reloading_preserves_the_model_and_its_parameters() {
     };
     let error = record.model_config().unwrap_err();
     assert!(matches!(error, Error::InvalidValue(_)), "{error:?}");
-    // b_spline is a model the source implements and this port does not.
+    // b_spline was a model this port lacked, and this record was refused as
+    // Unsupported. The model is ported now (lane M1), so the same record
+    // resolves to the source defaults of TransformationModelBSpline
+    // (`getDefaultParameters`: num_nodes 5, wavelength 0, extrapolate
+    // linear, boundary_condition 2), which are what a parameterless record
+    // falls back to in the source.
     let record = TransformationRecord {
         model_type: "b_spline".into(),
         ..Default::default()
     };
-    assert!(matches!(
-        record.model_config().unwrap_err(),
-        Error::Unsupported(_)
-    ));
+    let ModelConfig::BSpline(options) = record.model_config().unwrap() else {
+        panic!("b_spline record resolves to another model");
+    };
+    assert_eq!(options.num_nodes, 5);
+    assert_eq!(options.wavelength, 0.0);
+    assert_eq!(options.extrapolation, BSplineExtrapolation::Linear);
+    assert_eq!(options.boundary_condition as i64, 2);
 
     std::fs::remove_dir_all(&directory).unwrap();
 }

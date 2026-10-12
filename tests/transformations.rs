@@ -525,8 +525,11 @@ fn lowess_limits_sorting_invalid_parameters_and_degenerate_inputs() {
             span: 1.1,
             ..Default::default()
         },
+        // No cap on the count (the source has none): the work limit stops an
+        // absurd one.
         LowessOptions {
-            iterations: 65,
+            iterations: 1_000_000,
+            max_work: 1_000,
             ..Default::default()
         },
         LowessOptions {
@@ -544,6 +547,19 @@ fn lowess_limits_sorting_invalid_parameters_and_degenerate_inputs() {
     ] {
         assert!(lowess(&x, &y, options).is_err());
     }
+    // More than the 64 passes an earlier native cap allowed: accepted, as the
+    // source accepts any non-negative count.
+    assert!(
+        lowess(
+            &x,
+            &y,
+            LowessOptions {
+                iterations: 70,
+                ..Default::default()
+            }
+        )
+        .is_ok()
+    );
     assert!(lowess(&[1., 0.], &[1., 2.], Default::default()).is_err());
     assert!(lowess(&[1., 2.], &[1.], Default::default()).is_err());
     assert!(lowess(&[1., 2.], &[1., f64::NAN], Default::default()).is_err());

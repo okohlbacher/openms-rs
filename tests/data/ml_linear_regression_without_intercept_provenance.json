@@ -1,0 +1,35 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ML/REGRESSION/LinearRegressionWithoutIntercept.h",
+   "sha256": "343729fc163c54358ac1dd8c77747d1498de56ad7544d470907ec7778a05a845"
+  },
+  {
+   "path": "src/openms/source/ML/REGRESSION/LinearRegressionWithoutIntercept.cpp",
+   "sha256": "a155bdcc71d41c4a81196ba42d999f2dee517a1dcb141949b5c37864edb384e7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/LinearRegressionWithoutIntercept_test.cpp",
+   "sha256": "5d8a47a47d837d2312fd767ee7323bc05d99c48f7f4d6df436d14f93a73a6f5f"
+  }
+ ],
+ "native_implementation": [
+  "src/math/ml/linear_regression_without_intercept.rs"
+ ],
+ "native_tests": [
+  "tests/ml_linear_regression_without_intercept.rs"
+ ],
+ "support_document": "docs/LINEAR_REGRESSION_WITHOUT_INTERCEPT_SUPPORT.md",
+ "fixtures": [],
+ "evidence_tier": {
+  "tier_3_class_tests": "tests/ml_linear_regression_without_intercept.rs: every section of LinearRegressionWithoutIntercept_test.cpp",
+  "tier_4_native": "the refusal of a dependent vector shorter than the independent one, where the source reads out of bounds"
+ },
+ "external_reference_artifacts": [],
+ "consumers": [
+  "src/analysis/featurefinder/multiplex/algorithm.rs (FeatureFinderMultiplexAlgorithm's ratio estimate)"
+ ]
+}

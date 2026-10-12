@@ -439,36 +439,15 @@ fn select_chrom_helper<'a, T>(
 }
 
 /// libstdc++ `std::lower_bound` by position: well defined, if meaningless, on
-/// a container that is not sorted by position.
+/// a container that is not sorted by position. The one transcription is
+/// [`crate::math::libstdcxx::lower_bound`].
 fn lower_bound(peaks: &[ChromatogramPeak], value: f64) -> usize {
-    let (mut first, mut len) = (0, peaks.len());
-    while len > 0 {
-        let half = len >> 1;
-        let middle = first + half;
-        if peaks[middle].rt < value {
-            first = middle + 1;
-            len = len - half - 1;
-        } else {
-            len = half;
-        }
-    }
-    first
+    crate::math::libstdcxx::lower_bound(peaks, |peak| peak.rt < value)
 }
 
 /// libstdc++ `std::upper_bound` by position; see [`lower_bound`].
 fn upper_bound(peaks: &[ChromatogramPeak], value: f64) -> usize {
-    let (mut first, mut len) = (0, peaks.len());
-    while len > 0 {
-        let half = len >> 1;
-        let middle = first + half;
-        if value < peaks[middle].rt {
-            len = half;
-        } else {
-            first = middle + 1;
-            len = len - half - 1;
-        }
-    }
-    first
+    crate::math::libstdcxx::upper_bound(peaks, |peak| value < peak.rt)
 }
 
 /// Source `MSChromatogram::sortByIntensity()`: a stable ascending sort of the

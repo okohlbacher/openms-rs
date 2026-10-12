@@ -85,6 +85,10 @@ pub(super) fn normalize_in_place(values: &mut [f64], normalization_factor: f64) 
 }
 
 /// The Euclidean norm of `values`; 0 for an empty slice.
+///
+/// The squares are added in Eigen's order (`v.norm()` is the square root of
+/// the vectorised `squaredNorm()` reduction), as the Release build does; a
+/// left-to-right sum differs in the last bits for four terms or more.
 pub fn norm(values: &[f64]) -> f64 {
     if values.is_empty() {
         return 0.0;

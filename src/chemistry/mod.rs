@@ -327,6 +327,25 @@ impl EmpiricalFormula {
         Ok(self.atoms.get(&atom).copied().unwrap_or(0))
     }
 
+    /// The atoms with a non-zero count as `(symbol, count)`, each symbol as
+    /// the source's `Element::getSymbol()` spells it: `C`, or `(13)C` and
+    /// `(2)H` for an isotope label (`D` and `T` are `(2)H` and `(3)H`). The
+    /// order is the formula's own, not the symbols'; callers that need the
+    /// source's string order sort by symbol.
+    pub fn symbol_counts(&self) -> Vec<(String, i32)> {
+        self.atoms
+            .iter()
+            .filter(|(_, count)| **count != 0)
+            .map(|(atom, &count)| {
+                let symbol = match atom.isotope {
+                    Some(isotope) => format!("({isotope}){}", atom.symbol),
+                    None => atom.symbol.to_owned(),
+                };
+                (symbol, count)
+            })
+            .collect()
+    }
+
     /// Sum of most-abundant isotope masses and `charge * PROTON_MASS_U`.
     pub fn mono_mass(&self) -> f64 {
         self.mass(false)

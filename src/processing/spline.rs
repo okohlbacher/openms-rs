@@ -42,3 +42,9 @@ pub use smoothing::BSplineSmoothingSpline;
 /// The smoothing spline `MultipleTesting::pi0Est` constructs, as a
 /// `math::multiple_testing::Pi0Smoother` (`MultipleTesting.h`).
 pub mod pi0_smoother;
+/// Spline interpolation of spectra and chromatograms package by package
+/// (`PROCESSING/MISC/SplineInterpolatedPeaks.h`).
+pub mod spline_interpolated_peaks;
+/// The spline fit of one package of data points
+/// (`PROCESSING/MISC/SplinePackage.h`).
+pub mod spline_package;

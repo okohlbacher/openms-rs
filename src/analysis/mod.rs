@@ -33,3 +33,6 @@ pub mod id;
 pub mod mapmatching;
 pub mod openswath;
 pub mod qc;
+/// Hierarchical clustering of peak spectra by binned similarity (the
+/// binned overload of source `ClusterHierarchical::cluster`).
+pub mod spectra_clustering;

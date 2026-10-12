@@ -1,0 +1,241 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-topp",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "license": "BSD-3-Clause",
+ "group": "topp_feature_finder_lfq",
+ "work_package": "FF4 (Phase C): the FeatureFinderLFQ TOPP tool",
+ "scope": "OpenMS4-topp src/FeatureFinderLFQ.cpp: registration, main_, the hills path rule, the error branches",
+ "method": "The built executable runs the upstream TOPP_FeatureFinderLFQ_1 invocation and five more; outputs are compared with the retained expectation (decoded, upstream FuzzyDiff settings, ids skipped) and exactly with the Release FeatureFinderLFQ's (decoded featureXML with unique ids, TSV byte for byte, -write_ini line by line and decoded).",
+ "evidence_tier": "tier 1 (retained output and executed Linux x86_64 Release tool); tier 3 for the cited branches",
+ "upstream_test_definition": {
+  "path": "topp/CMakeLists.txt",
+  "revision": "0cb15f2",
+  "lines": "429-431",
+  "tests": [
+   "TOPP_FeatureFinderLFQ_1",
+   "TOPP_FeatureFinderLFQ_1_out1"
+  ]
+ },
+ "sources": [
+  {
+   "package": "topp",
+   "path": "src/FeatureFinderLFQ.cpp",
+   "sha256": "5da50924a7c3f1ad7cd8a9b101eeb98966e0a379ed8219e67d67e3b9020bf31a"
+  }
+ ],
+ "native_implementation": [
+  "src/cli/tools/feature_finder_lfq.rs",
+  "src/bin/FeatureFinderLFQ.rs",
+  "src/format/map_xml.rs"
+ ],
+ "native_tests": [
+  "tests/topp_feature_finder_lfq.rs"
+ ],
+ "support_document": "docs/BIOSAUR2_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/topp_feature_finder_lfq/FeatureFinderLFQ_1_output.featureXML",
+   "sha256": "b2058ed3fc2f26b2c39afdbde299adfed35bec12455b628802dac19452898685",
+   "bytes": 18346,
+   "kind": "retained upstream output (test-data 0cb15f2, topp/FeatureFinderLFQ_1_output.featureXML)",
+   "role": "expectation of TOPP_FeatureFinderLFQ_1 (topp/CMakeLists.txt:429-431)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/ms2_only.mzML",
+   "sha256": "3494698c9db27831c9728eeecd5e2882d6b29296ad6718b24dc577261a9eec85",
+   "bytes": 3002,
+   "kind": "hand-written input",
+   "role": "one MS2 spectrum; the Release tool exits 8 on it (remote_topp2.sh)"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq1.featureXML",
+   "sha256": "c41ce4bfa27444c59a953210da337fc159f6caa23705baa1cbbabbe884980d3c",
+   "bytes": 18346,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq1.featureXML"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq1b.hills.tsv",
+   "sha256": "6d2c313ebce84557db82b2d16e6eb9c7e2016f5c610d14994652038d829e85d1",
+   "bytes": 7987,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq1b.hills.tsv"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq1b.tsv",
+   "sha256": "0dafaa1f55da75994a537cd5208c0cd0f550dc3e0dfbbebd6570760f47e79bf0",
+   "bytes": 1457,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq1b.tsv"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_def.featureXML",
+   "sha256": "2e7316d45db759f9bf92da9295ead8857e62145d82e0c2e6fc0c391fc0f15afc",
+   "bytes": 47211,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_def.featureXML"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_def.hills.tsv",
+   "sha256": "0646a24521f818943f6620eea8221a54f3dddcb8c0f3e2a8dec89eb42eb5d12f",
+   "bytes": 32694,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_def.hills.tsv"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_defaults.ini",
+   "sha256": "c65d1f739dc13f9b41e674aa8edfd6c6ff100c4f11690dca2e0b7615987a3046",
+   "bytes": 6812,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_defaults.ini"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_faims.featureXML",
+   "sha256": "ea38d3b4297c9e8949e2fe12f2e1cb4e8216dea6f5acc4078eea3a960769ea55",
+   "bytes": 1200,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_faims.featureXML"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_faims.tsv",
+   "sha256": "8d570695aa9d2bcfeaf6cbc016c950c7f46854c777d982d8e716feeff009ea90",
+   "bytes": 94,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_faims.tsv"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_ffap.featureXML",
+   "sha256": "b227fae5e12fb9db4d95c6d5430b5434dff8746226821127c9cf88f75cb4954c",
+   "bytes": 64138,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_ffap.featureXML"
+  },
+  {
+   "path": "tests/data/topp_feature_finder_lfq/release_lfq_ffap.tsv",
+   "sha256": "daabb6771ffde541931e54cafa51aaeb3661a414697ef763eefea2cca6d25b2a",
+   "bytes": 3725,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "output of the Release FeatureFinderLFQ (remote_run.sh), lfq_ffap.tsv"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML",
+   "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3",
+   "bytes": 213090,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+   "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301",
+   "bytes": 65274,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/FeatureFinderAlgorithmPicked.mzML",
+   "sha256": "5139d8a8d318145cdbc2fefe5e3d0acfcc99c0881a05eb7a06c304bdeedb3f3e",
+   "bytes": 223001,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  }
+ ],
+ "oracle": {
+  "directory": "../oracle/FF4-biosaur2",
+  "evidence_label": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+  "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "release_pins": {
+   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+  },
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "FeatureFinderLFQ_sha256": "ab3563ff0765b3a85458964023eefad872f2b7f33e49055eb66c698c1164a625",
+  "installed_header_sha256": "932e3dc74185b151f5ef7ffdabffb9240662adce68fbaf0d16589479ebd25d47",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) with libOpenMS's core flags -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp (remote_run.sh)",
+  "host": "ibminode06 (Linux 6.8.0-124-generic x86_64), scratch /scratch/kohlbach/FF4-biosaur2; never ibminode05",
+  "driver_source_sha256": "6ced8bdd8f70f02769973b7be396230024acd90ec69c61050c4c0c7782787041",
+  "driver_binary_sha256": "ef432ca66095740ef5a7b73c00b294eb565ad530f4dd771d0df4dba5dc94bcc7",
+  "repeatability": "every driver case, the helper probes and every Release FeatureFinderLFQ call ran twice in fresh processes with a clean environment; results/differ.txt lists only 'DIFFER topp home', the per-run HOME directory the script compared as if it were a file; every output file agreed. remote_topp2.sh (the two error branches) ran twice and agreed (results2/).",
+  "results_sha256": {
+   "results/oracle.tsv": "9e71bcfab5d36cf24efcf672325afe7bf36333a61e6ef7f312577eadaab49981",
+   "results/helpers_oracle.tsv": "25f0247248b43a53ec7268a6b0c6419a732519236680b38bec58c4423bdb0f9b"
+  }
+ },
+ "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the generated inputs and the raw outputs live under ../oracle/FF4-biosaur2 (relative to the repository root); the entries below pin them. gen_cases.py writes cases/, make_table.py writes src/analysis/featurefinder/biosaur2/averagine_table.rs from results/helpers_oracle.tsv, stage_fixtures.py and stage_topp_fixtures.py copy the fixtures.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/FF4-biosaur2/driver.cpp",
+   "sha256": "6ced8bdd8f70f02769973b7be396230024acd90ec69c61050c4c0c7782787041",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/remote_run.sh",
+   "sha256": "a80d0cc6d9613db6c7947ac58275749a13c7210b4f772b8c5371f0969b654468",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/run.sh",
+   "sha256": "ea35832ffbd25c61f80246f4b4e41c04b22efd59bf552f245f06861bf8eaa358",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/fetch.sh",
+   "sha256": "810457a1f260f424aac28cd591e33a35a05224cb1eb327ee461d4218e656f520",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/compile_check.sh",
+   "sha256": "23fb07066d1c12d25175b10e812ed01095cb47386b3768f690d8be003ebd5e51",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/gen_cases.py",
+   "sha256": "b4b04c8c405d12733cf611d90b1d672c85e7ce1c3c7051630983fafacf26dc6d",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/make_table.py",
+   "sha256": "43418b7dee8b2e8a3327b20454080e35976cb4ef4a9b940583cd85271ef8f708",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/stage_fixtures.py",
+   "sha256": "cf2edef9a10920e28ca1700f2c8691828f8543573cc1af75b08f2323093a787d",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/stage_topp_fixtures.py",
+   "sha256": "df4f36f66d58a9b75798ab166952e8536a453857bb809c21c516ae6bc8b4da71",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/remote_topp2.sh",
+   "sha256": "1d4f4d9bff9f4a1e70cedadc36434df39f25bc7784e9b0110b235a0a1ec0c760",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/make_provenance.py",
+   "sha256": "3b964c84ecb9a8a85ab9791eaceae4af8f52223a9c4f1a95f70a60346d3f27eb",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/results/oracle.tsv",
+   "sha256": "9e71bcfab5d36cf24efcf672325afe7bf36333a61e6ef7f312577eadaab49981",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/results/helpers_oracle.tsv",
+   "sha256": "25f0247248b43a53ec7268a6b0c6419a732519236680b38bec58c4423bdb0f9b",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/results/disasm_cosineCorrelation1D_.s",
+   "sha256": "2e3c78a4707c897364359e8c6decac9d168ffe99a2d25575035c8e2c6111e4dc",
+   "origin_key": "ff4_biosaur2"
+  }
+ ]
+}

@@ -19,7 +19,7 @@ use crate::analysis::transformations::{
     LinearCoefficients, LinearOptions, LowessOptions, ModelConfig, TransformationDescription,
     TransformationModel, WeightFunction,
 };
-use crate::param::ParamValue;
+use crate::param::{Param, ParamValue};
 use crate::{Error, Result};
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
@@ -154,31 +154,44 @@ impl TransformationRecord {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::Unsupported`] for `b_spline`, which the source
-    /// implements and this port does not, and [`Error::InvalidValue`] for a
-    /// name that is not a source model type at all. The source
-    /// `TransformationDescription::fitModel` throws `Exception::IllegalArgument`
-    /// for both, so an unknown name is an error here as it is there.
+    /// Returns [`Error::InvalidValue`] for a name that is not a source model
+    /// type at all; the source `TransformationDescription::fitModel` throws
+    /// `Exception::IllegalArgument` for it, so an unknown name is an error here
+    /// as it is there.
     ///
     /// Returns [`Error::Unsupported`] when a parameter has a type this model
     /// cannot accept, and [`Error::InvalidValue`] when a weight name is not one
     /// of the source's `x`/`1/x`/`1/x2`/`ln(x)` set. The source
     /// `TransformationModel` constructor throws `Exception::InvalidParameter`
     /// for an invalid weight.
+    ///
+    /// `b_spline`, and `lowess` with `auto_span` set to `true`, are read by
+    /// [`ModelConfig::from_param`] from the record's parameters, and fail as it
+    /// does.
     pub fn model_config(&self) -> Result<ModelConfig> {
         match self.model_type.as_str() {
             "none" => Ok(ModelConfig::None),
             "identity" => Ok(ModelConfig::Identity),
             "linear" => Ok(ModelConfig::Linear(self.linear_options()?)),
             "interpolated" => Ok(ModelConfig::Interpolated(self.interpolation_options()?)),
+            "lowess" if self.string("auto_span")? == Some("true") => {
+                ModelConfig::from_param("lowess", &self.param()?)
+            }
             "lowess" => Ok(ModelConfig::Lowess(self.lowess_options()?)),
-            "b_spline" => Err(unsupported(
-                "b_spline transformation model is not implemented in this port",
-            )),
+            "b_spline" => ModelConfig::from_param("b_spline", &self.param()?),
             other => Err(invalid(format!(
                 "unknown transformation model type {other:?}"
             ))),
         }
+    }
+
+    /// The record's parameters as a flat `Param`, in name order.
+    fn param(&self) -> Result<Param> {
+        let mut param = Param::new();
+        for (name, value) in &self.parameters {
+            param.set_value(name, value.checked_clone()?, "", &[])?;
+        }
+        Ok(param)
     }
 
     /// Rebuild a description from this record.
@@ -228,6 +241,29 @@ impl TransformationRecord {
                 let options = model.options();
                 insert_weights(&mut parameters, options.x_weight, options.y_weight)?;
                 "linear"
+            }
+            TransformationModel::BSpline(model) => {
+                let options = model.options();
+                parameters.insert(
+                    "wavelength".to_owned(),
+                    ParamValue::Float(finite(options.wavelength, "wavelength")?),
+                );
+                parameters.insert(
+                    "num_nodes".to_owned(),
+                    ParamValue::Integer(
+                        i64::try_from(options.num_nodes)
+                            .map_err(|_| invalid("b_spline num_nodes exceeds i64"))?,
+                    ),
+                );
+                parameters.insert(
+                    "extrapolate".to_owned(),
+                    ParamValue::String(options.extrapolation.name().to_owned()),
+                );
+                parameters.insert(
+                    "boundary_condition".to_owned(),
+                    ParamValue::Integer(options.boundary_condition as i64),
+                );
+                "b_spline"
             }
             TransformationModel::Interpolated(model) => {
                 let options = model.options();
@@ -349,9 +385,9 @@ impl TransformationRecord {
             None => Ok(Interpolation::default()),
             Some("linear") => Ok(Interpolation::Linear),
             Some("cspline") => Ok(Interpolation::CubicSpline),
-            Some("polynomial") | Some("akima") => Err(unsupported(
-                "polynomial and akima interpolation are not implemented in this port",
-            )),
+            Some("akima") => Ok(Interpolation::Akima),
+            // `polynomial` is not a source interpolation type either: the
+            // source model throws `Exception::IllegalArgument` for it.
             Some(other) => Err(invalid(format!("unknown interpolation_type {other:?}"))),
         }
     }
@@ -425,17 +461,10 @@ fn insert_weights(
     Ok(())
 }
 fn interpolation_name(value: Interpolation) -> &'static str {
-    match value {
-        Interpolation::Linear => "linear",
-        Interpolation::CubicSpline => "cspline",
-    }
+    value.name()
 }
 fn extrapolation_name(value: Extrapolation) -> &'static str {
-    match value {
-        Extrapolation::TwoPointLinear => "two-point-linear",
-        Extrapolation::FourPointLinear => "four-point-linear",
-        Extrapolation::GlobalLinear => "global-linear",
-    }
+    value.name()
 }
 
 /// Read a TrafoXML document and refit its model, as `load` does by default.

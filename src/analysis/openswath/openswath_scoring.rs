@@ -672,8 +672,10 @@ impl OpenSwathScoring {
                 &im_range,
             )?
         } else if compound.is_peptide() {
+            // the source's formula leaves an unknown (mass-only) modification
+            // out, which the plain formula of the native sequence refuses
             let formula = convert_peptide_to_aa_sequence(compound)?
-                .formula_for(PeptideFragmentType::Full, charge)?;
+                .formula_for_source(PeptideFragmentType::Full, charge)?;
             diascoring.dia_ms1_isotope_scores(precursor_mz, &spectra, &im_range, &formula)?
         } else {
             let formula = EmpiricalFormula::parse(&compound.sequence)?.with_charge(charge);

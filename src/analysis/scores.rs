@@ -3,23 +3,54 @@
 // $Maintainer: OpenMS Rust contributors $
 
 //! Identification score categories and transactional main-score replacement.
+//!
+//! [`ScoreType`] and the free functions [`normalize_score_name`],
+//! [`all_score_names`] and [`is_known_score_type`] port `ANALYSIS/ID/Scores.h`
+//! (class `Scores`): the hierarchy of identification score types and the
+//! registry of known score names for each. The rest of this module is an
+//! earlier native score switcher; the source `IDScoreSwitcherAlgorithm` is
+//! [`crate::analysis::id::id_score_switcher`].
+//!
+//! | `Scores` | Rust |
+//! |---|---|
+//! | `IDType` | [`ScoreType`] |
+//! | `isScoreType(name, type)` | [`ScoreType::matches`] |
+//! | `parseIDType(text)` | [`ScoreType::parse`] |
+//! | `isHigherBetter(type)` | [`ScoreType::higher_is_better`] |
+//! | `getAllIDScoreNames()` | [`all_score_names`] |
+//! | `getIDNamesForType(type)` | [`ScoreType::names`] |
+//! | `findIDTypeByName(name, type&)` | [`ScoreType::from_name`] |
+//! | `normalizeScoreName(name)` | [`normalize_score_name`] |
+//! | `isKnownScoreType(name)` | [`is_known_score_type`] |
 
 use crate::identification::{PeptideIdentification, ProteinIdentification};
 use crate::kernel::{ConsensusMap, FeatureMap};
 use crate::metadata::{MetaInfo, MetaValue, MetaValueData};
 use crate::{Error, Result};
 
-/// The six score categories and their source ordering.
+/// Hierarchy of identification score types (source `Scores::IDType`), in
+/// source order, which is also the order of [`ScoreType::ALL`] and of
+/// [`all_score_names`].
+///
+/// The source notes that this should eventually follow ontology hierarchies
+/// once score meta values are CV terms.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ScoreType {
+    /// Raw search-engine score, e.g. a hyperscore (source `RAW`).
     Raw,
+    /// Raw score that is an E-value, e.g. an expect score (source `RAW_EVAL`).
     RawEValue,
+    /// Posterior probability (source `PP`).
     PosteriorProbability,
+    /// Posterior error probability (source `PEP`).
     PosteriorErrorProbability,
+    /// False discovery rate (source `FDR`).
     Fdr,
+    /// Q-value (source `QVAL`).
     QValue,
 }
 impl ScoreType {
+    /// Every score type, in source order.
     pub const ALL: [Self; 6] = [
         Self::Raw,
         Self::RawEValue,
@@ -28,7 +59,8 @@ impl ScoreType {
         Self::Fdr,
         Self::QValue,
     ];
-    /// Exact, case-sensitive source names, in source set order.
+    /// The known score names of this type (source `getIDNamesForType`):
+    /// exact, case-sensitive, in the source's `std::set` order.
     pub fn names(self) -> &'static [&'static str] {
         match self {
             Self::Raw => &[
@@ -62,11 +94,24 @@ impl ScoreType {
             Self::QValue => &["MS:1001491", "q-Value", "q-value", "qval", "qvalue"],
         }
     }
+    /// Whether a higher score of this type is better (source
+    /// `isHigherBetter`): true for [`ScoreType::Raw`] and
+    /// [`ScoreType::PosteriorProbability`]. The source flags the raw case as
+    /// "might actually not always be true".
     pub fn higher_is_better(self) -> bool {
         matches!(self, Self::Raw | Self::PosteriorProbability)
     }
-    /// Parse a category, not a search-engine score name. Source normalization
-    /// strips the literal `_score` suffix, then ignores case, spaces, '-' and '_'.
+    /// Parse a category, not a search-engine score name (source
+    /// `parseIDType`). Source normalization strips the literal `_score`
+    /// suffix, then ignores case, spaces, '-' and '_'; the accepted spellings
+    /// are `raw`, `raw evalue`, `pp`, `posterior probability`, `pep`,
+    /// `posterior error probability`, `fdr`, `false discovery rate` and
+    /// `q-value`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`Error::InvalidValue`] for any other text (source
+    /// `Exception::MissingInformation`).
     pub fn parse(category: &str) -> Result<Self> {
         let key: String = normalize_score_name(category)
             .chars()
@@ -83,24 +128,42 @@ impl ScoreType {
             _ => Err(bad(&format!("unknown score category {category:?}"))),
         }
     }
+    /// Whether `name`, with a trailing `_score` removed, is one of this type's
+    /// [`names`](ScoreType::names) (source `isScoreType`).
+    ///
+    /// The comparison is case-sensitive, as the source implementation is; the
+    /// source documentation calls it case-insensitive, which it is not.
     pub fn matches(self, name: &str) -> bool {
         self.names().contains(&normalize_score_name(name))
     }
-    /// Exact lookup, corresponding to source findIDTypeByName.
+    /// The type whose names contain exactly `name`, searching types in source
+    /// order (source `findIDTypeByName`, whose `false` is `None`). No `_score`
+    /// suffix is removed; see [`ScoreType::from_normalized_name`].
     pub fn from_name(name: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|t| t.names().contains(&name))
     }
+    /// [`ScoreType::from_name`] after [`normalize_score_name`].
     pub fn from_normalized_name(name: &str) -> Option<Self> {
         Self::from_name(normalize_score_name(name))
     }
 }
+/// `name` without a trailing `_score` (source `normalizeScoreName`), so that
+/// both `q-value` and `q-value_score` name the q-value. `hyperscore` ends in
+/// `score` but not in `_score` and is returned unchanged.
 pub fn normalize_score_name(name: &str) -> &str {
     name.strip_suffix("_score").unwrap_or(name)
 }
+/// Every known score name, type by type in source order (source
+/// `getAllIDScoreNames`, which returns 29 names).
 pub fn all_score_names() -> impl Iterator<Item = &'static str> {
     ScoreType::ALL
         .into_iter()
         .flat_map(|t| t.names().iter().copied())
+}
+/// Whether `name`, after [`normalize_score_name`], is a known name of any
+/// score type (source `isKnownScoreType`).
+pub fn is_known_score_type(name: &str) -> bool {
+    ScoreType::from_normalized_name(name).is_some()
 }
 fn bad(message: &str) -> Error {
     Error::InvalidValue(message.into())

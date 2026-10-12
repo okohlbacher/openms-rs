@@ -1,0 +1,731 @@
+# kind	id	fields...
+ranks	ranks000	PScore_test.dta	9.9
+ranks	ranks001	PScore_test.dta	10.1
+ranks	ranks002	PScore_test.dta	50.0
+ranks	ranks003	PScore_test.dta	100.0
+ranks	ranks004	PScore_test.dta	250.0
+levels	levels005	PScore_test.dta	100.0	0	1
+levels	levels006	PScore_test.dta	100.0	1	9
+levels	levels007	PScore_test.dta	50.0	0	3
+levels	levels008	PScore_test.dta	100.0	3	1
+levels	levels009	PScore_test.dta	200.0	0	0
+pscore	pscore010	PScore_test.dta	IFSQVGK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore011	PScore_test.dta	IFSQVGK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore012	PScore_test.dta	IFSQVGK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore013	PScore_test.dta	IFSQVGK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore014	PScore_test.dta	IFSQVGK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore015	PScore_test.dta	IFSQVGK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore016	PScore_test.dta	IFSQVGK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore017	PScore_test.dta	IFSQVGK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore018	PScore_test.dta	IFSQVGK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore019	PScore_test.dta	IFSQVGK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore020	PScore_test.dta	IFSQVGK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore021	PScore_test.dta	IFSQVGK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore022	PScore_test.dta	IFSQVGK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore023	PScore_test.dta	IFSQVGK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore024	PScore_test.dta	IFSQVGK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore025	PScore_test.dta	IFSQVGK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore026	PScore_test.dta	IFSQVGK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore027	PScore_test.dta	IFSQVGK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore028	PScore_test.dta	IFSQVGK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore029	PScore_test.dta	IFSQVGK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore030	PScore_test.dta	IFSQVGK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore031	PScore_test.dta	IFSQVGK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore032	PScore_test.dta	IFSQVGK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore033	PScore_test.dta	IFSQVGK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore034	PScore_test.dta	QSSVTQSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore035	PScore_test.dta	QSSVTQSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore036	PScore_test.dta	QSSVTQSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore037	PScore_test.dta	QSSVTQSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore038	PScore_test.dta	QSSVTQSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore039	PScore_test.dta	QSSVTQSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore040	PScore_test.dta	QSSVTQSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore041	PScore_test.dta	QSSVTQSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore042	PScore_test.dta	QSSVTQSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore043	PScore_test.dta	QSSVTQSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore044	PScore_test.dta	QSSVTQSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore045	PScore_test.dta	QSSVTQSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore046	PScore_test.dta	QSSVTQSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore047	PScore_test.dta	QSSVTQSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore048	PScore_test.dta	QSSVTQSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore049	PScore_test.dta	QSSVTQSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore050	PScore_test.dta	QSSVTQSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore051	PScore_test.dta	QSSVTQSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore052	PScore_test.dta	QSSVTQSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore053	PScore_test.dta	QSSVTQSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore054	PScore_test.dta	QSSVTQSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore055	PScore_test.dta	QSSVTQSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore056	PScore_test.dta	QSSVTQSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore057	PScore_test.dta	QSSVTQSK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore058	PScore_test.dta	PEPTIDEK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore059	PScore_test.dta	PEPTIDEK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore060	PScore_test.dta	PEPTIDEK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore061	PScore_test.dta	PEPTIDEK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore062	PScore_test.dta	PEPTIDEK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore063	PScore_test.dta	PEPTIDEK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore064	PScore_test.dta	PEPTIDEK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore065	PScore_test.dta	PEPTIDEK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore066	PScore_test.dta	PEPTIDEK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore067	PScore_test.dta	PEPTIDEK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore068	PScore_test.dta	PEPTIDEK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore069	PScore_test.dta	PEPTIDEK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore070	PScore_test.dta	PEPTIDEK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore071	PScore_test.dta	PEPTIDEK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore072	PScore_test.dta	PEPTIDEK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore073	PScore_test.dta	PEPTIDEK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore074	PScore_test.dta	PEPTIDEK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore075	PScore_test.dta	PEPTIDEK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore076	PScore_test.dta	PEPTIDEK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore077	PScore_test.dta	PEPTIDEK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore078	PScore_test.dta	PEPTIDEK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore079	PScore_test.dta	PEPTIDEK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore080	PScore_test.dta	PEPTIDEK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore081	PScore_test.dta	PEPTIDEK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore082	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore083	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore084	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore085	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore086	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore087	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore088	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore089	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore090	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore091	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore092	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore093	PScore_test.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore094	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore095	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore096	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore097	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore098	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore099	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore100	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore101	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore102	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore103	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore104	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore105	PScore_test.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.5	0	100.0
+ranks	ranks106	Ascore_test_input1.dta	9.9
+ranks	ranks107	Ascore_test_input1.dta	10.1
+ranks	ranks108	Ascore_test_input1.dta	50.0
+ranks	ranks109	Ascore_test_input1.dta	100.0
+ranks	ranks110	Ascore_test_input1.dta	250.0
+levels	levels111	Ascore_test_input1.dta	100.0	0	1
+levels	levels112	Ascore_test_input1.dta	100.0	1	9
+levels	levels113	Ascore_test_input1.dta	50.0	0	3
+levels	levels114	Ascore_test_input1.dta	100.0	3	1
+levels	levels115	Ascore_test_input1.dta	200.0	0	0
+pscore	pscore116	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore117	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore118	Ascore_test_input1.dta	IFSQVGK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore119	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore120	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore121	Ascore_test_input1.dta	IFSQVGK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore122	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore123	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore124	Ascore_test_input1.dta	IFSQVGK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore125	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore126	Ascore_test_input1.dta	IFSQVGK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore127	Ascore_test_input1.dta	IFSQVGK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore128	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore129	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore130	Ascore_test_input1.dta	IFSQVGK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore131	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore132	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore133	Ascore_test_input1.dta	IFSQVGK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore134	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore135	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore136	Ascore_test_input1.dta	IFSQVGK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore137	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore138	Ascore_test_input1.dta	IFSQVGK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore139	Ascore_test_input1.dta	IFSQVGK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore140	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore141	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore142	Ascore_test_input1.dta	QSSVTQSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore143	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore144	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore145	Ascore_test_input1.dta	QSSVTQSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore146	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore147	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore148	Ascore_test_input1.dta	QSSVTQSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore149	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore150	Ascore_test_input1.dta	QSSVTQSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore151	Ascore_test_input1.dta	QSSVTQSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore152	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore153	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore154	Ascore_test_input1.dta	QSSVTQSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore155	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore156	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore157	Ascore_test_input1.dta	QSSVTQSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore158	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore159	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore160	Ascore_test_input1.dta	QSSVTQSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore161	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore162	Ascore_test_input1.dta	QSSVTQSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore163	Ascore_test_input1.dta	QSSVTQSK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore164	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore165	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore166	Ascore_test_input1.dta	PEPTIDEK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore167	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore168	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore169	Ascore_test_input1.dta	PEPTIDEK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore170	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore171	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore172	Ascore_test_input1.dta	PEPTIDEK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore173	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore174	Ascore_test_input1.dta	PEPTIDEK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore175	Ascore_test_input1.dta	PEPTIDEK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore176	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore177	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore178	Ascore_test_input1.dta	PEPTIDEK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore179	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore180	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore181	Ascore_test_input1.dta	PEPTIDEK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore182	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore183	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore184	Ascore_test_input1.dta	PEPTIDEK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore185	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore186	Ascore_test_input1.dta	PEPTIDEK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore187	Ascore_test_input1.dta	PEPTIDEK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore188	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore189	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore190	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore191	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore192	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore193	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore194	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore195	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore196	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore197	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore198	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore199	Ascore_test_input1.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore200	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore201	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore202	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore203	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore204	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore205	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore206	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore207	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore208	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore209	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore210	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore211	Ascore_test_input1.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.5	0	100.0
+ranks	ranks212	Ascore_test_input2.dta	9.9
+ranks	ranks213	Ascore_test_input2.dta	10.1
+ranks	ranks214	Ascore_test_input2.dta	50.0
+ranks	ranks215	Ascore_test_input2.dta	100.0
+ranks	ranks216	Ascore_test_input2.dta	250.0
+levels	levels217	Ascore_test_input2.dta	100.0	0	1
+levels	levels218	Ascore_test_input2.dta	100.0	1	9
+levels	levels219	Ascore_test_input2.dta	50.0	0	3
+levels	levels220	Ascore_test_input2.dta	100.0	3	1
+levels	levels221	Ascore_test_input2.dta	200.0	0	0
+pscore	pscore222	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore223	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore224	Ascore_test_input2.dta	IFSQVGK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore225	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore226	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore227	Ascore_test_input2.dta	IFSQVGK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore228	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore229	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore230	Ascore_test_input2.dta	IFSQVGK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore231	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore232	Ascore_test_input2.dta	IFSQVGK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore233	Ascore_test_input2.dta	IFSQVGK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore234	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore235	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore236	Ascore_test_input2.dta	IFSQVGK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore237	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore238	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore239	Ascore_test_input2.dta	IFSQVGK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore240	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore241	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore242	Ascore_test_input2.dta	IFSQVGK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore243	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore244	Ascore_test_input2.dta	IFSQVGK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore245	Ascore_test_input2.dta	IFSQVGK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore246	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore247	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore248	Ascore_test_input2.dta	QSSVTQSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore249	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore250	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore251	Ascore_test_input2.dta	QSSVTQSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore252	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore253	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore254	Ascore_test_input2.dta	QSSVTQSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore255	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore256	Ascore_test_input2.dta	QSSVTQSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore257	Ascore_test_input2.dta	QSSVTQSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore258	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore259	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore260	Ascore_test_input2.dta	QSSVTQSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore261	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore262	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore263	Ascore_test_input2.dta	QSSVTQSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore264	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore265	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore266	Ascore_test_input2.dta	QSSVTQSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore267	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore268	Ascore_test_input2.dta	QSSVTQSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore269	Ascore_test_input2.dta	QSSVTQSK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore270	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore271	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore272	Ascore_test_input2.dta	PEPTIDEK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore273	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore274	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore275	Ascore_test_input2.dta	PEPTIDEK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore276	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore277	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore278	Ascore_test_input2.dta	PEPTIDEK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore279	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore280	Ascore_test_input2.dta	PEPTIDEK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore281	Ascore_test_input2.dta	PEPTIDEK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore282	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore283	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore284	Ascore_test_input2.dta	PEPTIDEK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore285	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore286	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore287	Ascore_test_input2.dta	PEPTIDEK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore288	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore289	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore290	Ascore_test_input2.dta	PEPTIDEK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore291	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore292	Ascore_test_input2.dta	PEPTIDEK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore293	Ascore_test_input2.dta	PEPTIDEK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore294	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore295	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore296	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore297	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore298	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore299	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore300	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore301	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore302	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore303	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore304	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore305	Ascore_test_input2.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore306	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore307	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore308	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore309	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore310	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore311	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore312	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore313	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore314	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore315	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore316	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore317	Ascore_test_input2.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.5	0	100.0
+ranks	ranks318	Ascore_test_input3.dta	9.9
+ranks	ranks319	Ascore_test_input3.dta	10.1
+ranks	ranks320	Ascore_test_input3.dta	50.0
+ranks	ranks321	Ascore_test_input3.dta	100.0
+ranks	ranks322	Ascore_test_input3.dta	250.0
+levels	levels323	Ascore_test_input3.dta	100.0	0	1
+levels	levels324	Ascore_test_input3.dta	100.0	1	9
+levels	levels325	Ascore_test_input3.dta	50.0	0	3
+levels	levels326	Ascore_test_input3.dta	100.0	3	1
+levels	levels327	Ascore_test_input3.dta	200.0	0	0
+pscore	pscore328	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore329	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore330	Ascore_test_input3.dta	IFSQVGK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore331	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore332	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore333	Ascore_test_input3.dta	IFSQVGK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore334	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore335	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore336	Ascore_test_input3.dta	IFSQVGK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore337	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore338	Ascore_test_input3.dta	IFSQVGK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore339	Ascore_test_input3.dta	IFSQVGK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore340	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore341	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore342	Ascore_test_input3.dta	IFSQVGK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore343	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore344	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore345	Ascore_test_input3.dta	IFSQVGK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore346	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore347	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore348	Ascore_test_input3.dta	IFSQVGK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore349	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore350	Ascore_test_input3.dta	IFSQVGK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore351	Ascore_test_input3.dta	IFSQVGK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore352	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore353	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore354	Ascore_test_input3.dta	QSSVTQSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore355	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore356	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore357	Ascore_test_input3.dta	QSSVTQSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore358	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore359	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore360	Ascore_test_input3.dta	QSSVTQSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore361	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore362	Ascore_test_input3.dta	QSSVTQSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore363	Ascore_test_input3.dta	QSSVTQSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore364	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore365	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore366	Ascore_test_input3.dta	QSSVTQSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore367	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore368	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore369	Ascore_test_input3.dta	QSSVTQSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore370	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore371	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore372	Ascore_test_input3.dta	QSSVTQSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore373	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore374	Ascore_test_input3.dta	QSSVTQSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore375	Ascore_test_input3.dta	QSSVTQSK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore376	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore377	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore378	Ascore_test_input3.dta	PEPTIDEK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore379	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore380	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore381	Ascore_test_input3.dta	PEPTIDEK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore382	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore383	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore384	Ascore_test_input3.dta	PEPTIDEK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore385	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore386	Ascore_test_input3.dta	PEPTIDEK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore387	Ascore_test_input3.dta	PEPTIDEK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore388	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore389	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore390	Ascore_test_input3.dta	PEPTIDEK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore391	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore392	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore393	Ascore_test_input3.dta	PEPTIDEK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore394	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore395	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore396	Ascore_test_input3.dta	PEPTIDEK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore397	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore398	Ascore_test_input3.dta	PEPTIDEK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore399	Ascore_test_input3.dta	PEPTIDEK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore400	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore401	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore402	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore403	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore404	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore405	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore406	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore407	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore408	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore409	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore410	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore411	Ascore_test_input3.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore412	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore413	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore414	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore415	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore416	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore417	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore418	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore419	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore420	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore421	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore422	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore423	Ascore_test_input3.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.5	0	100.0
+ranks	ranks424	Ascore_test_input4.dta	9.9
+ranks	ranks425	Ascore_test_input4.dta	10.1
+ranks	ranks426	Ascore_test_input4.dta	50.0
+ranks	ranks427	Ascore_test_input4.dta	100.0
+ranks	ranks428	Ascore_test_input4.dta	250.0
+levels	levels429	Ascore_test_input4.dta	100.0	0	1
+levels	levels430	Ascore_test_input4.dta	100.0	1	9
+levels	levels431	Ascore_test_input4.dta	50.0	0	3
+levels	levels432	Ascore_test_input4.dta	100.0	3	1
+levels	levels433	Ascore_test_input4.dta	200.0	0	0
+pscore	pscore434	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore435	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore436	Ascore_test_input4.dta	IFSQVGK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore437	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore438	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore439	Ascore_test_input4.dta	IFSQVGK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore440	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore441	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore442	Ascore_test_input4.dta	IFSQVGK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore443	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore444	Ascore_test_input4.dta	IFSQVGK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore445	Ascore_test_input4.dta	IFSQVGK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore446	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore447	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore448	Ascore_test_input4.dta	IFSQVGK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore449	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore450	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore451	Ascore_test_input4.dta	IFSQVGK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore452	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore453	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore454	Ascore_test_input4.dta	IFSQVGK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore455	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore456	Ascore_test_input4.dta	IFSQVGK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore457	Ascore_test_input4.dta	IFSQVGK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore458	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore459	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore460	Ascore_test_input4.dta	QSSVTQSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore461	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore462	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore463	Ascore_test_input4.dta	QSSVTQSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore464	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore465	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore466	Ascore_test_input4.dta	QSSVTQSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore467	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore468	Ascore_test_input4.dta	QSSVTQSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore469	Ascore_test_input4.dta	QSSVTQSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore470	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore471	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore472	Ascore_test_input4.dta	QSSVTQSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore473	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore474	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore475	Ascore_test_input4.dta	QSSVTQSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore476	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore477	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore478	Ascore_test_input4.dta	QSSVTQSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore479	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore480	Ascore_test_input4.dta	QSSVTQSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore481	Ascore_test_input4.dta	QSSVTQSK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore482	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore483	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore484	Ascore_test_input4.dta	PEPTIDEK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore485	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore486	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore487	Ascore_test_input4.dta	PEPTIDEK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore488	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore489	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore490	Ascore_test_input4.dta	PEPTIDEK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore491	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore492	Ascore_test_input4.dta	PEPTIDEK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore493	Ascore_test_input4.dta	PEPTIDEK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore494	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore495	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore496	Ascore_test_input4.dta	PEPTIDEK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore497	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore498	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore499	Ascore_test_input4.dta	PEPTIDEK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore500	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore501	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore502	Ascore_test_input4.dta	PEPTIDEK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore503	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore504	Ascore_test_input4.dta	PEPTIDEK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore505	Ascore_test_input4.dta	PEPTIDEK	1	100.0	1	9	0.5	0	100.0
+pscore	pscore506	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.1	1	100.0
+pscore	pscore507	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.1	1	100.0
+pscore	pscore508	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.1	1	100.0
+pscore	pscore509	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	0	20.0	1	100.0
+pscore	pscore510	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	1	20.0	1	100.0
+pscore	pscore511	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	1	9	20.0	1	100.0
+pscore	pscore512	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.05	0	100.0
+pscore	pscore513	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.05	0	100.0
+pscore	pscore514	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.05	0	100.0
+pscore	pscore515	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	0	0.5	0	100.0
+pscore	pscore516	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	0	1	0.5	0	100.0
+pscore	pscore517	Ascore_test_input4.dta	ATPGNLGSSVLHSK	0	100.0	1	9	0.5	0	100.0
+pscore	pscore518	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.1	1	100.0
+pscore	pscore519	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.1	1	100.0
+pscore	pscore520	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.1	1	100.0
+pscore	pscore521	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	0	20.0	1	100.0
+pscore	pscore522	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	1	20.0	1	100.0
+pscore	pscore523	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	1	9	20.0	1	100.0
+pscore	pscore524	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.05	0	100.0
+pscore	pscore525	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.05	0	100.0
+pscore	pscore526	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.05	0	100.0
+pscore	pscore527	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	0	0.5	0	100.0
+pscore	pscore528	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	0	1	0.5	0	100.0
+pscore	pscore529	Ascore_test_input4.dta	ATPGNLGSSVLHSK	1	100.0	1	9	0.5	0	100.0
+ascore	ascore530	Ascore_test_input1.dta	QSSVT(Phospho)QSK	0.05	Da
+ascore	ascore531	Ascore_test_input1.dta	QSSVT(Phospho)QSK	0.3	Da
+ascore	ascore532	Ascore_test_input1.dta	QSSVT(Phospho)QSK	0.6	Da
+ascore	ascore533	Ascore_test_input1.dta	QSSVT(Phospho)QSK	70.0	ppm
+ascore	ascore534	Ascore_test_input1.dta	QSSVT(Phospho)QSK	700.0	ppm
+ascore	ascore535	Ascore_test_input1.dta	RIRLT(Phospho)ATTR	0.05	Da
+ascore	ascore536	Ascore_test_input1.dta	RIRLT(Phospho)ATTR	0.3	Da
+ascore	ascore537	Ascore_test_input1.dta	RIRLT(Phospho)ATTR	0.6	Da
+ascore	ascore538	Ascore_test_input1.dta	RIRLT(Phospho)ATTR	70.0	ppm
+ascore	ascore539	Ascore_test_input1.dta	RIRLT(Phospho)ATTR	700.0	ppm
+ascore	ascore540	Ascore_test_input1.dta	QSSVTQVTEQS(Phospho)PK	0.05	Da
+ascore	ascore541	Ascore_test_input1.dta	QSSVTQVTEQS(Phospho)PK	0.3	Da
+ascore	ascore542	Ascore_test_input1.dta	QSSVTQVTEQS(Phospho)PK	0.6	Da
+ascore	ascore543	Ascore_test_input1.dta	QSSVTQVTEQS(Phospho)PK	70.0	ppm
+ascore	ascore544	Ascore_test_input1.dta	QSSVTQVTEQS(Phospho)PK	700.0	ppm
+ascore	ascore545	Ascore_test_input1.dta	ATPGNLGSSVLHS(Phospho)K	0.05	Da
+ascore	ascore546	Ascore_test_input1.dta	ATPGNLGSSVLHS(Phospho)K	0.3	Da
+ascore	ascore547	Ascore_test_input1.dta	ATPGNLGSSVLHS(Phospho)K	0.6	Da
+ascore	ascore548	Ascore_test_input1.dta	ATPGNLGSSVLHS(Phospho)K	70.0	ppm
+ascore	ascore549	Ascore_test_input1.dta	ATPGNLGSSVLHS(Phospho)K	700.0	ppm
+ascore	ascore550	Ascore_test_input1.dta	S(Phospho)PT(Phospho)SYK	0.05	Da
+ascore	ascore551	Ascore_test_input1.dta	S(Phospho)PT(Phospho)SYK	0.3	Da
+ascore	ascore552	Ascore_test_input1.dta	S(Phospho)PT(Phospho)SYK	0.6	Da
+ascore	ascore553	Ascore_test_input1.dta	S(Phospho)PT(Phospho)SYK	70.0	ppm
+ascore	ascore554	Ascore_test_input1.dta	S(Phospho)PT(Phospho)SYK	700.0	ppm
+ascore	ascore555	Ascore_test_input1.dta	TYQYS(Phospho)	0.05	Da
+ascore	ascore556	Ascore_test_input1.dta	TYQYS(Phospho)	0.3	Da
+ascore	ascore557	Ascore_test_input1.dta	TYQYS(Phospho)	0.6	Da
+ascore	ascore558	Ascore_test_input1.dta	TYQYS(Phospho)	70.0	ppm
+ascore	ascore559	Ascore_test_input1.dta	TYQYS(Phospho)	700.0	ppm
+ascore	ascore560	Ascore_test_input1.dta	PEPT(Phospho)IDE	0.05	Da
+ascore	ascore561	Ascore_test_input1.dta	PEPT(Phospho)IDE	0.3	Da
+ascore	ascore562	Ascore_test_input1.dta	PEPT(Phospho)IDE	0.6	Da
+ascore	ascore563	Ascore_test_input1.dta	PEPT(Phospho)IDE	70.0	ppm
+ascore	ascore564	Ascore_test_input1.dta	PEPT(Phospho)IDE	700.0	ppm
+ascore	ascore565	Ascore_test_input1.dta	M(Oxidation)S(Phospho)TPEK	0.05	Da
+ascore	ascore566	Ascore_test_input1.dta	M(Oxidation)S(Phospho)TPEK	0.3	Da
+ascore	ascore567	Ascore_test_input1.dta	M(Oxidation)S(Phospho)TPEK	0.6	Da
+ascore	ascore568	Ascore_test_input1.dta	M(Oxidation)S(Phospho)TPEK	70.0	ppm
+ascore	ascore569	Ascore_test_input1.dta	M(Oxidation)S(Phospho)TPEK	700.0	ppm
+ascore	ascore570	Ascore_test_input1.dta	QSSVTQSK	0.05	Da
+ascore	ascore571	Ascore_test_input1.dta	QSSVTQSK	0.3	Da
+ascore	ascore572	Ascore_test_input1.dta	QSSVTQSK	0.6	Da
+ascore	ascore573	Ascore_test_input1.dta	QSSVTQSK	70.0	ppm
+ascore	ascore574	Ascore_test_input1.dta	QSSVTQSK	700.0	ppm
+ascore	ascore575	Ascore_test_input1.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.05	Da
+ascore	ascore576	Ascore_test_input1.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.3	Da
+ascore	ascore577	Ascore_test_input1.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.6	Da
+ascore	ascore578	Ascore_test_input1.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	70.0	ppm
+ascore	ascore579	Ascore_test_input1.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	700.0	ppm
+ascore	ascore580	Ascore_test_input2.dta	QSSVT(Phospho)QSK	0.05	Da
+ascore	ascore581	Ascore_test_input2.dta	QSSVT(Phospho)QSK	0.3	Da
+ascore	ascore582	Ascore_test_input2.dta	QSSVT(Phospho)QSK	0.6	Da
+ascore	ascore583	Ascore_test_input2.dta	QSSVT(Phospho)QSK	70.0	ppm
+ascore	ascore584	Ascore_test_input2.dta	QSSVT(Phospho)QSK	700.0	ppm
+ascore	ascore585	Ascore_test_input2.dta	RIRLT(Phospho)ATTR	0.05	Da
+ascore	ascore586	Ascore_test_input2.dta	RIRLT(Phospho)ATTR	0.3	Da
+ascore	ascore587	Ascore_test_input2.dta	RIRLT(Phospho)ATTR	0.6	Da
+ascore	ascore588	Ascore_test_input2.dta	RIRLT(Phospho)ATTR	70.0	ppm
+ascore	ascore589	Ascore_test_input2.dta	RIRLT(Phospho)ATTR	700.0	ppm
+ascore	ascore590	Ascore_test_input2.dta	QSSVTQVTEQS(Phospho)PK	0.05	Da
+ascore	ascore591	Ascore_test_input2.dta	QSSVTQVTEQS(Phospho)PK	0.3	Da
+ascore	ascore592	Ascore_test_input2.dta	QSSVTQVTEQS(Phospho)PK	0.6	Da
+ascore	ascore593	Ascore_test_input2.dta	QSSVTQVTEQS(Phospho)PK	70.0	ppm
+ascore	ascore594	Ascore_test_input2.dta	QSSVTQVTEQS(Phospho)PK	700.0	ppm
+ascore	ascore595	Ascore_test_input2.dta	ATPGNLGSSVLHS(Phospho)K	0.05	Da
+ascore	ascore596	Ascore_test_input2.dta	ATPGNLGSSVLHS(Phospho)K	0.3	Da
+ascore	ascore597	Ascore_test_input2.dta	ATPGNLGSSVLHS(Phospho)K	0.6	Da
+ascore	ascore598	Ascore_test_input2.dta	ATPGNLGSSVLHS(Phospho)K	70.0	ppm
+ascore	ascore599	Ascore_test_input2.dta	ATPGNLGSSVLHS(Phospho)K	700.0	ppm
+ascore	ascore600	Ascore_test_input2.dta	S(Phospho)PT(Phospho)SYK	0.05	Da
+ascore	ascore601	Ascore_test_input2.dta	S(Phospho)PT(Phospho)SYK	0.3	Da
+ascore	ascore602	Ascore_test_input2.dta	S(Phospho)PT(Phospho)SYK	0.6	Da
+ascore	ascore603	Ascore_test_input2.dta	S(Phospho)PT(Phospho)SYK	70.0	ppm
+ascore	ascore604	Ascore_test_input2.dta	S(Phospho)PT(Phospho)SYK	700.0	ppm
+ascore	ascore605	Ascore_test_input2.dta	TYQYS(Phospho)	0.05	Da
+ascore	ascore606	Ascore_test_input2.dta	TYQYS(Phospho)	0.3	Da
+ascore	ascore607	Ascore_test_input2.dta	TYQYS(Phospho)	0.6	Da
+ascore	ascore608	Ascore_test_input2.dta	TYQYS(Phospho)	70.0	ppm
+ascore	ascore609	Ascore_test_input2.dta	TYQYS(Phospho)	700.0	ppm
+ascore	ascore610	Ascore_test_input2.dta	PEPT(Phospho)IDE	0.05	Da
+ascore	ascore611	Ascore_test_input2.dta	PEPT(Phospho)IDE	0.3	Da
+ascore	ascore612	Ascore_test_input2.dta	PEPT(Phospho)IDE	0.6	Da
+ascore	ascore613	Ascore_test_input2.dta	PEPT(Phospho)IDE	70.0	ppm
+ascore	ascore614	Ascore_test_input2.dta	PEPT(Phospho)IDE	700.0	ppm
+ascore	ascore615	Ascore_test_input2.dta	M(Oxidation)S(Phospho)TPEK	0.05	Da
+ascore	ascore616	Ascore_test_input2.dta	M(Oxidation)S(Phospho)TPEK	0.3	Da
+ascore	ascore617	Ascore_test_input2.dta	M(Oxidation)S(Phospho)TPEK	0.6	Da
+ascore	ascore618	Ascore_test_input2.dta	M(Oxidation)S(Phospho)TPEK	70.0	ppm
+ascore	ascore619	Ascore_test_input2.dta	M(Oxidation)S(Phospho)TPEK	700.0	ppm
+ascore	ascore620	Ascore_test_input2.dta	QSSVTQSK	0.05	Da
+ascore	ascore621	Ascore_test_input2.dta	QSSVTQSK	0.3	Da
+ascore	ascore622	Ascore_test_input2.dta	QSSVTQSK	0.6	Da
+ascore	ascore623	Ascore_test_input2.dta	QSSVTQSK	70.0	ppm
+ascore	ascore624	Ascore_test_input2.dta	QSSVTQSK	700.0	ppm
+ascore	ascore625	Ascore_test_input2.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.05	Da
+ascore	ascore626	Ascore_test_input2.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.3	Da
+ascore	ascore627	Ascore_test_input2.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.6	Da
+ascore	ascore628	Ascore_test_input2.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	70.0	ppm
+ascore	ascore629	Ascore_test_input2.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	700.0	ppm
+ascore	ascore630	Ascore_test_input3.dta	QSSVT(Phospho)QSK	0.05	Da
+ascore	ascore631	Ascore_test_input3.dta	QSSVT(Phospho)QSK	0.3	Da
+ascore	ascore632	Ascore_test_input3.dta	QSSVT(Phospho)QSK	0.6	Da
+ascore	ascore633	Ascore_test_input3.dta	QSSVT(Phospho)QSK	70.0	ppm
+ascore	ascore634	Ascore_test_input3.dta	QSSVT(Phospho)QSK	700.0	ppm
+ascore	ascore635	Ascore_test_input3.dta	RIRLT(Phospho)ATTR	0.05	Da
+ascore	ascore636	Ascore_test_input3.dta	RIRLT(Phospho)ATTR	0.3	Da
+ascore	ascore637	Ascore_test_input3.dta	RIRLT(Phospho)ATTR	0.6	Da
+ascore	ascore638	Ascore_test_input3.dta	RIRLT(Phospho)ATTR	70.0	ppm
+ascore	ascore639	Ascore_test_input3.dta	RIRLT(Phospho)ATTR	700.0	ppm
+ascore	ascore640	Ascore_test_input3.dta	QSSVTQVTEQS(Phospho)PK	0.05	Da
+ascore	ascore641	Ascore_test_input3.dta	QSSVTQVTEQS(Phospho)PK	0.3	Da
+ascore	ascore642	Ascore_test_input3.dta	QSSVTQVTEQS(Phospho)PK	0.6	Da
+ascore	ascore643	Ascore_test_input3.dta	QSSVTQVTEQS(Phospho)PK	70.0	ppm
+ascore	ascore644	Ascore_test_input3.dta	QSSVTQVTEQS(Phospho)PK	700.0	ppm
+ascore	ascore645	Ascore_test_input3.dta	ATPGNLGSSVLHS(Phospho)K	0.05	Da
+ascore	ascore646	Ascore_test_input3.dta	ATPGNLGSSVLHS(Phospho)K	0.3	Da
+ascore	ascore647	Ascore_test_input3.dta	ATPGNLGSSVLHS(Phospho)K	0.6	Da
+ascore	ascore648	Ascore_test_input3.dta	ATPGNLGSSVLHS(Phospho)K	70.0	ppm
+ascore	ascore649	Ascore_test_input3.dta	ATPGNLGSSVLHS(Phospho)K	700.0	ppm
+ascore	ascore650	Ascore_test_input3.dta	S(Phospho)PT(Phospho)SYK	0.05	Da
+ascore	ascore651	Ascore_test_input3.dta	S(Phospho)PT(Phospho)SYK	0.3	Da
+ascore	ascore652	Ascore_test_input3.dta	S(Phospho)PT(Phospho)SYK	0.6	Da
+ascore	ascore653	Ascore_test_input3.dta	S(Phospho)PT(Phospho)SYK	70.0	ppm
+ascore	ascore654	Ascore_test_input3.dta	S(Phospho)PT(Phospho)SYK	700.0	ppm
+ascore	ascore655	Ascore_test_input3.dta	TYQYS(Phospho)	0.05	Da
+ascore	ascore656	Ascore_test_input3.dta	TYQYS(Phospho)	0.3	Da
+ascore	ascore657	Ascore_test_input3.dta	TYQYS(Phospho)	0.6	Da
+ascore	ascore658	Ascore_test_input3.dta	TYQYS(Phospho)	70.0	ppm
+ascore	ascore659	Ascore_test_input3.dta	TYQYS(Phospho)	700.0	ppm
+ascore	ascore660	Ascore_test_input3.dta	PEPT(Phospho)IDE	0.05	Da
+ascore	ascore661	Ascore_test_input3.dta	PEPT(Phospho)IDE	0.3	Da
+ascore	ascore662	Ascore_test_input3.dta	PEPT(Phospho)IDE	0.6	Da
+ascore	ascore663	Ascore_test_input3.dta	PEPT(Phospho)IDE	70.0	ppm
+ascore	ascore664	Ascore_test_input3.dta	PEPT(Phospho)IDE	700.0	ppm
+ascore	ascore665	Ascore_test_input3.dta	M(Oxidation)S(Phospho)TPEK	0.05	Da
+ascore	ascore666	Ascore_test_input3.dta	M(Oxidation)S(Phospho)TPEK	0.3	Da
+ascore	ascore667	Ascore_test_input3.dta	M(Oxidation)S(Phospho)TPEK	0.6	Da
+ascore	ascore668	Ascore_test_input3.dta	M(Oxidation)S(Phospho)TPEK	70.0	ppm
+ascore	ascore669	Ascore_test_input3.dta	M(Oxidation)S(Phospho)TPEK	700.0	ppm
+ascore	ascore670	Ascore_test_input3.dta	QSSVTQSK	0.05	Da
+ascore	ascore671	Ascore_test_input3.dta	QSSVTQSK	0.3	Da
+ascore	ascore672	Ascore_test_input3.dta	QSSVTQSK	0.6	Da
+ascore	ascore673	Ascore_test_input3.dta	QSSVTQSK	70.0	ppm
+ascore	ascore674	Ascore_test_input3.dta	QSSVTQSK	700.0	ppm
+ascore	ascore675	Ascore_test_input3.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.05	Da
+ascore	ascore676	Ascore_test_input3.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.3	Da
+ascore	ascore677	Ascore_test_input3.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.6	Da
+ascore	ascore678	Ascore_test_input3.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	70.0	ppm
+ascore	ascore679	Ascore_test_input3.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	700.0	ppm
+ascore	ascore680	Ascore_test_input4.dta	QSSVT(Phospho)QSK	0.05	Da
+ascore	ascore681	Ascore_test_input4.dta	QSSVT(Phospho)QSK	0.3	Da
+ascore	ascore682	Ascore_test_input4.dta	QSSVT(Phospho)QSK	0.6	Da
+ascore	ascore683	Ascore_test_input4.dta	QSSVT(Phospho)QSK	70.0	ppm
+ascore	ascore684	Ascore_test_input4.dta	QSSVT(Phospho)QSK	700.0	ppm
+ascore	ascore685	Ascore_test_input4.dta	RIRLT(Phospho)ATTR	0.05	Da
+ascore	ascore686	Ascore_test_input4.dta	RIRLT(Phospho)ATTR	0.3	Da
+ascore	ascore687	Ascore_test_input4.dta	RIRLT(Phospho)ATTR	0.6	Da
+ascore	ascore688	Ascore_test_input4.dta	RIRLT(Phospho)ATTR	70.0	ppm
+ascore	ascore689	Ascore_test_input4.dta	RIRLT(Phospho)ATTR	700.0	ppm
+ascore	ascore690	Ascore_test_input4.dta	QSSVTQVTEQS(Phospho)PK	0.05	Da
+ascore	ascore691	Ascore_test_input4.dta	QSSVTQVTEQS(Phospho)PK	0.3	Da
+ascore	ascore692	Ascore_test_input4.dta	QSSVTQVTEQS(Phospho)PK	0.6	Da
+ascore	ascore693	Ascore_test_input4.dta	QSSVTQVTEQS(Phospho)PK	70.0	ppm
+ascore	ascore694	Ascore_test_input4.dta	QSSVTQVTEQS(Phospho)PK	700.0	ppm
+ascore	ascore695	Ascore_test_input4.dta	ATPGNLGSSVLHS(Phospho)K	0.05	Da
+ascore	ascore696	Ascore_test_input4.dta	ATPGNLGSSVLHS(Phospho)K	0.3	Da
+ascore	ascore697	Ascore_test_input4.dta	ATPGNLGSSVLHS(Phospho)K	0.6	Da
+ascore	ascore698	Ascore_test_input4.dta	ATPGNLGSSVLHS(Phospho)K	70.0	ppm
+ascore	ascore699	Ascore_test_input4.dta	ATPGNLGSSVLHS(Phospho)K	700.0	ppm
+ascore	ascore700	Ascore_test_input4.dta	S(Phospho)PT(Phospho)SYK	0.05	Da
+ascore	ascore701	Ascore_test_input4.dta	S(Phospho)PT(Phospho)SYK	0.3	Da
+ascore	ascore702	Ascore_test_input4.dta	S(Phospho)PT(Phospho)SYK	0.6	Da
+ascore	ascore703	Ascore_test_input4.dta	S(Phospho)PT(Phospho)SYK	70.0	ppm
+ascore	ascore704	Ascore_test_input4.dta	S(Phospho)PT(Phospho)SYK	700.0	ppm
+ascore	ascore705	Ascore_test_input4.dta	TYQYS(Phospho)	0.05	Da
+ascore	ascore706	Ascore_test_input4.dta	TYQYS(Phospho)	0.3	Da
+ascore	ascore707	Ascore_test_input4.dta	TYQYS(Phospho)	0.6	Da
+ascore	ascore708	Ascore_test_input4.dta	TYQYS(Phospho)	70.0	ppm
+ascore	ascore709	Ascore_test_input4.dta	TYQYS(Phospho)	700.0	ppm
+ascore	ascore710	Ascore_test_input4.dta	PEPT(Phospho)IDE	0.05	Da
+ascore	ascore711	Ascore_test_input4.dta	PEPT(Phospho)IDE	0.3	Da
+ascore	ascore712	Ascore_test_input4.dta	PEPT(Phospho)IDE	0.6	Da
+ascore	ascore713	Ascore_test_input4.dta	PEPT(Phospho)IDE	70.0	ppm
+ascore	ascore714	Ascore_test_input4.dta	PEPT(Phospho)IDE	700.0	ppm
+ascore	ascore715	Ascore_test_input4.dta	M(Oxidation)S(Phospho)TPEK	0.05	Da
+ascore	ascore716	Ascore_test_input4.dta	M(Oxidation)S(Phospho)TPEK	0.3	Da
+ascore	ascore717	Ascore_test_input4.dta	M(Oxidation)S(Phospho)TPEK	0.6	Da
+ascore	ascore718	Ascore_test_input4.dta	M(Oxidation)S(Phospho)TPEK	70.0	ppm
+ascore	ascore719	Ascore_test_input4.dta	M(Oxidation)S(Phospho)TPEK	700.0	ppm
+ascore	ascore720	Ascore_test_input4.dta	QSSVTQSK	0.05	Da
+ascore	ascore721	Ascore_test_input4.dta	QSSVTQSK	0.3	Da
+ascore	ascore722	Ascore_test_input4.dta	QSSVTQSK	0.6	Da
+ascore	ascore723	Ascore_test_input4.dta	QSSVTQSK	70.0	ppm
+ascore	ascore724	Ascore_test_input4.dta	QSSVTQSK	700.0	ppm
+ascore	ascore725	Ascore_test_input4.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.05	Da
+ascore	ascore726	Ascore_test_input4.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.3	Da
+ascore	ascore727	Ascore_test_input4.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	0.6	Da
+ascore	ascore728	Ascore_test_input4.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	70.0	ppm
+ascore	ascore729	Ascore_test_input4.dta	T(Phospho)S(Phospho)T(Phospho)YQYSYPPK	700.0	ppm

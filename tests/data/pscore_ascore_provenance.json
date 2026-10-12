@@ -1,0 +1,144 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/PScore.h",
+   "sha256": "a1e65c964d7a7c3892a09f681217162cbe5c7a544d97061a77d1ed7d8ce48ec5"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/PScore.cpp",
+   "sha256": "3fdfb80f5a203c563c3e45e21f3e05c172a9287f1fd622e9aafbcbc035c7df5e"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PScore_test.cpp",
+   "sha256": "847610c8349a72ebfaab75049afd4b2ad8637bbbd8b98ad6fe05f250ffd42bdf"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/AScore.h",
+   "sha256": "582bac87123a2d188f04def704a265821d1ace721d56c40d134b39ec79edc61b"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/AScore.cpp",
+   "sha256": "567f9caa2b34fb47476d7922824b8a7271d3dff1d137d92e9a06ba7300556d84"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/AScore_test.cpp",
+   "sha256": "64f18d3e1c5077cd75fe9fec5faffd37fd0f51abfdb3b0a92b8d647e07cce795"
+  },
+  {
+   "path": "src/openms/include/OpenMS/DATASTRUCTURES/MatchedIterator.h",
+   "sha256": "79941c1975151fcb2b98228295fcdbad0c8aca966266fc20b053ee27aeeab0d3"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/PScore_test.dta",
+   "sha256": "8ceb7d33d780330cdafbf7b0c82e333e149d3a130a72162301bb82a2c61b6f9d",
+   "origin": "src/tests/class_tests/openms/data/PScore_test.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input1.dta",
+   "sha256": "dada5f57c52a2909eca7c3ca3031f82216386f75e30c17dc7b1fb764e50e66ad",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input1.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input2.dta",
+   "sha256": "43bbd1298a3c1e126579a687ffb18c3dfbe928a7156c7f8f0a20299ae8e2edb1",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input2.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input3.dta",
+   "sha256": "2bc6779c57a631a595d03a1156f7f548621a9c5fdb77d0e91a679155e280dac2",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input3.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/Ascore_test_input4.dta",
+   "sha256": "750d3f2bc1674076ddec427ea3418dc28976e2bf8746d0d070bbc3ed36bd16a2",
+   "origin": "src/tests/class_tests/openms/data/Ascore_test_input4.dta at bc9cc12, copied unchanged",
+   "kind": "upstream class-test input"
+  },
+  {
+   "path": "tests/data/pscore_ascore_oracle_cases.tsv",
+   "sha256": "927bda7916962598a92d652e57937ab8037d0584948b5ff958da71e903730555",
+   "rows": 730,
+   "kind": "oracle input (../oracle/I3b-scores/gen_cases.py, deterministic): 25 rank, 25 peak-level, 480 PScore (both overloads) and 200 AScore::compute cases over the five upstream DTA inputs"
+  },
+  {
+   "path": "tests/data/pscore_ascore_oracle.tsv",
+   "sha256": "99d5d22e62a32546e3599b5ac08a8a70ecb268a710e448e5dae6e10eda3b8f96",
+   "rows": 2685,
+   "kind": "executed Release libOpenMS output, unmodified (../oracle/I3b-scores/results/oracle.tsv)"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/id/pscore.rs",
+  "src/analysis/id/ascore.rs"
+ ],
+ "native_tests": [
+  "tests/pscore_ascore.rs",
+  "tests/pscore_ascore_oracle.rs"
+ ],
+ "support_document": "docs/PSCORE_ASCORE_SUPPORT.md",
+ "evidence_tier": "1 (executed differential against the Release build: 730 cases, including 160 site-scoring AScore::compute runs (40 with two or three sites) in Da and ppm and both PScore overloads), 2 (link probe for the correction-term defect), 3 (every PScore_test.cpp and AScore_test.cpp literal), 4 (native refusals and invariants)",
+ "openmp": "No #pragma omp in PScore.cpp or AScore.cpp; the port is serial, as the source.",
+ "notes": [
+  "PScore.cpp defines massCorrectionTerm, cleavageCorrectionTerm and modificationCorrectionTerm as free functions in namespace OpenMS, not as the PScore:: static members the header declares; the members have no definition and a call fails to link. The Rust associated functions carry the free functions' bodies.",
+  "The vector overload of PScore::computePScore uses p = level / mz_window, the single-spectrum overload p = (level + 1) / mz_window; both are kept.",
+  "AScore::computeCumulativeScore_ delegates to Math::binomial_cdf_complement (Boost incomplete beta upstream); the port uses concept::math_functions::binomial_cdf_complement, whose agreement with the source is recorded at that function."
+ ],
+ "target_verification": {
+  "revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "source_revisions": [
+   "bc9cc12514c768385ce121d6ca4bb710fe1983c4"
+  ],
+  "source_changes": []
+ },
+ "oracle": {
+  "host": "ibminode06 (Linux x86_64)",
+  "build": "Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576, libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0",
+  "compiler_flags": "-O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp",
+  "driver_binary_sha256": "4d1f5880f1f0852a6948ec31774e2191341f81667ec3c1dd799ae7ea6cfe129b",
+  "runs": "two invocations of run.sh on 2026-09-28, each running the driver twice in fresh processes with a clean environment; all four outputs byte-identical, exit 0, empty stderr",
+  "comparison": "ranks, peak-level m/z, theoretical sizes, sequences and metadata keys exact; scores and metadata doubles to 1e-9 relative (Boost incomplete beta vs the port's log-domain binomial sum); the source PeptideHit's 'rank' meta value is compared with the Rust PeptideHit::rank field",
+  "link_probe": "probe_correction.cpp calls PScore::massCorrectionTerm, cleavageCorrectionTerm and modificationCorrectionTerm; linking against the Release libOpenMS fails with three undefined references (results/probe_correction_link.log, sha256 7f39ec38b2d8734f12f8d1b59ec62f0329f5fdd4d0cf45da5edf450b7a593c70): tier 2 evidence for the missing-definition defect"
+ },
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I3b-scores/driver.cpp",
+   "sha256": "1a0dd2e3f139a382403691ab014c57ca07557f2ccbce570b380706849148d208",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/I3b-scores/probe_correction.cpp",
+   "sha256": "f07132b7593f2a4f0bfb69ed8bf694b7da50ecbf2ea770cf8849ae4fa1e0311a",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/I3b-scores/gen_cases.py",
+   "sha256": "75755a4e871a55e9ac20eb02fe3e5bced445d36ee24a27f174b2c0ec303481f4",
+   "location": "outside this repository",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I3b-scores/remote_run.sh",
+   "sha256": "e94c6dc1b8e9fb713c67ba6a9f970d861d170177f3733e146b52ea1a187e9610",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  },
+  {
+   "path": "../oracle/I3b-scores/run.sh",
+   "sha256": "2bd747d442c7b7eef3c2ba361ff698fdae9547c66c6991cda52288357deef95c",
+   "location": "outside this repository",
+   "origin_key": "oracle"
+  }
+ ],
+ "external_reference_note": "The PScore/AScore oracle driver, the correction-term link probe, their build and launch scripts and the case generator live under ../oracle/I3b-scores/ so that no C++ is committed here. The in-repo fixtures are the generated cases and the unmodified Release output; the sha256 values above are the evidence chain."
+}

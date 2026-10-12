@@ -1,0 +1,477 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h",
+   "sha256": "8b748a26e6a0757ec7154b43f68468de08f70a3ac8a7ade47d391ef262c66e18"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexClustering.h",
+   "sha256": "3f4975f3efe9ed6adc71fb2f95e12a763bc42c417f86fac9ba416eff7b05f883"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexDeltaMasses.h",
+   "sha256": "c32c714591657d0f2a42957f87c25297e3c03bb6038dbde7367b0adbd7bf7018"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h",
+   "sha256": "f00a44784d8358850a6193a47368602d0e19f632dc744ccc1fefb44ca50fb43f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexFilteredMSExperiment.h",
+   "sha256": "d05d3da6989a1d74e9970ebf6b7eb789ccdf606aee4a5ae97caa75cd90ce36ae"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexFilteredPeak.h",
+   "sha256": "c45ca1e0998d27cb88dc136d2860be484379d2c3c4311aca88b5cf95d6886fc5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexFiltering.h",
+   "sha256": "365f2f25146f0a891d0a4494e901101457ef05a3540f9cc0a66d838135896eb6"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexFilteringCentroided.h",
+   "sha256": "2ae9e0a1fa9d0dad39a50b9ffd09c5aebfa598a72c3e0acbdfc9f737fa0adaa4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexFilteringProfile.h",
+   "sha256": "cb93d317fecbe4c9edf800f9c3f39576f42db59815b48b49f0c10a0467bf6a57"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h",
+   "sha256": "437fcd4573593b93e11622b3c8ab2308cdec0d2bff7eac34391fcb0a51ba0704"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexSatelliteCentroided.h",
+   "sha256": "eade6c158b4cc4638c5c7ea1fedca88d758c8ef543db37a940dc098ef86b6b60"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/MultiplexSatelliteProfile.h",
+   "sha256": "a0fb768307dcff83a27e454c143b4dede5d66b39f1eb6647104d2b3b1d48dc4a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/PeakWidthEstimator.h",
+   "sha256": "7102d2dcf7715bf8739c5274245c41a59a0921af5627931055501c9679f7ae37"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/MISC/SplineInterpolatedPeaks.h",
+   "sha256": "462843abd2835d8574a92e1768c2dbbc196df8e333ae3d6df6a2abc99d6e7cee"
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/MISC/SplinePackage.h",
+   "sha256": "0baa8428936c85e95e8e434006fdda56b1e47601fabb03e99a22c44f8c234994"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.cpp",
+   "sha256": "f246c81fc02e92980758c4a83294881ab22ac9540c5df307784a9a1f178deab8"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexClustering.cpp",
+   "sha256": "32512709ca7ec61d3de41ec940ac56f9bcd00bf5efb680df11fadbcdb215fb05"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexDeltaMasses.cpp",
+   "sha256": "8339784b587cc40a9fca7c556e13cc7028b39447ff83bbe3e91570912e9da496"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexDeltaMassesGenerator.cpp",
+   "sha256": "90ae47e9c77abe1968ec55f540263cf9788a5f17715b40b8031910865a3ace18"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexFilteredMSExperiment.cpp",
+   "sha256": "2d0041e4c85dd3fd315fbf21be9f70f0ca2b40eb2119dc7d14d7a63bc5d9f4a8"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexFilteredPeak.cpp",
+   "sha256": "b7f16b65614f94210e151a9790b557927d59c76321309503a40b0f2ef5ea2110"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexFiltering.cpp",
+   "sha256": "0d1e399045fb0022f4aeb1f9f3439b511e52bbc9deee26753650897436df26cd"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexFilteringCentroided.cpp",
+   "sha256": "c9fafe6c3ac73bbdde023716e11d6a6c2e0ce9313ec784c92bce7998a7bf6c2c"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexFilteringProfile.cpp",
+   "sha256": "6bf58eee90941a0eb52a90d363842a306012529747cb9aaf5f08715fb9e99f43"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexIsotopicPeakPattern.cpp",
+   "sha256": "086dc3786d7eee9d24cd857673191b76bcdbdbbf302aaef7f7acac8aa38e5b14"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexSatelliteCentroided.cpp",
+   "sha256": "c0f0eb099a96a59f06be24f471e5e5a1a69da6a0af4af68796bdeb77fecbefda"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/MultiplexSatelliteProfile.cpp",
+   "sha256": "9be1c5d5036e185e31d0c467f6dc7dccc828116d0d0998cdd5387e170a1ed07b"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/PeakWidthEstimator.cpp",
+   "sha256": "85c542fe5e6c6d40dfdca421ac80c6f3fa411d5fbe1ae85c28871e6819d4b081"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/MISC/SplineInterpolatedPeaks.cpp",
+   "sha256": "dcc9eec947f7e37aa009b6785231ced4c0c0e47a0946c678dddd172bc809e41d"
+  },
+  {
+   "path": "src/openms/source/PROCESSING/MISC/SplinePackage.cpp",
+   "sha256": "caa3e240366a9b2f88ff2b5955de6b91eb0133b484fba4c993059613f8c7d14c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/FeatureFinderMultiplexAlgorithm_test.cpp",
+   "sha256": "a564fdc8c790d254d10079dec7b7ea008b1563ec15cd9798e8e5eb995c6676c1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexClustering_test.cpp",
+   "sha256": "eb7bb2a4d44e31b22c26755e8b3a6db996d28a45a65a59c67feac25ce83df1c7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexDeltaMassesGenerator_test.cpp",
+   "sha256": "90c31148ef230509e0cc09a7c1b370ed35c8e2aa4b2cd77ad2594738f75efd44"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexDeltaMasses_test.cpp",
+   "sha256": "b3380acf86f0300efa92f1a15fe8e74728d23cbccbb0d50ab1e99982da8b06e0"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexFilteredMSExperiment_test.cpp",
+   "sha256": "70e3e33542bc19612a077e1146da5539180540039695033ae62f0bc7455895c1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexFilteredPeak_test.cpp",
+   "sha256": "6513a5d8474d6f9d227f38991efe47ed1611237fa9f123f09c472ff060865213"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexFilteringCentroided_test.cpp",
+   "sha256": "dd4ccd032396984de7d4df085fbfba13747128061bed1f34731668990d75fc14"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexFilteringProfile_test.cpp",
+   "sha256": "5a777fec98e50950a21a2c40ac4cd290b98223452f129795e6ee18ac45c88de1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexFiltering_test.cpp",
+   "sha256": "35211f11c5e48a1b28c62a4727040ba739f341828cfa1ee58553316883986ce1"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexIsotopicPeakPattern_test.cpp",
+   "sha256": "6f750f97ea3418d2de1167e24284a2cb585ae3199ba93d3f1480684f7d8a213c"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexSatelliteCentroided_test.cpp",
+   "sha256": "fb9f4283abe4a44bd02772c9cc92b8e67a6ebe74dce15c97ef6a867754ac109d"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MultiplexSatelliteProfile_test.cpp",
+   "sha256": "c1bc0cbb2ad3c2be2f555c2114ee96d14fbac1a91cb803418b90a47bf8b7ee1f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeakWidthEstimator_test.cpp",
+   "sha256": "a2bc7034f79283ce6bf3d1eb214f430e5d0160bebc17ce03e7d6d68ae93082c3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SplineBisection_test.cpp",
+   "sha256": "52b175031876bce09de8bc4b9e14bb3f49d5ce82c8afb554226215fbeeaf23a4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SplineInterpolatedPeaks_test.cpp",
+   "sha256": "2b8f02d9db2910287a4a0cb54bb5cee7eaeeadc013b9d613244f29d37571fd9f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/SplinePackage_test.cpp",
+   "sha256": "50b73df5a38b7419ef3bd96c27185dffec3ce3dabf1f0ea5fc583a5f88ea64f0"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/featurefinder/multiplex.rs",
+  "src/analysis/featurefinder/multiplex/algorithm.rs",
+  "src/analysis/featurefinder/multiplex/clustering.rs",
+  "src/analysis/featurefinder/multiplex/delta_masses.rs",
+  "src/analysis/featurefinder/multiplex/delta_masses_generator.rs",
+  "src/analysis/featurefinder/multiplex/filtered_ms_experiment.rs",
+  "src/analysis/featurefinder/multiplex/filtered_peak.rs",
+  "src/analysis/featurefinder/multiplex/filtering.rs",
+  "src/analysis/featurefinder/multiplex/filtering_centroided.rs",
+  "src/analysis/featurefinder/multiplex/filtering_profile.rs",
+  "src/analysis/featurefinder/multiplex/isotopic_peak_pattern.rs",
+  "src/analysis/featurefinder/multiplex/satellite.rs",
+  "src/analysis/featurefinder/peak_width_estimator.rs",
+  "src/processing/spline/spline_interpolated_peaks.rs",
+  "src/processing/spline/spline_package.rs"
+ ],
+ "native_tests": [
+  "tests/featurefinder_multiplex.rs",
+  "tests/featurefinder_multiplex_filtering.rs",
+  "tests/featurefinder_multiplex_algorithm.rs",
+  "tests/featurefinder_multiplex_topp.rs",
+  "tests/spline_interpolated_peaks.rs"
+ ],
+ "support_document": "docs/FEATUREFINDER_MULTIPLEX_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/MultiplexFiltering.mzML",
+   "sha256": "986bccb4374131a9df57cce0cbd8656a503e702fc285ddae36ae439022927a4e",
+   "kind": "class-test data src/tests/class_tests/openms/data/MultiplexFiltering.mzML at bc9cc12"
+  },
+  {
+   "path": "tests/data/FeatureFinderMultiplex_1_input.mzML",
+   "sha256": "af1d712225df9ea92051f6a244538a4abacc34d8009b62a101d361e67f9f1bd7",
+   "kind": "class-test data src/tests/class_tests/openms/data/FeatureFinderMultiplex_1_input.mzML at bc9cc12"
+  },
+  {
+   "path": "tests/data/FeatureFinderMultiplex_1_parameters.ini",
+   "sha256": "d63f6d1623d634798bd36b494c048cd246b6c1873ffd011250caf5d865d1a407",
+   "kind": "class-test data src/tests/class_tests/openms/data/FeatureFinderMultiplex_1_parameters.ini at bc9cc12"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_10_input.mzML",
+   "sha256": "628226c3103fe34f526ec590df2ef8da44e893e97714a95c00e528c5db495fae",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_10_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_10_output.consensusXML",
+   "sha256": "220580b79036dd391c8207784d3fe5db8b1afd0fb551c291fd5559460e9b6889",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_10_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_10_output.featureXML",
+   "sha256": "cebf56fb93000013cbaa0b6c6ca737e9e6e2e00eac36e71d3747362b9368096e",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_10_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_10_parameters.ini",
+   "sha256": "6d1495215200233265be7b94890fa6a803e2d38bd27cad50c0ec904219a7ba90",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_10_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_11_input.mzML",
+   "sha256": "d4799ca7ac670b450c6860d63d18f9bb48a3e616fa70e5b87af63f6ae49ca041",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_11_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_11_output.featureXML",
+   "sha256": "fc3ec45f4043733e486e367c4b699c1b93ef243d63e54ec42d6ccaf6c8ac7b3b",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_11_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_11_parameters.ini",
+   "sha256": "a0a95d833c037f4ab130dc2b209de25a686f7e2a8f39945e49063dabd8e49d19",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_11_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_1_input.mzML",
+   "sha256": "46ee7b2eefc7404ac428355ededae982e4cbf879f0ebd5e0a0e1f064f4c200d2",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_1_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_1_output.consensusXML",
+   "sha256": "7a281835bd7cd2b0ff9dd3405c81fe3698c695a548f114a1b8050643f4fc2e66",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_1_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_1_output.featureXML",
+   "sha256": "aeb99f55c25bf3525a06a3938e594bb0c11aa43d0e2b4c97d0adc98a00bce866",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_1_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_1_parameters.ini",
+   "sha256": "1bdeb5d5d08fe26f404ba0a78ed4493a2f6951cdbd3dd80e00536c0017cb429c",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_1_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_2_input.mzML",
+   "sha256": "f673fc7c06a1b2b7bc123195105ed0309acfd7511bc7ad02a2f6db56ae01d19b",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_2_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_2_output.consensusXML",
+   "sha256": "1dac24231011f003a65a58965bb8fcbf4d368fcd9a81bc4b2301442694868b7a",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_2_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_2_output.featureXML",
+   "sha256": "5deaa2a891a6321351d01c61025243dbcb1b48936fe29c85d7be5d59753a53eb",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_2_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_2_parameters.ini",
+   "sha256": "d06f305e0d8a9a0b1ba2b0be5ad7ce39214267c3e83f0e96a36f72b1981570a5",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_2_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_3_input.mzML",
+   "sha256": "172b7369d70f1cd06c4588f128e355be703bec0b9debf364dbf979b16ce3dcd8",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_3_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_3_output.consensusXML",
+   "sha256": "5c7d9dfd5a491c812bc289d81222b874e4316d072615d2523ddecbe3c2ad1a60",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_3_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_3_output.featureXML",
+   "sha256": "1c3daa06db2eb0ad080b6f60adfc8e5bb0185ae507dadc5c5c70ef37f78c206b",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_3_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_3_parameters.ini",
+   "sha256": "b4eb802f6a83951609676a72ff07cb5fedd8c0369c9df623a6e0178eb0593782",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_3_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_4_input.mzML",
+   "sha256": "a21b957bfe25119b7bc97db701f10fe9a169f0b8636d7f578aa25622ff37c8a7",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_4_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_4_output.consensusXML",
+   "sha256": "0c4f8f2464f9ac779be3848bb3805455d7cc3894242887f5407c974963e024c2",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_4_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_4_output.featureXML",
+   "sha256": "b631695f5cf0b11d8397ec8a8fbb519911ccf2678fafdeb7b19c0c616a49061e",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_4_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_4_parameters.ini",
+   "sha256": "14ceba461c165ac541c0b394fe058b54e72181f6113f17f3153d9fc9549f10ab",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_4_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_5_input.mzML",
+   "sha256": "9c3977048599c232af2da9ca95316ea81c422c3fcb8f9657dccfeea2713cc1f7",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_5_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_5_output.consensusXML",
+   "sha256": "0d2d08838c5473b0afdb7d1ba58d2e27a8745ec6cc1ce15961a49dc1dd461b2b",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_5_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_5_output.featureXML",
+   "sha256": "fa5ca2350ca43f4ea27d4eb59e0f326ec688b7211d1ccb630f21cf7d61f2fd22",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_5_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_5_parameters.ini",
+   "sha256": "30c8f784b66661226d278c1902101498e2fed4cf99cadbdbdf46615b2dcafe91",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_5_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_6_input.mzML",
+   "sha256": "9c3977048599c232af2da9ca95316ea81c422c3fcb8f9657dccfeea2713cc1f7",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_6_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_6_output.consensusXML",
+   "sha256": "b11b1184ccd4a427e9ff050308cb4302197dedc2996d95acfa4d242f826330d6",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_6_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_6_output.featureXML",
+   "sha256": "20d01819dfddf73639db32fcbb933b6477b0335ef2db7f9b2b0df87ea1dcbc7c",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_6_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_6_parameters.ini",
+   "sha256": "2ad5d5848108477cf032524c0efb4be823bbc85b8ae42328dd1dffa1943d0af7",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_6_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_7_input.mzML",
+   "sha256": "f673fc7c06a1b2b7bc123195105ed0309acfd7511bc7ad02a2f6db56ae01d19b",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_7_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_7_output.consensusXML",
+   "sha256": "7068bdb10538ac9fa0602a2c7dfbad42600163a216e1533c2dd6aca4be8cf809",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_7_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_7_output.featureXML",
+   "sha256": "0de90125faac94c59632773c4cc58fd510a5ab5d53c167abe6901ce3a12844dc",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_7_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_7_parameters.ini",
+   "sha256": "cbc145e437e512ca19d38668023f8d4b8801fbe0ddc257308ef0a7e49281112c",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_7_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_8_input.mzML",
+   "sha256": "832f26b97c0216f8fc232d5d7a1889b956847b110f057fed1174d4a7c540f6e2",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_8_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_8_output.consensusXML",
+   "sha256": "92388cdd946456c5e5dae02bd93a184bf57e38d4028f46469d222a34ae83fe9c",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_8_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_8_output.featureXML",
+   "sha256": "f11969a991324a667baa780bd23f4f6e2fe182d177bc06cc78a7700cd62b209b",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_8_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_8_parameters.ini",
+   "sha256": "45a2b53fc83c88c9a85c749d89f2e89a77422b0be3a7b718da1d21192c041277",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_8_parameters.ini of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_9_input.mzML",
+   "sha256": "c2a426ba58771c1d97a477501f66fdb8305192760053533fbebc8b92a4da38bb",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_9_input.mzML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_9_output.consensusXML",
+   "sha256": "52863922fb2ae2fd86625cd5106adb305032de26ba99bfd32b04494f4f9a0927",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_9_output.consensusXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_9_output.featureXML",
+   "sha256": "60462e9ab591373ae143b80dc380eab697ba12b8b3cbce67cd2958bdcab6e76a",
+   "kind": "retained C++ TOPP output topp/FeatureFinderMultiplex_9_output.featureXML of the test-data package at 0cb15f2"
+  },
+  {
+   "path": "tests/data/feature_finder_multiplex/FeatureFinderMultiplex_9_parameters.ini",
+   "sha256": "7767df14f4fdd79f99898eba471d796cc875ace286fb99bf4f31cc9df461d6f9",
+   "kind": "TOPP test input topp/FeatureFinderMultiplex_9_parameters.ini of the test-data package at 0cb15f2"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/peak_picking/PeakPickerHiRes_orbitrap.mzML",
+   "sha256": "ca098bbd91668070941cbda1a99019a0cdc17e93862cb34946ab3567f903df22",
+   "kind": "PeakWidthEstimator_test.cpp input (already retained by the peak picking group)"
+  }
+ ],
+ "evidence_tier": {
+  "tier_1_executed_differential": "tests/featurefinder_multiplex_topp.rs: FeatureFinderMultiplexAlgorithm on the inputs and .ini files of TOPP_FeatureFinderMultiplex_1..11 (test-data 0cb15f2, topp/CMakeLists.txt:463-526) against the retained featureXML/consensusXML outputs under the upstream FuzzyDiff contract (topp/FuzzyDiff.ini: ratio 1.01 or absdiff 0.01; counts, charges, map indices, labels exact)",
+  "tier_3_class_tests": "tests/featurefinder_multiplex.rs, tests/featurefinder_multiplex_filtering.rs, tests/featurefinder_multiplex_algorithm.rs, tests/spline_interpolated_peaks.rs: every section of the fourteen class tests at bc9cc12",
+  "tier_4_native": "pattern formula, multiset order, the header-documented SILAC mass shift list, parameter tree round trip, error paths for source undefined behaviour and non-terminating loops"
+ },
+ "upstream_test_definition": {
+  "package": "test-data",
+  "revision": "0cb15f2",
+  "path": "topp/CMakeLists.txt",
+  "lines": "463-526",
+  "diff_ini": "topp/FuzzyDiff.ini"
+ },
+ "not_ported": [
+  {
+   "member": "MultiplexFiltering::blacklistPeak_(const MultiplexFilteredPeak&)",
+   "reason": "declared in the header, never defined in the source"
+  },
+  {
+   "member": "SplineInterpolatedPeaks::Navigator::Navigator()",
+   "reason": "pyOpenMS default constructor with a null package pointer; every call on it is undefined"
+  }
+ ]
+}

@@ -92,7 +92,12 @@ fn check_same_nonempty(x: usize, y: usize) -> Result<()> {
 ///
 /// A NaN sum is not zero, so it spreads NaN, as in the source.
 pub fn normalize_sum(x: &mut [f64]) {
-    let s: f64 = x.iter().sum();
+    // `v.sum()`: Eigen's vectorised reduction
+    let s: f64 = if x.is_empty() {
+        0.0
+    } else {
+        eigen_sum(x.len(), |i| x[i])
+    };
     if s != 0.0 {
         for v in x {
             *v /= s;
@@ -121,7 +126,8 @@ pub fn normalized_manhattan_dist(x: &mut [f64], y: &mut [f64]) -> Result<f64> {
     check_same_nonempty(x.len(), y.len())?;
     normalize_sum(x);
     normalize_sum(y);
-    let sum: f64 = x.iter().zip(y.iter()).map(|(a, b)| (a - b).abs()).sum();
+    // `(vx - vy).cwiseAbs().sum()`: Eigen's vectorised reduction
+    let sum = eigen_sum(x.len(), |i| (x[i] - y[i]).abs());
     Ok(sum / x.len() as f64)
 }
 
@@ -133,7 +139,8 @@ pub fn normalized_manhattan_dist(x: &mut [f64], y: &mut [f64]) -> Result<f64> {
 /// [`Error::InvalidValue`] unless both vectors have the same non-zero length.
 pub fn root_mean_square_deviation(x: &[f64], y: &[f64]) -> Result<f64> {
     check_same_nonempty(x.len(), y.len())?;
-    let squared: f64 = x.iter().zip(y).map(|(a, b)| (a - b) * (a - b)).sum();
+    // `(vx - vy).squaredNorm()`: Eigen's vectorised reduction
+    let squared = eigen_sum(x.len(), |i| (x[i] - y[i]) * (x[i] - y[i]));
     Ok((squared / x.len() as f64).sqrt())
 }
 
@@ -152,10 +159,11 @@ pub fn root_mean_square_deviation(x: &[f64], y: &[f64]) -> Result<f64> {
 /// [`Error::InvalidValue`] unless both vectors have the same non-zero length.
 pub fn spectral_angle(x: &[f64], y: &[f64]) -> Result<f64> {
     check_same_nonempty(x.len(), y.len())?;
-    let x_len = x.iter().map(|v| v * v).sum::<f64>().sqrt();
-    let y_len = y.iter().map(|v| v * v).sum::<f64>().sqrt();
+    // `vx.norm()`, `vy.norm()` and `vx.dot(vy)`: Eigen's reductions
+    let x_len = eigen_sum(x.len(), |i| x[i] * x[i]).sqrt();
+    let y_len = eigen_sum(y.len(), |i| y[i] * y[i]).sqrt();
     let denominator = x_len * y_len;
-    let dot: f64 = x.iter().zip(y).map(|(a, b)| a * b).sum();
+    let dot = eigen_dot(x.len(), |i| x[i], |i| y[i]);
     let theta = if denominator == 0.0 {
         0.0
     } else {

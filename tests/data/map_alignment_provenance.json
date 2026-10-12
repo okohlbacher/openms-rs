@@ -1,0 +1,456 @@
+{
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "license": "BSD-3-Clause",
+ "evidence_tier": "1 (executed differential against the Linux x86_64 Release build: tests/map_alignment_oracle.rs, 3780 values, and tests/map_alignment_oracle_kd_tree.rs, the KD and tree-guided alignments, all bit-identical on dax) for the transformation models, superimposers, identification, KD and tree-guided alignment and evaluation; 3 (transcribed class-test literals and upstream data files); 4 for the derived checks named in the tests",
+ "source_files": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h",
+   "sha256": "7ebae80961ce147e0e41978c7d4fe2000253aabc758ebcb275e81233ae975146"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/BaseSuperimposer.cpp",
+   "sha256": "f80a81e8be071a9ed9a2fc747eb50c485cd6333e9b8ac0f69929f92ec3174476"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.h",
+   "sha256": "0d7f46759b0a463b80ac192a80188e9aa504d7b5e6359cb7a9ae6b4aca4d6764"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/PoseClusteringShiftSuperimposer.cpp",
+   "sha256": "a5937f96d785b878e196b4685704f578f830b4c31ee90969ae0276a03f8066c4"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h",
+   "sha256": "c101c42056d032d64b501cf7c0d94369817ff6bdcce8ef23530bc6f4ebe52e27"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.cpp",
+   "sha256": "bb8469b1323b80813670b904b0216e27ad01fb6fb77f702d39ed8401751241e9"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h",
+   "sha256": "3281d7cb32d7063290004b677098bf7f49c83a3c71c909f62f63aedabfdea15c"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.cpp",
+   "sha256": "1b3a53d42903e38cfed8ceb9e22c4b193435605eb9d751b655e003d0557257b3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h",
+   "sha256": "f4b5d7ca8862c8a728af1dad592907c2bde31bc2bbd2d3bda57f3a48f7dc42e0"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.cpp",
+   "sha256": "72582c65382972d1406a07386ef21b83425a30f055f555479d7e8a634aa9774a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h",
+   "sha256": "63588d6e6ab4f475217edc4bfc44ea5322bab65a5e71997f59dfa2d0534cb740"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.cpp",
+   "sha256": "30ca9b8f306537a36cc46a298e1faa2b50ffd5ee2115033d36b19130d4d442ee"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h",
+   "sha256": "c46a94e7eb094d2aba3c646878e4fbe63a7c108281627ba8379f8578b7487f65"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.cpp",
+   "sha256": "6aec2f1f1a2d699d2ab207f5ced498e41534970f077b6286ebba909f5579b363"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h",
+   "sha256": "9a9a5f55b6ecc01a415744e4649d684ebf46e06087b751fb0900f608d9b4246c"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.cpp",
+   "sha256": "943bd0d84a10c824d9734163a8d6bac48b84fa22af7eef39b68373109d035d7a"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ML/INTERPOLATION/LinearInterpolation.h",
+   "sha256": "6a31d8ce82a438a3ba7afce22f3a7f9a6f048353d72e63fa9ff6ed0591452a1e",
+   "role": "The voting histograms' addValue, key2index, index2key and setMapping, ported privately in src/analysis/mapmatching/superimposer.rs."
+  },
+  {
+   "path": "src/openms/include/OpenMS/PROCESSING/BASELINE/MorphologicalFilter.h",
+   "sha256": "73fc950a2d01f7bdfed846ad15c1a6e44bece2318fbb69a27c839beca17fb241",
+   "role": "filterRange's tophat branch, which the superimposers instantiate on double; reproduced in double precision with clipped-window extrema."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/BaseSuperimposer_test.cpp",
+   "sha256": "3061c40e3ddf2e12124f712443cdca75e3c6ab836703e079c5c63f25d14a7a01",
+   "role": "Tests only a test subclass's construction; no literal to transcribe."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PoseClusteringShiftSuperimposer_test.cpp",
+   "sha256": "cf6130063dd47c00faab9ebc5d006e2c0e608496b11c7a7c7d36ccbff2864cd7",
+   "role": "Oracle: slope 1, intercept -20.4, two model parameters."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PoseClusteringAffineSuperimposer_test.cpp",
+   "sha256": "5165306944f522f780acda768e103468e16b111c6d9b6fa5c4129b4d8c10eb0c",
+   "role": "Oracle for both run overloads and the num_used_points 2/3 and wrong-parameter sections (0.977273 / -0.368182)."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentEvaluationAlgorithm_test.cpp",
+   "sha256": "3db288eb10512059fd6d7fc70eea607b81ba283d8c739ee38b997a5fce1892b1",
+   "role": "Oracle for isSameHandle and the implementable interface."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentEvaluationAlgorithmPrecision_test.cpp",
+   "sha256": "fcf533e2162c7c8803110a8cf6a7a7df7ff85a5a56d1d11a59c94ccc89a6eb00",
+   "role": "Oracle: precision 0.757143."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentEvaluationAlgorithmRecall_test.cpp",
+   "sha256": "2fe9f88a1bb7b45179ffda9362f49ae02490b6648465f8d6deb82f43f605f0f8",
+   "role": "Oracle: recall 0.5, empty tool map 0, empty ground truth refused."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmIdentification_test.cpp",
+   "sha256": "14a018277fa9c352134ed587e38bffe7abe24a1ce0fa09757416ce116ef23d0f",
+   "role": "Oracle for alignment without, with internal and with external reference, and the repeated-align regression."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmPoseClustering_test.cpp",
+   "sha256": "8a4dd1a16cbea2b1c4bc62a35f215ef7f7e01da1994f7b7bc4b55badecaedab6",
+   "role": "Not run: its one section (307 pairs, slope 1.01164, intercept -32.0912) needs StablePairFinder, which is not ported."
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h",
+   "sha256": "e83d09a78b65661b9b8d024e4339c5d85f53452ee9fb5319bf6fc808c935ad64"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.cpp",
+   "sha256": "fcd204196dfdbc309a2caa01927a7c9cec57ab5f8f80675c6d396a3fe5f53675"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h",
+   "sha256": "4e1a62b7fc2af054a79f8076a876ac70e859c4ca4cf2e26e8c255ca357b10637"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.cpp",
+   "sha256": "661a5fb87bc8e1b92c38487fcbd91471809545fdc9a121151e2b6267f0246f30"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h",
+   "sha256": "e392b89a282680f4014cd1cd2a74ff852b222ca1c379e8ae39d4d0e17f805341"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.cpp",
+   "sha256": "3dd7006ebe5e57182b15b751288c14c29241c6a41eba9740c3486cc5e7e41a3d"
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/ApprHeightLine2.h",
+   "sha256": "c5a0908afa4c9dd6dcd637273bc8d3c8c0c3ae849a7f503edd71a1cb664b5237"
+  },
+  {
+   "path": "src/openms/extern/GTE/Mathematics/Vector.h",
+   "sha256": "e9f961f39a14fe88cacc92dee960bdad3a348a08a0228c42548b5c9587345485"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmKD_test.cpp",
+   "sha256": "3888005333029030a6950d0c7e6b5a7ece7dfe859831bdb0214fea7bc5a6c7a5"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MapAlignmentAlgorithmTreeGuided_test.cpp",
+   "sha256": "78711bc0d715465c8e093a76ef5a577cc15f0ec4f3055c1a087767769e2319d4"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/TransformationModelDefaults_test.cpp",
+   "sha256": "e49b85161a6e3f54784e7df2f527ab184c43347a6306d7ad52179ecc5815678b"
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/pose_clustering/MapAlignmentAlgorithmPoseClustering_in1.mzML.gz",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmPoseClustering_in1.mzML.gz",
+   "sha256": "248c6c24ab5dfaf062088849893a12106ffbdf8adcd5d7428378fecbb428cd35",
+   "bytes": 2501766,
+   "role": "Unmodified upstream; the reference map of the class test's align(PeakMap) section."
+  },
+  {
+   "path": "tests/data/pose_clustering/MapAlignmentAlgorithmPoseClustering_in2.mzML.gz",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmPoseClustering_in2.mzML.gz",
+   "sha256": "28c399a1d38bfc183be4a306d0fb51ff8d44f02c0bf4f1e349a274b0ee22068a",
+   "bytes": 2576209,
+   "role": "Unmodified upstream; the scene map of the class test's align(PeakMap) section."
+  },
+  {
+   "path": "tests/data/map_alignment_evaluation_in.consensusXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentEvaluationAlgorithm_in.consensusXML",
+   "sha256": "fbe831a0ab059431ffa925831b7e56ca91392d286fecda73fdc378ec1ece43bb",
+   "bytes": 1856,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_evaluation_gt.consensusXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentEvaluationAlgorithm_gt.consensusXML",
+   "sha256": "4f42ed8dbdd7f9b67dc91f846f2181147cdff979dab4aa35f6dcd141f426a287",
+   "bytes": 1695,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_identification_1.idXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmIdentification_test_1.idXML",
+   "sha256": "a54ffade53abce4d0001a8f93a2cdf54c24cd597bbbad849a5367ddad8173167",
+   "bytes": 3367,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_identification_2.idXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmIdentification_test_2.idXML",
+   "sha256": "6d6cae630cefd50e5b57c489fc0212cba9b46a879a0f675d7136cc6d6440742e",
+   "bytes": 3255,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_records.tsv",
+   "sha256": "330798c3f9dcd435ee5a909fa4d255b047c4998c9d798f6e23acf78d954b384c",
+   "bytes": 184745,
+   "kind": "executed C++ output",
+   "role": "results/records.tsv of ../oracle/M1-mapalign: 3780 values at %.17g (B-spline, interpolation, LOWESS and auto-span, description apply/invert, shift and affine superimposers, identification alignment, precision/recall). Run on ibminode06 against /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c), conda-forge gcc 14.4.0-4, two invocations of two fresh-process runs, all byte-identical."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_summaries.txt",
+   "sha256": "57ffd524e262a7fddbc81420653827524fc04e85eb889358c2e1664b2bf96af7",
+   "bytes": 3335,
+   "kind": "executed C++ output",
+   "role": "results/summaries.txt of the same runs: TransformationDescription::printSummary for linear, b_spline, interpolated and lowess on the sine anchors."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_maps.tsv",
+   "sha256": "a4664eefc2e013e26575cfefdd8f7dacbecbcee730e8645ad175200033c22493",
+   "bytes": 68307,
+   "kind": "synthetic input",
+   "role": "data/maps.tsv of the oracle, from its gen_cases.py (seed 20260927): affine (scaling 1.02, shift 15, tied intensities), shift (-37.5) and dense-m/z map pairs."
+  },
+  {
+   "path": "tests/data/map_alignment_oracle_lowess_noisy.tsv",
+   "sha256": "c9e4785e2c793009891b41196eec860b4c0e1221da7a45bfccee12ae43498ef4",
+   "bytes": 1120,
+   "kind": "synthetic input",
+   "role": "data/lowess_noisy.tsv of the oracle: 80 noisy points with repeated x (the k-fold path of the LOWESS span selection)."
+  },
+  {
+   "path": "tests/data/map_alignment_tree_guided_in0.featureXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmTreeGuided_test_in0.featureXML",
+   "sha256": "2bc11a214b14048e5cad1ce3d8bd04344c5a7cda0b9c8bb8f8896f0718d5b543",
+   "bytes": 2895,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_tree_guided_in1.featureXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmTreeGuided_test_in1.featureXML",
+   "sha256": "79ff0deb6347a4352d54e50c722b5a8815ec8811c995ad74ec161932ff201e6f",
+   "bytes": 2597,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_tree_guided_in2.featureXML",
+   "source_path": "src/tests/class_tests/openms/data/MapAlignmentAlgorithmTreeGuided_test_in2.featureXML",
+   "sha256": "6ebc1f0b59ef7a30a4d15b8a9351acb6ea06c6d4ea03a168d6780aea3f2fdcb2",
+   "bytes": 2601,
+   "role": "Unmodified upstream."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/kd_abs.tsv",
+   "sha256": "4f326a1ce24cd0a30fc602bc897b7f619644c75b635d6c4bfff46bbe431f64b1",
+   "bytes": 16750,
+   "kind": "synthetic input",
+   "role": "data/kd_abs.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/kd_base.tsv",
+   "sha256": "cc29917f4d6c786373213a0a2facd42fbf1e46935a92b46a3b11b42e0adec7d1",
+   "bytes": 29115,
+   "kind": "synthetic input",
+   "role": "data/kd_base.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/kd_conflicts.tsv",
+   "sha256": "7974e88c93f6454ac9fac498a7e845f0a5faa21da89f9a42e39c04a4c7a3d248",
+   "bytes": 35859,
+   "kind": "synthetic input",
+   "role": "data/kd_conflicts.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/kd_defaults.ini",
+   "sha256": "58e58fd93e39751ac785f7a77240c2f518a264e67782e90b8a5188ead11b4a5f",
+   "bytes": 8762,
+   "kind": "executed C++ output",
+   "role": "FeatureGroupingAlgorithmKD().getDefaults() written by ParamXMLFile::store: the parameters the KD cases start from."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/kd_few.tsv",
+   "sha256": "534b973ee5997d3121246a53563350a75a5a6009631de8446c0d93e17a7900b9",
+   "bytes": 4643,
+   "kind": "synthetic input",
+   "role": "data/kd_few.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/notes.tsv",
+   "sha256": "33e42e792fda5e5f841664f76f4409d04e82cb6973b9c724cc3aac8840ae6a3d",
+   "bytes": 55151,
+   "kind": "executed C++ output",
+   "role": "results/notes.tsv of the same runs: model types and data-point notes of the tree-guided transformations."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/records.tsv",
+   "sha256": "40c9127cff358f6e715554edeb2c607953536cbff8c8502991bc2c339201551e",
+   "bytes": 855956,
+   "kind": "executed C++ output",
+   "role": "results/records.tsv of ../oracle/M1-kdtree: every KD neighbourhood size, component label, filtered component size and transformed RT, and every tree-guided pair distance, tree node, RT list, merge order, merged RT, data point and final RT, at %.17g. Run on ibminode06 against /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c), conda-forge gcc (results/compiler.txt), two fresh-process runs, byte-identical (results/differ.txt empty)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/stderr.txt",
+   "sha256": "465bfe251d2f8cd1467fa196f588bb2c5fed4b51cca0e453fd0b97c9c5a3f943",
+   "bytes": 1375,
+   "kind": "executed C++ output",
+   "role": "stderr of run 1: the LOWESS warnings of MapAlignmentAlgorithmKD::fitLOWESS in case order, and the FeatureMap 'UNKNOWN' run-path notices."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_defaults.ini",
+   "sha256": "dbfccd96c8c46e0017934a6cd2ec2e2753a5935e7d3e87dfca7eae2879292e38",
+   "bytes": 10377,
+   "kind": "executed C++ output",
+   "role": "MapAlignmentAlgorithmTreeGuided().getDefaults() written by ParamXMLFile::store."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_five_0.tsv",
+   "sha256": "d782e34ec18e8dd3fb4ee557d4092db209310c6ed750812de8722c02950e8edf",
+   "bytes": 9193,
+   "kind": "synthetic input",
+   "role": "data/tg_five_0.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_five_1.tsv",
+   "sha256": "d83ed50a42ca4b662bed04ab8888efb6ab4bea7eedaaaea7f4bbd415625afea4",
+   "bytes": 8566,
+   "kind": "synthetic input",
+   "role": "data/tg_five_1.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_five_2.tsv",
+   "sha256": "59ad2e75b15eee670a54d61910b54f6c41ec81337b4f236f633d881f86a5c390",
+   "bytes": 7752,
+   "kind": "synthetic input",
+   "role": "data/tg_five_2.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_five_3.tsv",
+   "sha256": "c0fef874c7d2fc2f4235540f3d644515611511b9d82d52c3da1e519eea492e07",
+   "bytes": 9504,
+   "kind": "synthetic input",
+   "role": "data/tg_five_3.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_five_4.tsv",
+   "sha256": "257165d928c18f8bb5ae74438c5dac7cfee238661acb01ea497eefebb7fdf968",
+   "bytes": 9093,
+   "kind": "synthetic input",
+   "role": "data/tg_five_4.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_four_0.tsv",
+   "sha256": "4c15fee2fdb5b741b44116377739a0a08704c1d38b432ba953735f10086b11e8",
+   "bytes": 7718,
+   "kind": "synthetic input",
+   "role": "data/tg_four_0.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_four_1.tsv",
+   "sha256": "eab6b456fb4b934718f95f54f2fa664fea582cafac8e4eba262915b79d830dcd",
+   "bytes": 7491,
+   "kind": "synthetic input",
+   "role": "data/tg_four_1.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_four_2.tsv",
+   "sha256": "9c5c20bf6517b0396b5e0d08a8a243e3e18f47747142c2c92bcaeab94c06059a",
+   "bytes": 4758,
+   "kind": "synthetic input",
+   "role": "data/tg_four_2.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  },
+  {
+   "path": "tests/data/map_alignment_kd_tree_oracle/tg_four_3.tsv",
+   "sha256": "68f4003a0f19cb25b49f619d027f525ac0718ade924b580c2a68e887dadf7334",
+   "bytes": 7777,
+   "kind": "synthetic input",
+   "role": "data/tg_four_3.tsv of ../oracle/M1-kdtree, written by its gen_cases.py (fixed seeds)."
+  }
+ ],
+ "external_reference_note": "The oracle driver and its scripts are C++ and shell kept outside this repository under ../oracle/M1-mapalign/, with the fetched results/ (host.txt: ibminode06; install.txt; compiler.txt; flags.txt; hashes.txt; differ.txt empty). run.sh documents the staging; its steps were executed one by one because the lane's worktree guard does not run scripts. The KD / tree-guided oracle is ../oracle/M1-kdtree/ (driver.cpp, gen_cases.py, run.sh, remote_run.sh, results/ with host.txt ibminode06, install.txt, compiler.txt, flags.txt, hashes.txt, differ.txt empty); run.sh was executed as written.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/M1-mapalign/driver.cpp",
+   "sha256": "33d4b680c3b456c611f449f3a6e53aeda7862ab4df81deb1a543117f34e5fefe",
+   "origin_key": "tests/data/map_alignment_oracle_records.tsv"
+  },
+  {
+   "path": "../oracle/M1-mapalign/gen_cases.py",
+   "sha256": "60309d4a7ba42384ccb36daa31fa4de7d22d4c67bf4271f9d626ac3381b0babb",
+   "origin_key": "tests/data/map_alignment_oracle_maps.tsv"
+  },
+  {
+   "path": "../oracle/M1-mapalign/remote_run.sh",
+   "sha256": "148cbadaf709cf398bf40b385cb5c0a952fc8894012472ba2f77a688966c301b",
+   "origin_key": "tests/data/map_alignment_oracle_records.tsv"
+  },
+  {
+   "path": "../oracle/M1-mapalign/results/hashes.txt",
+   "sha256": "54d14c9731a39dd131ad3cfa4ed7e07ad2d751f9a2b06828142b6746ac454d5d",
+   "origin_key": "tests/data/map_alignment_oracle_records.tsv"
+  },
+  {
+   "path": "../oracle/M1-kdtree/driver.cpp",
+   "sha256": "f5601ba5b9a5263605041e459f078865f565a305d4052ff96a4ba8050f1ac2c3",
+   "origin_key": "tests/data/map_alignment_kd_tree_oracle/records.tsv"
+  },
+  {
+   "path": "../oracle/M1-kdtree/gen_cases.py",
+   "sha256": "3a42a5b7dedabc0ccf3311bb070b0aa3b159559247d10ea6b08c94846a4c19d8",
+   "origin_key": "tests/data/map_alignment_kd_tree_oracle/kd_base.tsv"
+  },
+  {
+   "path": "../oracle/M1-kdtree/remote_run.sh",
+   "sha256": "4f5c782f083afd2fb93d43b06daccb049456c9833f0ffbaa3e2914305c813af3",
+   "origin_key": "tests/data/map_alignment_kd_tree_oracle/records.tsv"
+  },
+  {
+   "path": "../oracle/M1-kdtree/run.sh",
+   "sha256": "28872f1eba1e5f5ea84af7c6fcc1ece2143b0949bb0ccea4d23d102f8c28384f",
+   "origin_key": "tests/data/map_alignment_kd_tree_oracle/records.tsv"
+  },
+  {
+   "path": "../oracle/M1-kdtree/results/hashes.txt",
+   "sha256": "d5e89a414c0aa87315a61777487aa14f6543015c6455e028010f59267504e25d",
+   "origin_key": "tests/data/map_alignment_kd_tree_oracle/records.tsv"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/mapmatching/superimposer.rs",
+  "src/analysis/mapmatching/pose_clustering_shift.rs",
+  "src/analysis/mapmatching/pose_clustering_affine.rs",
+  "src/analysis/mapmatching/alignment_evaluation.rs",
+  "src/analysis/mapmatching/alignment_identification.rs",
+  "src/analysis/mapmatching/alignment_pose_clustering.rs",
+  "src/analysis/mapmatching/alignment_kd.rs",
+  "src/analysis/mapmatching/alignment_tree_guided.rs"
+ ],
+ "native_tests": [
+  "tests/pose_clustering.rs",
+  "tests/map_alignment_evaluation.rs",
+  "tests/map_alignment_identification.rs",
+  "tests/map_alignment_oracle.rs",
+  "tests/map_alignment_kd.rs",
+  "tests/map_alignment_tree_guided.rs",
+  "tests/map_alignment_oracle_kd_tree.rs",
+  "tests/map_alignment_pose_clustering_class.rs",
+  "tests/support/kd_pool.rs"
+ ],
+ "support_document": "docs/MAP_ALIGNMENT_SUPPORT.md",
+ "notes": "Class-test comparisons follow ClassTest isRealSimilar (absolute 1e-5 or ratio 1 + 1e-5, src/testframework/source/CONCEPT/ClassTest.cpp:364). tests/map_alignment_oracle.rs compares against the executed Release build bit for bit on Linux x86_64 (3780 of 3780 values identical on dax), at 1e-12 relative on other targets, whose libm ln/exp may round differently."
+}

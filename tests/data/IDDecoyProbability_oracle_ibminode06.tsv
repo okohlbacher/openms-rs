@@ -1,0 +1,1251 @@
+A	0	0.025131084559639118	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10	XTandem_score=10
+A	1	0.79130263032364612	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.399999999999999	XTandem_score=17.399999999999999
+A	2	0.98289193787685292	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.800000000000001	XTandem_score=24.800000000000001
+A	3	0.11293529078088117	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12	XTandem_score=12
+A	4	0.90468044602865227	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.399999999999999	XTandem_score=19.399999999999999
+A	5	0.98836105157849607	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.800000000000001	XTandem_score=26.800000000000001
+A	6	0.34343883881513443	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14	XTandem_score=14
+A	7	0.95187409866559813	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.399999999999999	XTandem_score=21.399999999999999
+A	8	0.99209407186627407	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.800000000000001	XTandem_score=28.800000000000001
+A	9	0.64138913653240859	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16	XTandem_score=16
+A	10	0.97168581268910814	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.399999999999999	XTandem_score=23.399999999999999
+A	11	0.040709820571139796	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.6	XTandem_score=10.6
+A	12	0.83580099854660328	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18	XTandem_score=18
+A	13	0.98475584878743383	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.399999999999999	XTandem_score=25.399999999999999
+A	14	0.16549868401348855	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.6	XTandem_score=12.6
+A	15	0.92342843342560244	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20	XTandem_score=20
+A	16	0.98963465251462224	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.399999999999999	XTandem_score=27.399999999999999
+A	17	0.43538625395418251	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.6	XTandem_score=14.6
+A	18	0.95965720449657488	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22	XTandem_score=22
+A	19	0.99296165963759941	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.399999999999999	XTandem_score=29.399999999999999
+A	20	0.71390622295150596	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.600000000000001	XTandem_score=16.600000000000001
+A	21	0.97504161379007348	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24	XTandem_score=24
+A	22	0.064293800768118456	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.199999999999999	XTandem_score=11.199999999999999
+A	23	0.87049310548614744	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.600000000000001	XTandem_score=18.600000000000001
+A	24	0.98641918915903037	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26	XTandem_score=26
+A	25	0.23304647944053977	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.199999999999999	XTandem_score=13.199999999999999
+A	26	0.93778326881123208	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.600000000000001	XTandem_score=20.600000000000001
+A	27	0.9907700114519804	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28	XTandem_score=28
+A	28	0.52788723033443485	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.199999999999999	XTandem_score=15.199999999999999
+A	29	0.96568408438784881	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.600000000000001	XTandem_score=22.600000000000001
+A	30	0.99373453489002883	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=30	XTandem_score=30
+A	31	0.77398578365284998	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.199999999999999	XTandem_score=17.199999999999999
+A	32	0.98222209915243219	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.600000000000001	XTandem_score=24.600000000000001
+A	33	0.098631272238656906	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.800000000000001	XTandem_score=11.800000000000001
+A	34	0.89723205318167587	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.199999999999999	XTandem_score=19.199999999999999
+A	35	0.98790300700185951	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.600000000000001	XTandem_score=26.600000000000001
+A	36	0.31409442337146543	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.800000000000001	XTandem_score=13.800000000000001
+A	37	0.94879867349113567	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.199999999999999	XTandem_score=21.199999999999999
+A	38	0.99178189006340123	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.600000000000001	XTandem_score=28.600000000000001
+A	39	0.61460660940585288	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.800000000000001	XTandem_score=15.800000000000001
+A	40	0.9703675929422052	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.199999999999999	XTandem_score=23.199999999999999
+A	41	0.034755680201128722	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.4	XTandem_score=10.4
+A	42	0.82214864116176678	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.800000000000001	XTandem_score=17.800000000000001
+A	43	0.98415793421761533	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.199999999999999	XTandem_score=25.199999999999999
+A	44	0.14631807764640389	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.4	XTandem_score=12.4
+A	45	0.91772722499078174	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.800000000000001	XTandem_score=19.800000000000001
+A	46	0.98922625493952232	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.199999999999999	XTandem_score=27.199999999999999
+A	47	0.40433419758369282	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.4	XTandem_score=14.4
+A	48	0.95728202496220349	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.800000000000001	XTandem_score=21.800000000000001
+A	49	0.99268352589411502	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.199999999999999	XTandem_score=29.199999999999999
+A	50	0.69109754372865118	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.399999999999999	XTandem_score=16.399999999999999
+A	51	0.97401485221506712	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.800000000000001	XTandem_score=23.800000000000001
+A	52	0.055376829409780372	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11	XTandem_score=11
+A	53	0.85990337274178208	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.399999999999999	XTandem_score=18.399999999999999
+A	54	0.98588568378290475	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.800000000000001	XTandem_score=25.800000000000001
+A	55	0.208898526619373	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13	XTandem_score=13
+A	56	0.9334158893885085	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.399999999999999	XTandem_score=20.399999999999999
+A	57	0.99040597465297431	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.800000000000001	XTandem_score=27.800000000000001
+A	58	0.49741075464534595	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15	XTandem_score=15
+A	59	0.9638423037160847	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.399999999999999	XTandem_score=22.399999999999999
+A	60	0.99348677859345691	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.800000000000001	XTandem_score=29.800000000000001
+A	61	0.75533693766575583	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17	XTandem_score=17
+A	62	0.98152647806532789	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.399999999999999	XTandem_score=24.399999999999999
+A	63	0.085818904493313961	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.6	XTandem_score=11.6
+A	64	0.88909225859027674	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19	XTandem_score=19
+A	65	0.98742713704081564	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.399999999999999	XTandem_score=26.399999999999999
+A	66	0.28578935889798601	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.6	XTandem_score=13.6
+A	67	0.94544353731139852	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21	XTandem_score=21
+A	68	0.99145747039095145	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.399999999999999	XTandem_score=28.399999999999999
+A	69	0.58666657786418341	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.6	XTandem_score=15.6
+A	70	0.96893487758434771	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23	XTandem_score=23
+A	71	0.029592481401466808	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.199999999999999	XTandem_score=10.199999999999999
+A	72	0.80733737772079417	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.600000000000001	XTandem_score=17.600000000000001
+A	73	0.98353691842147384	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25	XTandem_score=25
+A	74	0.12881022530281946	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.199999999999999	XTandem_score=12.199999999999999
+A	75	0.91149441080432614	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.600000000000001	XTandem_score=19.600000000000001
+A	76	0.98880192407139667	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27	XTandem_score=27
+A	77	0.37359984087745546	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.199999999999999	XTandem_score=14.199999999999999
+A	78	0.95469442638575697	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.600000000000001	XTandem_score=21.600000000000001
+A	79	0.99239447091233401	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29	XTandem_score=29
+A	80	0.6669104306406608	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.199999999999999	XTandem_score=16.199999999999999
+A	81	0.97289877685833692	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.600000000000001	XTandem_score=23.600000000000001
+A	82	0.047550114268054548	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.800000000000001	XTandem_score=10.800000000000001
+A	83	0.84836263312763216	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.199999999999999	XTandem_score=18.199999999999999
+A	84	0.98533149657758412	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.600000000000001	XTandem_score=25.600000000000001
+A	85	0.18636494250905278	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.800000000000001	XTandem_score=12.800000000000001
+A	86	0.92864389485530063	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.199999999999999	XTandem_score=20.199999999999999
+A	87	0.99002770369994819	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.600000000000001	XTandem_score=27.600000000000001
+A	88	0.46649660161744316	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.800000000000001	XTandem_score=14.800000000000001
+A	89	0.96183839342391964	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.199999999999999	XTandem_score=22.199999999999999
+A	90	0.99322927964023067	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.600000000000001	XTandem_score=29.600000000000001
+A	91	0.73531802495300047	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.800000000000001	XTandem_score=16.800000000000001
+A	92	0.98080411883134877	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.199999999999999	XTandem_score=24.199999999999999
+A	93	0.074406398552129757	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.4	XTandem_score=11.4
+A	94	0.88020053841591928	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.800000000000001	XTandem_score=18.800000000000001
+A	95	0.98693276482296977	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.199999999999999	XTandem_score=26.199999999999999
+A	96	0.25871908418477252	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.4	XTandem_score=13.4
+A	97	0.94178163531913139	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.800000000000001	XTandem_score=20.800000000000001
+A	98	0.99112034074640742	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.199999999999999	XTandem_score=28.199999999999999
+A	99	0.5577045204880009	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.4	XTandem_score=15.4
+A	100	0.96737746330900432	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.800000000000001	XTandem_score=22.800000000000001
+A	101	0.025131084559639118	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10	XTandem_score=10
+A	102	0.79130263032364612	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.399999999999999	XTandem_score=17.399999999999999
+A	103	0.98289193787685292	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.800000000000001	XTandem_score=24.800000000000001
+A	104	0.11293529078088117	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12	XTandem_score=12
+A	105	0.90468044602865227	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.399999999999999	XTandem_score=19.399999999999999
+A	106	0.98836105157849607	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.800000000000001	XTandem_score=26.800000000000001
+A	107	0.34343883881513443	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14	XTandem_score=14
+A	108	0.95187409866559813	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.399999999999999	XTandem_score=21.399999999999999
+A	109	0.99209407186627407	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.800000000000001	XTandem_score=28.800000000000001
+A	110	0.64138913653240859	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16	XTandem_score=16
+A	111	0.97168581268910814	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.399999999999999	XTandem_score=23.399999999999999
+A	112	0.040709820571139796	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.6	XTandem_score=10.6
+A	113	0.83580099854660328	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18	XTandem_score=18
+A	114	0.98475584878743383	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.399999999999999	XTandem_score=25.399999999999999
+A	115	0.16549868401348855	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.6	XTandem_score=12.6
+A	116	0.92342843342560244	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20	XTandem_score=20
+A	117	0.98963465251462224	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.399999999999999	XTandem_score=27.399999999999999
+A	118	0.43538625395418251	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.6	XTandem_score=14.6
+A	119	0.95965720449657488	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22	XTandem_score=22
+A	120	0.99296165963759941	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.399999999999999	XTandem_score=29.399999999999999
+A	121	0.71390622295150596	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.600000000000001	XTandem_score=16.600000000000001
+A	122	0.97504161379007348	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24	XTandem_score=24
+A	123	0.064293800768118456	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.199999999999999	XTandem_score=11.199999999999999
+A	124	0.87049310548614744	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.600000000000001	XTandem_score=18.600000000000001
+A	125	0.98641918915903037	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26	XTandem_score=26
+A	126	0.23304647944053977	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.199999999999999	XTandem_score=13.199999999999999
+A	127	0.93778326881123208	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.600000000000001	XTandem_score=20.600000000000001
+A	128	0.9907700114519804	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28	XTandem_score=28
+A	129	0.52788723033443485	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.199999999999999	XTandem_score=15.199999999999999
+A	130	0.96568408438784881	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.600000000000001	XTandem_score=22.600000000000001
+A	131	0.99373453489002883	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=30	XTandem_score=30
+A	132	0.77398578365284998	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.199999999999999	XTandem_score=17.199999999999999
+A	133	0.98222209915243219	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.600000000000001	XTandem_score=24.600000000000001
+A	134	0.098631272238656906	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.800000000000001	XTandem_score=11.800000000000001
+A	135	0.89723205318167587	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.199999999999999	XTandem_score=19.199999999999999
+A	136	0.98790300700185951	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.600000000000001	XTandem_score=26.600000000000001
+A	137	0.31409442337146543	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.800000000000001	XTandem_score=13.800000000000001
+A	138	0.94879867349113567	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.199999999999999	XTandem_score=21.199999999999999
+A	139	0.99178189006340123	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.600000000000001	XTandem_score=28.600000000000001
+A	140	0.61460660940585288	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.800000000000001	XTandem_score=15.800000000000001
+A	141	0.9703675929422052	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.199999999999999	XTandem_score=23.199999999999999
+A	142	0.034755680201128722	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.4	XTandem_score=10.4
+A	143	0.82214864116176678	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.800000000000001	XTandem_score=17.800000000000001
+A	144	0.98415793421761533	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.199999999999999	XTandem_score=25.199999999999999
+A	145	0.14631807764640389	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.4	XTandem_score=12.4
+A	146	0.91772722499078174	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.800000000000001	XTandem_score=19.800000000000001
+A	147	0.98922625493952232	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.199999999999999	XTandem_score=27.199999999999999
+A	148	0.40433419758369282	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.4	XTandem_score=14.4
+A	149	0.95728202496220349	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.800000000000001	XTandem_score=21.800000000000001
+A	150	0.99268352589411502	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.199999999999999	XTandem_score=29.199999999999999
+A	151	0.69109754372865118	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.399999999999999	XTandem_score=16.399999999999999
+A	152	0.97401485221506712	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.800000000000001	XTandem_score=23.800000000000001
+A	153	0.055376829409780372	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11	XTandem_score=11
+A	154	0.85990337274178208	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.399999999999999	XTandem_score=18.399999999999999
+A	155	0.98588568378290475	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.800000000000001	XTandem_score=25.800000000000001
+A	156	0.208898526619373	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13	XTandem_score=13
+A	157	0.9334158893885085	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.399999999999999	XTandem_score=20.399999999999999
+A	158	0.99040597465297431	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.800000000000001	XTandem_score=27.800000000000001
+A	159	0.49741075464534595	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15	XTandem_score=15
+A	160	0.9638423037160847	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.399999999999999	XTandem_score=22.399999999999999
+A	161	0.99348677859345691	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.800000000000001	XTandem_score=29.800000000000001
+A	162	0.75533693766575583	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17	XTandem_score=17
+A	163	0.98152647806532789	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.399999999999999	XTandem_score=24.399999999999999
+A	164	0.085818904493313961	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.6	XTandem_score=11.6
+A	165	0.88909225859027674	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19	XTandem_score=19
+A	166	0.98742713704081564	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.399999999999999	XTandem_score=26.399999999999999
+A	167	0.28578935889798601	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.6	XTandem_score=13.6
+A	168	0.94544353731139852	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21	XTandem_score=21
+A	169	0.99145747039095145	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.399999999999999	XTandem_score=28.399999999999999
+A	170	0.58666657786418341	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=15.6	XTandem_score=15.6
+A	171	0.96893487758434771	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23	XTandem_score=23
+A	172	0.029592481401466808	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.199999999999999	XTandem_score=10.199999999999999
+A	173	0.80733737772079417	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=17.600000000000001	XTandem_score=17.600000000000001
+A	174	0.98353691842147384	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25	XTandem_score=25
+A	175	0.12881022530281946	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.199999999999999	XTandem_score=12.199999999999999
+A	176	0.91149441080432614	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=19.600000000000001	XTandem_score=19.600000000000001
+A	177	0.98880192407139667	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27	XTandem_score=27
+A	178	0.37359984087745546	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.199999999999999	XTandem_score=14.199999999999999
+A	179	0.95469442638575697	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=21.600000000000001	XTandem_score=21.600000000000001
+A	180	0.99239447091233401	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29	XTandem_score=29
+A	181	0.6669104306406608	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.199999999999999	XTandem_score=16.199999999999999
+A	182	0.97289877685833692	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=23.600000000000001	XTandem_score=23.600000000000001
+A	183	0.047550114268054548	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=10.800000000000001	XTandem_score=10.800000000000001
+A	184	0.84836263312763216	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.199999999999999	XTandem_score=18.199999999999999
+A	185	0.98533149657758412	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=25.600000000000001	XTandem_score=25.600000000000001
+A	186	0.18636494250905278	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=12.800000000000001	XTandem_score=12.800000000000001
+A	187	0.92864389485530063	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.199999999999999	XTandem_score=20.199999999999999
+A	188	0.99002770369994819	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=27.600000000000001	XTandem_score=27.600000000000001
+A	189	0.46649660161744316	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=14.800000000000001	XTandem_score=14.800000000000001
+A	190	0.96183839342391964	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=22.199999999999999	XTandem_score=22.199999999999999
+A	191	0.99322927964023067	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=29.600000000000001	XTandem_score=29.600000000000001
+A	192	0.73531802495300047	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=16.800000000000001	XTandem_score=16.800000000000001
+A	193	0.98080411883134877	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=24.199999999999999	XTandem_score=24.199999999999999
+A	194	0.074406398552129757	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=11.4	XTandem_score=11.4
+A	195	0.88020053841591928	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=18.800000000000001	XTandem_score=18.800000000000001
+A	196	0.98693276482296977	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=26.199999999999999	XTandem_score=26.199999999999999
+A	197	0.25871908418477252	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=13.4	XTandem_score=13.4
+A	198	0.94178163531913139	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=20.800000000000001	XTandem_score=20.800000000000001
+A	199	0.99112034074640742	XTandem_DecoyProbability	1	target_decoy=target	XTandem_Score=28.199999999999999	XTandem_score=28.199999999999999
+A	200	0	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0	XTandem_score=0
+A	201	0.0011439051403022284	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.625	XTandem_score=6.625
+A	202	2.2437772729745082e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.125	XTandem_score=1.125
+A	203	0.0034171656934593227	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.75	XTandem_score=7.75
+A	204	9.1110887891891778e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.25	XTandem_score=2.25
+A	205	0.0095880672554913976	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.875	XTandem_score=8.875
+A	206	3.4509334548643994e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.375	XTandem_score=3.375
+A	207	0.025131084559639118	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10	XTandem_score=10
+A	208	0.00012276242757147958	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.5	XTandem_score=4.5
+A	209	0.060815489790812256	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.125	XTandem_score=11.125
+A	210	0.00041099772002274376	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.625	XTandem_score=5.625
+A	211	5.7668715201005979e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.125	XTandem_score=0.125
+A	212	0.0012957033558946252	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.75	XTandem_score=6.75
+A	213	2.6323484361417405e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.25	XTandem_score=1.25
+A	214	0.0038443418254416411	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.875	XTandem_score=7.875
+A	215	1.0598248383878948e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.375	XTandem_score=2.375
+A	216	0.010709123694047206	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9	XTandem_score=9
+A	217	3.985600503222116e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.5	XTandem_score=3.5
+A	218	0.027841793973274253	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.125	XTandem_score=10.125
+A	219	0.00014082074775835133	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.625	XTandem_score=4.625
+A	220	0.066705745392350774	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.25	XTandem_score=11.25
+A	221	0.00046831259476055854	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.75	XTandem_score=5.75
+A	222	6.9692404134686308e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.25	XTandem_score=0.25
+A	223	0.0014665490506225556	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.875	XTandem_score=6.875
+A	224	3.0847427726671859e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.375	XTandem_score=1.375
+A	225	0.0043215683625727769	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8	XTandem_score=8
+A	226	1.2317952583508453e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.5	XTandem_score=2.5
+A	227	0.011951143509595684	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.125	XTandem_score=9.125
+A	228	4.5995762095967356e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.625	XTandem_score=3.625
+A	229	0.030814115982240587	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.25	XTandem_score=10.25
+A	230	0.000161414889928857	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.75	XTandem_score=4.75
+A	231	0.073073346527412389	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.375	XTandem_score=11.375
+A	232	0.00053322487012717138	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.875	XTandem_score=5.875
+A	233	8.3182198458355895e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.375	XTandem_score=0.375
+A	234	0.0016586787531110295	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7	XTandem_score=7
+A	235	3.6110830082034626e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.5	XTandem_score=1.5
+A	236	0.0048542479850968651	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.125	XTandem_score=8.125
+A	237	1.4305016345162948e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.625	XTandem_score=2.625
+A	238	0.013325773159735432	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.25	XTandem_score=9.25
+A	239	5.3040819984301976e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.75	XTandem_score=3.75
+A	240	0.034068915398174283	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.375	XTandem_score=10.375
+A	241	0.00018488293940826879	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.875	XTandem_score=4.875
+A	242	0.079943772300802837	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.5	XTandem_score=11.5
+A	243	0.00060668468137695119	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6	XTandem_score=6
+A	244	9.8737283584664786e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.5	XTandem_score=0.5
+A	245	0.0018745704755082403	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.125	XTandem_score=7.125
+A	246	4.22301333918485e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.625	XTandem_score=1.625
+A	247	0.0054483025744001988	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.25	XTandem_score=8.25
+A	248	1.6599220331213982e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.75	XTandem_score=2.75
+A	249	0.014845577719338688	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.375	XTandem_score=9.375
+A	250	6.1118448594865851e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.875	XTandem_score=3.875
+A	251	0.037628064502457079	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.5	XTandem_score=10.5
+A	252	0.00021160544091290877	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5	XTandem_score=5
+A	253	0.08734191776050157	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.625	XTandem_score=11.625
+A	254	0.000689753007368961	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.125	XTandem_score=6.125
+A	255	1.1680995377167258e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.625	XTandem_score=0.625
+A	256	0.0021169668729386993	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.25	XTandem_score=7.25
+A	257	4.9339209579620211e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.75	XTandem_score=1.75
+A	258	0.0061102138596483653	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.375	XTandem_score=8.375
+A	259	1.924598195107827e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.875	XTandem_score=2.875
+A	260	0.016524081797822304	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.5	XTandem_score=9.5
+A	261	7.0372873153503056e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4	XTandem_score=4
+A	262	0.041514383005541396	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.625	XTandem_score=10.625
+A	263	0.00024201036249209355	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.125	XTandem_score=5.125
+A	264	0.095291744671120379	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.75	XTandem_score=11.75
+A	265	0.00078361350536970123	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.25	XTandem_score=6.25
+A	266	1.37862466739698e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.75	XTandem_score=0.75
+A	267	0.0023889002052589923	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.375	XTandem_score=7.375
+A	268	5.7591868717285375e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.875	XTandem_score=1.875
+A	269	0.0068470657783842566	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.5	XTandem_score=8.5
+A	270	2.2297111489432304e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3	XTandem_score=3
+A	271	0.018375806583769555	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.625	XTandem_score=9.625
+A	272	8.0967396501950548e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.125	XTandem_score=4.125
+A	273	0.045751554773603487	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.75	XTandem_score=10.75
+A	274	0.00027657858915270804	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.25	XTandem_score=5.25
+A	275	0.10381589788924483	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.875	XTandem_score=11.875
+A	276	0.00088958545879107807	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.375	XTandem_score=6.375
+A	277	1.6240656848201872e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.875	XTandem_score=0.875
+A	278	0.0026937191746063587	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.5	XTandem_score=7.5
+A	279	6.7164700853932391e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2	XTandem_score=2
+A	280	0.0076665883430891832	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.625	XTandem_score=8.625
+A	281	2.5811663325680612e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.125	XTandem_score=3.125
+A	282	0.020416301658767882	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.75	XTandem_score=9.75
+A	283	9.3086767731164391e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.25	XTandem_score=4.25
+A	284	0.050364018481033099	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.875	XTandem_score=10.875
+A	285	0.00031584999576732324	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.375	XTandem_score=5.375
+A	286	0.11293529078088117	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=12	XTandem_score=12
+A	287	0.0010091379209068243	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.5	XTandem_score=6.5
+A	288	1.9102319160240787e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1	XTandem_score=1
+A	289	0.0030351177021035289	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.625	XTandem_score=7.625
+A	290	7.8260295589263745e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.125	XTandem_score=2.125
+A	291	0.0085772027340865215	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.75	XTandem_score=8.75
+A	292	2.9856893313112213e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.25	XTandem_score=3.25
+A	293	0.022662170022219704	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.875	XTandem_score=9.875
+A	294	0.00010693982310274343	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.375	XTandem_score=4.375
+A	295	0.055376829409780372	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11	XTandem_score=11
+A	296	0.00036043015253225144	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.5	XTandem_score=5.5
+A	297	0	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0	XTandem_score=0
+A	298	0.0011439051403022284	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.625	XTandem_score=6.625
+A	299	2.2437772729745082e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.125	XTandem_score=1.125
+A	300	0.0034171656934593227	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.75	XTandem_score=7.75
+A	301	9.1110887891891778e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.25	XTandem_score=2.25
+A	302	0.0095880672554913976	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.875	XTandem_score=8.875
+A	303	3.4509334548643994e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.375	XTandem_score=3.375
+A	304	0.025131084559639118	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10	XTandem_score=10
+A	305	0.00012276242757147958	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.5	XTandem_score=4.5
+A	306	0.060815489790812256	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.125	XTandem_score=11.125
+A	307	0.00041099772002274376	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.625	XTandem_score=5.625
+A	308	5.7668715201005979e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.125	XTandem_score=0.125
+A	309	0.0012957033558946252	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.75	XTandem_score=6.75
+A	310	2.6323484361417405e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.25	XTandem_score=1.25
+A	311	0.0038443418254416411	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.875	XTandem_score=7.875
+A	312	1.0598248383878948e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.375	XTandem_score=2.375
+A	313	0.010709123694047206	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9	XTandem_score=9
+A	314	3.985600503222116e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.5	XTandem_score=3.5
+A	315	0.027841793973274253	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.125	XTandem_score=10.125
+A	316	0.00014082074775835133	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.625	XTandem_score=4.625
+A	317	0.066705745392350774	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.25	XTandem_score=11.25
+A	318	0.00046831259476055854	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.75	XTandem_score=5.75
+A	319	6.9692404134686308e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.25	XTandem_score=0.25
+A	320	0.0014665490506225556	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6.875	XTandem_score=6.875
+A	321	3.0847427726671859e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.375	XTandem_score=1.375
+A	322	0.0043215683625727769	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8	XTandem_score=8
+A	323	1.2317952583508453e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.5	XTandem_score=2.5
+A	324	0.011951143509595684	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.125	XTandem_score=9.125
+A	325	4.5995762095967356e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.625	XTandem_score=3.625
+A	326	0.030814115982240587	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.25	XTandem_score=10.25
+A	327	0.000161414889928857	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.75	XTandem_score=4.75
+A	328	0.073073346527412389	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.375	XTandem_score=11.375
+A	329	0.00053322487012717138	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5.875	XTandem_score=5.875
+A	330	8.3182198458355895e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.375	XTandem_score=0.375
+A	331	0.0016586787531110295	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7	XTandem_score=7
+A	332	3.6110830082034626e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.5	XTandem_score=1.5
+A	333	0.0048542479850968651	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.125	XTandem_score=8.125
+A	334	1.4305016345162948e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.625	XTandem_score=2.625
+A	335	0.013325773159735432	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.25	XTandem_score=9.25
+A	336	5.3040819984301976e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.75	XTandem_score=3.75
+A	337	0.034068915398174283	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.375	XTandem_score=10.375
+A	338	0.00018488293940826879	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=4.875	XTandem_score=4.875
+A	339	0.079943772300802837	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=11.5	XTandem_score=11.5
+A	340	0.00060668468137695119	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=6	XTandem_score=6
+A	341	9.8737283584664786e-07	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=0.5	XTandem_score=0.5
+A	342	0.0018745704755082403	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=7.125	XTandem_score=7.125
+A	343	4.22301333918485e-06	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=1.625	XTandem_score=1.625
+A	344	0.0054483025744001988	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=8.25	XTandem_score=8.25
+A	345	1.6599220331213982e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=2.75	XTandem_score=2.75
+A	346	0.014845577719338688	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=9.375	XTandem_score=9.375
+A	347	6.1118448594865851e-05	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=3.875	XTandem_score=3.875
+A	348	0.037628064502457079	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=10.5	XTandem_score=10.5
+A	349	0.00021160544091290877	XTandem_DecoyProbability	1	target_decoy=decoy	XTandem_Score=5	XTandem_score=5
+B	0	0.99954798124616873	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=1.0000000000000001e-05	E-Value_score=1.0000000000000001e-05
+B	1	2.2663054026886663e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038000000000000002	E-Value_score=0.00038000000000000002
+B	2	4.2409006549324134e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00075000000000000002	E-Value_score=0.00075000000000000002
+B	3	0.9914009147882985	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00011	E-Value_score=0.00011
+B	4	5.1999261249461707e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048000000000000001	E-Value_score=0.00048000000000000001
+B	5	4.7121895733325387e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084999999999999995	E-Value_score=0.00084999999999999995
+B	6	0.18803506175717663	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00021000000000000001	E-Value_score=0.00021000000000000001
+B	7	2.0044751371321318e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00058	E-Value_score=0.00058
+B	8	7.0132924437253184e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00095	E-Value_score=0.00095
+B	9	0.00022306159752612679	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00031	E-Value_score=0.00031
+B	10	1.2074549608322007e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068000000000000005	E-Value_score=0.00068000000000000005
+B	11	0.99817095651212773	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=4.0000000000000003e-05	E-Value_score=4.0000000000000003e-05
+B	12	3.4526999355713899e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040999999999999999	E-Value_score=0.00040999999999999999
+B	13	1.0634337307270005e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00077999999999999999	E-Value_score=0.00077999999999999999
+B	14	0.96112859876594281	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00013999999999999999	E-Value_score=0.00013999999999999999
+B	15	9.3229539786116298e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051000000000000004	E-Value_score=0.00051000000000000004
+B	16	1.2957991131268675e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088000000000000003	E-Value_score=0.00088000000000000003
+B	17	0.02731598692846765	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00024000000000000001	E-Value_score=0.00024000000000000001
+B	18	4.140107776646262e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00060999999999999997	E-Value_score=0.00060999999999999997
+B	19	2.0887268806597269e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097999999999999997	E-Value_score=0.00097999999999999997
+B	20	3.0173317206990168e-05	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00034000000000000002	E-Value_score=0.00034000000000000002
+B	21	2.8131154579186823e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00071000000000000002	E-Value_score=0.00071000000000000002
+B	22	0.99678741843413565	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.9999999999999994e-05	E-Value_score=6.9999999999999994e-05
+B	23	5.5338143954086892e-08	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044000000000000002	E-Value_score=0.00044000000000000002
+B	24	2.7454950020631206e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080999999999999996	E-Value_score=0.00080999999999999996
+B	25	0.78534979845944275	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00017000000000000001	E-Value_score=0.00017000000000000001
+B	26	1.7481105229216417e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00054000000000000001	E-Value_score=0.00054000000000000001
+B	27	3.6539637101452745e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00091	E-Value_score=0.00091
+B	28	0.00344082701992467	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00027	E-Value_score=0.00027
+B	29	8.8841436920972869e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00064000000000000005	E-Value_score=0.00064000000000000005
+B	30	6.3582179918137684e-20	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00101	E-Value_score=0.00101
+B	31	4.2920914622771497e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036999999999999999	E-Value_score=0.00036999999999999999
+B	32	6.7705317542597026e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00073999999999999999	E-Value_score=0.00073999999999999999
+B	33	0.99394778437513553	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.0001	E-Value_score=0.0001
+B	34	9.3172468741521437e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046999999999999999	E-Value_score=0.00046999999999999999
+B	35	7.2882902316898563e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084000000000000003	E-Value_score=0.00084000000000000003
+B	36	0.318081860649925	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00020000000000000001	E-Value_score=0.00020000000000000001
+B	37	3.4210546642260718e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00056999999999999998	E-Value_score=0.00056999999999999998
+B	38	1.0554705457519034e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093999999999999997	E-Value_score=0.00093999999999999997
+B	39	0.00043914230165659868	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029999999999999997	E-Value_score=0.00029999999999999997
+B	40	1.9770675410347678e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00067000000000000002	E-Value_score=0.00067000000000000002
+B	41	0.99863119804178968	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=3.0000000000000001e-05	E-Value_score=3.0000000000000001e-05
+B	42	6.4279710142456974e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040000000000000002	E-Value_score=0.00040000000000000002
+B	43	1.6808322525815553e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076999999999999996	E-Value_score=0.00076999999999999996
+B	44	0.97767087606715397	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012999999999999999	E-Value_score=0.00012999999999999999
+B	45	1.6449866549969192e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00050000000000000001	E-Value_score=0.00050000000000000001
+B	46	1.9869957498904283e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00087000000000000001	E-Value_score=0.00087000000000000001
+B	47	0.053686608766456687	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00023000000000000001	E-Value_score=0.00023000000000000001
+B	48	6.9736067094313493e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059999999999999995	E-Value_score=0.00059999999999999995
+B	49	3.1199993167879531e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097000000000000005	E-Value_score=0.00097000000000000005
+B	50	5.8459080029320414e-05	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00033	E-Value_score=0.00033
+B	51	4.5549110696281024e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00069999999999999999	E-Value_score=0.00069999999999999999
+B	52	0.99724888674865642	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.0000000000000002e-05	E-Value_score=6.0000000000000002e-05
+B	53	1.0131099169856466e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042999999999999999	E-Value_score=0.00042999999999999999
+B	54	4.2981309582505957e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080000000000000004	E-Value_score=0.00080000000000000004
+B	55	0.87631932003274238	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00016000000000000001	E-Value_score=0.00016000000000000001
+B	56	3.0394122436229407e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00052999999999999998	E-Value_score=0.00052999999999999998
+B	57	5.5569743611126351e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00089999999999999998	E-Value_score=0.00089999999999999998
+B	58	0.0068747709716423279	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025999999999999998	E-Value_score=0.00025999999999999998
+B	59	1.4778156539592832e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00063000000000000003	E-Value_score=0.00063000000000000003
+B	60	9.4294427645364257e-20	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.001	E-Value_score=0.001
+B	61	8.175402654565371e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036000000000000002	E-Value_score=0.00036000000000000002
+B	62	1.0846344573490507e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072999999999999996	E-Value_score=0.00072999999999999996
+B	63	0.9951526297871055	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=9.0000000000000006e-05	E-Value_score=9.0000000000000006e-05
+B	64	1.67829693534298e-08	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046000000000000001	E-Value_score=0.00046000000000000001
+B	65	1.1306116046361397e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00083000000000000001	E-Value_score=0.00083000000000000001
+B	66	0.48320213860517569	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00019000000000000001	E-Value_score=0.00019000000000000001
+B	67	5.8652493471084758e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055999999999999995	E-Value_score=0.00055999999999999995
+B	68	1.592517204154775e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093000000000000005	E-Value_score=0.00093000000000000005
+B	69	0.00086870523591241612	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029	E-Value_score=0.00029
+B	70	3.2497071012423821e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00066	E-Value_score=0.00066
+B	71	0.99909046786912392	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=2.0000000000000002e-05	E-Value_score=2.0000000000000002e-05
+B	72	1.2035275991385681e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038999999999999999	E-Value_score=0.00038999999999999999
+B	73	2.6654233108231077e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076000000000000004	E-Value_score=0.00076000000000000004
+B	74	0.98659309395210359	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012	E-Value_score=0.00012
+B	75	2.9171993467406966e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048999999999999998	E-Value_score=0.00048999999999999998
+B	76	3.0555258967732766e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00085999999999999998	E-Value_score=0.00085999999999999998
+B	77	0.10287442399259995	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00022000000000000001	E-Value_score=0.00022000000000000001
+B	78	1.1797143950812298e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059000000000000003	E-Value_score=0.00059000000000000003
+B	79	4.6719306334968709e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00096000000000000002	E-Value_score=0.00096000000000000002
+B	80	0.0001138871361252388	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00032000000000000003	E-Value_score=0.00032000000000000003
+B	81	7.4022850347706348e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068999999999999997	E-Value_score=0.00068999999999999997
+B	82	0.99771011371369223	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=5.0000000000000002e-05	E-Value_score=5.0000000000000002e-05
+B	83	1.8650624442043341e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042000000000000002	E-Value_score=0.00042000000000000002
+B	84	6.7499820722471116e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00079000000000000001	E-Value_score=0.00079000000000000001
+B	85	0.93069751357010733	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00014999999999999999	E-Value_score=0.00014999999999999999
+B	86	5.3101512223468226e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051999999999999995	E-Value_score=0.00051999999999999995
+B	87	8.4740413498043105e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088999999999999995	E-Value_score=0.00088999999999999995
+B	88	0.013733535335012384	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025000000000000001	E-Value_score=0.00025000000000000001
+B	89	2.4683638922185206e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00062	E-Value_score=0.00062
+B	90	1.4017272535353648e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00098999999999999999	E-Value_score=0.00098999999999999999
+B	91	1.5661472224536778e-05	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00035	E-Value_score=0.00035
+B	92	1.7436672337852177e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072000000000000005	E-Value_score=0.00072000000000000005
+B	93	0.99632580984935404	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=8.0000000000000007e-05	E-Value_score=8.0000000000000007e-05
+B	94	3.0392842706170867e-08	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044999999999999999	E-Value_score=0.00044999999999999999
+B	95	1.7591596301602638e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00081999999999999998	E-Value_score=0.00081999999999999998
+B	96	0.6503401515365097	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00018000000000000001	E-Value_score=0.00018000000000000001
+B	97	1.0102108234080649e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055000000000000003	E-Value_score=0.00055000000000000003
+B	98	2.4090817902304638e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00092000000000000003	E-Value_score=0.00092000000000000003
+B	99	0.0017258678686580241	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00027999999999999998	E-Value_score=0.00027999999999999998
+B	100	5.3624878478208158e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00064999999999999997	E-Value_score=0.00064999999999999997
+B	101	0.99954798124616873	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=1.0000000000000001e-05	E-Value_score=1.0000000000000001e-05
+B	102	2.2663054026886663e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038000000000000002	E-Value_score=0.00038000000000000002
+B	103	4.2409006549324134e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00075000000000000002	E-Value_score=0.00075000000000000002
+B	104	0.9914009147882985	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00011	E-Value_score=0.00011
+B	105	5.1999261249461707e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048000000000000001	E-Value_score=0.00048000000000000001
+B	106	4.7121895733325387e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084999999999999995	E-Value_score=0.00084999999999999995
+B	107	0.18803506175717663	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00021000000000000001	E-Value_score=0.00021000000000000001
+B	108	2.0044751371321318e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00058	E-Value_score=0.00058
+B	109	7.0132924437253184e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00095	E-Value_score=0.00095
+B	110	0.00022306159752612679	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00031	E-Value_score=0.00031
+B	111	1.2074549608322007e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068000000000000005	E-Value_score=0.00068000000000000005
+B	112	0.99817095651212773	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=4.0000000000000003e-05	E-Value_score=4.0000000000000003e-05
+B	113	3.4526999355713899e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040999999999999999	E-Value_score=0.00040999999999999999
+B	114	1.0634337307270005e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00077999999999999999	E-Value_score=0.00077999999999999999
+B	115	0.96112859876594281	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00013999999999999999	E-Value_score=0.00013999999999999999
+B	116	9.3229539786116298e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051000000000000004	E-Value_score=0.00051000000000000004
+B	117	1.2957991131268675e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088000000000000003	E-Value_score=0.00088000000000000003
+B	118	0.02731598692846765	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00024000000000000001	E-Value_score=0.00024000000000000001
+B	119	4.140107776646262e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00060999999999999997	E-Value_score=0.00060999999999999997
+B	120	2.0887268806597269e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097999999999999997	E-Value_score=0.00097999999999999997
+B	121	3.0173317206990168e-05	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00034000000000000002	E-Value_score=0.00034000000000000002
+B	122	2.8131154579186823e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00071000000000000002	E-Value_score=0.00071000000000000002
+B	123	0.99678741843413565	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.9999999999999994e-05	E-Value_score=6.9999999999999994e-05
+B	124	5.5338143954086892e-08	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044000000000000002	E-Value_score=0.00044000000000000002
+B	125	2.7454950020631206e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080999999999999996	E-Value_score=0.00080999999999999996
+B	126	0.78534979845944275	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00017000000000000001	E-Value_score=0.00017000000000000001
+B	127	1.7481105229216417e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00054000000000000001	E-Value_score=0.00054000000000000001
+B	128	3.6539637101452745e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00091	E-Value_score=0.00091
+B	129	0.00344082701992467	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00027	E-Value_score=0.00027
+B	130	8.8841436920972869e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00064000000000000005	E-Value_score=0.00064000000000000005
+B	131	6.3582179918137684e-20	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00101	E-Value_score=0.00101
+B	132	4.2920914622771497e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036999999999999999	E-Value_score=0.00036999999999999999
+B	133	6.7705317542597026e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00073999999999999999	E-Value_score=0.00073999999999999999
+B	134	0.99394778437513553	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.0001	E-Value_score=0.0001
+B	135	9.3172468741521437e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046999999999999999	E-Value_score=0.00046999999999999999
+B	136	7.2882902316898563e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084000000000000003	E-Value_score=0.00084000000000000003
+B	137	0.318081860649925	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00020000000000000001	E-Value_score=0.00020000000000000001
+B	138	3.4210546642260718e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00056999999999999998	E-Value_score=0.00056999999999999998
+B	139	1.0554705457519034e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093999999999999997	E-Value_score=0.00093999999999999997
+B	140	0.00043914230165659868	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029999999999999997	E-Value_score=0.00029999999999999997
+B	141	1.9770675410347678e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00067000000000000002	E-Value_score=0.00067000000000000002
+B	142	0.99863119804178968	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=3.0000000000000001e-05	E-Value_score=3.0000000000000001e-05
+B	143	6.4279710142456974e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040000000000000002	E-Value_score=0.00040000000000000002
+B	144	1.6808322525815553e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076999999999999996	E-Value_score=0.00076999999999999996
+B	145	0.97767087606715397	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012999999999999999	E-Value_score=0.00012999999999999999
+B	146	1.6449866549969192e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00050000000000000001	E-Value_score=0.00050000000000000001
+B	147	1.9869957498904283e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00087000000000000001	E-Value_score=0.00087000000000000001
+B	148	0.053686608766456687	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00023000000000000001	E-Value_score=0.00023000000000000001
+B	149	6.9736067094313493e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059999999999999995	E-Value_score=0.00059999999999999995
+B	150	3.1199993167879531e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097000000000000005	E-Value_score=0.00097000000000000005
+B	151	5.8459080029320414e-05	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00033	E-Value_score=0.00033
+B	152	4.5549110696281024e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00069999999999999999	E-Value_score=0.00069999999999999999
+B	153	0.99724888674865642	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.0000000000000002e-05	E-Value_score=6.0000000000000002e-05
+B	154	1.0131099169856466e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042999999999999999	E-Value_score=0.00042999999999999999
+B	155	4.2981309582505957e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080000000000000004	E-Value_score=0.00080000000000000004
+B	156	0.87631932003274238	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00016000000000000001	E-Value_score=0.00016000000000000001
+B	157	3.0394122436229407e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00052999999999999998	E-Value_score=0.00052999999999999998
+B	158	5.5569743611126351e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00089999999999999998	E-Value_score=0.00089999999999999998
+B	159	0.0068747709716423279	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025999999999999998	E-Value_score=0.00025999999999999998
+B	160	1.4778156539592832e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00063000000000000003	E-Value_score=0.00063000000000000003
+B	161	9.4294427645364257e-20	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.001	E-Value_score=0.001
+B	162	8.175402654565371e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036000000000000002	E-Value_score=0.00036000000000000002
+B	163	1.0846344573490507e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072999999999999996	E-Value_score=0.00072999999999999996
+B	164	0.9951526297871055	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=9.0000000000000006e-05	E-Value_score=9.0000000000000006e-05
+B	165	1.67829693534298e-08	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046000000000000001	E-Value_score=0.00046000000000000001
+B	166	1.1306116046361397e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00083000000000000001	E-Value_score=0.00083000000000000001
+B	167	0.48320213860517569	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00019000000000000001	E-Value_score=0.00019000000000000001
+B	168	5.8652493471084758e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055999999999999995	E-Value_score=0.00055999999999999995
+B	169	1.592517204154775e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093000000000000005	E-Value_score=0.00093000000000000005
+B	170	0.00086870523591241612	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029	E-Value_score=0.00029
+B	171	3.2497071012423821e-13	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00066	E-Value_score=0.00066
+B	172	0.99909046786912392	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=2.0000000000000002e-05	E-Value_score=2.0000000000000002e-05
+B	173	1.2035275991385681e-06	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038999999999999999	E-Value_score=0.00038999999999999999
+B	174	2.6654233108231077e-15	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076000000000000004	E-Value_score=0.00076000000000000004
+B	175	0.98659309395210359	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012	E-Value_score=0.00012
+B	176	2.9171993467406966e-09	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048999999999999998	E-Value_score=0.00048999999999999998
+B	177	3.0555258967732766e-17	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00085999999999999998	E-Value_score=0.00085999999999999998
+B	178	0.10287442399259995	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00022000000000000001	E-Value_score=0.00022000000000000001
+B	179	1.1797143950812298e-11	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059000000000000003	E-Value_score=0.00059000000000000003
+B	180	4.6719306334968709e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00096000000000000002	E-Value_score=0.00096000000000000002
+B	181	0.0001138871361252388	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00032000000000000003	E-Value_score=0.00032000000000000003
+B	182	7.4022850347706348e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068999999999999997	E-Value_score=0.00068999999999999997
+B	183	0.99771011371369223	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=5.0000000000000002e-05	E-Value_score=5.0000000000000002e-05
+B	184	1.8650624442043341e-07	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042000000000000002	E-Value_score=0.00042000000000000002
+B	185	6.7499820722471116e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00079000000000000001	E-Value_score=0.00079000000000000001
+B	186	0.93069751357010733	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00014999999999999999	E-Value_score=0.00014999999999999999
+B	187	5.3101512223468226e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051999999999999995	E-Value_score=0.00051999999999999995
+B	188	8.4740413498043105e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088999999999999995	E-Value_score=0.00088999999999999995
+B	189	0.013733535335012384	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025000000000000001	E-Value_score=0.00025000000000000001
+B	190	2.4683638922185206e-12	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00062	E-Value_score=0.00062
+B	191	1.4017272535353648e-19	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00098999999999999999	E-Value_score=0.00098999999999999999
+B	192	1.5661472224536778e-05	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00035	E-Value_score=0.00035
+B	193	1.7436672337852177e-14	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072000000000000005	E-Value_score=0.00072000000000000005
+B	194	0.99632580984935404	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=8.0000000000000007e-05	E-Value_score=8.0000000000000007e-05
+B	195	3.0392842706170867e-08	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044999999999999999	E-Value_score=0.00044999999999999999
+B	196	1.7591596301602638e-16	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00081999999999999998	E-Value_score=0.00081999999999999998
+B	197	0.6503401515365097	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00018000000000000001	E-Value_score=0.00018000000000000001
+B	198	1.0102108234080649e-10	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055000000000000003	E-Value_score=0.00055000000000000003
+B	199	2.4090817902304638e-18	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00092000000000000003	E-Value_score=0.00092000000000000003
+B	200	9.4294427645364257e-20	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.001	E-Value_score=0.001
+B	201	4.2421942911444071e-143	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.053999999999999999	E-Value_score=0.053999999999999999
+B	202	1.4557965264036595e-77	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.01	E-Value_score=0.01
+B	203	4.5711125451526103e-150	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.063	E-Value_score=0.063
+B	204	3.3944197541087066e-100	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.019	E-Value_score=0.019
+B	205	3.1103368357132887e-156	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.071999999999999995	E-Value_score=0.071999999999999995
+B	206	3.0294333802154075e-115	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.028000000000000001	E-Value_score=0.028000000000000001
+B	207	8.9594704323059089e-162	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.081000000000000003	E-Value_score=0.081000000000000003
+B	208	1.0571398393644989e-126	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.036999999999999998	E-Value_score=0.036999999999999998
+B	209	8.28928888824287e-167	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.089999999999999997	E-Value_score=0.089999999999999997
+B	210	5.0318595132603617e-136	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.045999999999999999	E-Value_score=0.045999999999999999
+B	211	2.6230464218780826e-33	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.002	E-Value_score=0.002
+B	212	6.4087310145225803e-144	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.055	E-Value_score=0.055
+B	213	9.5938080031023547e-81	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.010999999999999999	E-Value_score=0.010999999999999999
+B	214	8.6900208958215495e-151	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.064000000000000001	E-Value_score=0.064000000000000001
+B	215	3.9768288132832531e-102	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.02	E-Value_score=0.02
+B	216	7.0602759117634116e-157	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.072999999999999995	E-Value_score=0.072999999999999995
+B	217	1.1703113112868454e-116	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029000000000000001	E-Value_score=0.029000000000000001
+B	218	2.3428248446461591e-162	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.082000000000000003	E-Value_score=0.082000000000000003
+B	219	7.9397624969150295e-128	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.037999999999999999	E-Value_score=0.037999999999999999
+B	220	2.4361698062625395e-167	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.090999999999999998	E-Value_score=0.090999999999999998
+B	221	5.7965688028658262e-137	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.047	E-Value_score=0.047
+B	222	8.9740993719418678e-43	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0030000000000000001	E-Value_score=0.0030000000000000001
+B	223	9.9653382185112563e-145	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.056000000000000001	E-Value_score=0.056000000000000001
+B	224	1.0547838918012734e-83	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012	E-Value_score=0.012
+B	225	1.6886463392332164e-151	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.065000000000000002	E-Value_score=0.065000000000000002
+B	226	5.5682525559320207e-104	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021000000000000001	E-Value_score=0.021000000000000001
+B	227	1.6305382428003852e-157	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.073999999999999996	E-Value_score=0.073999999999999996
+B	228	4.9555339000676979e-118	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029999999999999999	E-Value_score=0.029999999999999999
+B	229	6.2127180754684637e-163	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.083000000000000004	E-Value_score=0.083000000000000004
+B	230	6.3092703556362653e-129	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.039	E-Value_score=0.039
+B	231	7.2464452022189386e-168	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.091999999999999998	E-Value_score=0.091999999999999998
+B	232	6.938899588767306e-138	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.048000000000000001	E-Value_score=0.048000000000000001
+B	233	3.5415801178736156e-50	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0040000000000000001	E-Value_score=0.0040000000000000001
+B	234	1.5934803619233341e-145	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.057000000000000002	E-Value_score=0.057000000000000002
+B	235	1.7996991297069199e-86	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012999999999999999	E-Value_score=0.012999999999999999
+B	236	3.3520532625980051e-152	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.066000000000000003	E-Value_score=0.066000000000000003
+B	237	9.1806241368136197e-106	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021999999999999999	E-Value_score=0.021999999999999999
+B	238	3.8295957587315458e-158	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.074999999999999997	E-Value_score=0.074999999999999997
+B	239	2.2875740092565689e-119	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.031	E-Value_score=0.031
+B	240	1.6702461234909156e-163	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.084000000000000005	E-Value_score=0.084000000000000005
+B	241	5.2908430853351224e-130	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.040000000000000001	E-Value_score=0.040000000000000001
+B	242	2.1815923658417074e-168	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.092999999999999999	E-Value_score=0.092999999999999999
+B	243	8.6191189245450686e-139	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.049000000000000002	E-Value_score=0.049000000000000002
+B	244	2.5898084195885772e-56	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0050000000000000001	E-Value_score=0.0050000000000000001
+B	245	2.6178934019075045e-146	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.058000000000000003	E-Value_score=0.058000000000000003
+B	246	4.4985900865576734e-89	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.014	E-Value_score=0.014
+B	247	6.7933508865730056e-153	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.067000000000000004	E-Value_score=0.067000000000000004
+B	248	1.7593406291176546e-107	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.023	E-Value_score=0.023
+B	249	9.1434920723831618e-159	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.075999999999999998	E-Value_score=0.075999999999999998
+B	250	1.1455394848793068e-120	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.032000000000000001	E-Value_score=0.032000000000000001
+B	251	4.5510821665659904e-164	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.085000000000000006	E-Value_score=0.085000000000000006
+B	252	4.6708909314280355e-131	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.041000000000000002	E-Value_score=0.041000000000000002
+B	253	6.6489103335457173e-169	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.094	E-Value_score=0.094
+B	254	1.109426902037198e-139	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.050000000000000003	E-Value_score=0.050000000000000003
+B	255	1.3960876624364575e-61	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0060000000000000001	E-Value_score=0.0060000000000000001
+B	256	4.4151160739043642e-147	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.058999999999999997	E-Value_score=0.058999999999999997
+B	257	1.572230035121148e-91	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.014999999999999999	E-Value_score=0.014999999999999999
+B	258	1.4048027303478606e-153	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.068000000000000005	E-Value_score=0.068000000000000005
+B	259	3.8741033858259869e-109	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.024	E-Value_score=0.024
+B	260	2.218399565961062e-159	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.076999999999999999	E-Value_score=0.076999999999999999
+B	261	6.1948894792899885e-122	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.033000000000000002	E-Value_score=0.033000000000000002
+B	262	1.2565177040033288e-164	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.085999999999999993	E-Value_score=0.085999999999999993
+B	263	4.3314072795482336e-132	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.042000000000000003	E-Value_score=0.042000000000000003
+B	264	2.0530347717310297e-169	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.095000000000000001	E-Value_score=0.095000000000000001
+B	265	1.4778884127075115e-140	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.050999999999999997	E-Value_score=0.050999999999999997
+B	266	3.2487548685173257e-66	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0070000000000000001	E-Value_score=0.0070000000000000001
+B	267	7.6378100628384299e-148	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.059999999999999998	E-Value_score=0.059999999999999998
+B	268	7.3933961973464068e-94	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.016	E-Value_score=0.016
+B	269	2.9625935766397904e-154	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.069000000000000006	E-Value_score=0.069000000000000006
+B	270	9.7032876588824407e-111	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.025000000000000001	E-Value_score=0.025000000000000001
+B	271	5.4673102211070636e-160	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.078	E-Value_score=0.078
+B	272	3.6028581676940815e-123	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.034000000000000002	E-Value_score=0.034000000000000002
+B	273	3.5142535377981706e-165	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.086999999999999994	E-Value_score=0.086999999999999994
+B	274	4.210195138721538e-133	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.042999999999999997	E-Value_score=0.042999999999999997
+B	275	6.4417715180768687e-170	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.096000000000000002	E-Value_score=0.096000000000000002
+B	276	2.0350055596386004e-141	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.051999999999999998	E-Value_score=0.051999999999999998
+B	277	2.3216126738132279e-70	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0080000000000000002	E-Value_score=0.0080000000000000002
+B	278	1.3542535515157972e-148	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.060999999999999999	E-Value_score=0.060999999999999999
+B	279	4.5307543714625482e-96	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.017000000000000001	E-Value_score=0.017000000000000001
+B	280	6.3684103694306525e-155	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.070000000000000007	E-Value_score=0.070000000000000007
+B	281	2.7394069438756134e-112	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.025999999999999999	E-Value_score=0.025999999999999999
+B	282	1.3682261046920361e-160	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.079000000000000001	E-Value_score=0.079000000000000001
+B	283	2.2449035015067687e-124	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.035000000000000003	E-Value_score=0.035000000000000003
+B	284	9.9541968734922993e-166	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.087999999999999995	E-Value_score=0.087999999999999995
+B	285	4.2812178343011537e-134	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.043999999999999997	E-Value_score=0.043999999999999997
+B	286	1	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.097000000000000003	E-Value_score=0.097000000000000003
+B	287	2.8931605793021349e-142	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.052999999999999999	E-Value_score=0.052999999999999999
+B	288	4.0434203035799318e-74	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0089999999999999993	E-Value_score=0.0089999999999999993
+B	289	2.4593399170690449e-149	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.062	E-Value_score=0.062
+B	290	3.5220511311189682e-98	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.017999999999999999	E-Value_score=0.017999999999999999
+B	291	1.3946911282724568e-155	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.070999999999999994	E-Value_score=0.070999999999999994
+B	292	8.6468929073901606e-114	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.027	E-Value_score=0.027
+B	293	3.4756990586745923e-161	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.080000000000000002	E-Value_score=0.080000000000000002
+B	294	1.4933504846102632e-125	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.035999999999999997	E-Value_score=0.035999999999999997
+B	295	2.8549262316411931e-166	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.088999999999999996	E-Value_score=0.088999999999999996
+B	296	4.545962720267099e-135	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.044999999999999998	E-Value_score=0.044999999999999998
+B	297	9.4294427645364257e-20	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.001	E-Value_score=0.001
+B	298	4.2421942911444071e-143	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.053999999999999999	E-Value_score=0.053999999999999999
+B	299	1.4557965264036595e-77	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.01	E-Value_score=0.01
+B	300	4.5711125451526103e-150	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.063	E-Value_score=0.063
+B	301	3.3944197541087066e-100	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.019	E-Value_score=0.019
+B	302	3.1103368357132887e-156	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.071999999999999995	E-Value_score=0.071999999999999995
+B	303	3.0294333802154075e-115	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.028000000000000001	E-Value_score=0.028000000000000001
+B	304	8.9594704323059089e-162	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.081000000000000003	E-Value_score=0.081000000000000003
+B	305	1.0571398393644989e-126	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.036999999999999998	E-Value_score=0.036999999999999998
+B	306	8.28928888824287e-167	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.089999999999999997	E-Value_score=0.089999999999999997
+B	307	5.0318595132603617e-136	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.045999999999999999	E-Value_score=0.045999999999999999
+B	308	2.6230464218780826e-33	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.002	E-Value_score=0.002
+B	309	6.4087310145225803e-144	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.055	E-Value_score=0.055
+B	310	9.5938080031023547e-81	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.010999999999999999	E-Value_score=0.010999999999999999
+B	311	8.6900208958215495e-151	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.064000000000000001	E-Value_score=0.064000000000000001
+B	312	3.9768288132832531e-102	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.02	E-Value_score=0.02
+B	313	7.0602759117634116e-157	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.072999999999999995	E-Value_score=0.072999999999999995
+B	314	1.1703113112868454e-116	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029000000000000001	E-Value_score=0.029000000000000001
+B	315	2.3428248446461591e-162	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.082000000000000003	E-Value_score=0.082000000000000003
+B	316	7.9397624969150295e-128	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.037999999999999999	E-Value_score=0.037999999999999999
+B	317	2.4361698062625395e-167	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.090999999999999998	E-Value_score=0.090999999999999998
+B	318	5.7965688028658262e-137	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.047	E-Value_score=0.047
+B	319	8.9740993719418678e-43	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0030000000000000001	E-Value_score=0.0030000000000000001
+B	320	9.9653382185112563e-145	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.056000000000000001	E-Value_score=0.056000000000000001
+B	321	1.0547838918012734e-83	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012	E-Value_score=0.012
+B	322	1.6886463392332164e-151	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.065000000000000002	E-Value_score=0.065000000000000002
+B	323	5.5682525559320207e-104	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021000000000000001	E-Value_score=0.021000000000000001
+B	324	1.6305382428003852e-157	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.073999999999999996	E-Value_score=0.073999999999999996
+B	325	4.9555339000676979e-118	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029999999999999999	E-Value_score=0.029999999999999999
+B	326	6.2127180754684637e-163	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.083000000000000004	E-Value_score=0.083000000000000004
+B	327	6.3092703556362653e-129	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.039	E-Value_score=0.039
+B	328	7.2464452022189386e-168	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.091999999999999998	E-Value_score=0.091999999999999998
+B	329	6.938899588767306e-138	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.048000000000000001	E-Value_score=0.048000000000000001
+B	330	3.5415801178736156e-50	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0040000000000000001	E-Value_score=0.0040000000000000001
+B	331	1.5934803619233341e-145	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.057000000000000002	E-Value_score=0.057000000000000002
+B	332	1.7996991297069199e-86	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012999999999999999	E-Value_score=0.012999999999999999
+B	333	3.3520532625980051e-152	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.066000000000000003	E-Value_score=0.066000000000000003
+B	334	9.1806241368136197e-106	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021999999999999999	E-Value_score=0.021999999999999999
+B	335	3.8295957587315458e-158	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.074999999999999997	E-Value_score=0.074999999999999997
+B	336	2.2875740092565689e-119	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.031	E-Value_score=0.031
+B	337	1.6702461234909156e-163	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.084000000000000005	E-Value_score=0.084000000000000005
+B	338	5.2908430853351224e-130	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.040000000000000001	E-Value_score=0.040000000000000001
+B	339	2.1815923658417074e-168	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.092999999999999999	E-Value_score=0.092999999999999999
+B	340	8.6191189245450686e-139	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.049000000000000002	E-Value_score=0.049000000000000002
+B	341	2.5898084195885772e-56	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0050000000000000001	E-Value_score=0.0050000000000000001
+B	342	2.6178934019075045e-146	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.058000000000000003	E-Value_score=0.058000000000000003
+B	343	4.4985900865576734e-89	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.014	E-Value_score=0.014
+B	344	6.7933508865730056e-153	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.067000000000000004	E-Value_score=0.067000000000000004
+B	345	1.7593406291176546e-107	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.023	E-Value_score=0.023
+B	346	9.1434920723831618e-159	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.075999999999999998	E-Value_score=0.075999999999999998
+B	347	1.1455394848793068e-120	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.032000000000000001	E-Value_score=0.032000000000000001
+B	348	4.5510821665659904e-164	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.085000000000000006	E-Value_score=0.085000000000000006
+B	349	4.6708909314280355e-131	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.041000000000000002	E-Value_score=0.041000000000000002
+B0	0	0.99954798124616873	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=1.0000000000000001e-05	E-Value_score=1.0000000000000001e-05
+B0	1	0.98255809711961939	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038000000000000002	E-Value_score=0.00038000000000000002
+B0	2	0.96597361236763202	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00075000000000000002	E-Value_score=0.00075000000000000002
+B0	3	0.99494081489356756	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00011	E-Value_score=0.00011
+B0	4	0.97802831766662479	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048000000000000001	E-Value_score=0.00048000000000000001
+B0	5	0.96157571238413697	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084999999999999995	E-Value_score=0.00084999999999999995
+B0	6	0.99033255493840411	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00021000000000000001	E-Value_score=0.00021000000000000001
+B0	7	0.97353322486873362	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00058	E-Value_score=0.00058
+B0	8	0.95414475516768738	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00095	E-Value_score=0.00095
+B0	9	0.98574869500870177	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00031	E-Value_score=0.00031
+B0	10	0.96907376012364688	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068000000000000005	E-Value_score=0.00068000000000000005
+B0	11	0.99817095651212773	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=4.0000000000000003e-05	E-Value_score=4.0000000000000003e-05
+B0	12	0.98119560378262327	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040999999999999999	E-Value_score=0.00040999999999999999
+B0	13	0.9646504219747235	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00077999999999999999	E-Value_score=0.00077999999999999999
+B0	14	0.99355647476102793	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00013999999999999999	E-Value_score=0.00013999999999999999
+B0	15	0.97667609364066876	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051000000000000004	E-Value_score=0.00051000000000000004
+B0	16	0.96026344235936778	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088000000000000003	E-Value_score=0.00088000000000000003
+B0	17	0.98895443139318873	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00024000000000000001	E-Value_score=0.00024000000000000001
+B0	18	0.97219161528578091	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00060999999999999997	E-Value_score=0.00060999999999999997
+B0	19	0.95275463240262193	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097999999999999997	E-Value_score=0.00097999999999999997
+B0	20	0.98437937044110169	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00034000000000000002	E-Value_score=0.00034000000000000002
+B0	21	0.96774295073595284	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00071000000000000002	E-Value_score=0.00071000000000000002
+B0	22	0.99678741843413565	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.9999999999999994e-05	E-Value_score=6.9999999999999994e-05
+B0	23	0.97983614111959716	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044000000000000002	E-Value_score=0.00044000000000000002
+B0	24	0.96333050499017558	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080999999999999996	E-Value_score=0.00080999999999999996
+B0	25	0.99217352932093772	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00017000000000000001	E-Value_score=0.00017000000000000001
+B0	26	0.97532702675188965	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00054000000000000001	E-Value_score=0.00054000000000000001
+B0	27	0.95895445079207897	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00091	E-Value_score=0.00091
+B0	28	0.98757878085203799	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00027	E-Value_score=0.00027
+B0	29	0.97085323140522894	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00064000000000000005	E-Value_score=0.00064000000000000005
+B0	30	0.95136826156810794	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00101	E-Value_score=0.00101
+B0	31	0.98301292566222287	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036999999999999999	E-Value_score=0.00036999999999999999
+B0	32	0.9664154025739099	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00073999999999999999	E-Value_score=0.00073999999999999999
+B0	33	0.99540245584682951	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.0001	E-Value_score=0.0001
+B0	34	0.97847975554067379	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046999999999999999	E-Value_score=0.00046999999999999999
+B0	35	0.96201386425647495	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084000000000000003	E-Value_score=0.00084000000000000003
+B0	36	0.99079244484187634	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00020000000000000001	E-Value_score=0.00020000000000000001
+B0	37	0.97398114216046583	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00056999999999999998	E-Value_score=0.00056999999999999998
+B0	38	0.95460896400207296	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093999999999999997	E-Value_score=0.00093999999999999997
+B0	39	0.98620576140489491	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029999999999999997	E-Value_score=0.00029999999999999997
+B0	40	0.96951808663054473	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00067000000000000002	E-Value_score=0.00067000000000000002
+B0	41	0.99863119804178968	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=3.0000000000000001e-05	E-Value_score=3.0000000000000001e-05
+B0	42	0.9816494340392472	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040000000000000002	E-Value_score=0.00040000000000000002
+B0	43	0.96509112190458524	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076999999999999996	E-Value_score=0.00076999999999999996
+B0	44	0.99401779559523318	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012999999999999999	E-Value_score=0.00012999999999999999
+B0	45	0.97712648556805626	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00050000000000000001	E-Value_score=0.00050000000000000001
+B0	46	0.96070050142056629	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00087000000000000001	E-Value_score=0.00087000000000000001
+B0	47	0.98941354019963801	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00023000000000000001	E-Value_score=0.00023000000000000001
+B0	48	0.97263846080986194	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059999999999999995	E-Value_score=0.00059999999999999995
+B0	49	0.95321758953448821	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097000000000000005	E-Value_score=0.00097000000000000005
+B0	50	0.98483549606385656	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00033	E-Value_score=0.00033
+B0	51	0.96818619186609345	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00069999999999999999	E-Value_score=0.00069999999999999999
+B0	52	0.99724888674865642	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.0000000000000002e-05	E-Value_score=6.0000000000000002e-05
+B0	53	0.98028895555599249	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042999999999999999	E-Value_score=0.00042999999999999999
+B0	54	0.9637701134048966	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080000000000000004	E-Value_score=0.00080000000000000004
+B0	55	0.99263432355951742	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00016000000000000001	E-Value_score=0.00016000000000000001
+B0	56	0.97577636327497141	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00052999999999999998	E-Value_score=0.00052999999999999998
+B0	57	0.95939041706465045	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00089999999999999998	E-Value_score=0.00089999999999999998
+B0	58	0.98803704565741834	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025999999999999998	E-Value_score=0.00025999999999999998
+B0	59	0.97129900007172842	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00063000000000000003	E-Value_score=0.00063000000000000003
+B0	60	0.95182996861117508	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.001	E-Value_score=0.001
+B0	61	0.98346808244226647	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036000000000000002	E-Value_score=0.00036000000000000002
+B0	62	0.96685755584798683	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072999999999999996	E-Value_score=0.00072999999999999996
+B0	63	0.99586413626008985	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=9.0000000000000006e-05	E-Value_score=9.0000000000000006e-05
+B0	64	0.97893153964593671	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046000000000000001	E-Value_score=0.00046000000000000001
+B0	65	0.96245238034842351	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00083000000000000001	E-Value_score=0.00083000000000000001
+B0	66	0.99125257765256136	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00019000000000000001	E-Value_score=0.00019000000000000001
+B0	67	0.97442941539711236	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055999999999999995	E-Value_score=0.00055999999999999995
+B0	68	0.95507359038863326	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093000000000000005	E-Value_score=0.00093000000000000005
+B0	69	0.98666313401861261	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029	E-Value_score=0.00029
+B0	70	0.9699627742674789	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00066	E-Value_score=0.00066
+B0	71	0.99909046786912392	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=2.0000000000000002e-05	E-Value_score=2.0000000000000002e-05
+B0	72	0.98210359917523526	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038999999999999999	E-Value_score=0.00038999999999999999
+B0	73	0.96553218542037245	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076000000000000004	E-Value_score=0.00076000000000000004
+B0	74	0.99447925106766633	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012	E-Value_score=0.00012
+B0	75	0.97757722728129359	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048999999999999998	E-Value_score=0.00048999999999999998
+B0	76	0.9611379247651346	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00085999999999999998	E-Value_score=0.00085999999999999998
+B0	77	0.98987291725510551	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00022000000000000001	E-Value_score=0.00022000000000000001
+B0	78	0.97308566420477749	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059000000000000003	E-Value_score=0.00059000000000000003
+B0	79	0.9536809637325272	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00096000000000000002	E-Value_score=0.00096000000000000002
+B0	80	0.9852919386984863	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00032000000000000003	E-Value_score=0.00032000000000000003
+B0	81	0.96862979509468683	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068999999999999997	E-Value_score=0.00068999999999999997
+B0	82	0.99771011371369223	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=5.0000000000000002e-05	E-Value_score=5.0000000000000002e-05
+B0	83	0.98074211034740255	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042000000000000002	E-Value_score=0.00042000000000000002
+B0	84	0.96421008576796419	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00079000000000000001	E-Value_score=0.00079000000000000001
+B0	85	0.99309531097627002	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00014999999999999999	E-Value_score=0.00014999999999999999
+B0	86	0.9762260525474209	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051999999999999995	E-Value_score=0.00051999999999999995
+B0	87	0.95982674757875597	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088999999999999995	E-Value_score=0.00088999999999999995
+B0	88	0.98849559776940477	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025000000000000001	E-Value_score=0.00025000000000000001
+B0	89	0.971745128196843	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00062	E-Value_score=0.00062
+B0	90	0.95229209215743471	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00098999999999999999	E-Value_score=0.00098999999999999999
+B0	91	0.98392356493570365	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00035	E-Value_score=0.00035
+B0	92	0.9673000719790722	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072000000000000005	E-Value_score=0.00072000000000000005
+B0	93	0.99632580984935404	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=8.0000000000000007e-05	E-Value_score=8.0000000000000007e-05
+B0	94	0.97938366864587911	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044999999999999999	E-Value_score=0.00044999999999999999
+B0	95	0.96289126061314423	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00081999999999999998	E-Value_score=0.00081999999999999998
+B0	96	0.99171294300818391	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00018000000000000001	E-Value_score=0.00018000000000000001
+B0	97	0.97487804385193799	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055000000000000003	E-Value_score=0.00055000000000000003
+B0	98	0.95553863447083698	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00092000000000000003	E-Value_score=0.00092000000000000003
+B0	99	0.98712080867349461	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00027999999999999998	E-Value_score=0.00027999999999999998
+B0	100	0.97040782265987768	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00064999999999999997	E-Value_score=0.00064999999999999997
+B0	101	0.99954798124616873	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=1.0000000000000001e-05	E-Value_score=1.0000000000000001e-05
+B0	102	0.98255809711961939	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038000000000000002	E-Value_score=0.00038000000000000002
+B0	103	0.96597361236763202	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00075000000000000002	E-Value_score=0.00075000000000000002
+B0	104	0.99494081489356756	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00011	E-Value_score=0.00011
+B0	105	0.97802831766662479	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048000000000000001	E-Value_score=0.00048000000000000001
+B0	106	0.96157571238413697	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084999999999999995	E-Value_score=0.00084999999999999995
+B0	107	0.99033255493840411	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00021000000000000001	E-Value_score=0.00021000000000000001
+B0	108	0.97353322486873362	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00058	E-Value_score=0.00058
+B0	109	0.95414475516768738	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00095	E-Value_score=0.00095
+B0	110	0.98574869500870177	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00031	E-Value_score=0.00031
+B0	111	0.96907376012364688	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068000000000000005	E-Value_score=0.00068000000000000005
+B0	112	0.99817095651212773	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=4.0000000000000003e-05	E-Value_score=4.0000000000000003e-05
+B0	113	0.98119560378262327	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040999999999999999	E-Value_score=0.00040999999999999999
+B0	114	0.9646504219747235	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00077999999999999999	E-Value_score=0.00077999999999999999
+B0	115	0.99355647476102793	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00013999999999999999	E-Value_score=0.00013999999999999999
+B0	116	0.97667609364066876	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051000000000000004	E-Value_score=0.00051000000000000004
+B0	117	0.96026344235936778	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088000000000000003	E-Value_score=0.00088000000000000003
+B0	118	0.98895443139318873	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00024000000000000001	E-Value_score=0.00024000000000000001
+B0	119	0.97219161528578091	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00060999999999999997	E-Value_score=0.00060999999999999997
+B0	120	0.95275463240262193	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097999999999999997	E-Value_score=0.00097999999999999997
+B0	121	0.98437937044110169	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00034000000000000002	E-Value_score=0.00034000000000000002
+B0	122	0.96774295073595284	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00071000000000000002	E-Value_score=0.00071000000000000002
+B0	123	0.99678741843413565	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.9999999999999994e-05	E-Value_score=6.9999999999999994e-05
+B0	124	0.97983614111959716	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044000000000000002	E-Value_score=0.00044000000000000002
+B0	125	0.96333050499017558	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080999999999999996	E-Value_score=0.00080999999999999996
+B0	126	0.99217352932093772	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00017000000000000001	E-Value_score=0.00017000000000000001
+B0	127	0.97532702675188965	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00054000000000000001	E-Value_score=0.00054000000000000001
+B0	128	0.95895445079207897	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00091	E-Value_score=0.00091
+B0	129	0.98757878085203799	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00027	E-Value_score=0.00027
+B0	130	0.97085323140522894	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00064000000000000005	E-Value_score=0.00064000000000000005
+B0	131	0.95136826156810794	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00101	E-Value_score=0.00101
+B0	132	0.98301292566222287	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036999999999999999	E-Value_score=0.00036999999999999999
+B0	133	0.9664154025739099	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00073999999999999999	E-Value_score=0.00073999999999999999
+B0	134	0.99540245584682951	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.0001	E-Value_score=0.0001
+B0	135	0.97847975554067379	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046999999999999999	E-Value_score=0.00046999999999999999
+B0	136	0.96201386425647495	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00084000000000000003	E-Value_score=0.00084000000000000003
+B0	137	0.99079244484187634	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00020000000000000001	E-Value_score=0.00020000000000000001
+B0	138	0.97398114216046583	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00056999999999999998	E-Value_score=0.00056999999999999998
+B0	139	0.95460896400207296	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093999999999999997	E-Value_score=0.00093999999999999997
+B0	140	0.98620576140489491	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029999999999999997	E-Value_score=0.00029999999999999997
+B0	141	0.96951808663054473	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00067000000000000002	E-Value_score=0.00067000000000000002
+B0	142	0.99863119804178968	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=3.0000000000000001e-05	E-Value_score=3.0000000000000001e-05
+B0	143	0.9816494340392472	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00040000000000000002	E-Value_score=0.00040000000000000002
+B0	144	0.96509112190458524	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076999999999999996	E-Value_score=0.00076999999999999996
+B0	145	0.99401779559523318	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012999999999999999	E-Value_score=0.00012999999999999999
+B0	146	0.97712648556805626	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00050000000000000001	E-Value_score=0.00050000000000000001
+B0	147	0.96070050142056629	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00087000000000000001	E-Value_score=0.00087000000000000001
+B0	148	0.98941354019963801	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00023000000000000001	E-Value_score=0.00023000000000000001
+B0	149	0.97263846080986194	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059999999999999995	E-Value_score=0.00059999999999999995
+B0	150	0.95321758953448821	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00097000000000000005	E-Value_score=0.00097000000000000005
+B0	151	0.98483549606385656	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00033	E-Value_score=0.00033
+B0	152	0.96818619186609345	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00069999999999999999	E-Value_score=0.00069999999999999999
+B0	153	0.99724888674865642	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=6.0000000000000002e-05	E-Value_score=6.0000000000000002e-05
+B0	154	0.98028895555599249	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042999999999999999	E-Value_score=0.00042999999999999999
+B0	155	0.9637701134048966	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00080000000000000004	E-Value_score=0.00080000000000000004
+B0	156	0.99263432355951742	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00016000000000000001	E-Value_score=0.00016000000000000001
+B0	157	0.97577636327497141	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00052999999999999998	E-Value_score=0.00052999999999999998
+B0	158	0.95939041706465045	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00089999999999999998	E-Value_score=0.00089999999999999998
+B0	159	0.98803704565741834	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025999999999999998	E-Value_score=0.00025999999999999998
+B0	160	0.97129900007172842	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00063000000000000003	E-Value_score=0.00063000000000000003
+B0	161	0.95182996861117508	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.001	E-Value_score=0.001
+B0	162	0.98346808244226647	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00036000000000000002	E-Value_score=0.00036000000000000002
+B0	163	0.96685755584798683	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072999999999999996	E-Value_score=0.00072999999999999996
+B0	164	0.99586413626008985	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=9.0000000000000006e-05	E-Value_score=9.0000000000000006e-05
+B0	165	0.97893153964593671	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00046000000000000001	E-Value_score=0.00046000000000000001
+B0	166	0.96245238034842351	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00083000000000000001	E-Value_score=0.00083000000000000001
+B0	167	0.99125257765256136	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00019000000000000001	E-Value_score=0.00019000000000000001
+B0	168	0.97442941539711236	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055999999999999995	E-Value_score=0.00055999999999999995
+B0	169	0.95507359038863326	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00093000000000000005	E-Value_score=0.00093000000000000005
+B0	170	0.98666313401861261	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00029	E-Value_score=0.00029
+B0	171	0.9699627742674789	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00066	E-Value_score=0.00066
+B0	172	0.99909046786912392	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=2.0000000000000002e-05	E-Value_score=2.0000000000000002e-05
+B0	173	0.98210359917523526	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00038999999999999999	E-Value_score=0.00038999999999999999
+B0	174	0.96553218542037245	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00076000000000000004	E-Value_score=0.00076000000000000004
+B0	175	0.99447925106766633	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00012	E-Value_score=0.00012
+B0	176	0.97757722728129359	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00048999999999999998	E-Value_score=0.00048999999999999998
+B0	177	0.9611379247651346	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00085999999999999998	E-Value_score=0.00085999999999999998
+B0	178	0.98987291725510551	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00022000000000000001	E-Value_score=0.00022000000000000001
+B0	179	0.97308566420477749	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00059000000000000003	E-Value_score=0.00059000000000000003
+B0	180	0.9536809637325272	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00096000000000000002	E-Value_score=0.00096000000000000002
+B0	181	0.9852919386984863	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00032000000000000003	E-Value_score=0.00032000000000000003
+B0	182	0.96862979509468683	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00068999999999999997	E-Value_score=0.00068999999999999997
+B0	183	0.99771011371369223	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=5.0000000000000002e-05	E-Value_score=5.0000000000000002e-05
+B0	184	0.98074211034740255	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00042000000000000002	E-Value_score=0.00042000000000000002
+B0	185	0.96421008576796419	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00079000000000000001	E-Value_score=0.00079000000000000001
+B0	186	0.99309531097627002	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00014999999999999999	E-Value_score=0.00014999999999999999
+B0	187	0.9762260525474209	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00051999999999999995	E-Value_score=0.00051999999999999995
+B0	188	0.95982674757875597	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00088999999999999995	E-Value_score=0.00088999999999999995
+B0	189	0.98849559776940477	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00025000000000000001	E-Value_score=0.00025000000000000001
+B0	190	0.971745128196843	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00062	E-Value_score=0.00062
+B0	191	0.95229209215743471	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00098999999999999999	E-Value_score=0.00098999999999999999
+B0	192	0.98392356493570365	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00035	E-Value_score=0.00035
+B0	193	0.9673000719790722	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00072000000000000005	E-Value_score=0.00072000000000000005
+B0	194	0.99632580984935404	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=8.0000000000000007e-05	E-Value_score=8.0000000000000007e-05
+B0	195	0.97938366864587911	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00044999999999999999	E-Value_score=0.00044999999999999999
+B0	196	0.96289126061314423	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00081999999999999998	E-Value_score=0.00081999999999999998
+B0	197	0.99171294300818391	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00018000000000000001	E-Value_score=0.00018000000000000001
+B0	198	0.97487804385193799	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00055000000000000003	E-Value_score=0.00055000000000000003
+B0	199	0.95553863447083698	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0.00092000000000000003	E-Value_score=0.00092000000000000003
+B0	200	-nan	E-Value_DecoyProbability	1	target_decoy=target	E-Value_Score=0	E-Value_score=0
+B0	201	0.95182996861117508	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.001	E-Value_score=0.001
+B0	202	0.26591260301433861	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.053999999999999999	E-Value_score=0.053999999999999999
+B0	203	0.66076823850817101	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.01	E-Value_score=0.01
+B0	204	0.23760311626576044	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.063	E-Value_score=0.063
+B0	205	0.50578172087062001	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.019	E-Value_score=0.019
+B0	206	0.21514680133057829	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.071999999999999995	E-Value_score=0.071999999999999995
+B0	207	0.40989028134668387	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.028000000000000001	E-Value_score=0.028000000000000001
+B0	208	0.19717417494966749	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.081000000000000003	E-Value_score=0.081000000000000003
+B0	209	0.34481663380843391	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.036999999999999998	E-Value_score=0.036999999999999998
+B0	210	0.18327728803090659	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.089999999999999997	E-Value_score=0.089999999999999997
+B0	211	0.2978408015643822	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.045999999999999999	E-Value_score=0.045999999999999999
+B0	212	0.90766866459161966	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.002	E-Value_score=0.002
+B0	213	0.26241614095439975	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.055	E-Value_score=0.055
+B0	214	0.63900288117582149	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.010999999999999999	E-Value_score=0.010999999999999999
+B0	215	0.23485094204318321	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.064000000000000001	E-Value_score=0.064000000000000001
+B0	216	0.49294847499519162	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.02	E-Value_score=0.02
+B0	217	0.21294589930914917	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.072999999999999995	E-Value_score=0.072999999999999995
+B0	218	0.40145252504719492	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029000000000000001	E-Value_score=0.029000000000000001
+B0	219	0.19542196219060104	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.082000000000000003	E-Value_score=0.082000000000000003
+B0	220	0.33885883681936135	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.037999999999999999	E-Value_score=0.037999999999999999
+B0	221	0.18205329127069336	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.090999999999999998	E-Value_score=0.090999999999999998
+B0	222	0.29341949936920664	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.047	E-Value_score=0.047
+B0	223	0.86730026802493965	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0030000000000000001	E-Value_score=0.0030000000000000001
+B0	224	0.25901528418022168	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.056000000000000001	E-Value_score=0.056000000000000001
+B0	225	0.61862548516189186	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012	E-Value_score=0.012
+B0	226	0.23216777334380145	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.065000000000000002	E-Value_score=0.065000000000000002
+B0	227	0.48075424468740602	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021000000000000001	E-Value_score=0.021000000000000001
+B0	228	0.21079827387398045	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.073999999999999996	E-Value_score=0.073999999999999996
+B0	229	0.39335938247273933	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029999999999999999	E-Value_score=0.029999999999999999
+B0	230	0.19371796777743142	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.083000000000000004	E-Value_score=0.083000000000000004
+B0	231	0.33310766168012923	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.039	E-Value_score=0.039
+B0	232	0.18093197412157452	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.091999999999999998	E-Value_score=0.091999999999999998
+B0	233	0.28913194695819494	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.048000000000000001	E-Value_score=0.048000000000000001
+B0	234	0.83030548030896945	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0040000000000000001	E-Value_score=0.0040000000000000001
+B0	235	0.25570638206349899	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.057000000000000002	E-Value_score=0.057000000000000002
+B0	236	0.59950843666573383	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012999999999999999	E-Value_score=0.012999999999999999
+B0	237	0.22955139478425479	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.066000000000000003	E-Value_score=0.066000000000000003
+B0	238	0.46915274523685851	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021999999999999999	E-Value_score=0.021999999999999999
+B0	239	0.20870274625660423	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.074999999999999997	E-Value_score=0.074999999999999997
+B0	240	0.38559033460495307	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.031	E-Value_score=0.031
+B0	241	0.19206282007888012	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.084000000000000005	E-Value_score=0.084000000000000005
+B0	242	0.32755269437358242	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.040000000000000001	E-Value_score=0.040000000000000001
+B0	243	0.17994658236856778	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.092999999999999999	E-Value_score=0.092999999999999999
+B0	244	0.28497233499767499	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.049000000000000002	E-Value_score=0.049000000000000002
+B0	245	0.79629936338747487	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0050000000000000001	E-Value_score=0.0050000000000000001
+B0	246	0.25248598184855209	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.058000000000000003	E-Value_score=0.058000000000000003
+B0	247	0.58153916595935651	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.014	E-Value_score=0.014
+B0	248	0.22699971492949428	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.067000000000000004	E-Value_score=0.067000000000000004
+B0	249	0.45810204631232476	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.023	E-Value_score=0.023
+B0	250	0.20665825912439156	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.075999999999999998	E-Value_score=0.075999999999999998
+B0	251	0.37812646150726081	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.032000000000000001	E-Value_score=0.032000000000000001
+B0	252	0.19045760787421581	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.085000000000000006	E-Value_score=0.085000000000000006
+B0	253	0.3221842144519293	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.041000000000000002	E-Value_score=0.041000000000000002
+B0	254	0.17916051221372367	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.094	E-Value_score=0.094
+B0	255	0.28093519450598287	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.050000000000000003	E-Value_score=0.050000000000000003
+B0	256	0.76494504581991218	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0060000000000000001	E-Value_score=0.0060000000000000001
+B0	257	0.2493508169077423	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.058999999999999997	E-Value_score=0.058999999999999997
+B0	258	0.56461802387803139	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.014999999999999999	E-Value_score=0.014999999999999999
+B0	259	0.22451076201846876	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.068000000000000005	E-Value_score=0.068000000000000005
+B0	260	0.44756407382613922	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.024	E-Value_score=0.024
+B0	261	0.20466388416840794	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.076999999999999999	E-Value_score=0.076999999999999999
+B0	262	0.3709502901212301	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.033000000000000002	E-Value_score=0.033000000000000002
+B0	263	0.18890402612562854	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.085999999999999993	E-Value_score=0.085999999999999993
+B0	264	0.31699313874208024	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.042000000000000003	E-Value_score=0.042000000000000003
+B0	265	0.17871801403196697	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.095000000000000001	E-Value_score=0.095000000000000001
+B0	266	0.27701537305669899	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.050999999999999997	E-Value_score=0.050999999999999997
+B0	267	0.73595078539024306	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0070000000000000001	E-Value_score=0.0070000000000000001
+B0	268	0.2462977960030619	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.059999999999999998	E-Value_score=0.059999999999999998
+B0	269	0.54865650031303093	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.016	E-Value_score=0.016
+B0	270	0.22208268047166191	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.069000000000000006	E-Value_score=0.069000000000000006
+B0	271	0.43750417834482175	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.025000000000000001	E-Value_score=0.025000000000000001
+B0	272	0.20271883275789201	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.078	E-Value_score=0.078
+B0	273	0.36404565910593972	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.034000000000000002	E-Value_score=0.034000000000000002
+B0	274	0.18740459303520693	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.086999999999999994	E-Value_score=0.086999999999999994
+B0	275	0.31197097047566269	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.042999999999999997	E-Value_score=0.042999999999999997
+B0	276	0.17908503222042485	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.096000000000000002	E-Value_score=0.096000000000000002
+B0	277	0.27320801302581099	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.051999999999999998	E-Value_score=0.051999999999999998
+B0	278	0.70906424343007568	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0080000000000000002	E-Value_score=0.0080000000000000002
+B0	279	0.24332399348543821	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.060999999999999999	E-Value_score=0.060999999999999999
+B0	280	0.53357572455244029	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.017000000000000001	E-Value_score=0.017000000000000001
+B0	281	0.21971372822535692	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.070000000000000007	E-Value_score=0.070000000000000007
+B0	282	0.42789075996498033	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.025999999999999999	E-Value_score=0.025999999999999999
+B0	283	0.20082247058059322	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.079000000000000001	E-Value_score=0.079000000000000001
+B0	284	0.35739759854210634	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.035000000000000003	E-Value_score=0.035000000000000003
+B0	285	0.18596298382645224	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.087999999999999995	E-Value_score=0.087999999999999995
+B0	286	0.30710975324826223	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.043999999999999997	E-Value_score=0.043999999999999997
+B0	287	1	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.097000000000000003	E-Value_score=0.097000000000000003
+B0	288	0.26950853169116479	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.052999999999999999	E-Value_score=0.052999999999999999
+B0	289	0.68406675333158951	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0089999999999999993	E-Value_score=0.0089999999999999993
+B0	290	0.240426640373755	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.062	E-Value_score=0.062
+B0	291	0.51930519824640853	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.017999999999999999	E-Value_score=0.017999999999999999
+B0	292	0.21740227496130779	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.070999999999999994	E-Value_score=0.070999999999999994
+B0	293	0.41869494126745144	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.027	E-Value_score=0.027
+B0	294	0.19897433756596158	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.080000000000000002	E-Value_score=0.080000000000000002
+B0	295	0.35099222263445379	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.035999999999999997	E-Value_score=0.035999999999999997
+B0	296	0.18458456455368141	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.088999999999999996	E-Value_score=0.088999999999999996
+B0	297	0.302402029286373	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.044999999999999998	E-Value_score=0.044999999999999998
+B0	298	0.95182996861117508	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.001	E-Value_score=0.001
+B0	299	0.26591260301433861	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.053999999999999999	E-Value_score=0.053999999999999999
+B0	300	0.66076823850817101	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.01	E-Value_score=0.01
+B0	301	0.23760311626576044	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.063	E-Value_score=0.063
+B0	302	0.50578172087062001	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.019	E-Value_score=0.019
+B0	303	0.21514680133057829	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.071999999999999995	E-Value_score=0.071999999999999995
+B0	304	0.40989028134668387	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.028000000000000001	E-Value_score=0.028000000000000001
+B0	305	0.19717417494966749	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.081000000000000003	E-Value_score=0.081000000000000003
+B0	306	0.34481663380843391	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.036999999999999998	E-Value_score=0.036999999999999998
+B0	307	0.18327728803090659	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.089999999999999997	E-Value_score=0.089999999999999997
+B0	308	0.2978408015643822	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.045999999999999999	E-Value_score=0.045999999999999999
+B0	309	0.90766866459161966	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.002	E-Value_score=0.002
+B0	310	0.26241614095439975	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.055	E-Value_score=0.055
+B0	311	0.63900288117582149	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.010999999999999999	E-Value_score=0.010999999999999999
+B0	312	0.23485094204318321	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.064000000000000001	E-Value_score=0.064000000000000001
+B0	313	0.49294847499519162	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.02	E-Value_score=0.02
+B0	314	0.21294589930914917	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.072999999999999995	E-Value_score=0.072999999999999995
+B0	315	0.40145252504719492	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029000000000000001	E-Value_score=0.029000000000000001
+B0	316	0.19542196219060104	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.082000000000000003	E-Value_score=0.082000000000000003
+B0	317	0.33885883681936135	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.037999999999999999	E-Value_score=0.037999999999999999
+B0	318	0.18205329127069336	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.090999999999999998	E-Value_score=0.090999999999999998
+B0	319	0.29341949936920664	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.047	E-Value_score=0.047
+B0	320	0.86730026802493965	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0030000000000000001	E-Value_score=0.0030000000000000001
+B0	321	0.25901528418022168	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.056000000000000001	E-Value_score=0.056000000000000001
+B0	322	0.61862548516189186	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012	E-Value_score=0.012
+B0	323	0.23216777334380145	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.065000000000000002	E-Value_score=0.065000000000000002
+B0	324	0.48075424468740602	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021000000000000001	E-Value_score=0.021000000000000001
+B0	325	0.21079827387398045	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.073999999999999996	E-Value_score=0.073999999999999996
+B0	326	0.39335938247273933	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.029999999999999999	E-Value_score=0.029999999999999999
+B0	327	0.19371796777743142	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.083000000000000004	E-Value_score=0.083000000000000004
+B0	328	0.33310766168012923	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.039	E-Value_score=0.039
+B0	329	0.18093197412157452	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.091999999999999998	E-Value_score=0.091999999999999998
+B0	330	0.28913194695819494	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.048000000000000001	E-Value_score=0.048000000000000001
+B0	331	0.83030548030896945	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0040000000000000001	E-Value_score=0.0040000000000000001
+B0	332	0.25570638206349899	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.057000000000000002	E-Value_score=0.057000000000000002
+B0	333	0.59950843666573383	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.012999999999999999	E-Value_score=0.012999999999999999
+B0	334	0.22955139478425479	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.066000000000000003	E-Value_score=0.066000000000000003
+B0	335	0.46915274523685851	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.021999999999999999	E-Value_score=0.021999999999999999
+B0	336	0.20870274625660423	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.074999999999999997	E-Value_score=0.074999999999999997
+B0	337	0.38559033460495307	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.031	E-Value_score=0.031
+B0	338	0.19206282007888012	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.084000000000000005	E-Value_score=0.084000000000000005
+B0	339	0.32755269437358242	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.040000000000000001	E-Value_score=0.040000000000000001
+B0	340	0.17994658236856778	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.092999999999999999	E-Value_score=0.092999999999999999
+B0	341	0.28497233499767499	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.049000000000000002	E-Value_score=0.049000000000000002
+B0	342	0.79629936338747487	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.0050000000000000001	E-Value_score=0.0050000000000000001
+B0	343	0.25248598184855209	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.058000000000000003	E-Value_score=0.058000000000000003
+B0	344	0.58153916595935651	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.014	E-Value_score=0.014
+B0	345	0.22699971492949428	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.067000000000000004	E-Value_score=0.067000000000000004
+B0	346	0.45810204631232476	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.023	E-Value_score=0.023
+B0	347	0.20665825912439156	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.075999999999999998	E-Value_score=0.075999999999999998
+B0	348	0.37812646150726081	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.032000000000000001	E-Value_score=0.032000000000000001
+B0	349	0.19045760787421581	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.085000000000000006	E-Value_score=0.085000000000000006
+B0	350	0.3221842144519293	E-Value_DecoyProbability	1	target_decoy=decoy	E-Value_Score=0.041000000000000002	E-Value_score=0.041000000000000002
+C	0	0.017361484511435186	XTandem_DecoyProbability	1	XTandem_Score=10	XTandem_score=10
+C	1	0.83524426715002786	XTandem_DecoyProbability	1	XTandem_Score=17.399999999999999	XTandem_score=17.399999999999999
+C	2	0.98609521058586158	XTandem_DecoyProbability	1	XTandem_Score=24.800000000000001	XTandem_score=24.800000000000001
+C	3	0.100377736646993	XTandem_DecoyProbability	1	XTandem_Score=12	XTandem_score=12
+C	4	0.93137341242936489	XTandem_DecoyProbability	1	XTandem_Score=19.399999999999999	XTandem_score=19.399999999999999
+C	5	0.99073340542164645	XTandem_DecoyProbability	1	XTandem_Score=26.800000000000001	XTandem_score=26.800000000000001
+C	6	0.35836948691779225	XTandem_DecoyProbability	1	XTandem_Score=14	XTandem_score=14
+C	7	0.96646970752854211	XTandem_DecoyProbability	1	XTandem_Score=21.399999999999999	XTandem_score=21.399999999999999
+C	8	0.99383242413135486	XTandem_DecoyProbability	1	XTandem_Score=28.800000000000001	XTandem_score=28.800000000000001
+C	9	0.68914957813313882	XTandem_DecoyProbability	1	XTandem_Score=16	XTandem_score=16
+C	10	0.98154827706817382	XTandem_DecoyProbability	1	XTandem_Score=23.399999999999999	XTandem_score=23.399999999999999
+C	11	0.030511278633291238	XTandem_DecoyProbability	1	XTandem_Score=10.6	XTandem_score=10.6
+C	12	0.87468032251082761	XTandem_DecoyProbability	1	XTandem_Score=18	XTandem_score=18
+C	13	0.9876869263683471	XTandem_DecoyProbability	1	XTandem_Score=25.399999999999999	XTandem_score=25.399999999999999
+C	14	0.1563711077993353	XTandem_DecoyProbability	1	XTandem_Score=12.6	XTandem_score=12.6
+C	15	0.94574351967697123	XTandem_DecoyProbability	1	XTandem_Score=20	XTandem_score=20
+C	16	0.9917978801781735	XTandem_DecoyProbability	1	XTandem_Score=27.399999999999999	XTandem_score=27.399999999999999
+C	17	0.46393189563189502	XTandem_DecoyProbability	1	XTandem_Score=14.6	XTandem_score=14.6
+C	18	0.97186053398497541	XTandem_DecoyProbability	1	XTandem_Score=22	XTandem_score=22
+C	19	0.99454245911160122	XTandem_DecoyProbability	1	XTandem_Score=29.399999999999999	XTandem_score=29.399999999999999
+C	20	0.76215393690449906	XTandem_DecoyProbability	1	XTandem_Score=16.600000000000001	XTandem_score=16.600000000000001
+C	21	0.98365298786541744	XTandem_DecoyProbability	1	XTandem_Score=24	XTandem_score=24
+C	22	0.052039780178576134	XTandem_DecoyProbability	1	XTandem_Score=11.199999999999999	XTandem_score=11.199999999999999
+C	23	0.90394768659208891	XTandem_DecoyProbability	1	XTandem_Score=18.600000000000001	XTandem_score=18.600000000000001
+C	24	0.98909815059443218	XTandem_DecoyProbability	1	XTandem_Score=26	XTandem_score=26
+C	25	0.2316840394426038	XTandem_DecoyProbability	1	XTandem_Score=13.199999999999999	XTandem_score=13.199999999999999
+C	26	0.95638192752821072	XTandem_DecoyProbability	1	XTandem_Score=20.600000000000001	XTandem_score=20.600000000000001
+C	27	0.9927408009441111	XTandem_DecoyProbability	1	XTandem_Score=28	XTandem_score=28
+C	28	0.56771393615708443	XTandem_DecoyProbability	1	XTandem_Score=15.199999999999999	XTandem_score=15.199999999999999
+C	29	0.97592128358856034	XTandem_DecoyProbability	1	XTandem_Score=22.600000000000001	XTandem_score=22.600000000000001
+C	30	0.99517105010583451	XTandem_DecoyProbability	1	XTandem_Score=30	XTandem_score=30
+C	31	0.81936499098112847	XTandem_DecoyProbability	1	XTandem_Score=17.199999999999999	XTandem_score=17.199999999999999
+C	32	0.98552072237547317	XTandem_DecoyProbability	1	XTandem_Score=24.600000000000001	XTandem_score=24.600000000000001
+C	33	0.085734514343015988	XTandem_DecoyProbability	1	XTandem_Score=11.800000000000001	XTandem_score=11.800000000000001
+C	34	0.92552706117833594	XTandem_DecoyProbability	1	XTandem_Score=19.199999999999999	XTandem_score=19.199999999999999
+C	35	0.99034895989669447	XTandem_DecoyProbability	1	XTandem_Score=26.600000000000001	XTandem_score=26.600000000000001
+C	36	0.32452310775294591	XTandem_DecoyProbability	1	XTandem_Score=13.800000000000001	XTandem_score=13.800000000000001
+C	37	0.96430142649548212	XTandem_DecoyProbability	1	XTandem_Score=21.199999999999999	XTandem_score=21.199999999999999
+C	38	0.99357587979077466	XTandem_DecoyProbability	1	XTandem_Score=28.600000000000001	XTandem_score=28.600000000000001
+C	39	0.66121627908932212	XTandem_DecoyProbability	1	XTandem_Score=15.800000000000001	XTandem_score=15.800000000000001
+C	40	0.9789842984236905	XTandem_DecoyProbability	1	XTandem_Score=23.199999999999999	XTandem_score=23.199999999999999
+C	41	0.025362784747946805	XTandem_DecoyProbability	1	XTandem_Score=10.4	XTandem_score=10.4
+C	42	0.86279841484822817	XTandem_DecoyProbability	1	XTandem_Score=17.800000000000001	XTandem_score=17.800000000000001
+C	43	0.98717746656039662	XTandem_DecoyProbability	1	XTandem_Score=25.199999999999999	XTandem_score=25.199999999999999
+C	44	0.13559809286850183	XTandem_DecoyProbability	1	XTandem_Score=12.4	XTandem_score=12.4
+C	45	0.94142798636681613	XTandem_DecoyProbability	1	XTandem_Score=19.800000000000001	XTandem_score=19.800000000000001
+C	46	0.99145728508737341	XTandem_DecoyProbability	1	XTandem_Score=27.199999999999999	XTandem_score=27.199999999999999
+C	47	0.42844974325333995	XTandem_DecoyProbability	1	XTandem_Score=14.4	XTandem_score=14.4
+C	48	0.9702312024167784	XTandem_DecoyProbability	1	XTandem_Score=21.800000000000001	XTandem_score=21.800000000000001
+C	49	0.99431532017516799	XTandem_DecoyProbability	1	XTandem_Score=29.199999999999999	XTandem_score=29.199999999999999
+C	50	0.73963055011231649	XTandem_DecoyProbability	1	XTandem_Score=16.399999999999999	XTandem_score=16.399999999999999
+C	51	0.98297911406482219	XTandem_DecoyProbability	1	XTandem_Score=23.800000000000001	XTandem_score=23.800000000000001
+C	52	0.043712105788678277	XTandem_DecoyProbability	1	XTandem_Score=11	XTandem_score=11
+C	53	0.89515978494354598	XTandem_DecoyProbability	1	XTandem_Score=18.399999999999999	XTandem_score=18.399999999999999
+C	54	0.98864651158565753	XTandem_DecoyProbability	1	XTandem_Score=25.800000000000001	XTandem_score=25.800000000000001
+C	55	0.20444792787999461	XTandem_DecoyProbability	1	XTandem_Score=13	XTandem_score=13
+C	56	0.95318125096613793	XTandem_DecoyProbability	1	XTandem_Score=20.399999999999999	XTandem_score=20.399999999999999
+C	57	0.99243912096428588	XTandem_DecoyProbability	1	XTandem_Score=27.800000000000001	XTandem_score=27.800000000000001
+C	58	0.53390559731608678	XTandem_DecoyProbability	1	XTandem_Score=15	XTandem_score=15
+C	59	0.97469269543748593	XTandem_DecoyProbability	1	XTandem_Score=22.399999999999999	XTandem_score=22.399999999999999
+C	60	0.99496997433171108	XTandem_DecoyProbability	1	XTandem_Score=29.800000000000001	XTandem_score=29.800000000000001
+C	61	0.80194983323683433	XTandem_DecoyProbability	1	XTandem_Score=17	XTandem_score=17
+C	62	0.98492281296184525	XTandem_DecoyProbability	1	XTandem_Score=24.399999999999999	XTandem_score=24.399999999999999
+C	63	0.072896780046095261	XTandem_DecoyProbability	1	XTandem_Score=11.6	XTandem_score=11.6
+C	64	0.91905378831668638	XTandem_DecoyProbability	1	XTandem_Score=19	XTandem_score=19
+C	65	0.98994869872085545	XTandem_DecoyProbability	1	XTandem_Score=26.399999999999999	XTandem_score=26.399999999999999
+C	66	0.29193671067700488	XTandem_DecoyProbability	1	XTandem_Score=13.6	XTandem_score=13.6
+C	67	0.96191375543282853	XTandem_DecoyProbability	1	XTandem_Score=21	XTandem_score=21
+C	68	0.99330872006009507	XTandem_DecoyProbability	1	XTandem_Score=28.399999999999999	XTandem_score=28.399999999999999
+C	69	0.63157371212193225	XTandem_DecoyProbability	1	XTandem_Score=15.6	XTandem_score=15.6
+C	70	0.97805790297534767	XTandem_DecoyProbability	1	XTandem_Score=23	XTandem_score=23
+C	71	0.02101622395709252	XTandem_DecoyProbability	1	XTandem_Score=10.199999999999999	XTandem_score=10.199999999999999
+C	72	0.84968761541958937	XTandem_DecoyProbability	1	XTandem_Score=17.600000000000001	XTandem_score=17.600000000000001
+C	73	0.98664717143861358	XTandem_DecoyProbability	1	XTandem_Score=25	XTandem_score=25
+C	74	0.11696118649890311	XTandem_DecoyProbability	1	XTandem_Score=12.199999999999999	XTandem_score=12.199999999999999
+C	75	0.93665493732198513	XTandem_DecoyProbability	1	XTandem_Score=19.600000000000001	XTandem_score=19.600000000000001
+C	76	0.99110264995097364	XTandem_DecoyProbability	1	XTandem_Score=27	XTandem_score=27
+C	77	0.39313489039990029	XTandem_DecoyProbability	1	XTandem_Score=14.199999999999999	XTandem_score=14.199999999999999
+C	78	0.96843994142890111	XTandem_DecoyProbability	1	XTandem_Score=21.600000000000001	XTandem_score=21.600000000000001
+C	79	0.99407877047714621	XTandem_DecoyProbability	1	XTandem_Score=29	XTandem_score=29
+C	80	0.71529805500604859	XTandem_DecoyProbability	1	XTandem_Score=16.199999999999999	XTandem_score=16.199999999999999
+C	81	0.98227790069040621	XTandem_DecoyProbability	1	XTandem_Score=23.600000000000001	XTandem_score=23.600000000000001
+C	82	0.036583453104076964	XTandem_DecoyProbability	1	XTandem_Score=10.800000000000001	XTandem_score=10.800000000000001
+C	83	0.88543488160321537	XTandem_DecoyProbability	1	XTandem_Score=18.199999999999999	XTandem_score=18.199999999999999
+C	84	0.98817635106038648	XTandem_DecoyProbability	1	XTandem_Score=25.600000000000001	XTandem_score=25.600000000000001
+C	85	0.17932300815563579	XTandem_DecoyProbability	1	XTandem_Score=12.800000000000001	XTandem_score=12.800000000000001
+C	86	0.94964749232648438	XTandem_DecoyProbability	1	XTandem_Score=20.199999999999999	XTandem_score=20.199999999999999
+C	87	0.99212498309046171	XTandem_DecoyProbability	1	XTandem_Score=27.600000000000001	XTandem_score=27.600000000000001
+C	88	0.49920326910513768	XTandem_DecoyProbability	1	XTandem_Score=14.800000000000001	XTandem_score=14.800000000000001
+C	89	0.97334316356289663	XTandem_DecoyProbability	1	XTandem_Score=22.199999999999999	XTandem_score=22.199999999999999
+C	90	0.99476055828014753	XTandem_DecoyProbability	1	XTandem_Score=29.600000000000001	XTandem_score=29.600000000000001
+C	91	0.78290624621799132	XTandem_DecoyProbability	1	XTandem_Score=16.800000000000001	XTandem_score=16.800000000000001
+C	92	0.98430055525288584	XTandem_DecoyProbability	1	XTandem_Score=24.199999999999999	XTandem_score=24.199999999999999
+C	93	0.06171655949712871	XTandem_DecoyProbability	1	XTandem_Score=11.4	XTandem_score=11.4
+C	94	0.91188545726724712	XTandem_DecoyProbability	1	XTandem_Score=18.800000000000001	XTandem_score=18.800000000000001
+C	95	0.98953198336696135	XTandem_DecoyProbability	1	XTandem_Score=26.199999999999999	XTandem_score=26.199999999999999
+C	96	0.26090866387955292	XTandem_DecoyProbability	1	XTandem_Score=13.4	XTandem_score=13.4
+C	97	0.95928282022820088	XTandem_DecoyProbability	1	XTandem_Score=20.800000000000001	XTandem_score=20.800000000000001
+C	98	0.99303051088875849	XTandem_DecoyProbability	1	XTandem_Score=28.199999999999999	XTandem_score=28.199999999999999
+C	99	0.60034698371624451	XTandem_DecoyProbability	1	XTandem_Score=15.4	XTandem_score=15.4
+C	100	0.97703978612473497	XTandem_DecoyProbability	1	XTandem_Score=22.800000000000001	XTandem_score=22.800000000000001
+C	101	0.017361484511435186	XTandem_DecoyProbability	1	XTandem_Score=10	XTandem_score=10
+C	102	0.83524426715002786	XTandem_DecoyProbability	1	XTandem_Score=17.399999999999999	XTandem_score=17.399999999999999
+C	103	0.98609521058586158	XTandem_DecoyProbability	1	XTandem_Score=24.800000000000001	XTandem_score=24.800000000000001
+C	104	0.100377736646993	XTandem_DecoyProbability	1	XTandem_Score=12	XTandem_score=12
+C	105	0.93137341242936489	XTandem_DecoyProbability	1	XTandem_Score=19.399999999999999	XTandem_score=19.399999999999999
+C	106	0.99073340542164645	XTandem_DecoyProbability	1	XTandem_Score=26.800000000000001	XTandem_score=26.800000000000001
+C	107	0.35836948691779225	XTandem_DecoyProbability	1	XTandem_Score=14	XTandem_score=14
+C	108	0.96646970752854211	XTandem_DecoyProbability	1	XTandem_Score=21.399999999999999	XTandem_score=21.399999999999999
+C	109	0.99383242413135486	XTandem_DecoyProbability	1	XTandem_Score=28.800000000000001	XTandem_score=28.800000000000001
+C	110	0.68914957813313882	XTandem_DecoyProbability	1	XTandem_Score=16	XTandem_score=16
+C	111	0.98154827706817382	XTandem_DecoyProbability	1	XTandem_Score=23.399999999999999	XTandem_score=23.399999999999999
+C	112	0.030511278633291238	XTandem_DecoyProbability	1	XTandem_Score=10.6	XTandem_score=10.6
+C	113	0.87468032251082761	XTandem_DecoyProbability	1	XTandem_Score=18	XTandem_score=18
+C	114	0.9876869263683471	XTandem_DecoyProbability	1	XTandem_Score=25.399999999999999	XTandem_score=25.399999999999999
+C	115	0.1563711077993353	XTandem_DecoyProbability	1	XTandem_Score=12.6	XTandem_score=12.6
+C	116	0.94574351967697123	XTandem_DecoyProbability	1	XTandem_Score=20	XTandem_score=20
+C	117	0.9917978801781735	XTandem_DecoyProbability	1	XTandem_Score=27.399999999999999	XTandem_score=27.399999999999999
+C	118	0.46393189563189502	XTandem_DecoyProbability	1	XTandem_Score=14.6	XTandem_score=14.6
+C	119	0.97186053398497541	XTandem_DecoyProbability	1	XTandem_Score=22	XTandem_score=22
+C	120	0.99454245911160122	XTandem_DecoyProbability	1	XTandem_Score=29.399999999999999	XTandem_score=29.399999999999999
+C	121	0.76215393690449906	XTandem_DecoyProbability	1	XTandem_Score=16.600000000000001	XTandem_score=16.600000000000001
+C	122	0.98365298786541744	XTandem_DecoyProbability	1	XTandem_Score=24	XTandem_score=24
+C	123	0.052039780178576134	XTandem_DecoyProbability	1	XTandem_Score=11.199999999999999	XTandem_score=11.199999999999999
+C	124	0.90394768659208891	XTandem_DecoyProbability	1	XTandem_Score=18.600000000000001	XTandem_score=18.600000000000001
+C	125	0.98909815059443218	XTandem_DecoyProbability	1	XTandem_Score=26	XTandem_score=26
+C	126	0.2316840394426038	XTandem_DecoyProbability	1	XTandem_Score=13.199999999999999	XTandem_score=13.199999999999999
+C	127	0.95638192752821072	XTandem_DecoyProbability	1	XTandem_Score=20.600000000000001	XTandem_score=20.600000000000001
+C	128	0.9927408009441111	XTandem_DecoyProbability	1	XTandem_Score=28	XTandem_score=28
+C	129	0.56771393615708443	XTandem_DecoyProbability	1	XTandem_Score=15.199999999999999	XTandem_score=15.199999999999999
+C	130	0.97592128358856034	XTandem_DecoyProbability	1	XTandem_Score=22.600000000000001	XTandem_score=22.600000000000001
+C	131	0.99517105010583451	XTandem_DecoyProbability	1	XTandem_Score=30	XTandem_score=30
+C	132	0.81936499098112847	XTandem_DecoyProbability	1	XTandem_Score=17.199999999999999	XTandem_score=17.199999999999999
+C	133	0.98552072237547317	XTandem_DecoyProbability	1	XTandem_Score=24.600000000000001	XTandem_score=24.600000000000001
+C	134	0.085734514343015988	XTandem_DecoyProbability	1	XTandem_Score=11.800000000000001	XTandem_score=11.800000000000001
+C	135	0.92552706117833594	XTandem_DecoyProbability	1	XTandem_Score=19.199999999999999	XTandem_score=19.199999999999999
+C	136	0.99034895989669447	XTandem_DecoyProbability	1	XTandem_Score=26.600000000000001	XTandem_score=26.600000000000001
+C	137	0.32452310775294591	XTandem_DecoyProbability	1	XTandem_Score=13.800000000000001	XTandem_score=13.800000000000001
+C	138	0.96430142649548212	XTandem_DecoyProbability	1	XTandem_Score=21.199999999999999	XTandem_score=21.199999999999999
+C	139	0.99357587979077466	XTandem_DecoyProbability	1	XTandem_Score=28.600000000000001	XTandem_score=28.600000000000001
+C	140	0.66121627908932212	XTandem_DecoyProbability	1	XTandem_Score=15.800000000000001	XTandem_score=15.800000000000001
+C	141	0.9789842984236905	XTandem_DecoyProbability	1	XTandem_Score=23.199999999999999	XTandem_score=23.199999999999999
+C	142	0.025362784747946805	XTandem_DecoyProbability	1	XTandem_Score=10.4	XTandem_score=10.4
+C	143	0.86279841484822817	XTandem_DecoyProbability	1	XTandem_Score=17.800000000000001	XTandem_score=17.800000000000001
+C	144	0.98717746656039662	XTandem_DecoyProbability	1	XTandem_Score=25.199999999999999	XTandem_score=25.199999999999999
+C	145	0.13559809286850183	XTandem_DecoyProbability	1	XTandem_Score=12.4	XTandem_score=12.4
+C	146	0.94142798636681613	XTandem_DecoyProbability	1	XTandem_Score=19.800000000000001	XTandem_score=19.800000000000001
+C	147	0.99145728508737341	XTandem_DecoyProbability	1	XTandem_Score=27.199999999999999	XTandem_score=27.199999999999999
+C	148	0.42844974325333995	XTandem_DecoyProbability	1	XTandem_Score=14.4	XTandem_score=14.4
+C	149	0.9702312024167784	XTandem_DecoyProbability	1	XTandem_Score=21.800000000000001	XTandem_score=21.800000000000001
+C	150	0.99431532017516799	XTandem_DecoyProbability	1	XTandem_Score=29.199999999999999	XTandem_score=29.199999999999999
+C	151	0.73963055011231649	XTandem_DecoyProbability	1	XTandem_Score=16.399999999999999	XTandem_score=16.399999999999999
+C	152	0.98297911406482219	XTandem_DecoyProbability	1	XTandem_Score=23.800000000000001	XTandem_score=23.800000000000001
+C	153	0.043712105788678277	XTandem_DecoyProbability	1	XTandem_Score=11	XTandem_score=11
+C	154	0.89515978494354598	XTandem_DecoyProbability	1	XTandem_Score=18.399999999999999	XTandem_score=18.399999999999999
+C	155	0.98864651158565753	XTandem_DecoyProbability	1	XTandem_Score=25.800000000000001	XTandem_score=25.800000000000001
+C	156	0.20444792787999461	XTandem_DecoyProbability	1	XTandem_Score=13	XTandem_score=13
+C	157	0.95318125096613793	XTandem_DecoyProbability	1	XTandem_Score=20.399999999999999	XTandem_score=20.399999999999999
+C	158	0.99243912096428588	XTandem_DecoyProbability	1	XTandem_Score=27.800000000000001	XTandem_score=27.800000000000001
+C	159	0.53390559731608678	XTandem_DecoyProbability	1	XTandem_Score=15	XTandem_score=15
+C	160	0.97469269543748593	XTandem_DecoyProbability	1	XTandem_Score=22.399999999999999	XTandem_score=22.399999999999999
+C	161	0.99496997433171108	XTandem_DecoyProbability	1	XTandem_Score=29.800000000000001	XTandem_score=29.800000000000001
+C	162	0.80194983323683433	XTandem_DecoyProbability	1	XTandem_Score=17	XTandem_score=17
+C	163	0.98492281296184525	XTandem_DecoyProbability	1	XTandem_Score=24.399999999999999	XTandem_score=24.399999999999999
+C	164	0.072896780046095261	XTandem_DecoyProbability	1	XTandem_Score=11.6	XTandem_score=11.6
+C	165	0.91905378831668638	XTandem_DecoyProbability	1	XTandem_Score=19	XTandem_score=19
+C	166	0.98994869872085545	XTandem_DecoyProbability	1	XTandem_Score=26.399999999999999	XTandem_score=26.399999999999999
+C	167	0.29193671067700488	XTandem_DecoyProbability	1	XTandem_Score=13.6	XTandem_score=13.6
+C	168	0.96191375543282853	XTandem_DecoyProbability	1	XTandem_Score=21	XTandem_score=21
+C	169	0.99330872006009507	XTandem_DecoyProbability	1	XTandem_Score=28.399999999999999	XTandem_score=28.399999999999999
+C	170	0.63157371212193225	XTandem_DecoyProbability	1	XTandem_Score=15.6	XTandem_score=15.6
+C	171	0.97805790297534767	XTandem_DecoyProbability	1	XTandem_Score=23	XTandem_score=23
+C	172	0.02101622395709252	XTandem_DecoyProbability	1	XTandem_Score=10.199999999999999	XTandem_score=10.199999999999999
+C	173	0.84968761541958937	XTandem_DecoyProbability	1	XTandem_Score=17.600000000000001	XTandem_score=17.600000000000001
+C	174	0.98664717143861358	XTandem_DecoyProbability	1	XTandem_Score=25	XTandem_score=25
+C	175	0.11696118649890311	XTandem_DecoyProbability	1	XTandem_Score=12.199999999999999	XTandem_score=12.199999999999999
+C	176	0.93665493732198513	XTandem_DecoyProbability	1	XTandem_Score=19.600000000000001	XTandem_score=19.600000000000001
+C	177	0.99110264995097364	XTandem_DecoyProbability	1	XTandem_Score=27	XTandem_score=27
+C	178	0.39313489039990029	XTandem_DecoyProbability	1	XTandem_Score=14.199999999999999	XTandem_score=14.199999999999999
+C	179	0.96843994142890111	XTandem_DecoyProbability	1	XTandem_Score=21.600000000000001	XTandem_score=21.600000000000001
+C	180	0.99407877047714621	XTandem_DecoyProbability	1	XTandem_Score=29	XTandem_score=29
+C	181	0.71529805500604859	XTandem_DecoyProbability	1	XTandem_Score=16.199999999999999	XTandem_score=16.199999999999999
+C	182	0.98227790069040621	XTandem_DecoyProbability	1	XTandem_Score=23.600000000000001	XTandem_score=23.600000000000001
+C	183	0.036583453104076964	XTandem_DecoyProbability	1	XTandem_Score=10.800000000000001	XTandem_score=10.800000000000001
+C	184	0.88543488160321537	XTandem_DecoyProbability	1	XTandem_Score=18.199999999999999	XTandem_score=18.199999999999999
+C	185	0.98817635106038648	XTandem_DecoyProbability	1	XTandem_Score=25.600000000000001	XTandem_score=25.600000000000001
+C	186	0.17932300815563579	XTandem_DecoyProbability	1	XTandem_Score=12.800000000000001	XTandem_score=12.800000000000001
+C	187	0.94964749232648438	XTandem_DecoyProbability	1	XTandem_Score=20.199999999999999	XTandem_score=20.199999999999999
+C	188	0.99212498309046171	XTandem_DecoyProbability	1	XTandem_Score=27.600000000000001	XTandem_score=27.600000000000001
+C	189	0.49920326910513768	XTandem_DecoyProbability	1	XTandem_Score=14.800000000000001	XTandem_score=14.800000000000001
+C	190	0.97334316356289663	XTandem_DecoyProbability	1	XTandem_Score=22.199999999999999	XTandem_score=22.199999999999999
+C	191	0.99476055828014753	XTandem_DecoyProbability	1	XTandem_Score=29.600000000000001	XTandem_score=29.600000000000001
+C	192	0.78290624621799132	XTandem_DecoyProbability	1	XTandem_Score=16.800000000000001	XTandem_score=16.800000000000001
+C	193	0.98430055525288584	XTandem_DecoyProbability	1	XTandem_Score=24.199999999999999	XTandem_score=24.199999999999999
+C	194	0.06171655949712871	XTandem_DecoyProbability	1	XTandem_Score=11.4	XTandem_score=11.4
+C	195	0.91188545726724712	XTandem_DecoyProbability	1	XTandem_Score=18.800000000000001	XTandem_score=18.800000000000001
+C	196	0.98953198336696135	XTandem_DecoyProbability	1	XTandem_Score=26.199999999999999	XTandem_score=26.199999999999999
+C	197	0.26090866387955292	XTandem_DecoyProbability	1	XTandem_Score=13.4	XTandem_score=13.4
+C	198	0.95928282022820088	XTandem_DecoyProbability	1	XTandem_Score=20.800000000000001	XTandem_score=20.800000000000001
+C	199	0.99303051088875849	XTandem_DecoyProbability	1	XTandem_Score=28.199999999999999	XTandem_score=28.199999999999999

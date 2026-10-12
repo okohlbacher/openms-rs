@@ -1,0 +1,325 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h",
+   "sha256": "4cfee83d36a9a46e7a6ab34de3199316569b3f713cf29fe58232bcf275360fbf"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h",
+   "sha256": "336055e995dfcd23d1c3c054a1b4779c8e4cc86ef50592facbfa362f6307ded5"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmBest.h",
+   "sha256": "42a5c7d15d4e7114ad6a6136f4ecedb932e68115d78e11ee26edf3b64cb09479"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h",
+   "sha256": "6dea47254cdf9a1bb722da6dfdd328e72130dae7e4d8b723893e36871b3424be"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.h",
+   "sha256": "131790d5b04b878af910d1cbc59a0d8d75eca1e6a6b89290276e1088fa6307e2"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.h",
+   "sha256": "884cce5690dada9891f0ecebc69f6ced8b478ce9b7d8cac357fb6e65d35a175d"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h",
+   "sha256": "ddbd2dea7179aad727e35bc3ec917f560273ef4118675625d94b12a5ffd00f39"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h",
+   "sha256": "5615d484dc0e1479eb52d367773c3371e7b10ec8323eb6c84e0757f6937ccd19"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmWorst.h",
+   "sha256": "c7d1fa704d5b39dd9ecc60d21325f3a27230f32bc362bc02cbadfa270517870e"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithm.cpp",
+   "sha256": "27f1fb532328f74e6fd597e7437f86c81fb42b44fedcdd23e66c721ec23bfb96"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmAverage.cpp",
+   "sha256": "9b750338291976aee5a692b3fcccf85e19327f4a8dc75b552833c5fec3aa948f"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmBest.cpp",
+   "sha256": "146abb7ecb60021662f6e159301092a9537b7926d76581768812ab1fac015ae5"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.cpp",
+   "sha256": "ecc3046a7dcdacb254a7ee230841b8214e5a1d8352cc7cca17ab0da5df111af9"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmPEPIons.cpp",
+   "sha256": "dfc8a5784ab32a295ced62ede38f3b58cbc798d03a542e3f95f04d5eeadd7c11"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmPEPMatrix.cpp",
+   "sha256": "011f2aa88c68484481b3e0a2d97014cc049c5318a5f90bf6b748672d9a54febe"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmRanks.cpp",
+   "sha256": "8c214e4de871c34bd809001b213725e294f7e3c021ff8a64476e473a37715dd6"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.cpp",
+   "sha256": "aba2bc1f4be14495a1e23d71fbbeb2ac6a538c69f25e08a39a750ace716fe362"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusIDAlgorithmWorst.cpp",
+   "sha256": "8ac4de2e5337fc765bb51c1f10515aa78edc0337c18eb0ba740126563d2e39c8"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/SEQUENCE/NeedlemanWunsch.h",
+   "sha256": "22e4f47bc030550c4b953887dd2df04490b5f8a56ad710ea67d0846ee8b02ed0"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/SEQUENCE/NeedlemanWunsch.cpp",
+   "sha256": "cb15934f5649d37a21ec09c55e115e776e32f22a93850acd1039b331a4a6a58c"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/Scores.h",
+   "sha256": "8e5c35a89ae69c74cf9e1a610481cb6b88b7bce062941e62da783ac3c1f790d4"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/Scores.cpp",
+   "sha256": "6c2863d4b5b7e82d8ab3119c8f6d82b561d607f6ac5e3d2686f2b2031d18ac18"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h",
+   "sha256": "29bd365bcf1ecaa58ecd5b0f474ca9b3796bc74a76ea979e88dc3959a7ab7c7e"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/IDScoreSwitcherAlgorithm.cpp",
+   "sha256": "25f607ddbf65381c30d19d77b7e94853620fe83fba2eb460b3e340a3c4191198"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h",
+   "sha256": "d180ab8f5626a65dc1cfe3c1e342f9c6881362b6978e11f574bc5a2a92d23391"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/IDMergerAlgorithm.cpp",
+   "sha256": "9cae19022888defd515d4f2cc26e46a6755ed41a7621c10bfba9cbe5fe48031f"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h",
+   "sha256": "7178db1d4a28c3eeee0e5074d2025337b9dfb012c0ead78e05fcc601347411b4"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/ConsensusMapMergerAlgorithm.cpp",
+   "sha256": "bf367d7483ab01c0d610b06097fa6a5f3c7e5d9e13268937a15cbc8e08cbe8a7"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/PeptideProteinResolution.h",
+   "sha256": "0cdb2a801509443d275bd0eee3838cc3b84c954fcfa8deaae3db14d131057837"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/PeptideProteinResolution.cpp",
+   "sha256": "cf0fa7ead8ca8b1a06b9ef9fe3dc48c8843eaf915bf35d0b0cbafda369d78f51"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/IDDecoyProbability.h",
+   "sha256": "5dee6ac2fb0d7ddf1b5262d82ddf4fc2b4a38523a8224d0f337354ddd66de38f"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/IDDecoyProbability.cpp",
+   "sha256": "7d4b812d90e376a93b7a422fe0f217e75e7c95db565f86a305934f11f8dda823"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusIDAlgorithmAverage_test.cpp",
+   "sha256": "febe3b47c7c0679ad099225dbe53f0bb644b2b46cad42bf89f927e07ed3fd893"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusIDAlgorithmBest_test.cpp",
+   "sha256": "273b5cbed46a7dcd71f35d41b86d960e0e6e5f3980f9dbd8465103de5fb7d980"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusIDAlgorithmPEPIons_test.cpp",
+   "sha256": "03958a770f7c1f2b8d206690b891b8824b8bb9141325b9353808a5407c1a1398"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusIDAlgorithmPEPMatrix_test.cpp",
+   "sha256": "0aafa977d29e4089ba57acc8c8b140657c1a6b2007df65be64bc093006967a17"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusIDAlgorithmRanks_test.cpp",
+   "sha256": "ddd62bc468f70aefd025f70ab7d94de42fe0c4b2316ee0b0140746a42a4fc0fe"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusIDAlgorithmWorst_test.cpp",
+   "sha256": "c58b838c68b155a3c20e2589b01fcb3655f2e597d3781fcfceb52052e36fd3da"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/NeedlemanWunsch_test.cpp",
+   "sha256": "ea6553434d791e20a31d040c0b9b01fd4ac0a405da421e9358b51470140482f3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Scores_test.cpp",
+   "sha256": "51c7ec539daa0f214c28bc009d2c8f7607e7b9e851562520062b93b699f20014"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IDScoreSwitcherAlgorithm_test.cpp",
+   "sha256": "210967ee355df248ab0acdc9ae0eadb746d4106179204156ab64321fbbb90597"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IDMergerAlgorithm_test.cpp",
+   "sha256": "688f0333de789d9b227b248df6ed5fa09f853f4f685b3411d00ec7a141260fb3"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusMapMergerAlgorithm_test.cpp",
+   "sha256": "c37424fe5816a36f6bdb038753a71c67eb2f20d63202fddc58db377e0547c391"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PeptideProteinResolution_test.cpp",
+   "sha256": "04f5a8d8b6421b2cf246e24bf8994063e786cee4f33e3d9abf39192e62da8a8a"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/IDDecoyProbability_test.cpp",
+   "sha256": "cf5e5efc236958b07548ce7d42d355734eed907c47cf7ceaba5be9dea6e019a6"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/id/consensus_id.rs",
+  "src/analysis/id/needleman_wunsch.rs",
+  "src/analysis/scores.rs",
+  "src/analysis/id/id_score_switcher.rs",
+  "src/analysis/id/id_merger.rs",
+  "src/analysis/id/consensus_map_merger.rs",
+  "src/analysis/id/peptide_protein_resolution.rs",
+  "src/analysis/id/id_decoy_probability.rs"
+ ],
+ "native_tests": [
+  "tests/consensus_id.rs",
+  "tests/scores_class_test.rs",
+  "tests/id_score_switcher.rs",
+  "tests/id_merger.rs",
+  "tests/consensus_map_merger.rs",
+  "tests/peptide_protein_resolution.rs",
+  "tests/id_decoy_probability.rs"
+ ],
+ "support_document": "docs/ID_CONSENSUS_MERGE_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/ConsensusID_1_input.idXML",
+   "sha256": "2486cbca7250aef31710e24f056135c5d7a78d633ecbf2102e8e6709fb1bbb50",
+   "origin": "test-data 0cb15f2 topp/ (working tree bad3c3c; hits confirmed by the Release TOPP run)",
+   "kind": "TOPP_ConsensusID_1/4/5/6 input"
+  },
+  {
+   "path": "tests/data/ConsensusID_1_output.idXML",
+   "sha256": "72d0311271e1d97e1bc9f0ad169e12afad7cb528fa90e1289e1a99d725ab05d5",
+   "origin": "test-data topp/",
+   "kind": "TOPP_ConsensusID_1 expected output (PEPMatrix PAM30MS)"
+  },
+  {
+   "path": "tests/data/ConsensusID_4_output.idXML",
+   "sha256": "d6a4e9702656a79d84ec2567631c96a32f78c0a47832cba877cf675e03c5c291",
+   "origin": "test-data topp/",
+   "kind": "TOPP_ConsensusID_4 expected output (PEPMatrix identity, considered_hits 6)"
+  },
+  {
+   "path": "tests/data/ConsensusID_5_output.idXML",
+   "sha256": "15df0f88ae42bb4a4b4ae91f5bb64f6eb6e809a18591ff53e365541c058f03ee",
+   "origin": "test-data topp/",
+   "kind": "TOPP_ConsensusID_5 expected output (PEPIons)"
+  },
+  {
+   "path": "tests/data/ConsensusID_6_output.idXML",
+   "sha256": "1a3e6e83c1400f0c33a671511737c27862b83f927829491fc33eb3447bc57fd1",
+   "origin": "test-data topp/",
+   "kind": "TOPP_ConsensusID_6 expected output (best, min_support 0.5)"
+  },
+  {
+   "path": "tests/data/IDScoreSwitcher_2_input.idXML",
+   "sha256": "6a637d54cdacdcbaf5709542e2185fffd0eee7e34cfa00af4ded532550cb287e",
+   "origin": "test-data topp/",
+   "kind": "TOPP_IDScoreSwitcher_2 input"
+  },
+  {
+   "path": "tests/data/IDScoreSwitcher_2_output.idXML",
+   "sha256": "575f8c95a75500dacd8861dd64c3c82162b8d3edb3eea495859a2723a8b393f6",
+   "origin": "test-data topp/",
+   "kind": "TOPP_IDScoreSwitcher_2 expected output"
+  },
+  {
+   "path": "tests/data/newIDMergerTest1.idXML",
+   "sha256": "2005ed3ae62fed30a67fc3f3360358b597503f26ffefe9353a1959cffefc90d0",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "IDMergerAlgorithm_test.cpp fixture"
+  },
+  {
+   "path": "tests/data/newIDMergerTest2.idXML",
+   "sha256": "0564f0f222f423a2d2d19c302bc7d7779d97d321ba72cf01ee3319bb62e01583",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "IDMergerAlgorithm_test.cpp fixture"
+  },
+  {
+   "path": "tests/data/BSA.consensusXML",
+   "sha256": "28fc03fcacb37c8dd1247f8dd8578636157d8ef9a796a05239d025ea01316935",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "ConsensusMapMergerAlgorithm_test.cpp fixture"
+  },
+  {
+   "path": "tests/data/PeptideProteinResolution_in.idXML",
+   "sha256": "4b6573bebbd823d8ff36331ca8a75cdffbfca349ba12d54a43c755df1258567a",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "PeptideProteinResolution_test.cpp input"
+  },
+  {
+   "path": "tests/data/PeptideProteinResolution_in2.idXML",
+   "sha256": "4277f6e5034850f8575618b2fe26f4c4a91c965343df6e58bec6053cbc84a475",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "PeptideProteinResolution_test.cpp input"
+  },
+  {
+   "path": "tests/data/PeptideProteinResolution_out.idXML",
+   "sha256": "1f53ca4be81254e2e2421047e49a8bf950fd98b5961d092073ac1c176c9b8af4",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "PeptideProteinResolution_test.cpp expected output"
+  },
+  {
+   "path": "tests/data/PeptideProteinResolution_out2.idXML",
+   "sha256": "d3af57dfe958934b2eb19833b574cca5edbcfd456704847d6c22edfd2d1294d5",
+   "origin": "core bc9cc12 src/tests/class_tests/openms/data/",
+   "kind": "PeptideProteinResolution_test.cpp expected output"
+  },
+  {
+   "path": "tests/data/IDDecoyProbability_oracle_ibminode06.tsv",
+   "sha256": "804014f9e4a720570165d45b307870e08f841d49ce365650617114b747256ce1",
+   "origin": "executed oracle ../oracle/I1-iddecoy on ibminode06, Linux x86_64 Release openms4-release-bc9cc12-c19e494-174b576, two identical runs",
+   "kind": "tier 1 executed differential"
+  }
+ ],
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I1-consensusid/remote_run.sh",
+   "sha256": "3c8c2dfee9ec42772d5bc0cb51b1426d9b401176b20ced5a27c895e06af46aac",
+   "location": "outside this repository",
+   "origin_key": "reference_tools",
+   "note": "Release TOPP ConsensusID on ibminode06, TOPP_ConsensusID_1/4/5/6 arguments, two runs identical but for the run date"
+  },
+  {
+   "path": "../oracle/I1-iddecoy/driver.cpp",
+   "sha256": "4b4ece376f057e295fac65e29e2ce6b49f0031f15e481483e4d609b08bbcda19",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  },
+  {
+   "path": "../oracle/I1-iddecoy/remote_run.sh",
+   "sha256": "1a5c32f06ad1cd59378919f739a675b93cebbfebcef54f69ebe637506ad13bcb",
+   "location": "outside this repository",
+   "origin_key": "reference_tools"
+  }
+ ],
+ "external_reference_note": "The I1 oracle driver and run scripts are C++/shell kept outside the repository under ../oracle/I1-consensusid and ../oracle/I1-iddecoy; they ran on ibminode06 against the Linux x86_64 Release install openms4-release-bc9cc12-c19e494-174b576 (libOpenMS.so sha256 abd4fc99..., see verification_record), two runs each.",
+ "verification_record": {
+  "host": "ibminode06 (Linux x86_64), Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "libOpenMS.so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) 14.4.0"
+ }
+}

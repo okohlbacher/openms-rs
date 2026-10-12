@@ -1,0 +1,33 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "license": "BSD-3-Clause",
+ "method": "Transcription of the upstream class test MetaboliteSpectralMatching_test.cpp: its two-compound library (makeLibrary), its parameters (makeParams: 1 Da precursor, 0.5 Da fragment, top3, merge_spectra false), its four CCS scenarios and its computeHyperScore section; plus values derived by hand from the source formula (dot product and ln(N!) of the class-test spectra, the exportMzTab_ cells with StringUtils::toStr(double) = to_chars fixed 15 digits trimmed and std::ostream %g precision 6) and native error cases. The upstream TOPP MetaboliteSpectralMatcher has no test at test-data 0cb15f2.",
+ "evidence_tier": "Tier 3 (transcribed class-test literals) for spectral_match_ccs_fields, default_parameters, the four ccs_filtering_* tests and hyper_score_matches_class_test's positivity and empty-spectrum checks; tier 4 (independently derived from the source text) for exported_rows_follow_the_source, the exact hyperscore values, annotations, modes and error cases, and the factorial unit test.",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h",
+   "sha256": "03a3a6dc26bbca7ffacd5ab50320f90ac9913b43f7a94269e937f0694b2b8a3c"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/MetaboliteSpectralMatching.cpp",
+   "sha256": "e1ec05486538ef84390b28c8c008ed1e80d7c6d6c7093e41c757cc42ee487b59"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/MetaboliteSpectralMatching_test.cpp",
+   "sha256": "10886e1882b01c4b6898a501d6b78870972996cfdee0d0e2dd1b32e8330e84d1"
+  },
+  {
+   "path": "src/common/include/OpenMS/CONCEPT/Detail/NumericFormatting.h",
+   "sha256": "09183d8013ddd734ebf87460f7475e68c78e989e28c8e890211bce29a372585a"
+  }
+ ],
+ "fixtures": [],
+ "native_implementation": [
+  "src/analysis/id/metabolite_spectral_matching.rs"
+ ],
+ "native_tests": [
+  "tests/metabolite_spectral_matching.rs"
+ ],
+ "support_document": "docs/ID_MAPPER_SUPPORT.md"
+}

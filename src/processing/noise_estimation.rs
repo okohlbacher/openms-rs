@@ -522,187 +522,20 @@ pub fn estimate_noise_from_random_scans(
 ///   stops there at the latest.
 /// * The heap functions index by explicit lengths only.
 ///
-/// The Rust loops below carry explicit bounds that, by this argument, never
-/// decide anything.
+/// The Rust loops of the shared transcription,
+/// [`crate::math::libstdcxx::nth_element_by`], carry explicit bounds that, by
+/// this argument, never decide anything. It was written here for `float` and
+/// generalised when the pose-clustering superimposers and the kd-tree of
+/// feature grouping needed the same permutation; the 390-vector oracle below
+/// still pins it.
 pub(crate) mod libstdcxx {
-    /// `__gnu_cxx::__ops::__iter_less_iter` and friends: `lhs < rhs`.
-    fn lt(a: f32, b: f32) -> bool {
-        a < b
-    }
-
     /// `std::nth_element(v.begin(), v.begin() + nth, v.end())`. An `nth` of
     /// `v.len()` or more returns at once, as the library does for
-    /// `nth == last` (callers never pass more).
+    /// `nth == last` (callers never pass more). The one transcription of the
+    /// library's introselect is [`crate::math::libstdcxx::nth_element_by`];
+    /// this is it under `<` on `float`.
     pub(crate) fn nth_element(v: &mut [f32], nth: usize) {
-        let n = v.len();
-        if n == 0 || nth >= n {
-            return;
-        }
-        // `std::__lg(last - first) * 2`; n > 0.
-        let lg = (usize::BITS - 1 - n.leading_zeros()) as usize;
-        introselect(v, 0, nth, n, lg * 2);
-    }
-
-    fn introselect(v: &mut [f32], mut first: usize, nth: usize, mut last: usize, mut depth: usize) {
-        while last - first > 3 {
-            if depth == 0 {
-                heap_select(v, first, nth + 1, last);
-                // Place the nth largest element in its final position.
-                v.swap(first, nth);
-                return;
-            }
-            depth -= 1;
-            let cut = unguarded_partition_pivot(v, first, last);
-            if cut <= nth {
-                first = cut;
-            } else {
-                last = cut;
-            }
-        }
-        insertion_sort(v, first, last);
-    }
-
-    fn unguarded_partition_pivot(v: &mut [f32], first: usize, last: usize) -> usize {
-        let mid = first + (last - first) / 2;
-        move_median_to_first(v, first, first + 1, mid, last - 1);
-        unguarded_partition(v, first + 1, last, first)
-    }
-
-    /// Swaps the median of `v[a]`, `v[b]` and `v[c]` under `<` into `result`.
-    fn move_median_to_first(v: &mut [f32], result: usize, a: usize, b: usize, c: usize) {
-        let median = if lt(v[a], v[b]) {
-            if lt(v[b], v[c]) {
-                b
-            } else if lt(v[a], v[c]) {
-                c
-            } else {
-                a
-            }
-        } else if lt(v[a], v[c]) {
-            a
-        } else if lt(v[b], v[c]) {
-            c
-        } else {
-            b
-        };
-        v.swap(result, median);
-    }
-
-    fn unguarded_partition(
-        v: &mut [f32],
-        mut first: usize,
-        mut last: usize,
-        pivot: usize,
-    ) -> usize {
-        let end = last;
-        loop {
-            while first < end && lt(v[first], v[pivot]) {
-                first += 1;
-            }
-            last -= 1;
-            while last > pivot && lt(v[pivot], v[last]) {
-                last -= 1;
-            }
-            if first >= last {
-                return first;
-            }
-            v.swap(first, last);
-            first += 1;
-        }
-    }
-
-    fn insertion_sort(v: &mut [f32], first: usize, last: usize) {
-        if first == last {
-            return;
-        }
-        for i in first + 1..last {
-            if lt(v[i], v[first]) {
-                let value = v[i];
-                // _GLIBCXX_MOVE_BACKWARD3(first, i, i + 1)
-                v.copy_within(first..i, first + 1);
-                v[first] = value;
-            } else {
-                unguarded_linear_insert(v, first, i);
-            }
-        }
-    }
-
-    /// `__unguarded_linear_insert(last)` with `__val_comp_iter`; `floor` is
-    /// the range's first element, which the caller found not greater.
-    fn unguarded_linear_insert(v: &mut [f32], floor: usize, mut last: usize) {
-        let value = v[last];
-        let mut next = last - 1;
-        while lt(value, v[next]) {
-            v[last] = v[next];
-            last = next;
-            if next == floor {
-                break;
-            }
-            next -= 1;
-        }
-        v[last] = value;
-    }
-
-    fn heap_select(v: &mut [f32], first: usize, middle: usize, last: usize) {
-        make_heap(v, first, middle);
-        for i in middle..last {
-            if lt(v[i], v[first]) {
-                pop_heap(v, first, middle, i);
-            }
-        }
-    }
-
-    fn make_heap(v: &mut [f32], first: usize, last: usize) {
-        if last - first < 2 {
-            return;
-        }
-        let len = last - first;
-        let mut parent = (len - 2) / 2;
-        loop {
-            let value = v[first + parent];
-            adjust_heap(v, first, parent, len, value);
-            if parent == 0 {
-                return;
-            }
-            parent -= 1;
-        }
-    }
-
-    fn adjust_heap(v: &mut [f32], first: usize, mut hole: usize, len: usize, value: f32) {
-        let top = hole;
-        let mut second = hole;
-        while second < (len - 1) / 2 {
-            second = 2 * (second + 1);
-            if lt(v[first + second], v[first + second - 1]) {
-                second -= 1;
-            }
-            v[first + hole] = v[first + second];
-            hole = second;
-        }
-        if len & 1 == 0 && second == (len - 2) / 2 {
-            second = 2 * (second + 1);
-            v[first + hole] = v[first + second - 1];
-            hole = second - 1;
-        }
-        push_heap(v, first, hole, top, value);
-    }
-
-    fn pop_heap(v: &mut [f32], first: usize, last: usize, result: usize) {
-        let value = v[result];
-        v[result] = v[first];
-        adjust_heap(v, first, 0, last - first, value);
-    }
-
-    /// `__push_heap` with `__iter_comp_val`; `(hole - 1) / 2` truncates
-    /// toward zero in the signed source, so a hole of `0` has parent `0`.
-    fn push_heap(v: &mut [f32], first: usize, mut hole: usize, top: usize, value: f32) {
-        let mut parent = hole.saturating_sub(1) / 2;
-        while hole > top && lt(v[first + parent], value) {
-            v[first + hole] = v[first + parent];
-            hole = parent;
-            parent = hole.saturating_sub(1) / 2;
-        }
-        v[first + hole] = value;
+        crate::math::libstdcxx::nth_element_by(v, nth, |a: &f32, b: &f32| a < b);
     }
 
     #[cfg(test)]

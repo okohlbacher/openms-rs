@@ -1,0 +1,15 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {"path": "src/openms/include/OpenMS/ANALYSIS/ID/NeighborSeq.h", "sha256": "40ca8fd91f18e4ba82736a82a2a20b5fb06c026f73a2129a49c3957c738b162e"},
+  {"path": "src/openms/source/ANALYSIS/ID/NeighborSeq.cpp", "sha256": "340bb762784839749137424a1412485d32191bbadcec3bbfd61ea772bed3360d"},
+  {"path": "src/tests/class_tests/openms/source/NeighborSeq_test.cpp", "sha256": "d4793eaf68a4ae14efddd5c1d17abbad7b73fc2a4f4c82bb83a79e68d73615fb"}
+ ],
+ "fixtures": [],
+ "native_implementation": ["src/analysis/id/neighbor_seq.rs"],
+ "native_tests": ["tests/neighbor_seq.rs"],
+ "support_document": "docs/NEIGHBOR_SEQ_SUPPORT.md",
+ "evidence_tier": "Tier 3 (transcribed class-test literals, NeighborSeq_test.cpp:26-245, every section) for the six class-test tests; tier 4 (independently derived invariants: X peptides unfindable, closed ppm/Da windows, refused invalid tolerances, empty spectra) for the other four.",
+ "verification_record": "cargo test --locked --no-default-features --test neighbor_seq on dax: 10 passed"
+}

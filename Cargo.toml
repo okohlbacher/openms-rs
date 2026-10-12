@@ -51,6 +51,11 @@ path = "src/bin/FeatureFinderCentroided.rs"
 required-features = ["mzml", "paramxml", "featurexml"]
 
 [[bin]]
+name = "FeatureFinderLFQ"
+path = "src/bin/FeatureFinderLFQ.rs"
+required-features = ["mzml", "paramxml", "featurexml"]
+
+[[bin]]
 name = "FuzzyDiff"
 path = "src/bin/FuzzyDiff.rs"
 required-features = ["paramxml"]

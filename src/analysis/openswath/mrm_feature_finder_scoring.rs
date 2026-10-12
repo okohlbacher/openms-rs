@@ -727,6 +727,18 @@ impl MRMFeatureFinderScoring {
         self.ids = Arc::new(Mutex::new(generator));
     }
 
+    /// Draw feature IDs from a generator the caller keeps a handle on.
+    ///
+    /// The source draws every ID from one process-wide generator, which the
+    /// callers of this finder (`FeatureFinderIdentification` and
+    /// `FeatureFinderMetaboIdent`) also draw from: the IDs of offset peptides
+    /// and of the map itself interleave with the feature IDs in one stream.
+    /// Sharing the handle reproduces that stream; the finder keeps the handle
+    /// across [`set_parameters`](Self::set_parameters).
+    pub fn set_shared_unique_id_generator(&mut self, generator: Arc<Mutex<UniqueIdGenerator>>) {
+        self.ids = generator;
+    }
+
     /// Pick and score the features of one experiment given as OpenMS
     /// structures (source `pickExperiment(const PeakMap&, FeatureMap&,
     /// const TargetedExperiment&, ...)`, the overload "for wrapping in

@@ -412,6 +412,8 @@ pub mod search_engine_xml;
 pub mod sequest_infile;
 /// Sequest `.out` result files (`SequestOutfile.h`).
 pub mod sequest_outfile;
+/// Fragment annotations from a SIRIUS project space (`SiriusFragmentAnnotation`).
+pub mod sirius_fragment_annotation;
 /// SpecArray `.pepList` feature files (`SpecArrayFile.h`).
 pub mod spec_array_file;
 /// sqMass (SQLite) experiment files over the SQLite handler (`SqMassFile.h`).

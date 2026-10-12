@@ -63,6 +63,7 @@
 // algorithm that this module exists to preserve.
 #![allow(clippy::needless_range_loop)]
 
+use crate::math::libstdcxx::{std_max, std_min};
 use crate::{Error, Result};
 
 /// Largest number of (x, y) observations a fitter accepts.
@@ -395,7 +396,11 @@ pub(crate) fn eigen_dot(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize)
 /// (`GeneralMatrixVector.h:298-462`): two lanes multiply-added over the
 /// packet-aligned prefix starting from zero, the lanes added, then a scalar
 /// tail. The `1 * cc` scaling and the addition to a zeroed result are exact.
-fn eigen_gemv_row(size: usize, a: impl Fn(usize) -> f64, b: impl Fn(usize) -> f64) -> f64 {
+pub(crate) fn eigen_gemv_row(
+    size: usize,
+    a: impl Fn(usize) -> f64,
+    b: impl Fn(usize) -> f64,
+) -> f64 {
     let full = size / 2 * 2;
     let (mut lane0, mut lane1) = (0.0f64, 0.0f64);
     let mut j = 0;
@@ -560,19 +565,6 @@ pub fn blue_norm(v: &[f64]) -> f64 {
         let ratio = small / large;
         large * (1.0 + ratio * ratio).sqrt()
     }
-}
-
-/// `(std::max)(a, b)` as Eigen's solver calls it: `a < b ? b : a`. Unlike
-/// `f64::max`, a NaN in `a` is returned and a NaN in `b` is ignored.
-#[inline]
-fn std_max(a: f64, b: f64) -> f64 {
-    if a < b { b } else { a }
-}
-
-/// `(std::min)(a, b)`: `b < a ? b : a`, with `std_max`'s NaN asymmetry.
-#[inline]
-fn std_min(a: f64, b: f64) -> f64 {
-    if b < a { b } else { a }
 }
 
 /// Column-pivoted Householder QR, reproducing `Eigen::ColPivHouseholderQR`.

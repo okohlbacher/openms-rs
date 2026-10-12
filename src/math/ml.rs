@@ -9,6 +9,8 @@
 //! types belongs in the analysis domain that uses it instead, because `math`
 //! is a sink in the module graph and must stay one.
 
+/// Hierarchical and grid-based clustering (source `ML/CLUSTERING`).
+pub mod clustering;
 /// `LinearInterpolation`: linearly interpolated values and derivatives.
 pub mod linear_interpolation;
 /// `LinearRegression`: least-squares line fits with goodness-of-fit statistics.

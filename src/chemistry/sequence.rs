@@ -345,6 +345,53 @@ impl AASequence {
         self.formula_for_with_budget(fragment, charge, &mut 50_000_000, &mut (256 * 1024 * 1024))
     }
 
+    /// As [`Self::formula_for`], with an anonymous mass annotation contributing
+    /// no atoms, as in the source.
+    ///
+    /// A modification known only by its mass - an anonymous mass tag such as
+    /// `YIC[47.021464]DK`, which the source adds to its database as an "unknown
+    /// modification" - has no empirical formula. The source's `getFormula`
+    /// leaves it out and the mass shift is carried by the residue's weight
+    /// alone; [`Self::formula_for`] refuses such a sequence. Callers that
+    /// reproduce a source computation of an isotope pattern from the formula
+    /// (the MS1 isotope scores of OpenSWATH, the assays of
+    /// `FeatureFinderIdentification`) use this method. The formula of a sequence
+    /// without mass tags is [`Self::formula_for`]'s.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::formula_for`], for any other residue or annotation without
+    /// atoms (unresolved residues).
+    pub fn formula_for_source(
+        &self,
+        fragment: PeptideFragmentType,
+        charge: i32,
+    ) -> Result<EmpiricalFormula> {
+        let tagged = |slot: &Option<SequenceModification>| {
+            matches!(slot, Some(SequenceModification::MassTag(_)))
+        };
+        if !self.residue_modifications.iter().any(tagged)
+            && !tagged(&self.n_terminal)
+            && !tagged(&self.c_terminal)
+        {
+            return self.formula_for(fragment, charge);
+        }
+        let mut stripped = self.clone();
+        for slot in &mut stripped.residue_modifications {
+            if tagged(slot) {
+                *slot = None;
+            }
+        }
+        if tagged(&stripped.n_terminal) {
+            stripped.n_terminal = None;
+        }
+        if tagged(&stripped.c_terminal) {
+            stripped.c_terminal = None;
+        }
+        stripped.rebuild_chemistry()?;
+        stripped.formula_for(fragment, charge)
+    }
+
     /// Shared graph-query budget. Charges survive errors as well as success.
     pub(crate) fn formula_for_with_budget(
         &self,
@@ -1571,6 +1618,83 @@ fn resolve_terminal(
 impl fmt::Display for AASequence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.annotated_string(false))
+    }
+}
+
+impl AASequence {
+    /// The order of the source's `AASequence::operator<`, which orders the
+    /// keys of a `std::map<AASequence, ...>`: first by the number of
+    /// residues, then by the N-terminal modification (none before any), then
+    /// residue by residue by one-letter code and modification, and last by
+    /// the C-terminal modification.
+    ///
+    /// The source compares two modifications by **address**, an order that
+    /// follows the allocation of the registry's records. Here a registry
+    /// modification is compared by its record identifier (the registry's
+    /// allocation order), then its full identifier; a mass-only tag, which the
+    /// source allocates while it parses and so after every registry record, by
+    /// its full identifier after all registry modifications. The order is
+    /// total on the sequences it separates and deterministic; two sequences
+    /// it calls equal are the source's equal keys. It is not the native
+    /// [`Ord`], which orders by text.
+    pub fn source_order(&self, other: &Self) -> Ordering {
+        fn modification(
+            left: Option<&SequenceModification>,
+            right: Option<&SequenceModification>,
+        ) -> Ordering {
+            match (left, right) {
+                (None, None) => Ordering::Equal,
+                (None, Some(_)) => Ordering::Less,
+                (Some(_), None) => Ordering::Greater,
+                (Some(a), Some(b)) => {
+                    let key = |m: &SequenceModification| -> (u8, Option<u32>, String) {
+                        match m {
+                            SequenceModification::Known(known) => {
+                                (0, known.record_id(), known.full_id().to_owned())
+                            }
+                            SequenceModification::MassTag(tag) => {
+                                (1, None, tag.full_id.to_string())
+                            }
+                        }
+                    };
+                    key(a).cmp(&key(b))
+                }
+            }
+        }
+        self.len()
+            .cmp(&other.len())
+            .then_with(|| {
+                modification(
+                    self.n_terminal_modification(),
+                    other.n_terminal_modification(),
+                )
+            })
+            .then_with(|| {
+                for (index, (a, b)) in self
+                    .as_str()
+                    .bytes()
+                    .zip(other.as_str().bytes())
+                    .enumerate()
+                {
+                    if a != b {
+                        return a.cmp(&b);
+                    }
+                    let order = modification(
+                        self.residue_modification(index).ok().flatten(),
+                        other.residue_modification(index).ok().flatten(),
+                    );
+                    if order != Ordering::Equal {
+                        return order;
+                    }
+                }
+                Ordering::Equal
+            })
+            .then_with(|| {
+                modification(
+                    self.c_terminal_modification(),
+                    other.c_terminal_modification(),
+                )
+            })
     }
 }
 

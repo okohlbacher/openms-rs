@@ -62,6 +62,12 @@ pub mod flag_set;
 /// Dense column-major matrix (`DATASTRUCTURES/Matrix.h`).
 pub mod matrix;
 pub use flag_set::{FlagEnum, FlagSet};
+/// Lower-triangle distance matrix (source `DATASTRUCTURES/DistanceMatrix.h`).
+pub mod distance_matrix;
 /// `DATASTRUCTURES/StringUtils.h`: string parsing, formatting, trimming,
 /// quoting and splitting with the source's byte-level rules.
 pub mod string_utils;
+
+/// One merge step of a hierarchical clustering (source
+/// `DATASTRUCTURES/BinaryTreeNode.h`).
+pub mod binary_tree_node;

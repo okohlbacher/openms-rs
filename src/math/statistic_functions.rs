@@ -525,7 +525,7 @@ pub fn median_sorted(values: &[f64]) -> Result<f64> {
 /// `../oracle/a7-fileinfo`'s `c_nan_two_s` does not discriminate: both its NaNs
 /// are the same value. The same two things would settle it as at
 /// [`covariance`].
-fn median_of_sorted(values: &[f64]) -> f64 {
+pub(crate) fn median_of_sorted(values: &[f64]) -> f64 {
     let size = values.len();
     if size % 2 == 0 {
         x86_64::div(x86_64::add(values[size / 2 - 1], values[size / 2]), 2.0)

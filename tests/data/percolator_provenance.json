@@ -1,0 +1,564 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/PercolatorTypes.h",
+   "sha256": "290767ffd15e866181ae0bb254d745082c9dac88ddebd59a403feedb6706cf46",
+   "role": "Header only; every struct and field is ported in src/analysis/id/percolator_types.rs."
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h",
+   "sha256": "2d40e34521813e0fc535efa6f733c1f88cbd261c2c9fa95fd50124914f02bd41"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/PercolatorFeatureSetHelper.cpp",
+   "sha256": "cf3acc136355258ab86b523bae6e1d320b66d2e959e4357d5a5ab4da93ee5d2a",
+   "role": "Read for the per-engine formulas and the defect that addMASCOTFeatures writes to a copy."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/PercolatorFeatureSetHelper_test.cpp",
+   "sha256": "794f9c9e8e850f450200c58b245b9a52ada99ffe7327b21e0f8c6717ad5e70a6",
+   "role": "Oracle for tests/percolator_feature_set_helper.rs; its six idXML fixtures are copied unmodified."
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/ID/Percolator.h",
+   "sha256": "9243fe0df61214fe782d2b4e79b6a8370d6401fffd6db63d8a9898f4a79405ea"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/Percolator.cpp",
+   "sha256": "104fdcd7bbafdc43c445f12719b6d9a82241bd7c621a85d6d8161ef7e22fe5ac"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/ID/PercolatorImpl.h",
+   "sha256": "1f9afb6330317c4e584851fed42bbe723f241c37c1aae6873482e662175005de",
+   "role": "Private pimpl of Percolator.cpp; the persisted parameters and scratch state."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Percolator_test.cpp",
+   "sha256": "a0eeb8841a9e1e51cb2329567bd967828a1bcedbe27d1c12b6345460907cc4b9",
+   "role": "Every section is ported in tests/percolator.rs; the TRON characterization literals are asserted at the source's 1e-8."
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Percolator_subprocess_parity_test.cpp",
+   "sha256": "db101703c9bff5829f94195800611756cbc0bfafe46afecf361da1274808a22d",
+   "role": "Not ported: it needs the external percolator binary and PercolatorAdapter test data."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/Scores.h",
+   "sha256": "d1c29861a9ee076a50d5d5697ecbac802704e23e5deccb61eabf2d09a481fb25",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/Scores.cpp",
+   "sha256": "f87b7d955da58fe18fd68abf1ae7026ade95ae80abf8c575e30972061b7fbf83",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/ScoreHolder.h",
+   "sha256": "9757844da9f4331064976321f7fdce04ede51c88d262c8518e68c8d72e339da1",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/ScoreHolder.cpp",
+   "sha256": "06a7f0e571c6c528991ad2a98aab5b11db6766b6da85659b02f0edd8be46660f",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/CrossValidation.h",
+   "sha256": "56e38bd0bb5ce535beaaff0fde9ff5f61bad60a89b43da60b80c2d4cd2658034",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/CrossValidation.cpp",
+   "sha256": "9c7dc801b96a2abfc9f21c101d7d06ed27ddb2b3c1e180e7c94c150ff2c09b02",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/SanityCheck.h",
+   "sha256": "f0438f83ff09a26c479eec1a3ac7b0a718601b1979a3ca55b3afcc2e804b1ddb",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/SanityCheck.cpp",
+   "sha256": "369d381833b52261a467294871b8a3a71e9c316650d2f9430befbc9c3266b8e7",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/PosteriorEstimator.h",
+   "sha256": "f8f7fe7c0c9abeec308e72a64657a0cf7f7f639792e54e9cf566325cc9ef8d15",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/PosteriorEstimator.cpp",
+   "sha256": "77fc0479a8fe5e055f9e4db99abedfef54346710c63ec160be8e7c918cf00c6b",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/PseudoRandom.h",
+   "sha256": "f91350fc28a2fa3fbf61ef0d41da4955269e6507197c0d6770cc25236298bbcf",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/PseudoRandom.cpp",
+   "sha256": "6ad8dc7566899aaeff02af2360b81200b95bed0f3ed520092afccf0b51eb45ad",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/InProcessSampler.h",
+   "sha256": "1be2588f11f9144657a4eff73775f46404a4002c057a070d428608a2c6b0a4e5",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/InProcessSampler.cpp",
+   "sha256": "b84c41a11de7cc8d288eaca6ed25f4ba61af4eb200ed8329509ef2a6785b5809",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/Normalizer.h",
+   "sha256": "99b7df252be7796382a8b85b87cfc26f155c5e35694471e7ba7979fa7e8f34e5",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/Normalizer.cpp",
+   "sha256": "455b08399708edf131c75e136db327093eba64d0c927afd35d5f5d2b205f9eca",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/StdvNormalizer.cpp",
+   "sha256": "f4f9aec2df11572a181f343ef6938e7597982146a1a89dfd483dce029863e491",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/UniNormalizer.cpp",
+   "sha256": "6b3cfb975166b0e48a084e1117fe5816f6a0aee8b8cb2a6a82ea202d6cf69050",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/NoNormalizer.cpp",
+   "sha256": "0cc99f8ce89c6dff56a0a9a2ea4cfefa5620f00b16b023a0429a8f09d53030a1",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/SetHandler.cpp",
+   "sha256": "9583d420150d6e58cf8a639d0cc9d21737b21bd0b4fe70f6ce35d34c2c02cf5c",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/DataSet.cpp",
+   "sha256": "bd536c7f04aa78f7e78c206aa30bb9be7cfa5467aac8ddd17dbae4da36d93a77",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/FeatureNames.cpp",
+   "sha256": "26d6de8f308ca433d85aeba83a1c9afc3b0f3965c98dea930703b3149972432b",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/PSMDescription.h",
+   "sha256": "7acf296520e1bb91f40e23b4014843b316d6fbb8da377f3d3f692ac8b45d5ece",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/LabelType.h",
+   "sha256": "bd7eb881b59288b2e52311401766ee25cd8ff9f779a1baab487e8393378acedb",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/Globals.cpp",
+   "sha256": "48ab9397dfcc194c9783e1d76536b90602ea2dc0e089c3a34c17e82e50d80b7a",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/ssl.h",
+   "sha256": "db35632ce1e4bd84ae94a77d2b01472e391c4b7007bb945eac9bed5311a3a048",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/ssl.cpp",
+   "sha256": "dcf055b4fdc00c1c3a06bd65f16f1883f3ec01d5cab95aabd0448e807c379556",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/tron.h",
+   "sha256": "54815691624466da040f45387e7c793d2005fa2e1190fb99663842153606e138",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/tron.cpp",
+   "sha256": "39713d7bf56d086ce482776608fe03516382bae9885b91de71461d491e50ec0d",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/IsotonicPEP.h",
+   "sha256": "754cc6f8dd6f76aa4ee43a0ef03f7c22067ff7ca4bc058dc455db710357f009e",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/IsotonicPEP.cpp",
+   "sha256": "8c61791e69505ee5fe3d55dd945e6d0ef251a41514930d21cb5a825aee5d7b1b",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/MonotoneRegressor.h",
+   "sha256": "abf7052d14ca57ceda82c9abc6c42da0383edd78557b0f987ac85dd0353af5e3",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/MonotoneRegressor.cpp",
+   "sha256": "08ed82e4cb3a640fab01be6a96577c40fa1fd9481913077236d71965d4abad84",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/PAVARegressor.h",
+   "sha256": "471e35d7900ce1da50fa3c5cc9380cf63abb56d27dd6106f15bdeb7be646851d",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/ISplineTRRRegressor.h",
+   "sha256": "77a2a55e1770719a3d090b1f4509f8b322b92039b9d3db00fdc1939e4fddb8fb",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/UPSTREAM.md",
+   "sha256": "35bdfca5a3f55149bf783fb183157dd4e71a4a196a21b65914ee02aa3a5c07de",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/NOTICE-percolator.txt",
+   "sha256": "03cbb1c2712843af04d32448b59f38dcc470c8b3219e0e21e036d4ef80719dfa",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  },
+  {
+   "path": "src/openms/thirdparty/percolator/LICENSE-Apache-2.0.txt",
+   "sha256": "73fc8e12b788438b13232d91f5bed2a1b20b98b02ebe1c07b64067a3c00c5722",
+   "role": "Vendored Percolator (upstream eb157f7, Apache-2.0; TRON BSD-3), translated in src/analysis/id/percolator/."
+  }
+ ],
+ "fixtures": [
+  {
+   "path": "tests/data/percolator/comet.topperc.idXML",
+   "sha256": "a0cd4f19b1b2ee7ae7e67a92f2c42335539756ef43e31cbb90cb194fd2fde7d9",
+   "bytes": 16901,
+   "source_path": "src/tests/class_tests/openms/data/comet.topperc.idXML",
+   "role": "Unmodified upstream class-test fixture."
+  },
+  {
+   "path": "tests/data/percolator/comet.topperc_check.idXML",
+   "sha256": "0c255830d1ec8f9789da407a28d6ae8596db364b02a6492a9f3a98bb074840a2",
+   "bytes": 25369,
+   "source_path": "src/tests/class_tests/openms/data/comet.topperc_check.idXML",
+   "role": "Unmodified upstream class-test fixture."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_default.pep",
+   "sha256": "b25b16476c7073adb9c1fca8d07af6abd52dcb6ad68a2f1a774c890b4d4f0028",
+   "bytes": 5701,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_default.q",
+   "sha256": "5ff1e81038ee68137516d6a8f2b5d42d341cb410b486adfc5fbe6196c0596e9b",
+   "bytes": 6171,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_nested.pep",
+   "sha256": "1e9ee6c60316b8161df6f8940b568b60b08a8bcfbae60ac665d246947e8d28b9",
+   "bytes": 5363,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_nested.q",
+   "sha256": "84d1a67a0b5cc2ba9a696b84b9af7b22f3220aa1065168f448c169db4d678de6",
+   "bytes": 6225,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_none.pep",
+   "sha256": "05a5483edd27d7e6a9d8b8166d0ceb7c1db06f0fa2e8c5d4fdaa429dcf424a10",
+   "bytes": 13631,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_none.q",
+   "sha256": "7b59be758e90c9ba25c74325a458cc645fd0d641011edec387dcf7655bbfc2ce",
+   "bytes": 13798,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_subsample.pep",
+   "sha256": "cd71b4ace0670784aecdbe7ef54edf63968a45f6d6c6c8939a2118a9e4613851",
+   "bytes": 8079,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/rescore_subsample.q",
+   "sha256": "3b8169c4f21e550ff7e20516d2210c924c629b73e9f1a505cb0dc457732cabd8",
+   "bytes": 8320,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_1500.pep",
+   "sha256": "82667479dfd6183926e540d5d10221b3850329f1bdc5f0b3aa7f5691fddb3f28",
+   "bytes": 27615,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_1500.q",
+   "sha256": "a43c418b7eb52ed1f72dde993ddab595b07e75e616ae3a3321331a1b9a17b6a7",
+   "bytes": 30156,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_20000.pep",
+   "sha256": "0f2601b7050e3d53924a6812fbd2b566c85316a664e3085521385a27edcea9aa",
+   "bytes": 388567,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_20000.q",
+   "sha256": "6d56b4655110bef73c1c5997a02461f1fc832cc7df30adc3a1be5fe57f127c2b",
+   "bytes": 402763,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_one.pep",
+   "sha256": "9fa197ebccb1791221f7452603696706e98e738d214b2d93b47baf22fd4d3971",
+   "bytes": 20,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_one.q",
+   "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+   "bytes": 2,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_small17.pep",
+   "sha256": "c81cd64af0298ecd6d80744e4d3ea2f05fa726c80136e510306d6e872f2a9b2e",
+   "bytes": 271,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_small17.q",
+   "sha256": "ca195648dc5907c8a9eac9f5ac22411f4623b379bb33b6de48ade0e93fc3e95c",
+   "bytes": 325,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_tiny5.pep",
+   "sha256": "eeafb6e2443d6fba8536b196834f57ee4b1530ddecbd84f26b50c43765437ee7",
+   "bytes": 101,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/syn_tiny5.q",
+   "sha256": "2a52f4959a7f8043c62f73ec4a6ed577e68b98b35887adf025e94c027d6ec054",
+   "bytes": 84,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/tron.pep",
+   "sha256": "b7c6906d0ca16692099d1e84315639489f6da15b405a46a4f2310c997646bbb8",
+   "bytes": 2100,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/ispline/tron.q",
+   "sha256": "a8f1747860fb691757d38456a57e0c1351022f3429bde76d50e6ba502cc0e820",
+   "bytes": 500,
+   "role": "Executed probe output (serial) or its q-value input, ../oracle/I2-ispline-probe."
+  },
+  {
+   "path": "tests/data/percolator/msgf.topperc.idXML",
+   "sha256": "ce0ae9035b9cf5c9b4e3e00464c9f17d2f76ea5303aebe15799b57befc39bb74",
+   "bytes": 32982,
+   "source_path": "src/tests/class_tests/openms/data/msgf.topperc.idXML",
+   "role": "Unmodified upstream class-test fixture."
+  },
+  {
+   "path": "tests/data/percolator/msgf.topperc_check.idXML",
+   "sha256": "2ba44eab7bbabd13d15d3d5867c540074c3976da9105abd4138e663e509d5415",
+   "bytes": 34197,
+   "source_path": "src/tests/class_tests/openms/data/msgf.topperc_check.idXML",
+   "role": "Unmodified upstream class-test fixture."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_default.tsv",
+   "sha256": "b5bfb891acefcf4b3c3e7dac6bc42019bb2dfd3e603b5ffcd720a618a2fd0f66",
+   "bytes": 72600,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_isotonic.tsv",
+   "sha256": "25d7c0825e24878e0bb5f8c582162b314879f1e266725c07440eb6fcfea6c574",
+   "bytes": 73740,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_multihit.tsv",
+   "sha256": "a7ac0310a05e0da2abb8e6e766d0d1417c421bbc58056664a0d94d5d62f1e74e",
+   "bytes": 191020,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_multihit_no_tdc.tsv",
+   "sha256": "8ca68dba519899d26c78397aa876cd2d53238f5933feb0c39da51f9c4d53f6f5",
+   "bytes": 237944,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_neg_direction.tsv",
+   "sha256": "5a369daace9c2f5a81ebbf4fe9fe08341b16bb2b5c1e3720a43a945940b557af",
+   "bytes": 140643,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_nested.tsv",
+   "sha256": "6e739e30edb76f141cf35c88f9b2d53bcf66c503949ec2050da66fcacbec12b3",
+   "bytes": 72867,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_no_pi0.tsv",
+   "sha256": "77d9a8f8203a55b69e674d04f8287c5c738885513aa38d7bd55ead44b7f04ae5",
+   "bytes": 154467,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_none.tsv",
+   "sha256": "d7b7b21041650e675ed060b5af21784a8388e01513dd00925f3deae4f1817605",
+   "bytes": 177920,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_subsample.tsv",
+   "sha256": "315b836012eb5318b268fcb8b59b8557cc6601304789f8d6c7cd5c220e8908f7",
+   "bytes": 99053,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_threads1.tsv",
+   "sha256": "a1fe096404ca3140b9e1c0464031c4fe3cb2e8b4bfc7b0e931f2eb6fa911164d",
+   "bytes": 72621,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/rescore_uni_grid.tsv",
+   "sha256": "1bcab1e74a0312dc3b5797c2348cb6e03f4e0989b95d5870e1224602fc672891",
+   "bytes": 175375,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/train_a_score_b.model",
+   "sha256": "ec90d4e81c4e1a48cb64b5dbcc1889a982e1ccf4385cbb803aa16604b3532c81",
+   "bytes": 196,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/train_a_score_b.tsv",
+   "sha256": "99a4b3112e19fd2a76685d7a395e05e4024765715adc9d820a6b8d5d24f69779",
+   "bytes": 107160,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/tron.model",
+   "sha256": "4e3790c3221396585eb2fe69d44f98b3e29694d89d6f8e08cdd003324db27357",
+   "bytes": 255,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/oracle/tron.tsv",
+   "sha256": "7ff67ec8dc1d47cb7a7ac9e0a9c91762affbfe974d8132acbb02af8840950ed2",
+   "bytes": 48948,
+   "role": "Executed C++ Release output (serial), ../oracle/I2-percolator."
+  },
+  {
+   "path": "tests/data/percolator/xtandem.topperc.idXML",
+   "sha256": "cc6d28573d360fff0bb16181f368cf133404e224e52371fe9ce90fddde624be4",
+   "bytes": 5342,
+   "source_path": "src/tests/class_tests/openms/data/xtandem.topperc.idXML",
+   "role": "Unmodified upstream class-test fixture."
+  },
+  {
+   "path": "tests/data/percolator/xtandem.topperc_check.idXML",
+   "sha256": "d3e9c2b05085162f270591261706ba02479478074e56673e1546833531cca1d1",
+   "bytes": 7018,
+   "source_path": "src/tests/class_tests/openms/data/xtandem.topperc_check.idXML",
+   "role": "Unmodified upstream class-test fixture."
+  }
+ ],
+ "scope": "ANALYSIS/ID/PercolatorTypes.h, PercolatorFeatureSetHelper.h and Percolator.h, with the vendored Percolator engine Percolator.h wraps.",
+ "rust_implementation": [
+  "src/analysis/id/percolator_types.rs",
+  "src/analysis/id/percolator_feature_set_helper.rs",
+  "src/analysis/id/percolator.rs",
+  "src/analysis/id/percolator/engine.rs",
+  "src/analysis/id/percolator/pep.rs",
+  "src/analysis/id/percolator/svm.rs",
+  "src/analysis/id/percolator/training.rs"
+ ],
+ "native_tests": [
+  "tests/percolator.rs",
+  "tests/percolator_oracle.rs",
+  "tests/percolator_feature_set_helper.rs",
+  "src/analysis/id/percolator/pep.rs"
+ ],
+ "cpp_execution": {
+  "host": "ibminode06 (AMD EPYC 7763, Ubuntu 24.04, glibc 2.39)",
+  "build": "Linux x86_64 Release install /ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576 (GCC 14.4.0 conda-forge, Eigen 5.0.1-dev); libOpenMS.so sha256 recorded in ../oracle/I2-percolator/results/hashes.txt",
+  "oracle": "../oracle/I2-percolator: driver.cpp linked against the Release libOpenMS.so, run twice with OMP_NUM_THREADS=1 (identical bytes) and once with OMP_NUM_THREADS=3 (results/omp3). The OMP=3 run differs in the I-spline PEPs of 7 of 13 cases, because Eigen's OpenMP GEMM uses a different depth blocking; the port follows the serial run.",
+  "probe": "../oracle/I2-ispline-probe: the vendored ISplineTRRRegressor.h compiled with the OpenMS_Percolator target's Release flags (from build-logs/compile_commands-core.json), which reproduces libOpenMS's PEPs bit for bit, run on 10 q-value vectors; serial outputs exported to tests/data/percolator/ispline."
+ },
+ "support_document": "docs/PERCOLATOR_SUPPORT.md",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/I2-percolator/driver.cpp",
+   "sha256": "9391b191635568f2aa4fdebb88d654ce637ab65e3072a225a0bc33cb1ed5ef4b",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-percolator/node.sh",
+   "sha256": "14b64bb70acb723e8af575a79bec82b7ef5818fe7224f51c3fbfef65da0d90c6",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-percolator/run.sh",
+   "sha256": "802f015a78e15a484b5b26a079430935290103376927e26c03d27747a0ed3a30",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-ispline-probe/probe.cpp",
+   "sha256": "b9d7a186df331ed79ab76e147f7ece7a1f6cf7fdcef00ddf06bff606fc5535cd",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-ispline-probe/node.sh",
+   "sha256": "0a51ff4785c4698af20a09ba9190cf3acc47f90aa49e31dd393bb75c2723f2b6",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-ispline-probe/run.sh",
+   "sha256": "a9027b985644ada30674d9cd6c3b20af882568474b74f3a7eaa1c417a8c3861b",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-ispline-probe/extract_q.py",
+   "sha256": "e405dfc1c8152d4759c42fa61f911ec9fcbd60343c98a10cc6cb621b852c88b4",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-ispline-probe/make_synthetic.py",
+   "sha256": "c1b5b254bcedf2dda25439e037eb5b2237e81ce8fd67e1432a8342b937788aa6",
+   "origin_key": "fixtures"
+  },
+  {
+   "path": "../oracle/I2-ispline-probe/export.py",
+   "sha256": "4521ac56af8b88ab9f59d53598b8055dfdf2645304dadbd63ffa044edf6c9ca3",
+   "origin_key": "fixtures"
+  }
+ ],
+ "external_reference_note": "C++ oracle and probe sources live outside the repository under ../oracle/; the fixtures they produced are committed under tests/data/percolator/{oracle,ispline}.",
+ "verification_record": "Bit-identical SVM weights, pi0, scores, q-values and PEPs on all 13 oracle cases; bit-identical I-spline PEPs on all 10 probe vectors; saveModel bytes identical for both trained models."
+}

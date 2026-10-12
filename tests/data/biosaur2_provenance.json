@@ -1,0 +1,382 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "package_revisions": {
+  "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+  "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+  "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+ },
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "license": "BSD-3-Clause",
+ "group": "biosaur2",
+ "work_package": "FF4 (Phase C, FEATUREFINDER: Biosaur2Algorithm)",
+ "scope": "FEATUREFINDER/Biosaur2Algorithm.h/.cpp: every public and private member; the TOPP wrapper FeatureFinderLFQ is recorded in topp_feature_finder_lfq_provenance.json",
+ "method": "Executed differential against the Linux x86_64 Release build. driver.cpp reaches the private helpers with #define private public around the algorithm header and prints every double as its IEEE-754 bit pattern: per case the input digest, status, every hill (summary and a digest of its per-point vectors), peptide feature, FeatureMap entry, the processed experiment and both TSV exports; the helper probes; the Boost averagine table; the defaults. tests/biosaur2.rs reproduces every record bit for bit.",
+ "evidence_tier": "tier 1 (executed, Linux x86_64 Release) for every compared record; tier 3 for the transcribed class-test literals; tier 4 for the native refusals, atomicity, the combination ceiling, thread determinism and the independent statrs check of the averagine table",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/FEATUREFINDER/Biosaur2Algorithm.h",
+   "sha256": "932e3dc74185b151f5ef7ffdabffb9240662adce68fbaf0d16589479ebd25d47"
+  },
+  {
+   "path": "src/openms/source/FEATUREFINDER/Biosaur2Algorithm.cpp",
+   "sha256": "0cd777ad2dd19cceac611504cf15108aadb60c947fbf5a555a39f19a4ee6ecd7"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/Biosaur2Algorithm_test.cpp",
+   "sha256": "5bd6c9d01fc6210ad4b56206294f70a37c582ed647d81789ce123333cb4eb90a"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/featurefinder/biosaur2.rs",
+  "src/analysis/featurefinder/biosaur2/preprocess.rs",
+  "src/analysis/featurefinder/biosaur2/hills.rs",
+  "src/analysis/featurefinder/biosaur2/isotopes.rs",
+  "src/analysis/featurefinder/biosaur2/output.rs",
+  "src/analysis/featurefinder/biosaur2/averagine_table.rs"
+ ],
+ "native_tests": [
+  "tests/biosaur2.rs"
+ ],
+ "support_document": "docs/BIOSAUR2_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/biosaur2/cases.tsv",
+   "sha256": "a975d1fb513ad13a6417336962a388041d0a63ef2f317a8989cea9c0d5977852",
+   "bytes": 2272,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "case name, input and parameters (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/ct_faims.exp.gz",
+   "sha256": "6e6753a2c9da141b8dab6c344c6129b71b9a7b640d58444dbf21cd783a1bf3fa",
+   "bytes": 170,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/ct_faims_profile.exp.gz",
+   "sha256": "b3c0ff6a7d9af92a131a164dc28d51d0f25ff2b6ced0c37c88e65d6cff4d0383",
+   "bytes": 233,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/ct_nonfaims.exp.gz",
+   "sha256": "10bf9920e99d7943b92326f58309fe2c114786ef1b17c596286bd643b0d7cdda",
+   "bytes": 87,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/ct_profile.exp.gz",
+   "sha256": "1589626887761bf00e892ab5be3bd90b0e83e67e8892b44e2c848218b7d2b989",
+   "bytes": 147,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/ct_run_basic.exp.gz",
+   "sha256": "b25fccc16e8452af681fe10aa36840477f0ca73aa02b2c19e392efb2b6ffe807",
+   "bytes": 108,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/ct_run_hills.exp.gz",
+   "sha256": "96d0365213d4439a45c118bdd71942752541f3668a836a1c123b488a9c3fa716",
+   "bytes": 69,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/err_empty.exp.gz",
+   "sha256": "74420f89d2d2a4256b5b578f1c2a01dd2b605f9aca4905db839d008cfd29cac0",
+   "bytes": 21,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/err_no_ms1.exp.gz",
+   "sha256": "9d1d0b59041a76d524295a7397848ba68aa00fc7517a1a92bb7d185e5f7997d6",
+   "bytes": 56,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/helpers.tsv",
+   "sha256": "fb649c7f3b0bfa12be06b5fff41e78437ddea5d0a4feb6ed37b2bcae3901d088",
+   "bytes": 124972,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "helper probe inputs (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/helpers_oracle.tsv",
+   "sha256": "25f0247248b43a53ec7268a6b0c6419a732519236680b38bec58c4423bdb0f9b",
+   "bytes": 138491,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "the Release build's helper probes, averagine table (Boost.Math) and parameter defaults"
+  },
+  {
+   "path": "tests/data/biosaur2/no_peaks_in_range.exp.gz",
+   "sha256": "d0c2a8c223a213f61e4f19e524b5abc5c1d09c0df42ad326b7f82ad6999e9105",
+   "bytes": 66,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/oracle.tsv.gz",
+   "sha256": "fcb640d9bc78d973bc3230ca371c4e668a362299d160a06e8d8cc59e2bb3e4b6",
+   "bytes": 2320628,
+   "kind": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+   "role": "the Release build's records of all 47 run cases (results/oracle.tsv, gzip -9 -n)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn11.exp.gz",
+   "sha256": "50a617b5ed9dcda5f071f01aac59f926b8bd9a5c0db25eb7d3a5dbb2ef09d935",
+   "bytes": 117594,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn12.exp.gz",
+   "sha256": "3e3fdb3fce759587b1758dfd47cce01aa474c9e88d7c408dd57349c84a92f602",
+   "bytes": 118542,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn13.exp.gz",
+   "sha256": "d2dfcc0debcca8a720a07d701945b118db700a9424747dc20803707f31b7eca6",
+   "bytes": 113887,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_big.exp.gz",
+   "sha256": "c0baba5eacf642f650d115f4f22098880441573242faa290e698b5b2cced7766",
+   "bytes": 513832,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_calib.exp.gz",
+   "sha256": "09ae1bfc0e7e2f2ab1cd8fe32a5b12bd38af1b0d5b7590449bcd051c1ded1781",
+   "bytes": 1504732,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_drift.exp.gz",
+   "sha256": "8c794370a9e2f2809d26520612238368d61428c90c1c5f6452d5dea6538d95b7",
+   "bytes": 40133,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_faims.exp.gz",
+   "sha256": "b8154d812eb71b69ff84261b8b3410d3573f633188560104f2b92466257a7ddd",
+   "bytes": 183133,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_faims_im.exp.gz",
+   "sha256": "8587896ba36df47ec15bfebb0823a51f8c481c66521ec59f1ee280c0b43cb4f0",
+   "bytes": 143878,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_im.exp.gz",
+   "sha256": "07f30b7c8ae0d583f19e187493cc02400d43979737679290de9205b70b2967fb",
+   "bytes": 269628,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_im1.exp.gz",
+   "sha256": "8ae60cd6420f2c4636bde72aaf3880d8f7fb7c4e2d8259c9c15cbf3bb9e6e41c",
+   "bytes": 63673,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_im_partial.exp.gz",
+   "sha256": "7a4a2754d8f862a0a0a1188f253a507d91e92dfd11712754819fab9fdd990351",
+   "bytes": 100427,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_profile.exp.gz",
+   "sha256": "dd25fb68bae779cf04fa5f36214c253f4e9f49c6ec5ab1bc949dc89d916b9e53",
+   "bytes": 185383,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_ties.exp.gz",
+   "sha256": "0c96ea152525256950d8bd14c363a5b70ceb396b21047cb0c17c90013cd2240b",
+   "bytes": 65082,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_tof.exp.gz",
+   "sha256": "f5094cc17916181fd667d034b6d1e5ec1c11b11dfe8bde79bb1705e310bc2129",
+   "bytes": 260407,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  },
+  {
+   "path": "tests/data/biosaur2/syn_zero.exp.gz",
+   "sha256": "9ba6a536105b279dfce45999bca9c57da4bc1238e211c80915dfd6c4bddcd7c1",
+   "bytes": 68361,
+   "kind": "generated input (gen_cases.py, deterministic seeds)",
+   "role": "generated experiment in the oracle's text format, gzip -9 -n (gen_cases.py)"
+  }
+ ],
+ "reused_fixtures": [
+  {
+   "path": "tests/data/mzml_mobility/FeatureFinderCentroided_1_input.mzML",
+   "sha256": "a3dfae633502bc457fb3efeddb5d5006af935a51bd99d9a5974e24232885f9d3",
+   "bytes": 213090,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_test_data.mzML",
+   "sha256": "ad028d77045e07b773b9423f1c1f58baa1a0856b9d420155c8881d452c175301",
+   "bytes": 65274,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  },
+  {
+   "path": "tests/data/mzml_mobility/FAIMS_CV-60C_V-45_Interleaved.mzML",
+   "sha256": "718775f365167f5b61a00a7bf851a7397db258317ae6a09afa860e5ad5470ea7",
+   "bytes": 395817,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  },
+  {
+   "path": "tests/data/faims_helper/IM_FAIMS_test.mzML",
+   "sha256": "3a4b469e5df625ec4fa2319b69bfb2e96a399dfa9a5040ba8e7bdabad868690b",
+   "bytes": 514830,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  },
+  {
+   "path": "tests/data/feature_finder_picked/FeatureFinderAlgorithmPicked.mzML",
+   "sha256": "5139d8a8d318145cdbc2fefe5e3d0acfcc99c0881a05eb7a06c304bdeedb3f3e",
+   "bytes": 223001,
+   "role": "upstream test input, read-only; the oracle read byte-identical copies (results/hashes.txt)"
+  }
+ ],
+ "oracle": {
+  "directory": "../oracle/FF4-biosaur2",
+  "evidence_label": "oracle-generated (tier 1 executed differential, Linux x86_64 Release)",
+  "release_install": "/ceph/ibmi/abi/oliver/opt/openms4-release-bc9cc12-c19e494-174b576",
+  "release_pins": {
+   "core": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+   "cli": "c19e49414bcd9ebdea42f89b3f74d2823205892c",
+   "topp": "174b576e244e100f2345ca57a8e79aaa607156df"
+  },
+  "libOpenMS_so_sha256": "abd4fc9977823c793b4396586210a867cf72482cd3ab228d6aec8ddb54966d6c",
+  "FeatureFinderLFQ_sha256": "ab3563ff0765b3a85458964023eefad872f2b7f33e49055eb66c698c1164a625",
+  "installed_header_sha256": "932e3dc74185b151f5ef7ffdabffb9240662adce68fbaf0d16589479ebd25d47",
+  "compiler": "x86_64-conda-linux-gnu-g++ (conda-forge gcc 14.4.0-4) with libOpenMS's core flags -O3 -DNDEBUG -std=gnu++23 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -mssse3 -ffp-contract=off -fopenmp (remote_run.sh)",
+  "host": "ibminode06 (Linux 6.8.0-124-generic x86_64), scratch /scratch/kohlbach/FF4-biosaur2; never ibminode05",
+  "driver_source_sha256": "6ced8bdd8f70f02769973b7be396230024acd90ec69c61050c4c0c7782787041",
+  "driver_binary_sha256": "ef432ca66095740ef5a7b73c00b294eb565ad530f4dd771d0df4dba5dc94bcc7",
+  "repeatability": "every driver case, the helper probes and every Release FeatureFinderLFQ call ran twice in fresh processes with a clean environment; results/differ.txt lists only 'DIFFER topp home', the per-run HOME directory the script compared as if it were a file; every output file agreed. remote_topp2.sh (the two error branches) ran twice and agreed (results2/).",
+  "results_sha256": {
+   "results/oracle.tsv": "9e71bcfab5d36cf24efcf672325afe7bf36333a61e6ef7f312577eadaab49981",
+   "results/helpers_oracle.tsv": "25f0247248b43a53ec7268a6b0c6419a732519236680b38bec58c4423bdb0f9b"
+  }
+ },
+ "external_reference_note": "No C++ is committed to this repository. The driver, the scripts, the generated inputs and the raw outputs live under ../oracle/FF4-biosaur2 (relative to the repository root); the entries below pin them. gen_cases.py writes cases/, make_table.py writes src/analysis/featurefinder/biosaur2/averagine_table.rs from results/helpers_oracle.tsv, stage_fixtures.py and stage_topp_fixtures.py copy the fixtures.",
+ "external_reference_artifacts": [
+  {
+   "path": "../oracle/FF4-biosaur2/driver.cpp",
+   "sha256": "6ced8bdd8f70f02769973b7be396230024acd90ec69c61050c4c0c7782787041",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/remote_run.sh",
+   "sha256": "a80d0cc6d9613db6c7947ac58275749a13c7210b4f772b8c5371f0969b654468",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/run.sh",
+   "sha256": "ea35832ffbd25c61f80246f4b4e41c04b22efd59bf552f245f06861bf8eaa358",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/fetch.sh",
+   "sha256": "810457a1f260f424aac28cd591e33a35a05224cb1eb327ee461d4218e656f520",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/compile_check.sh",
+   "sha256": "23fb07066d1c12d25175b10e812ed01095cb47386b3768f690d8be003ebd5e51",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/gen_cases.py",
+   "sha256": "b4b04c8c405d12733cf611d90b1d672c85e7ce1c3c7051630983fafacf26dc6d",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/make_table.py",
+   "sha256": "43418b7dee8b2e8a3327b20454080e35976cb4ef4a9b940583cd85271ef8f708",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/stage_fixtures.py",
+   "sha256": "cf2edef9a10920e28ca1700f2c8691828f8543573cc1af75b08f2323093a787d",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/stage_topp_fixtures.py",
+   "sha256": "df4f36f66d58a9b75798ab166952e8536a453857bb809c21c516ae6bc8b4da71",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/remote_topp2.sh",
+   "sha256": "1d4f4d9bff9f4a1e70cedadc36434df39f25bc7784e9b0110b235a0a1ec0c760",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/make_provenance.py",
+   "sha256": "3b964c84ecb9a8a85ab9791eaceae4af8f52223a9c4f1a95f70a60346d3f27eb",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/results/oracle.tsv",
+   "sha256": "9e71bcfab5d36cf24efcf672325afe7bf36333a61e6ef7f312577eadaab49981",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/results/helpers_oracle.tsv",
+   "sha256": "25f0247248b43a53ec7268a6b0c6419a732519236680b38bec58c4423bdb0f9b",
+   "origin_key": "ff4_biosaur2"
+  },
+  {
+   "path": "../oracle/FF4-biosaur2/results/disasm_cosineCorrelation1D_.s",
+   "sha256": "2e3c78a4707c897364359e8c6decac9d168ffe99a2d25575035c8e2c6111e4dc",
+   "origin_key": "ff4_biosaur2"
+  }
+ ],
+ "cpp_issue_candidates": [
+  "buildFastMzLookup_ bins hills by htol and searches one bin either side, so isotope candidates beyond about 2*htol ppm are never seen and an itol above twice htol is not honoured",
+  "cosineCorrelation1D_'s omp simd reduction makes the correlation (and the pattern ranking) depend on the compiler's vector width; the SSE2 Release build sums even and odd positions separately",
+  "static_cast<int>(mz / mz_step) and the ion-mobility and averagine quotients are undefined for a small positive htol or paseftol, which the parameters accept",
+  "processFAIMSGroup_ counts FAIMS or drift-time spectra without per-peak ion mobility as ion-mobility data and logs 'Applying PASEF/TIMS centroiding' and 'N peaks -> 0 centroided clusters' though nothing is centroided (executed)",
+  "the header documents Hill::drift_times and ion_mobilities as empty if not available; both hold one entry per peak (-1); centroidPASEFData_ documents mz_step as [out]",
+  "performInitialIsotopeCalibration_'s result is discarded; checkIsotopeValleySplit_ is never called",
+  "run() modifies the stored experiment before it can throw",
+  "the parameter descriptions of pasefmini and convex_hulls contain U+2013, which the ParamXML writer emits as raw UTF-8 in a document it declares ISO-8859-1 (executed -write_ini)"
+ ],
+ "verification_record": {
+  "date": "2026-09-29",
+  "work_package": "FF4",
+  "platform": "Rust gates through ~/.local/bin/openms-kim-gate.sh on dax, slot FF4 (see the lane report for the commands and pass counts)"
+ }
+}

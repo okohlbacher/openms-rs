@@ -1,0 +1,82 @@
+{
+ "source_repository": "https://github.com/okohlbacher/OpenMS4-core",
+ "source_revision": "bc9cc12514c768385ce121d6ca4bb710fe1983c4",
+ "rust_base_revision": "f0990c061766fac7fb98680509992723e2f16435",
+ "sources": [
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h",
+   "sha256": "a067a0ebc1fc5f0a7836e3c5669a578c2c633ea159449ca405a77ea03f553cc2"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.cpp",
+   "sha256": "574563a585667efa35804d0c2ce46b6e88a7e701c7632c15cd247298332c1a8f"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusMapNormalizerAlgorithmMedian_test.cpp",
+   "sha256": "8590d313f93c7c53a66cdaa3ed3d1ca5cc1d2dd73ad1b1aaf92933029db3efa3"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h",
+   "sha256": "cf366ca8d7609343816229647151e650de7b24363e4a65cfa8dfec7e8c6231bc"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.cpp",
+   "sha256": "e7d181b21d2362d8e02cdff40822713f3c47bc8c9ab0b9463c7cd5ed8a040706"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusMapNormalizerAlgorithmQuantile_test.cpp",
+   "sha256": "d8651162127e0104316c4ec38dc3df18fbd62b14246d0cd1de06f5c7af784293"
+  },
+  {
+   "path": "src/openms/include/OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h",
+   "sha256": "c5a4cae735b80c995cbbab34b1848dc9b0ee268320614d10005edc33aea048ea"
+  },
+  {
+   "path": "src/openms/source/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.cpp",
+   "sha256": "3f215fa8c0776a5460528fd011a44a8999121deafc164127d808a9088cb1dc74"
+  },
+  {
+   "path": "src/tests/class_tests/openms/source/ConsensusMapNormalizerAlgorithmThreshold_test.cpp",
+   "sha256": "cc181fc2604fdd95c6eadbafc46feb1e1d3c6ff09f1525819e6c42ade1b70abc"
+  }
+ ],
+ "native_implementation": [
+  "src/analysis/mapmatching/consensus_map_normalizer_median.rs",
+  "src/analysis/mapmatching/consensus_map_normalizer_quantile.rs",
+  "src/analysis/mapmatching/consensus_map_normalizer_threshold.rs"
+ ],
+ "native_tests": [
+  "tests/mapmatching_consensus_map_normalizer.rs",
+  "tests/mapmatching_consensus_map_normalizer_topp.rs"
+ ],
+ "support_document": "docs/CONSENSUS_MAP_NORMALIZER_SUPPORT.md",
+ "fixtures": [
+  {
+   "path": "tests/data/consensus_map_normalizer_input.consensusXML",
+   "sha256": "8d2f7b13a1e61ab455a1e32bdefd4416a43db79776ae9537714d64c2839c25fa",
+   "kind": "retained upstream TOPP input ConsensusMapNormalizer_input.consensusXML at test-data 0cb15f2, byte-identical copy"
+  },
+  {
+   "path": "tests/data/consensus_map_normalizer_output.consensusXML",
+   "sha256": "cd10469399f1e60e433e22dbd417c81c002142ce8fa75a38a1f30b6e2a5207fb",
+   "kind": "retained upstream TOPP expected output (C++) ConsensusMapNormalizer_output.consensusXML at test-data 0cb15f2, byte-identical copy"
+  }
+ ],
+ "upstream_test_definition": {
+  "package": "test-data",
+  "revision": "0cb15f2",
+  "path": "topp/CMakeLists.txt",
+  "lines": "337-339",
+  "test": "TOPP_ConsensusMapNormalizer_1",
+  "tool": "ConsensusMapNormalizer (topp 174b576 src/ConsensusMapNormalizer.cpp; default algorithm_type robust_regression)"
+ },
+ "evidence_tier": {
+  "tier_1_retained_output": "tests/mapmatching_consensus_map_normalizer_topp.rs: sortBySize + ConsensusMapNormalizerAlgorithmThreshold on the upstream TOPP input vs the retained C++ output, every handle intensity within the six stored significant digits",
+  "tier_3_class_tests": "tests/mapmatching_consensus_map_normalizer.rs: every section of ConsensusMapNormalizerAlgorithmMedian_test.cpp",
+  "tier_4_native": "quantile (TODO upstream) and threshold (NOT_TESTABLE upstream) sections with hand-derived values; error paths and transactional failure"
+ },
+ "verification_record": [
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 test --locked --test mapmatching_consensus_map_normalizer --test mapmatching_consensus_map_normalizer_topp",
+  "OPENMS_GATE_HOST=spock openms-kim-gate.sh M2 +1.85.0 test --locked --no-default-features --test mapmatching_consensus_map_normalizer"
+ ]
+}

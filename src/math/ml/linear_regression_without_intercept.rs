@@ -42,11 +42,13 @@ impl LinearRegressionWithoutIntercept {
     ///
     /// # Errors
     ///
-    /// Returns [`Error::InvalidRange`] when the two slices differ in length,
+    /// Returns [`Error::InvalidRange`] when `y` has fewer values than `x`,
     /// and leaves the data set unchanged. The source indexes `y` by the
-    /// positions of `x` without a check, reading past a shorter `y`.
+    /// positions of `x` without a check, reading past a shorter `y`; values of
+    /// a longer `y` beyond `x.len()` are ignored, as the source's loop over
+    /// `x` ignores them.
     pub fn add_data_slices(&mut self, x: &[f64], y: &[f64]) -> Result<()> {
-        if x.len() != y.len() {
+        if y.len() < x.len() {
             return Err(Error::InvalidRange(format!(
                 "regression through the origin: {} x values but {} y values",
                 x.len(),
