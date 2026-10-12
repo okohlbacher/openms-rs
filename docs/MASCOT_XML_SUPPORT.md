@@ -37,7 +37,7 @@ direct TOPP consumers of this header.
 | `MascotXMLFile()` | `MascotXmlFile::new` (also `Default`) |
 | `void load(const std::string& filename, ProteinIdentification&, PeptideIdentificationList&, const SpectrumMetaDataLookup&)` | `MascotXmlFile::load` and free `load`, returning `MascotXmlResult`; the three out-parameters become its three fields |
 | `void load(const std::string& filename, ProteinIdentification&, PeptideIdentificationList&, std::map<std::string, std::vector<AASequence>>&, const SpectrumMetaDataLookup&)` | `MascotXmlFile::load_with_peptides` and free `load_with_peptides`. The `[in,out]` map is taken by shared reference: the source never writes to it |
-| `static void initializeLookup(SpectrumMetaDataLookup&, const PeakMap&, const std::string& scan_regex = "")` | `MascotXmlFile::initialize_lookup`, returning the lookup plus the warnings the source logs. A non-empty `scan_regex` (white space included, as in the source) replaces the defaults and is registered as `TitleReferenceFormat::Regex`, compiled by `concept::boost_regex` and evaluated by `format::spectrum_meta_data_lookup`; an expression without a named group is `Error::InvalidValue` (the source's `IllegalArgument`), as is one that does not compile (`boost::regex_error`). Tier 1: `tests/mascot_xml_regex.rs` (lane F3a, wave 4) |
+| `static void initializeLookup(SpectrumMetaDataLookup&, const PeakMap&, const std::string& scan_regex = "")` | `MascotXmlFile::initialize_lookup`, returning the lookup plus the warnings the source logs. A non-empty `scan_regex` (white space included, as in the source) replaces the defaults and is registered as `TitleReferenceFormat::Regex`, compiled by `concept::boost_regex` and evaluated by `metadata::spectrum_meta_data_lookup`; an expression without a named group is `Error::InvalidValue` (the source's `IllegalArgument`), as is one that does not compile (`boost::regex_error`). Tier 1: `tests/mascot_xml_regex.rs` (lane F3a, wave 4) |
 
 Rust-only surface, all native: `read`, `read_with_peptides`,
 `read_with_options`, `read_with_registry`, `ReadLimits`, `MascotXmlResult`,
@@ -295,7 +295,7 @@ flanking residues, sequences and every string.
 ## Deferred
 
 - `METADATA/SpectrumLookup.h` and `METADATA/SpectrumMetaDataLookup.h` are
-  ported as such in `format::spectrum_meta_data_lookup` (their
+  ported as such in `metadata::spectrum_meta_data_lookup` (their
   regular-expression path, lane F3a); this reader keeps its own title lookup
   for the three default formats and delegates a caller-supplied `scan_regex`
   to that module. `METADATA/SpectrumNativeIDParser.h` stays unported.

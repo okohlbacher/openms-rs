@@ -679,34 +679,10 @@ fn parse_int(value: &str) -> Result<i64> {
     })
 }
 
-/// `StringUtils::toInt64`: leading and trailing spaces, tabs, line feeds and
-/// carriage returns are skipped, one leading `+` is dropped, and the rest
-/// must be `std::from_chars` input for an `Int64` (an optional `-`, then
-/// decimal digits, in range). `None` where the source throws
-/// `Exception::ConversionError`.
-///
-/// As in the source, `"+-5"` reads as -5: the `+` is dropped before
-/// `from_chars`, which accepts the `-`.
+/// `StringUtils::toInt64` ([`crate::concept::string_conversion::to_int64`]);
+/// `None` where the source throws `Exception::ConversionError`.
 pub(crate) fn source_to_int64(text: &str) -> Option<i64> {
-    let is_ws = |c: char| matches!(c, ' ' | '\t' | '\n' | '\r');
-    let trimmed = text.trim_start_matches(is_ws);
-    if trimmed.is_empty() {
-        return None;
-    }
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    let digits_start = usize::from(body.starts_with('-'));
-    let digits = body[digits_start..]
-        .bytes()
-        .take_while(u8::is_ascii_digit)
-        .count();
-    if digits == 0 {
-        return None;
-    }
-    let end = digits_start + digits;
-    if !body[end..].chars().all(is_ws) {
-        return None;
-    }
-    body[..end].parse::<i64>().ok()
+    crate::concept::string_conversion::to_int64(text).ok()
 }
 
 fn compare<T: PartialOrd + ?Sized>(op: &str, lhs: &T, rhs: &T) -> bool {

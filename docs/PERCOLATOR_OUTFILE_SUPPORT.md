@@ -4,7 +4,7 @@
 ported to `src/format/percolator_outfile.rs`, together with the
 regular-expression path of `METADATA/SpectrumLookup.h` and
 `METADATA/SpectrumMetaDataLookup.h`, ported to
-`src/format/spectrum_meta_data_lookup.rs`. Tests are in
+`src/metadata/spectrum_meta_data_lookup.rs` (group F's separate port of the regular-expression path was merged into it at the wave-4 integration). Tests are in
 `tests/percolator_outfile.rs`; fixtures, hashes and source anchors are in
 `tests/data/percolator_outfile_provenance.json`.
 

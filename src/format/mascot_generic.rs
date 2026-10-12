@@ -192,30 +192,17 @@ fn source_int32(text: &str) -> Option<i32> {
     crate::concept::string_conversion::to_int32(text).ok()
 }
 
-/// `std::stoi`, used only by the source's `MSLEVEL=` branch: leading
-/// whitespace, an optional sign and the longest leading digit run, ignoring
-/// whatever follows. `None` stands for the source's `std::invalid_argument`
-/// and `Some(Err(()))` for its `std::out_of_range`.
+/// `std::stoi`, used only by the source's `MSLEVEL=` branch
+/// ([`crate::concept::string_conversion::c_stoi`]). `None` stands for the
+/// source's `std::invalid_argument` and `Some(Err(()))` for its
+/// `std::out_of_range`.
 fn source_stoi(text: &str) -> Option<std::result::Result<i32, ()>> {
-    let bytes = text.as_bytes();
-    let mut index = 0;
-    while index < bytes.len() && matches!(bytes[index], b' ' | b'\t' | b'\n' | b'\r' | 0x0b | 0x0c)
-    {
-        index += 1;
+    use crate::concept::string_conversion::{StoiFailure, c_stoi};
+    match c_stoi(text) {
+        Ok(value) => Some(Ok(value)),
+        Err(StoiFailure::OutOfRange) => Some(Err(())),
+        Err(StoiFailure::NoConversion) => None,
     }
-    let start = index;
-    if index < bytes.len() && matches!(bytes[index], b'+' | b'-') {
-        index += 1;
-    }
-    let digits = index;
-    while index < bytes.len() && bytes[index].is_ascii_digit() {
-        index += 1;
-    }
-    if index == digits {
-        return None;
-    }
-    // Every byte in start..index is ASCII, so the range is a character boundary.
-    Some(text.get(start..index)?.parse::<i32>().map_err(|_| ()))
 }
 
 /// The suffix of `text` starting at byte `offset`, as `StringUtils::substr`

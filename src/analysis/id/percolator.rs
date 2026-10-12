@@ -1335,41 +1335,10 @@ fn model_text(model: &PercolatorModel) -> Result<String> {
     Ok(text)
 }
 
-/// `std::ostream << double` at precision 17 (`%.17g`).
+/// `std::ostream << double` at precision 17 (`%.17g`):
+/// [`crate::concept::numeric_formatting::ostream_g`].
 fn format_g17(value: f64) -> String {
-    if value.is_nan() {
-        return if value.is_sign_negative() {
-            "-nan"
-        } else {
-            "nan"
-        }
-        .into();
-    }
-    if value.is_infinite() {
-        return if value < 0.0 { "-inf" } else { "inf" }.into();
-    }
-    if value == 0.0 {
-        return if value.is_sign_negative() { "-0" } else { "0" }.into();
-    }
-    let scientific = format!("{value:.16e}");
-    let (mantissa, exponent) = scientific.split_once('e').unwrap_or((&scientific, "0"));
-    let exponent: i32 = exponent.parse().unwrap_or(0);
-    if !(-4..17).contains(&exponent) {
-        let mantissa = trim_fraction(mantissa);
-        let sign = if exponent < 0 { '-' } else { '+' };
-        format!("{mantissa}e{sign}{:02}", exponent.abs())
-    } else {
-        let decimals = (16 - exponent).max(0) as usize;
-        trim_fraction(&format!("{value:.decimals$}")).to_owned()
-    }
-}
-
-fn trim_fraction(text: &str) -> &str {
-    if text.contains('.') {
-        text.trim_end_matches('0').trim_end_matches('.')
-    } else {
-        text
-    }
+    crate::concept::numeric_formatting::ostream_g(value, 17)
 }
 
 /// Deserialize a model written by [`save_model`] (`Percolator::loadModel`).
@@ -1487,76 +1456,22 @@ fn trim_ws(text: &str) -> &str {
     text.trim_matches([' ', '\t', '\r', '\n'])
 }
 
-/// The integer prefix `std::stol` reads: C whitespace, an optional sign,
-/// then decimal digits; `None` without digits or on overflow.
+/// `std::stol` on the 64-bit `long` of the source platforms
+/// ([`crate::concept::string_conversion::stoll`]); `None` where it throws.
 fn stol(text: &str) -> Option<i64> {
-    let text = text.trim_start_matches([' ', '\t', '\n', '\x0b', '\x0c', '\r']);
-    let bytes = text.as_bytes();
-    let mut end = usize::from(matches!(bytes.first(), Some(b'+' | b'-')));
-    let digits_start = end;
-    while end < bytes.len() && bytes[end].is_ascii_digit() {
-        end += 1;
-    }
-    if end == digits_start {
-        return None;
-    }
-    text[..end].parse::<i64>().ok()
+    crate::concept::string_conversion::stoll(text).ok()
 }
 
-/// `std::stoi`: [`stol`] limited to `int`.
+/// `std::stoi` ([`crate::concept::string_conversion::stoi`]); `None` where it
+/// throws.
 fn stoi(text: &str) -> Option<i32> {
-    stol(text).and_then(|v| i32::try_from(v).ok())
+    crate::concept::string_conversion::stoi(text).ok()
 }
 
-/// The floating prefix `std::stod` reads: C whitespace, an optional sign,
-/// then `inf`, `infinity` or `nan` (any case), or decimal digits with an
-/// optional fraction and exponent; `None` when no number starts the text.
-/// Hexadecimal floats, which `strtod` also reads, are not accepted.
+/// `std::stod` ([`crate::concept::string_conversion::stod`], hexadecimal
+/// floats included); `None` where it throws.
 fn stod(text: &str) -> Option<f64> {
-    let text = text.trim_start_matches([' ', '\t', '\n', '\x0b', '\x0c', '\r']);
-    let bytes = text.as_bytes();
-    let mut i = usize::from(matches!(bytes.first(), Some(b'+' | b'-')));
-    let negative = bytes.first() == Some(&b'-');
-    let rest = text[i..].to_ascii_lowercase();
-    if rest.starts_with("inf") {
-        return Some(if negative {
-            f64::NEG_INFINITY
-        } else {
-            f64::INFINITY
-        });
-    }
-    if rest.starts_with("nan") {
-        return Some(if negative { -f64::NAN } else { f64::NAN });
-    }
-    let digit = |i: usize| bytes.get(i).is_some_and(u8::is_ascii_digit);
-    let mut count = 0;
-    while digit(i) {
-        i += 1;
-        count += 1;
-    }
-    if bytes.get(i) == Some(&b'.') {
-        i += 1;
-        while digit(i) {
-            i += 1;
-            count += 1;
-        }
-    }
-    if count == 0 {
-        return None;
-    }
-    if matches!(bytes.get(i), Some(b'e' | b'E')) {
-        let mut j = i + 1;
-        if matches!(bytes.get(j), Some(b'+' | b'-')) {
-            j += 1;
-        }
-        if digit(j) {
-            while digit(j) {
-                j += 1;
-            }
-            i = j;
-        }
-    }
-    text[..i].parse::<f64>().ok()
+    crate::concept::string_conversion::stod(text).ok()
 }
 
 #[cfg(test)]

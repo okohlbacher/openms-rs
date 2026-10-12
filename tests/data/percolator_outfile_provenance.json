@@ -26,7 +26,7 @@
   {
    "path": "src/openms/include/OpenMS/METADATA/SpectrumLookup.h",
    "sha256": "ef733def587a9043ac2a368e8e9560499b193c1566b16c0dd24ce6897d524b2b",
-   "role": "Ported in part by src/format/spectrum_meta_data_lookup.rs: reference formats, readSpectra and the five find* look-ups."
+   "role": "Ported in part by src/metadata/spectrum_meta_data_lookup.rs: reference formats, readSpectra and the five find* look-ups."
   },
   {
    "path": "src/openms/source/METADATA/SpectrumLookup.cpp",
@@ -120,7 +120,7 @@
  ],
  "native_implementation": [
   "src/format/percolator_outfile.rs",
-  "src/format/spectrum_meta_data_lookup.rs"
+  "src/metadata/spectrum_meta_data_lookup.rs"
  ],
  "native_tests": [
   "tests/percolator_outfile.rs"

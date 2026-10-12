@@ -556,16 +556,10 @@ fn preflight_ion_series(
     Ok(())
 }
 
-/// Source `StringUtils::toInt32`: optional surrounding ASCII whitespace, an
-/// optional `+`, then a complete `i32`.
+/// Source `StringUtils::toInt32`:
+/// [`crate::concept::string_conversion::to_int32`].
 fn to_int32(text: &str) -> Result<i32> {
-    let trimmed = text.trim_matches([' ', '\t', '\n', '\r']);
-    let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    // `from_chars` does not accept a second sign.
-    if digits.starts_with('+') || digits.is_empty() {
-        return Err(conversion(text));
-    }
-    digits.parse::<i32>().map_err(|_| conversion(text))
+    crate::concept::string_conversion::to_int32(text).map_err(|_| conversion(text))
 }
 
 fn conversion(text: &str) -> Error {

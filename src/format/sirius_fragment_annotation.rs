@@ -136,34 +136,32 @@ pub fn extract_columnname_to_columnindex(csv: &CsvFile) -> Result<BTreeMap<Strin
     Ok(map)
 }
 
-/// Source `StringUtils::toInt32`: surrounding ASCII whitespace, one optional
-/// `+`, then a complete decimal `i32`.
+/// Source `StringUtils::toInt32`:
+/// [`crate::concept::string_conversion::to_int32`].
 fn source_int32(text: &str) -> Option<i32> {
-    let trimmed = text.trim_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    let digits = body.strip_prefix('-').unwrap_or(body);
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return None;
-    }
-    body.parse().ok()
+    crate::concept::string_conversion::to_int32(text).ok()
 }
 
-/// Source `StringUtils::toDouble` / `toFloat` for the decimal numbers SIRIUS
-/// writes: surrounding ASCII whitespace, one optional `+`, then a complete
-/// number; an out-of-range finite literal is refused, as `std::from_chars`
-/// refuses it. Rust's parser, not `from_chars`, reads the digits.
-fn source_real<T: std::str::FromStr + Copy + Into<f64>>(text: &str) -> Option<T> {
-    let trimmed = text.trim_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    if body.starts_with('+') {
-        return None;
+/// The numbers SIRIUS writes, read as `StringUtils::toDouble` (`f64`) or
+/// `toFloat` (`f32`) read them.
+trait SourceReal: Sized {
+    fn convert(text: &str) -> Option<Self>;
+}
+
+impl SourceReal for f64 {
+    fn convert(text: &str) -> Option<Self> {
+        crate::concept::string_conversion::to_double(text).ok()
     }
-    let value: T = body.parse().ok()?;
-    let lower = body.to_ascii_lowercase();
-    if value.into().is_infinite() && !lower.contains("inf") {
-        return None;
+}
+
+impl SourceReal for f32 {
+    fn convert(text: &str) -> Option<Self> {
+        crate::concept::string_conversion::to_float(text).ok()
     }
-    Some(value)
+}
+
+fn source_real<T: SourceReal>(text: &str) -> Option<T> {
+    T::convert(text)
 }
 
 fn conversion(what: &str, text: &str) -> Error {

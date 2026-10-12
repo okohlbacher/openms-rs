@@ -559,8 +559,11 @@ fn qc_file_conversions_follow_std_stod_and_std_stoi() {
     assert_eq!(get(".5").unwrap(), 0.5);
     assert!(get("abc").is_err());
     assert!(get("1e999").is_err());
-    // strtod reads hexadecimal floats; this port refuses them rather than guess
-    assert!(matches!(get("0x10"), Err(Error::Unsupported(_))));
+    // strtod reads hexadecimal floats, and so does the Release build's
+    // `ArrowIOHelpers::readMetaValues` (../oracle/F1a-arrow, d12: `0x1p3` is 8);
+    // the one `std::stod` port reads them too.
+    assert_eq!(get("0x10").unwrap(), 16.0);
+    assert_eq!(get("0x1p3").unwrap(), 8.0);
     let geti = |text: &str| file.get_cast_value_i32(&h, &strings(&[text]), "v", -1);
     assert_eq!(geti("42xyz").unwrap(), 42);
     assert_eq!(geti(" -7").unwrap(), -7);

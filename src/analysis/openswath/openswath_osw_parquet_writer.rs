@@ -200,132 +200,16 @@ impl TableBuilder {
 }
 
 /// `StringUtils::toDouble` (`StringUtils.cpp:239-276`): whether `text`
-/// converts, and to what.
-///
-/// Surrounding space, tab, CR and LF are skipped; `nan` (any case, with an
-/// optional parenthesised payload) is accepted first; then one `+` may
-/// precede a `std::from_chars` general-format number: an optional `-`,
-/// digits with an optional fraction and exponent, or `inf`/`infinity`/`nan`.
-/// A finite literal that overflows fails, as `result_out_of_range` does.
+/// converts, and to what: [`crate::concept::string_conversion::to_double`], the
+/// one port of the source's acceptance rules.
 fn to_double(text: &str) -> Option<f64> {
-    let bytes = text.as_bytes();
-    let first = skip_whitespace(bytes, 0);
-    if first == bytes.len() {
-        return None;
-    }
-    if let Some(length) = word_at(bytes, first, "nan") {
-        let mut end = first + length;
-        if bytes.get(end) == Some(&b'(') {
-            match bytes[end..].iter().position(|b| *b == b')') {
-                Some(close) => end += close + 1,
-                None => end = first,
-            }
-        }
-        if end != first && skip_whitespace(bytes, end) == bytes.len() {
-            return Some(f64::NAN);
-        }
-    }
-    let mut start = first;
-    if bytes[start] == b'+' {
-        start += 1;
-    }
-    let mut cursor = start;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let infinity = word_at(bytes, cursor, "infinity").or_else(|| word_at(bytes, cursor, "inf"));
-    let nan = word_at(bytes, cursor, "nan");
-    if let Some(length) = infinity.or(nan) {
-        cursor += length;
-    } else {
-        let integer_start = cursor;
-        while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-            cursor += 1;
-        }
-        let mut digits = cursor - integer_start;
-        if bytes.get(cursor) == Some(&b'.') {
-            let fraction_start = cursor + 1;
-            let mut fraction_end = fraction_start;
-            while bytes.get(fraction_end).is_some_and(u8::is_ascii_digit) {
-                fraction_end += 1;
-            }
-            if digits > 0 || fraction_end > fraction_start {
-                digits += fraction_end - fraction_start;
-                cursor = fraction_end;
-            }
-        }
-        if digits == 0 {
-            return None;
-        }
-        if matches!(bytes.get(cursor), Some(b'e' | b'E')) {
-            let mut exponent = cursor + 1;
-            if matches!(bytes.get(exponent), Some(b'+' | b'-')) {
-                exponent += 1;
-            }
-            let exponent_digits = exponent;
-            while bytes.get(exponent).is_some_and(u8::is_ascii_digit) {
-                exponent += 1;
-            }
-            if exponent > exponent_digits {
-                cursor = exponent;
-            }
-        }
-    }
-    let literal = text.get(start..cursor)?;
-    let value: f64 = if nan.is_some() && infinity.is_none() {
-        f64::NAN
-    } else {
-        literal.parse().ok()?
-    };
-    if value.is_infinite() && infinity.is_none() {
-        return None;
-    }
-    (skip_whitespace(bytes, cursor) == bytes.len()).then_some(value)
+    crate::concept::string_conversion::to_double(text).ok()
 }
 
-/// `StringUtils::toInt64` (`StringUtils.cpp:168-196`): surrounding
-/// whitespace skipped, one `+` allowed, then a complete decimal `i64`.
+/// `StringUtils::toInt64` (`StringUtils.cpp:168-196`):
+/// [`crate::concept::string_conversion::to_int64`].
 pub(crate) fn to_int64(text: &str) -> Option<i64> {
-    let bytes = text.as_bytes();
-    let mut cursor = skip_whitespace(bytes, 0);
-    if cursor == bytes.len() {
-        return None;
-    }
-    if bytes[cursor] == b'+' {
-        cursor += 1;
-    }
-    let number_start = cursor;
-    if bytes.get(cursor) == Some(&b'-') {
-        cursor += 1;
-    }
-    let digits_start = cursor;
-    while bytes.get(cursor).is_some_and(u8::is_ascii_digit) {
-        cursor += 1;
-    }
-    if cursor == digits_start {
-        return None;
-    }
-    let value = text.get(number_start..cursor)?.parse::<i64>().ok()?;
-    (skip_whitespace(bytes, cursor) == bytes.len()).then_some(value)
-}
-
-/// The source's four whitespace characters, skipped from `index` on.
-fn skip_whitespace(bytes: &[u8], mut index: usize) -> usize {
-    while bytes
-        .get(index)
-        .is_some_and(|b| matches!(*b, b' ' | b'\t' | b'\n' | b'\r'))
-    {
-        index += 1;
-    }
-    index
-}
-
-/// Length of a case-insensitive ASCII `word` at `bytes[index..]`, if present.
-fn word_at(bytes: &[u8], index: usize, word: &str) -> Option<usize> {
-    let candidate = bytes.get(index..index.checked_add(word.len())?)?;
-    candidate
-        .eq_ignore_ascii_case(word.as_bytes())
-        .then_some(word.len())
+    crate::concept::string_conversion::to_int64(text).ok()
 }
 
 /// `extractMetaDouble_`: a present, non-empty meta value that converts.

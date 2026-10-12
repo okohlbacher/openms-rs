@@ -58,8 +58,7 @@ fn parse_bound(token: &str, line: usize) -> Result<f64> {
 fn first_line_is_data(line: &str) -> bool {
     let normalized = line.trim().replace('\t', " ");
     let first = normalized.split(' ').next().unwrap_or("");
-    let first = first.strip_prefix('+').unwrap_or(first);
-    !first.is_empty() && first.parse::<f64>().is_ok()
+    crate::concept::string_conversion::to_double(first).is_ok()
 }
 
 /// Parse the content of a SWATH-window file into lower and upper bounds.

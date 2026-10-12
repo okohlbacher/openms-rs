@@ -13,8 +13,8 @@ Tests: `tests/mrm_ion_series.rs`, `tests/mrm_decoy.rs`, `tests/mrm_assay.rs`,
 `tests/mrm_assay_oracle.rs`. Provenance: `tests/data/mrm_assay_provenance.json`.
 Shared code touched: `src/chemistry/theoretical.rs` (`residue_loss_formulas`,
 the one residue neutral-loss table, now used by both the theoretical spectrum
-generator and the ion series) and `src/chemistry/decoy_random.rs` (a generic
-`shuffle_slice` for `Math::RandomShuffler` over indices).
+generator and the ion series) and `src/concept/math_functions/random_shuffler.rs` (the
+draw-limited, generic `shuffle_limited` of `Math::RandomShuffler`, used over indices).
 
 The TOPP consumers `OpenSwathAssayGenerator` and `OpenSwathDecoyGenerator` read and
 write TraML, transition TSV and PQP (`TraMLFile`, `TransitionTSVFile`,

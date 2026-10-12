@@ -51,18 +51,12 @@ use std::path::Path;
 /// refusing. Native ceiling; the source has none.
 pub const MAX_GRAPH_ELEMENTS: usize = 50_000_000;
 
-/// Source `std::stoull` acceptance: optional leading whitespace, an optional
-/// sign, at least one decimal digit, a value that fits 64 bits; anything after
-/// the digits is ignored. Only whether it throws matters here, because the
-/// group vertex's numeric label is never read again.
+/// Source `std::stoull` acceptance: whether the C library's conversion
+/// ([`crate::concept::string_conversion::stoul`]) converts. Only whether it
+/// throws matters here, because the group vertex's numeric label is never read
+/// again.
 fn stoull_accepts(text: &str) -> bool {
-    let body = text.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
-    let body = body
-        .strip_prefix('+')
-        .or_else(|| body.strip_prefix('-'))
-        .unwrap_or(body);
-    let digits: String = body.chars().take_while(char::is_ascii_digit).collect();
-    !digits.is_empty() && digits.parse::<u64>().is_ok()
+    crate::concept::string_conversion::stoul(text).is_ok()
 }
 
 /// Populate the IIMN meta values of `consensus_map` in place, the source

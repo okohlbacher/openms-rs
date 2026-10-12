@@ -16,7 +16,7 @@
  ],
  "package_revisions": {"test-data": "0cb15f23fccc6ea196bfafcfbbf020958f36c3a3"},
  "upstream_test_definition": "topp/CMakeLists.txt:3773-3789 (TOPP_SimpleSearchEngine_1, _1_out, _2, _2_out) at test-data 0cb15f2; comparison contract topp/FuzzyDiff.ini (ratio 1.01, absdiff 0.01) with whitelist 'IdentificationRun date' and 'SearchParameters id=\"SP_0\" db='",
- "native_implementation": ["src/analysis/id/simple_search_engine.rs", "src/chemistry/decoy_random.rs"],
+ "native_implementation": ["src/analysis/id/simple_search_engine.rs", "src/concept/math_functions/random_shuffler.rs"],
  "native_tests": ["tests/simple_search_engine.rs"],
  "support_document": "docs/SIMPLE_SEARCH_ENGINE_SUPPORT.md",
  "evidence_tier": "Tier 1 (retained C++ outputs, decoded idXML under the upstream FuzzyDiff contract; largest measured relative deviation 2.1e-10) for topp_simple_search_engine_1/2_matches_retained_output; tier 4 for the other six tests (one of them the progress sections, by source review).",

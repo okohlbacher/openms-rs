@@ -325,76 +325,14 @@ enum Stod {
     OutOfRange,
 }
 
-/// `std::stod(text)`: `strtod` on the longest valid prefix after leading C
-/// whitespace, throwing when nothing converts or the result is out of range.
-///
-/// Decimal numbers, `inf`/`infinity` and `nan` (optionally `nan(...)`) are
-/// recognised case-insensitively, as glibc does. **Hexadecimal floats are not**:
-/// `0x1p3` converts to `0` here (the prefix `0`), where glibc reads 8. Labels
-/// are split at spaces, commas, colons and semicolons, so this is the only
-/// `strtod` input class the port does not reproduce. Underflow to zero or a
-/// subnormal counts as out of range, as glibc's `ERANGE` does.
+/// `std::stod(text)`: [`crate::concept::string_conversion::stod_checked`], the
+/// one port (the Release build's `strtod` rules, hexadecimal floats included).
 fn stod(text: &str) -> Stod {
-    let bytes = text.as_bytes();
-    let mut start = 0;
-    while start < bytes.len() && matches!(bytes[start], b' ' | b'\t' | b'\n' | 0x0b | 0x0c | b'\r')
-    {
-        start += 1;
-    }
-    let rest = &text[start..];
-    let body = rest.strip_prefix(['+', '-']).unwrap_or(rest);
-    let sign_len = rest.len() - body.len();
-    let negative = rest.starts_with('-');
-    let lower = body.to_ascii_lowercase();
-    if lower.starts_with("inf") {
-        return Stod::Value(if negative {
-            f64::NEG_INFINITY
-        } else {
-            f64::INFINITY
-        });
-    }
-    if lower.starts_with("nan") {
-        return Stod::Value(if negative { -f64::NAN } else { f64::NAN });
-    }
-    let b = body.as_bytes();
-    let mut end = 0;
-    let mut mantissa_digits = 0;
-    let mut nonzero_digit = false;
-    while end < b.len() && b[end].is_ascii_digit() {
-        nonzero_digit |= b[end] != b'0';
-        end += 1;
-        mantissa_digits += 1;
-    }
-    if end < b.len() && b[end] == b'.' {
-        end += 1;
-        while end < b.len() && b[end].is_ascii_digit() {
-            nonzero_digit |= b[end] != b'0';
-            end += 1;
-            mantissa_digits += 1;
-        }
-    }
-    if mantissa_digits == 0 {
-        return Stod::Invalid;
-    }
-    if end < b.len() && (b[end] == b'e' || b[end] == b'E') {
-        let mut e = end + 1;
-        if e < b.len() && (b[e] == b'+' || b[e] == b'-') {
-            e += 1;
-        }
-        let digits_start = e;
-        while e < b.len() && b[e].is_ascii_digit() {
-            e += 1;
-        }
-        if e > digits_start {
-            end = e;
-        }
-    }
-    let literal = &rest[..sign_len + end];
-    match literal.parse::<f64>() {
-        Ok(value) if value.is_infinite() => Stod::OutOfRange,
-        Ok(value) if nonzero_digit && (value == 0.0 || value.is_subnormal()) => Stod::OutOfRange,
+    use crate::concept::string_conversion::{NumberFailure, stod_checked};
+    match stod_checked(text) {
         Ok(value) => Stod::Value(value),
-        Err(_) => Stod::Invalid,
+        Err(NumberFailure::NoConversion) => Stod::Invalid,
+        Err(NumberFailure::OutOfRange) => Stod::OutOfRange,
     }
 }
 

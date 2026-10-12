@@ -72,7 +72,7 @@
     "src/analysis/openswath/mrm_decoy.rs",
     "src/analysis/openswath/mrm_assay.rs",
     "src/chemistry/theoretical.rs",
-    "src/chemistry/decoy_random.rs"
+    "src/concept/math_functions/random_shuffler.rs"
   ],
   "native_tests": [
     "tests/mrm_ion_series.rs",

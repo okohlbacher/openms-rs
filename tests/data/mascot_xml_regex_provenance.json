@@ -28,7 +28,7 @@
  ],
  "native_implementation": [
   "src/format/mascot_xml.rs",
-  "src/format/spectrum_meta_data_lookup.rs",
+  "src/metadata/spectrum_meta_data_lookup.rs",
   "src/concept/boost_regex.rs"
  ],
  "native_tests": [

@@ -267,17 +267,10 @@ fn source_empty(id: &PeptideIdentification) -> bool {
         && id.higher_score_better
 }
 
-/// Source `StringUtils::toInt64`: optional surrounding ASCII whitespace, one
-/// optional `+`, then a complete decimal `i64`.
+/// Source `StringUtils::toInt64`:
+/// [`crate::concept::string_conversion::to_int64`].
 fn source_to_int64(text: &str) -> Option<i64> {
-    let is_ws = |c: char| matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c');
-    let trimmed = text.trim_matches(is_ws);
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    let digits = body.strip_prefix('-').unwrap_or(body);
-    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return None;
-    }
-    body.parse::<i64>().ok()
+    crate::concept::string_conversion::to_int64(text).ok()
 }
 
 /// Source `SpectrumNativeIDParser::extractScanNumber(native_id, regex,

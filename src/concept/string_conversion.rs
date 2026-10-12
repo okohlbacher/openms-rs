@@ -347,10 +347,48 @@ fn is_c_space(byte: u8) -> bool {
     matches!(byte, b' ' | b'\t' | b'\n' | 0x0b | 0x0c | b'\r')
 }
 
+/// Why `std::stoi` threw.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum StoiFailure {
+    /// `std::invalid_argument`: no digits follow the optional sign.
+    NoConversion,
+    /// `std::out_of_range`: the digits exceed `int`.
+    OutOfRange,
+}
+
+/// `std::stoi(text)`: leading C white space, an optional sign and the longest
+/// run of decimal digits, whatever follows ignored.
+pub(crate) fn c_stoi(text: &str) -> Result<i32, StoiFailure> {
+    let bytes = text.as_bytes();
+    let mut i = bytes.iter().take_while(|b| is_c_space(**b)).count();
+    let negative = bytes.get(i) == Some(&b'-');
+    if matches!(bytes.get(i), Some(b'+' | b'-')) {
+        i += 1;
+    }
+    let digits_start = i;
+    let mut magnitude: i128 = 0;
+    while let Some(&byte) = bytes.get(i).filter(|b| b.is_ascii_digit()) {
+        magnitude = (magnitude * 10 + i128::from(byte - b'0')).min(i128::from(i64::MAX) + 1);
+        i += 1;
+    }
+    if i == digits_start {
+        return Err(StoiFailure::NoConversion);
+    }
+    let value = if negative { -magnitude } else { magnitude };
+    i32::try_from(value).map_err(|_| StoiFailure::OutOfRange)
+}
+
+/// [`c_stoi`] with `std::stoi`'s two refusals as messages.
+pub(crate) fn stoi(text: &str) -> std::result::Result<i32, String> {
+    c_stoi(text).map_err(|failure| match failure {
+        StoiFailure::NoConversion => format!("stoi: no conversion of '{text}'"),
+        StoiFailure::OutOfRange => format!("stoi: '{text}' is out of the range of int"),
+    })
+}
+
 /// `std::stoll(text)`: leading whitespace, an optional sign and the longest
 /// run of decimal digits, the rest ignored. `None` where `stoll` throws (no
 /// digits, or out of range).
-#[cfg(feature = "arrow")]
 fn c_stoll(text: &str) -> Option<i64> {
     let bytes = text.as_bytes();
     let mut i = bytes.iter().take_while(|b| is_c_space(**b)).count();
@@ -698,12 +736,27 @@ fn has_numeric_prefix(text: &str, float: bool) -> bool {
 /// converts, and `std::out_of_range` when the value overflows or is an inexact
 /// result below the smallest normal double (`ERANGE` in the C library).
 pub(crate) fn stod(text: &str) -> std::result::Result<f64, String> {
-    c_stod(text).ok_or_else(|| {
-        if has_numeric_prefix(text, true) {
-            format!("stod: '{text}' is out of range")
-        } else {
-            format!("stod: no conversion of '{text}'")
-        }
+    stod_checked(text).map_err(|failure| match failure {
+        NumberFailure::OutOfRange => format!("stod: '{text}' is out of range"),
+        NumberFailure::NoConversion => format!("stod: no conversion of '{text}'"),
+    })
+}
+
+/// Why a C library conversion threw.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum NumberFailure {
+    /// `std::invalid_argument`: no number starts the text.
+    NoConversion,
+    /// `std::out_of_range`: `ERANGE`.
+    OutOfRange,
+}
+
+/// [`stod`] with its two refusals as a type.
+pub(crate) fn stod_checked(text: &str) -> Result<f64, NumberFailure> {
+    c_stod(text).ok_or(if has_numeric_prefix(text, true) {
+        NumberFailure::OutOfRange
+    } else {
+        NumberFailure::NoConversion
     })
 }
 
@@ -714,7 +767,6 @@ pub(crate) fn stod(text: &str) -> std::result::Result<f64, String> {
 ///
 /// `std::invalid_argument` ("no conversion") when no digit follows, and
 /// `std::out_of_range` when the digits exceed `i64`.
-#[cfg(feature = "arrow")]
 pub(crate) fn stoll(text: &str) -> std::result::Result<i64, String> {
     c_stoll(text).ok_or_else(|| {
         if has_numeric_prefix(text, false) {
@@ -939,7 +991,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "arrow")]
     fn stoll_follows_the_c_library() {
         assert_eq!(stoll("12"), Ok(12));
         assert_eq!(stoll("\x0b\x0c 7"), Ok(7));

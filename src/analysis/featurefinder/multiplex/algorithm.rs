@@ -375,8 +375,7 @@ impl FeatureFinderMultiplexParameters {
 /// `StringUtils::toInt32` on one side of a `min:max` range: the trimmed text
 /// must be a whole 32-bit integer.
 fn to_int32(text: &str, key: &str) -> Result<i32> {
-    text.trim()
-        .parse::<i32>()
+    crate::concept::string_conversion::to_int32(text)
         .map_err(|_| bad(format!("{key}: could not convert '{text}' to an integer")))
 }
 

@@ -197,7 +197,7 @@ Every divergence, and why.
 
 `Math::RandomShuffler` was the last public member of the header without a
 counterpart here. Its exact semantics already existed, with an independent
-oracle, as the crate-private `DecoyRandom` in `src/chemistry/decoy_random.rs`.
+oracle, as the crate-private `DecoyRandom` (formerly `src/chemistry/decoy_random.rs`).
 That file moved to `src/concept/math_functions/random_shuffler.rs` (with its
 history), was generalised from `&mut [u8]` to any element type and became the
 public `RandomShuffler`; `chemistry::decoy_generator` now imports it from here

@@ -158,16 +158,12 @@ pub fn extract_bracket_index(key: &str, prefix: &str) -> Result<usize> {
     };
     let digits = stripped.replace(']', "");
     let token = trim(&digits);
-    let value: i64 = token
-        .strip_prefix('+')
-        .unwrap_or(token)
-        .parse()
-        .map_err(|_| {
-            parse_error(
-                0,
-                format!("could not convert MzTab index {token:?} to an integer value"),
-            )
-        })?;
+    let value: i64 = crate::concept::string_conversion::to_int64(token).map_err(|_| {
+        parse_error(
+            0,
+            format!("could not convert MzTab index {token:?} to an integer value"),
+        )
+    })?;
     if value < 1 {
         return Err(parse_error(
             0,
@@ -3506,18 +3502,12 @@ fn parse_reference_list(text: &str, label: &str, line: usize) -> Result<Vec<i32>
     let mut values = Vec::with_capacity(fields.len());
     for field in fields {
         let token = trim(field);
-        let value: i32 = token
-            .strip_prefix('+')
-            .unwrap_or(token)
-            .parse()
-            .map_err(|_| {
-                parse_error(
-                    line + 1,
-                    format!(
-                        "could not convert MzTab {label} reference {token:?} to an integer value"
-                    ),
-                )
-            })?;
+        let value: i32 = crate::concept::string_conversion::to_int32(token).map_err(|_| {
+            parse_error(
+                line + 1,
+                format!("could not convert MzTab {label} reference {token:?} to an integer value"),
+            )
+        })?;
         values.push(value);
     }
     Ok(values)

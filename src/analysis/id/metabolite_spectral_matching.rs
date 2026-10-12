@@ -279,20 +279,10 @@ fn extract_ccs(spectrum: &MSSpectrum, mz: f64, charge: i32) -> Result<f64> {
     Ok(ImTypes::DRIFTTIME_NOT_SET)
 }
 
-/// Source `StringUtils::toDouble` for the plain decimal text a CCS meta value
-/// holds: surrounding ASCII whitespace and one `+` allowed, then a complete
-/// number; finite overflow refused.
+/// Source `StringUtils::toDouble` for the decimal text a CCS meta value
+/// holds: [`crate::concept::string_conversion::to_double`].
 fn source_to_double(text: &str) -> Option<f64> {
-    let trimmed = text.trim_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    if body.starts_with('+') {
-        return None;
-    }
-    let value: f64 = body.parse().ok()?;
-    if value.is_infinite() && !body.to_ascii_lowercase().contains("inf") {
-        return None;
-    }
-    Some(value)
+    crate::concept::string_conversion::to_double(text).ok()
 }
 
 /// A string meta value as the source's implicit `DataValue` to `std::string`

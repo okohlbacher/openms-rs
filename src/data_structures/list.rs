@@ -51,100 +51,30 @@ impl ListParse for String {
     }
 }
 impl ListParse for i32 {
+    /// `StringUtils::toInt32`: [`crate::concept::string_conversion::to_int32`],
+    /// the one port of its acceptance rules (a leading `+` is dropped before
+    /// `from_chars`, so `+-1` is -1 and `++1` is refused).
     fn from_list_item(text: &str) -> Result<Self> {
         check_bytes(text.len())?;
-        let token = trim(text);
-        // StringUtils removes one leading '+', then uses from_chars. This
-        // preserves its unusual acceptance of '+-1', but never '++1'.
-        let token = token.strip_prefix('+').unwrap_or(token);
-        if token.starts_with('+') {
-            return Err(invalid("invalid i32 list item"));
-        }
-        token.parse().map_err(|_| invalid("invalid i32 list item"))
+        crate::concept::string_conversion::to_int32(text)
+            .map_err(|_| invalid("invalid i32 list item"))
     }
-}
-fn special_float(text: &str) -> Option<f64> {
-    // The source's explicit unsigned NaN helper accepts arbitrary payload text
-    // through the first closing parenthesis. The signed from_chars path permits
-    // only the portable alphanumeric/underscore payload grammar.
-    if text.eq_ignore_ascii_case("nan") {
-        return Some(f64::NAN);
-    }
-    if text.len() >= 5
-        && text
-            .get(..3)
-            .is_some_and(|prefix| prefix.eq_ignore_ascii_case("nan"))
-        && text.as_bytes().get(3) == Some(&b'(')
-        && text.ends_with(')')
-        && !text[4..text.len() - 1].contains(')')
-    {
-        return Some(f64::NAN);
-    }
-    None
-}
-fn float_token(text: &str) -> Result<(&str, Option<f64>)> {
-    check_bytes(text.len())?;
-    let text = trim(text);
-    if let Some(value) = special_float(text) {
-        return Ok((text, Some(value)));
-    }
-    let token = text.strip_prefix('+').unwrap_or(text);
-    if token.starts_with('+') {
-        return Err(invalid("invalid floating-point list item"));
-    }
-    let unsigned = token.strip_prefix('-').unwrap_or(token);
-    let sign = if token.starts_with('-') { -1.0 } else { 1.0 };
-    if unsigned.eq_ignore_ascii_case("inf") || unsigned.eq_ignore_ascii_case("infinity") {
-        return Ok((token, Some(sign * f64::INFINITY)));
-    }
-    let nan = unsigned.eq_ignore_ascii_case("nan")
-        || (unsigned.len() >= 5
-            && unsigned
-                .get(..4)
-                .is_some_and(|s| s.eq_ignore_ascii_case("nan("))
-            && unsigned.ends_with(')')
-            && unsigned[4..unsigned.len() - 1]
-                .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || b == b'_'));
-    if nan {
-        return Ok((token, Some(sign * f64::NAN)));
-    }
-    Ok((token, None))
-}
-fn lost_nonzero_mantissa(token: &str, value: f64) -> bool {
-    value == 0.0
-        && token
-            .split(['e', 'E'])
-            .next()
-            .unwrap_or(token)
-            .bytes()
-            .any(|byte| matches!(byte, b'1'..=b'9'))
 }
 impl ListParse for f64 {
+    /// `StringUtils::toDouble`: [`crate::concept::string_conversion::to_double`].
     fn from_list_item(text: &str) -> Result<Self> {
-        let (token, special) = float_token(text)?;
-        if let Some(value) = special {
-            return Ok(value);
-        }
-        token
-            .parse::<f64>()
-            .ok()
-            .filter(|value| value.is_finite() && !lost_nonzero_mantissa(token, *value))
-            .ok_or_else(|| invalid("invalid, overflowing or underflowing f64 list item"))
+        check_bytes(text.len())?;
+        crate::concept::string_conversion::to_double(text)
+            .map_err(|_| invalid("invalid, overflowing or underflowing f64 list item"))
     }
 }
 impl ListParse for f32 {
+    /// `StringUtils::toFloat`: [`crate::concept::string_conversion::to_float`],
+    /// parsed as binary32 itself, without an intermediate double rounding.
     fn from_list_item(text: &str) -> Result<Self> {
-        let (token, special) = float_token(text)?;
-        if let Some(value) = special {
-            return Ok(value as f32);
-        }
-        // Direct binary32 parsing avoids an intermediate double-rounding step.
-        token
-            .parse::<f32>()
-            .ok()
-            .filter(|value| value.is_finite() && !lost_nonzero_mantissa(token, f64::from(*value)))
-            .ok_or_else(|| invalid("invalid, overflowing or underflowing f32 list item"))
+        check_bytes(text.len())?;
+        crate::concept::string_conversion::to_float(text)
+            .map_err(|_| invalid("invalid, overflowing or underflowing f32 list item"))
     }
 }
 

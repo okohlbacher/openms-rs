@@ -47,7 +47,7 @@ Series B.
 
 | | resolved | scheduled | deferred | decision owed | total |
 |---|---:|---:|---:|---:|---:|
-| Open items OI-01..OI-116 | 14 | 56 | 23 | 23 | 116 |
+| Open items OI-01..OI-116 | 15 | 55 | 23 | 23 | 116 |
 | Lead decisions DEC-1..DEC-18 | 2 | 1 | 0 | 15 | 18 |
 | New decisions found here (DEC-19..DEC-21) | | | | 3 | 3 |
 
@@ -122,7 +122,7 @@ and the item row points to it.
 | OI-40 | Three deferred `MSExperiment` members | **scheduled** B · BLOCK-03 | Ported on the `MSExperiment` branch B0 is integrating (`set_2d_data_mass_traces`, `first_product_spectrum_index`, `Display`, with Release oracle cases). Not on `main` yet. | B0 merges; the verifier re-checks. |
 | OI-41 | The rest of `IMDataConverter.h` | **scheduled** E · CORE-18 (IONMOBILITY) | `src/kernel/im_data_converter.rs` has none of `reshapeIMFrameTo*`, `splitExperimentByIonMobility`, `set/getIMUnit`. Waits for `IonMobilityBinning`, `FeatureFinderMetabo`, `FeatureFinderMultiplex`, `SpectraMerger`, `IMDataArrayUtils`. | |
 | OI-42 | The cross-voltage FAIMS merge has no C++ oracle | **decision owed** → DEC-5 | Unchanged. | |
-| OI-43 | `Math::RandomShuffler` duplicates the `pub(crate)` `DecoyRandom` | **scheduled** B · BLOCK-06 (`MathFunctions.h`) | `src/chemistry/decoy_random.rs:33`. The duplication rule answers the inventory's question: promote `DecoyRandom` into `math` (a sink, so no cycle) and have both consumers use it. | |
+| OI-43 | `Math::RandomShuffler` duplicates the `pub(crate)` `DecoyRandom` | **resolved** by lane B8b (promotion) and the wave-4 integration (one type) | `concept::math_functions::RandomShuffler` is the one implementation: the decoy generator, the OpenSWATH and search-engine shuffles use its draw-limited `shuffle_limited`, and `math::random_shuffler` re-exports it for `math` code. | `tests/protease_db.rs`, `tests/ransac.rs`, `tests/decoy.rs` pass on it. |
 | OI-44 | `TraceFitterParams`' `Param` round trip is `i32`-bounded | **scheduled** B · SHARED-01, lane B6 | `tests/trace_fitter.rs:381-389` pins the disagreement. `crate::param`'s restriction check converts to `i32` although `Param.h` is `complete`; the fix is in `crate::param`, under the `DefaultParamHandler` trait lane's round-trip contract. | |
 | OI-45 | LM solver fidelity beyond the fixtures, macOS arm64 | **deferred** | The user's 2026-09-15 platform decision makes Linux x86_64 Release the reference on every target; there the solver is bit-exact on all 141 traced fits (`docs/TRACE_FITTER_SUPPORT.md`, *Known gap*). `tests/gauss_trace_fitter.rs:1593` is report-only by design. | Nothing, unless the platform decision is revisited. |
 | OI-46 | Is bitwise equality with Eigen required? | **decision owed** → DEC-6 | `docs/EGH_TRACE_FITTER_SUPPORT.md:369` "not yet recorded". | |

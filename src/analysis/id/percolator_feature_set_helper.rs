@@ -639,13 +639,8 @@ fn numeric(meta: &MetaInfo, key: &str) -> Result<f64> {
     match value.data() {
         MetaValueData::Integer(number) => Ok(*number as f64),
         MetaValueData::Float(number) => Ok(*number),
-        MetaValueData::String(text) => {
-            let trimmed = text.trim();
-            let unsigned = trimmed.strip_prefix('+').unwrap_or(trimmed);
-            unsigned
-                .parse::<f64>()
-                .map_err(|_| invalid(format!("meta value '{key}' is not numeric: '{text}'")))
-        }
+        MetaValueData::String(text) => crate::concept::string_conversion::to_double(text)
+            .map_err(|_| invalid(format!("meta value '{key}' is not numeric: '{text}'"))),
         _ => Err(invalid(format!("meta value '{key}' is not numeric"))),
     }
 }

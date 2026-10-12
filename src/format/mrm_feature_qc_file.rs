@@ -52,176 +52,36 @@ pub type HeaderMap = BTreeMap<String, usize>;
 
 const META_VALUE_PATTERN: &str = "metaValue_(.+)_(l|u)";
 
-/// C `isspace` in the "C" locale, as `strtod` and `strtol` skip it.
-fn is_c_space(byte: u8) -> bool {
-    matches!(byte, b' ' | b'\t' | b'\n' | 0x0b | 0x0c | b'\r')
-}
-
-fn conversion(function: &str, text: &str) -> Error {
-    Error::InvalidValue(format!("{function}: no conversion of '{text}'"))
-}
-
-/// `std::stod`: the longest `strtod` prefix, which may be followed by anything.
+/// `std::stod`: the longest `strtod` prefix, which may be followed by anything:
+/// [`crate::concept::string_conversion::stod`], the one port, whose rules
+/// (hexadecimal floats included) the Release build measured.
 ///
-/// Leading C whitespace is skipped. `inf`, `infinity` and `nan` are accepted
-/// in any case. A decimal literal that overflows to infinity or underflows to
-/// zero is the source's `std::out_of_range`, and a string with no number is its
-/// `std::invalid_argument`; both are [`Error::InvalidValue`] here. Hexadecimal
-/// floating literals, which `strtod` also reads, are refused as
-/// [`Error::Unsupported`].
+/// A decimal literal that overflows or underflows is the source's
+/// `std::out_of_range` and a string with no number its `std::invalid_argument`;
+/// both are [`Error::InvalidValue`] here.
 pub(crate) fn std_stod(text: &str) -> Result<f64> {
-    let bytes = text.as_bytes();
-    let mut i = 0;
-    while bytes.get(i).is_some_and(|&b| is_c_space(b)) {
-        i += 1;
-    }
-    let start = i;
-    if matches!(bytes.get(i), Some(b'+' | b'-')) {
-        i += 1;
-    }
-    let ci = |at: usize, word: &str| {
-        bytes
-            .get(at..at + word.len())
-            .is_some_and(|w| w.eq_ignore_ascii_case(word.as_bytes()))
-    };
-    if ci(i, "infinity") || ci(i, "inf") {
-        let negative = bytes[start] == b'-';
-        return Ok(if negative {
-            f64::NEG_INFINITY
-        } else {
-            f64::INFINITY
-        });
-    }
-    if ci(i, "nan") {
-        return Ok(f64::NAN);
-    }
-    if bytes.get(i) == Some(&b'0') && matches!(bytes.get(i + 1), Some(b'x' | b'X')) {
-        let digit_at = |at: usize| bytes.get(at).is_some_and(u8::is_ascii_hexdigit);
-        if digit_at(i + 2) || (bytes.get(i + 2) == Some(&b'.') && digit_at(i + 3)) {
-            return Err(Error::Unsupported(
-                "std::stod: hexadecimal floating literals are not read".into(),
-            ));
-        }
-    }
-    let int_start = i;
-    while bytes.get(i).is_some_and(u8::is_ascii_digit) {
-        i += 1;
-    }
-    let mut digits = i - int_start;
-    if bytes.get(i) == Some(&b'.') {
-        let frac_start = i + 1;
-        let mut j = frac_start;
-        while bytes.get(j).is_some_and(u8::is_ascii_digit) {
-            j += 1;
-        }
-        if digits > 0 || j > frac_start {
-            digits += j - frac_start;
-            i = j;
-        }
-    }
-    if digits == 0 {
-        return Err(conversion("stod", text));
-    }
-    if matches!(bytes.get(i), Some(b'e' | b'E')) {
-        let mut j = i + 1;
-        if matches!(bytes.get(j), Some(b'+' | b'-')) {
-            j += 1;
-        }
-        let exponent_start = j;
-        while bytes.get(j).is_some_and(u8::is_ascii_digit) {
-            j += 1;
-        }
-        if j > exponent_start {
-            i = j;
-        }
-    }
-    let literal = &text[start..i];
-    let value: f64 = literal.parse().map_err(|_| conversion("stod", text))?;
-    let nonzero_mantissa = literal
-        .bytes()
-        .take_while(|b| !matches!(b, b'e' | b'E'))
-        .any(|b| (b'1'..=b'9').contains(&b));
-    if value.is_infinite() || (value == 0.0 && nonzero_mantissa) {
-        return Err(Error::InvalidValue(format!(
-            "stod: '{text}' is out of the range of double"
-        )));
-    }
-    Ok(value)
+    crate::concept::string_conversion::stod(text).map_err(Error::InvalidValue)
 }
 
-/// `std::stoi`: the longest `strtol` prefix, which may be followed by anything.
+/// `std::stoi`: the longest `strtol` prefix, which may be followed by anything
+/// ([`crate::concept::string_conversion::stoi`]).
 ///
-/// Leading C whitespace and one sign are skipped. A string with no digits is
-/// the source's `std::invalid_argument` and a value outside `i32` its
-/// `std::out_of_range`; both are [`Error::InvalidValue`].
+/// A string with no digits is the source's `std::invalid_argument` and a value
+/// outside `i32` its `std::out_of_range`; both are [`Error::InvalidValue`].
 pub(crate) fn std_stoi(text: &str) -> Result<i32> {
-    let bytes = text.as_bytes();
-    let mut i = 0;
-    while bytes.get(i).is_some_and(|&b| is_c_space(b)) {
-        i += 1;
-    }
-    let negative = bytes.get(i) == Some(&b'-');
-    if matches!(bytes.get(i), Some(b'+' | b'-')) {
-        i += 1;
-    }
-    let digits_start = i;
-    let mut magnitude: i128 = 0;
-    while let Some(&b) = bytes.get(i).filter(|b| b.is_ascii_digit()) {
-        magnitude = (magnitude * 10 + i128::from(b - b'0')).min(i128::from(i64::MAX) + 1);
-        i += 1;
-    }
-    if i == digits_start {
-        return Err(conversion("stoi", text));
-    }
-    let value = if negative { -magnitude } else { magnitude };
-    i32::try_from(value)
-        .map_err(|_| Error::InvalidValue(format!("stoi: '{text}' is out of the range of int")))
+    crate::concept::string_conversion::stoi(text).map_err(Error::InvalidValue)
 }
 
-/// `StringUtils::toDouble`, the strict conversion `MRMFeaturePickerFile` uses:
-/// surrounding whitespace is allowed and the rest must be one number.
-///
-/// One leading `+` is skipped, `nan` (with an optional parenthesised payload)
-/// and `inf`/`infinity` are read in any case, a finite literal that overflows
-/// is an error, and hexadecimal floats are not read.
+/// `StringUtils::toDouble`, the strict conversion `MRMFeaturePickerFile` uses
+/// ([`crate::concept::string_conversion::to_double`]).
 pub(crate) fn string_utils_to_double(text: &str) -> Result<f64> {
-    let failure = || {
-        Error::InvalidValue(format!(
-            "Could not convert string '{text}' to a double value"
-        ))
-    };
-    let trimmed = text.trim_matches(|c: char| c.is_ascii() && is_c_space(c as u8));
-    if trimmed.is_empty() {
-        return Err(failure());
-    }
-    let lower = trimmed.to_ascii_lowercase();
-    if lower == "nan" || (lower.starts_with("nan(") && lower.ends_with(')')) {
-        return Ok(f64::NAN);
-    }
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    let is_infinity_word = {
-        let word = body.strip_prefix('-').unwrap_or(body).to_ascii_lowercase();
-        word == "inf" || word == "infinity"
-    };
-    if body.starts_with(|c: char| c.is_ascii_alphabetic()) && !is_infinity_word {
-        return Err(failure());
-    }
-    let value: f64 = body.parse().map_err(|_| failure())?;
-    if value.is_infinite() && !is_infinity_word {
-        return Err(failure());
-    }
-    Ok(value)
+    crate::concept::string_conversion::to_double(text).map_err(Error::InvalidValue)
 }
 
-/// `StringUtils::toInt32`, the strict conversion `MRMFeaturePickerFile` uses.
+/// `StringUtils::toInt32`, the strict conversion `MRMFeaturePickerFile` uses
+/// ([`crate::concept::string_conversion::to_int32`]).
 pub(crate) fn string_utils_to_int32(text: &str) -> Result<i32> {
-    let trimmed = text.trim_matches(|c: char| c.is_ascii() && is_c_space(c as u8));
-    let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
-    body.parse::<i32>().map_err(|_| {
-        Error::InvalidValue(format!(
-            "Could not convert string '{text}' to an integer value"
-        ))
-    })
+    crate::concept::string_conversion::to_int32(text).map_err(Error::InvalidValue)
 }
 
 /// Loads and stores [`MRMFeatureQC`] files.

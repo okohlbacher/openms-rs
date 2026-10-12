@@ -312,22 +312,14 @@ fn string_entry(name: &str, value: &str, description: &str, valid: &[&str]) -> P
     entry
 }
 
-/// `StringUtils::toDouble`: surrounding whitespace ignored.
+/// `StringUtils::toDouble`: [`crate::concept::string_conversion::to_double`].
 fn to_double(text: &str) -> Result<f64> {
-    text.trim_matches([' ', '\t', '\n', '\r'])
-        .parse::<f64>()
-        .map_err(|_| {
-            bad(format!(
-                "Could not convert string '{text}' to a double value"
-            ))
-        })
+    crate::concept::string_conversion::to_double(text).map_err(bad)
 }
 
-/// `StringUtils::toInt32`: surrounding whitespace ignored.
+/// `StringUtils::toInt32`: [`crate::concept::string_conversion::to_int32`].
 fn to_int32(text: &str) -> Result<i32> {
-    text.trim_matches([' ', '\t', '\n', '\r'])
-        .parse::<i32>()
-        .map_err(|_| bad(format!("Could not convert string '{text}' to an int value")))
+    crate::concept::string_conversion::to_int32(text).map_err(bad)
 }
 
 /// `StringUtils::split(s, c)`: empty input gives no parts.
