@@ -451,6 +451,9 @@ fn aggregate_group(spectra: &[MSSpectrum]) -> Result<MSSpectrum> {
     add_up_ms_spectra(spectra, -1.0, true)
 }
 
+/// The merge function of [`aggregating_consumer`]: a group of spectra to one.
+pub type AggregateFn = fn(&[MSSpectrum]) -> Result<MSSpectrum>;
+
 /// An [`MSDataAggregatingConsumer`] with the source's merge,
 /// `MSDataAggregatingConsumer(IMSDataConsumer* next_consumer)`.
 ///
@@ -488,6 +491,6 @@ fn aggregate_group(spectra: &[MSSpectrum]) -> Result<MSSpectrum> {
 /// ```
 pub fn aggregating_consumer(
     next_consumer: &mut dyn MSDataConsumer,
-) -> MSDataAggregatingConsumer<'_, fn(&[MSSpectrum]) -> Result<MSSpectrum>> {
+) -> MSDataAggregatingConsumer<'_, AggregateFn> {
     MSDataAggregatingConsumer::new(next_consumer, aggregate_group)
 }

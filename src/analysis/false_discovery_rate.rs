@@ -1852,7 +1852,7 @@ impl FalseDiscoveryRate {
             return Ok(());
         }
         let range = |run: &ProteinIdentification| -> Result<(i32, i32)> {
-            Ok(run.search_parameters.charge_range()?)
+            run.search_parameters.charge_range()
         };
         let mut result = ids.to_vec();
         if self.treat_runs_separately {

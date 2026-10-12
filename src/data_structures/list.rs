@@ -51,7 +51,7 @@ impl ListParse for String {
     }
 }
 impl ListParse for i32 {
-    /// `StringUtils::toInt32`: [`crate::concept::string_conversion::to_int32`],
+    /// `StringUtils::toInt32`: `concept::string_conversion::to_int32`,
     /// the one port of its acceptance rules (a leading `+` is dropped before
     /// `from_chars`, so `+-1` is -1 and `++1` is refused).
     fn from_list_item(text: &str) -> Result<Self> {
@@ -61,7 +61,7 @@ impl ListParse for i32 {
     }
 }
 impl ListParse for f64 {
-    /// `StringUtils::toDouble`: [`crate::concept::string_conversion::to_double`].
+    /// `StringUtils::toDouble`: `concept::string_conversion::to_double`.
     fn from_list_item(text: &str) -> Result<Self> {
         check_bytes(text.len())?;
         crate::concept::string_conversion::to_double(text)
@@ -69,7 +69,7 @@ impl ListParse for f64 {
     }
 }
 impl ListParse for f32 {
-    /// `StringUtils::toFloat`: [`crate::concept::string_conversion::to_float`],
+    /// `StringUtils::toFloat`: `concept::string_conversion::to_float`,
     /// parsed as binary32 itself, without an intermediate double rounding.
     fn from_list_item(text: &str) -> Result<Self> {
         check_bytes(text.len())?;

@@ -1180,7 +1180,7 @@ impl SimpleSearchEngineAlgorithm {
                 // `SPEC_UNKNOWN`, `SPEC_NOCTERM` and `SPEC_NONTERM` are values
                 // `ProteaseDigestion::digest` refuses; the search never holds one.
                 other => {
-                    return Err(bad(&format!(
+                    return Err(bad(format!(
                         "unsupported peptide enzyme specificity {}",
                         other.name()
                     )));
